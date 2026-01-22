@@ -20,10 +20,7 @@ internal class KeyboardInputHookTests
 		// Arrange
 		TestGlobalHook hook = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHook>(hook));
 
