@@ -20,6 +20,16 @@ namespace DataOrganizer.Services;
 public sealed class KeyboardInputHook : IKeyboardInputHook
 {
 	#region Properties
+	/// <summary>
+	/// List of files with hotkeys.
+	/// </summary>
+	public List<FileModelDto> Files { get; } = [];
+
+	/// <summary>
+	/// Stack of pressed keys.
+	/// </summary>
+	public List<CodeMaskPair> InputStack { get; } = [];
+
 	/// <inheritdoc />
 	public bool IsRunning => _hook.IsRunning;
 	#endregion
@@ -34,18 +44,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="IUIThreadDispatcher" />
 	private readonly IUIThreadDispatcher _dispatcher;
 
-	/// <summary>
-	/// List of files with hotkeys.
-	/// </summary>
-	private readonly List<FileModelDto> _files = [];
-
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
-
-	/// <summary>
-	/// Stack of pressed keys.
-	/// </summary>
-	private readonly List<CodeMaskPair> _inputStack = [];
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -102,9 +102,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_hook.KeyReleased -= Hook_KeyReleased;
 
-		_files.Clear();
+		Files.Clear();
 
-		_inputStack.Clear();
+		InputStack.Clear();
 
 		_hook.Dispose();
 	}
@@ -151,9 +151,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	{
 		_logger.LogInformation("Stop global keyboard input tracking");
 
-		_files.Clear();
+		Files.Clear();
 
-		_inputStack.Clear();
+		InputStack.Clear();
 
 		_hook.Stop();
 	}
@@ -175,7 +175,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					.WaitAsync(token)
 					.ConfigureAwait(false);
 
-				_files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
+				Files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
 			}
 			finally
 			{
@@ -199,7 +199,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				.WaitAsync()
 				.ConfigureAwait(false);
 
-			if (_files.Count == 0)
+			if (Files.Count == 0)
 			{
 				return;
 			}
@@ -214,22 +214,22 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				return;
 			}
 
-			if (_inputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
 			{
-				_inputStack.RemoveAt(0);
+				InputStack.RemoveAt(0);
 			}
 
-			_inputStack.Add(new()
+			InputStack.Add(new()
 			{
 				Code = e.Data.KeyCode,
 				Mask = mask
 			});
 
-			foreach (FileModelDto file in _files)
+			foreach (FileModelDto file in Files)
 			{
 				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
 
-				if (!hotkeys.SequenceEqual(_inputStack.TakeLast(hotkeys.Length)))
+				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
 				{
 					continue;
 				}

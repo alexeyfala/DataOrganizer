@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
 using DataOrganizer.Services;
 using SharpHook;
 using SharpHook.Testing;
@@ -24,6 +25,14 @@ internal class KeyboardInputHookTests
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHook>(hook));
 
+		sut
+			.Files
+			.AddRange(TestUtils.CreateFilesDto(10));
+
+		sut
+			.InputStack
+			.AddRange(TestUtils.CreateCodeMaskPairs(10));
+
 		_ = hook.RunAsync();
 
 		sut.IsRunning
@@ -37,6 +46,14 @@ internal class KeyboardInputHookTests
 		sut.IsRunning
 			.Should()
 			.BeFalse();
+
+		sut.Files
+			.Should()
+			.BeEmpty();
+
+		sut.InputStack
+			.Should()
+			.BeEmpty();
 	}
 	#endregion
 }
