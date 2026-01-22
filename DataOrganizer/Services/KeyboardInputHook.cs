@@ -1,0 +1,281 @@
+﻿using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
+using Repository.DTO;
+using Repository.Interfaces;
+using Serilog;
+using Shared.Extensions;
+using Shared.Properties;
+using SharpHook;
+using SharpHook.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.Services;
+
+public sealed class KeyboardInputHook : IKeyboardInputHook
+{
+	#region Properties
+	/// <inheritdoc />
+	public bool IsRunning => _hook.IsRunning;
+	#endregion
+
+	#region Data
+	/// <inheritdoc cref="App" />
+	private readonly App _app;
+
+	/// <inheritdoc cref="IDbAccess" />
+	private readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IUIThreadDispatcher" />
+	private readonly IUIThreadDispatcher _dispatcher;
+
+	/// <summary>
+	/// List of files with hotkeys.
+	/// </summary>
+	private readonly List<FileModelDto> _files = [];
+
+	/// <inheritdoc cref="IGlobalHook" />
+	private readonly IGlobalHook _hook;
+
+	/// <summary>
+	/// Stack of pressed keys.
+	/// </summary>
+	private readonly List<CodeMaskPair> _inputStack = [];
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notificationService;
+
+	/// <inheritdoc cref="SemaphoreSlim" />
+	private readonly SemaphoreSlim _semaphore = new(1, 1);
+	#endregion
+
+	#region Constructors
+	public KeyboardInputHook(
+		App app,
+		IDbAccess dbAccess,
+		IGlobalHook hook,
+		ILogger logger,
+		INotificationService notificationService,
+		IUIThreadDispatcher dispatcher)
+	{
+		_app = app;
+
+		_dbAccess = dbAccess;
+
+		_dispatcher = dispatcher;
+
+		_hook = hook;
+
+		_logger = logger;
+
+		_notificationService = notificationService;
+
+		hook.KeyReleased += Hook_KeyReleased;
+
+		// TODO: Make test
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
+	/// </summary>
+	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
+	{
+		_ = HandleHookKeyReleasedAsync(e);
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public void Dispose()
+	{
+		_logger.LogInformation("Dispose global keyboard input tracking hook");
+
+		_hook.KeyReleased -= Hook_KeyReleased;
+
+		_files.Clear();
+
+		_inputStack.Clear();
+
+		_hook.Dispose();
+	}
+
+	/// <inheritdoc />
+	public async Task StartTrackingAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		Func<bool> condition = () => !IsRunning;
+
+		if (!await condition
+			.WaitAsync(100, 10, token)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		try
+		{
+			_logger.LogInformation("Start global keyboard input tracking");
+
+			_ = _hook.RunAsync();
+
+			condition = () => IsRunning;
+
+			if (!await condition
+				.WaitAsync(100, 10, token)
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
+			_ = FilterFilesAsync(hierarchy, token);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public void StopTracking()
+	{
+		_logger.LogInformation("Stop global keyboard input tracking");
+
+		_files.Clear();
+
+		_inputStack.Clear();
+
+		_hook.Stop();
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.
+	/// </summary>
+	private async Task FilterFilesAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		while (!token.IsCancellationRequested && IsRunning)
+		{
+			try
+			{
+				await _semaphore
+					.WaitAsync(token)
+					.ConfigureAwait(false);
+
+				_files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
+			}
+			finally
+			{
+				_semaphore.Release();
+			}
+
+			await Task
+				.Delay(TimeSpan.FromSeconds(10), token)
+				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Handles the event <see cref="Hook_KeyReleased" />.
+	/// </summary>
+	private async Task HandleHookKeyReleasedAsync(KeyboardHookEventArgs e)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync()
+				.ConfigureAwait(false);
+
+			if (_files.Count == 0)
+			{
+				return;
+			}
+
+			EventMask mask = e
+				.RawEvent
+				.Mask
+				.RemoveFlag(EventMask.NumLock);
+
+			if (mask.IsDefault())
+			{
+				return;
+			}
+
+			if (_inputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			{
+				_inputStack.RemoveAt(0);
+			}
+
+			_inputStack.Add(new()
+			{
+				Code = e.Data.KeyCode,
+				Mask = mask
+			});
+
+			foreach (FileModelDto file in _files)
+			{
+				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
+
+				if (!hotkeys.SequenceEqual(_inputStack.TakeLast(hotkeys.Length)))
+				{
+					continue;
+				}
+
+				ContentsIsValidPair result = await _dbAccess
+					.GetFileContentsAsync(file.Id)
+					.ConfigureAwait(false);
+
+				if (result.IsDefault() || !result.IsValid)
+				{
+					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+
+					return;
+				}
+
+				string text = IFileEditor
+					.Utf8Encoding
+					.GetString(result.Contents);
+
+				if (string.IsNullOrEmpty(text))
+				{
+					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+					return;
+				}
+
+				if (_app.FindClipboard() is not { } clipboard)
+				{
+					return;
+				}
+
+				_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
+
+				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+	#endregion
+}

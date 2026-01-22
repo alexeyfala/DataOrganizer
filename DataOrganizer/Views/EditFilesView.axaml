@@ -1,0 +1,39 @@
+<UserControl
+	x:Class="DataOrganizer.Views.EditFilesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:EditFilesViewModel"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:EditFilesViewModel />
+	</Design.DataContext>
+
+	<TabControl
+		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
+		AutoScrollToSelectedItem="True"
+		IsVisible="{Binding EditFiles.Count, Mode=OneWay}"
+		ItemTemplate="{StaticResource EditedFileTabControlHeaderTemplate}"
+		ItemsSource="{Binding EditFiles, Mode=OneTime}"
+		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+		Theme="{StaticResource ScrollableTabControl}">
+
+		<TabControl.KeyBindings>
+			<KeyBinding
+				Command="{Binding SwitchToPreviousTabCommand}"
+				Gesture="Ctrl+Tab" />
+		</TabControl.KeyBindings>
+
+		<Interaction.Behaviors>
+			<EventTriggerBehavior EventName="SelectionChanged">
+				<InvokeCommandAction
+					Command="{Binding SelectionChangedCommand}"
+					PassEventArgsToCommand="True" />
+			</EventTriggerBehavior>
+		</Interaction.Behaviors>
+	</TabControl>
+</UserControl>

@@ -1,0 +1,93 @@
+<UserControl
+	x:Class="DataOrganizer.Views.SelectedFavoritesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:SelectedFavoritesViewModel"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:SelectedFavoritesViewModel />
+	</Design.DataContext>
+
+	<Interaction.Behaviors>
+		<EventTriggerBehavior EventName="SizeChanged">
+			<InvokeCommandAction
+				Command="{Binding SizeChangedCommand}"
+				PassEventArgsToCommand="True" />
+		</EventTriggerBehavior>
+	</Interaction.Behaviors>
+
+	<Grid RowDefinitions="Auto,*">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay}" />
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<TextBox
+			Grid.Row="0"
+			Grid.Column="0"
+			Classes="clearButton SearchTextBoxStyle"
+			Text="{Binding CategorySearch, Mode=TwoWay}" />
+
+		<!-- Virtualization is disabled because switching to edge elements does not work when using "Ctrl+Tab" -->
+		<ListBox
+			Grid.Row="1"
+			Grid.Column="0"
+			Classes="NonVirtualizedListBoxStyle"
+			ItemTemplate="{StaticResource FavoriteCategoryTemplate}"
+			ItemsSource="{Binding Categories, Mode=OneTime}"
+			SelectedItem="{Binding SelectedCategory, Mode=TwoWay}">
+			<ListBox.KeyBindings>
+				<KeyBinding
+					Command="{Binding SwitchToPreviousCommand}"
+					Gesture="Ctrl+Tab" />
+			</ListBox.KeyBindings>
+
+			<Interaction.Behaviors>
+				<behaviors:AutoScrollDuringDragBehavior />
+			</Interaction.Behaviors>
+
+			<ListBox.Styles>
+				<Style Selector="ListBoxItem">
+					<Setter Property="(Interaction.Behaviors)">
+						<BehaviorCollectionTemplate>
+							<BehaviorCollection>
+								<behaviors:ItemDragBehavior
+									ItemDraggedCommand="{Binding CategoryDraggedCommand}"
+									Orientation="Vertical" />
+							</BehaviorCollection>
+						</BehaviorCollectionTemplate>
+					</Setter>
+				</Style>
+				<Style Selector="ListBoxItem:dragging">
+					<Setter Property="Opacity" Value="0.6" />
+				</Style>
+			</ListBox.Styles>
+		</ListBox>
+
+		<GridSplitter
+			Grid.Row="0"
+			Grid.RowSpan="2"
+			Grid.Column="1"
+			Classes="VerticalGridSplitterStyle" />
+
+		<TextBox
+			Grid.Row="0"
+			Grid.Column="2"
+			Classes="clearButton SearchTextBoxStyle"
+			Text="{Binding FavoriteSearch, Mode=TwoWay}" />
+
+		<ListBox
+			Grid.Row="1"
+			Grid.Column="2"
+			ItemTemplate="{StaticResource FileInListTemplate}"
+			ItemsSource="{Binding Favorites, Mode=OneTime}"
+			SelectedItem="{Binding SelectedFavorite, Mode=TwoWay}" />
+	</Grid>
+</UserControl>

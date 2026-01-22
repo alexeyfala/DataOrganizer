@@ -1,0 +1,34 @@
+﻿using Entities.Abstract;
+using SharpHook.Data;
+using System;
+using System.Diagnostics;
+
+namespace Entities.Models;
+
+/// <summary>
+/// Hotkey used when copying content to the clipboard.
+/// </summary>
+[DebuggerDisplay(
+	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
+	$"{nameof(Code)} = {{{nameof(Code)}}}, " +
+	$"{nameof(Mask)} = {{{nameof(Mask)}}}")]
+public sealed class HotkeyModel : EntityModelBase
+{
+	#region Properties
+	/// <inheritdoc cref="KeyCode" />
+	public required KeyCode Code { get; init; }
+
+	/// <inheritdoc cref="EventMask" />
+	public required EventMask Mask { get; init; }
+
+	/// <summary>
+	/// Reference to the owner.
+	/// </summary>
+	public FileModel? Owner { get; init; }
+
+	/// <summary>
+	/// Identifier of the owner.
+	/// </summary>
+	public required Guid OwnerId { get; init; }
+	#endregion Properties
+}

@@ -1,0 +1,72 @@
+<UserControl
+	x:Class="DataOrganizer.Views.KeyValueInputView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:KeyValueInputViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:KeyValueInputViewModel />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="*,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+
+		<Grid.Styles>
+			<Style Selector="Button">
+				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+			</Style>
+		</Grid.Styles>
+
+		<TextBox
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="3"
+			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"
+			Classes="clearButton"
+			Text="{Binding Key, Mode=TwoWay}"
+			UseFloatingWatermark="True">
+			<Interaction.Behaviors>
+				<AutoFocusBehavior />
+				<AutoSelectBehavior />
+			</Interaction.Behaviors>
+		</TextBox>
+
+		<TextBox
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="3"
+			assists:TextFieldAssist.Label="{Binding ValueHint, Mode=OneWay}"
+			Classes="clearButton"
+			IsVisible="{Binding IsValueInputVisible, Mode=OneWay}"
+			Text="{Binding Value, Mode=TwoWay}"
+			UseFloatingWatermark="True" />
+
+		<UniformGrid
+			Grid.Row="2"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<Button
+				Classes="primary"
+				Command="{Binding DefaultPressedCommand}"
+				Content="{Binding DefaultButtonText, Mode=OneWay}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True" />
+		</UniformGrid>
+	</Grid>
+</UserControl>

@@ -1,0 +1,125 @@
+﻿using Avalonia.Controls;
+using Avalonia.Layout;
+using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.ViewModels;
+using DataOrganizer.Views;
+using DataOrganizer.Windows;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.Interfaces;
+
+/// <summary>
+/// Manages the life cycle of application windows and user controls.
+/// </summary>
+public interface IViewLauncher
+{
+	#region Properties
+	/// <summary>
+	/// The default size of the window.
+	/// </summary>
+	static Size DefaultWindowSize { get; } = new(900, 600);
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Configures <see cref="EditorWindow" />.
+	/// </summary>
+	EditorWindow ConfigureEditorWindow(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		in Guid showObjectId = default);
+
+	/// <summary>
+	/// Configures the <see cref="EntityCreationView" />.
+	/// </summary>
+	EntityCreationView ConfigureEntityCreationView();
+
+	/// <summary>
+	/// Configures <see cref="FavoritesWindow" />.
+	/// </summary>
+	FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
+
+	/// <summary>
+	/// Configures the <see cref="KeyValueInputView" />.
+	/// </summary>
+	KeyValueInputView ConfigureKeyValueInputView(
+		string defaultButtonText,
+		string? key = null,
+		string? keyHint = null,
+		string? value = null,
+		string? valueHint = null);
+
+	/// <summary>
+	/// Configures the main application window.
+	/// </summary>
+	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
+
+	/// <summary>
+	/// Configures the <see cref="MultilineTextEditView" />.
+	/// </summary>
+	MultilineTextEditView ConfigureMultilineTextEditView(string? text);
+
+	/// <summary>
+	/// Configures the <see cref="YesNoQuestionBox" />.
+	/// </summary>
+	YesNoQuestionBox ConfigureYesNoQuestionBox(string text);
+
+	/// <summary>
+	/// Saves <see cref="EditorWindow" /> settings to the file.
+	/// </summary>
+	Task SaveEditorSettingsAsync(EditorWindow window);
+
+	/// <summary>
+	/// Saves <see cref="FavoritesWindow" /> settings to the file.
+	/// </summary>
+	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
+
+	/// <summary>
+	/// Sets default <see cref="Window.WindowStartupLocation" /> to the window.
+	/// </summary>
+	internal static void SetDefaultLocation(Window window)
+	{
+		window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+	}
+
+	/// <summary>
+	/// Sets default <see cref="INavigationColumnViewModel.NavigationColumnWidth" />.
+	/// </summary>
+	internal static void SetDefaultNavigationColumnWidth(FavoritesViewModel viewModel)
+	{
+		viewModel
+			.FavoritesSettings
+			.NavigationColumnWidth = viewModel.PopupWidth / 2.0;
+	}
+
+	/// <summary>
+	/// Sets default <see cref="INavigationColumnViewModel.NavigationColumnWidth" />.
+	/// </summary>
+	internal static void SetDefaultNavigationColumnWidth(Window window, EditorViewModel viewModel)
+	{
+		viewModel.NavigationColumnWidth = new GridLength(window.Width / 3.0);
+	}
+
+	/// <summary>
+	/// Sets default <see cref="FavoritesViewModel.PopupHeight" />, <see cref="FavoritesViewModel.PopupWidth" />.
+	/// </summary>
+	internal static void SetDefaultPopupSize(FavoritesViewModel viewModel)
+	{
+		viewModel.PopupHeight = 250.0;
+
+		viewModel.PopupWidth = viewModel.PopupHeight * 2.0;
+	}
+
+	/// <summary>
+	/// Sets default <see cref="Layoutable.Width" />, <see cref="Layoutable.Width" /> to the window.
+	/// </summary>
+	internal static void SetDefaultSize(Window window)
+	{
+		window.Width = DefaultWindowSize.Width;
+
+		window.Height = DefaultWindowSize.Height;
+	}
+	#endregion
+}

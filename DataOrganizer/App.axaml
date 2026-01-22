@@ -1,0 +1,54 @@
+<Application
+	x:Class="DataOrganizer.App"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:localModels="using:DataOrganizer.Models"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:sys="clr-namespace:System;assembly=mscorlib"
+	xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+	Name="{x:Static common:AppUtils.AppName}">
+	<!-- RequestedThemeVariant="Default" - ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="/Assets/Resources.axaml" />
+
+				<ResourceInclude Source="/Assets/Themes.axaml" />
+
+				<ResourceInclude Source="/Assets/DataTemplates.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+
+		<!--#region Necessary for DataOrganizer.Behaviors.StyledElementAddFluentThemeBehavior-->
+		<sys:Double x:Key="ControlContentThemeFontSize">14</sys:Double>
+
+		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>
+		<!--#endregion-->
+	</Application.Resources>
+
+	<Application.DataTemplates>
+		<helpers:ViewLocator />
+	</Application.DataTemplates>
+
+	<Application.Styles>
+		<!-- Nuget: Material.Avalonia -->
+		<!-- https://github.com/AvaloniaCommunity/Material.Avalonia -->
+		<themes:MaterialTheme />
+
+		<!-- Nuget: DialogHost.Avalonia -->
+		<!-- https://github.com/AvaloniaUtils/DialogHost.Avalonia -->
+		<dialogHostAvalonia:DialogHostStyles />
+
+		<!-- Nuget: Material.Icons.Avalonia -->
+		<!-- https://github.com/SKProCH/Material.Icons -->
+		<materialIcons:MaterialIconStyles />
+
+		<StyleInclude Source="/Assets/Styles.axaml" />
+
+		<StyleInclude Source="avares://ToolBarControls.Avalonia/Themes/ToolBarControls.Avalonia.axaml" />
+	</Application.Styles>
+</Application>

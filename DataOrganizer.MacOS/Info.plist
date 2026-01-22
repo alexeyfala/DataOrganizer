@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleDisplayName</key>
+		<string>DataOrganizer</string>
+		<key>CFBundleVersion</key>
+		<string>2.0.0</string>
+		<key>CFBundleShortVersionString</key>
+		<string>2.0.0</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>NSPrincipalClass</key>
+		<string>NSApplication</string>
+		<key>CFBundleIdentifier</key>
+		<string>com.dataorganizer.plist</string>
+		<key>CFBundleIconFile</key>
+		<string>Logo.icns</string>
+		<!-- A Boolean value indicating whether the app is an agent app that runs in the background and doesn’t appear in the Dock -->
+		<!-- <key>LSUIElement</key> -->
+		<!-- <true/> -->
+		<!--<key>LSMinimumSystemVersion</key>-->
+		<!--<string>14.2</string>-->
+		<!--<key>CFBundleName</key>-->
+		<!--<string>DataOrganizer</string>-->
+	</dict>
+</plist>

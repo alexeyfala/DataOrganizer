@@ -1,0 +1,315 @@
+<Window
+	x:Class="DataOrganizer.Windows.EditorWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:models="clr-namespace:DataOrganizer.DTO.Entities.Models"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	Width="{Binding ViewWidth, Mode=OneWayToSource}"
+	x:DataType="vm:EditorViewModel"
+	Icon="/Assets/Logo.ico"
+	ShowActivated="True"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:EditorViewModel />
+	</Design.DataContext>
+
+	<dialogHost:DialogHost
+		dialogHost:DialogHostStyle.CornerRadius="6.0"
+		CloseOnClickAway="True">
+		<materialControls:SnackbarHost
+			x:Name="SnackbarHost"
+			Foreground="{Binding SnackbarForeground, Mode=OneWay}"
+			HostName="{Binding $self.Name}"
+			SnackbarHorizontalAlignment="Center">
+			<materialControls:NavigationDrawer
+				LeftDrawerExpandThresholdWidth="{x:Null}"
+				LeftDrawerOpened="{Binding IsLeftDrawerOpened, Mode=TwoWay}">
+
+				<materialControls:NavigationDrawer.LeftDrawerContent>
+					<StackPanel Orientation="Vertical">
+						<ToggleButton
+							Margin="4.0"
+							HorizontalAlignment="Right"
+							Classes="primary"
+							Content="{materialIcons:MaterialIconExt Kind=ChevronDoubleLeft,
+							                                        Size={StaticResource ToolBarIconSize}}"
+							IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
+							Theme="{StaticResource MaterialFlatButton}"
+							ToolTip.Tip="{x:Static prop:Strings.Hide}" />
+
+						<Menu Classes="VerticalMenuStyle">
+							<Menu.Styles>
+								<Style Selector="MenuItem">
+									<Setter Property="Theme" Value="{StaticResource MaterialMenuItem}" />
+									<Setter Property="FontSize" Value="16.0" />
+								</Style>
+
+								<Style Selector="StackPanel">
+									<Setter Property="Orientation" Value="Horizontal" />
+									<Setter Property="Spacing" Value="{StaticResource ElementSpacing}" />
+								</Style>
+							</Menu.Styles>
+
+							<MenuItem
+								Command="{Binding ShowFavoritesCommand}"
+								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								<MenuItem.Header>
+									<StackPanel>
+										<materialIcons:MaterialIcon Kind="StarOutline" />
+
+										<TextBlock Text="{x:Static prop:Strings.FavoritesMode}" />
+									</StackPanel>
+								</MenuItem.Header>
+							</MenuItem>
+
+							<MenuItem Command="{Binding ShowSettingsCommand}">
+								<MenuItem.Header>
+									<StackPanel>
+										<materialIcons:MaterialIcon Kind="CogOutline" />
+
+										<TextBlock Text="{x:Static prop:Strings.Settings}" />
+									</StackPanel>
+								</MenuItem.Header>
+							</MenuItem>
+
+							<MenuItem
+								Command="{Binding RestartApplicationCommand}"
+								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								<MenuItem.Header>
+									<StackPanel>
+										<materialIcons:MaterialIcon Kind="Restart" />
+
+										<TextBlock Text="{x:Static prop:Strings.Restart}" />
+									</StackPanel>
+								</MenuItem.Header>
+							</MenuItem>
+
+							<MenuItem
+								Command="{Binding ExitCommand}"
+								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								<MenuItem.Header>
+									<StackPanel>
+										<materialIcons:MaterialIcon Kind="LocationExit" />
+
+										<TextBlock Text="{x:Static prop:Strings.Exit}" />
+									</StackPanel>
+								</MenuItem.Header>
+							</MenuItem>
+						</Menu>
+					</StackPanel>
+				</materialControls:NavigationDrawer.LeftDrawerContent>
+
+				<DockPanel>
+					<toolBarControls:ToolBar DockPanel.Dock="Top">
+						<toolBarControls:ToolBar.Styles>
+							<Style Selector="Button">
+								<Setter Property="Margin" Value="6.0,0.0" />
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+							</Style>
+
+							<Style Selector="ToggleButton">
+								<Setter Property="Margin" Value="6.0,0.0" />
+							</Style>
+
+							<FluentTheme />
+						</toolBarControls:ToolBar.Styles>
+
+						<ToggleButton
+							Classes="primary"
+							Content="{materialIcons:MaterialIconTextExt Kind=Menu,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
+							Theme="{StaticResource MaterialFlatButton}"
+							ToolTip.Tip="{x:Static prop:Strings.Menu}" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding AddCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=Plus,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.Add}" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding RenameCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.Rename}" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding DeleteCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.Delete}" />
+
+						<Panel Classes="VerticalSeparatorPanelStyle" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding CollapseAllFoldersCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding ExpandAllFoldersCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
+
+						<Panel Classes="VerticalSeparatorPanelStyle" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding ResetSelectedObjectCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=SelectionEllipseRemove,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.ResetSelectedObject}" />
+
+						<Panel Classes="VerticalSeparatorPanelStyle" />
+
+						<Grid>
+							<Button
+								Classes="primary"
+								Command="{Binding ShowExecutedFilesCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=FileEditOutline,
+								                                            Size={StaticResource ToolBarIconSize}}"
+								Theme="{StaticResource MaterialFlatButton}"
+								ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}" />
+
+							<TextBlock
+								Margin="0.0,0.0,8.0,0.0"
+								HorizontalAlignment="Right"
+								VerticalAlignment="Bottom"
+								FontSize="16.0"
+								FontWeight="Bold"
+								Foreground="LimeGreen"
+								Text="{Binding ExecutedFiles.Count, Mode=OneWay}" />
+						</Grid>
+
+						<Button
+							Classes="primary"
+							Command="{Binding ShowCopyHistoryCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							Theme="{StaticResource MaterialFlatButton}"
+							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+
+						<Button
+							Classes="primary"
+							Command="{Binding ShowSystemClipboardCommand}"
+							Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
+
+						<Panel Classes="VerticalSeparatorPanelStyle" />
+
+						<ToggleButton
+							Classes="primary"
+							Content="{materialIcons:MaterialIconTextExt Kind=PencilOffOutline}"
+							IsChecked="{Binding IsReadOnly, Mode=TwoWay}"
+							Theme="{StaticResource MaterialFlatToggleButton}"
+							ToolTip.Tip="{x:Static prop:Strings.ReadOnlyMode}" />
+					</toolBarControls:ToolBar>
+
+					<Grid RowDefinitions="*,Auto">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="{Binding NavigationColumnWidth, Mode=TwoWay}" />
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+
+						<!-- ScrollViewer.HorizontalScrollBarVisibility="Disabled" -->
+						<TreeView
+							Grid.Row="0"
+							Grid.Column="0"
+							AutoScrollToSelectedItem="True"
+							Classes="VirtualizedTreeViewStyle"
+							ItemsSource="{Binding Hierarchy, Mode=OneTime}"
+							SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
+
+							<TreeView.Styles>
+								<Style
+									x:DataType="models:FileModelDto"
+									Selector="TreeViewItem">
+									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+								</Style>
+
+								<Style
+									x:DataType="models:FolderModelDto"
+									Selector="TreeViewItem">
+									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+								</Style>
+							</TreeView.Styles>
+
+							<TreeView.DataTemplates>
+								<StaticResource ResourceKey="FolderInTreeViewTemplate" />
+
+								<StaticResource ResourceKey="FileInTreeViewTemplate" />
+							</TreeView.DataTemplates>
+						</TreeView>
+
+						<GridSplitter
+							Grid.Row="0"
+							Grid.Column="1"
+							Classes="VerticalGridSplitterStyle" />
+
+						<ContentControl
+							Grid.Row="0"
+							Grid.Column="2"
+							Content="{Binding EditFiles, Mode=OneWay}" />
+
+						<materialControls:SideSheet
+							Grid.Row="0"
+							Grid.Column="3"
+							SideSheetCanClose="False"
+							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
+							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
+							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
+							SideSheetPadding="4.0" />
+
+						<Grid
+							Grid.Row="1"
+							Grid.Column="0"
+							Grid.ColumnSpan="4"
+							Margin="4.0"
+							ColumnDefinitions="Auto,*,Auto,*">
+
+							<TextBlock
+								Grid.Column="0"
+								FontWeight="SemiBold"
+								Foreground="{StaticResource MaterialBodyBrush}"
+								Text="{Binding BottomLeftCornerInfo, Mode=OneWay}" />
+
+							<StackPanel
+								Grid.Column="2"
+								IsVisible="{Binding IsReadOnly, Mode=OneWay}"
+								Orientation="Horizontal">
+
+								<TextBlock
+									Foreground="{StaticResource WarningBrush}"
+									Text="{x:Static prop:Strings.ReadOnlyMode}" />
+
+								<materialIcons:MaterialIcon
+									Margin="3.0,0.0"
+									Foreground="{StaticResource WarningBrush}"
+									Kind="PencilOffOutline" />
+							</StackPanel>
+						</Grid>
+					</Grid>
+				</DockPanel>
+			</materialControls:NavigationDrawer>
+		</materialControls:SnackbarHost>
+	</dialogHost:DialogHost>
+</Window>
+

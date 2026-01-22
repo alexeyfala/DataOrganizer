@@ -1,0 +1,224 @@
+<UserControl
+	x:Class="DataOrganizer.Views.ClipboardTextBlock"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:AvaloniaEdit="using:AvaloniaEdit"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:controls="using:DataOrganizer.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:sys="clr-namespace:System;assembly=mscorlib"
+	x:Name="Root"
+	mc:Ignorable="d">
+
+	<UserControl.Styles>
+		<Style Selector="ToolTip">
+			<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
+		</Style>
+	</UserControl.Styles>
+
+	<Design.DataContext>
+		<controls:ClipboardTextBlock />
+	</Design.DataContext>
+
+	<UserControl.Resources>
+		<Thickness x:Key="ElementMargin">2.0,0.0</Thickness>
+
+		<Thickness x:Key="ButtonPadding">4.0,2.0</Thickness>
+	</UserControl.Resources>
+
+	<Grid
+		ColumnDefinitions="*,Auto,Auto,Auto,Auto"
+		DataContext="{Binding #Root}">
+
+		<!-- Text -->
+		<Grid
+			Grid.Column="0"
+			Margin="{StaticResource ElementMargin}"
+			VerticalAlignment="Center"
+			Background="Transparent">
+
+			<Grid Background="{Binding AreaBrush, Mode=OneWay}">
+
+				<!-- Plain Text -->
+				<TextBlock
+					Foreground="{StaticResource MaterialBodyBrush}"
+					IsVisible="{Binding !IsHyperlink, Mode=OneWay}"
+					Text="{Binding Text, Mode=OneWay}">
+
+					<Interaction.Behaviors>
+						<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
+					</Interaction.Behaviors>
+				</TextBlock>
+
+				<!-- Hyperlink -->
+				<HyperlinkButton
+					IsVisible="{Binding IsHyperlink, Mode=OneWay}"
+					NavigateUri="{Binding Text, Mode=OneWay}">
+					<TextBlock Text="{Binding Text, Mode=OneWay}">
+						<Interaction.Behaviors>
+							<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
+						</Interaction.Behaviors>
+					</TextBlock>
+				</HyperlinkButton>
+
+				<Grid.Effect>
+					<BlurEffect Radius="{Binding BlurRadius, Mode=OneWay}" />
+				</Grid.Effect>
+			</Grid>
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding TextBlockDoubleTappedCommand}"
+						CommandParameter="{Binding DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+
+		<!-- Color Sample -->
+		<Grid
+			Grid.Column="1"
+			Width="32.0"
+			Height="16.0"
+			Margin="{StaticResource ElementMargin}"
+			IsVisible="{Binding IsColor, Mode=OneWay}">
+
+			<Grid.Styles>
+				<Style Selector="Rectangle">
+					<Setter Property="Stroke" Value="Gainsboro" />
+					<Setter Property="StrokeThickness" Value="1.0" />
+				</Style>
+			</Grid.Styles>
+
+			<Border IsVisible="{Binding !IsHidden, Mode=OneWay}">
+				<Border.Background>
+					<ImageBrush
+						Source="/Assets/Background.jpg"
+						Stretch="UniformToFill" />
+				</Border.Background>
+			</Border>
+
+			<Rectangle
+				Fill="{Binding ColorSampleBrush, Mode=OneWay}"
+				IsVisible="{Binding !IsHidden, Mode=OneWay}">
+				<ToolTip.Tip>
+					<ToolTip
+						Padding="0.0"
+						Background="Transparent">
+						<Rectangle
+							Width="128.0"
+							Height="64.0"
+							Fill="{Binding ColorSampleBrush, Mode=OneWay}" />
+					</ToolTip>
+				</ToolTip.Tip>
+			</Rectangle>
+		</Grid>
+
+		<!-- Note -->
+		<Border
+			Grid.Column="2"
+			Margin="{StaticResource ElementMargin}"
+			IsVisible="{Binding IsNoteVisible, Mode=OneWay}">
+			<Grid RowDefinitions="*,Auto">
+				<materialIcons:MaterialIcon
+					x:Name="Icon"
+					Grid.Row="0"
+					Background="Transparent"
+					Cursor="Help"
+					Foreground="{StaticResource MaterialPrimaryMidBrush}"
+					Kind="NoteTextOutline">
+
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="PointerEntered">
+							<InvokeCommandAction
+								Command="{Binding NotePointerEnteredCommand}"
+								CommandParameter="{Binding #Icon}" />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
+				</materialIcons:MaterialIcon>
+
+				<Popup
+					Grid.Row="1"
+					MaxWidth="500.0"
+					MaxHeight="500.0"
+					IsLightDismissEnabled="True"
+					IsOpen="{Binding ShowNote, Mode=TwoWay}"
+					PlacementMode="Bottom"
+					PlacementTarget="{Binding #Icon}"
+					VerticalOffset="8.0">
+
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="Opened">
+							<InvokeCommandAction
+								Command="{Binding PopupOpenedCommand}"
+								CommandParameter="{Binding #Editor}" />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
+
+					<Border
+						Padding="8.0"
+						Background="{StaticResource MaterialToolTipBackgroundBrush}"
+						CornerRadius="4.0">
+						<Grid RowDefinitions="Auto,*">
+							<ToggleButton
+								Grid.Row="0"
+								Margin="0.0,0.0,0.0,8.0"
+								Padding="0.0"
+								HorizontalAlignment="Right"
+								Content="{materialIcons:MaterialIconTextExt Kind=Close,
+								                                            Size={StaticResource ToolBarIconSize}}"
+								Foreground="{StaticResource MaterialPaperBrush}"
+								IsChecked="{Binding !ShowNote, Mode=TwoWay}"
+								Theme="{StaticResource MaterialFlatButton}"
+								ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+							<AvaloniaEdit:TextEditor
+								x:Name="Editor"
+								Grid.Row="1"
+								FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+								FontSize="14.0"
+								Foreground="{StaticResource MaterialPaperBrush}"
+								HorizontalScrollBarVisibility="Disabled"
+								IsReadOnly="True"
+								VerticalScrollBarVisibility="Auto"
+								WordWrap="True">
+								<Interaction.Behaviors>
+									<behaviors:TextEditorOptionsBehavior />
+
+									<behaviors:StyledElementAddFluentThemeBehavior />
+								</Interaction.Behaviors>
+							</AvaloniaEdit:TextEditor>
+						</Grid>
+					</Border>
+				</Popup>
+			</Grid>
+		</Border>
+
+		<Button
+			Grid.Column="3"
+			Margin="{StaticResource ElementMargin}"
+			Padding="{StaticResource ButtonPadding}"
+			Classes="primary"
+			Command="{Binding CopyToClipboardCommand}"
+			Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+			Theme="{StaticResource MaterialFlatButton}"
+			ToolTip.Tip="{x:Static prop:Strings.Copy}" />
+
+		<ToggleButton
+			Grid.Column="4"
+			Margin="{StaticResource ElementMargin}"
+			Padding="{StaticResource ButtonPadding}"
+			Classes="primary"
+			Command="{Binding IsHiddenChangedCommand}"
+			Content="{materialIcons:MaterialIconTextExt Kind=EyeOffOutline}"
+			IsChecked="{Binding IsHidden, Mode=TwoWay}"
+			IsVisible="{Binding IsHideEnabled, Mode=OneWay}"
+			Theme="{StaticResource MaterialFlatToggleButton}"
+			ToolTip.Tip="{x:Static prop:Strings.Hide}" />
+	</Grid>
+</UserControl>
+
+

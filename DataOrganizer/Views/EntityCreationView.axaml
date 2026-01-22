@@ -1,0 +1,121 @@
+<UserControl
+	x:Class="DataOrganizer.Views.EntityCreationView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:EntityCreationViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:EntityCreationViewModel />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="*,Auto,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+
+		<StackPanel
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan=""
+			Orientation="Vertical"
+			Spacing="4.0">
+
+			<StackPanel.Resources>
+				<Thickness x:Key="FileMargin">12.0,0.0,0.0,0.0</Thickness>
+			</StackPanel.Resources>
+
+			<StackPanel.Styles>
+				<Style Selector="materialIcons|MaterialIcon">
+					<Setter Property="Width" Value="{StaticResource EntityTypeIconSize}" />
+					<Setter Property="Height" Value="{StaticResource EntityTypeIconSize}" />
+					<Setter Property="Margin" Value="4.0,0.0" />
+				</Style>
+
+				<Style Selector="TextBlock">
+					<Setter Property="VerticalAlignment" Value="Center" />
+				</Style>
+
+				<Style Selector="StackPanel">
+					<Setter Property="Orientation" Value="Horizontal" />
+				</Style>
+			</StackPanel.Styles>
+
+			<RadioButton IsChecked="{Binding IsFolderSelected, Mode=TwoWay}">
+				<StackPanel>
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FolderBrush}"
+						Kind="{StaticResource FolderIconKind}" />
+
+					<TextBlock Text="{x:Static prop:Strings.Folder}" />
+				</StackPanel>
+			</RadioButton>
+
+			<RadioButton
+				Margin="{StaticResource FileMargin}"
+				IsChecked="{Binding IsFileSelected, Mode=TwoWay}">
+				<StackPanel>
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource FileIconKind}" />
+
+					<TextBlock Text="{x:Static prop:Strings.File}" />
+				</StackPanel>
+			</RadioButton>
+
+			<RadioButton
+				Margin="{StaticResource FileMargin}"
+				IsChecked="{Binding IsDatasetSelected, Mode=TwoWay}">
+				<StackPanel>
+					<materialIcons:MaterialIcon
+						Foreground="{StaticResource FileBrush}"
+						Kind="{StaticResource DatasetIconKind}" />
+
+					<TextBlock Text="{x:Static prop:Strings.Dataset}" />
+				</StackPanel>
+			</RadioButton>
+		</StackPanel>
+
+		<TextBox
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			assists:TextFieldAssist.Label="{Binding NameInputHint, Mode=OneWay}"
+			Classes="clearButton"
+			Text="{Binding Name, Mode=TwoWay}"
+			UseFloatingWatermark="True">
+			<Interaction.Behaviors>
+				<AutoFocusBehavior />
+				<AutoSelectBehavior />
+			</Interaction.Behaviors>
+		</TextBox>
+
+		<UniformGrid
+			Grid.Row="2"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<Button
+				Classes="primary"
+				Command="{Binding DefaultPressedCommand}"
+				Content="{x:Static prop:Strings.Add}"
+				IsDefault="True"
+				Theme="{StaticResource MaterialFlatButton}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True"
+				Theme="{StaticResource MaterialFlatButton}" />
+		</UniformGrid>
+	</Grid>
+</UserControl>

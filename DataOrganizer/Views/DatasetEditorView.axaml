@@ -1,0 +1,208 @@
+<UserControl
+	x:Class="DataOrganizer.Views.DatasetEditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:componentModel="using:System.ComponentModel"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
+	x:DataType="vm:DatasetEditorViewModel"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:DatasetEditorViewModel />
+	</Design.DataContext>
+
+	<Grid RowDefinitions="Auto,*">
+		<toolBarControls:ToolBar Grid.Row="0">
+			<toolBarControls:ToolBar.Styles>
+				<Style Selector="Button">
+					<Setter Property="Margin" Value="6.0,0.0" />
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+
+				<FluentTheme />
+			</toolBarControls:ToolBar.Styles>
+
+			<Button
+				Classes="primary"
+				Content="{materialIcons:MaterialIconTextExt Kind=Plus,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.Add}">
+
+				<Button.Flyout>
+					<Flyout
+						OverlayDismissEventPassThrough="True"
+						Placement="Right">
+						<StackPanel Orientation="Vertical">
+							<StackPanel.Styles>
+								<Style Selector="Button">
+									<Setter Property="Margin" Value="0.0" />
+								</Style>
+							</StackPanel.Styles>
+
+							<wrappers:FlyoutButton
+								Command="{Binding AddKeyValueCommand}"
+								Header="{x:Static prop:Strings.AddKeyAndValue}"
+								Icon="Plus" />
+
+							<wrappers:FlyoutButton
+								Command="{Binding AddValueCommand}"
+								Header="{x:Static prop:Strings.AddValue}"
+								Icon="Plus" />
+
+							<wrappers:FlyoutButton
+								Command="{Binding AddGroupCommand}"
+								Header="{x:Static prop:Strings.AddGroup}"
+								Icon="ShapeRectanglePlus" />
+						</StackPanel>
+					</Flyout>
+				</Button.Flyout>
+			</Button>
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ScrollToTopCommand}"
+				CommandParameter="{Binding #ScrollViewer}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp}"
+				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ScrollToEndCommand}"
+				CommandParameter="{Binding #ScrollViewer}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown}"
+				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ExpandCollapseCommand}"
+				CommandParameter="{x:False}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ExpandCollapseCommand}"
+				CommandParameter="{x:True}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ShowHideCommand}"
+				CommandParameter="{x:True}"
+				Content="{materialIcons:MaterialIconTextExt Kind=EyeOffOutline}"
+				ToolTip.Tip="{x:Static prop:Strings.HideAll}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ShowHideCommand}"
+				CommandParameter="{x:False}"
+				Content="{materialIcons:MaterialIconTextExt Kind=EyeOutline}"
+				ToolTip.Tip="{x:Static prop:Strings.ShowAll}" />
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Classes="primary"
+				Content="{materialIcons:MaterialIconTextExt Kind=SortAlphabeticalVariant}"
+				ToolTip.Tip="{x:Static prop:Strings.Sorting}">
+				<Button.Flyout>
+					<Flyout
+						OverlayDismissEventPassThrough="True"
+						Placement="Bottom">
+						<StackPanel Orientation="Vertical">
+							<StackPanel.Styles>
+								<Style Selector="Button">
+									<Setter Property="Margin" Value="0.0" />
+								</Style>
+							</StackPanel.Styles>
+
+							<wrappers:FlyoutButton
+								Command="{Binding SortAscendingDescendingCommand}"
+								CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"
+								Header="{x:Static prop:Strings.SortAscending}"
+								Icon="SortAlphabeticalAscending" />
+
+							<wrappers:FlyoutButton
+								Command="{Binding SortAscendingDescendingCommand}"
+								CommandParameter="{x:Static componentModel:ListSortDirection.Descending}"
+								Header="{x:Static prop:Strings.SortDescending}"
+								Icon="SortAlphabeticalDescending" />
+						</StackPanel>
+					</Flyout>
+				</Button.Flyout>
+			</Button>
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ShowInListCommand}"
+				CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+				Content="{materialIcons:MaterialIconTextExt Kind=FileTree}"
+				ToolTip.Tip="{x:Static prop:Strings.ShowInList}" />
+		</toolBarControls:ToolBar>
+
+		<ScrollViewer
+			x:Name="ScrollViewer"
+			Grid.Row="1"
+			Padding="0.0,0.0,10.0,0.0"
+			Classes="no-auto-hide"
+			HorizontalScrollBarVisibility="Disabled"
+			Theme="{StaticResource MaterialModernScrollViewer}"
+			VerticalScrollBarVisibility="Auto">
+
+			<!-- Virtualization is disabled due to the following issues: -->
+			<!-- 1. Unable to scroll to the bottom the first time -->
+			<!-- 2. Unable to restore scroll value for ScrollViewer -->
+			<!-- 3. Unwanted scrolling occurs when the Expander (in ItemTemplate) is expanded -->
+			<!-- Classes="VirtualizedItemsControlStyle" -->
+			<ItemsControl ItemsSource="{Binding Records, Mode=OneTime}">
+
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Loaded">
+						<InvokeCommandAction
+							Command="{Binding ContainerLoadedCommand}"
+							CommandParameter="{Binding #ScrollViewer}" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+
+				<ItemsControl.ItemTemplate>
+					<helpers:DatasetRecordTemplateSelector>
+						<StaticResource ResourceKey="KeyValueRecordTemplate" />
+
+						<StaticResource ResourceKey="RecordsGroupTemplate" />
+
+						<StaticResource ResourceKey="ValueRecordTemplate" />
+					</helpers:DatasetRecordTemplateSelector>
+				</ItemsControl.ItemTemplate>
+
+				<ItemsControl.ItemContainerTheme>
+					<ControlTheme TargetType="ContentPresenter">
+						<Setter Property="Margin" Value="2.0" />
+					</ControlTheme>
+				</ItemsControl.ItemContainerTheme>
+			</ItemsControl>
+		</ScrollViewer>
+	</Grid>
+</UserControl>

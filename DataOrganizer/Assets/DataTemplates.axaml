@@ -1,0 +1,835 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:abstract="using:DataOrganizer.Abstract"
+	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:localDto="using:DataOrganizer.DTO"
+	xmlns:localModels="using:DataOrganizer.Models"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:models="clr-namespace:DataOrganizer.DTO.Entities.Models"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:views="clr-namespace:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers">
+
+	<Thickness x:Key="RecordPadding">4.0</Thickness>
+
+	<!-- FolderInTreeViewTemplate -->
+	<TreeDataTemplate
+		x:Key="FolderInTreeViewTemplate"
+		DataType="models:FolderModelDto"
+		ItemsSource="{Binding Children, Mode=OneTime}">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<StackPanel Orientation="Horizontal">
+							<wrappers:FlyoutButton
+								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RenameCommand}"
+								CommandParameter="{Binding}"
+								Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
+								ToolTip.Tip="{x:Static prop:Strings.Rename}" />
+
+							<wrappers:FlyoutButton
+								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DeleteCommand}"
+								CommandParameter="{Binding}"
+								Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
+								Foreground="{StaticResource WarningBrush}"
+								ToolTip.Tip="{x:Static prop:Strings.Delete}" />
+						</StackPanel>
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).AddCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.AddToFolder}"
+							Icon="Plus" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyNameCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.CopyName}"
+							Icon="ContentCopy" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<Grid Grid.Column="0">
+				<materialIcons:MaterialIcon Classes="FolderIconStyle" />
+
+				<TextBlock
+					HorizontalAlignment="Right"
+					VerticalAlignment="Bottom"
+					Text="{Binding Children.Count, Mode=OneWay}" />
+			</Grid>
+
+			<TextBlock
+				Grid.Column="1"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+		</Grid>
+	</TreeDataTemplate>
+
+	<!-- FileInTreeViewTemplate -->
+	<DataTemplate
+		x:Key="FileInTreeViewTemplate"
+		DataType="models:FileModelDto">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*,Auto">
+			<Grid.Resources>
+				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
+
+				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
+
+				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
+			</Grid.Resources>
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).FileDoubleTappedCommand}"
+						CommandParameter="{Binding $parent[Grid]}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<StackPanel Orientation="Horizontal">
+							<wrappers:FlyoutButton
+								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RenameCommand}"
+								CommandParameter="{Binding}"
+								Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
+								ToolTip.Tip="{x:Static prop:Strings.Rename}" />
+
+							<wrappers:FlyoutButton
+								Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DeleteCommand}"
+								CommandParameter="{Binding}"
+								Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
+								Foreground="{StaticResource WarningBrush}"
+								ToolTip.Tip="{x:Static prop:Strings.Delete}" />
+						</StackPanel>
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditFileCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.OpenInEditor}"
+							Icon="TextBoxEditOutline" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecuteFileCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.OpenInOS}"
+							Icon="FileEditOutline"
+							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyNameCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.CopyName}"
+							Icon="ContentCopy" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.CopyContent}"
+							Icon="ContentCopy"
+							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).SetFavoriteCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Favorite}"
+							Icon="StarOutline"
+							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowHotkeysEditorCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Hotkeys}"
+							Icon="KeyboardVariant"
+							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<materialIcons:MaterialIcon
+				Grid.Column="0"
+				Width="{StaticResource EntityTypeIconSize}"
+				Height="{StaticResource EntityTypeIconSize}"
+				Foreground="{StaticResource FileBrush}"
+				Kind="{Binding EntityType, Mode=OneTime, Converter={StaticResource EntityTypeToMaterialIconKindConverter}}" />
+
+			<TextBlock
+				Grid.Column="1"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<views:IconsBlock
+				Grid.Column="2"
+				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
+				IsEdited="{Binding IsEdited, Mode=OneWay}"
+				IsExecuted="{Binding IsExecuted, Mode=OneWay}"
+				IsFavorite="{Binding IsFavorite, Mode=OneWay}" />
+		</Grid>
+	</DataTemplate>
+
+	<!-- RightSideSheetHeaderTemplate -->
+	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
+		<StackPanel Orientation="Horizontal">
+			<StackPanel.Resources>
+				<converters:CloseAllExecutedFilesButtonVisibilityConverter x:Key="CloseAllExecutedFilesButtonVisibilityConverter" />
+			</StackPanel.Resources>
+
+			<ToggleButton
+				Classes="primary"
+				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				IsChecked="{Binding $parent[Window].((vm:EditorViewModel)DataContext).IsRightSideSheetOpened, Mode=TwoWay}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.Hide}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContentType, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<!-- ExecutedFileTemplate -->
+	<DataTemplate
+		x:Key="ExecutedFileTemplate"
+		x:DataType="models:FileModelDto">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*,Auto">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+							CommandParameter="{Binding Id}"
+							Foreground="{StaticResource MaterialBodyBrush}"
+							Header="{x:Static prop:Strings.ShowInList}"
+							Icon="FileTree"
+							Theme="{StaticResource MaterialFlatButton}" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<TextBlock
+				Grid.Column="0"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<Button
+				Grid.Column="2"
+				Classes="primary"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutedFileCommand}"
+				CommandParameter="{Binding}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- EditedFileTabControlHeaderTemplate -->
+	<DataTemplate
+		x:Key="EditedFileTabControlHeaderTemplate"
+		x:DataType="models:FileModelDto">
+		<StackPanel Orientation="Horizontal">
+			<TextBlock
+				Margin="10.0,0.0"
+				VerticalAlignment="Center"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<Button
+				Margin="6.0,0.0"
+				Padding="0.0"
+				Classes="primary"
+				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
+				CommandParameter="{Binding}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Foreground="{StaticResource WarningBrush}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<!-- KeyValueRecordTemplate -->
+	<DataTemplate
+		x:Key="KeyValueRecordTemplate"
+		DataType="localModels:KeyValueRecord">
+		<Grid
+			Classes="PointerOverBackgroundStyle"
+			ColumnDefinitions="Auto,*">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Key, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Edit}"
+							Icon="PencilOutline" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Note}"
+							Icon="NoteTextOutline" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CopyKeyValueToClipboardCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.CopyKeyAndValue}"
+							Icon="ContentCopy" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteKeyValueRecordCommand}"
+							CommandParameter="{Binding}"
+							Foreground="{StaticResource WarningBrush}"
+							Header="{x:Static prop:Strings.Delete}"
+							Icon="DeleteOutline" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<views:ClipboardTextBlock
+				Grid.Column="0"
+				Padding="{StaticResource RecordPadding}"
+				IsHighlight="{Binding IsHighlight, Mode=OneWay}"
+				Text="{Binding Key, Mode=OneWay}"
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
+
+			<views:ClipboardTextBlock
+				Grid.Column="1"
+				Padding="{StaticResource RecordPadding}"
+				IsHidden="{Binding IsHidden, Mode=TwoWay}"
+				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
+				IsHighlight="{Binding IsHighlight, Mode=OneWay}"
+				Note="{Binding Note, Mode=OneWay}"
+				Text="{Binding Value, Mode=OneWay}"
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
+		</Grid>
+	</DataTemplate>
+
+	<!-- ValueRecordTemplate -->
+	<DataTemplate
+		x:Key="ValueRecordTemplate"
+		DataType="localModels:ValueRecord">
+		<Grid Classes="PointerOverBackgroundStyle">
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Value, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Edit}"
+							Icon="PencilOutline" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Note}"
+							Icon="NoteTextOutline" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteValueRecordCommand}"
+							CommandParameter="{Binding}"
+							Foreground="{StaticResource WarningBrush}"
+							Header="{x:Static prop:Strings.Delete}"
+							Icon="DeleteOutline" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<views:ClipboardTextBlock
+				Padding="{StaticResource RecordPadding}"
+				IsHidden="{Binding IsHidden, Mode=TwoWay}"
+				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
+				Note="{Binding Note, Mode=OneWay}"
+				Text="{Binding Value, Mode=OneWay}"
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}" />
+		</Grid>
+	</DataTemplate>
+
+	<!-- RecordsGroupTemplate -->
+	<DataTemplate
+		x:Key="RecordsGroupTemplate"
+		DataType="localModels:RecordsGroup">
+
+		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
+		<Border
+			Padding="4.0"
+			BorderBrush="DarkGray"
+			BorderThickness="1.5"
+			CornerRadius="4.0">
+			<Expander
+				HorizontalAlignment="Stretch"
+				Content="{Binding Children, Mode=OneTime}"
+				Header="{Binding Mode=OneTime}"
+				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+
+				<Expander.Styles>
+					<Style Selector="FlyoutPresenter">
+						<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+						<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+					</Style>
+
+					<Style Selector="ToolTip">
+						<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
+					</Style>
+
+					<!-- Nuget: Avalonia.Themes.Simple -->
+					<SimpleTheme />
+				</Expander.Styles>
+
+				<Expander.ContextFlyout>
+					<Flyout OverlayDismissEventPassThrough="True">
+						<StackPanel Orientation="Vertical">
+							<StackPanel.Styles>
+								<Style Selector="Button">
+									<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								</Style>
+
+								<Style Selector="Separator">
+									<Setter Property="Theme" Value="{StaticResource MaterialSeparator}" />
+								</Style>
+							</StackPanel.Styles>
+
+							<TextBlock
+								Classes="NameInFlyoutTextBlockStyle"
+								Text="{Binding Name, Mode=OneTime}" />
+
+							<StackPanel Orientation="Horizontal">
+								<wrappers:FlyoutButton
+									Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RenameGroupCommand}"
+									CommandParameter="{Binding}"
+									Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox}"
+									ToolTip.Tip="{x:Static prop:Strings.Rename}" />
+
+								<wrappers:FlyoutButton
+									Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).DeleteGroupCommand}"
+									CommandParameter="{Binding}"
+									Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline}"
+									Foreground="{StaticResource WarningBrush}"
+									ToolTip.Tip="{x:Static prop:Strings.Delete}" />
+							</StackPanel>
+
+							<Separator />
+
+							<wrappers:FlyoutButton
+								Header="{x:Static prop:Strings.Add}"
+								Icon="Plus">
+								<Button.Flyout>
+									<Flyout
+										OverlayDismissEventPassThrough="True"
+										Placement="Right">
+										<StackPanel Orientation="Vertical">
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddKeyValueCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.AddKeyAndValue}"
+												Icon="Plus" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddValueCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.AddValue}"
+												Icon="Plus" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).AddGroupCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.AddGroup}"
+												Icon="ShapeRectanglePlus" />
+										</StackPanel>
+									</Flyout>
+								</Button.Flyout>
+							</wrappers:FlyoutButton>
+
+							<wrappers:FlyoutButton
+								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditNoteCommand}"
+								CommandParameter="{Binding}"
+								Header="{x:Static prop:Strings.Note}"
+								Icon="NoteTextOutline" />
+
+							<wrappers:FlyoutButton
+								Header="{x:Static prop:Strings.Options}"
+								Icon="CogOutline">
+								<Button.Flyout>
+									<Flyout
+										OverlayDismissEventPassThrough="True"
+										Placement="Right">
+										<StackPanel Orientation="Vertical">
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.CollapseAll}"
+												Icon="ChevronDoubleUp" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.ExpandAll}"
+												Icon="ChevronDoubleDown" />
+
+											<Separator />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).HideCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.HideAll}"
+												Icon="EyeOffOutline" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ShowCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.ShowAll}"
+												Icon="EyeOutline" />
+
+											<Separator />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortAscendingCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.SortAscending}"
+												Icon="SortAlphabeticalAscending" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).SortDescendingCommand}"
+												CommandParameter="{Binding}"
+												Header="{x:Static prop:Strings.SortDescending}"
+												Icon="SortAlphabeticalDescending" />
+										</StackPanel>
+									</Flyout>
+								</Button.Flyout>
+							</wrappers:FlyoutButton>
+						</StackPanel>
+					</Flyout>
+				</Expander.ContextFlyout>
+
+				<Expander.HeaderTemplate>
+					<DataTemplate DataType="localModels:RecordsGroup">
+						<Grid Classes="PointerOverBackgroundStyle">
+							<views:ClipboardTextBlock
+								Padding="{StaticResource RecordPadding}"
+								Note="{Binding Note, Mode=OneWay}"
+								Text="{Binding Name, Mode=OneWay}" />
+						</Grid>
+					</DataTemplate>
+				</Expander.HeaderTemplate>
+
+				<Expander.ContentTemplate>
+					<DataTemplate>
+						<ItemsControl ItemsSource="{Binding Mode=OneTime}">
+							<ItemsControl.ItemTemplate>
+								<helpers:DatasetRecordTemplateSelector>
+									<StaticResource ResourceKey="KeyValueRecordTemplate" />
+
+									<StaticResource ResourceKey="RecordsGroupTemplate" />
+
+									<StaticResource ResourceKey="ValueRecordTemplate" />
+								</helpers:DatasetRecordTemplateSelector>
+							</ItemsControl.ItemTemplate>
+
+							<ItemsControl.ItemContainerTheme>
+								<ControlTheme TargetType="ContentPresenter">
+									<Setter Property="Margin" Value="2.0" />
+								</ControlTheme>
+							</ItemsControl.ItemContainerTheme>
+						</ItemsControl>
+					</DataTemplate>
+				</Expander.ContentTemplate>
+
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Expanded">
+						<InvokeCommandAction
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
+							PassEventArgsToCommand="True" />
+					</EventTriggerBehavior>
+
+					<EventTriggerBehavior EventName="Collapsed">
+						<InvokeCommandAction
+							Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).GroupExpandedCollapsedByUserCommand}"
+							PassEventArgsToCommand="True" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</Expander>
+		</Border>
+	</DataTemplate>
+
+	<!-- FavoriteCategoryTemplate -->
+	<DataTemplate
+		x:Key="FavoriteCategoryTemplate"
+		DataType="localDto:FavoriteCategory">
+
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							CommandParameter="{Binding Id}"
+							Header="{x:Static prop:Strings.ShowInEditor}"
+							Icon="FileTree" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<materialIcons:MaterialIcon
+				Grid.Column="0"
+				Classes="FolderIconStyle" />
+
+			<TextBlock
+				Grid.Column="1"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- FileInListTemplate -->
+	<DataTemplate
+		x:Key="FileInListTemplate"
+		DataType="models:FileModelDto">
+
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,Auto,Auto,*">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							CommandParameter="{Binding Id}"
+							Header="{x:Static prop:Strings.ShowInEditor}"
+							Icon="FileTree" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<Button
+				Grid.Column="0"
+				Classes="primary"
+				Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).CopyContentCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
+				<Button.CommandParameter>
+					<MultiBinding>
+						<Binding />
+
+						<Binding RelativeSource="{RelativeSource AncestorType=SelectingItemsControl}" />
+					</MultiBinding>
+				</Button.CommandParameter>
+			</Button>
+
+			<materialIcons:MaterialIcon
+				x:Name="Icon"
+				Grid.Column="1"
+				Margin="2.0,0.0,8.0,0.0"
+				Background="Transparent"
+				Cursor="Help"
+				Foreground="{StaticResource MaterialBodyBrush}"
+				Kind="EyeOutline">
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="PointerEntered">
+						<InvokeCommandAction
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerEnteredCommand}"
+							CommandParameter="{Binding #Icon}" />
+					</EventTriggerBehavior>
+
+					<EventTriggerBehavior EventName="PointerExited">
+						<InvokeCommandAction
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerExitedCommand}"
+							CommandParameter="{Binding #Icon}" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</materialIcons:MaterialIcon>
+
+			<TextBlock
+				Grid.Column="2"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- MaterialDesignColorSampleTemplate -->
+	<DataTemplate x:Key="MaterialDesignColorSampleTemplate">
+		<Grid ColumnDefinitions="*,Auto">
+			<Grid.Resources>
+				<converters:MaterialDesignColorToBrushConverter x:Key="MaterialDesignColorToBrushConverter" />
+			</Grid.Resources>
+
+			<TextBlock
+				Grid.Column="0"
+				Margin="0.0,0.0,6.0,0.0"
+				Text="{Binding Mode=OneTime}" />
+
+			<Rectangle
+				Grid.Column="1"
+				Classes="ColorSampleStyle"
+				Fill="{Binding Mode=OneTime, Converter={StaticResource MaterialDesignColorToBrushConverter}}" />
+		</Grid>
+	</DataTemplate>
+</ResourceDictionary>

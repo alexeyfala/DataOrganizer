@@ -1,0 +1,170 @@
+<Window
+	x:Class="DataOrganizer.Windows.ConsoleWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:AvaloniaEdit="using:AvaloniaEdit"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:ConsoleViewModel"
+	Icon="/Assets/Logo.ico"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:ConsoleViewModel />
+	</Design.DataContext>
+
+	<Grid RowDefinitions="Auto,Auto,Auto,*">
+		<Interaction.Behaviors>
+			<behaviors:StyledElementAddFluentThemeBehavior />
+		</Interaction.Behaviors>
+
+		<Separator
+			Grid.Row="0"
+			Margin="0.0" />
+
+		<toolBarControls:ToolBar Grid.Row="1">
+			<toolBarControls:ToolBar.Styles>
+				<Style Selector="Button">
+					<Setter Property="Margin" Value="6.0,4.0" />
+					<Setter Property="Cursor" Value="Hand" />
+				</Style>
+
+				<Style Selector="ToggleButton">
+					<Setter Property="Margin" Value="6.0,4.0" />
+					<Setter Property="Cursor" Value="Hand" />
+				</Style>
+			</toolBarControls:ToolBar.Styles>
+
+			<ToggleButton
+				Content="{materialIcons:MaterialIconTextExt Kind=DockWindow}"
+				IsChecked="{Binding $parent[Window].Topmost, Mode=TwoWay}"
+				ToolTip.Tip="{x:Static prop:Strings.Topmost}" />
+
+			<ToggleButton
+				Content="{materialIcons:MaterialIconTextExt Kind=Wrap}"
+				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
+				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
+
+			<ToggleButton
+				Content="{materialIcons:MaterialIconTextExt Kind=Pause}"
+				IsChecked="{Binding IsPaused, Mode=TwoWay}"
+				ToolTip.Tip="{x:Static prop:Strings.Pause}" />
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Command="{Binding ScrollToTopCommand}"
+				CommandParameter="{Binding #Editor}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp}"
+				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
+
+			<Button
+				Command="{Binding ScrollToEndCommand}"
+				CommandParameter="{Binding #Editor}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown}"
+				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
+
+			<Button
+				Command="{Binding ClearCommand}"
+				CommandParameter="{Binding #Editor}"
+				Content="{materialIcons:MaterialIconTextExt Kind=EraserVariant}"
+				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<Button
+				Content="{materialIcons:MaterialIconTextExt Kind=FolderOutline}"
+				ToolTip.Tip="{x:Static prop:Strings.Folders}">
+				<Button.Flyout>
+					<MenuFlyout>
+						<MenuItem
+							Command="{Binding OpenAppDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationFile}" />
+
+						<MenuItem
+							Command="{Binding OpenAppDataDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationData}" />
+					</MenuFlyout>
+				</Button.Flyout>
+			</Button>
+
+			<Panel Classes="VerticalSeparatorPanelStyle" />
+
+			<ButtonSpinner
+				Width="120.0"
+				Margin="6.0,0.0"
+				VerticalAlignment="Center"
+				AllowSpin="True"
+				ToolTip.Tip="{x:Static prop:Strings.FontSize}">
+
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Spin">
+						<InvokeCommandAction
+							Command="{Binding SpinCommand}"
+							PassEventArgsToCommand="True" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+
+				<TextBlock Text="{Binding FontSize, Mode=OneWay}" />
+			</ButtonSpinner>
+		</toolBarControls:ToolBar>
+
+		<Separator
+			Grid.Row="2"
+			Margin="0.0" />
+
+		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
+		<AvaloniaEdit:TextEditor
+			Name="Editor"
+			Grid.Row="3"
+			FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+			FontSize="{Binding FontSize, Mode=OneWay}"
+			HorizontalScrollBarVisibility="Auto"
+			IsReadOnly="True"
+			ShowLineNumbers="True"
+			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding EditorLoadedCommand}"
+						CommandParameter="{Binding #Editor}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+
+			<AvaloniaEdit:TextEditor.ContextMenu>
+				<ContextMenu Padding="4.0,0.0">
+					<MenuItem
+						Command="{Binding CopyCommand}"
+						CommandParameter="{Binding #Editor.TextArea}"
+						Header="{x:Static prop:Strings.Copy}"
+						InputGesture="{OnPlatform Default='Ctrl+C',
+						                          macOS='⌘+C'}" />
+
+					<Separator />
+
+					<MenuItem
+						Command="{Binding SelectAllCommand}"
+						CommandParameter="{Binding #Editor}"
+						Header="{x:Static prop:Strings.SelectAll}"
+						InputGesture="{OnPlatform Default='Ctrl+A',
+						                          macOS='⌘+A'}" />
+
+					<Separator />
+
+					<MenuItem
+						Command="{Binding FindCommand}"
+						CommandParameter="{Binding #Editor.TextArea}"
+						Header="{x:Static prop:Strings.Find}"
+						InputGesture="{OnPlatform Default='Ctrl+F',
+						                          macOS='⌘+F'}" />
+				</ContextMenu>
+			</AvaloniaEdit:TextEditor.ContextMenu>
+		</AvaloniaEdit:TextEditor>
+	</Grid>
+</Window>

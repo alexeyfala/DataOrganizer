@@ -1,0 +1,195 @@
+﻿using DataOrganizer.Interfaces;
+using Shared.Common;
+using Shared.Enums;
+using Shared.Extensions;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+
+namespace DataOrganizer.Services;
+
+/// <inheritdoc cref="IProcessUtils" />
+internal sealed class ProcessUtils : IProcessUtils
+{
+	#region Methods
+	/// <inheritdoc />
+	public Process[] GetChildProcesses(int parentProcessId)
+	{
+		return [.. Process
+			.GetProcesses()
+			.Where(x => GetParentProcessId(x, out int processId) && processId == parentProcessId)];
+
+		//// Nuget: System.Management
+		//return new ManagementObjectSearcher($"Select * From Win32_Process Where ParentProcessID={parentProcessId}")
+		//	.Get()
+		//	.Cast<ManagementObject>()
+		//	.Select(x => Process.GetProcessById(Convert.ToInt32(x["ProcessID"])))
+		//	.ToArray();
+	}
+
+	/// <inheritdoc />
+	public bool IsProcessExists(int processId)
+	{
+		return Process
+			.GetProcesses()
+			.Any(x => x.Id == processId);
+	}
+
+	/// <inheritdoc />
+	public void KillProcess(in int processId)
+	{
+		Process
+			.GetProcessById(processId)
+			.Kill();
+	}
+
+	/// <inheritdoc />
+	public string? LaunchProcess(
+		string fileName,
+		string arguments,
+		string outputSearchValue)
+	{
+		return LaunchProcessGetOutput(fileName, arguments).FirstOrDefault(x => x.Contains(outputSearchValue));
+	}
+
+	/// <inheritdoc />
+	public string[] LaunchProcessGetOutput(string fileName, string arguments)
+	{
+		using Process process = new();
+
+		process.StartInfo = new()
+		{
+			Arguments = arguments,
+			FileName = fileName,
+			RedirectStandardOutput = true,
+			UseShellExecute = false,
+			CreateNoWindow = true
+		};
+
+		process.Start();
+
+		using StreamReader reader = process.StandardOutput;
+
+		return [.. reader
+			.ReadToEnd()
+			.Split(Environment.NewLine)
+			.Where(x => !string.IsNullOrEmpty(x))];
+	}
+
+	/// <inheritdoc />
+	public void OpenAppDirectory()
+	{
+		switch (AppUtils.CurrentOs)
+		{
+			case OperateSystem.Windows:
+				Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + Environment.ProcessPath);
+				break;
+
+			case OperateSystem.Linux:
+				Process.Start(AppUtils.PlatformSpecificExplorer, Environment.CurrentDirectory);
+				break;
+
+			case OperateSystem.MacOs:
+				Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(AppDomain.CurrentDomain.BaseDirectory));
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
+	}
+
+	/// <inheritdoc />
+	public void OpenDirectory(string directoryPath)
+	{
+		Process.Start(
+			AppUtils.PlatformSpecificExplorer,
+			directoryPath.SurroundWithQuotesIfNeeded());
+	}
+
+	/// <inheritdoc />
+	public bool StartProcess(string filePath, out int processId)
+	{
+		using Process process = AppUtils.IsWindows
+			? CreateWindowsProcess(filePath)
+			: CreateNonWindowsProcess(filePath);
+
+		if (process.Start())
+		{
+			processId = process.Id;
+
+			return true;
+		}
+
+		processId = default;
+
+		return false;
+	}
+
+	/// <inheritdoc />
+	public Process StartProcess(string fileName) => Process.Start(fileName);
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Creates a process to open a file on an operating system other than <see cref="OperateSystem.Windows" />.
+	/// </summary>
+	private static Process CreateNonWindowsProcess(string filePath) => new()
+	{
+		StartInfo = new()
+		{
+			Arguments = filePath.SurroundWithQuotesIfNeeded(),
+			CreateNoWindow = true,
+			FileName = AppUtils.PlatformSpecificExplorer,
+			UseShellExecute = false
+		}
+	};
+
+	/// <summary>
+	/// Creates a process to open a file in the <see cref="OperateSystem.Windows" /> operating system.
+	/// </summary>
+	private static Process CreateWindowsProcess(string filePath) => new()
+	{
+		StartInfo = new(filePath.SurroundWithQuotesIfNeeded())
+		{
+			UseShellExecute = true
+		}
+	};
+
+	/// <summary>
+	/// Combines the path with the folder expansion argument for <see cref="OperateSystem.MacOs" />.
+	/// </summary>
+	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
+
+	/// <summary>
+	/// Returns the parent process ID.
+	/// </summary>
+	private static bool GetParentProcessId(Process process, out int parentProcessId)
+	{
+		parentProcessId = 0;
+
+		try
+		{
+			PropertyInfo? property = process
+				.GetType()
+				.GetProperty("ParentProcessId", BindingFlags.NonPublic | BindingFlags.Instance);
+
+			if (property?.GetValue(process) is int value)
+			{
+				parentProcessId = value;
+
+				return true;
+			}
+
+			return false;
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex.ToStringDemystified());
+
+			return false;
+		}
+	}
+	#endregion
+}

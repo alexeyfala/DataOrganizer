@@ -1,0 +1,62 @@
+<Window
+	x:Class="DataOrganizer.Windows.ToastWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	MinWidth="400.0"
+	MaxWidth="800.0"
+	x:DataType="vm:ToastViewModel"
+	Background="Transparent"
+	CanResize="False"
+	Focusable="False"
+	IsTabStop="False"
+	ShowActivated="False"
+	ShowInTaskbar="False"
+	SizeToContent="WidthAndHeight"
+	SystemDecorations="None"
+	Topmost="True"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:ToastViewModel />
+	</Design.DataContext>
+
+	<Border
+		Background="{StaticResource MaterialBackgroundBrush}"
+		BorderBrush="Gray"
+		BorderThickness="1.0"
+		CornerRadius="8.0">
+		<Grid
+			ColumnDefinitions="Auto,*"
+			RowDefinitions="Auto,*">
+			<Image
+				Grid.Row="0"
+				Grid.Column="0"
+				Width="16.0"
+				Height="16.0"
+				Margin="10.0"
+				Source="/Assets/Logo.ico" />
+
+			<TextBlock
+				Grid.Row="0"
+				Grid.Column="1"
+				VerticalAlignment="Center"
+				FontWeight="SemiBold"
+				Text="{Binding Title, Mode=OneWay}" />
+
+			<SelectableTextBlock
+				Grid.Row="1"
+				Grid.Column="0"
+				Grid.ColumnSpan="2"
+				Margin="32.0,0.0,32.0,16.0"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				FontSize="16.0"
+				Text="{Binding Message, Mode=OneWay}"
+				TextAlignment="Center"
+				TextTrimming="CharacterEllipsis" />
+		</Grid>
+	</Border>
+</Window>

@@ -1,0 +1,67 @@
+<UserControl
+	x:Class="DataOrganizer.Views.HotkeysEditorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:HotkeysEditorViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:HotkeysEditorViewModel />
+	</Design.DataContext>
+
+	<Interaction.Behaviors>
+		<EventTriggerBehavior EventName="KeyUp">
+			<InvokeCommandAction
+				Command="{Binding KeyUpCommand}"
+				PassEventArgsToCommand="True" />
+		</EventTriggerBehavior>
+	</Interaction.Behaviors>
+
+	<Grid
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<StackPanel
+			Grid.Row="0"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<StackPanel.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding SaveAndCloseCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ClearCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
+				                                            Size={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
+		</StackPanel>
+
+		<TextBlock
+			Grid.Row="1"
+			HorizontalAlignment="Center"
+			FontSize="24.0"
+			FontWeight="SemiBold"
+			Text="{Binding Preview, Mode=OneWay}" />
+
+		<TextBlock Grid.Row="2">
+			<Run Text="{Binding Buffer.Count, Mode=OneWay}" />
+			<Run Text="/" />
+			<Run Text="{Binding MaxHotkeys, Mode=OneTime}" />
+		</TextBlock>
+	</Grid>
+</UserControl>

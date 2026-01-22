@@ -1,0 +1,280 @@
+<Window
+	x:Class="DataOrganizer.Windows.FavoritesWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:sys="clr-namespace:System;assembly=netstandard"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	Width="{Binding ViewWidth, Mode=OneWayToSource}"
+	Height="{Binding ViewHeight, Mode=OneWayToSource}"
+	x:DataType="vm:FavoritesViewModel"
+	ExtendClientAreaToDecorationsHint="True"
+	ShowInTaskbar="False"
+	SizeToContent="WidthAndHeight"
+	SystemDecorations="None"
+	Topmost="True"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:FavoritesViewModel />
+	</Design.DataContext>
+
+	<Window.Resources>
+		<CornerRadius x:Key="CornerRadius">4.0</CornerRadius>
+		<Thickness x:Key="BorderThickness">4.0</Thickness>
+	</Window.Resources>
+
+	<Border
+		BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
+		BorderThickness="{StaticResource BorderThickness}"
+		CornerRadius="{StaticResource CornerRadius}">
+
+		<Interaction.Behaviors>
+			<EventTriggerBehavior EventName="PointerPressed">
+				<InvokeCommandAction
+					Command="{Binding PointerPressedCommand}"
+					PassEventArgsToCommand="True" />
+			</EventTriggerBehavior>
+		</Interaction.Behaviors>
+
+		<Grid
+			Background="{StaticResource MaterialPrimaryMidBrush}"
+			RowDefinitions="Auto,Auto,*">
+			<Grid
+				Grid.Row="0"
+				Margin="0.0,0.0,0.0,3.0"
+				Background="Transparent"
+				ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+				<Image
+					Grid.Column="0"
+					Width="14.0"
+					Height="14.0"
+					Source="avares://DataOrganizerMain/Assets/Logo.ico" />
+
+				<TextBlock
+					Grid.Column="1"
+					Margin="4.0"
+					Foreground="{StaticResource LightForeground}"
+					Text="{x:Static common:AppUtils.AppName}" />
+
+				<ToggleSwitch
+					Grid.Column="3"
+					Margin="12.0,0.0"
+					Classes="accent"
+					IsChecked="{Binding IsPopupFixed, Mode=TwoWay}"
+					ToolTip.Tip="{x:Static prop:Strings.Fix}" />
+
+				<Button
+					Grid.Column="4"
+					Padding="0.0"
+					Command="{Binding CloseCommand}"
+					CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+					Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+					Foreground="{StaticResource LightForeground}"
+					Theme="{StaticResource MaterialFlatButton}"
+					ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="DoubleTapped">
+						<InvokeCommandAction
+							Command="{Binding ShowEditorCommand}"
+							CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</Grid>
+
+			<Popup
+				Grid.Row="1"
+				Width="{Binding PopupWidth, Mode=OneWay}"
+				Height="{Binding PopupHeight, Mode=OneWay}"
+				IsLightDismissEnabled="{Binding !IsPopupFixed, Mode=TwoWay}"
+				IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
+				OverlayDismissEventPassThrough="True"
+				PlacementMode="Top"
+				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+				VerticalOffset="-2.0">
+
+				<Grid
+					ColumnDefinitions="Auto,*,Auto"
+					RowDefinitions="Auto,*">
+
+					<Grid.Resources>
+						<sys:Double x:Key="ThumbSize">4.0</sys:Double>
+
+						<ControlTheme
+							x:Key="ThumbTheme"
+							TargetType="Thumb">
+							<Setter Property="Template">
+								<ControlTemplate>
+									<Border
+										Background="{TemplateBinding Background}"
+										BorderBrush="{TemplateBinding BorderBrush}"
+										BorderThickness="{TemplateBinding BorderThickness}" />
+								</ControlTemplate>
+							</Setter>
+						</ControlTheme>
+					</Grid.Resources>
+
+					<Border
+						Grid.Row="0"
+						Grid.RowSpan="2"
+						Grid.Column="0"
+						Grid.ColumnSpan="3"
+						Background="{StaticResource MaterialPrimaryMidBrush}"
+						BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
+						BorderThickness="{StaticResource BorderThickness}"
+						CornerRadius="{StaticResource CornerRadius}">
+						<Border
+							Background="{StaticResource MaterialBackgroundBrush}"
+							CornerRadius="{StaticResource CornerRadius}">
+							<materialControls:SnackbarHost
+								x:Name="SnackbarHost"
+								Foreground="{Binding SnackbarForeground, Mode=OneWay}"
+								HostName="{Binding $self.Name}"
+								SnackbarHorizontalAlignment="Center">
+								<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
+									<ContentPresenter.KeyBindings>
+										<KeyBinding
+											Command="{Binding ClosePopupCommand}"
+											Gesture="Escape" />
+									</ContentPresenter.KeyBindings>
+								</ContentPresenter>
+							</materialControls:SnackbarHost>
+						</Border>
+					</Border>
+
+					<Thumb
+						Grid.Row="1"
+						Grid.Column="0"
+						Width="{StaticResource ThumbSize}"
+						Background="Transparent"
+						Cursor="LeftSide"
+						Theme="{StaticResource ThumbTheme}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="DragDelta">
+								<InvokeCommandAction
+									Command="{Binding ResizePopupByLeftCommand}"
+									PassEventArgsToCommand="True" />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Thumb>
+
+					<Thumb
+						Grid.Row="0"
+						Grid.Column="0"
+						Width="{StaticResource ThumbSize}"
+						Height="{StaticResource ThumbSize}"
+						Background="Transparent"
+						Cursor="TopLeftCorner"
+						Theme="{StaticResource ThumbTheme}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="DragDelta">
+								<InvokeCommandAction
+									Command="{Binding ResizePopupByTopLeftCornerCommand}"
+									PassEventArgsToCommand="True" />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Thumb>
+
+					<Thumb
+						Grid.Row="0"
+						Grid.Column="1"
+						Height="{StaticResource ThumbSize}"
+						Background="Transparent"
+						Cursor="TopSide"
+						Theme="{StaticResource ThumbTheme}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="DragDelta">
+								<InvokeCommandAction
+									Command="{Binding ResizePopupByTopCommand}"
+									PassEventArgsToCommand="True" />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Thumb>
+
+					<Thumb
+						Grid.Row="0"
+						Grid.Column="2"
+						Width="{StaticResource ThumbSize}"
+						Height="{StaticResource ThumbSize}"
+						Background="Transparent"
+						Cursor="TopRightCorner"
+						Theme="{StaticResource ThumbTheme}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="DragDelta">
+								<InvokeCommandAction
+									Command="{Binding ResizePopupByTopRightCornerCommand}"
+									PassEventArgsToCommand="True" />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Thumb>
+
+					<Thumb
+						Grid.Row="1"
+						Grid.Column="2"
+						Width="{StaticResource ThumbSize}"
+						Background="Transparent"
+						Cursor="RightSide"
+						Theme="{StaticResource ThumbTheme}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="DragDelta">
+								<InvokeCommandAction
+									Command="{Binding ResizePopupByRightCommand}"
+									PassEventArgsToCommand="True" />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Thumb>
+				</Grid>
+			</Popup>
+
+			<Border
+				Grid.Row="2"
+				Background="{StaticResource MaterialBackgroundBrush}"
+				CornerRadius="{StaticResource CornerRadius}">
+				<StackPanel Orientation="Horizontal">
+					<StackPanel.Styles>
+						<Style Selector="Button,ToggleButton">
+							<Setter Property="Margin" Value="4.0" />
+							<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+						</Style>
+					</StackPanel.Styles>
+
+					<ToggleButton
+						Classes="primary"
+						Content="{materialIcons:MaterialIconTextExt Kind=StarOutline,
+						                                            Size={StaticResource ToolBarIconSize}}"
+						IsChecked="{Binding ShowFavorites, Mode=TwoWay}"
+						IsEnabled="{Binding !ShowFavorites, Mode=OneWay}"
+						ToolTip.Tip="{x:Static prop:Strings.Favorites}" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding ShowEditorCommand}"
+						CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+						Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
+						                                            Size={StaticResource ToolBarIconSize}}"
+						ToolTip.Tip="{x:Static prop:Strings.Editor}" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding ShowSystemClipboardCommand}"
+						Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
+
+					<ToggleButton
+						Classes="primary"
+						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+						                                            Size={StaticResource ToolBarIconSize}}"
+						IsChecked="{Binding ShowContentCopyHistory, Mode=TwoWay}"
+						IsEnabled="{Binding !ShowContentCopyHistory, Mode=OneWay}"
+						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+				</StackPanel>
+			</Border>
+		</Grid>
+	</Border>
+</Window>
+

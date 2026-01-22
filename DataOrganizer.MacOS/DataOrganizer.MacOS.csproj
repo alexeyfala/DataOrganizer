@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0-macos</TargetFramework>
+		<Nullable>enable</Nullable>
+		<WarningsAsErrors>nullable</WarningsAsErrors>
+		<RuntimeIdentifier>osx-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<ApplicationIcon>..\DataOrganizer\Assets\Logo.ico</ApplicationIcon>
+		<AssemblyName>DataOrganizer</AssemblyName>
+		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
+		<Version>2.0.0-Preview1</Version>
+		<FileVersion>2.0.0</FileVersion>
+		<AssemblyVersion>2.0.0</AssemblyVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<TrimmerRootDescriptor Include="Roots.xml" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Desktop" Version="11.3.11" />
+		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.11" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="Logo.icns" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,19 @@
+<UserControl
+	x:Class="DataOrganizer.Views.ExecutedFilesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:ExecutedFilesViewModel"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:ExecutedFilesViewModel />
+	</Design.DataContext>
+
+	<!-- TODO: ScrollViewer is not visible in EditorWindow -->
+	<ListBox
+		ItemTemplate="{StaticResource ExecutedFileTemplate}"
+		ItemsSource="{Binding ExecutedFiles, Mode=OneWay}" />
+</UserControl>

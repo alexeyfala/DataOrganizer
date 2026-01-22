@@ -1,0 +1,114 @@
+<!-- https://docs.avaloniaui.net/docs/basics/user-interface/styling/styles -->
+<!-- https://docs.avaloniaui.net/docs/guides/styles-and-resources/selectors -->
+
+<Styles
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared">
+
+	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+		<!--<Setter Property="Background" Value="{StaticResource MaterialSelectionBrush}" />-->
+	</Style>
+
+	<Style Selector="Panel.VerticalSeparatorPanelStyle">
+		<Setter Property="Background" Value="Gray" />
+		<Setter Property="Margin" Value="0.0,6.0" />
+		<Setter Property="VerticalAlignment" Value="Stretch" />
+		<Setter Property="Width" Value="1.0" />
+	</Style>
+
+	<!-- https://docs.avaloniaui.net/docs/concepts/custom-itemspanel -->
+	<Style Selector="ItemsControl.VirtualizedItemsControlStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TreeView.VirtualizedTreeViewStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<VirtualizingStackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="Menu.VerticalMenuStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TextBlock.NotImplementedYetStubStyle">
+		<Setter Property="FontSize" Value="32.0" />
+		<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="Margin" Value="6.0" />
+		<Setter Property="Text" Value="Not implemented yet" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="GridSplitter.VerticalGridSplitterStyle">
+		<Setter Property="Background" Value="Gray" />
+		<Setter Property="BorderThickness" Value="3.0" />
+		<Setter Property="ResizeDirection" Value="Columns" />
+	</Style>
+
+	<Style Selector="materialIcons|MaterialIcon.FolderIconStyle">
+		<Setter Property="Foreground" Value="{StaticResource FolderBrush}" />
+		<Setter Property="Height" Value="{StaticResource EntityTypeIconSize}" />
+		<Setter Property="Kind" Value="{StaticResource FolderIconKind}" />
+		<Setter Property="Width" Value="{StaticResource EntityTypeIconSize}" />
+	</Style>
+
+	<Style Selector="TextBlock.DtoNameTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="Margin" Value="4.0,0.0,0.0,0.0" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="ListBox.NonVirtualizedListBoxStyle">
+		<Setter Property="ItemsPanel">
+			<Setter.Value>
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Vertical" />
+				</ItemsPanelTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	<Style Selector="TextBox.SearchTextBoxStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="Padding" Value="0.0" />
+		<Setter Property="Theme" Value="{StaticResource SoloTextBox}" />
+		<Setter Property="Watermark" Value="{x:Static prop:Strings.Search}" />
+	</Style>
+
+	<Style Selector="Rectangle.ColorSampleStyle">
+		<Setter Property="Height" Value="16.0" />
+		<Setter Property="Stroke" Value="Gainsboro" />
+		<Setter Property="StrokeThickness" Value="1.0" />
+		<Setter Property="Width" Value="32.0" />
+	</Style>
+
+	<Style Selector="TextBlock.NameInFlyoutTextBlockStyle">
+		<Setter Property="FontSize" Value="14.0" />
+		<Setter Property="Foreground" Value="{StaticResource FileBrush}" />
+		<Setter Property="HorizontalAlignment" Value="Left" />
+		<Setter Property="Margin" Value="0.0,0.0,0.0,4.0" />
+		<Setter Property="MaxWidth" Value="200.0" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+	</Style>
+</Styles>

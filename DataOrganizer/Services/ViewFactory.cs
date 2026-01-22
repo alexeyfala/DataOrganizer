@@ -1,0 +1,27 @@
+﻿using Avalonia.Controls;
+using DataOrganizer.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+
+namespace DataOrganizer.Services;
+
+/// <inheritdoc cref="IViewFactory" />
+internal sealed class ViewFactory : IViewFactory
+{
+	#region Data
+	/// <inheritdoc cref="IServiceProvider" />
+	private readonly IServiceProvider _serviceProvider;
+	#endregion
+
+	#region Constructors
+	public ViewFactory(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public T CreateWindow<T>() where T : Window => _serviceProvider.GetRequiredService<T>();
+
+	/// <inheritdoc />
+	public T CreateUserControl<T>() where T : UserControl => _serviceProvider.GetRequiredService<T>();
+	#endregion
+}

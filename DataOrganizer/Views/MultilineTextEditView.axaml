@@ -1,0 +1,52 @@
+<UserControl
+	x:Class="DataOrganizer.Views.MultilineTextEditView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:MultilineTextEditViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:MultilineTextEditViewModel />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBox
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="3"
+			AcceptsReturn="True"
+			AcceptsTab="True"
+			FontSize="14.0"
+			Text="{Binding Text, Mode=TwoWay}"
+			TextWrapping="Wrap" />
+
+		<UniformGrid
+			Grid.Row="1"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<Button
+				Classes="primary"
+				Command="{Binding DefaultPressedCommand}"
+				Content="{x:Static prop:Strings.Save}"
+				IsDefault="True"
+				Theme="{StaticResource MaterialFlatButton}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True"
+				Theme="{StaticResource MaterialFlatButton}" />
+		</UniformGrid>
+	</Grid>
+</UserControl>
