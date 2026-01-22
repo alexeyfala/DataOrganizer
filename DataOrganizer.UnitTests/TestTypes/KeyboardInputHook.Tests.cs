@@ -13,6 +13,44 @@ internal class KeyboardInputHookTests
 {
 	#region Methods
 	/// <summary>
+	/// Test of <see cref="KeyboardInputHook.Dispose" />.
+	/// </summary>
+	[Test]
+	public void Dispose_Disposes_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHook>(hook));
+
+		sut
+			.Files
+			.AddRange(TestUtils.CreateFilesDto(10));
+
+		sut
+			.InputStack
+			.AddRange(TestUtils.CreateCodeMaskPairs(10));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		hook.IsDisposed
+			.Should()
+			.BeTrue();
+
+		sut.Files
+			.Should()
+			.BeEmpty();
+
+		sut.InputStack
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// Test of <see cref="KeyboardInputHook.StopTracking" />.
 	/// </summary>
 	[Test]
