@@ -13,6 +13,8 @@
 		<Version>2.0.0-Preview1</Version>
 		<FileVersion>2.0.0</FileVersion>
 		<AssemblyVersion>2.0.0</AssemblyVersion>
+		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<TrimmerRootDescriptor Include="Roots.xml" />

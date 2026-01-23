@@ -7,6 +7,8 @@
 		<Nullable>enable</Nullable>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<AssemblyName>DataOrganizer</AssemblyName>
+		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -26,6 +28,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
+		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 	</ItemGroup>
 </Project>
