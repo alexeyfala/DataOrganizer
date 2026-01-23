@@ -122,7 +122,7 @@ public sealed class App : Application
 	/// Configures <see cref="ConsoleWindow" />.
 	/// </summary>
 	private static ConsoleWindow ConfigureConsoleWindow(
-		App app,
+		Application app,
 		IFileSystem fileSystem,
 		ICommandLineOptions options,
 		IJsonSerializerWrapper serializer,
@@ -281,7 +281,7 @@ public sealed class App : Application
 		if (options.IsConsoleNeeded)
 		{
 			_console = ConfigureConsoleWindow(
-				serviceProvider.GetRequiredService<App>(),
+				this,
 				serviceProvider.GetRequiredService<IFileSystem>(),
 				options,
 				serviceProvider.GetRequiredService<IJsonSerializerWrapper>(),
@@ -322,7 +322,7 @@ public sealed class App : Application
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddSingleton(this);
+		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));

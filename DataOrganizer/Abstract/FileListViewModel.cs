@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
@@ -121,7 +122,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 	#region Constructors
 	protected FileListViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		ILogger logger) : base(app, dbAccess, logger)
 	{

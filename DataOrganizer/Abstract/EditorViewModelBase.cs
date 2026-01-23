@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -25,15 +26,15 @@ public abstract partial class EditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="App" />
-	protected readonly App _app;
+	/// <inheritdoc cref="Application" />
+	protected readonly Application _app;
 
 	/// <inheritdoc cref="Lock" />
 	protected readonly Lock _mutex = new();
 	#endregion
 
 	#region Constructors
-	protected EditorViewModelBase(App app) => _app = app;
+	protected EditorViewModelBase(Application app) => _app = app;
 	#endregion
 
 	#region Event Handlers

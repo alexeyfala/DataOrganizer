@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -98,7 +99,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Constructors
 	protected ViewModelBase(
-		App app,
+		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IEventSimulator eventSimulator,

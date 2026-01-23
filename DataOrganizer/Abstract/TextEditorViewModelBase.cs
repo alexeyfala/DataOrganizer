@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using AvaloniaEdit;
@@ -115,7 +116,7 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 	#endregion
 
 	#region Constructors
-	protected TextEditorViewModelBase(App app) : base(app)
+	protected TextEditorViewModelBase(Application app) : base(app)
 	{
 	}
 	#endregion

@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -85,7 +86,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 
 	#region Constructors
 	public CopyHistoryViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		ILogger logger) : base(app, dbAccess, logger)
 	{

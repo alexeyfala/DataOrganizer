@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Templates;
@@ -708,7 +709,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Constructors
 	public EditorViewModel(
-		App app,
+		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IEventSimulator eventSimulator,

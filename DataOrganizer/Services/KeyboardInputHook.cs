@@ -1,4 +1,5 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia;
+using Avalonia.Threading;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
@@ -37,8 +38,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -61,7 +62,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	#region Constructors
 	public KeyboardInputHook(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
 		IGlobalHook hook,

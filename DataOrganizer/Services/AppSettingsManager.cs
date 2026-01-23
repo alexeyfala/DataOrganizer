@@ -1,4 +1,5 @@
-﻿using Avalonia.Styling;
+﻿using Avalonia;
+using Avalonia.Styling;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using Material.Colors;
@@ -21,8 +22,8 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -33,7 +34,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 
 	#region Constructors
 	public AppSettingsManager(
-		App app,
+		Application app,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger)

@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -140,7 +141,7 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger) : base(app)

@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,8 +22,8 @@ namespace DataOrganizer.Abstract;
 public abstract class CopyContentViewModelBase : ObservableObject
 {
 	#region Data
-	/// <inheritdoc cref="App" />
-	protected readonly App _app;
+	/// <inheritdoc cref="Application" />
+	protected readonly Application _app;
 
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
@@ -33,7 +34,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 	#region Constructors
 	protected CopyContentViewModelBase(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		ILogger logger)
 	{

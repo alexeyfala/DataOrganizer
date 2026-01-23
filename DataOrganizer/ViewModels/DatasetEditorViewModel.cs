@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -496,7 +497,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 	#region Constructors
 	public DatasetEditorViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,

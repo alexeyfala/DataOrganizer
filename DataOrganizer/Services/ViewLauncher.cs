@@ -22,8 +22,8 @@ namespace DataOrganizer.Services;
 public class ViewLauncher : IViewLauncher
 {
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -43,7 +43,7 @@ public class ViewLauncher : IViewLauncher
 
 	#region Constructors
 	public ViewLauncher(
-		App app,
+		Application app,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,

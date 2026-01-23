@@ -12,8 +12,8 @@ namespace DataOrganizer.Services;
 public sealed class NotificationService : INotificationService
 {
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
 
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
@@ -24,7 +24,7 @@ public sealed class NotificationService : INotificationService
 
 	#region Constructors
 	public NotificationService(
-		App app,
+		Application app,
 		IDispatcher dispatcher,
 		IViewFactory viewFactory)
 	{

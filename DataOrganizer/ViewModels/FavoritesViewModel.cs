@@ -338,7 +338,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 	#region Constructors
 	public FavoritesViewModel(
-		App app,
+		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IEventSimulator eventSimulator,
