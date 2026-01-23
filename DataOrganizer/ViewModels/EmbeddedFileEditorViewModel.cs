@@ -1,9 +1,11 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using Repository.DTO;
@@ -72,7 +74,7 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			return;
 		}
 
-		editor.Text = IFileEditor
+		editor.Text = TextHelper
 			.Utf8Encoding
 			.GetString(result.Contents);
 
@@ -139,7 +141,7 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger) : base(app)
@@ -188,7 +190,7 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			_ = this.SaveContentsAsync(
 				_dbAccess,
 				_logger,
-				IFileEditor.Utf8Encoding.GetBytes(editor.Text));
+				TextHelper.Utf8Encoding.GetBytes(editor.Text));
 		}
 	}
 	#endregion

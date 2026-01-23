@@ -5,7 +5,7 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.DTO;
@@ -87,7 +87,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		editor.Text
 			.Should()
-			.Be(IFileEditor.Utf8Encoding.GetString(contents));
+			.Be(TextHelper.Utf8Encoding.GetString(contents));
 
 		sut.IsWordWrap
 			.Should()

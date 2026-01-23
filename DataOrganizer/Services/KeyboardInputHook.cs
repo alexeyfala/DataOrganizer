@@ -1,6 +1,8 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using Avalonia.Threading;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -20,32 +22,32 @@ namespace DataOrganizer.Services;
 public sealed class KeyboardInputHook : IKeyboardInputHook
 {
 	#region Properties
+	/// <summary>
+	/// List of files with hotkeys.
+	/// </summary>
+	public List<FileModelDto> Files { get; } = [];
+
+	/// <summary>
+	/// Stack of pressed keys.
+	/// </summary>
+	public List<CodeMaskPair> InputStack { get; } = [];
+
 	/// <inheritdoc />
 	public bool IsRunning => _hook.IsRunning;
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="IClipboardService" />
+	private readonly IClipboardService _clipboardService;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	private readonly IUIThreadDispatcher _dispatcher;
-
-	/// <summary>
-	/// List of files with hotkeys.
-	/// </summary>
-	private readonly List<FileModelDto> _files = [];
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
-
-	/// <summary>
-	/// Stack of pressed keys.
-	/// </summary>
-	private readonly List<CodeMaskPair> _inputStack = [];
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -59,14 +61,14 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	#region Constructors
 	public KeyboardInputHook(
-		App app,
+		IClipboardService clipboardService,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
 		IGlobalHook hook,
 		ILogger logger,
-		INotificationService notificationService,
-		IUIThreadDispatcher dispatcher)
+		INotificationService notificationService)
 	{
-		_app = app;
+		_clipboardService = clipboardService;
 
 		_dbAccess = dbAccess;
 
@@ -79,8 +81,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		_notificationService = notificationService;
 
 		hook.KeyReleased += Hook_KeyReleased;
-
-		// TODO: Make test
 	}
 	#endregion
 
@@ -90,7 +90,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// </summary>
 	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
 	{
-		_ = HandleHookKeyReleasedAsync(e);
+		_ = HandleKeyReleasedAsync(
+			e.RawEvent.Mask,
+			e.Data.KeyCode);
 	}
 	#endregion
 
@@ -102,11 +104,109 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_hook.KeyReleased -= Hook_KeyReleased;
 
-		_files.Clear();
+		Files.Clear();
 
-		_inputStack.Clear();
+		InputStack.Clear();
 
 		_hook.Dispose();
+	}
+
+	/// <summary>
+	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// </summary>
+	public async Task HandleKeyReleasedAsync(EventMask rawMask, KeyCode code)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync()
+				.ConfigureAwait(false);
+
+			if (Files.Count == 0)
+			{
+				return;
+			}
+
+			EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
+
+			if (mask.IsDefault())
+			{
+				return;
+			}
+
+			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			{
+				InputStack.RemoveAt(0);
+			}
+
+			InputStack.Add(new()
+			{
+				Code = code,
+				Mask = mask
+			});
+
+			foreach (FileModelDto file in Files)
+			{
+				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
+
+				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
+				{
+					continue;
+				}
+
+				ContentsIsValidPair result = await _dbAccess
+					.GetFileContentsAsync(file.Id)
+					.ConfigureAwait(false);
+
+				if (result.IsDefault() || !result.IsValid)
+				{
+					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+
+					return;
+				}
+
+				string text = TextHelper
+					.Utf8Encoding
+					.GetString(result.Contents);
+
+				if (string.IsNullOrEmpty(text))
+				{
+					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+					return;
+				}
+
+				if (_clipboardService.FindClipboard() is not { } clipboard)
+				{
+					return;
+				}
+
+				if (AppDomain
+					.CurrentDomain
+					.IsRunningFromNUnit())
+				{
+					await clipboard
+						.SetTextAsync(text)
+						.ConfigureAwait(false);
+				}
+				else
+				{
+					_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
+				}
+
+				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
 	}
 
 	/// <inheritdoc />
@@ -151,9 +251,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	{
 		_logger.LogInformation("Stop global keyboard input tracking");
 
-		_files.Clear();
+		Files.Clear();
 
-		_inputStack.Clear();
+		InputStack.Clear();
 
 		_hook.Stop();
 	}
@@ -175,7 +275,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					.WaitAsync(token)
 					.ConfigureAwait(false);
 
-				_files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
+				Files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
 			}
 			finally
 			{
@@ -185,96 +285,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			await Task
 				.Delay(TimeSpan.FromSeconds(10), token)
 				.ConfigureAwait(false);
-		}
-	}
-
-	/// <summary>
-	/// Handles the event <see cref="Hook_KeyReleased" />.
-	/// </summary>
-	private async Task HandleHookKeyReleasedAsync(KeyboardHookEventArgs e)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync()
-				.ConfigureAwait(false);
-
-			if (_files.Count == 0)
-			{
-				return;
-			}
-
-			EventMask mask = e
-				.RawEvent
-				.Mask
-				.RemoveFlag(EventMask.NumLock);
-
-			if (mask.IsDefault())
-			{
-				return;
-			}
-
-			if (_inputStack.Count == IKeyboardInputHook.MaxHotkeys)
-			{
-				_inputStack.RemoveAt(0);
-			}
-
-			_inputStack.Add(new()
-			{
-				Code = e.Data.KeyCode,
-				Mask = mask
-			});
-
-			foreach (FileModelDto file in _files)
-			{
-				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
-
-				if (!hotkeys.SequenceEqual(_inputStack.TakeLast(hotkeys.Length)))
-				{
-					continue;
-				}
-
-				ContentsIsValidPair result = await _dbAccess
-					.GetFileContentsAsync(file.Id)
-					.ConfigureAwait(false);
-
-				if (result.IsDefault() || !result.IsValid)
-				{
-					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-					return;
-				}
-
-				string text = IFileEditor
-					.Utf8Encoding
-					.GetString(result.Contents);
-
-				if (string.IsNullOrEmpty(text))
-				{
-					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-					return;
-				}
-
-				if (_app.FindClipboard() is not { } clipboard)
-				{
-					return;
-				}
-
-				_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
-
-				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-
-				return;
-			}
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			_semaphore.Release();
 		}
 	}
 	#endregion

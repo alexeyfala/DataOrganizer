@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
@@ -11,11 +12,11 @@ namespace DataOrganizer.Services;
 public sealed class NotificationService : INotificationService
 {
 	#region Data
-	/// <inheritdoc cref="App" />
-	private readonly App _app;
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
 
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	private readonly IUIThreadDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -23,8 +24,8 @@ public sealed class NotificationService : INotificationService
 
 	#region Constructors
 	public NotificationService(
-		App app,
-		IUIThreadDispatcher dispatcher,
+		Application app,
+		IDispatcher dispatcher,
 		IViewFactory viewFactory)
 	{
 		_app = app;

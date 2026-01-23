@@ -21,32 +21,6 @@ internal class HotkeysEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.AddToBuffer" />.
-	/// </summary>
-	[Test]
-	public void AddToBuffer_Adds_Values_No_More_Than_Maximum_Value()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
-
-		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
-		{
-			Code = KeyCode.VcA,
-			Mask = EventMask.LeftCtrl
-		}, 100)];
-
-		// Act
-		pairs.ForEach(x => sut.AddToBuffer(x.Mask, x.Code));
-
-		// Assert
-		sut.Buffer.Count
-			.Should()
-			.Be(HotkeysEditorViewModel.MaxHotkeys);
-	}
-
-	/// <summary>
 	/// Test of <see cref="HotkeysEditorViewModel.Clear" />.
 	/// </summary>
 	[Test]
@@ -99,6 +73,32 @@ internal class HotkeysEditorViewModelTests
 		hook.IsDisposed
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		{
+			Code = KeyCode.VcA,
+			Mask = EventMask.LeftCtrl
+		}, 100)];
+
+		// Act
+		pairs.ForEach(x => sut.HandleKeyReleased(x.Mask, x.Code));
+
+		// Assert
+		sut.Buffer.Count
+			.Should()
+			.Be(HotkeysEditorViewModel.MaxHotkeys);
 	}
 
 	/// <summary>

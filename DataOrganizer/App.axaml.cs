@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
@@ -121,7 +122,7 @@ public sealed class App : Application
 	/// Configures <see cref="ConsoleWindow" />.
 	/// </summary>
 	private static ConsoleWindow ConfigureConsoleWindow(
-		App app,
+		Application app,
 		IFileSystem fileSystem,
 		ICommandLineOptions options,
 		IJsonSerializerWrapper serializer,
@@ -280,7 +281,7 @@ public sealed class App : Application
 		if (options.IsConsoleNeeded)
 		{
 			_console = ConfigureConsoleWindow(
-				serviceProvider.GetRequiredService<App>(),
+				this,
 				serviceProvider.GetRequiredService<IFileSystem>(),
 				options,
 				serviceProvider.GetRequiredService<IJsonSerializerWrapper>(),
@@ -307,6 +308,7 @@ public sealed class App : Application
 		services.AddMapster();
 
 		#region Transients
+		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
@@ -315,19 +317,19 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
-		services.AddTransient<IUIThreadDispatcher, UIThreadDispatcher>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		#endregion
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddSingleton(this);
+		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();

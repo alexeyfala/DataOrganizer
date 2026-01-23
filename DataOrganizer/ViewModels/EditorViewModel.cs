@@ -1,8 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Comparation;
@@ -707,7 +709,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Constructors
 	public EditorViewModel(
-		App app,
+		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IEventSimulator eventSimulator,
@@ -717,7 +719,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IUIThreadDispatcher dispatcher,
+		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{
@@ -1086,7 +1088,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.By(x => x.Code)
 			.AndBy(x => x.Mask);
 
-		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto(default, default)];
+		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto()];
 
 		if (dto
 			.Hotkeys

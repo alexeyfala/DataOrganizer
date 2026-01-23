@@ -385,8 +385,8 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static IEnumerable<HotkeyModelDto> ToHotkeyModelsDto(
 		this IEnumerable<CodeMaskPair> sequence,
-		Guid id,
-		Guid ownerId)
+		Guid id = default,
+		Guid ownerId = default)
 	{
 		return sequence.Select(x => new HotkeyModelDto
 		{

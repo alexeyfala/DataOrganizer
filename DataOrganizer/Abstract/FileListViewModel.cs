@@ -1,9 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers;
 using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -84,7 +85,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			return;
 		}
 
-		string text = IFileEditor
+		string text = TextHelper
 			.Utf8Encoding
 			.GetString(result.Contents);
 
@@ -121,7 +122,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 	#region Constructors
 	protected FileListViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		ILogger logger) : base(app, dbAccess, logger)
 	{

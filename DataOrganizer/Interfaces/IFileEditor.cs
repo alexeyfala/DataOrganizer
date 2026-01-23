@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Text;
 
 namespace DataOrganizer.Interfaces;
 
 public interface IFileEditor
 {
 	#region Properties
-	/// <inheritdoc cref="Encoding.UTF8" />
-	static Encoding Utf8Encoding { get; } = Encoding.UTF8;
-
 	/// <summary>
 	/// File identifier.
 	/// </summary>

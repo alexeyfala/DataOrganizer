@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -193,7 +194,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 
 	#region Constructors
 	public SelectedFavoritesViewModel(
-		App app,
+		Application app,
 		IDbAccess dbAccess,
 		ILogger logger) : base(app, dbAccess, logger)
 	{

@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -77,8 +78,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	protected readonly IUIThreadDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcher" />
+	protected readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
@@ -98,13 +99,13 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Constructors
 	protected ViewModelBase(
-		App app,
+		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IUIThreadDispatcher dispatcher,
+		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, dbAccess, logger)
 	{

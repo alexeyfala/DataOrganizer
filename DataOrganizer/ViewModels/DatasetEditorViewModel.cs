@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -168,7 +169,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand]
 	private Task CopyKeyValueToClipboard(KeyValueRecord? record)
 	{
-		if (record is null || _app.FindClipboard() is not { } clipboard)
+		if (record is null || _clipboardService.FindClipboard() is not { } clipboard)
 		{
 			return Task.CompletedTask;
 		}
@@ -481,6 +482,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IClipboardService" />
+	private readonly IClipboardService _clipboardService;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -496,12 +500,15 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 	#region Constructors
 	public DatasetEditorViewModel(
-		App app,
+		Application app,
+		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewLauncher viewLauncher) : base(app)
 	{
+		_clipboardService = clipboardService;
+
 		_dbAccess = dbAccess;
 
 		_jsonSerializer = jsonSerializer;
@@ -818,7 +825,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 				return;
 			}
 
-			string json = IFileEditor
+			string json = TextHelper
 				.Utf8Encoding
 				.GetString(result.Contents);
 
@@ -1064,7 +1071,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		return this.SaveContentsAsync(
 			_dbAccess,
 			_logger,
-			IFileEditor.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
+			TextHelper.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
 			token: token);
 	}
 	#endregion

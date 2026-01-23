@@ -100,8 +100,8 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	/// </summary>
 	private static readonly TextViewPosition _firstLinePosition = new();
 
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	private readonly IUIThreadDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <summary>
 	/// Record buffer.
@@ -118,7 +118,7 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	#endregion
 
 	#region Constructors
-	public ConsoleViewModel(App app, IUIThreadDispatcher dispatcher) : base(app) => _dispatcher = dispatcher;
+	public ConsoleViewModel(Application app, IDispatcher dispatcher) : base(app) => _dispatcher = dispatcher;
 	#endregion
 
 	#region Methods
