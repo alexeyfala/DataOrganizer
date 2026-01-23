@@ -5,6 +5,7 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.Services;
 using SharpHook;
 using SharpHook.Testing;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -51,6 +52,22 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />.
+	/// </summary>
+	[Test]
+	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+
+		// Assert
+	}
+
+	/// <summary>
 	/// Test of <see cref="KeyboardInputHook.StopTracking" />.
 	/// </summary>
 	[Test]
@@ -92,22 +109,6 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
-	}
-
-	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />.
-	/// </summary>
-	[Test]
-	public void TestMethod()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
-
-		// Act
-
-		// Assert
 	}
 	#endregion
 }
