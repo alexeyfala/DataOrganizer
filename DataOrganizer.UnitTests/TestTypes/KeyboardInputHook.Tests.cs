@@ -93,5 +93,21 @@ internal class KeyboardInputHookTests
 			.Should()
 			.BeEmpty();
 	}
+
+	/// <summary>
+	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />.
+	/// </summary>
+	[Test]
+	public void TestMethod()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+
+		// Assert
+	}
 	#endregion
 }
