@@ -1086,7 +1086,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.By(x => x.Code)
 			.AndBy(x => x.Mask);
 
-		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto(default, default)];
+		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto()];
 
 		if (dto
 			.Hotkeys

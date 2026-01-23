@@ -831,7 +831,7 @@ internal class EditorViewModelTests
 
 		dto
 			.Hotkeys
-			.AddRange(newHotkeys.ToHotkeyModelsDto(default, default));
+			.AddRange(newHotkeys.ToHotkeyModelsDto());
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -916,7 +916,7 @@ internal class EditorViewModelTests
 
 		dto
 			.Hotkeys
-			.AddRange(newHotkeys.ToHotkeyModelsDto(default, default));
+			.AddRange(newHotkeys.ToHotkeyModelsDto());
 
 		using AutoMock mock = AutoMock.GetLoose();
 

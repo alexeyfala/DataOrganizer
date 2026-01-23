@@ -2,9 +2,15 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Extensions;
 using DataOrganizer.Services;
+using Repository.DTO;
+using Shared.Extensions;
 using SharpHook;
+using SharpHook.Data;
 using SharpHook.Testing;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -58,9 +64,33 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
 	{
 		// Arrange
+		FileModelDto dto = TestUtils.CreateFileDto();
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		{
+			Code = code,
+			Mask = mask
+		}, 5)];
+
+		dto
+			.Hotkeys
+			.AddRange(pairs.ToHotkeyModelsDto());
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(dto);
+
+		sut
+			.InputStack
+			.AddRange(pairs);
 
 		// Act
 
