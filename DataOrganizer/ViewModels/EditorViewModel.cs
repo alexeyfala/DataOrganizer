@@ -3,6 +3,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Comparation;
@@ -717,7 +718,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IUIThreadDispatcher dispatcher,
+		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{

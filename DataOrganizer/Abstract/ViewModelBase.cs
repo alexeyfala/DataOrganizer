@@ -77,8 +77,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	protected readonly IUIThreadDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcher" />
+	protected readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
@@ -104,7 +104,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IUIThreadDispatcher dispatcher,
+		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, dbAccess, logger)
 	{

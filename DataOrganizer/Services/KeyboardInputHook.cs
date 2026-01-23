@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using Avalonia.Threading;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
@@ -42,8 +43,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IUIThreadDispatcher" />
-	private readonly IUIThreadDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
@@ -62,10 +63,10 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	public KeyboardInputHook(
 		App app,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
 		IGlobalHook hook,
 		ILogger logger,
-		INotificationService notificationService,
-		IUIThreadDispatcher dispatcher)
+		INotificationService notificationService)
 	{
 		_app = app;
 
