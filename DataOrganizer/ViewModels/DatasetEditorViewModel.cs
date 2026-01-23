@@ -818,7 +818,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 				return;
 			}
 
-			string json = IFileEditor
+			string json = TextHelper
 				.Utf8Encoding
 				.GetString(result.Contents);
 
@@ -1064,7 +1064,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		return this.SaveContentsAsync(
 			_dbAccess,
 			_logger,
-			IFileEditor.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
+			TextHelper.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
 			token: token);
 	}
 	#endregion

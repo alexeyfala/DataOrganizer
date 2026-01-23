@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -163,7 +164,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
-				string text = IFileEditor
+				string text = TextHelper
 					.Utf8Encoding
 					.GetString(result.Contents);
 

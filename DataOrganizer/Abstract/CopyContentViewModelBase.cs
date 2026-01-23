@@ -4,7 +4,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Helpers;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -90,7 +90,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
-			string text = IFileEditor
+			string text = TextHelper
 				.Utf8Encoding
 				.GetString(result.Contents);
 

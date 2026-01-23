@@ -4,12 +4,16 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Services;
+using NSubstitute;
 using Repository.DTO;
+using Repository.Interfaces;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -80,7 +84,20 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(pairs.ToHotkeyModelsDto());
 
-		using AutoMock mock = AutoMock.GetLoose();
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ContentsIsValidPair
+				{
+					Contents = TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum),
+					IsValid = true
+				});
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
 
@@ -93,6 +110,9 @@ internal class KeyboardInputHookTests
 			.AddRange(pairs);
 
 		// Act
+		await sut
+			.HandleKeyReleasedAsync(mask, code)
+			.ConfigureAwait(false);
 
 		// Assert
 	}
