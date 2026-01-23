@@ -169,7 +169,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand]
 	private Task CopyKeyValueToClipboard(KeyValueRecord? record)
 	{
-		if (record is null || _app.FindClipboard() is not { } clipboard)
+		if (record is null || _clipboardService.FindClipboard() is not { } clipboard)
 		{
 			return Task.CompletedTask;
 		}
@@ -482,6 +482,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IClipboardService" />
+	private readonly IClipboardService _clipboardService;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -498,11 +501,14 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
+		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewLauncher viewLauncher) : base(app)
 	{
+		_clipboardService = clipboardService;
+
 		_dbAccess = dbAccess;
 
 		_jsonSerializer = jsonSerializer;

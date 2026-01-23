@@ -308,6 +308,7 @@ public sealed class App : Application
 		services.AddMapster();
 
 		#region Transients
+		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
