@@ -79,8 +79,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		_notificationService = notificationService;
 
 		hook.KeyReleased += Hook_KeyReleased;
-
-		// TODO: Make test
 	}
 	#endregion
 
@@ -90,7 +88,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// </summary>
 	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
 	{
-		_ = HandleHookKeyReleasedAsync(e);
+		_ = HandleKeyReleasedAsync(
+			e.RawEvent.Mask,
+			e.Data.KeyCode);
 	}
 	#endregion
 
@@ -107,6 +107,93 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		InputStack.Clear();
 
 		_hook.Dispose();
+	}
+
+	/// <summary>
+	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// </summary>
+	public async Task HandleKeyReleasedAsync(EventMask rawMask, KeyCode code)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync()
+				.ConfigureAwait(false);
+
+			if (Files.Count == 0)
+			{
+				return;
+			}
+
+			EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
+
+			if (mask.IsDefault())
+			{
+				return;
+			}
+
+			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
+			{
+				InputStack.RemoveAt(0);
+			}
+
+			InputStack.Add(new()
+			{
+				Code = code,
+				Mask = mask
+			});
+
+			foreach (FileModelDto file in Files)
+			{
+				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
+
+				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
+				{
+					continue;
+				}
+
+				ContentsIsValidPair result = await _dbAccess
+					.GetFileContentsAsync(file.Id)
+					.ConfigureAwait(false);
+
+				if (result.IsDefault() || !result.IsValid)
+				{
+					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+
+					return;
+				}
+
+				string text = IFileEditor
+					.Utf8Encoding
+					.GetString(result.Contents);
+
+				if (string.IsNullOrEmpty(text))
+				{
+					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+					return;
+				}
+
+				if (_app.FindClipboard() is not { } clipboard)
+				{
+					return;
+				}
+
+				_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
+
+				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+
+				return;
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
 	}
 
 	/// <inheritdoc />
@@ -185,96 +272,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			await Task
 				.Delay(TimeSpan.FromSeconds(10), token)
 				.ConfigureAwait(false);
-		}
-	}
-
-	/// <summary>
-	/// Handles the event <see cref="Hook_KeyReleased" />.
-	/// </summary>
-	private async Task HandleHookKeyReleasedAsync(KeyboardHookEventArgs e)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync()
-				.ConfigureAwait(false);
-
-			if (Files.Count == 0)
-			{
-				return;
-			}
-
-			EventMask mask = e
-				.RawEvent
-				.Mask
-				.RemoveFlag(EventMask.NumLock);
-
-			if (mask.IsDefault())
-			{
-				return;
-			}
-
-			if (InputStack.Count == IKeyboardInputHook.MaxHotkeys)
-			{
-				InputStack.RemoveAt(0);
-			}
-
-			InputStack.Add(new()
-			{
-				Code = e.Data.KeyCode,
-				Mask = mask
-			});
-
-			foreach (FileModelDto file in Files)
-			{
-				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
-
-				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
-				{
-					continue;
-				}
-
-				ContentsIsValidPair result = await _dbAccess
-					.GetFileContentsAsync(file.Id)
-					.ConfigureAwait(false);
-
-				if (result.IsDefault() || !result.IsValid)
-				{
-					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
-
-					return;
-				}
-
-				string text = IFileEditor
-					.Utf8Encoding
-					.GetString(result.Contents);
-
-				if (string.IsNullOrEmpty(text))
-				{
-					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
-
-					return;
-				}
-
-				if (_app.FindClipboard() is not { } clipboard)
-				{
-					return;
-				}
-
-				_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
-
-				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-
-				return;
-			}
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			_semaphore.Release();
 		}
 	}
 	#endregion

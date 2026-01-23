@@ -139,7 +139,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposable
 	/// </summary>
 	private void Hook_KeyReleased(EventPattern<KeyboardHookEventArgs> e)
 	{
-		AddToBuffer(
+		HandleKeyReleased(
 			e.EventArgs.RawEvent.Mask,
 			e.EventArgs.Data.KeyCode);
 	}
@@ -147,9 +147,9 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposable
 
 	#region Methods
 	/// <summary>
-	/// Adds values to <see cref="Buffer" /> or ignores them.
+	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public void AddToBuffer(in EventMask rawMask, in KeyCode code)
+	public void HandleKeyReleased(in EventMask rawMask, in KeyCode code)
 	{
 		EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
 

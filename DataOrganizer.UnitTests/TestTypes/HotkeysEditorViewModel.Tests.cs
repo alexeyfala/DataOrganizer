@@ -21,10 +21,10 @@ internal class HotkeysEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.AddToBuffer" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
 	/// </summary>
 	[Test]
-	public void AddToBuffer_Adds_Values_No_More_Than_Maximum_Value()
+	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -38,7 +38,7 @@ internal class HotkeysEditorViewModelTests
 		}, 100)];
 
 		// Act
-		pairs.ForEach(x => sut.AddToBuffer(x.Mask, x.Code));
+		pairs.ForEach(x => sut.HandleKeyReleased(x.Mask, x.Code));
 
 		// Assert
 		sut.Buffer.Count
