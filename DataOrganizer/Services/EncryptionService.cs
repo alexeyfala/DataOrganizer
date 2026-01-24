@@ -40,13 +40,13 @@ public sealed class EncryptionService : IEncryptionService
 
 			byte[] nonce = new byte[_algorithm.NonceSize];
 
-			byte[] cipherText = new byte[input.Length - salt.Length - nonce.Length];
+			byte[] ciphertext = new byte[input.Length - salt.Length - nonce.Length];
 
 			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
 
 			Buffer.BlockCopy(input, salt.Length, nonce, 0, nonce.Length);
 
-			Buffer.BlockCopy(input, salt.Length + nonce.Length, cipherText, 0, cipherText.Length);
+			Buffer.BlockCopy(input, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
 
 			using Key key = DeriveKey(password, salt);
 
@@ -54,7 +54,7 @@ public sealed class EncryptionService : IEncryptionService
 				key: key,
 				nonce: nonce,
 				associatedData: [],
-				ciphertext: cipherText) is { } decrypted)
+				ciphertext: ciphertext) is { } decrypted)
 			{
 				output = decrypted;
 
