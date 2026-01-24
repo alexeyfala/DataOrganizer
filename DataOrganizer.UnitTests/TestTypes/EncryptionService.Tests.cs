@@ -27,7 +27,7 @@ internal class EncryptionServiceTests
 
 		byte[] password = TextHelper
 			.Utf8Encoding
-			.GetBytes(AppUtils.CreateRandomString(32));
+			.GetBytes(AppUtils.CreateRandomString(10));
 
 		// Act
 		bool isEncrypted = sut.Encrypt(

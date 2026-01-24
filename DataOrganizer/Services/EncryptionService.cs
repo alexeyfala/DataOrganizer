@@ -119,7 +119,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		Argon2id kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(new()
 		{
-			MemorySize = 131072, // 128 MB
+			MemorySize = 65536,
 			NumberOfPasses = 3,
 			DegreeOfParallelism = 1
 		});
