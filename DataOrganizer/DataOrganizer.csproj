@@ -46,6 +46,7 @@
 		<PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.2" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
+		<PackageReference Include="NSec.Cryptography" Version="25.4.0" />
 		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
 		<PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
 		<PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
