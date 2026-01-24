@@ -54,9 +54,9 @@ public sealed class EncryptionService : IEncryptionService
 				key: key,
 				nonce: nonce,
 				associatedData: [],
-				ciphertext: cipherText) is { } result)
+				ciphertext: cipherText) is { } decrypted)
 			{
-				output = result;
+				output = decrypted;
 
 				return true;
 			}
@@ -84,19 +84,19 @@ public sealed class EncryptionService : IEncryptionService
 
 			using Key key = DeriveKey(password, salt);
 
-			byte[] cipherText = _algorithm.Encrypt(
+			byte[] encrypted = _algorithm.Encrypt(
 				key,
 				nonce,
 				associatedData: [],
 				input);
 
-			byte[] result = new byte[salt.Length + nonce.Length + cipherText.Length];
+			byte[] result = new byte[salt.Length + nonce.Length + encrypted.Length];
 
 			Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
 
 			Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
 
-			Buffer.BlockCopy(cipherText, 0, result, salt.Length + nonce.Length, cipherText.Length);
+			Buffer.BlockCopy(encrypted, 0, result, salt.Length + nonce.Length, encrypted.Length);
 
 			output = result;
 
