@@ -124,15 +124,15 @@ public sealed class EncryptionService : IEncryptionService
 			DegreeOfParallelism = 1
 		});
 
-		byte[] keyMaterial = kdf.DeriveBytes(
-			password,
-			salt,
-			_algorithm.KeySize);
+		byte[] blob = kdf.DeriveBytes(
+			password: password,
+			salt: salt,
+			count: _algorithm.KeySize);
 
 		return Key.Import(
-			_algorithm,
-			keyMaterial,
-			KeyBlobFormat.RawSymmetricKey);
+			algorithm: _algorithm,
+			blob: blob,
+			format: KeyBlobFormat.RawSymmetricKey);
 	}
 	#endregion
 }

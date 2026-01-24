@@ -35,7 +35,6 @@ using SharpHook.Data;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace DataOrganizer;
 
@@ -273,7 +272,7 @@ public sealed class App : Application
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
 					rollingInterval: RollingInterval.Day,
 					retainedFileCountLimit: 10,
-					encoding: Encoding.UTF8,
+					encoding: TextHelper.Utf8Encoding,
 					preserveLogFileName: false,
 					rollOnEachProcessRun: false);
 			});
