@@ -10,7 +10,7 @@ using System.Reactive.Disposables.Fluent;
 
 namespace DataOrganizer.Views;
 
-internal sealed partial class FileSystemPathSelector : UserControl
+public sealed partial class FileSystemPathSelector : UserControl
 {
 	#region Properties
 	/// <summary>
@@ -56,8 +56,6 @@ internal sealed partial class FileSystemPathSelector : UserControl
 	#region Constructors
 	public FileSystemPathSelector()
 	{
-		// TODO: Make test if possible
-
 		InitializeComponent();
 
 		this
@@ -88,6 +86,6 @@ internal sealed partial class FileSystemPathSelector : UserControl
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanExecuteClear() => Path is not null;
+	private bool CanExecuteClear() => !string.IsNullOrWhiteSpace(Path);
 	#endregion
 }
