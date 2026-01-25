@@ -388,4 +388,10 @@
   <data name="TheContentsCopiedToClipboard" xml:space="preserve">
     <value>The contents of the "{0}" have been copied to the clipboard</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Encryption</value>
+  </data>
 </root>

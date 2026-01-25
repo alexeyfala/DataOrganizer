@@ -408,4 +408,10 @@
   <data name="TheContentsCopiedToClipboard" xml:space="preserve">
     <value>Содержимое "{0}" скопировано в буфер обмена</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>Общее</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Шифрование</value>
+  </data>
 </root>
