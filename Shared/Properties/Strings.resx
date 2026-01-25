@@ -397,4 +397,7 @@
   <data name="MasterPassword" xml:space="preserve">
     <value>Master Password</value>
   </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
 </root>

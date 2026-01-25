@@ -184,6 +184,7 @@
 
 			<TabItem Header="{x:Static prop:Strings.Encryption}">
 				<Grid
+					Width="{Binding Bounds.Width, ElementName=GeneralTab, Mode=OneWay}"
 					Height="{Binding Bounds.Height, ElementName=GeneralTab, Mode=OneWay}"
 					Margin="{StaticResource TabContentMargin}"
 					RowDefinitions="Auto,*">
@@ -191,7 +192,7 @@
 						Grid.Row="0"
 						Header="{x:Static prop:Strings.MasterPassword}"
 						Theme="{StaticResource GroupBoxClassic}">
-						<views:FileSystemPathSelector />
+						<views:FileSystemPathSelector Margin="6.0,0.0" />
 					</grp:GroupBox>
 				</Grid>
 			</TabItem>

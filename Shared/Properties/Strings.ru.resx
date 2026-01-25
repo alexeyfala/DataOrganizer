@@ -417,4 +417,7 @@
   <data name="MasterPassword" xml:space="preserve">
     <value>Мастер пароль</value>
   </data>
+  <data name="Select" xml:space="preserve">
+    <value>Выбрать</value>
+  </data>
 </root>

@@ -2,8 +2,11 @@
 	x:Class="DataOrganizer.Views.FileSystemPathSelector"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="Root"
 	mc:Ignorable="d">
@@ -14,5 +17,36 @@
 
 	<Grid
 		ColumnDefinitions="*,Auto,Auto"
-		DataContext="{Binding #Root}" />
+		DataContext="{Binding #Root}">
+		<Grid.Styles>
+			<Style Selector="Button">
+				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+			</Style>
+		</Grid.Styles>
+
+		<SelectableTextBlock
+			Grid.Column="0"
+			VerticalAlignment="Center"
+			Text="{Binding Path, Mode=OneWay}">
+			<Interaction.Behaviors>
+				<behaviors:TextBlockAutoToolTipBehavior />
+			</Interaction.Behaviors>
+		</SelectableTextBlock>
+
+		<Button
+			Grid.Column="1"
+			Classes="primary"
+			Command="{Binding SelectCommand}"
+			Content="{materialIcons:MaterialIconTextExt Kind=DotsHorizontal,
+			                                            Size={StaticResource ToolBarIconSize}}"
+			ToolTip.Tip="{x:Static prop:Strings.Select}" />
+
+		<Button
+			Grid.Column="2"
+			Classes="primary"
+			Command="{Binding ClearCommand}"
+			Content="{materialIcons:MaterialIconTextExt Kind=Close,
+			                                            Size={StaticResource ToolBarIconSize}}"
+			ToolTip.Tip="{x:Static prop:Strings.Clear}" />
+	</Grid>
 </UserControl>

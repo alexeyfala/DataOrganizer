@@ -44,6 +44,11 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	private void AssociatedObject_SizeChanged(EventPattern<SizeChangedEventArgs> e) => SetOrRemoveToolTip();
 
 	/// <summary>
+	/// <see cref="TextBlock.TextProperty" /> changed handler of <see cref="AssociatedObject" />.
+	/// </summary>
+	private void AssociatedObject_TextProperty_Changed(string? value) => SetOrRemoveToolTip();
+
+	/// <summary>
 	/// <see cref="IsDisabledProperty" /> changed handler.
 	/// </summary>
 	private void IsDisabledProperty_Changed(bool value) => SetOrRemoveToolTip();
@@ -65,6 +70,11 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 		this
 			.GetObservable(IsDisabledProperty)
 			.Subscribe(IsDisabledProperty_Changed)
+			.DisposeWith(_disposables);
+
+		AssociatedObject
+			.GetObservable(TextBlock.TextProperty)
+			.Subscribe(AssociatedObject_TextProperty_Changed)
 			.DisposeWith(_disposables);
 
 		Observable
