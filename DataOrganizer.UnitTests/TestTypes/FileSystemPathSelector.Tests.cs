@@ -1,6 +1,7 @@
 ﻿using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Views;
+using Shared.Common;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -8,6 +9,29 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class FileSystemPathSelectorTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// </summary>
+	[AvaloniaTest]
+	public void ClearCommand_Cannot_Execute_After_Path_Has_Been_Cleared()
+	{
+		// Arrange
+		FileSystemPathSelector sut = new()
+		{
+			Path = AppUtils.CreateRandomFileName(10)
+		};
+
+		// Act
+		sut
+			.ClearCommand
+			.Execute(null);
+
+		// Assert
+		sut.ClearCommand.CanExecute(null)
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
 	/// </summary>
