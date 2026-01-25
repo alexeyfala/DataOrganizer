@@ -414,4 +414,7 @@
   <data name="Encryption" xml:space="preserve">
     <value>Шифрование</value>
   </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>Мастер пароль</value>
+  </data>
 </root>

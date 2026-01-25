@@ -394,4 +394,7 @@
   <data name="Encryption" xml:space="preserve">
     <value>Encryption</value>
   </data>
+  <data name="MasterPassword" xml:space="preserve">
+    <value>Master Password</value>
+  </data>
 </root>

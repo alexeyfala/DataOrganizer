@@ -12,6 +12,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:sys="clr-namespace:System;assembly=netstandard"
+	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	MinWidth="500.0"
 	Padding="{StaticResource DialogIndent}"
@@ -184,7 +185,15 @@
 			<TabItem Header="{x:Static prop:Strings.Encryption}">
 				<Grid
 					Height="{Binding Bounds.Height, ElementName=GeneralTab, Mode=OneWay}"
-					Margin="{StaticResource TabContentMargin}" />
+					Margin="{StaticResource TabContentMargin}"
+					RowDefinitions="Auto,*">
+					<grp:GroupBox
+						Grid.Row="0"
+						Header="{x:Static prop:Strings.MasterPassword}"
+						Theme="{StaticResource GroupBoxClassic}">
+						<views:FileSystemPathSelector />
+					</grp:GroupBox>
+				</Grid>
 			</TabItem>
 		</TabControl>
 	</Grid>

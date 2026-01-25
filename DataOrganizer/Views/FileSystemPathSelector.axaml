@@ -1,0 +1,18 @@
+<UserControl
+	x:Class="DataOrganizer.Views.FileSystemPathSelector"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:views="using:DataOrganizer.Views"
+	x:Name="Root"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<views:IconsBlock />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto,Auto"
+		DataContext="{Binding #Root}" />
+</UserControl>

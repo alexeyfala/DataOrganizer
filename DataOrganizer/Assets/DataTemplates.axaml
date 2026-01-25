@@ -7,9 +7,9 @@
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-	xmlns:models="clr-namespace:DataOrganizer.DTO.Entities.Models"
+	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:views="clr-namespace:DataOrganizer.Views"
+	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 
