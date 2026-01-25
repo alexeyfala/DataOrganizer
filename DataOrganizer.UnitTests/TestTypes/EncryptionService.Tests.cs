@@ -2,7 +2,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
-using Shared.Common;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -11,10 +10,42 @@ internal class EncryptionServiceTests
 {
 	#region Methods
 	/// <summary>
+	/// Test of <see cref="EncryptionService.Decrypt" />.
+	/// </summary>
+	[Test]
+	public void Decrypt_Cannot_Decrypt_With_Wrong_Password()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		// Act
+		sut.Encrypt(
+			input,
+			TextHelper.Utf8Encoding.GetBytes("SomePassword"),
+			out byte[] encrypted);
+
+		bool isDecrypted = sut.Decrypt(
+			encrypted,
+			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
+			out byte[] decrypted);
+
+		// Assert
+		isDecrypted
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.Decrypt" />.
 	/// </summary>
 	[Test]
-	public void Encrypt_Encrypts_Decrypt_Decrypts()
+	public void Encrypt_Decrypt_Checking_Functionality()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -27,7 +58,7 @@ internal class EncryptionServiceTests
 
 		byte[] password = TextHelper
 			.Utf8Encoding
-			.GetBytes(AppUtils.CreateRandomString(10));
+			.GetBytes("SomePassword");
 
 		// Act
 		bool isEncrypted = sut.Encrypt(
