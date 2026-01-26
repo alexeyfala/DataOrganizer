@@ -42,6 +42,13 @@
 				<Thickness x:Key="TabContentMargin">0.0,10.0,0.0,0.0</Thickness>
 			</TabControl.Resources>
 
+			<TabControl.Styles>
+				<Style Selector="ToolTip TextBlock">
+					<Setter Property="MaxWidth" Value="300.0" />
+					<Setter Property="TextWrapping" Value="Wrap" />
+				</Style>
+			</TabControl.Styles>
+
 			<TabItem Header="{x:Static prop:Strings.General}">
 				<ScrollViewer
 					HorizontalScrollBarVisibility="Disabled"
@@ -55,11 +62,6 @@
 						<Grid.Styles>
 							<Style Selector="ComboBox">
 								<Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
-							</Style>
-
-							<Style Selector="ToolTip TextBlock">
-								<Setter Property="MaxWidth" Value="300.0" />
-								<Setter Property="TextWrapping" Value="Wrap" />
 							</Style>
 
 							<Style Selector="Border.HelpIconBorderStyle">
@@ -192,7 +194,14 @@
 						Grid.Row="0"
 						Header="{x:Static prop:Strings.MasterPassword}"
 						Theme="{StaticResource GroupBoxClassic}">
-						<views:FileSystemPathSelector Margin="6.0,0.0" />
+						<StackPanel
+							Margin="{StaticResource DialogIndent}"
+							Orientation="Vertical"
+							Spacing="{StaticResource ElementSpacing}">
+							<grp:GroupBox Header="Путь к файлу">
+								<views:FileSystemPathSelector />
+							</grp:GroupBox>
+						</StackPanel>
 					</grp:GroupBox>
 				</Grid>
 			</TabItem>

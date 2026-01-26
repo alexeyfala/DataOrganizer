@@ -24,14 +24,20 @@
 			</Style>
 		</Grid.Styles>
 
-		<SelectableTextBlock
-			Grid.Column="0"
-			VerticalAlignment="Center"
-			Text="{Binding Path, Mode=OneWay}">
-			<Interaction.Behaviors>
-				<behaviors:TextBlockAutoToolTipBehavior />
-			</Interaction.Behaviors>
-		</SelectableTextBlock>
+		<Grid Grid.Column="0">
+			<SelectableTextBlock
+				VerticalAlignment="Center"
+				Text="{Binding Path, Mode=OneWay}">
+				<Interaction.Behaviors>
+					<behaviors:TextBlockAutoToolTipBehavior />
+				</Interaction.Behaviors>
+			</SelectableTextBlock>
+
+			<TextBlock
+				IsVisible="{Binding Path, Mode=OneWay, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+				VerticalAlignment="Center"
+				Text="{x:Static prop:Strings.NotSelected}" />
+		</Grid>
 
 		<Button
 			Grid.Column="1"

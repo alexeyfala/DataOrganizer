@@ -13,6 +13,25 @@ internal class FileSystemPathSelectorTests
 	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
 	/// </summary>
 	[AvaloniaTest]
+	public void ClearCommand_Can_Execute_When_Path_Is_Set()
+	{
+		// Arrange
+		FileSystemPathSelector sut = new()
+		{
+			// Act
+			Path = AppUtils.CreateRandomFileName(10)
+		};
+
+		// Assert
+		sut.ClearCommand.CanExecute(null)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// </summary>
+	[AvaloniaTest]
 	public void ClearCommand_Cannot_Execute_After_Path_Has_Been_Cleared()
 	{
 		// Arrange

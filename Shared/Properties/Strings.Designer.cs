@@ -628,6 +628,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not selected....
+        /// </summary>
+        public static string NotSelected {
+            get {
+                return ResourceManager.GetString("NotSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Opened In Editor.
         /// </summary>
         public static string OpenedInEditor {

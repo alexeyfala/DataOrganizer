@@ -420,4 +420,7 @@
   <data name="Select" xml:space="preserve">
     <value>Выбрать</value>
   </data>
+  <data name="NotSelected" xml:space="preserve">
+    <value>Не выбран...</value>
+  </data>
 </root>
