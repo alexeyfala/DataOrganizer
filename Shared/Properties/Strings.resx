@@ -409,4 +409,7 @@
   <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
     <value>The specified file was not found</value>
   </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
 </root>

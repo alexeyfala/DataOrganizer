@@ -5,6 +5,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
+using Humanizer;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using Serilog;
@@ -77,6 +78,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// </summary>
 	[ObservableProperty]
 	private string? _masterPasswordFileError;
+
+	/// <summary>
+	/// Information related to <see cref="MasterPasswordFilePath" />.
+	/// </summary>
+	[ObservableProperty]
+	private string? _masterPasswordFileInfo;
 
 	/// <inheritdoc cref="AppSettings.MasterPasswordFilePath" />
 	[ObservableProperty]
@@ -308,6 +315,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		MasterPasswordFileError = null;
 
+		MasterPasswordFileInfo = null;
+
 		if (path is null)
 		{
 			return;
@@ -325,6 +334,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 			byte[] bytes = await _fileSystem
 				.ReadAllBytesAsync(path)
 				.ConfigureAwait(false);
+
+			string size = bytes
+				.Length
+				.Bytes()
+				.Humanize(CultureInfo.InvariantCulture);
+
+			MasterPasswordFileInfo = $"{Strings.Size}: {size}";
 		}
 		catch (Exception ex)
 		{

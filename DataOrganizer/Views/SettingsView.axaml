@@ -213,6 +213,14 @@
 											<behaviors:TextBlockAutoToolTipBehavior />
 										</Interaction.Behaviors>
 									</TextBlock>
+
+									<TextBlock
+										IsVisible="{Binding MasterPasswordFileInfo, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+										Text="{Binding MasterPasswordFileInfo, Mode=OneWay}">
+										<Interaction.Behaviors>
+											<behaviors:TextBlockAutoToolTipBehavior />
+										</Interaction.Behaviors>
+									</TextBlock>
 								</StackPanel>
 							</grp:GroupBox>
 						</StackPanel>
