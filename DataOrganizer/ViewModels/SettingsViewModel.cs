@@ -65,6 +65,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	private bool _isLightTheme;
 
+	/// <summary>
+	/// Returns <c>True</c> if an error should be displayed indicating that the file specified in <see cref="MasterPasswordFilePath" /> was not found.
+	/// </summary>
+	[ObservableProperty]
+	private bool _isMasterPasswordFileNotFoundErrorVisible;
+
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
 	private CultureInfo? _language;
@@ -177,15 +183,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		if (value is null)
-		{
-			return;
-		}
-
-		if (!_fileSystem.IsFileExists(value))
-		{
-			return;
-		}
+		ValidateMasterPasswordFilePath(value);
 	}
 
 	/// <summary>
@@ -280,7 +278,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		_secondaryColor = CurrentSettings.SecondaryColor;
 
-		_trackHotkeys = CurrentSettings.TrackHotkeys;		
+		_trackHotkeys = CurrentSettings.TrackHotkeys;
+
+		ValidateMasterPasswordFilePath(CurrentSettings.MasterPasswordFilePath);
 	}
 	#endregion
 
@@ -289,5 +289,25 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>
 	private bool CanExecuteSaveAndClose() => !Equals(CurrentSettings, _settingsManager.Settings);
+
+	/// <summary>
+	/// Validates value in <see cref="MasterPasswordFilePath" />.
+	/// </summary>
+	private void ValidateMasterPasswordFilePath(string? path)
+	{
+		if (path is null)
+		{
+			IsMasterPasswordFileNotFoundErrorVisible = false;
+
+			return;
+		}
+
+		if (!_fileSystem.IsFileExists(path))
+		{
+			IsMasterPasswordFileNotFoundErrorVisible = true;
+
+			return;
+		}
+	}
 	#endregion
 }

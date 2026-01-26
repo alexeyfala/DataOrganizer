@@ -934,6 +934,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified file was not found.
+        /// </summary>
+        public static string TheSpecifiedFileWasNotFound {
+            get {
+                return ResourceManager.GetString("TheSpecifiedFileWasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This setting will be applied after restarting the application..
         /// </summary>
         public static string ThisSettingWillBeAppliedAfterRestartingApplication {

@@ -72,7 +72,7 @@ public sealed partial class FileSystemPathSelector : UserControl
 
 		Path = file
 			.Path
-			.AbsolutePath;
+			.LocalPath;
 	}
 	#endregion
 
