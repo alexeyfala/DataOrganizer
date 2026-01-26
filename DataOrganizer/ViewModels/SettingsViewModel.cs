@@ -8,6 +8,7 @@ using DialogHostAvalonia;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Globalization;
 
@@ -175,6 +176,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 		CurrentSettings.MasterPasswordFilePath = value;
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
+
+		if (value is null)
+		{
+			return;
+		}
+
+		if (!_fileSystem.IsFileExists(value))
+		{
+			return;
+		}
 	}
 
 	/// <summary>
@@ -239,14 +250,19 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
 	#endregion
 
 	#region Constructors
-	public SettingsViewModel(IAppSettingsManager settingsManager)
+	public SettingsViewModel(IAppSettingsManager settingsManager, IFileSystem fileSystem)
 	{
 		_settingsManager = settingsManager;
+
+		_fileSystem = fileSystem;
 
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
 
@@ -264,7 +280,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		_secondaryColor = CurrentSettings.SecondaryColor;
 
-		_trackHotkeys = CurrentSettings.TrackHotkeys;
+		_trackHotkeys = CurrentSettings.TrackHotkeys;		
 	}
 	#endregion
 
