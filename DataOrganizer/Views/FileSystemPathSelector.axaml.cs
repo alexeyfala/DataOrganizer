@@ -2,11 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.Views;
 
@@ -42,9 +44,35 @@ public sealed partial class FileSystemPathSelector : UserControl
 	/// Selects a path to file system entry.
 	/// </summary>
 	[RelayCommand]
-	private void Select()
+	private async Task Select()
 	{
-		Path = TextHelper.LoremIpsum;
+		if (TopLevel
+			.GetTopLevel(this)?
+			.StorageProvider is not { } provider)
+		{
+			return;
+		}
+
+		FilePickerOpenOptions options = new()
+		{
+			AllowMultiple = false,
+			SuggestedFileType = FilePickerFileTypes.All
+		};
+
+		IReadOnlyList<IStorageFile> selected = await provider
+			.OpenFilePickerAsync(options)
+			.ConfigureAwait(true);
+
+		if (selected.Count == 0)
+		{
+			return;
+		}
+
+		using IStorageFile file = selected[0];
+
+		Path = file
+			.Path
+			.AbsolutePath;
 	}
 	#endregion
 
