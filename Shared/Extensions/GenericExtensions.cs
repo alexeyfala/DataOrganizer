@@ -36,7 +36,38 @@ public static class GenericExtensions
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			.Where(x => propertyNames.Contains(x.Name)))
 		{
-			if (!GetWritableProperty(targetType, sourceProperty.Name, out PropertyInfo? targetProperty))
+			if (!GetWritableProperty(
+				targetType,
+				sourceProperty.Name,
+				out PropertyInfo? targetProperty))
+			{
+				continue;
+			}
+
+			targetProperty.SetValue(target, sourceProperty.GetValue(source));
+		}
+	}
+
+	/// <summary>
+	/// Copies the values ​​of writable properties of two objects of the same type via reflection.
+	/// </summary>
+	public static void CopyPropertiesTo<T>(this T source, T target)
+	{
+		if (source is null || target is null)
+		{
+			return;
+		}
+
+		Type targetType = target.GetType();
+
+		foreach (PropertyInfo sourceProperty in source
+			.GetType()
+			.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+		{
+			if (!GetWritableProperty(
+				targetType,
+				sourceProperty.Name,
+				out PropertyInfo? targetProperty))
 			{
 				continue;
 			}
@@ -278,7 +309,10 @@ public static class GenericExtensions
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			.Where(x => condition(x.Name)))
 		{
-			if (!GetWritableProperty(targetType, sourceProperty.Name, out PropertyInfo? targetProperty))
+			if (!GetWritableProperty(
+				targetType,
+				sourceProperty.Name,
+				out PropertyInfo? targetProperty))
 			{
 				continue;
 			}

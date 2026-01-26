@@ -73,18 +73,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	}
 
 	/// <inheritdoc />
-	public void OverwriteSettings(AppSettings value)
-	{
-		Settings.Language = value.Language;
-
-		Settings.PrimaryColor = value.PrimaryColor;
-
-		Settings.SecondaryColor = value.SecondaryColor;
-
-		Settings.Theme = value.Theme;
-
-		Settings.TrackHotkeys = value.TrackHotkeys;
-	}
+	public void OverwriteSettings(AppSettings value) => value.CopyPropertiesTo(Settings);
 
 	/// <inheritdoc />
 	public void SaveSettingsInFile()
