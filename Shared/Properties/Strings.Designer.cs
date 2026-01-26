@@ -682,6 +682,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Path to the file with the password.
+        /// </summary>
+        public static string PathToFileWithPassword {
+            get {
+                return ResourceManager.GetString("PathToFileWithPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pause.
         /// </summary>
         public static string Pause {

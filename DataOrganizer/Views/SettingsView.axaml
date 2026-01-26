@@ -198,7 +198,7 @@
 							Margin="{StaticResource DialogIndent}"
 							Orientation="Vertical"
 							Spacing="{StaticResource ElementSpacing}">
-							<grp:GroupBox Header="Путь к файлу">
+							<grp:GroupBox Header="{x:Static prop:Strings.PathToFileWithPassword}">
 								<views:FileSystemPathSelector />
 							</grp:GroupBox>
 						</StackPanel>

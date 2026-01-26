@@ -423,4 +423,7 @@
   <data name="NotSelected" xml:space="preserve">
     <value>Не выбран...</value>
   </data>
+  <data name="PathToFileWithPassword" xml:space="preserve">
+    <value>Путь к файлу с паролем</value>
+  </data>
 </root>

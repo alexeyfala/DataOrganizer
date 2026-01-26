@@ -403,4 +403,7 @@
   <data name="NotSelected" xml:space="preserve">
     <value>Not selected...</value>
   </data>
+  <data name="PathToFileWithPassword" xml:space="preserve">
+    <value>Path to the file with the password</value>
+  </data>
 </root>
