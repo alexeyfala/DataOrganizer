@@ -68,6 +68,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	private CultureInfo? _language;
 
+	/// <inheritdoc cref="AppSettings.MasterPasswordFilePath" />
+	[ObservableProperty]
+	private string? _masterPasswordFilePath;
+
 	/// <inheritdoc cref="AppSettings.PrimaryColor" />
 	[ObservableProperty]
 	private PrimaryColor _primaryColor;
@@ -164,6 +168,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="MasterPasswordFilePath" /> changes.
+	/// </summary>
+	partial void OnMasterPasswordFilePathChanged(string? value)
+	{
+		CurrentSettings.MasterPasswordFilePath = value;
+
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Called when <see cref="PrimaryColor" /> changes.
 	/// </summary>
 	partial void OnPrimaryColorChanged(PrimaryColor value)
@@ -243,6 +257,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		_isLightTheme = CurrentSettings.Theme == BaseThemeMode.Light;
 
 		_language = new(CurrentSettings.Language);
+
+		_masterPasswordFilePath = CurrentSettings.MasterPasswordFilePath;
 
 		_primaryColor = CurrentSettings.PrimaryColor;
 
