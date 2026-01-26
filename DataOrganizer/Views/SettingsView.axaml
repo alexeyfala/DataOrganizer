@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
 	xmlns:grp="using:GroupBox.Avalonia.Controls"
@@ -206,8 +207,12 @@
 
 									<TextBlock
 										Foreground="{StaticResource WarningBrush}"
-										IsVisible="{Binding IsMasterPasswordFileNotFoundErrorVisible, Mode=OneWay}"
-										Text="{x:Static prop:Strings.TheSpecifiedFileWasNotFound}" />
+										IsVisible="{Binding MasterPasswordFileError, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+										Text="{Binding MasterPasswordFileError, Mode=OneWay}">
+										<Interaction.Behaviors>
+											<behaviors:TextBlockAutoToolTipBehavior />
+										</Interaction.Behaviors>
+									</TextBlock>
 								</StackPanel>
 							</grp:GroupBox>
 						</StackPanel>

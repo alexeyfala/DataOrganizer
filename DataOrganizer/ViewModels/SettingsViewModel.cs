@@ -7,10 +7,13 @@ using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Material.Colors;
 using Material.Styles.Themes.Base;
+using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -65,15 +68,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	private bool _isLightTheme;
 
-	/// <summary>
-	/// Returns <c>True</c> if an error should be displayed indicating that the file specified in <see cref="MasterPasswordFilePath" /> was not found.
-	/// </summary>
-	[ObservableProperty]
-	private bool _isMasterPasswordFileNotFoundErrorVisible;
-
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
 	private CultureInfo? _language;
+
+	/// <summary>
+	/// Error related to <see cref="MasterPasswordFilePath" />.
+	/// </summary>
+	[ObservableProperty]
+	private string? _masterPasswordFileError;
 
 	/// <inheritdoc cref="AppSettings.MasterPasswordFilePath" />
 	[ObservableProperty]
@@ -183,7 +186,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		ValidateMasterPasswordFilePath(value);
+		_ = ValidateMasterPasswordFilePathAsync(value);
 	}
 
 	/// <summary>
@@ -251,16 +254,24 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
 	#endregion
 
 	#region Constructors
-	public SettingsViewModel(IAppSettingsManager settingsManager, IFileSystem fileSystem)
+	public SettingsViewModel(
+		IAppSettingsManager settingsManager,
+		IFileSystem fileSystem,
+		ILogger logger)
 	{
-		_settingsManager = settingsManager;
-
 		_fileSystem = fileSystem;
+
+		_logger = logger;
+
+		_settingsManager = settingsManager;
 
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
 
@@ -280,7 +291,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		_trackHotkeys = CurrentSettings.TrackHotkeys;
 
-		ValidateMasterPasswordFilePath(CurrentSettings.MasterPasswordFilePath);
+		_ = ValidateMasterPasswordFilePathAsync(CurrentSettings.MasterPasswordFilePath);
 	}
 	#endregion
 
@@ -293,20 +304,33 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Validates value in <see cref="MasterPasswordFilePath" />.
 	/// </summary>
-	private void ValidateMasterPasswordFilePath(string? path)
+	private async Task ValidateMasterPasswordFilePathAsync(string? path)
 	{
+		MasterPasswordFileError = null;
+
 		if (path is null)
 		{
-			IsMasterPasswordFileNotFoundErrorVisible = false;
-
 			return;
 		}
 
 		if (!_fileSystem.IsFileExists(path))
 		{
-			IsMasterPasswordFileNotFoundErrorVisible = true;
+			MasterPasswordFileError = Strings.TheSpecifiedFileWasNotFound;
 
 			return;
+		}
+
+		try
+		{
+			byte[] bytes = await _fileSystem
+				.ReadAllBytesAsync(path)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			MasterPasswordFileError = ex.Message;
+
+			_logger.LogException(ex, isAssertDebug: false);
 		}
 	}
 	#endregion
