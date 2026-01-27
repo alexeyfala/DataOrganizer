@@ -423,13 +423,13 @@
   <data name="NotSelected" xml:space="preserve">
     <value>Не выбран...</value>
   </data>
-  <data name="PathToFileWithPassword" xml:space="preserve">
-    <value>Путь к файлу с паролем</value>
-  </data>
   <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
     <value>Указанный файл не найден</value>
   </data>
   <data name="Size" xml:space="preserve">
     <value>Размер</value>
+  </data>
+  <data name="PasswordInTheFormOfFileBytes" xml:space="preserve">
+    <value>Пароль в виде байтов файла</value>
   </data>
 </root>

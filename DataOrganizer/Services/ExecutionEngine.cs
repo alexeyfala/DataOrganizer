@@ -93,7 +93,7 @@ public class ExecutionEngine : IExecutionEngine
 				{
 					_logger.LogException(ex);
 				}
-			}			
+			}
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
@@ -165,7 +165,7 @@ public class ExecutionEngine : IExecutionEngine
 					semaphore: _semaphore,
 					condition: _executedFiles.ContainsKey,
 					token: token);
-			}			
+			}
 
 			_logger.LogInformation(
 				$@"The file {filePath} is opened{(isReadOnly ? " in read-only mode" : string.Empty)}");
@@ -184,5 +184,5 @@ public class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc />
 	public bool IsExecuted(Guid id) => _executedFiles.ContainsKey(id);
-	#endregion	
+	#endregion
 }

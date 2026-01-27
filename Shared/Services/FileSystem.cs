@@ -20,13 +20,20 @@ public sealed class FileSystem : IFileSystem
 	#endregion
 
 	#region Constructors
-	public FileSystem(IJsonSerializerWrapper jsonSerializer)
-	{
-		_jsonSerializer = jsonSerializer;
-	}
+	public FileSystem(IJsonSerializerWrapper jsonSerializer) => _jsonSerializer = jsonSerializer;
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public byte[] ComputeSha256Hash(string filePath)
+	{
+		using FileStream stream = File.OpenRead(filePath);
+
+		using SHA256 hash = SHA256.Create();
+
+		return hash.ComputeHash(stream);
+	}
+
 	/// <inheritdoc />
 	public void CreateDirectory(string directoryPath) => Directory.CreateDirectory(directoryPath);
 

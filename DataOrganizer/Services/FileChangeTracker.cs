@@ -69,19 +69,20 @@ public class FileChangeTracker : IFileChangeTracker
 						return;
 					}
 
-					using FileStream fileStream = _fileSystem.OpenFile(
+					await using FileStream fileStream = _fileSystem.OpenFile(
 						filePath,
 						FileMode.Open,
 						FileAccess.Read,
 						FileShare.ReadWrite);
 
-					using MemoryStream memoryStream = new();
+					await using MemoryStream memoryStream = new();
 
 					fileStream.CopyTo(memoryStream);
 
 					byte[] bytes = memoryStream.ToArray();
 
-					if (!Enumerable.SequenceEqual(bytes, contents))
+					// TODO: Compare file hash if possible
+					if (!bytes.SequenceEqual(contents))
 					{
 						DateTime updatedDate = DateTime.Now;
 

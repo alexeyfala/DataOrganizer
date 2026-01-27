@@ -403,13 +403,13 @@
   <data name="NotSelected" xml:space="preserve">
     <value>Not selected...</value>
   </data>
-  <data name="PathToFileWithPassword" xml:space="preserve">
-    <value>Path to the file with the password</value>
-  </data>
   <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
     <value>The specified file was not found</value>
   </data>
   <data name="Size" xml:space="preserve">
     <value>Size</value>
+  </data>
+  <data name="PasswordInTheFormOfFileBytes" xml:space="preserve">
+    <value>Password in the form of file bytes</value>
   </data>
 </root>
