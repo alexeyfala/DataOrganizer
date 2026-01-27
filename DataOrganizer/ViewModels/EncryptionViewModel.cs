@@ -50,8 +50,9 @@ public sealed partial class EncryptionViewModel : ObservableObject
 	/// Saves settings.
 	/// </summary>
 	[RelayCommand]
-	private void Save()
+	public void Save()
 	{
+		// TODO: Make test
 		SaveSettingsInFile();
 
 		DialogHost.Close(null);

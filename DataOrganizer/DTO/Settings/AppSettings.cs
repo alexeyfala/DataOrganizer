@@ -18,11 +18,6 @@ public record AppSettings
 	public required string Language { get; set; }
 
 	/// <summary>
-	/// Path to the file with the master password.
-	/// </summary>
-	public string? MasterPasswordFilePath { get; set; }
-
-	/// <summary>
 	/// Material design primary color.
 	/// </summary>
 	public required PrimaryColor PrimaryColor { get; set; }

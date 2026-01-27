@@ -5,16 +5,11 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
-using Humanizer;
 using Material.Colors;
 using Material.Styles.Themes.Base;
-using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
-using Shared.Properties;
 using System;
 using System.Globalization;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -72,22 +67,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
 	private CultureInfo? _language;
-
-	/// <summary>
-	/// Error related to <see cref="MasterPasswordFilePath" />.
-	/// </summary>
-	[ObservableProperty]
-	private string? _masterPasswordFileError;
-
-	/// <summary>
-	/// Information related to <see cref="MasterPasswordFilePath" />.
-	/// </summary>
-	[ObservableProperty]
-	private string? _masterPasswordFileInfo;
-
-	/// <inheritdoc cref="AppSettings.MasterPasswordFilePath" />
-	[ObservableProperty]
-	private string? _masterPasswordFilePath;
 
 	/// <inheritdoc cref="AppSettings.PrimaryColor" />
 	[ObservableProperty]
@@ -185,18 +164,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
-	/// Called when <see cref="MasterPasswordFilePath" /> changes.
-	/// </summary>
-	partial void OnMasterPasswordFilePathChanged(string? value)
-	{
-		CurrentSettings.MasterPasswordFilePath = value;
-
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
-
-		_ = ValidateMasterPasswordFilePathAsync(value);
-	}
-
-	/// <summary>
 	/// Called when <see cref="PrimaryColor" /> changes.
 	/// </summary>
 	partial void OnPrimaryColorChanged(PrimaryColor value)
@@ -258,26 +225,13 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
 	#endregion
 
 	#region Constructors
-	public SettingsViewModel(
-		IAppSettingsManager settingsManager,
-		IFileSystem fileSystem,
-		ILogger logger)
+	public SettingsViewModel(IAppSettingsManager settingsManager)
 	{
-		_fileSystem = fileSystem;
-
-		_logger = logger;
-
 		_settingsManager = settingsManager;
 
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
@@ -290,15 +244,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		_language = new(CurrentSettings.Language);
 
-		_masterPasswordFilePath = CurrentSettings.MasterPasswordFilePath;
-
 		_primaryColor = CurrentSettings.PrimaryColor;
 
 		_secondaryColor = CurrentSettings.SecondaryColor;
 
 		_trackHotkeys = CurrentSettings.TrackHotkeys;
-
-		_ = ValidateMasterPasswordFilePathAsync(CurrentSettings.MasterPasswordFilePath);
 	}
 	#endregion
 
@@ -307,47 +257,5 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>
 	private bool CanExecuteSaveAndClose() => !Equals(CurrentSettings, _settingsManager.Settings);
-
-	/// <summary>
-	/// Validates value in <see cref="MasterPasswordFilePath" />.
-	/// </summary>
-	private async Task ValidateMasterPasswordFilePathAsync(string? path)
-	{
-		MasterPasswordFileError = null;
-
-		MasterPasswordFileInfo = null;
-
-		if (path is null)
-		{
-			return;
-		}
-
-		if (!_fileSystem.IsFileExists(path))
-		{
-			MasterPasswordFileError = Strings.TheSpecifiedFileWasNotFound;
-
-			return;
-		}
-
-		try
-		{
-			byte[] bytes = await _fileSystem
-				.ReadAllBytesAsync(path)
-				.ConfigureAwait(false);
-
-			string size = bytes
-				.Length
-				.Bytes()
-				.Humanize(CultureInfo.InvariantCulture);
-
-			MasterPasswordFileInfo = $"{Strings.Size}: {size}";
-		}
-		catch (Exception ex)
-		{
-			MasterPasswordFileError = ex.Message;
-
-			_logger.LogException(ex, isAssertDebug: false);
-		}
-	}
 	#endregion
 }
