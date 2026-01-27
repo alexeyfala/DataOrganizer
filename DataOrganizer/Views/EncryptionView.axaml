@@ -2,13 +2,84 @@
 	x:Class="DataOrganizer.Views.EncryptionView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:grp="using:GroupBox.Avalonia.Controls"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EncryptionViewModel"
+	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
 	<Design.DataContext>
 		<vm:EncryptionViewModel />
 	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="*,*">
+
+		<grp:GroupBox
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Header="{x:Static prop:Strings.MasterPassword}"
+			Theme="{StaticResource GroupBoxClassic}">
+			<StackPanel
+				Margin="{StaticResource DialogIndent}"
+				Orientation="Vertical"
+				Spacing="{StaticResource ElementSpacing}">
+				<grp:GroupBox Header="{x:Static prop:Strings.PasswordInTheFormOfFileBytes}">
+					<StackPanel
+						Orientation="Vertical"
+						Spacing="{StaticResource ElementSpacing}">
+						<views:FileSystemPathSelector Path="{Binding MasterPasswordFilePath, Mode=TwoWay}" />
+
+						<TextBlock
+							Foreground="{StaticResource WarningBrush}"
+							IsVisible="{Binding MasterPasswordFileError, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+							Text="{Binding MasterPasswordFileError, Mode=OneWay}">
+							<Interaction.Behaviors>
+								<behaviors:TextBlockAutoToolTipBehavior />
+							</Interaction.Behaviors>
+						</TextBlock>
+
+						<TextBlock
+							IsVisible="{Binding MasterPasswordFileInfo, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+							Text="{Binding MasterPasswordFileInfo, Mode=OneWay}">
+							<Interaction.Behaviors>
+								<behaviors:TextBlockAutoToolTipBehavior />
+							</Interaction.Behaviors>
+						</TextBlock>
+					</StackPanel>
+				</grp:GroupBox>
+			</StackPanel>
+		</grp:GroupBox>
+
+		<UniformGrid
+			Grid.Row="1"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
+			<Button
+				Classes="primary"
+				Content="{x:Static prop:Strings.Save}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True" />
+		</UniformGrid>
+	</Grid>
 </UserControl>

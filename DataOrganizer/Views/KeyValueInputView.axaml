@@ -21,12 +21,6 @@
 		RowDefinitions="*,*,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
 
-		<Grid.Styles>
-			<Style Selector="Button">
-				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-			</Style>
-		</Grid.Styles>
-
 		<TextBox
 			Grid.Row="0"
 			Grid.Column="0"
@@ -56,6 +50,12 @@
 			Grid.Column="1"
 			ColumnSpacing="{StaticResource ElementSpacing}"
 			Columns="2">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
 			<Button
 				Classes="primary"
 				Command="{Binding DefaultPressedCommand}"
