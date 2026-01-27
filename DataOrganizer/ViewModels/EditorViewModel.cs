@@ -379,12 +379,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return DialogHost.Show(view, Dialog_Closing);
-
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
-		{
-
-		}
+		return DialogHost.Show(view);
 	}
 
 	/// <summary>

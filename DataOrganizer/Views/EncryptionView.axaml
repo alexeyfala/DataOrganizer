@@ -72,6 +72,7 @@
 
 			<Button
 				Classes="primary"
+				Command="{Binding SaveCommand}"
 				Content="{x:Static prop:Strings.Save}"
 				IsDefault="True" />
 
