@@ -6,6 +6,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
 	xmlns:grp="using:GroupBox.Avalonia.Controls"
+	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:views="using:DataOrganizer.Views"
@@ -28,37 +29,34 @@
 			Grid.Row="0"
 			Grid.Column="0"
 			Grid.ColumnSpan="2"
-			Header="{x:Static prop:Strings.MasterPassword}"
-			Theme="{StaticResource GroupBoxClassic}">
-			<StackPanel
-				Margin="{StaticResource DialogIndent}"
-				Orientation="Vertical"
-				Spacing="{StaticResource ElementSpacing}">
-				<grp:GroupBox Header="{x:Static prop:Strings.PasswordInTheFormOfFileBytes}">
-					<StackPanel
-						Orientation="Vertical"
-						Spacing="{StaticResource ElementSpacing}">
-						<views:FileSystemPathSelector Path="{Binding MasterPasswordFilePath, Mode=TwoWay}" />
+			Header="{x:Static prop:Strings.MasterPassword}">
+			<materialControls:Card>
+				<StackPanel
+					Margin="{StaticResource DialogIndent}"
+					Orientation="Vertical"
+					Spacing="{StaticResource ElementSpacing}">
+					<CheckBox Content="{x:Static prop:Strings.PasswordInTheFormOfFileBytes}" />
 
-						<TextBlock
-							Foreground="{StaticResource WarningBrush}"
-							IsVisible="{Binding MasterPasswordFileError, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-							Text="{Binding MasterPasswordFileError, Mode=OneWay}">
-							<Interaction.Behaviors>
-								<behaviors:TextBlockAutoToolTipBehavior />
-							</Interaction.Behaviors>
-						</TextBlock>
+					<views:FileSystemPathSelector Path="{Binding MasterPasswordFilePath, Mode=TwoWay}" />
 
-						<TextBlock
-							IsVisible="{Binding MasterPasswordFileInfo, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-							Text="{Binding MasterPasswordFileInfo, Mode=OneWay}">
-							<Interaction.Behaviors>
-								<behaviors:TextBlockAutoToolTipBehavior />
-							</Interaction.Behaviors>
-						</TextBlock>
-					</StackPanel>
-				</grp:GroupBox>
-			</StackPanel>
+					<TextBlock
+						Foreground="{StaticResource WarningBrush}"
+						IsVisible="{Binding MasterPasswordFileError, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+						Text="{Binding MasterPasswordFileError, Mode=OneWay}">
+						<Interaction.Behaviors>
+							<behaviors:TextBlockAutoToolTipBehavior />
+						</Interaction.Behaviors>
+					</TextBlock>
+
+					<TextBlock
+						IsVisible="{Binding MasterPasswordFileInfo, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+						Text="{Binding MasterPasswordFileInfo, Mode=OneWay}">
+						<Interaction.Behaviors>
+							<behaviors:TextBlockAutoToolTipBehavior />
+						</Interaction.Behaviors>
+					</TextBlock>
+				</StackPanel>
+			</materialControls:Card>
 		</grp:GroupBox>
 
 		<UniformGrid

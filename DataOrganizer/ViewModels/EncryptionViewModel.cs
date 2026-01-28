@@ -4,6 +4,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Humanizer;
+using Material.Styles.Controls;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

@@ -69,7 +69,7 @@
 						Orientation="Vertical"
 						Spacing="{StaticResource ElementSpacing}">
 						<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
-							<materialControls:Card InsideClipping="True">
+							<materialControls:Card>
 								<materialControls:Card.Styles>
 									<Style Selector="RadioButton">
 										<Setter Property="HorizontalContentAlignment" Value="Center" />
