@@ -227,6 +227,41 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand]
+	public Task EncryptFiles(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
+			{
+				DialogHost.Close(null);
+
+				if (view
+					.ViewModel
+					.Password is not { } password)
+				{
+					return Task.CompletedTask;
+				}
+
+				return Task.CompletedTask;
+			};
+
+		return DialogHost.Show(view);
+	}
+
+	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
@@ -453,7 +488,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		EntityCreationView view = _viewLauncher.ConfigureEntityCreationView();
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
 		{
 			DialogHost.Close(null);
 
@@ -577,7 +614,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox($@"{Strings.Delete} ""{toBeDeleted.Name}""?");
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
 		{
 			DialogHost.Close(null);
 
@@ -585,20 +624,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		};
 
 		return DialogHost.Show(view);
-	}
-
-	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
-	[RelayCommand]
-	private void EncryptFiles(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		;
 	}
 
 	/// <summary>
@@ -651,7 +676,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			key: toBeRenamed.Name,
 			keyHint: Strings.Name);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
 		{
 			DialogHost.Close(null);
 

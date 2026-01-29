@@ -438,4 +438,7 @@
   <data name="DecryptFiles" xml:space="preserve">
     <value>Расшифровать файлы</value>
   </data>
+  <data name="Password" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
 </root>
