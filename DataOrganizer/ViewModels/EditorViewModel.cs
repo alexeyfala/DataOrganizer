@@ -600,7 +600,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-
 		_logger.LogInformation("Show password box");
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
