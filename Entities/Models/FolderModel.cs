@@ -18,5 +18,10 @@ public sealed class FolderModel : ExplorerModelBase
 	/// Returns <c>True</c> if the folder is expanded.
 	/// </summary>
 	public bool IsExpanded { get; init; }
+
+	/// <summary>
+	/// Hash of password for encryption.
+	/// </summary>
+	public string? PasswordHash { get; init; }
 	#endregion
 }

@@ -21,6 +21,7 @@ using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
+using Isopoh.Cryptography.Argon2;
 using MapsterMapper;
 using Material.Styles.Controls;
 using Repository.DTO;
@@ -617,7 +618,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return Task.CompletedTask;
 				}
 
-				// TODO: Save password hash in Folder property
+				dto.PasswordHash = Argon2.Hash(password);
+
+				// TODO: Save password hash in Folder property in DB
 				// TODO: Encrypt all child files
 
 				return Task.CompletedTask;
