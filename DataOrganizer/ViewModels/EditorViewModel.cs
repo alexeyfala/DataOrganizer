@@ -331,8 +331,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	public void RestartApplication(Window? window)
 	{
-		// TODO: Ask user before restart.
-
 		Exit(window);
 
 		if (Environment.ProcessPath is null)
