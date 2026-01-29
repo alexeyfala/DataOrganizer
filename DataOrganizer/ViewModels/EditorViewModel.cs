@@ -360,29 +360,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Displays the encryption view.
-	/// </summary>
-	[RelayCommand]
-	public Task ShowEncryptionView()
-	{
-		// TODO: Make test
-		IsLeftDrawerOpened = false;
-
-		_logger.LogInformation("Show encryption view");
-
-		EncryptionView view = _viewFactory.CreateUserControl<EncryptionView>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return Task.CompletedTask;
-		}
-
-		return DialogHost.Show(view);
-	}
-
-	/// <summary>
 	/// Displays the "Favorites" window.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]

@@ -574,15 +574,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Master Password.
-        /// </summary>
-        public static string MasterPassword {
-            get {
-                return ResourceManager.GetString("MasterPassword", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Menu.
         /// </summary>
         public static string Menu {
@@ -678,15 +669,6 @@ namespace Shared.Properties {
         public static string Options {
             get {
                 return ResourceManager.GetString("Options", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Password in the form of file bytes.
-        /// </summary>
-        public static string PasswordInTheFormOfFileBytes {
-            get {
-                return ResourceManager.GetString("PasswordInTheFormOfFileBytes", resourceCulture);
             }
         }
         

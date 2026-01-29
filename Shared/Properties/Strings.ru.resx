@@ -414,9 +414,6 @@
   <data name="Encryption" xml:space="preserve">
     <value>Шифрование</value>
   </data>
-  <data name="MasterPassword" xml:space="preserve">
-    <value>Мастер пароль</value>
-  </data>
   <data name="Select" xml:space="preserve">
     <value>Выбрать</value>
   </data>
@@ -428,8 +425,5 @@
   </data>
   <data name="Size" xml:space="preserve">
     <value>Размер</value>
-  </data>
-  <data name="PasswordInTheFormOfFileBytes" xml:space="preserve">
-    <value>Пароль в виде байтов файла</value>
   </data>
 </root>

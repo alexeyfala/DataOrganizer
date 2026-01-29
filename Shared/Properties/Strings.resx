@@ -394,9 +394,6 @@
   <data name="Encryption" xml:space="preserve">
     <value>Encryption</value>
   </data>
-  <data name="MasterPassword" xml:space="preserve">
-    <value>Master Password</value>
-  </data>
   <data name="Select" xml:space="preserve">
     <value>Select</value>
   </data>
@@ -408,8 +405,5 @@
   </data>
   <data name="Size" xml:space="preserve">
     <value>Size</value>
-  </data>
-  <data name="PasswordInTheFormOfFileBytes" xml:space="preserve">
-    <value>Password in the form of file bytes</value>
   </data>
 </root>

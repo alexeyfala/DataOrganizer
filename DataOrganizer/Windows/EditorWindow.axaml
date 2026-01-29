@@ -80,16 +80,6 @@
 								</MenuItem.Header>
 							</MenuItem>
 
-							<MenuItem Command="{Binding ShowEncryptionViewCommand}">
-								<MenuItem.Header>
-									<StackPanel>
-										<materialIcons:MaterialIcon Kind="LockOutline" />
-
-										<TextBlock Text="{x:Static prop:Strings.Encryption}" />
-									</StackPanel>
-								</MenuItem.Header>
-							</MenuItem>
-
 							<Separator Margin="16.0,0.0" />
 
 							<MenuItem

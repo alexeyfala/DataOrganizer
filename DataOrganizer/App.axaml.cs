@@ -348,7 +348,6 @@ public sealed class App : Application
 		services.AddTransient<EditFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
 		services.AddTransient<EmbeddedFileEditorViewModel>();
-		services.AddTransient<EncryptionViewModel>();
 		services.AddTransient<EntityCreationViewModel>();
 		services.AddTransient<ExecutedFilesViewModel>();
 		services.AddTransient<FavoritesViewModel>();
@@ -368,7 +367,6 @@ public sealed class App : Application
 		services.AddTransient<EditFilesView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
-		services.AddTransient<EncryptionView>();
 		services.AddTransient<EntityCreationView>();
 		services.AddTransient<ExecutedFilesView>();
 		services.AddTransient<FavoritesWindow>();
