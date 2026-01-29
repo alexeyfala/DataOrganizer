@@ -426,4 +426,16 @@
   <data name="Size" xml:space="preserve">
     <value>Размер</value>
   </data>
+  <data name="ShowFileContents" xml:space="preserve">
+    <value>Показать содержимое файлов</value>
+  </data>
+  <data name="HideFileContents" xml:space="preserve">
+    <value>Скрыть содержимое файлов</value>
+  </data>
+  <data name="EncryptFiles" xml:space="preserve">
+    <value>Зашифровать файлы</value>
+  </data>
+  <data name="DecryptFiles" xml:space="preserve">
+    <value>Расшифровать файлы</value>
+  </data>
 </root>

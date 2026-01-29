@@ -588,6 +588,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand]
+	private void EncryptFiles(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		;
+	}
+
+	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	[RelayCommand]

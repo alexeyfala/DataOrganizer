@@ -71,6 +71,40 @@
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.CopyName}"
 							Icon="ContentCopy" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Header="{x:Static prop:Strings.Encryption}"
+							Icon="LockOutline">
+							<Button.Flyout>
+								<Flyout
+									OverlayDismissEventPassThrough="True"
+									Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<wrappers:FlyoutButton
+											Header="{x:Static prop:Strings.ShowFileContents}"
+											Icon="EyeOutline" />
+
+										<wrappers:FlyoutButton
+											Header="{x:Static prop:Strings.HideFileContents}"
+											Icon="EyeOffOutline" />
+
+										<Separator />
+
+										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EncryptFilesCommand}"
+											CommandParameter="{Binding}"
+											Header="{x:Static prop:Strings.EncryptFiles}"
+											Icon="LockOutline" />
+
+										<wrappers:FlyoutButton
+											Header="{x:Static prop:Strings.DecryptFiles}"
+											Icon="LockOpenVariantOutline" />
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</wrappers:FlyoutButton>
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>

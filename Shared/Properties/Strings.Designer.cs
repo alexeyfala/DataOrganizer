@@ -268,6 +268,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decrypt Files.
+        /// </summary>
+        public static string DecryptFiles {
+            get {
+                return ResourceManager.GetString("DecryptFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string Delete {
@@ -309,6 +318,15 @@ namespace Shared.Properties {
         public static string EnableHotkeyTracking {
             get {
                 return ResourceManager.GetString("EnableHotkeyTracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encrypt Files.
+        /// </summary>
+        public static string EncryptFiles {
+            get {
+                return ResourceManager.GetString("EncryptFiles", resourceCulture);
             }
         }
         
@@ -516,6 +534,15 @@ namespace Shared.Properties {
         public static string HideAll {
             get {
                 return ResourceManager.GetString("HideAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide File Contents.
+        /// </summary>
+        public static string HideFileContents {
+            get {
+                return ResourceManager.GetString("HideFileContents", resourceCulture);
             }
         }
         
@@ -822,6 +849,15 @@ namespace Shared.Properties {
         public static string ShowAll {
             get {
                 return ResourceManager.GetString("ShowAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show File Contents.
+        /// </summary>
+        public static string ShowFileContents {
+            get {
+                return ResourceManager.GetString("ShowFileContents", resourceCulture);
             }
         }
         
