@@ -7,9 +7,9 @@
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-	xmlns:models="clr-namespace:DataOrganizer.DTO.Entities.Models"
+	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:views="clr-namespace:DataOrganizer.Views"
+	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 
@@ -71,6 +71,41 @@
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.CopyName}"
 							Icon="ContentCopy" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Header="{x:Static prop:Strings.Encryption}"
+							Icon="LockOutline">
+							<Button.Flyout>
+								<Flyout
+									OverlayDismissEventPassThrough="True"
+									Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<wrappers:FlyoutButton
+											Foreground="{StaticResource WarningBrush}"
+											Header="{x:Static prop:Strings.ShowFileContents}"
+											Icon="EyeOutline" />
+
+										<wrappers:FlyoutButton
+											Header="{x:Static prop:Strings.HideFileContents}"
+											Icon="EyeOffOutline" />
+
+										<Separator />
+
+										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EncryptFilesCommand}"
+											CommandParameter="{Binding}"
+											Header="{x:Static prop:Strings.EncryptFiles}"
+											Icon="LockOutline" />
+
+										<wrappers:FlyoutButton
+											Header="{x:Static prop:Strings.DecryptFiles}"
+											Icon="LockOpenVariantOutline" />
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</wrappers:FlyoutButton>
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>

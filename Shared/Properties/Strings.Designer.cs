@@ -268,6 +268,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decrypt Files.
+        /// </summary>
+        public static string DecryptFiles {
+            get {
+                return ResourceManager.GetString("DecryptFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string Delete {
@@ -309,6 +318,24 @@ namespace Shared.Properties {
         public static string EnableHotkeyTracking {
             get {
                 return ResourceManager.GetString("EnableHotkeyTracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encrypt Files.
+        /// </summary>
+        public static string EncryptFiles {
+            get {
+                return ResourceManager.GetString("EncryptFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Encryption.
+        /// </summary>
+        public static string Encryption {
+            get {
+                return ResourceManager.GetString("Encryption", resourceCulture);
             }
         }
         
@@ -466,6 +493,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to General.
+        /// </summary>
+        public static string General {
+            get {
+                return ResourceManager.GetString("General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to has been added.
         /// </summary>
         public static string HasBeenAdded {
@@ -498,6 +534,15 @@ namespace Shared.Properties {
         public static string HideAll {
             get {
                 return ResourceManager.GetString("HideAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide File Contents.
+        /// </summary>
+        public static string HideFileContents {
+            get {
+                return ResourceManager.GetString("HideFileContents", resourceCulture);
             }
         }
         
@@ -601,6 +646,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not selected....
+        /// </summary>
+        public static string NotSelected {
+            get {
+                return ResourceManager.GetString("NotSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Opened In Editor.
         /// </summary>
         public static string OpenedInEditor {
@@ -642,6 +696,15 @@ namespace Shared.Properties {
         public static string Options {
             get {
                 return ResourceManager.GetString("Options", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string Password {
+            get {
+                return ResourceManager.GetString("Password", resourceCulture);
             }
         }
         
@@ -763,6 +826,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string Select {
+            get {
+                return ResourceManager.GetString("Select", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select All.
         /// </summary>
         public static string SelectAll {
@@ -790,6 +862,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show File Contents.
+        /// </summary>
+        public static string ShowFileContents {
+            get {
+                return ResourceManager.GetString("ShowFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show In Editor.
         /// </summary>
         public static string ShowInEditor {
@@ -804,6 +885,15 @@ namespace Shared.Properties {
         public static string ShowInList {
             get {
                 return ResourceManager.GetString("ShowInList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Size.
+        /// </summary>
+        public static string Size {
+            get {
+                return ResourceManager.GetString("Size", resourceCulture);
             }
         }
         
@@ -876,6 +966,15 @@ namespace Shared.Properties {
         public static string ThereIsNoContentFor {
             get {
                 return ResourceManager.GetString("ThereIsNoContentFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified file was not found.
+        /// </summary>
+        public static string TheSpecifiedFileWasNotFound {
+            get {
+                return ResourceManager.GetString("TheSpecifiedFileWasNotFound", resourceCulture);
             }
         }
         

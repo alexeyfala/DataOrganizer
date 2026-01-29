@@ -254,7 +254,7 @@ internal class ViewLauncherTests
 	/// <summary>
 	/// Test of <see cref="ViewLauncher.ConfigureMultilineTextEditView" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public void ConfigureMultilineTextEditView_ViewModel_Text_Should_Be_As_Parameter()
 	{
 		// Arrange

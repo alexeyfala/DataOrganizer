@@ -7,7 +7,7 @@
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:models="clr-namespace:DataOrganizer.DTO.Entities.Models"
+	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -79,6 +79,8 @@
 									</StackPanel>
 								</MenuItem.Header>
 							</MenuItem>
+
+							<Separator Margin="16.0,0.0" />
 
 							<MenuItem
 								Command="{Binding RestartApplicationCommand}"

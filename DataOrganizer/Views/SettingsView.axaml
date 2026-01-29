@@ -2,7 +2,7 @@
 	x:Class="DataOrganizer.Views.SettingsView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:assist="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
+	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
 	xmlns:grp="using:GroupBox.Avalonia.Controls"
@@ -10,7 +10,6 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:sys="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	MinWidth="500.0"
 	Padding="{StaticResource DialogIndent}"
@@ -21,149 +20,149 @@
 		<vm:SettingsViewModel />
 	</Design.DataContext>
 
-	<ScrollViewer
-		HorizontalScrollBarVisibility="Disabled"
-		VerticalScrollBarVisibility="Auto">
-		<Grid
-			RowDefinitions="Auto,*,*,*"
-			RowSpacing="{StaticResource ElementSpacing}">
+	<Grid
+		RowDefinitions="Auto,*"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<Button
+			Grid.Row="0"
+			HorizontalAlignment="Left"
+			Classes="primary"
+			Command="{Binding SaveAndCloseCommand}"
+			Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
+			                                            Size={StaticResource ToolBarIconSize}}"
+			Theme="{StaticResource MaterialFlatButton}"
+			ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
 
-			<Grid.Styles>
-				<Style Selector="ComboBox">
-					<Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
-				</Style>
-
-				<Style Selector="ToolTip TextBlock">
-					<Setter Property="MaxWidth" Value="300.0" />
-					<Setter Property="TextWrapping" Value="Wrap" />
-				</Style>
-
-				<Style Selector="Border.HelpIconBorderStyle">
-					<Setter Property="VerticalAlignment" Value="Center" />
-					<Setter Property="Background" Value="Transparent" />
-					<Setter Property="Cursor" Value="Help" />
-					<Setter Property="Child">
-						<Template>
-							<materialIcons:MaterialIcon
-								Foreground="DodgerBlue"
-								Kind="HelpCircleOutline" />
-						</Template>
-					</Setter>
-				</Style>
-			</Grid.Styles>
-
-			<Button
-				Grid.Row="0"
-				HorizontalAlignment="Left"
-				Classes="primary"
-				Command="{Binding SaveAndCloseCommand}"
-				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
-				                                            Size={StaticResource ToolBarIconSize}}"
-				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
-
-			<grp:GroupBox
-				Grid.Row="1"
-				Header="{x:Static prop:Strings.ColorScheme}"
-				Theme="{StaticResource GroupBoxClassic}">
-				<StackPanel
-					Margin="{StaticResource DialogIndent}"
-					Orientation="Vertical"
-					Spacing="{StaticResource ElementSpacing}">
-					<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
-						<materialControls:Card InsideClipping="True">
-							<materialControls:Card.Styles>
-								<Style Selector="RadioButton">
-									<Setter Property="HorizontalContentAlignment" Value="Center" />
-									<Setter Property="Theme" Value="{StaticResource MaterialButtonlikeRadioButton}" />
-								</Style>
-							</materialControls:Card.Styles>
-
-							<UniformGrid Columns="3">
-								<RadioButton
-									Classes="accent"
-									Content="{x:Static prop:Strings.System}"
-									IsChecked="{Binding IsInheritTheme, Mode=TwoWay}" />
-
-								<RadioButton
-									Classes="accent"
-									Content="{x:Static prop:Strings.Light}"
-									IsChecked="{Binding IsLightTheme, Mode=TwoWay}" />
-
-								<RadioButton
-									Classes="accent"
-									Content="{x:Static prop:Strings.Dark}"
-									IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
-							</UniformGrid>
-						</materialControls:Card>
-					</grp:GroupBox>
-
-					<grp:GroupBox Header="{x:Static prop:Strings.Colors}">
-						<UniformGrid
-							ColumnSpacing="{StaticResource ElementSpacing}"
-							Columns="2">
-							<ComboBox
-								assist:ComboBoxAssist.Label="{x:Static prop:Strings.PrimaryColor}"
-								Classes="dense"
-								ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
-								ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
-								SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
-
-							<ComboBox
-								assist:ComboBoxAssist.Label="{x:Static prop:Strings.SecondaryColor}"
-								Classes="dense"
-								ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
-								ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
-								SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
-						</UniformGrid>
-					</grp:GroupBox>
-				</StackPanel>
-			</grp:GroupBox>
-
+		<ScrollViewer
+			Grid.Row="1"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto">
 			<Grid
-				Grid.Row="2"
-				ColumnDefinitions="*,Auto"
-				ColumnSpacing="{StaticResource ElementSpacing}">
+				RowDefinitions="*,*,*"
+				RowSpacing="{StaticResource ElementSpacing}">
+
+				<Grid.Styles>
+					<Style Selector="ComboBox">
+						<Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
+					</Style>
+
+					<Style Selector="Border.HelpIconBorderStyle">
+						<Setter Property="VerticalAlignment" Value="Center" />
+						<Setter Property="Background" Value="Transparent" />
+						<Setter Property="Cursor" Value="Help" />
+						<Setter Property="Child">
+							<Template>
+								<materialIcons:MaterialIcon
+									Foreground="DodgerBlue"
+									Kind="HelpCircleOutline" />
+							</Template>
+						</Setter>
+					</Style>
+				</Grid.Styles>
+
 				<grp:GroupBox
-					Grid.Column="0"
-					Header="{x:Static prop:Strings.Hotkeys}"
+					Grid.Row="0"
+					Header="{x:Static prop:Strings.ColorScheme}"
 					Theme="{StaticResource GroupBoxClassic}">
-					<CheckBox
-						Margin="10.0"
-						Content="{x:Static prop:Strings.EnableHotkeyTracking}"
-						IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
+					<StackPanel
+						Margin="{StaticResource DialogIndent}"
+						Orientation="Vertical"
+						Spacing="{StaticResource ElementSpacing}">
+						<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
+							<materialControls:Card>
+								<materialControls:Card.Styles>
+									<Style Selector="RadioButton">
+										<Setter Property="HorizontalContentAlignment" Value="Center" />
+										<Setter Property="Theme" Value="{StaticResource MaterialButtonlikeRadioButton}" />
+									</Style>
+								</materialControls:Card.Styles>
+
+								<UniformGrid Columns="3">
+									<RadioButton
+										Classes="accent"
+										Content="{x:Static prop:Strings.System}"
+										IsChecked="{Binding IsInheritTheme, Mode=TwoWay}" />
+
+									<RadioButton
+										Classes="accent"
+										Content="{x:Static prop:Strings.Light}"
+										IsChecked="{Binding IsLightTheme, Mode=TwoWay}" />
+
+									<RadioButton
+										Classes="accent"
+										Content="{x:Static prop:Strings.Dark}"
+										IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
+								</UniformGrid>
+							</materialControls:Card>
+						</grp:GroupBox>
+
+						<grp:GroupBox Header="{x:Static prop:Strings.Colors}">
+							<UniformGrid
+								ColumnSpacing="{StaticResource ElementSpacing}"
+								Columns="2">
+								<ComboBox
+									assists:ComboBoxAssist.Label="{x:Static prop:Strings.PrimaryColor}"
+									Classes="dense"
+									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
+									ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
+									SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
+
+								<ComboBox
+									assists:ComboBoxAssist.Label="{x:Static prop:Strings.SecondaryColor}"
+									Classes="dense"
+									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
+									ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
+									SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
+							</UniformGrid>
+						</grp:GroupBox>
+					</StackPanel>
 				</grp:GroupBox>
 
-				<Border
-					Grid.Column="1"
-					Margin="0.0,9.0,0.0,0.0"
-					Classes="HelpIconBorderStyle"
-					ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseHotkeys}" />
-			</Grid>
+				<Grid
+					Grid.Row="1"
+					ColumnDefinitions="*,Auto"
+					ColumnSpacing="{StaticResource ElementSpacing}">
+					<grp:GroupBox
+						Grid.Column="0"
+						Header="{x:Static prop:Strings.Hotkeys}"
+						Theme="{StaticResource GroupBoxClassic}">
+						<CheckBox
+							Margin="10.0"
+							Content="{x:Static prop:Strings.EnableHotkeyTracking}"
+							IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
+					</grp:GroupBox>
 
-			<Grid
-				Grid.Row="3"
-				ColumnDefinitions="*,Auto"
-				ColumnSpacing="{StaticResource ElementSpacing}">
-				<ComboBox
-					Grid.Column="0"
-					assist:ComboBoxAssist.Label="{x:Static prop:Strings.Language}"
-					Classes="dense"
-					ItemsSource="{Binding Languages, Mode=OneTime}"
-					SelectedItem="{Binding Language, Mode=TwoWay}">
-					<ComboBox.ItemTemplate>
-						<DataTemplate x:DataType="globalization:CultureInfo">
-							<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
-						</DataTemplate>
-					</ComboBox.ItemTemplate>
-				</ComboBox>
+					<Border
+						Grid.Column="1"
+						Margin="0.0,9.0,0.0,0.0"
+						Classes="HelpIconBorderStyle"
+						ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseHotkeys}" />
+				</Grid>
 
-				<Border
-					Grid.Column="1"
-					Margin="0.0,7.0,0.0,0.0"
-					Classes="HelpIconBorderStyle"
-					ToolTip.Tip="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
+				<Grid
+					Grid.Row="2"
+					ColumnDefinitions="*,Auto"
+					ColumnSpacing="{StaticResource ElementSpacing}">
+					<ComboBox
+						Grid.Column="0"
+						assists:ComboBoxAssist.Label="{x:Static prop:Strings.Language}"
+						Classes="dense"
+						ItemsSource="{Binding Languages, Mode=OneTime}"
+						SelectedItem="{Binding Language, Mode=TwoWay}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate x:DataType="globalization:CultureInfo">
+								<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+
+					<Border
+						Grid.Column="1"
+						Margin="0.0,7.0,0.0,0.0"
+						Classes="HelpIconBorderStyle"
+						ToolTip.Tip="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
+				</Grid>
 			</Grid>
-		</Grid>
-	</ScrollViewer>
+		</ScrollViewer>
+	</Grid>
 </UserControl>

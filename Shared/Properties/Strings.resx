@@ -388,4 +388,37 @@
   <data name="TheContentsCopiedToClipboard" xml:space="preserve">
     <value>The contents of the "{0}" have been copied to the clipboard</value>
   </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Encryption</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="NotSelected" xml:space="preserve">
+    <value>Not selected...</value>
+  </data>
+  <data name="TheSpecifiedFileWasNotFound" xml:space="preserve">
+    <value>The specified file was not found</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="ShowFileContents" xml:space="preserve">
+    <value>Show File Contents</value>
+  </data>
+  <data name="HideFileContents" xml:space="preserve">
+    <value>Hide File Contents</value>
+  </data>
+  <data name="EncryptFiles" xml:space="preserve">
+    <value>Encrypt Files</value>
+  </data>
+  <data name="DecryptFiles" xml:space="preserve">
+    <value>Decrypt Files</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
 </root>

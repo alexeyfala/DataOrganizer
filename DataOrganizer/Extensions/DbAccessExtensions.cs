@@ -7,7 +7,6 @@ using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -43,8 +42,8 @@ internal static class DbAccessExtensions
 			levels: levels,
 			datasets: datasets,
 			startIndex: total,
-			fileContents: Encoding.UTF8.GetBytes(fileText),
-			datasetContents: Encoding.UTF8.GetBytes(records)).ConfigureAwait(false);
+			fileContents: TextHelper.Utf8Encoding.GetBytes(fileText),
+			datasetContents: TextHelper.Utf8Encoding.GetBytes(records)).ConfigureAwait(false);
 	}
 	#endregion
 

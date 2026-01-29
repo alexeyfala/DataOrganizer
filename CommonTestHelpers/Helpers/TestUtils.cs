@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;
@@ -10,7 +11,6 @@ using Shared.Common;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CommonTestHelpers.Helpers;
 
@@ -232,7 +232,12 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random sequence of bytes.
 	/// </summary>
-	public static byte[] CreateRandomBytes(in int length) => Encoding.UTF8.GetBytes(AppUtils.CreateRandomString(length));
+	public static byte[] CreateRandomBytes(in int length)
+	{
+		return TextHelper
+			.Utf8Encoding
+			.GetBytes(AppUtils.CreateRandomString(length));
+	}
 
 	/// <summary>
 	/// Generates a random <see cref="double" /> number within a given range.

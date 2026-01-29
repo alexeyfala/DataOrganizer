@@ -4,12 +4,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:AvaloniaEdit="using:AvaloniaEdit"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:sys="clr-namespace:System;assembly=mscorlib"
+	xmlns:views="using:DataOrganizer.Views"
 	x:Name="Root"
 	mc:Ignorable="d">
 
@@ -20,7 +20,7 @@
 	</UserControl.Styles>
 
 	<Design.DataContext>
-		<controls:ClipboardTextBlock />
+		<views:ClipboardTextBlock />
 	</Design.DataContext>
 
 	<UserControl.Resources>
