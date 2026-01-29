@@ -129,10 +129,17 @@ public sealed class EncryptionService : IEncryptionService
 			salt: salt,
 			count: _algorithm.KeySize);
 
-		return Key.Import(
-			algorithm: _algorithm,
-			blob: blob,
-			format: KeyBlobFormat.RawSymmetricKey);
+		try
+		{
+			return Key.Import(
+				algorithm: _algorithm,
+				blob: blob,
+				format: KeyBlobFormat.RawSymmetricKey);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(blob);
+		}
 	}
 	#endregion
 }

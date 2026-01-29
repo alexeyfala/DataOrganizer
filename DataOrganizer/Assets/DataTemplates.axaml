@@ -83,6 +83,7 @@
 									Placement="Right">
 									<StackPanel Orientation="Vertical">
 										<wrappers:FlyoutButton
+											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowFileContents}"
 											Icon="EyeOutline" />
 

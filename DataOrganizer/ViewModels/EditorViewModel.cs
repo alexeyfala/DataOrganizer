@@ -227,41 +227,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
-	[RelayCommand]
-	public Task EncryptFiles(FolderModelDto? dto)
-	{
-		// TODO: Make test
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.DefaultPressedCallback = () =>
-			{
-				DialogHost.Close(null);
-
-				if (view
-					.ViewModel
-					.Password is not { } password)
-				{
-					return Task.CompletedTask;
-				}
-
-				return Task.CompletedTask;
-			};
-
-		return DialogHost.Show(view);
-	}
-
-	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
@@ -622,6 +587,40 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			return DeleteAsync(toBeDeleted);
 		};
+
+		return DialogHost.Show(view);
+	}
+
+	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand]
+	private Task EncryptFiles(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
+			{
+				DialogHost.Close(null);
+
+				if (view
+					.ViewModel
+					.Password is not { } password)
+				{
+					return Task.CompletedTask;
+				}
+
+				return Task.CompletedTask;
+			};
 
 		return DialogHost.Show(view);
 	}
