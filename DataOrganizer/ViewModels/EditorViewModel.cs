@@ -619,6 +619,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return Task.CompletedTask;
 				}
 
+				// TODO: Save password hash in Folder property
+				// TODO: Encrypt all child files
+
 				return Task.CompletedTask;
 			};
 
