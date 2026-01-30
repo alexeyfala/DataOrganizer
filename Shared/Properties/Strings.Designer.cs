@@ -376,6 +376,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to encrypt files contents.
+        /// </summary>
+        public static string FailedToEncryptFilesContents {
+            get {
+                return ResourceManager.GetString("FailedToEncryptFilesContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load file contents.
         /// </summary>
         public static string FailedToLoadFileContents {

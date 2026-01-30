@@ -444,4 +444,7 @@
   <data name="FailedToLoadFilesContents" xml:space="preserve">
     <value>Не удалось загрузить содержимое файлов</value>
   </data>
+  <data name="FailedToEncryptFilesContents" xml:space="preserve">
+    <value>Не удалось зашифровать содержимое файлов</value>
+  </data>
 </root>

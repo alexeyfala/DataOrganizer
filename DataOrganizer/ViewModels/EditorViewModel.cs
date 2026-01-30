@@ -14,6 +14,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -34,6 +35,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -578,9 +580,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return DialogHost.Show(view);
 	}
 
-	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
+	/// <inheritdoc cref="EncryptFilesAsync" />
 	[RelayCommand]
 	private Task EncryptFiles(FolderModelDto? dto)
 	{
@@ -595,7 +595,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = async () =>
+			.DefaultPressedCallback = () =>
 			{
 				DialogHost.Close(null);
 
@@ -603,46 +603,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.ViewModel
 					.Password is not { } password)
 				{
-					return;
+					return Task.CompletedTask;
 				}
 
-				FileModelDto[] filesDto = [.. dto.Children.GetFilesRecursively()];
-
-				ContentsIsValidPair[] pairs = await _dbAccess
-					.GetFilesContentsAsync(filesDto.Select(x => x.Id))
-					.ToArrayAsync()
-					.ConfigureAwait(false);
-
-				if (pairs.Any(x => !x.IsValid))
-				{
-					_logger.LogError(Strings.FailedToLoadFilesContents);
-
-					ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
-
-					return;
-				}
-
-				var folders = dto
-					.ToEnumerable()
-					.Concat(dto.Children.GetFoldersRecursively())
-					.ToArray();
-
-				// TODO: Save password hash in Folder property in DB
-
-				dto.PasswordHash = _encryption.EnhancedHashPassword(password);
+				return EncryptFilesAsync(dto, password);
 			};
 
 		return DialogHost.Show(view);
-	}
-
-	private async IAsyncEnumerable<ContentsIsValidPair> FooAsync(IEnumerable<Guid> identifiers)
-	{
-		await foreach (Guid id in identifiers.ToAsyncEnumerable())
-		{
-			yield return await _dbAccess
-				.GetFileContentsAsync(id)
-				.ConfigureAwait(false);
-		}
 	}
 
 	/// <summary>
@@ -1006,6 +973,71 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
 
 		IsRightSideSheetOpened = true;
+	}
+
+	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	public async Task EncryptFilesAsync(
+		FolderModelDto dto,
+		string password,
+		CancellationToken token = default)
+	{
+		// TODO: Make test
+		FileModelDto[] filesDto = [.. dto.Children.GetFilesRecursively()];
+
+		ContentsIsValidPair[] contents = await _dbAccess
+			.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
+			.ToArrayAsync(token)
+			.ConfigureAwait(false);
+
+		if (contents.Any(x => !x.IsValid))
+		{
+			_logger.LogError(Strings.FailedToLoadFilesContents);
+
+			ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+			return;
+		}
+
+		ContentsIsValidPair[] encrypted = [.. EncryptContents(contents, TextHelper.Utf8Encoding.GetBytes(password))];
+
+		if (encrypted.Any(x => !x.IsValid))
+		{
+			_logger.LogError(Strings.FailedToEncryptFilesContents);
+
+			ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
+
+			return;
+		}
+
+		foreach (ContentsIsValidPair value in encrypted)
+		{
+			DateTime updatedDate = DateTime.Now;
+
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FileModel.Contents), value.Contents),
+				new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
+			];
+
+			if (await _dbAccess.UpdatePropertiesAsync(
+				id: dto.Id,
+				token: token,
+				properties).ConfigureAwait(false))
+			{
+
+			}
+		}
+
+		var folders = dto
+			.ToEnumerable()
+			.Concat(dto.Children.GetFoldersRecursively())
+			.ToArray();
+
+		// TODO: Save password hash in Folder property in DB
+
+		dto.PasswordHash = _encryption.EnhancedHashPassword(password);
 	}
 
 	/// <summary>
@@ -1404,6 +1436,39 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
+
+	/// <summary>
+	/// Encrypts contents.
+	/// </summary>
+	private IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password)
+	{
+		try
+		{
+			foreach (ContentsIsValidPair item in contents)
+			{
+				if (_encryption.Encrypt(
+					item.Contents,
+					password,
+					out byte[] output))
+				{
+					yield return new()
+					{
+						Contents = output,
+						Id = item.Id,
+						IsValid = true
+					};
+				}
+				else
+				{
+					yield return new();
+				}
+			}
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(password);
+		}
+	}
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="IsReadOnly" /> is <c>False</c>.
