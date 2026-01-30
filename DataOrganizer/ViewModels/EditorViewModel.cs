@@ -27,7 +27,6 @@ using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -499,7 +498,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
-		EntityCreationView view = _viewLauncher.ConfigureEntityCreationView();
+		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
 
 		view
 			.ViewModel
@@ -522,18 +521,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
-			EntityCreationViewSettings settings = new()
-			{
-				IsDatasetSelected = view.ViewModel.IsDatasetSelected,
-				IsFileSelected = view.ViewModel.IsFileSelected,
-				IsFolderSelected = view.ViewModel.IsFolderSelected,
-				Name = view.ViewModel.Name
-			};
-
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
-				false);
+			view
+				.ViewModel
+				.SaveSettingsInFile();
 		}
 	}
 

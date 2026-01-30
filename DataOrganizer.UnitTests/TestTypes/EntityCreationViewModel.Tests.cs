@@ -1,8 +1,11 @@
-﻿using Autofac.Extras.Moq;
+﻿using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.ViewModels;
+using NSubstitute;
 using Shared.Common;
+using Shared.Interfaces;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -11,10 +14,10 @@ internal class EntityCreationViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel.Initialize" />.
+	/// Test of <see cref="EntityCreationViewModel" />.
 	/// </summary>
 	[Test]
-	public void Initialize_Initializes_Properties()
+	public void Initializes_Properties_In_Constructor()
 	{
 		// Arrange
 		EntityCreationViewSettings settings = new()
@@ -25,12 +28,19 @@ internal class EntityCreationViewModelTests
 			Name = AppUtils.CreateRandomString(10)
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
+			serializer
+				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			builder.RegisterInstance(serializer);
+		});
 
 		// Act
-		sut.Initialize(settings);
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
 
 		// Assert
 		sut.IsFolderSelected
@@ -51,10 +61,33 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel.Initialize" />.
+	/// Test of <see cref="EntityCreationViewModel.SaveSettingsInFile" />.
 	/// </summary>
 	[Test]
-	public void Initialize_Selects_Folder_If_Nothing_Selected()
+	public void SaveSettingsInFile_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>(TypedParameter.From(fileSystem));
+
+		// Act
+		sut.SaveSettingsInFile();
+
+		// Assert
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<EntityCreationViewSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityCreationViewModel" />.
+	/// </summary>
+	[Test]
+	public void Selects_Folder_If_Nothing_Selected_In_Constructor()
 	{
 		// Arrange
 		EntityCreationViewSettings settings = new()
@@ -65,12 +98,19 @@ internal class EntityCreationViewModelTests
 			Name = AppUtils.CreateRandomString(10)
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
+			serializer
+				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			builder.RegisterInstance(serializer);
+		});
 
 		// Act
-		sut.Initialize(settings);
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
 
 		// Assert
 		sut.IsFolderSelected

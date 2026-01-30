@@ -219,22 +219,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public EntityCreationView ConfigureEntityCreationView()
-	{
-		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
-
-		string filePath = AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings));
-
-		EntityCreationViewSettings settings = _jsonSerializer.FromFile<EntityCreationViewSettings>(filePath);
-
-		view
-			.ViewModel
-			.Initialize(settings);
-
-		return view;
-	}
-
-	/// <inheritdoc />
 	public FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");

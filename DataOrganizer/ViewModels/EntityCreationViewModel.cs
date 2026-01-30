@@ -2,6 +2,8 @@
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Views;
+using Shared.Common;
+using Shared.Interfaces;
 using Shared.Properties;
 
 namespace DataOrganizer.ViewModels;
@@ -48,12 +50,59 @@ public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
 	}
 	#endregion
 
+	#region Data
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="IJsonSerializerWrapper" />
+	private readonly IJsonSerializerWrapper _jsonSerializer;
+	#endregion
+
+	#region Constructors
+	public EntityCreationViewModel(IFileSystem fileSystem, IJsonSerializerWrapper jsonSerializer)
+	{
+		_fileSystem = fileSystem;
+
+		_jsonSerializer = jsonSerializer;
+
+		InitializeFromFile();
+	}
+	#endregion
+
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Saves settings in file.
 	/// </summary>
-	public void Initialize(in EntityCreationViewSettings settings)
+	public void SaveSettingsInFile()
 	{
+		EntityCreationViewSettings settings = new()
+		{
+			IsDatasetSelected = IsDatasetSelected,
+			IsFileSelected = IsFileSelected,
+			IsFolderSelected = IsFolderSelected,
+			Name = Name
+		};
+
+		_fileSystem.SerializeToJsonFile(
+			settings,
+			AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
+			false);
+	}
+
+	/// <inheritdoc />
+	protected override bool CanExecuteDefaultPressed() => !string.IsNullOrWhiteSpace(Name);
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Initializes settings from file.
+	/// </summary>
+	private void InitializeFromFile()
+	{
+		string filePath = AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings));
+
+		EntityCreationViewSettings settings = _jsonSerializer.FromFile<EntityCreationViewSettings>(filePath);
+
 		IsFolderSelected = settings.IsFolderSelected;
 
 		IsFileSelected = settings.IsFileSelected;
@@ -68,11 +117,6 @@ public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
 		{
 			IsFolderSelected = true;
 		}
-
-		IsInitialized = true;
 	}
-
-	/// <inheritdoc />
-	protected override bool CanExecuteDefaultPressed() => !string.IsNullOrWhiteSpace(Name);
 	#endregion
 }
