@@ -19,6 +19,9 @@ public abstract partial class DefaultButtonViewModelBase : ObservableObject
 	/// <summary>
 	/// Returns <c>True</c> if initialization has completed.
 	/// </summary>
+	/// <remarks>
+	/// For test purposes.
+	/// </remarks>
 	public bool IsInitialized { get; protected set; }
 	#endregion
 

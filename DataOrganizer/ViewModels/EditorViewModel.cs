@@ -228,6 +228,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand]
+	public Task EncryptFiles(FolderModelDto? dto)
+	{
+		// TODO: Make test that after DefaultPressedCallback executed ViewModel.Password should be null
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.DefaultPressedCallback = () =>
+			{
+				DialogHost.Close(null);
+
+				if (view
+					.ViewModel
+					.Password is not { } password)
+				{
+					return Task.CompletedTask;
+				}
+
+				try
+				{
+					dto.PasswordHash = Argon2.Hash(password);
+
+					// TODO: Save password hash in Folder property in DB
+					// TODO: Encrypt all child files
+
+					return Task.CompletedTask;
+				}
+				finally
+				{
+					view
+						.ViewModel
+						.Password = null;
+				}
+			};
+
+		return DialogHost.Show(view);
+	}
+
+	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
@@ -589,46 +638,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		return DialogHost.Show(view);
 	}
-
-	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
-	[RelayCommand]
-	private Task EncryptFiles(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.DefaultPressedCallback = () =>
-			{
-				DialogHost.Close(null);
-
-				if (view
-					.ViewModel
-					.Password is not { } password)
-				{
-					return Task.CompletedTask;
-				}
-
-				dto.PasswordHash = Argon2.Hash(password);
-
-				// TODO: Save password hash in Folder property in DB
-				// TODO: Encrypt all child files
-
-				return Task.CompletedTask;
-			};
-
-		return DialogHost.Show(view);
-	}
-
+		
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>
