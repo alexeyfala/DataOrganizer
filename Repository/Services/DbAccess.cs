@@ -381,6 +381,7 @@ public sealed class DbAccess : IDbAccess
 			return new()
 			{
 				Contents = entity.Contents,
+				Id = id,
 				IsValid = true
 			};
 		}
@@ -420,6 +421,17 @@ public sealed class DbAccess : IDbAccess
 		finally
 		{
 			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async IAsyncEnumerable<ContentsIsValidPair> GetFilesContentsAsync(
+		IEnumerable<Guid> identifiers,
+		[EnumeratorCancellation] CancellationToken token = default)
+	{
+		await foreach (Guid id in identifiers.ToAsyncEnumerable())
+		{
+			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
 		}
 	}
 

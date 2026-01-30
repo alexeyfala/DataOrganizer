@@ -421,4 +421,7 @@
   <data name="Password" xml:space="preserve">
     <value>Password</value>
   </data>
+  <data name="FailedToLoadFilesContents" xml:space="preserve">
+    <value>Failed to load files contents</value>
+  </data>
 </root>

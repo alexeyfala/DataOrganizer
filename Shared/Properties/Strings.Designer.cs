@@ -385,6 +385,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load files contents.
+        /// </summary>
+        public static string FailedToLoadFilesContents {
+            get {
+                return ResourceManager.GetString("FailedToLoadFilesContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to rename.
         /// </summary>
         public static string FailedToRename {

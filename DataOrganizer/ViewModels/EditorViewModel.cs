@@ -595,7 +595,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = () =>
+			.DefaultPressedCallback = async () =>
 			{
 				DialogHost.Close(null);
 
@@ -603,18 +603,46 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.ViewModel
 					.Password is not { } password)
 				{
-					return Task.CompletedTask;
+					return;
 				}
 
-				dto.PasswordHash = _encryption.EnhancedHashPassword(password);
+				FileModelDto[] filesDto = [.. dto.Children.GetFilesRecursively()];
+
+				ContentsIsValidPair[] pairs = await _dbAccess
+					.GetFilesContentsAsync(filesDto.Select(x => x.Id))
+					.ToArrayAsync()
+					.ConfigureAwait(false);
+
+				if (pairs.Any(x => !x.IsValid))
+				{
+					_logger.LogError(Strings.FailedToLoadFilesContents);
+
+					ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+					return;
+				}
+
+				var folders = dto
+					.ToEnumerable()
+					.Concat(dto.Children.GetFoldersRecursively())
+					.ToArray();
 
 				// TODO: Save password hash in Folder property in DB
-				// TODO: Encrypt all child files
 
-				return Task.CompletedTask;
+				dto.PasswordHash = _encryption.EnhancedHashPassword(password);
 			};
 
 		return DialogHost.Show(view);
+	}
+
+	private async IAsyncEnumerable<ContentsIsValidPair> FooAsync(IEnumerable<Guid> identifiers)
+	{
+		await foreach (Guid id in identifiers.ToAsyncEnumerable())
+		{
+			yield return await _dbAccess
+				.GetFileContentsAsync(id)
+				.ConfigureAwait(false);
+		}
 	}
 
 	/// <summary>

@@ -71,7 +71,7 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Returns <see cref="FileModel.Contents" />.
+	/// Returns <see cref="ContentsIsValidPair" />.
 	/// </summary>
 	Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default);
 
@@ -79,6 +79,13 @@ public interface IDbAccess : IDisposable
 	/// Returns <see cref="FileModel.Properties" />.
 	/// </summary>
 	Task<string?> GetFilePropertiesAsync(Guid id, CancellationToken token = default);
+
+	/// <summary>
+	/// Returns a sequense of <see cref="ContentsIsValidPair" /> by file identifiers.
+	/// </summary>
+	IAsyncEnumerable<ContentsIsValidPair> GetFilesContentsAsync(
+		IEnumerable<Guid> identifiers,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the properties of an entity in the database.

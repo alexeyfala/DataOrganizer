@@ -158,17 +158,26 @@ public static class EnumerableExtensions
 	/// <returns>Flat list <see cref="FileModelDto" />.</returns>
 	public static IEnumerable<FileModelDto> GetFilesRecursively(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FileModelDto> condition)
+		Func<FileModelDto, bool> condition)
+	{
+		return GetFilesRecursively(hierarchy).Where(condition);
+	}
+
+	/// <summary>
+	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by type <see cref="FileModelDto" />.
+	/// </summary>
+	/// <returns>Flat list <see cref="FileModelDto" />.</returns>
+	public static IEnumerable<FileModelDto> GetFilesRecursively(this IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		foreach (ExplorerModelBaseDto dto in hierarchy)
 		{
-			if (dto is FileModelDto file && condition(file))
+			if (dto is FileModelDto file)
 			{
 				yield return file;
 			}
 			else if (dto is FolderModelDto folder)
 			{
-				foreach (FileModelDto item in GetFilesRecursively(folder.Children, condition))
+				foreach (FileModelDto item in GetFilesRecursively(folder.Children))
 				{
 					yield return item;
 				}
@@ -199,20 +208,9 @@ public static class EnumerableExtensions
 	/// <returns>Flat list <see cref="FolderModelDto" />.</returns>
 	public static IEnumerable<FolderModelDto> GetFoldersRecursively(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FolderModelDto> condition)
+		Func<FolderModelDto, bool> condition)
 	{
-		foreach (FolderModelDto folder in hierarchy.OfType<FolderModelDto>())
-		{
-			if (condition(folder))
-			{
-				yield return folder;
-			}
-
-			foreach (FolderModelDto subFolder in GetFoldersRecursively(folder.Children, condition))
-			{
-				yield return subFolder;
-			}
-		}
+		return GetFoldersRecursively(hierarchy).Where(condition);
 	}
 
 	/// <summary>

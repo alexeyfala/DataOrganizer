@@ -441,4 +441,7 @@
   <data name="Password" xml:space="preserve">
     <value>Пароль</value>
   </data>
+  <data name="FailedToLoadFilesContents" xml:space="preserve">
+    <value>Не удалось загрузить содержимое файлов</value>
+  </data>
 </root>
