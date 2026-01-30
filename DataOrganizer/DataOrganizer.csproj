@@ -35,12 +35,12 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.11" />
 		<PackageReference Include="Avalonia.Themes.Simple" Version="11.3.11" />
 		<PackageReference Include="Baksteen.Extensions.DeepCopy" Version="1.0.5" />
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="BinToss.GroupBox.Avalonia" Version="1.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Comparation" Version="0.1.7" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.10.4" />
 		<PackageReference Include="DynamicData" Version="9.4.1" />
-		<PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
 		<PackageReference Include="Mapster" Version="7.4.0" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
 		<PackageReference Include="Material.Avalonia" Version="3.13.4" />

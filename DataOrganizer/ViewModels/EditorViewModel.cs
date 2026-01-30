@@ -21,14 +21,12 @@ using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
-using Isopoh.Cryptography.Argon2;
 using MapsterMapper;
 using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -254,7 +252,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return Task.CompletedTask;
 				}
 
-				dto.PasswordHash = Argon2.Hash(password);
+				dto.PasswordHash = _encryption.EnhancedHashPassword(password);
 
 				// TODO: Save password hash in Folder property in DB
 				// TODO: Encrypt all child files
@@ -728,11 +726,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
-
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
 
 	/// <summary>
 	/// Mapper.
@@ -748,20 +746,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
+		IEncryptionService encryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{
-		_executionEngine = executionEngine;
+		_encryption = encryption;
 
-		_fileSystem = fileSystem;
+		_executionEngine = executionEngine;
 
 		_mapper = mapper;
 

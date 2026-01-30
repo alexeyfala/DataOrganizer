@@ -1,5 +1,6 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using BCrypt.Net;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
 
@@ -87,6 +88,66 @@ internal class EncryptionServiceTests
 		TextHelper.Utf8Encoding.GetString(decrypted)
 			.Should()
 			.Be(TextHelper.LoremIpsum);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.EnhancedHashPassword" />.
+	/// </summary>
+	[Test]
+	public void EnhancedHashPassword_Returns_Hash_That_Different_From_Original_Password()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		const string password = "SomePassword";
+
+		// Act
+		string passwordHash = sut.EnhancedHashPassword(password);
+
+		// Assert
+		passwordHash
+			.Should()
+			.NotBeNull()
+			.Should()
+			.NotBeSameAs(password);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.EnhancedVerify" />.
+	/// </summary>
+	[Test]
+	public void EnhancedVerify_Verified_Same_Passwords_With_Different_Hashes()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		const string password = "SomePassword";
+
+		// Act
+		string hash1 = sut.EnhancedHashPassword(password);
+
+		string hash2 = sut.EnhancedHashPassword(password);
+
+		bool result1 = sut.EnhancedVerify(password, hash1);
+
+		bool result2 = sut.EnhancedVerify(password, hash2);
+
+		// Assert
+		hash1
+			.Should()
+			.NotBe(hash2);
+
+		result1
+			.Should()
+			.BeTrue();
+
+		result2
+			.Should()
+			.BeTrue();
 	}
 	#endregion
 }

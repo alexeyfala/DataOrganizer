@@ -4,6 +4,7 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Security.Cryptography;
+using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services;
 
@@ -109,6 +110,12 @@ public sealed class EncryptionService : IEncryptionService
 			return false;
 		}
 	}
+
+	/// <inheritdoc />
+	public string EnhancedHashPassword(string password) => BC.EnhancedHashPassword(password);
+
+	/// <inheritdoc />
+	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
 	#endregion
 
 	#region Service
