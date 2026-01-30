@@ -232,7 +232,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	public Task EncryptFiles(FolderModelDto? dto)
 	{
-		// TODO: Make test that after DefaultPressedCallback executed ViewModel.Password should be null
 		if (dto is null)
 		{
 			return Task.CompletedTask;
@@ -255,21 +254,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return Task.CompletedTask;
 				}
 
-				try
-				{
-					dto.PasswordHash = Argon2.Hash(password);
+				dto.PasswordHash = Argon2.Hash(password);
 
-					// TODO: Save password hash in Folder property in DB
-					// TODO: Encrypt all child files
+				// TODO: Save password hash in Folder property in DB
+				// TODO: Encrypt all child files
 
-					return Task.CompletedTask;
-				}
-				finally
-				{
-					view
-						.ViewModel
-						.Password = null;
-				}
+				return Task.CompletedTask;
 			};
 
 		return DialogHost.Show(view);
@@ -628,7 +618,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		return DialogHost.Show(view);
 	}
-		
+
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>

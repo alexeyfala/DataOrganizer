@@ -35,10 +35,19 @@ public abstract partial class DefaultButtonViewModelBase : ObservableObject
 		DefaultPressedCallback?.Invoke();
 
 		DefaultPressedCallback = null;
+
+		AfterDefaultPressed();
 	}
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Called after main <see cref="DefaultPressed" /> method.
+	/// </summary>
+	protected virtual void AfterDefaultPressed()
+	{
+	}
+
 	/// <summary>
 	/// Validates <see cref="DefaultPressedCommand" />.
 	/// </summary>

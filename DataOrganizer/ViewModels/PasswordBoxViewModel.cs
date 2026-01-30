@@ -20,6 +20,9 @@ public sealed partial class PasswordBoxViewModel : DefaultButtonViewModelBase
 
 	#region Methods
 	/// <inheritdoc />
+	protected override void AfterDefaultPressed() => Password = null;
+
+	/// <inheritdoc />
 	protected override bool CanExecuteDefaultPressed()
 	{
 		const char space = ' ';
