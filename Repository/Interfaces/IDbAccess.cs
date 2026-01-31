@@ -102,6 +102,13 @@ public interface IDbAccess : IDisposable
 		params PropertyNameValuePair[] properties);
 
 	/// <summary>
+	/// Updates the properties of entities in the database.
+	/// </summary>
+	Task<bool> UpdatePropertiesAsync(
+		IDictionary<Guid, PropertyNameValuePair[]> relations,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates the property of an entity in the database.
 	/// </summary>
 	Task<bool> UpdatePropertyAsync<T>(

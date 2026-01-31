@@ -508,6 +508,46 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> UpdatePropertiesAsync(
+		IDictionary<Guid, PropertyNameValuePair[]> relations,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			foreach (KeyValuePair<Guid, PropertyNameValuePair[]> relation in relations)
+			{
+				ExplorerModelBase entity = await _baseRepository
+					.GetAsync(relation.Key, trackChanges: true, token)
+					.ConfigureAwait(false);
+
+				relation
+					.Value
+					.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
+			}
+
+			int count = await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> UpdatePropertyAsync<T>(
 		Guid id,
 		string propertyName,

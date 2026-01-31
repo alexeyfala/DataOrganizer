@@ -1015,23 +1015,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		foreach (ContentsIsValidPair value in encrypted)
+		DateTime updatedDate = DateTime.Now;
+
+		Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
 		{
-			DateTime updatedDate = DateTime.Now;
-
-			PropertyNameValuePair[] properties =
-			[
-				new PropertyNameValuePair(nameof(FileModel.Contents), value.Contents),
-				new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-			];
-
-			if (await _dbAccess.UpdatePropertiesAsync(
-				id: dto.Id,
-				token: token,
-				properties).ConfigureAwait(false))
+			return new PropertyNameValuePair[]
 			{
+				new(nameof(FileModel.Contents), x.Contents),
+				new(nameof(FileModel.UpdatedDate), updatedDate)
+			};
+		});
 
-			}
+		if (!await _dbAccess
+			.UpdatePropertiesAsync(relations, token)
+			.ConfigureAwait(false))
+		{
+			// TODO: Buckup contents
+			return;
 		}
 
 		var folders = dto
