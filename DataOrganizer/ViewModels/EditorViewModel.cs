@@ -984,6 +984,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		CancellationToken token = default)
 	{
 		// TODO: Make test
+		// TODO: Check if files opened in editor or executed, if there are close them
+		// TODO: Add progress indicator
 		FileModelDto[] filesDto = [.. dto.Children.GetFilesRecursively()];
 
 		ContentsIsValidPair[] contents = await _dbAccess
@@ -1000,9 +1002,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		ContentsIsValidPair[] encrypted = [.. EncryptContents(contents, TextHelper.Utf8Encoding.GetBytes(password))];
+		ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
+			contents,
+			TextHelper.Utf8Encoding.GetBytes(password))];
 
-		if (encrypted.Any(x => !x.IsValid))
+		if (encrypted.Length < contents.Length)
 		{
 			_logger.LogError(Strings.FailedToEncryptFilesContents);
 
@@ -1438,9 +1442,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
 	/// <summary>
-	/// Encrypts contents.
+	/// Tried to encrypts contents.
 	/// </summary>
-	private IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password)
+	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
 	{
 		try
 		{
@@ -1460,7 +1464,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				}
 				else
 				{
-					yield return new();
+					yield break;
 				}
 			}
 		}
