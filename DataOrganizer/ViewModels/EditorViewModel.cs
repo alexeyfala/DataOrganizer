@@ -1006,7 +1006,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			contents,
 			TextHelper.Utf8Encoding.GetBytes(password))];
 
-		if (encrypted.Length < contents.Length)
+		if (encrypted.Length < contents.Length
+			|| encrypted.Any(x => !x.IsValid)
+			|| encrypted.Any(x => x.Id.IsDefault()))
 		{
 			_logger.LogError(Strings.FailedToEncryptFilesContents);
 
