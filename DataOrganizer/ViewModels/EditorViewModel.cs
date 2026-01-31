@@ -14,6 +14,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -26,9 +27,7 @@ using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -36,6 +35,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -449,7 +449,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
-		EntityCreationView view = _viewLauncher.ConfigureEntityCreationView();
+		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
 
 		view
 			.ViewModel
@@ -472,18 +472,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
-			EntityCreationViewSettings settings = new()
-			{
-				IsDatasetSelected = view.ViewModel.IsDatasetSelected,
-				IsFileSelected = view.ViewModel.IsFileSelected,
-				IsFolderSelected = view.ViewModel.IsFolderSelected,
-				Name = view.ViewModel.Name
-			};
-
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
-				false);
+			view
+				.ViewModel
+				.SaveSettingsInFile();
 		}
 	}
 
@@ -589,9 +580,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return DialogHost.Show(view);
 	}
 
-	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
+	/// <inheritdoc cref="EncryptFilesAsync" />
 	[RelayCommand]
 	private Task EncryptFiles(FolderModelDto? dto)
 	{
@@ -617,10 +606,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return Task.CompletedTask;
 				}
 
-				// TODO: Save password hash in Folder property
-				// TODO: Encrypt all child files
-
-				return Task.CompletedTask;
+				return EncryptFilesAsync(dto, password);
 			};
 
 		return DialogHost.Show(view);
@@ -735,11 +721,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
-
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
 
 	/// <summary>
 	/// Mapper.
@@ -755,20 +741,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
+		IEncryptionService encryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IDispatcher dispatcher,
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{
-		_executionEngine = executionEngine;
+		_encryption = encryption;
 
-		_fileSystem = fileSystem;
+		_executionEngine = executionEngine;
 
 		_mapper = mapper;
 
@@ -987,6 +973,102 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
 
 		IsRightSideSheetOpened = true;
+	}
+
+	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	public async Task EncryptFilesAsync(
+		FolderModelDto dto,
+		string password,
+		CancellationToken token = default)
+	{
+		try
+		{
+			// TODO: Make test
+			// TODO: Check if files opened in editor or executed, if there are close them
+			// TODO: Add progress indicator
+			FileModelDto[] filesDto = [.. dto
+				.Children
+				.GetFilesRecursively()];
+
+			ContentsIsValidPair[] contents = await _dbAccess
+				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			if (contents.Length < filesDto.Length || contents.Any(x => !x.IsValid))
+			{
+				_logger.LogError(Strings.FailedToLoadFilesContents);
+
+				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+				return;
+			}
+
+			ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
+				contents,
+				TextHelper.Utf8Encoding.GetBytes(password))];
+
+			if (encrypted.Length < contents.Length
+				|| encrypted.Any(x => !x.IsValid)
+				|| encrypted.Any(x => x.Id.IsDefault()))
+			{
+				_logger.LogError(Strings.FailedToEncryptFilesContents);
+
+				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
+
+				return;
+			}
+
+			// TODO: Ceate Buckup of DB
+
+			DateTime updatedDate = DateTime.Now;
+
+			Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
+			{
+				return new PropertyNameValuePair[]
+				{
+					new(nameof(FileModel.Contents), x.Contents),
+					new(nameof(FileModel.UpdatedDate), updatedDate)
+				};
+			});
+
+			if (!await _dbAccess
+				.UpdatePropertiesAsync(relations, token)
+				.ConfigureAwait(false))
+			{
+				// TODO: Buckup contents
+				return;
+			}
+
+			string passwordHash = _encryption.EnhancedHashPassword(password);
+
+			if (!await _dbAccess.UpdatePropertyAsync(
+				id: dto.Id,
+				propertyName: nameof(FolderModel.PasswordHash),
+				value: passwordHash,
+				token: token).ConfigureAwait(false))
+			{
+				// TODO: Buckup contents
+				return;
+			}
+
+			ExplorerModelBaseDto[] objects =
+			[
+				.. dto.ToEnumerable(),
+				.. dto.Children.GetFoldersRecursively(),
+				.. filesDto
+			];
+
+			objects.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+
+			dto.PasswordHash = passwordHash;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 
 	/// <summary>
@@ -1385,6 +1467,39 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
+
+	/// <summary>
+	/// Tried to encrypts contents.
+	/// </summary>
+	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
+	{
+		try
+		{
+			foreach (ContentsIsValidPair item in contents)
+			{
+				if (_encryption.Encrypt(
+					item.Contents,
+					password,
+					out byte[] output))
+				{
+					yield return new()
+					{
+						Contents = output,
+						Id = item.Id,
+						IsValid = true
+					};
+				}
+				else
+				{
+					yield break;
+				}
+			}
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(password);
+		}
+	}
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="IsReadOnly" /> is <c>False</c>.

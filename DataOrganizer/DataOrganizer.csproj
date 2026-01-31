@@ -35,6 +35,7 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.11" />
 		<PackageReference Include="Avalonia.Themes.Simple" Version="11.3.11" />
 		<PackageReference Include="Baksteen.Extensions.DeepCopy" Version="1.0.5" />
+		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="BinToss.GroupBox.Avalonia" Version="1.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Comparation" Version="0.1.7" />

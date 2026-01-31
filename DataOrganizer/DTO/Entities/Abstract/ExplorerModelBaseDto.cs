@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Enums;
@@ -41,6 +42,10 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	#endregion
 
 	#region Auto-Generated Properties
+	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	[ObservableProperty]
+	private EncryptionStatus _encryptionStatus;
+
 	/// <inheritdoc cref="ExplorerModelBase.Name" />
 	[ObservableProperty]
 	private string _name = string.Empty;

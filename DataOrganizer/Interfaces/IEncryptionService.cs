@@ -1,5 +1,8 @@
 ﻿namespace DataOrganizer.Interfaces;
 
+/// <summary>
+/// Provides encryption methods.
+/// </summary>
 public interface IEncryptionService
 {
 	#region Methods
@@ -12,5 +15,11 @@ public interface IEncryptionService
 	/// Encrypts data.
 	/// </summary>
 	bool Encrypt(byte[] input, byte[] password, out byte[] output);
+
+	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
+	string EnhancedHashPassword(string password);
+
+	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
+	bool EnhancedVerify(string password, string passwordHash);
 	#endregion
 }

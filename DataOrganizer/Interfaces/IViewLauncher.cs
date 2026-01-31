@@ -32,11 +32,6 @@ public interface IViewLauncher
 		in Guid showObjectId = default);
 
 	/// <summary>
-	/// Configures the <see cref="EntityCreationView" />.
-	/// </summary>
-	EntityCreationView ConfigureEntityCreationView();
-
-	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
 	FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);

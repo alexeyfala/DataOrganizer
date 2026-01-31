@@ -77,40 +77,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureEntityCreationView" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void ConfigureEntityCreationView_ViewModel_Should_Be_Initialized()
-	{
-		// Arrange
-		EntityCreationViewSettings settings = new()
-		{
-			IsDatasetSelected = false,
-			IsFileSelected = false,
-			IsFolderSelected = true,
-			Name = AppUtils.CreateRandomString(10)
-		};
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMock<EntityCreationView>(mock)),
-			TypedParameter.From(GetSerializerMockForSettings(settings)));
-
-		// Act
-		EntityCreationView view = sut.ConfigureEntityCreationView();
-
-		// Assert
-		view.ViewModel.IsInitialized
-			.Should()
-			.BeTrue();
-
-		view.ViewModel
-			.Should()
-			.BeAssignableTo<DefaultButtonViewModelBase>();
-	}
-
-	/// <summary>
 	/// Test of <see cref="ViewLauncher.ConfigureFavoritesWindow" />.
 	/// </summary>
 	[AvaloniaTest]

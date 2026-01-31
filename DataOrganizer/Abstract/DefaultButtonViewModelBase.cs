@@ -19,6 +19,9 @@ public abstract partial class DefaultButtonViewModelBase : ObservableObject
 	/// <summary>
 	/// Returns <c>True</c> if initialization has completed.
 	/// </summary>
+	/// <remarks>
+	/// For test purposes.
+	/// </remarks>
 	public bool IsInitialized { get; protected set; }
 	#endregion
 
@@ -32,10 +35,19 @@ public abstract partial class DefaultButtonViewModelBase : ObservableObject
 		DefaultPressedCallback?.Invoke();
 
 		DefaultPressedCallback = null;
+
+		AfterDefaultPressed();
 	}
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Called after main <see cref="DefaultPressed" /> method.
+	/// </summary>
+	protected virtual void AfterDefaultPressed()
+	{
+	}
+
 	/// <summary>
 	/// Validates <see cref="DefaultPressedCommand" />.
 	/// </summary>
