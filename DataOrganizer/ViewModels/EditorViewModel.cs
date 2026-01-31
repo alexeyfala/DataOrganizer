@@ -1521,7 +1521,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
 
 	/// <summary>
-	/// Tries to buckup database in file, and returns a path to it.
+	/// Tries to backup database in file, and returns a path to it.
 	/// </summary>
 	private string? TryCreateDatabaseBackup()
 	{
