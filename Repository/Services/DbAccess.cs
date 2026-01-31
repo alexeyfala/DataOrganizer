@@ -366,6 +366,15 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public string GetDataSource()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
+	}
+
+	/// <inheritdoc />
 	public async Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default)
 	{
 		try

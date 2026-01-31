@@ -71,6 +71,11 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Returns the data source of the current DB connection.
+	/// </summary>
+	string GetDataSource();
+
+	/// <summary>
 	/// Returns <see cref="ContentsIsValidPair" />.
 	/// </summary>
 	Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default);
