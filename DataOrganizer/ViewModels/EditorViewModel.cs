@@ -983,67 +983,90 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		string password,
 		CancellationToken token = default)
 	{
-		// TODO: Make test
-		// TODO: Check if files opened in editor or executed, if there are close them
-		// TODO: Add progress indicator
-		FileModelDto[] filesDto = [.. dto.Children.GetFilesRecursively()];
-
-		ContentsIsValidPair[] contents = await _dbAccess
-			.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
-			.ToArrayAsync(token)
-			.ConfigureAwait(false);
-
-		if (contents.Any(x => !x.IsValid))
+		try
 		{
-			_logger.LogError(Strings.FailedToLoadFilesContents);
+			// TODO: Make test
+			// TODO: Check if files opened in editor or executed, if there are close them
+			// TODO: Add progress indicator
+			FileModelDto[] filesDto = [.. dto
+				.Children
+				.GetFilesRecursively()];
 
-			ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+			ContentsIsValidPair[] contents = await _dbAccess
+				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
 
-			return;
-		}
-
-		ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
-			contents,
-			TextHelper.Utf8Encoding.GetBytes(password))];
-
-		if (encrypted.Length < contents.Length
-			|| encrypted.Any(x => !x.IsValid)
-			|| encrypted.Any(x => x.Id.IsDefault()))
-		{
-			_logger.LogError(Strings.FailedToEncryptFilesContents);
-
-			ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
-
-			return;
-		}
-
-		DateTime updatedDate = DateTime.Now;
-
-		Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
-		{
-			return new PropertyNameValuePair[]
+			if (contents.Length < filesDto.Length || contents.Any(x => !x.IsValid))
 			{
-				new(nameof(FileModel.Contents), x.Contents),
-				new(nameof(FileModel.UpdatedDate), updatedDate)
-			};
-		});
+				_logger.LogError(Strings.FailedToLoadFilesContents);
 
-		if (!await _dbAccess
-			.UpdatePropertiesAsync(relations, token)
-			.ConfigureAwait(false))
-		{
-			// TODO: Buckup contents
-			return;
+				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+				return;
+			}
+
+			ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
+				contents,
+				TextHelper.Utf8Encoding.GetBytes(password))];
+
+			if (encrypted.Length < contents.Length
+				|| encrypted.Any(x => !x.IsValid)
+				|| encrypted.Any(x => x.Id.IsDefault()))
+			{
+				_logger.LogError(Strings.FailedToEncryptFilesContents);
+
+				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
+
+				return;
+			}
+
+			DateTime updatedDate = DateTime.Now;
+
+			Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
+			{
+				return new PropertyNameValuePair[]
+				{
+					new(nameof(FileModel.Contents), x.Contents),
+					new(nameof(FileModel.UpdatedDate), updatedDate)
+				};
+			});
+
+			if (!await _dbAccess
+				.UpdatePropertiesAsync(relations, token)
+				.ConfigureAwait(false))
+			{
+				// TODO: Buckup contents
+				return;
+			}
+
+			string passwordHash = _encryption.EnhancedHashPassword(password);
+
+			if (!await _dbAccess.UpdatePropertyAsync(
+				id: dto.Id,
+				propertyName: nameof(FolderModel.PasswordHash),
+				value: passwordHash,
+				token: token).ConfigureAwait(false))
+			{
+				// TODO: Buckup contents
+				return;
+			}
+
+			ExplorerModelBaseDto[] objects =
+			[
+				.. dto.ToEnumerable(),
+				.. dto.Children.GetFoldersRecursively(),
+				.. filesDto
+			];
+
+			objects.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+
+			dto.PasswordHash = passwordHash;
 		}
-
-		var folders = dto
-			.ToEnumerable()
-			.Concat(dto.Children.GetFoldersRecursively())
-			.ToArray();
-
-		// TODO: Save password hash in Folder property in DB
-
-		dto.PasswordHash = _encryption.EnhancedHashPassword(password);
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 
 	/// <summary>
