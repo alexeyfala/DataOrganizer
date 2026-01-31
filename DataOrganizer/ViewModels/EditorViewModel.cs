@@ -24,9 +24,11 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Material.Styles.Controls;
+using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -34,6 +36,7 @@ using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -993,6 +996,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		try
 		{
 			// TODO: Make test
+			// TODO: Wait until the dialog box closes
 			// TODO: Check if files opened in editor or executed, if there are close them
 			// TODO: Add progress indicator
 			FileModelDto[] filesDto = [.. dto
@@ -1024,24 +1028,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return;
 			}
 
-			// TODO: Ceate Buckup of DB
-			string dataSource = _dbAccess.GetDataSource();
-
-			try
+			if (TryCreateDatabaseBackup() is not { } backupFilePath)
 			{
-				if (!_fileSystem.IsFileExists(dataSource))
-				{
-					ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
-
-					return;
-				}
-
-
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
 				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 				return;
@@ -1063,6 +1051,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.ConfigureAwait(false))
 			{
 				// TODO: Buckup contents
+				// TODO: Delete backup file
 				return;
 			}
 
@@ -1075,6 +1064,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				token: token).ConfigureAwait(false))
 			{
 				// TODO: Buckup contents
+				// TODO: Delete backup file
 				return;
 			}
 
@@ -1088,6 +1078,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			objects.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
 			dto.PasswordHash = passwordHash;
+
+			// TODO: Delete backup file
 		}
 		catch (Exception ex)
 		{
@@ -1436,6 +1428,32 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Service
 	/// <summary>
+	/// Backups SQLite database.
+	/// </summary>
+	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = sourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = destFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection destination = new(destBuilder.ToString());
+
+		source.Open();
+
+		destination.Open();
+
+		source.BackupDatabase(destination);
+	}
+
+	/// <summary>
 	/// Returns a reference to the collection to add the object to.
 	/// </summary>
 	private static Collection<ExplorerModelBaseDto> GetCollectionToAdd(
@@ -1503,6 +1521,34 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
 
 	/// <summary>
+	/// Tries to buckup database in file, and returns a path to it.
+	/// </summary>
+	private string? TryCreateDatabaseBackup()
+	{
+		string dataSource = _dbAccess.GetDataSource();
+
+		try
+		{
+			if (!_fileSystem.IsFileExists(dataSource) || _fileSystem.GetParentDirectory(dataSource) is not { } directory)
+			{
+				return null;
+			}
+
+			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+
+			BackupSqliteDatabase(dataSource, backupPath);
+
+			return backupPath;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
+	/// <summary>
 	/// Tried to encrypts contents.
 	/// </summary>
 	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
@@ -1534,6 +1580,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			CryptographicOperations.ZeroMemory(password);
 		}
 	}
+
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
 	/// </summary>

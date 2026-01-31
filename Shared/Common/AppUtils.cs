@@ -15,7 +15,7 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// The extension of plain text file.
+	/// The extension of plain text file with dot.
 	/// </summary>
 	public const string TxtExtension = ".txt";
 
@@ -118,6 +118,11 @@ public static class AppUtils
 	/// Application settings directory name.
 	/// </summary>
 	public static string Settings => nameof(Settings);
+
+	/// <summary>
+	/// The extension of SQLite database file with dot.
+	/// </summary>
+	public static string SQLiteExtension { get; } = ".sqlite";
 
 	/// <summary>
 	/// Delay in millideconds for displaying the tip.
