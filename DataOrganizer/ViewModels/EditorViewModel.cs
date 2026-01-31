@@ -28,6 +28,7 @@ using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -727,6 +728,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -745,6 +749,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEncryptionService encryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
+		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -755,6 +760,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_encryption = encryption;
 
 		_executionEngine = executionEngine;
+
+		_fileSystem = fileSystem;
 
 		_mapper = mapper;
 
@@ -999,8 +1006,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			if (contents.Length < filesDto.Length || contents.Any(x => !x.IsValid))
 			{
-				_logger.LogError(Strings.FailedToLoadFilesContents);
-
 				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
 				return;
@@ -1014,14 +1019,33 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				|| encrypted.Any(x => !x.IsValid)
 				|| encrypted.Any(x => x.Id.IsDefault()))
 			{
-				_logger.LogError(Strings.FailedToEncryptFilesContents);
-
 				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
 				return;
 			}
 
 			// TODO: Ceate Buckup of DB
+			string dataSource = _dbAccess.GetDataSource();
+
+			try
+			{
+				if (!_fileSystem.IsFileExists(dataSource))
+				{
+					ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+
+					return;
+				}
+
+
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+
+				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+
+				return;
+			}
 
 			DateTime updatedDate = DateTime.Now;
 
@@ -1469,6 +1493,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
 	/// <summary>
+	/// Returns <c>True</c> if <see cref="IsReadOnly" /> is <c>False</c>.
+	/// </summary>
+	private bool IsNotReadOnly() => !IsReadOnly;
+
+	/// <summary>
+	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
+	/// </summary>
+	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
+
+	/// <summary>
 	/// Tried to encrypts contents.
 	/// </summary>
 	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
@@ -1500,17 +1534,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			CryptographicOperations.ZeroMemory(password);
 		}
 	}
-
-	/// <summary>
-	/// Returns <c>True</c> if <see cref="IsReadOnly" /> is <c>False</c>.
-	/// </summary>
-	private bool IsNotReadOnly() => !IsReadOnly;
-
-	/// <summary>
-	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
-	/// </summary>
-	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
-
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
 	/// </summary>

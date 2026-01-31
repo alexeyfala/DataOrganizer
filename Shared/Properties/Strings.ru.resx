@@ -447,4 +447,7 @@
   <data name="FailedToEncryptFilesContents" xml:space="preserve">
     <value>Не удалось зашифровать содержимое файлов</value>
   </data>
+  <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
+    <value>Не удалось создать резервную копию базы данных</value>
+  </data>
 </root>

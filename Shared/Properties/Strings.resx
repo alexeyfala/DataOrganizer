@@ -427,4 +427,7 @@
   <data name="FailedToEncryptFilesContents" xml:space="preserve">
     <value>Failed to encrypt files contents</value>
   </data>
+  <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
+    <value>Unable to create database backup</value>
+  </data>
 </root>

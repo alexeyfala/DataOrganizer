@@ -1024,6 +1024,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to create database backup.
+        /// </summary>
+        public static string UnableToCreateDatabaseBackup {
+            get {
+                return ResourceManager.GetString("UnableToCreateDatabaseBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value.
         /// </summary>
         public static string Value {
