@@ -481,10 +481,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreFromBackupAsync(
-		string backupFilePath,
-		bool removeBackup,
-		CancellationToken token = default)
+	public async Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
 		try
 		{
@@ -502,15 +499,6 @@ public sealed class DbAccess : IDbAccess
 			}
 
 			BackupSqliteDatabase(backupFilePath, GetDbFilePath());
-
-			if (!removeBackup)
-			{
-				return;
-			}
-
-			SqliteConnection.ClearAllPools();
-
-			_fileSystem.EraseAndDeleteFile(backupFilePath);
 		}
 		catch (Exception ex)
 		{

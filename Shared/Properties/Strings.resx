@@ -430,4 +430,7 @@
   <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
     <value>Unable to create database backup</value>
   </data>
+  <data name="TheDatabaseWillBeRestoredFromTheBackup" xml:space="preserve">
+    <value>The database will be restored from the backup</value>
+  </data>
 </root>

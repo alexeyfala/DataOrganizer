@@ -24,10 +24,12 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Material.Styles.Controls;
+using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -736,6 +738,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -754,6 +759,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEncryptionService encryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
+		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -764,6 +770,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_encryption = encryption;
 
 		_executionEngine = executionEngine;
+
+		_fileSystem = fileSystem;
 
 		_mapper = mapper;
 
@@ -1048,8 +1056,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.UpdatePropertiesAsync(relations, token)
 				.ConfigureAwait(false))
 			{
-				// TODO: Buckup contents
-				// TODO: Delete backup file
+				await RestoreDatabaseAsync().ConfigureAwait(false);
+
 				return;
 			}
 
@@ -1061,8 +1069,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				value: passwordHash,
 				token: token).ConfigureAwait(false))
 			{
-				// TODO: Buckup contents
-				// TODO: Delete backup file
+				await RestoreDatabaseAsync().ConfigureAwait(false);
+
 				return;
 			}
 
@@ -1077,10 +1085,28 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			dto.PasswordHash = passwordHash;
 
-			// TODO: Delete backup file
-			await _dbAccess
-				.RestoreFromBackupAsync(backupFilePath, true, token)
-				.ConfigureAwait(false);
+			DeleteBackupFile();
+
+			async Task RestoreDatabaseAsync()
+			{
+				ShowErrorSnackbar(
+					Strings.FailedToEncryptFilesContents +
+					Environment.NewLine +
+					Strings.TheDatabaseWillBeRestoredFromTheBackup);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(backupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteBackupFile();
+			}
+
+			void DeleteBackupFile()
+			{
+				SqliteConnection.ClearAllPools();
+
+				_fileSystem.EraseAndDeleteFile(backupFilePath);
+			}
 		}
 		catch (Exception ex)
 		{

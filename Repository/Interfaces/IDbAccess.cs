@@ -96,10 +96,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Restores database from backup.
 	/// </summary>
-	Task RestoreFromBackupAsync(
-		string backupFilePath,
-		bool removeBackup,
-		CancellationToken token = default);
+	Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the properties of an entity in the database.
