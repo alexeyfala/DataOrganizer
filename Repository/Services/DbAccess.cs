@@ -175,16 +175,16 @@ public sealed class DbAccess : IDbAccess
 
 		try
 		{
-			string dataSource = GetDataSource();
+			string dbFilePath = GetDbFilePath();
 
-			if (!_fileSystem.IsFileExists(dataSource) || _fileSystem.GetParentDirectory(dataSource) is not { } directory)
+			if (!_fileSystem.IsFileExists(dbFilePath) || _fileSystem.GetParentDirectory(dbFilePath) is not { } directory)
 			{
 				return false;
 			}
 
 			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
 
-			BackupSqliteDatabase(dataSource, backupPath);
+			BackupSqliteDatabase(dbFilePath, backupPath);
 
 			backupFilePath = backupPath;
 
@@ -501,21 +501,16 @@ public sealed class DbAccess : IDbAccess
 				connection.Close();
 			}
 
-			BackupSqliteDatabase(
-				backupFilePath,
-				GetDataSource(),
-				closeSourceConnection: true);
+			BackupSqliteDatabase(backupFilePath, GetDbFilePath());
 
 			if (!removeBackup)
 			{
 				return;
 			}
 
-			await _fileSystem
-				.WaitWhileFileIsLockedAsync(backupFilePath, _logger, token)
-				.ConfigureAwait(false);
+			SqliteConnection.ClearAllPools();
 
-			_fileSystem.DeleteFile(backupFilePath);
+			_fileSystem.EraseAndDeleteFile(backupFilePath);
 		}
 		catch (Exception ex)
 		{
@@ -718,10 +713,7 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Backups SQLite database.
 	/// </summary>
-	private static void BackupSqliteDatabase(
-		string sourceFilePath,
-		string destFilePath,
-		bool closeSourceConnection = false)
+	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
 	{
 		SqliteConnectionStringBuilder sourceBuilder = new()
 		{
@@ -742,13 +734,6 @@ public sealed class DbAccess : IDbAccess
 		destination.Open();
 
 		source.BackupDatabase(destination);
-
-		if (!closeSourceConnection)
-		{
-			return;
-		}
-
-		source.Close();
 	}
 
 	/// <summary>
@@ -921,9 +906,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Returns the data source of the current DB connection.
+	/// Gets the database file path.
 	/// </summary>
-	private string GetDataSource()
+	private string GetDbFilePath()
 	{
 		return _dbContext
 			.Database
