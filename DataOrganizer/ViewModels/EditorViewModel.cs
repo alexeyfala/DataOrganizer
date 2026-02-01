@@ -24,19 +24,15 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Material.Styles.Controls;
-using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -731,9 +727,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -752,7 +745,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEncryptionService encryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -763,8 +755,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_encryption = encryption;
 
 		_executionEngine = executionEngine;
-
-		_fileSystem = fileSystem;
 
 		_mapper = mapper;
 
@@ -1028,7 +1018,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return;
 			}
 
-			if (TryCreateDatabaseBackup() is not { } backupFilePath)
+			if (!_dbAccess.BackupDatabase(out var backupFilePath))
 			{
 				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
@@ -1428,32 +1418,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Service
 	/// <summary>
-	/// Backups SQLite database.
-	/// </summary>
-	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
-	{
-		SqliteConnectionStringBuilder sourceBuilder = new()
-		{
-			DataSource = sourceFilePath
-		};
-
-		SqliteConnectionStringBuilder destBuilder = new()
-		{
-			DataSource = destFilePath
-		};
-
-		using SqliteConnection source = new(sourceBuilder.ToString());
-
-		using SqliteConnection destination = new(destBuilder.ToString());
-
-		source.Open();
-
-		destination.Open();
-
-		source.BackupDatabase(destination);
-	}
-
-	/// <summary>
 	/// Returns a reference to the collection to add the object to.
 	/// </summary>
 	private static Collection<ExplorerModelBaseDto> GetCollectionToAdd(
@@ -1519,34 +1483,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
-
-	/// <summary>
-	/// Tries to backup database in file, and returns a path to it.
-	/// </summary>
-	private string? TryCreateDatabaseBackup()
-	{
-		string dataSource = _dbAccess.GetDataSource();
-
-		try
-		{
-			if (!_fileSystem.IsFileExists(dataSource) || _fileSystem.GetParentDirectory(dataSource) is not { } directory)
-			{
-				return null;
-			}
-
-			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
-
-			BackupSqliteDatabase(dataSource, backupPath);
-
-			return backupPath;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
 
 	/// <summary>
 	/// Tried to encrypts contents.

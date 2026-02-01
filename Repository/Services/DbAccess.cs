@@ -2,14 +2,19 @@
 using Entities.Enums;
 using Entities.Interfaces;
 using Entities.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -34,6 +39,9 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="IFoldersRepository" />
 	private readonly IFilesRepository _filesRepository;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <inheritdoc cref="IFoldersRepository" />
 	private readonly IFoldersRepository _foldersRepository;
 
@@ -52,6 +60,7 @@ public sealed class DbAccess : IDbAccess
 		IDbContextService dbContextService,
 		IExplorerModelBaseRepository baseRepository,
 		IFilesRepository filesRepository,
+		IFileSystem fileSystem,
 		IFoldersRepository foldersRepository,
 		IHotkeysRepository hotkeysRepository,
 		ILogger logger,
@@ -64,6 +73,8 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService = dbContextService;
 
 		_filesRepository = filesRepository;
+
+		_fileSystem = fileSystem;
 
 		_foldersRepository = foldersRepository;
 
@@ -150,6 +161,38 @@ public sealed class DbAccess : IDbAccess
 		finally
 		{
 			_semaphore.Release();
+		}
+	}
+
+	/// <summary>
+	/// Tries to backup database in file, and returns a path to it.
+	/// </summary>
+	public bool BackupDatabase([NotNullWhen(true)] out string? backupFilePath)
+	{
+		backupFilePath = null;
+
+		try
+		{
+			string dataSource = GetDataSource();
+
+			if (!_fileSystem.IsFileExists(dataSource) || _fileSystem.GetParentDirectory(dataSource) is not { } directory)
+			{
+				return false;
+			}
+
+			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+
+			BackupSqliteDatabase(dataSource, backupPath);
+
+			backupFilePath = backupPath;
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
 		}
 	}
 
@@ -363,15 +406,6 @@ public sealed class DbAccess : IDbAccess
 		{
 			_semaphore.Release();
 		}
-	}
-
-	/// <inheritdoc />
-	public string GetDataSource()
-	{
-		return _dbContext
-			.Database
-			.GetDbConnection()
-			.DataSource;
 	}
 
 	/// <inheritdoc />
@@ -633,6 +667,32 @@ public sealed class DbAccess : IDbAccess
 
 	#region Service
 	/// <summary>
+	/// Backups SQLite database.
+	/// </summary>
+	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = sourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = destFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection destination = new(destBuilder.ToString());
+
+		source.Open();
+
+		destination.Open();
+
+		source.BackupDatabase(destination);
+	}
+
+	/// <summary>
 	/// Adds an <see cref="FileModel" /> to the database.
 	/// </summary>
 	private async Task<FileModel> AddFileAsync(
@@ -799,6 +859,17 @@ public sealed class DbAccess : IDbAccess
 				yield return item;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Returns the data source of the current DB connection.
+	/// </summary>
+	private string GetDataSource()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
 	}
 	#endregion
 }
