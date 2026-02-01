@@ -595,7 +595,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = () =>
+			.DefaultPressedCallback = async () =>
 			{
 				DialogHost.Close(null);
 
@@ -603,10 +603,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.ViewModel
 					.Password is not { } password)
 				{
-					return Task.CompletedTask;
+					return;
 				}
 
-				return EncryptFilesAsync(dto, password);
+				try
+				{
+					// TODO: Show progress indicator
+
+					await EncryptFilesAsync(dto, password).ConfigureAwait(false);
+				}
+				finally
+				{
+					// TODO: Hide progress indicator
+				}
 			};
 
 		return DialogHost.Show(view);
@@ -987,8 +996,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			// TODO: Make test
 			// TODO: Wait until the dialog box closes
-			// TODO: Check if files opened in editor or executed, if there are close them
-			// TODO: Add progress indicator
+			// TODO: Check if files opened in editor or executed, if there are close them			
 			FileModelDto[] filesDto = [.. dto
 				.Children
 				.GetFilesRecursively()];

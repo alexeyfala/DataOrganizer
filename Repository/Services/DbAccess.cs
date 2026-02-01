@@ -501,7 +501,10 @@ public sealed class DbAccess : IDbAccess
 				connection.Close();
 			}
 
-			BackupSqliteDatabase(backupFilePath, GetDataSource());
+			BackupSqliteDatabase(
+				backupFilePath,
+				GetDataSource(),
+				closeSourceConnection: true);
 
 			if (!removeBackup)
 			{
@@ -715,7 +718,10 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Backups SQLite database.
 	/// </summary>
-	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
+	private static void BackupSqliteDatabase(
+		string sourceFilePath,
+		string destFilePath,
+		bool closeSourceConnection = false)
 	{
 		SqliteConnectionStringBuilder sourceBuilder = new()
 		{
@@ -736,6 +742,13 @@ public sealed class DbAccess : IDbAccess
 		destination.Open();
 
 		source.BackupDatabase(destination);
+
+		if (!closeSourceConnection)
+		{
+			return;
+		}
+
+		source.Close();
 	}
 
 	/// <summary>
