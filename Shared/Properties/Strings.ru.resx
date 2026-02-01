@@ -453,4 +453,10 @@
   <data name="TheDatabaseWillBeRestored" xml:space="preserve">
     <value>База данных будет восстановлена</value>
   </data>
+  <data name="ContentIsEncrypted" xml:space="preserve">
+    <value>Содержимое зашифровано</value>
+  </data>
+  <data name="ContentIsDecrypted" xml:space="preserve">
+    <value>Содержимое расшифровано</value>
+  </data>
 </root>

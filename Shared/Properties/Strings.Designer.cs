@@ -214,6 +214,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Content Is Decrypted.
+        /// </summary>
+        public static string ContentIsDecrypted {
+            get {
+                return ResourceManager.GetString("ContentIsDecrypted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content Is Encrypted.
+        /// </summary>
+        public static string ContentIsEncrypted {
+            get {
+                return ResourceManager.GetString("ContentIsEncrypted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy.
         /// </summary>
         public static string Copy {

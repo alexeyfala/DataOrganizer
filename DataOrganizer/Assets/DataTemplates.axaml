@@ -85,11 +85,11 @@
 										<wrappers:FlyoutButton
 											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowFileContents}"
-											Icon="EyeOutline" />
+											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
 											Header="{x:Static prop:Strings.HideFileContents}"
-											Icon="EyeOffOutline" />
+											Icon="LockCheckOutline" />
 
 										<Separator />
 
@@ -101,7 +101,7 @@
 
 										<wrappers:FlyoutButton
 											Header="{x:Static prop:Strings.DecryptFiles}"
-											Icon="LockOpenVariantOutline" />
+											Icon="LockOffOutline" />
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>

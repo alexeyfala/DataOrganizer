@@ -1,12 +1,12 @@
 ﻿using Avalonia.Data.Converters;
-using Avalonia.Media;
 using DataOrganizer.Enums;
+using Material.Icons;
 using System;
 using System.Globalization;
 
 namespace DataOrganizer.Converters;
 
-internal sealed class EncryptionStatusToIconBrushConverter : IValueConverter
+internal sealed class EncryptionStatusToIconKindConverter : IValueConverter
 {
 	#region Methods
 	/// <inheritdoc />
@@ -20,13 +20,13 @@ internal sealed class EncryptionStatusToIconBrushConverter : IValueConverter
 		{
 			return status switch
 			{
-				EncryptionStatus.Decrypted => Brushes.OrangeRed,
-				EncryptionStatus.Encrypted => Brushes.ForestGreen,
-				_ => Brushes.Transparent
+				EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariant,
+				EncryptionStatus.Encrypted => MaterialIconKind.Lock,
+				_ => default
 			};
 		}
 
-		return Brushes.Transparent;
+		return default(MaterialIconKind);
 	}
 
 	/// <inheritdoc />
