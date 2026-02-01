@@ -13,6 +13,8 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -475,6 +477,50 @@ public sealed class DbAccess : IDbAccess
 		await foreach (Guid id in identifiers.ToAsyncEnumerable())
 		{
 			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task RestoreFromBackupAsync(
+		string backupFilePath,
+		bool removeBackup,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			DbConnection connection = _dbContext
+				.Database
+				.GetDbConnection();
+
+			if (connection.State != ConnectionState.Closed)
+			{
+				connection.Close();
+			}
+
+			BackupSqliteDatabase(backupFilePath, GetDataSource());
+
+			if (!removeBackup)
+			{
+				return;
+			}
+
+			await _fileSystem
+				.WaitWhileFileIsLockedAsync(backupFilePath, _logger, token)
+				.ConfigureAwait(false);
+
+			_fileSystem.DeleteFile(backupFilePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			_semaphore.Release();
 		}
 	}
 

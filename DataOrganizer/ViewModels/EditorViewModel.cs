@@ -1070,6 +1070,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			dto.PasswordHash = passwordHash;
 
 			// TODO: Delete backup file
+			await _dbAccess
+				.RestoreFromBackupAsync(backupFilePath, true, token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
