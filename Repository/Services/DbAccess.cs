@@ -186,6 +186,11 @@ public sealed class DbAccess : IDbAccess
 
 			BackupSqliteDatabase(dbFilePath, backupPath);
 
+			if (!_fileSystem.IsFileExists(backupPath))
+			{
+				return false;
+			}
+
 			backupFilePath = backupPath;
 
 			return true;

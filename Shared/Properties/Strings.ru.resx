@@ -450,7 +450,7 @@
   <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
     <value>Не удалось создать резервную копию базы данных</value>
   </data>
-  <data name="TheDatabaseWillBeRestoredFromTheBackup" xml:space="preserve">
-    <value>База данных будет восстановлена ​​из резервной копии</value>
+  <data name="TheDatabaseWillBeRestored" xml:space="preserve">
+    <value>База данных будет восстановлена</value>
   </data>
 </root>

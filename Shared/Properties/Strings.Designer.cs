@@ -970,11 +970,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The database will be restored from the backup.
+        ///   Looks up a localized string similar to The database will be restored.
         /// </summary>
-        public static string TheDatabaseWillBeRestoredFromTheBackup {
+        public static string TheDatabaseWillBeRestored {
             get {
-                return ResourceManager.GetString("TheDatabaseWillBeRestoredFromTheBackup", resourceCulture);
+                return ResourceManager.GetString("TheDatabaseWillBeRestored", resourceCulture);
             }
         }
         

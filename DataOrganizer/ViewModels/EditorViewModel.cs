@@ -1058,6 +1058,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			{
 				await RestoreDatabaseAsync().ConfigureAwait(false);
 
+				DeleteBackupFile();
+
 				return;
 			}
 
@@ -1070,6 +1072,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				token: token).ConfigureAwait(false))
 			{
 				await RestoreDatabaseAsync().ConfigureAwait(false);
+
+				DeleteBackupFile();
 
 				return;
 			}
@@ -1092,13 +1096,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				ShowErrorSnackbar(
 					Strings.FailedToEncryptFilesContents +
 					Environment.NewLine +
-					Strings.TheDatabaseWillBeRestoredFromTheBackup);
+					Strings.TheDatabaseWillBeRestored);
 
 				await _dbAccess
 					.RestoreFromBackupAsync(backupFilePath, token)
 					.ConfigureAwait(false);
-
-				DeleteBackupFile();
 			}
 
 			void DeleteBackupFile()
