@@ -16,7 +16,8 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
-		<converters:EncryptionStatusToObjectInListIconVisibilityConverter x:Key="EncryptionStatusToObjectInListIconVisibilityConverter" />
+		<converters:EncryptionStatusToIconVisibilityConverter x:Key="EncryptionStatusToIconVisibilityConverter" />
+		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
 	</UserControl.Resources>
 
 	<StackPanel
@@ -55,6 +56,8 @@
 			Kind="StarOutline"
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
 
-		<materialIcons:MaterialIcon IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToObjectInListIconVisibilityConverter}}" />
+		<materialIcons:MaterialIcon
+			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconBrushConverter}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconVisibilityConverter}}" />
 	</StackPanel>
 </UserControl>
