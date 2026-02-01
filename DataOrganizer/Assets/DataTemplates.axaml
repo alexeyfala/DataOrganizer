@@ -22,7 +22,7 @@
 		ItemsSource="{Binding Children, Mode=OneTime}">
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,*">
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -123,6 +123,10 @@
 				Grid.Column="1"
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}" />
+
+			<views:IconsBlock
+				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}" />
 		</Grid>
 	</TreeDataTemplate>
 
