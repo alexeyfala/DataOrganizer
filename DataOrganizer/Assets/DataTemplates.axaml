@@ -246,6 +246,7 @@
 
 			<views:IconsBlock
 				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEdited="{Binding IsEdited, Mode=OneWay}"
 				IsExecuted="{Binding IsExecuted, Mode=OneWay}"

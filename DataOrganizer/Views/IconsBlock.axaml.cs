@@ -1,11 +1,19 @@
 using Avalonia;
 using Avalonia.Controls;
+using DataOrganizer.Enums;
 
 namespace DataOrganizer.Views;
 
 internal sealed partial class IconsBlock : UserControl
 {
 	#region Properties
+	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	public EncryptionStatus EncryptionStatus
+	{
+		get => GetValue(EncryptionStatusProperty);
+		set => SetValue(EncryptionStatusProperty, value);
+	}
+
 	/// <summary>
 	/// A tooltip for hotkeys.
 	/// </summary>
@@ -44,6 +52,12 @@ internal sealed partial class IconsBlock : UserControl
 	#endregion
 
 	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="EncryptionStatus" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<EncryptionStatus> EncryptionStatusProperty = AvaloniaProperty
+		.Register<IconsBlock, EncryptionStatus>(name: nameof(EncryptionStatus));
+
 	/// <summary>
 	/// Identifies the <see cref="HotkeysToolTip" /> avalonia property.
 	/// </summary>
