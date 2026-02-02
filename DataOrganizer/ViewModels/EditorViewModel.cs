@@ -608,24 +608,39 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ViewModel
 			.DefaultPressedCallback = async () =>
 			{
-				DialogHost.Close(null);
-
-				if (view
-					.ViewModel
-					.Password is not { } password)
-				{
-					return;
-				}
+				DialogOverlayPopupHost? popupHost = view.FindVisualParent<DialogOverlayPopupHost>();
 
 				try
 				{
-					// TODO: Show progress indicator
+					DialogHost.Close(null);
 
-					await EncryptFilesAsync(dto, password).ConfigureAwait(false);
+					if (view
+						.ViewModel
+						.Password is not { } password)
+					{
+						return;
+					}
+
+					try
+					{
+						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
+
+						await condition
+							.WaitAsync(300, 10)
+							.ConfigureAwait(false);
+
+						// TODO: Show progress indicator
+
+						await EncryptFilesAsync(dto, password).ConfigureAwait(false);
+					}
+					finally
+					{
+						// TODO: Hide progress indicator
+					}
 				}
 				finally
 				{
-					// TODO: Hide progress indicator
+					popupHost = null;
 				}
 			};
 
@@ -1029,8 +1044,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		try
 		{
-			// TODO: Make test
-			// TODO: Wait until the dialog box closes
+			// TODO: Make test			
 			// TODO: Check if files opened in editor or executed, if there are close them			
 			FileModelDto[] filesDto = [.. dto
 				.Children
