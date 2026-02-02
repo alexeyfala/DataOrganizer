@@ -234,6 +234,77 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.AddTab(dto);
 	}
 
+	/// <inheritdoc cref="EncryptFilesAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
+	public Task EncryptFiles(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		FileModelDto[] filesDto = [.. dto
+			.Children
+			.GetFilesRecursively()];
+
+		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
+
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.DefaultPressedCallback = async () =>
+			{
+				DialogOverlayPopupHost? popupHost = view.FindVisualParent<DialogOverlayPopupHost>();
+
+				try
+				{
+					DialogHost.Close(null);
+
+					if (view
+						.ViewModel
+						.Password is not { } password)
+					{
+						return;
+					}
+
+					try
+					{
+						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
+
+						await condition
+							.WaitAsync(300, 10)
+							.ConfigureAwait(false);
+
+						IsActionInProgress = true;
+
+						await EncryptFilesAsync(
+							dto,
+							filesDto,
+							password).ConfigureAwait(false);
+					}
+					finally
+					{
+						IsActionInProgress = false;
+					}
+				}
+				finally
+				{
+					popupHost = null;
+				}
+			};
+
+		return DialogHost.Show(view);
+	}
+
 	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
@@ -593,62 +664,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			return DeleteAsync(toBeDeleted);
 		};
-
-		return DialogHost.Show(view);
-	}
-
-	/// <inheritdoc cref="EncryptFilesAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
-	private Task EncryptFiles(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.DefaultPressedCallback = async () =>
-			{
-				DialogOverlayPopupHost? popupHost = view.FindVisualParent<DialogOverlayPopupHost>();
-
-				try
-				{
-					DialogHost.Close(null);
-
-					if (view
-						.ViewModel
-						.Password is not { } password)
-					{
-						return;
-					}
-
-					try
-					{
-						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-						await condition
-							.WaitAsync(300, 10)
-							.ConfigureAwait(false);
-
-						IsActionInProgress = true;
-
-						await EncryptFilesAsync(dto, password).ConfigureAwait(false);
-					}
-					finally
-					{
-						IsActionInProgress = false;
-					}
-				}
-				finally
-				{
-					popupHost = null;
-				}
-			};
 
 		return DialogHost.Show(view);
 	}
@@ -1045,17 +1060,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	public async Task EncryptFilesAsync(
 		FolderModelDto dto,
+		FileModelDto[] filesDto,
 		string password,
 		CancellationToken token = default)
 	{
 		try
 		{
-			// TODO: Make test			
-			// TODO: Check if files opened in editor or executed, if there are close them			
-			FileModelDto[] filesDto = [.. dto
-				.Children
-				.GetFilesRecursively()];
-
+			// TODO: Make test
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
 				.ToArrayAsync(token)

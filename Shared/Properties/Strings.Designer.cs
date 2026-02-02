@@ -1085,5 +1085,14 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must close the files you are editing.
+        /// </summary>
+        public static string YouMustCloseTheFilesYouAreEditing {
+            get {
+                return ResourceManager.GetString("YouMustCloseTheFilesYouAreEditing", resourceCulture);
+            }
+        }
     }
 }
