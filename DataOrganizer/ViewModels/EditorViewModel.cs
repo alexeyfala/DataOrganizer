@@ -246,7 +246,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		FileModelDto[] filesDto = [.. dto
 			.Children
-			.GetFilesRecursively()];
+			.GetFiles()];
 
 		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
 		{

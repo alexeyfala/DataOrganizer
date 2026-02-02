@@ -275,7 +275,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					.WaitAsync(token)
 					.ConfigureAwait(false);
 
-				Files.ClearAddRange(hierarchy.GetFilesRecursively(x => x.Hotkeys.Count > 0));
+				Files.ClearAddRange(hierarchy.GetFilesBy(x => x.Hotkeys.Count > 0));
 			}
 			finally
 			{
