@@ -2,7 +2,9 @@
 using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DataOrganizer.DTO.Entities.Models;
 
@@ -43,5 +45,49 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 
 		IsExpandedChanged?.Invoke(this, this);
 	}
-	#endregion	
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Returns <c>True</c> if any child satisfies the condition.
+	/// </summary>
+	public bool AnyChild(Func<ExplorerModelBaseDto, bool> condition)
+	{
+		ExplorerModelBaseDto[] children = [.. Children];
+
+		while (children.Length > 0)
+		{
+			if (children.Any(condition))
+			{
+				return true;
+			}
+
+			children = [.. children
+				.OfType<FolderModelDto>()
+				.SelectMany(x => x.Children)];
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Returns a flat sequence of all child objects.
+	/// </summary>
+	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
+	{
+		ExplorerModelBaseDto[] children = [.. Children];
+
+		while (children.Length > 0)
+		{
+			foreach (ExplorerModelBaseDto child in children)
+			{
+				yield return child;
+			}
+
+			children = [.. children
+				.OfType<FolderModelDto>()
+				.SelectMany(x => x.Children)];
+		}
+	}
+	#endregion
 }

@@ -4,6 +4,7 @@ using Entities.Models;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,11 @@ public interface IDbAccess : IDisposable
 		Guid fileId,
 		CodeMaskPair[] hotkeys,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Tries to backup database in file, and returns a path to it.
+	/// </summary>
+	bool BackupDatabase([NotNullWhen(true)] out string? backupFilePath);
 
 	/// <summary>
 	/// Establishes a connection to the database.
@@ -86,6 +92,11 @@ public interface IDbAccess : IDisposable
 	IAsyncEnumerable<ContentsIsValidPair> GetFilesContentsAsync(
 		IEnumerable<Guid> identifiers,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Restores database from backup.
+	/// </summary>
+	Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the properties of an entity in the database.

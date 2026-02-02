@@ -74,22 +74,19 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static FileModelDto? FindFileRecursively(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FileModelDto> condition)
+		Func<FileModelDto, bool> condition)
 	{
-		foreach (ExplorerModelBaseDto item in hierarchy)
-		{
-			if (item is FileModelDto file && condition(file))
-			{
-				return file;
-			}
+		return GetFilesRecursively(hierarchy).FirstOrDefault(condition);
+	}
 
-			if (item is FolderModelDto folder && FindFileRecursively(folder.Children, condition) is { } foundItem)
-			{
-				return foundItem;
-			}
-		}
-
-		return null;
+	/// <summary>
+	/// Performs a recursive search for the <see cref="FolderModelDto" /> object in a sequence with a condition.
+	/// </summary>
+	public static FolderModelDto? FindFolderRecursively(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Func<FolderModelDto, bool> condition)
+	{
+		return GetFoldersRecursively(hierarchy).FirstOrDefault(condition);
 	}
 
 	/// <summary>

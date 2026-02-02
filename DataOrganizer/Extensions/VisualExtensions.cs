@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
 using Shared.Extensions;
 using System;
@@ -15,7 +16,7 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds all parents in the visual tree.
 	/// </summary>
-	public static IEnumerable<Visual> FindAllParents(this Visual element)
+	public static IEnumerable<Visual> FindAllVisualParents(this Visual element)
 	{
 		Visual? parent = element.GetVisualParent();
 
@@ -28,9 +29,33 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
+	/// Finds the first logical child of a specific type within the logical tree.
+	/// </summary>
+	/// <typeparam name="T">The type of the logical child to find.</typeparam>
+	/// <param name="parent">The parent logical to start the search from.</param>
+	/// <returns>The first logical child of the specified type, or null if not found.</returns>
+	public static T? FindLogicalChild<T>(this ILogical parent) where T : class
+	{
+		foreach (ILogical child in parent.GetLogicalChildren())
+		{
+			if (child is T found)
+			{
+				return found;
+			}
+
+			if (FindLogicalChild<T>(child) is { } subChild)
+			{
+				return subChild;
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
 	/// Finds a parent object by condition.
 	/// </summary>
-	public static T? FindParent<T>(this StyledElement? element, Predicate<T> condition) where T : class
+	public static T? FindLogicalParent<T>(this StyledElement? element, Predicate<T> condition) where T : class
 	{
 		StyledElement? current = element;
 
@@ -94,7 +119,7 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
-	/// Finds the first visual parent of a specific type recursively in the visual tree.
+	/// Finds the first visual parent of a specific type in the visual tree.
 	/// </summary>
 	public static T? FindVisualParent<T>(this Visual element) where T : class
 	{
@@ -103,28 +128,6 @@ internal static class VisualExtensions
 		while (parent is not null)
 		{
 			if (parent is T found)
-			{
-				return found;
-			}
-
-			parent = parent.GetVisualParent();
-		}
-
-		return null;
-	}
-
-	/// <summary>
-	/// <inheritdoc cref="FindVisualParent{T}(Visual)" /> With condition.
-	/// </summary>
-	public static T? FindVisualParent<T>(
-		this Visual element,
-		Predicate<T> condition) where T : class
-	{
-		Visual? parent = element.GetVisualParent();
-
-		while (parent is not null)
-		{
-			if (parent is T found && condition(found))
 			{
 				return found;
 			}

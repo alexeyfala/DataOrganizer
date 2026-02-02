@@ -22,7 +22,7 @@
 		ItemsSource="{Binding Children, Mode=OneTime}">
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,*">
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -83,13 +83,17 @@
 									Placement="Right">
 									<StackPanel Orientation="Vertical">
 										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
+											CommandParameter="{Binding}"
 											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowFileContents}"
-											Icon="EyeOutline" />
+											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.HideFileContents}"
-											Icon="EyeOffOutline" />
+											Icon="LockCheckOutline" />
 
 										<Separator />
 
@@ -100,8 +104,10 @@
 											Icon="LockOutline" />
 
 										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFilesCommand}"
+											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.DecryptFiles}"
-											Icon="LockOpenVariantOutline" />
+											Icon="LockOffOutline" />
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>
@@ -123,6 +129,10 @@
 				Grid.Column="1"
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}" />
+
+			<views:IconsBlock
+				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}" />
 		</Grid>
 	</TreeDataTemplate>
 
@@ -246,6 +256,7 @@
 
 			<views:IconsBlock
 				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEdited="{Binding IsEdited, Mode=OneWay}"
 				IsExecuted="{Binding IsExecuted, Mode=OneWay}"

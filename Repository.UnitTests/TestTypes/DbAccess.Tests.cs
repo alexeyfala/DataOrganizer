@@ -111,7 +111,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.ConnectAsync(bool, CancellationToken)" />.
+	/// Test of <see cref="DbAccess.ConnectAsync" />.
 	/// </summary>
 	[TestCase(true)]
 	[TestCase(false)]

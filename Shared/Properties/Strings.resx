@@ -427,4 +427,19 @@
   <data name="FailedToEncryptFilesContents" xml:space="preserve">
     <value>Failed to encrypt files contents</value>
   </data>
+  <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
+    <value>Unable to create database backup</value>
+  </data>
+  <data name="TheDatabaseWillBeRestored" xml:space="preserve">
+    <value>The database will be restored</value>
+  </data>
+  <data name="ContentIsEncrypted" xml:space="preserve">
+    <value>Content Is Encrypted</value>
+  </data>
+  <data name="ContentIsDecrypted" xml:space="preserve">
+    <value>Content Is Decrypted</value>
+  </data>
+  <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
+    <value>You must close the files you are editing</value>
+  </data>
 </root>

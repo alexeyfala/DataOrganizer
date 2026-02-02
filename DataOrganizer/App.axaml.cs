@@ -229,9 +229,9 @@ public sealed class App : Application
 
 			string dataSource = Path.Combine(
 				AppUtils.DatabaseDirectoryPath,
-				$"{AppUtils.AppNameInOneWord}.sqlite");
+				AppUtils.AppNameInOneWord + AppUtils.SQLiteExtension);
 
-			SqliteConnectionStringBuilder stringBuilder = new()
+			SqliteConnectionStringBuilder connectionBuilder = new()
 			{
 				DataSource = dataSource,
 				Mode = SqliteOpenMode.ReadWriteCreate,
@@ -240,7 +240,7 @@ public sealed class App : Application
 				Pooling = true
 			};
 
-			builder.UseSqlite(stringBuilder.ToString());
+			builder.UseSqlite(connectionBuilder.ToString());
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();
 

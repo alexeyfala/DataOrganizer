@@ -49,12 +49,12 @@ internal sealed class FlyoutButton : Button
 			.ConfigureAwait(true);
 
 		this
-			.FindParent<Control>(x => x.ContextFlyout is not null)?
+			.FindLogicalParent<Control>(x => x.ContextFlyout is not null)?
 			.ContextFlyout?
 			.Hide();
 
 		this
-			.FindParent<Button>(x => x.Flyout is not null)?
+			.FindLogicalParent<Button>(x => x.Flyout is not null)?
 			.Flyout?
 			.Hide();
 	}

@@ -1,6 +1,7 @@
 ﻿using Cysharp.Text;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
@@ -118,6 +119,19 @@ public sealed class AppController : IAppController
 			}
 
 			ExplorerModelBaseDto[] hierarchy = await LoadAllHierarchyFromDbAsync(token).ConfigureAwait(true);
+
+			hierarchy
+				.GetFoldersRecursively(x => !string.IsNullOrEmpty(x.PasswordHash))
+				.ForEach(folder =>
+				{
+					const EncryptionStatus status = EncryptionStatus.Encrypted;
+
+					folder.EncryptionStatus = status;
+
+					folder
+						.GetAllChildren()
+						.ForEach(x => x.EncryptionStatus = status);
+				});
 
 			// TODO: Close splash screen here.
 

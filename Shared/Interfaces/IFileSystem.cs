@@ -14,12 +14,12 @@ public interface IFileSystem
 {
 	#region Data
 	/// <summary>
-	/// Default buffer size for <see cref="EraseFile(string, in int, in int)" />.
+	/// Default buffer size for <see cref="EraseFile" />.
 	/// </summary>
 	public const int DefaultBufferSize = 4096;
 
 	/// <summary>
-	/// Default pass count for <see cref="EraseFile(string, in int, in int)" />.
+	/// Default pass count for <see cref="EraseFile" />.
 	/// </summary>
 	public const int DefaultPassCount = 3;
 	#endregion
@@ -40,7 +40,7 @@ public interface IFileSystem
 	void DeleteFile(string filePath);
 
 	/// <summary>
-	/// <inheritdoc cref="EraseFile(string, in int, in int)" /><br />
+	/// <inheritdoc cref="EraseFile" /><br />
 	/// <inheritdoc cref="DeleteFile(string)" />
 	/// </summary>
 	void EraseAndDeleteFile(

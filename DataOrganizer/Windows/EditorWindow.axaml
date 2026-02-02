@@ -285,7 +285,8 @@
 							Grid.Column="0"
 							Grid.ColumnSpan="4"
 							Margin="4.0"
-							ColumnDefinitions="Auto,*,Auto,*">
+							ColumnDefinitions="Auto,*,Auto,*,Auto"
+							ColumnSpacing="{StaticResource ElementSpacing}">
 
 							<TextBlock
 								Grid.Column="0"
@@ -307,6 +308,13 @@
 									Foreground="{StaticResource WarningBrush}"
 									Kind="PencilOffOutline" />
 							</StackPanel>
+
+							<ProgressBar
+								Grid.Column="4"
+								Width="200.0"
+								VerticalAlignment="Stretch"
+								IsIndeterminate="True"
+								IsVisible="{Binding IsActionInProgress, Mode=OneWay}" />
 						</Grid>
 					</Grid>
 				</DockPanel>

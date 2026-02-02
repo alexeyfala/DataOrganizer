@@ -92,7 +92,7 @@ public sealed class FileSystem : IFileSystem
 	/// <inheritdoc />
 	public bool IsFileExists([NotNullWhen(true)] string? filePath)
 	{
-		if (!File.Exists(filePath) || GetParentDirectory(filePath) is not { } parent)
+		if (!File.Exists(filePath) || Path.GetDirectoryName(filePath) is not { } parent)
 		{
 			return false;
 		}
@@ -153,7 +153,7 @@ public sealed class FileSystem : IFileSystem
 			SetFileHidden(filePath, false);
 		}
 
-		if (GetParentDirectory(filePath) is { } parentDirectory)
+		if (Path.GetDirectoryName(filePath) is { } parentDirectory)
 		{
 			Directory.CreateDirectory(parentDirectory);
 		}

@@ -214,6 +214,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Content Is Decrypted.
+        /// </summary>
+        public static string ContentIsDecrypted {
+            get {
+                return ResourceManager.GetString("ContentIsDecrypted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Content Is Encrypted.
+        /// </summary>
+        public static string ContentIsEncrypted {
+            get {
+                return ResourceManager.GetString("ContentIsEncrypted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy.
         /// </summary>
         public static string Copy {
@@ -970,6 +988,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The database will be restored.
+        /// </summary>
+        public static string TheDatabaseWillBeRestored {
+            get {
+                return ResourceManager.GetString("TheDatabaseWillBeRestored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Theme.
         /// </summary>
         public static string Theme {
@@ -1024,6 +1051,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to create database backup.
+        /// </summary>
+        public static string UnableToCreateDatabaseBackup {
+            get {
+                return ResourceManager.GetString("UnableToCreateDatabaseBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value.
         /// </summary>
         public static string Value {
@@ -1047,6 +1083,15 @@ namespace Shared.Properties {
         public static string Yes {
             get {
                 return ResourceManager.GetString("Yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must close the files you are editing.
+        /// </summary>
+        public static string YouMustCloseTheFilesYouAreEditing {
+            get {
+                return ResourceManager.GetString("YouMustCloseTheFilesYouAreEditing", resourceCulture);
             }
         }
     }

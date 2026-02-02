@@ -447,4 +447,19 @@
   <data name="FailedToEncryptFilesContents" xml:space="preserve">
     <value>Не удалось зашифровать содержимое файлов</value>
   </data>
+  <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
+    <value>Не удалось создать резервную копию базы данных</value>
+  </data>
+  <data name="TheDatabaseWillBeRestored" xml:space="preserve">
+    <value>База данных будет восстановлена</value>
+  </data>
+  <data name="ContentIsEncrypted" xml:space="preserve">
+    <value>Содержимое зашифровано</value>
+  </data>
+  <data name="ContentIsDecrypted" xml:space="preserve">
+    <value>Содержимое расшифровано</value>
+  </data>
+  <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
+    <value>Необходимо закрыть редактируемые файлы</value>
+  </data>
 </root>
