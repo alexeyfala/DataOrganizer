@@ -20,11 +20,16 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
-	public static bool ConatainsCondition(
+	public static bool ConatainsBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Predicate<FileModelDto> condition)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		foreach (ExplorerModelBaseDto item in hierarchy.Reverse())
+		{
+			stack.Push(item);
+		}
 
 		while (stack.Count > 0)
 		{
@@ -37,7 +42,7 @@ public static class EnumerableExtensions
 
 			if (item is FolderModelDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerModelBaseDto child in folder.Children.Reverse())
 				{
 					stack.Push(child);
 				}
@@ -54,6 +59,11 @@ public static class EnumerableExtensions
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
+		foreach (ExplorerModelBaseDto item in hierarchy.Reverse())
+		{
+			stack.Push(item);
+		}
+
 		while (stack.Count > 0)
 		{
 			ExplorerModelBaseDto item = stack.Pop();
@@ -65,7 +75,7 @@ public static class EnumerableExtensions
 
 			if (item is FolderModelDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerModelBaseDto child in folder.Children.Reverse())
 				{
 					stack.Push(child);
 				}
@@ -101,6 +111,11 @@ public static class EnumerableExtensions
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
+		foreach (ExplorerModelBaseDto item in hierarchy.Reverse())
+		{
+			stack.Push(item);
+		}
+
 		while (stack.Count > 0)
 		{
 			ExplorerModelBaseDto item = stack.Pop();
@@ -112,7 +127,7 @@ public static class EnumerableExtensions
 
 			if (item is FolderModelDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerModelBaseDto child in folder.Children.Reverse())
 				{
 					stack.Push(child);
 				}
@@ -154,15 +169,24 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static IEnumerable<DatasetRecordBase> Flatten(this IEnumerable<DatasetRecordBase> hierarchy)
 	{
-		foreach (DatasetRecordBase item in hierarchy)
-		{
-			yield return item;
+		Stack<DatasetRecordBase> stack = new();
 
-			if (item is RecordsGroup group)
+		foreach (DatasetRecordBase item in hierarchy.Reverse())
+		{
+			stack.Push(item);
+		}
+
+		while (stack.Count > 0)
+		{
+			DatasetRecordBase current = stack.Pop();
+
+			yield return current;
+
+			if (current is RecordsGroup group)
 			{
-				foreach (DatasetRecordBase child in Flatten(group.Children))
+				foreach (DatasetRecordBase child in group.Children.Reverse())
 				{
-					yield return child;
+					stack.Push(child);
 				}
 			}
 		}

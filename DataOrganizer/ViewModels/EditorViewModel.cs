@@ -1605,7 +1605,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsCondition(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
