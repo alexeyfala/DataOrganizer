@@ -129,7 +129,7 @@ public sealed class AppController : IAppController
 					folder.EncryptionStatus = status;
 
 					folder
-						.GetAllChildrenRecursively()
+						.GetAllChildren()
 						.ForEach(x => x.EncryptionStatus = status);
 				});
 

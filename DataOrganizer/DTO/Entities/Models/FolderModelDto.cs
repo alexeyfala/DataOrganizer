@@ -73,21 +73,20 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
-	public IEnumerable<ExplorerModelBaseDto> GetAllChildrenRecursively()
+	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
 	{
-		foreach (ExplorerModelBaseDto child in Children)
+		ExplorerModelBaseDto[] children = [.. Children];
+
+		while (children.Length > 0)
 		{
-			yield return child;
-
-			if (child is not FolderModelDto folder)
+			foreach (ExplorerModelBaseDto child in children)
 			{
-				continue;
+				yield return child;
 			}
 
-			foreach (ExplorerModelBaseDto item in folder.GetAllChildrenRecursively())
-			{
-				yield return item;
-			}
+			children = [.. children
+				.OfType<FolderModelDto>()
+				.SelectMany(x => x.Children)];
 		}
 	}
 	#endregion
