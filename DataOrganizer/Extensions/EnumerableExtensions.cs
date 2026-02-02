@@ -130,9 +130,9 @@ public static class EnumerableExtensions
 		Guid id) => FindBy(hierarchy, x => x.Id == id);
 
 	/// <summary>
-	/// Performs a recursive search for the <see cref="FileModelDto" /> object in a sequence with a condition.
+	/// Performs a search for the <see cref="FileModelDto" /> object in a sequence with a condition.
 	/// </summary>
-	public static FileModelDto? FindFileRecursively(
+	public static FileModelDto? FindFileBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Func<FileModelDto, bool> condition)
 	{
@@ -140,13 +140,13 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Performs a recursive search for the <see cref="FolderModelDto" /> object in a sequence with a condition.
+	/// Performs a search for the <see cref="FolderModelDto" /> object in a sequence with a condition.
 	/// </summary>
-	public static FolderModelDto? FindFolderRecursively(
+	public static FolderModelDto? FindFolderBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Func<FolderModelDto, bool> condition)
 	{
-		return GetFoldersRecursively(hierarchy).FirstOrDefault(condition);
+		return GetFolders(hierarchy).FirstOrDefault(condition);
 	}
 
 	/// <summary>
@@ -224,15 +224,22 @@ public static class EnumerableExtensions
 	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by type <see cref="FolderModelDto" />.
 	/// </summary>
 	/// <returns>Flat list <see cref="FolderModelDto" />.</returns>
-	public static IEnumerable<FolderModelDto> GetFoldersRecursively(this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public static IEnumerable<FolderModelDto> GetFolders(this IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		foreach (FolderModelDto folder in hierarchy.OfType<FolderModelDto>())
-		{
-			yield return folder;
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
-			foreach (FolderModelDto subFolder in GetFoldersRecursively(folder.Children))
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FolderModelDto folder)
 			{
-				yield return subFolder;
+				yield return folder;
+
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
 			}
 		}
 	}
@@ -241,11 +248,11 @@ public static class EnumerableExtensions
 	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by condition.
 	/// </summary>
 	/// <returns>Flat list <see cref="FolderModelDto" />.</returns>
-	public static IEnumerable<FolderModelDto> GetFoldersRecursively(
+	public static IEnumerable<FolderModelDto> GetFoldersBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Func<FolderModelDto, bool> condition)
 	{
-		return GetFoldersRecursively(hierarchy).Where(condition);
+		return GetFolders(hierarchy).Where(condition);
 	}
 
 	/// <summary>
@@ -460,7 +467,7 @@ public static class EnumerableExtensions
 	{
 		foreach (ExplorerModelBaseDto item in hierarchy)
 		{
-			if (item.EntityType == Entities.Enums.EntityType.File)
+			if (item.EntityType == EntityType.File)
 			{
 				files++;
 

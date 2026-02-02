@@ -531,7 +531,7 @@ internal class EditorViewModelTests
 
 		folders
 			.ForEach(x => x.Children.AddRange(TestUtils.CreateFoldersDto(10)))
-			.GetFoldersRecursively()
+			.GetFolders()
 			.ForEach(x => x.IsExpanded = !isExpandAll);
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -550,7 +550,7 @@ internal class EditorViewModelTests
 			.ConfigureAwait(false);
 
 		// Assert
-		folders.GetFoldersRecursively()
+		folders.GetFolders()
 			.Should()
 			.OnlyContain(x => x.IsExpanded == isExpandAll);
 

@@ -1139,7 +1139,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			ExplorerModelBaseDto[] objects =
 			[
 				.. dto.ToEnumerable(),
-				.. dto.Children.GetFoldersRecursively(),
+				.. dto.Children.GetFolders(),
 				.. filesDto
 			];
 
@@ -1188,7 +1188,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			ResetSelectedObject();
 		}
 
-		FolderModelDto[] folders = [.. Hierarchy.GetFoldersRecursively(x => x.IsExpanded != isExpanded)];
+		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
 
 		if (folders.Length == 0)
 		{
@@ -1325,7 +1325,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return OverwriteHotkeysResult.SameHotkeys;
 		}
 
-		if (temp.Length > 0 && Hierarchy.FindFileRecursively(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
+		if (temp.Length > 0 && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
