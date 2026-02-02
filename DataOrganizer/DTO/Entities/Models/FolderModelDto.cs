@@ -2,6 +2,7 @@
 using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.DTO.Entities.Models;
@@ -43,5 +44,28 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 
 		IsExpandedChanged?.Invoke(this, this);
 	}
-	#endregion	
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Returns a flat sequence of all child objects.
+	/// </summary>
+	public IEnumerable<ExplorerModelBaseDto> GetAllChildrenRecursively()
+	{
+		foreach (ExplorerModelBaseDto child in Children)
+		{
+			yield return child;
+
+			if (child is not FolderModelDto folder)
+			{
+				continue;
+			}
+
+			foreach (ExplorerModelBaseDto item in folder.GetAllChildrenRecursively())
+			{
+				yield return item;
+			}
+		}
+	}
+	#endregion
 }
