@@ -726,7 +726,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 	}
 
-	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync(Window?, Guid, CancellationToken)" />
+	/// <summary>
+	/// Shows file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
+	private void ShowFileContents(FolderModelDto? dto)
+	{
+		// TODO: Implement
+	}
+
+	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
 	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
 	#endregion
@@ -1464,6 +1473,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return dto is not null
 			&& string.IsNullOrEmpty(dto.PasswordHash)
 			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+	}
+
+	/// <summary>
+	/// Validates <see cref="ShowFileContentsCommand" />.
+	/// </summary>
+	private static bool CanExecuteShowFileContents(FolderModelDto? dto)
+	{
+		return dto is not null
+			&& dto.EncryptionStatus.IsNotDefault()
+			&& dto.AnyChild(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
