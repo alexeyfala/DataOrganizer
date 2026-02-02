@@ -22,11 +22,23 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static bool ConatainsRecursively(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
 	{
-		foreach (ExplorerModelBaseDto item in hierarchy)
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		while (stack.Count > 0)
 		{
-			if (item.Id == id || (item is FolderModelDto folder && ConatainsRecursively(folder.Children, id)))
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item.Id == id)
 			{
 				return true;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
 			}
 		}
 
@@ -40,12 +52,23 @@ public static class EnumerableExtensions
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Predicate<FileModelDto> condition)
 	{
-		foreach (ExplorerModelBaseDto item in hierarchy)
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		while (stack.Count > 0)
 		{
-			if (item is FileModelDto file && condition(file)
-				|| (item is FolderModelDto folder && ConatainsRecursively(folder.Children, condition)))
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FileModelDto file && condition(file))
 			{
 				return true;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
 			}
 		}
 
