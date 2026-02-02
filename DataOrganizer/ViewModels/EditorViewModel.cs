@@ -554,6 +554,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Decrypts file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFiles))]
+	private void DecryptFiles(FolderModelDto? dto)
+	{
+		// TODO: Implement
+	}
+
+	/// <summary>
 	/// Displays the delete object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDelete))]
@@ -651,6 +660,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			true,
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name))}");
+	}
+
+	/// <summary>
+	/// Hides file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
+	private void HideFileContents(FolderModelDto? dto)
+	{
+		// TODO: Implement
 	}
 
 	/// <summary>
@@ -1466,6 +1484,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Service
 	/// <summary>
+	/// Validates <see cref="DecryptFilesCommand" />.
+	/// </summary>
+	private static bool CanExecuteDecryptFiles(FolderModelDto? dto)
+	{
+		return dto is not null && !string.IsNullOrEmpty(dto.PasswordHash);
+	}
+
+	/// <summary>
 	/// Validates <see cref="EncryptFilesCommand" />.
 	/// </summary>
 	private static bool CanExecuteEncryptFiles(FolderModelDto? dto)
@@ -1473,6 +1499,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return dto is not null
 			&& string.IsNullOrEmpty(dto.PasswordHash)
 			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+	}
+
+	/// <summary>
+	/// Validates <see cref="HideFileContentsCommand" />.
+	/// </summary>
+	private static bool CanExecuteHideFileContents(FolderModelDto? dto)
+	{
+		return dto is not null
+			&& dto.EncryptionStatus.IsNotDefault()
+			&& dto.AnyChild(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 	}
 
 	/// <summary>

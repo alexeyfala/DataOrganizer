@@ -90,6 +90,8 @@
 											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.HideFileContents}"
 											Icon="LockCheckOutline" />
 
@@ -102,6 +104,8 @@
 											Icon="LockOutline" />
 
 										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFilesCommand}"
+											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.DecryptFiles}"
 											Icon="LockOffOutline" />
 									</StackPanel>
