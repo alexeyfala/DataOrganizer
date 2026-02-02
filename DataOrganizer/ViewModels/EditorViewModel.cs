@@ -67,6 +67,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private string? _bottomLeftCornerInfo;
 
 	/// <summary>
+	/// Controls the progress bar for an action.
+	/// </summary>
+	[ObservableProperty]
+	private bool _isActionInProgress;
+
+	/// <summary>
 	/// Controls the display of the <see cref="NavigationDrawer" />.
 	/// </summary>
 	[ObservableProperty]
@@ -629,13 +635,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 							.WaitAsync(300, 10)
 							.ConfigureAwait(false);
 
-						// TODO: Show progress indicator
+						IsActionInProgress = true;
 
 						await EncryptFilesAsync(dto, password).ConfigureAwait(false);
 					}
 					finally
 					{
-						// TODO: Hide progress indicator
+						IsActionInProgress = false;
 					}
 				}
 				finally
@@ -1498,24 +1504,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Service
 	/// <summary>
-	/// Validates <see cref="DecryptFilesCommand" />.
-	/// </summary>
-	private static bool CanExecuteDecryptFiles(FolderModelDto? dto)
-	{
-		return dto is not null && !string.IsNullOrEmpty(dto.PasswordHash);
-	}
-
-	/// <summary>
-	/// Validates <see cref="EncryptFilesCommand" />.
-	/// </summary>
-	private static bool CanExecuteEncryptFiles(FolderModelDto? dto)
-	{
-		return dto is not null
-			&& string.IsNullOrEmpty(dto.PasswordHash)
-			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
-	}
-
-	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
 	private static bool CanExecuteHideFileContents(FolderModelDto? dto)
@@ -1573,9 +1561,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteCloseAllExecutedFiles() => ExecutedFiles.Count > 0;
 
 	/// <summary>
+	/// Validates <see cref="DecryptFilesCommand" />.
+	/// </summary>
+	private bool CanExecuteDecryptFiles(FolderModelDto? dto)
+	{
+		return IsNotReadOnly()
+			&& dto is not null
+			&& !string.IsNullOrEmpty(dto.PasswordHash);
+	}
+
+	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
 	/// </summary>
 	private bool CanExecuteDelete() => IsSelectedObjectNotNull() && IsNotReadOnly();
+
+	/// <summary>
+	/// Validates <see cref="EncryptFilesCommand" />.
+	/// </summary>
+	private bool CanExecuteEncryptFiles(FolderModelDto? dto)
+	{
+		return IsNotReadOnly()
+			&& dto is not null
+			&& string.IsNullOrEmpty(dto.PasswordHash)
+			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+	}
 
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.
