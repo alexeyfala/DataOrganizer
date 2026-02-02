@@ -1459,7 +1459,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Guid id,
 		CancellationToken token = default)
 	{
-		if (window is null || Hierarchy.FindRecursively(id) is not { } found)
+		if (window is null || Hierarchy.FindById(id) is not { } found)
 		{
 			return;
 		}

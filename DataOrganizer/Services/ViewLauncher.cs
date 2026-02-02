@@ -163,7 +163,7 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.ShowInEditorAsync(window, showObjectId);
 		}
-		else if (hierarchy.FindRecursively(x => x.IsSelected) is { } selected)
+		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{
 			bool isReadOnly = window
 				.ViewModel

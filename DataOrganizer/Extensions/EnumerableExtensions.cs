@@ -85,12 +85,49 @@ public static class EnumerableExtensions
 	{
 		foreach (Guid id in identifiers)
 		{
-			if (FindRecursively(hierarchy, id) is FileModelDto file)
+			if (FindById(hierarchy, id) is FileModelDto file)
 			{
 				yield return file;
 			}
 		}
 	}
+
+	/// <summary>
+	/// Performs a search for the <see cref="ExplorerModelBaseDto" /> object in a sequence with a condition.
+	/// </summary>
+	public static ExplorerModelBaseDto? FindBy(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Predicate<ExplorerModelBaseDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (condition(item))
+			{
+				return item;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Performs a search for the <see cref="ExplorerModelBaseDto" /> object in the sequence by identifier.
+	/// </summary>
+	public static ExplorerModelBaseDto? FindById(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Guid id) => FindBy(hierarchy, x => x.Id == id);
 
 	/// <summary>
 	/// Performs a recursive search for the <see cref="FileModelDto" /> object in a sequence with a condition.
@@ -110,36 +147,6 @@ public static class EnumerableExtensions
 		Func<FolderModelDto, bool> condition)
 	{
 		return GetFoldersRecursively(hierarchy).FirstOrDefault(condition);
-	}
-
-	/// <summary>
-	/// Performs a recursive search for the <see cref="ExplorerModelBaseDto" /> object in the sequence by identifier.
-	/// </summary>
-	public static ExplorerModelBaseDto? FindRecursively(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Guid id) => hierarchy.FindRecursively(x => x.Id == id);
-
-	/// <summary>
-	/// Performs a recursive search for the <see cref="ExplorerModelBaseDto" /> object in a sequence with a condition.
-	/// </summary>
-	public static ExplorerModelBaseDto? FindRecursively(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
-	{
-		foreach (ExplorerModelBaseDto item in hierarchy)
-		{
-			if (condition(item))
-			{
-				return item;
-			}
-
-			if (item is FolderModelDto folder && FindRecursively(folder.Children, condition) is { } foundItem)
-			{
-				return foundItem;
-			}
-		}
-
-		return null;
 	}
 
 	/// <summary>
