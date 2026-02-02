@@ -583,7 +583,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <inheritdoc cref="EncryptFilesAsync" />
-	[RelayCommand]
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
 	private Task EncryptFiles(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -1456,6 +1456,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Validates <see cref="EncryptFilesCommand" />.
+	/// </summary>
+	private static bool CanExecuteEncryptFiles(FolderModelDto? dto)
+	{
+		return dto is not null
+			&& string.IsNullOrEmpty(dto.PasswordHash)
+			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+	}
+
 	/// <summary>
 	/// Returns a reference to the collection to add the object to.
 	/// </summary>
