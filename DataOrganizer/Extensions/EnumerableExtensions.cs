@@ -18,9 +18,11 @@ public static class EnumerableExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
+	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
-	public static bool ConatainsRecursively(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
+	public static bool ConatainsCondition(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Predicate<FileModelDto> condition)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
@@ -28,7 +30,7 @@ public static class EnumerableExtensions
 		{
 			ExplorerModelBaseDto item = stack.Pop();
 
-			if (item.Id == id)
+			if (item is FileModelDto file && condition(file))
 			{
 				return true;
 			}
@@ -46,11 +48,9 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
+	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
 	/// </summary>
-	public static bool ConatainsRecursively(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FileModelDto> condition)
+	public static bool ConatainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
@@ -58,7 +58,7 @@ public static class EnumerableExtensions
 		{
 			ExplorerModelBaseDto item = stack.Pop();
 
-			if (item is FileModelDto file && condition(file))
+			if (item.Id == id)
 			{
 				return true;
 			}

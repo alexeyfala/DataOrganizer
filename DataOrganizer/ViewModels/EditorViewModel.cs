@@ -174,7 +174,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		// When an object is removed from a collection, its selection is reset and its existence must be checked
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
-		if (oldValue is not null && Hierarchy.ConatainsRecursively(oldValue.Id))
+		if (oldValue is not null && Hierarchy.ConatainsId(oldValue.Id))
 		{
 			_ = UpdateIsSelectedInDatabaseAsync(oldValue);
 		}
@@ -1605,7 +1605,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsRecursively(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsCondition(x => x.IsFavorite);
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
