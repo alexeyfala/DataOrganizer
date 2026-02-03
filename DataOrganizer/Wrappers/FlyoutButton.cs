@@ -1,12 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
-using System.Threading.Tasks;
 using FontWeight = Avalonia.Media.FontWeight;
 
 namespace DataOrganizer.Wrappers;
@@ -37,16 +35,16 @@ internal sealed class FlyoutButton : Button
 	}
 	#endregion
 
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="Button.ClickEvent" /> handler.
-	/// </summary>
-	private async void Button_Click(object? sender, RoutedEventArgs e)
+	#region Methods
+	/// <inheritdoc />
+	protected override void OnClick()
 	{
-		// The delay is necessary, otherwise the button command will not be executed.
-		await Task
-			.Delay(50)
-			.ConfigureAwait(true);
+		base.OnClick();
+
+		if (Flyout is not null)
+		{
+			return;
+		}
 
 		this
 			.FindLogicalParent<Control>(x => x.ContextFlyout is not null)?
@@ -57,24 +55,6 @@ internal sealed class FlyoutButton : Button
 			.FindLogicalParent<Button>(x => x.Flyout is not null)?
 			.Flyout?
 			.Hide();
-	}
-	#endregion
-
-	#region Methods
-	/// <inheritdoc />
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnAttachedToVisualTree(e);
-
-		if (Flyout is not null)
-		{
-			return;
-		}
-
-		AddHandler(
-			ClickEvent,
-			Button_Click,
-			RoutingStrategies.Bubble);
 	}
 
 	/// <inheritdoc />
@@ -104,19 +84,6 @@ internal sealed class FlyoutButton : Button
 		});
 
 		Content = stackPanel;
-	}
-
-	/// <inheritdoc />
-	protected override void OnUnloaded(RoutedEventArgs e)
-	{
-		base.OnUnloaded(e);
-
-		if (Flyout is not null)
-		{
-			return;
-		}
-
-		RemoveHandler(ClickEvent, Button_Click);
 	}
 	#endregion
 }
