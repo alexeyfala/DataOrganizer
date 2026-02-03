@@ -217,15 +217,11 @@ public sealed class App : Application
 	/// <summary>
 	/// Configures <see cref="SqliteDbContext" />.
 	/// </summary>
-	private static void ConfigureDbContext(
-		IServiceProvider provider,
-		DbContextOptionsBuilder builder)
+	private static void ConfigureDbContext(DbContextOptionsBuilder builder)
 	{
 		try
 		{
-			provider
-				.GetRequiredService<IFileSystem>()
-				.CreateDirectory(AppUtils.DatabaseDirectoryPath);
+			Directory.CreateDirectory(AppUtils.DatabaseDirectoryPath);
 
 			string dataSource = Path.Combine(
 				AppUtils.DatabaseDirectoryPath,

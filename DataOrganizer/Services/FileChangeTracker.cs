@@ -69,7 +69,7 @@ public class FileChangeTracker : IFileChangeTracker
 						return;
 					}
 
-					await using FileStream fileStream = _fileSystem.OpenFile(
+					await using FileStream fileStream = File.Open(
 						filePath,
 						FileMode.Open,
 						FileAccess.Read,

@@ -177,7 +177,7 @@ public sealed class DbAccess : IDbAccess
 		{
 			string dbFilePath = GetDbFilePath();
 
-			if (!_fileSystem.IsFileExists(dbFilePath) || _fileSystem.GetParentDirectory(dbFilePath) is not { } directory)
+			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
 			{
 				return false;
 			}
