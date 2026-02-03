@@ -1071,7 +1071,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Encrypts files in folder.
 	/// </summary>
-	public async Task EncryptFilesAsync(
+	public async Task<FilesEncryptionResult> EncryptFilesAsync(
 		FolderModelDto dto,
 		FileModelDto[] filesDto,
 		string password,
@@ -1089,7 +1089,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			{
 				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
-				return;
+				return FilesEncryptionResult.FailedToLoadContents;
 			}
 
 			ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
@@ -1102,14 +1102,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			{
 				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
-				return;
+				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
 			if (!_dbAccess.BackupDatabase(out var backupFilePath))
 			{
 				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
-				return;
+				return FilesEncryptionResult.UnableToCreateDatabaseBackup;
 			}
 
 			DateTime updatedDate = DateTime.Now;
@@ -1131,7 +1131,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return;
+				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
 			string passwordHash = _encryption.EnhancedHashPassword(password);
@@ -1146,7 +1146,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return;
+				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
 			ExplorerModelBaseDto[] objects =
@@ -1161,6 +1161,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			dto.PasswordHash = passwordHash;
 
 			DeleteBackupFile();
+
+			return FilesEncryptionResult.Encrypted;
 
 			async Task RestoreDatabaseAsync()
 			{
@@ -1184,6 +1186,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return FilesEncryptionResult.ExceptionThrown;
 		}
 	}
 
