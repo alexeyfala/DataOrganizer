@@ -26,7 +26,7 @@ public interface IFileSystem
 
 	#region Methods
 	/// <summary>
-	/// Computes the <see cref="SHA256" /> hash of a file.
+	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of a file.
 	/// </summary>
 	byte[] ComputeSha256Hash(string filePath);
 

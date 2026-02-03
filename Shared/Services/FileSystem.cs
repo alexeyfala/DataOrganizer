@@ -29,9 +29,7 @@ public sealed class FileSystem : IFileSystem
 	{
 		using FileStream stream = File.OpenRead(filePath);
 
-		using SHA256 hash = SHA256.Create();
-
-		return hash.ComputeHash(stream);
+		return CryptographicOperations.HashData(HashAlgorithmName.SHA256, stream);
 	}
 
 	/// <inheritdoc />
