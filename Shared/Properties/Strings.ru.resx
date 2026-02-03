@@ -462,4 +462,7 @@
   <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
     <value>Необходимо закрыть редактируемые файлы</value>
   </data>
+  <data name="ThereAreNoFilesToEncrypt" xml:space="preserve">
+    <value>Отсутствуют файлы для шифрования</value>
+  </data>
 </root>

@@ -442,4 +442,7 @@
   <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
     <value>You must close the files you are editing</value>
   </data>
+  <data name="ThereAreNoFilesToEncrypt" xml:space="preserve">
+    <value>There are no files to encrypt</value>
+  </data>
 </root>

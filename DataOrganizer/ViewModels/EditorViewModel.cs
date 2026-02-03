@@ -248,6 +248,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
+		if (filesDto.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.ThereAreNoFilesToEncrypt);
+
+			return Task.CompletedTask;
+		}
+
 		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
 		{
 			ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);

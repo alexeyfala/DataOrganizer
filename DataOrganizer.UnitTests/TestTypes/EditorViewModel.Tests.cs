@@ -404,6 +404,62 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFiles" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFiles_Does_Nothing_If_File_Is_Being_Edited_Or_Executed()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files =
+		[
+			.. TestUtils.CreateFilesDto(10, isEdited: true),
+			.. TestUtils.CreateFilesDto(10, isExecuted: true)
+		];
+
+		folder
+			.Children
+			.AddRange(files);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.EncryptFiles(folder);
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFiles" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFiles_Does_Nothing_If_Folder_Has_No_Files()
+	{
+		// Arrange
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.EncryptFiles(TestUtils.CreateFolderDto());
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
 	/// </summary>
 	[Test]
