@@ -33,16 +33,20 @@ internal static class VisualExtensions
 	/// </summary>
 	public static T? FindLogicalChild<T>(this ILogical parent) where T : class
 	{
-		foreach (ILogical child in parent.GetLogicalChildren())
+		Stack<ILogical> stack = new(parent.GetLogicalChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			ILogical item = stack.Pop();
+
+			if (item is T found)
 			{
 				return found;
 			}
 
-			if (FindLogicalChild<T>(child) is { } subChild)
+			foreach (ILogical child in item.GetLogicalChildren())
 			{
-				return subChild;
+				stack.Push(child);
 			}
 		}
 
