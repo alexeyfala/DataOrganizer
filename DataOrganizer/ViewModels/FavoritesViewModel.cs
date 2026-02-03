@@ -212,7 +212,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 
 		visual
-			.FindVisualParent<Window>()?
+			.FindLogicalParent<Window>()?
 			.BeginMoveDrag(e);
 	}
 

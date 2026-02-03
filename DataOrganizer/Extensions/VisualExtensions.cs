@@ -74,6 +74,26 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
+	/// Finds a parent object by type.
+	/// </summary>
+	public static T? FindLogicalParent<T>(this StyledElement? element) where T : class
+	{
+		StyledElement? item = element?.Parent;
+
+		while (item is not null)
+		{
+			if (item is T found)
+			{
+				return found;
+			}
+
+			item = item.Parent;
+		}
+
+		return null;
+	}
+
+	/// <summary>
 	/// Finds the first visual child of a specific type within the visual tree.
 	/// </summary>
 	public static T? FindVisualChild<T>(this Visual parent) where T : class

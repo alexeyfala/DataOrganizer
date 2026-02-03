@@ -263,7 +263,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ViewModel
 			.DefaultPressedCallback = async () =>
 			{
-				DialogOverlayPopupHost? popupHost = view.FindVisualParent<DialogOverlayPopupHost>();
+				DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
 
 				try
 				{
@@ -575,7 +575,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindVisualChild<TreeView>() is not { } container)
+			|| window.FindLogicalChild<TreeView>() is not { } container)
 		{
 			return;
 		}
@@ -610,7 +610,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
 				|| window.Clipboard is not { } clipboard
-				|| window.FindVisualChild<TreeView>() is not { } container)
+				|| window.FindLogicalChild<TreeView>() is not { } container)
 			{
 				return;
 			}
