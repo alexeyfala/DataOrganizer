@@ -18,13 +18,13 @@ internal static class VisualExtensions
 	/// </summary>
 	public static IEnumerable<Visual> FindAllVisualParents(this Visual element)
 	{
-		Visual? parent = element.GetVisualParent();
+		Visual? item = element.GetVisualParent();
 
-		while (parent is not null)
+		while (item is not null)
 		{
-			yield return parent;
+			yield return item;
 
-			parent = parent.GetVisualParent();
+			item = item.GetVisualParent();
 		}
 	}
 
@@ -57,16 +57,16 @@ internal static class VisualExtensions
 	/// </summary>
 	public static T? FindLogicalParent<T>(this StyledElement? element, Predicate<T> condition) where T : class
 	{
-		StyledElement? current = element;
+		StyledElement? item = element?.Parent;
 
-		while (current is not null)
+		while (item is not null)
 		{
-			if (current is T control && condition(control))
+			if (item is T control && condition(control))
 			{
 				return control;
 			}
 
-			current = current.Parent;
+			item = item.Parent;
 		}
 
 		return null;
@@ -123,16 +123,16 @@ internal static class VisualExtensions
 	/// </summary>
 	public static T? FindVisualParent<T>(this Visual element) where T : class
 	{
-		Visual? parent = element.GetVisualParent();
+		Visual? item = element.GetVisualParent();
 
-		while (parent is not null)
+		while (item is not null)
 		{
-			if (parent is T found)
+			if (item is T found)
 			{
 				return found;
 			}
 
-			parent = parent.GetVisualParent();
+			item = item.GetVisualParent();
 		}
 
 		return null;
