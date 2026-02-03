@@ -103,16 +103,20 @@ internal static class VisualExtensions
 	/// </summary>
 	public static IEnumerable<T> FindVisualChildren<T>(this Visual parent) where T : class
 	{
-		foreach (Visual child in parent.GetVisualChildren())
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			Visual item = stack.Pop();
+
+			if (item is T found)
 			{
 				yield return found;
 			}
 
-			foreach (T subChild in FindVisualChildren<T>(child))
+			foreach (Visual child in item.GetVisualChildren())
 			{
-				yield return subChild;
+				stack.Push(child);
 			}
 		}
 	}
