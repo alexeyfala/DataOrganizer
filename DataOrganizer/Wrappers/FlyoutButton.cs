@@ -5,7 +5,9 @@ using Avalonia.Layout;
 using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
+using Shared.Common;
 using System;
+using System.Threading.Tasks;
 using FontWeight = Avalonia.Media.FontWeight;
 
 namespace DataOrganizer.Wrappers;
@@ -86,7 +88,38 @@ internal sealed class FlyoutButton : Button
 			Text = Header
 		});
 
+		//if (Flyout is not null)
+		//{
+		//	stackPanel.Children.Add(new MaterialIcon
+		//	{
+		//		Kind = MaterialIconKind.Play,
+		//		HorizontalAlignment = HorizontalAlignment.Right
+		//	});
+		//}
+
 		Content = stackPanel;
 	}
+
+	/// <inheritdoc />
+	//protected override async void OnPointerEntered(PointerEventArgs e)
+	//{
+	//	base.OnPointerEntered(e);
+
+	//	if (Flyout is null)
+	//	{
+	//		return;
+	//	}
+
+	//	await Task
+	//		.Delay(AppUtils.TipDelay)
+	//		.ConfigureAwait(true);
+
+	//	if (!IsPointerOver)
+	//	{
+	//		return;
+	//	}
+
+	//	Flyout.ShowAt(this);
+	//}
 	#endregion
 }
