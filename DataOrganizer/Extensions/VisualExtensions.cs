@@ -148,7 +148,7 @@ internal static class VisualExtensions
 		this Visual element,
 		CancellationToken token = default)
 	{
-		if (element.FindVisualChild<VirtualizingStackPanel>() is not { } panel)
+		if (FindVisualChild<VirtualizingStackPanel>(element) is not { } panel)
 		{
 			return false;
 		}
