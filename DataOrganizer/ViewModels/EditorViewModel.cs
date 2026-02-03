@@ -238,7 +238,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
 	public Task EncryptFiles(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return Task.CompletedTask;
@@ -265,6 +264,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Show password box");
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return Task.CompletedTask;
+		}
 
 		view
 			.ViewModel

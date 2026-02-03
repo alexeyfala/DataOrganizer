@@ -460,6 +460,34 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFiles" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFiles_Sows_Password_Box()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(5));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.EncryptFiles(folder);
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
 	/// </summary>
 	[Test]
