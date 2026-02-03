@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using DataOrganizer.Extensions;
@@ -32,6 +33,8 @@ internal sealed class FlyoutButton : Button
 		FontWeight = FontWeight.Normal;
 
 		HorizontalContentAlignment = HorizontalAlignment.Left;
+
+		Cursor = Cursor.Default;
 	}
 	#endregion
 
