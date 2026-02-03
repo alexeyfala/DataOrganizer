@@ -31,9 +31,6 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds the first logical child of a specific type within the logical tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the logical child to find.</typeparam>
-	/// <param name="parent">The parent logical to start the search from.</param>
-	/// <returns>The first logical child of the specified type, or null if not found.</returns>
 	public static T? FindLogicalChild<T>(this ILogical parent) where T : class
 	{
 		foreach (ILogical child in parent.GetLogicalChildren())
@@ -75,21 +72,22 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds the first visual child of a specific type within the visual tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the visual child to find.</typeparam>
-	/// <param name="parent">The parent visual to start the search from.</param>
-	/// <returns>The first visual child of the specified type, or null if not found.</returns>
 	public static T? FindVisualChild<T>(this Visual parent) where T : class
 	{
-		foreach (Visual child in parent.GetVisualChildren())
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			Visual item = stack.Pop();
+
+			if (item is T found)
 			{
 				return found;
 			}
 
-			if (FindVisualChild<T>(child) is { } subChild)
+			foreach (Visual child in item.GetVisualChildren())
 			{
-				return subChild;
+				stack.Push(child);
 			}
 		}
 
@@ -99,9 +97,6 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds all visual children of a specific type within the visual tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the visual children to find.</typeparam>
-	/// <param name="parent">The parent visual to start the search from.</param>
-	/// <returns>An enumerable collection of all visual children of the specified type.</returns>
 	public static IEnumerable<T> FindVisualChildren<T>(this Visual parent) where T : class
 	{
 		foreach (Visual child in parent.GetVisualChildren())
