@@ -491,16 +491,34 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
 	/// </summary>
 	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Failed_To_Load_Contents()
+	public async Task EncryptFilesAsync_Does_Nothing_If_Db_Returns_Less_Contents_Then_Required()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length - 2).ToAsyncEnumerable());
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
+		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+			TestUtils.CreateFolderDto(),
+			files,
+			AppUtils.CreateRandomString(10));
 
 		// Assert
+		result
+			.Should()
+			.Be(FilesEncryptionResult.FailedToLoadContents);
 	}
 
 	/// <summary>

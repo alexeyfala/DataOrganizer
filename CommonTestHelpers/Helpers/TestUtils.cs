@@ -64,6 +64,21 @@ public static class TestUtils
 	}
 
 	/// <summary>
+	/// Creates the required number of random <see cref="ContentsIsValidPair" /> objects.
+	/// </summary>
+	public static IEnumerable<ContentsIsValidPair> CreateContents(int count, bool isValid = true)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return new()
+			{
+				Id = Guid.NewGuid(),
+				IsValid = isValid
+			};
+		}
+	}
+
+	/// <summary>
 	/// Creates the required number of random <see cref="FavoriteCategory" /> objects.
 	/// </summary>
 	public static IEnumerable<FavoriteCategory> CreateFavoriteCategories(int count)
