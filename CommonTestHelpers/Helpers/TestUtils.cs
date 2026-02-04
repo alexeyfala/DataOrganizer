@@ -66,13 +66,16 @@ public static class TestUtils
 	/// <summary>
 	/// Creates the required number of random <see cref="ContentsIsValidPair" /> objects.
 	/// </summary>
-	public static IEnumerable<ContentsIsValidPair> CreateContents(int count, bool isValid)
+	public static IEnumerable<ContentsIsValidPair> CreateContents(
+		int count,
+		bool isValid,
+		bool generateId = true)
 	{
 		for (int i = 0; i < count; i++)
 		{
 			yield return new()
 			{
-				Id = Guid.NewGuid(),
+				Id = generateId ? Guid.NewGuid() : default,
 				IsValid = isValid
 			};
 		}

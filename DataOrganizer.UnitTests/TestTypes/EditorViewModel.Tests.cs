@@ -559,6 +559,48 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
 	/// </summary>
 	[Test]
+	public async Task EncryptFilesAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers()
+	{
+		// Arrange
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: false, generateId: false));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+			TestUtils.CreateFolderDto(),
+			files,
+			AppUtils.CreateRandomString(10));
+
+		// Assert
+		result
+			.Should()
+			.Be(FilesEncryptionResult.FailedToEncryptContents);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// </summary>
+	[Test]
 	public async Task EncryptFilesAsync_Does_Nothing_If_Encrypted_Not_Required_Contents()
 	{
 		// Arrange
