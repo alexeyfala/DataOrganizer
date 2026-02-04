@@ -1,8 +1,10 @@
 ﻿using DataOrganizer.Interfaces;
 using NSec.Cryptography;
+using Repository.DTO;
 using Serilog;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using BC = BCrypt.Net.BCrypt;
 
@@ -108,6 +110,37 @@ public sealed class EncryptionService : IEncryptionService
 			_logger.LogException(ex);
 
 			return false;
+		}
+	}
+
+	/// <inheritdoc />
+	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password)
+	{
+		try
+		{
+			foreach (ContentsIsValidPair item in contents)
+			{
+				if (Encrypt(
+					item.Contents,
+					password,
+					out byte[] output))
+				{
+					yield return new()
+					{
+						Contents = output,
+						Id = item.Id,
+						IsValid = true
+					};
+				}
+				else
+				{
+					yield break;
+				}
+			}
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(password);
 		}
 	}
 

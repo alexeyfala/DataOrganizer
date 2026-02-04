@@ -37,7 +37,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -1092,7 +1091,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToLoadContents;
 			}
 
-			ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
+			ContentsIsValidPair[] encrypted = [.. _encryption.EncryptContents(
 				contents,
 				TextHelper.Utf8Encoding.GetBytes(password))];
 
@@ -1638,39 +1637,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
-
-	/// <summary>
-	/// Tried to encrypts contents.
-	/// </summary>
-	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
-	{
-		try
-		{
-			foreach (ContentsIsValidPair item in contents)
-			{
-				if (_encryption.Encrypt(
-					item.Contents,
-					password,
-					out byte[] output))
-				{
-					yield return new()
-					{
-						Contents = output,
-						Id = item.Id,
-						IsValid = true
-					};
-				}
-				else
-				{
-					yield break;
-				}
-			}
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(password);
-		}
-	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
