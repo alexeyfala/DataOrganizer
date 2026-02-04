@@ -400,9 +400,7 @@ internal class FavoritesViewModelTests
 		sut.ShowFavorites = true;
 
 		// Act
-		await sut
-			.ShowInEditorAsync(null, default)
-			.ConfigureAwait(false);
+		await sut.ShowInEditorAsync(null, default);
 
 		// Assert
 		sut.IsShutdown

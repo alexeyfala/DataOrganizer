@@ -4,7 +4,9 @@ public enum FilesEncryptionResult : byte
 {
 	Encrypted,
 	FailedToLoadContents,
-	FailedToEncryptContents,
 	UnableToCreateDatabaseBackup,
+	FailedToEncryptContents,
+	FailedToSaveContents,
+	FailedToSavePasswordHash,
 	ExceptionThrown
 }

@@ -53,9 +53,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.AddGroupAsync(name, group)
-			.ConfigureAwait(false);
+		await sut.AddGroupAsync(name, group);
 
 		// Assert
 		if (addToGroup && group is not null)
@@ -113,9 +111,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.AddKeyValueAsync(key, value, group)
-			.ConfigureAwait(false);
+		await sut.AddKeyValueAsync(key, value, group);
 
 		// Assert
 		if (addToGroup && group is not null)
@@ -171,9 +167,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.AddValueAsync(value, group)
-			.ConfigureAwait(false);
+		await sut.AddValueAsync(value, group);
 
 		// Assert
 		if (addToGroup && group is not null)
@@ -224,9 +218,7 @@ internal class DatasetEditorViewModelTests
 			.AddRange(records);
 
 		// Act
-		await sut
-			.DeleteRecordAsync(toBeDeleted)
-			.ConfigureAwait(false);
+		await sut.DeleteRecordAsync(toBeDeleted);
 
 		// Assert
 		sut.Records
@@ -269,9 +261,7 @@ internal class DatasetEditorViewModelTests
 			TypedParameter.From(CreateSerializerMock()));
 
 		// Act
-		await sut
-			.EditKeyValueAsync(target, key, value)
-			.ConfigureAwait(false);
+		await sut.EditKeyValueAsync(target, key, value);
 
 		// Assert
 		target.Key
@@ -308,9 +298,7 @@ internal class DatasetEditorViewModelTests
 			TypedParameter.From(CreateSerializerMock()));
 
 		// Act
-		await sut
-			.EditNoteAsync(target, note)
-			.ConfigureAwait(false);
+		await sut.EditNoteAsync(target, note);
 
 		// Assert
 		target.Note
@@ -349,9 +337,7 @@ internal class DatasetEditorViewModelTests
 			TypedParameter.From(CreateSerializerMock()));
 
 		// Act
-		await sut
-			.EditValueAsync(target, value)
-			.ConfigureAwait(false);
+		await sut.EditValueAsync(target, value);
 
 		// Assert
 		target.Value
@@ -408,9 +394,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.ExpandCollapseAsync(group, expand)
-			.ConfigureAwait(false);
+		await sut.ExpandCollapseAsync(group, expand);
 
 		// Assert
 		if (group is not null)
@@ -455,9 +439,7 @@ internal class DatasetEditorViewModelTests
 		sut.IsReadOnly = isReadOnly;
 
 		// Act
-		await sut
-			.IsHiddenChanged()
-			.ConfigureAwait(false);
+		await sut.IsHiddenChanged();
 
 		// Assert
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdatePropertiesAsync(
@@ -503,9 +485,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut
-			.LoadDataAsync()
-			.ConfigureAwait(false);
+		await sut.LoadDataAsync();
 
 		// Assert
 		sut.IsInitialized
@@ -548,9 +528,7 @@ internal class DatasetEditorViewModelTests
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
-		await sut
-			.LoadDataAsync()
-			.ConfigureAwait(false);
+		await sut.LoadDataAsync();
 
 		// Assert
 		sut.IsInitialized
@@ -588,9 +566,7 @@ internal class DatasetEditorViewModelTests
 			TypedParameter.From(CreateSerializerMock()));
 
 		// Act
-		await sut
-			.RenameGroupAsync(group, name)
-			.ConfigureAwait(false);
+		await sut.RenameGroupAsync(group, name);
 
 		// Assert
 		group.Name
@@ -650,9 +626,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.ShowHideAsync(group, hide)
-			.ConfigureAwait(false);
+		await sut.ShowHideAsync(group, hide);
 
 		// Assert
 		if (group is not null)
@@ -719,9 +693,7 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut
-			.SortAsync(group, direction)
-			.ConfigureAwait(false);
+		await sut.SortAsync(group, direction);
 
 		// Assert
 		ObservableCollection<DatasetRecordBase> collection = group is not null

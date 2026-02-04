@@ -126,9 +126,7 @@ internal class KeyboardInputHookTests
 			.AddRange(pairs);
 
 		// Act
-		await sut
-			.HandleKeyReleasedAsync(mask, code)
-			.ConfigureAwait(false);
+		await sut.HandleKeyReleasedAsync(mask, code);
 
 		// Assert
 		notificationService

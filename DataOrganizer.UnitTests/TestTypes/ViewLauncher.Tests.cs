@@ -286,9 +286,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(fileSystem));
 
 		// Act
-		await sut
-			.SaveEditorSettingsAsync(mock.Create<EditorWindow>())
-			.ConfigureAwait(false);
+		await sut.SaveEditorSettingsAsync(mock.Create<EditorWindow>());
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(
@@ -331,9 +329,7 @@ internal class ViewLauncherTests
 			.AddRange(TestUtils.CreateCategoryFavoritePairs(5));
 
 		// Act
-		await sut
-			.SaveFavoritesSettingsAsync(window)
-			.ConfigureAwait(false);
+		await sut.SaveFavoritesSettingsAsync(window);
 
 		// Assert
 		window.ViewModel.FavoritesSettings.Categories

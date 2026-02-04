@@ -67,9 +67,7 @@ internal class AppControllerTests
 		AppController sut = mock.Create<AppController>();
 
 		// Act
-		await sut
-			.LaunchAppAsync(null)
-			.ConfigureAwait(false);
+		await sut.LaunchAppAsync(null);
 
 		// Assert
 		fileSystem

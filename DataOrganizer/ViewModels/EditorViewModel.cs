@@ -1078,7 +1078,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		try
 		{
-			// TODO: Make test
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
 				.ToArrayAsync(token)
@@ -1104,7 +1103,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
-			if (!_dbAccess.BackupDatabase(out var backupFilePath))
+			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
 			{
 				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
@@ -1130,7 +1129,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return FilesEncryptionResult.FailedToEncryptContents;
+				return FilesEncryptionResult.FailedToSaveContents;
 			}
 
 			string passwordHash = _encryption.EnhancedHashPassword(password);
@@ -1145,7 +1144,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return FilesEncryptionResult.FailedToEncryptContents;
+				return FilesEncryptionResult.FailedToSavePasswordHash;
 			}
 
 			ExplorerModelBaseDto[] objects =

@@ -22,6 +22,7 @@ using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,9 +79,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		ExplorerModelBaseDto? entity = await sut
-			.AddAsync(AppUtils.CreateRandomString(10), type, parent)
-			.ConfigureAwait(false);
+		ExplorerModelBaseDto? entity = await sut.AddAsync(AppUtils.CreateRandomString(10), type, parent);
 
 		// Assert
 		entity
@@ -240,9 +239,7 @@ internal class EditorViewModelTests
 		}
 
 		// Act
-		bool result = await sut
-			.DeleteAsync(toBeDeleted)
-			.ConfigureAwait(false);
+		bool result = await sut.DeleteAsync(toBeDeleted);
 
 		// Assert
 		result
@@ -305,9 +302,7 @@ internal class EditorViewModelTests
 			.AddRange(entity.ToEnumerable(TestUtils.CreateFoldersDto(5)));
 
 		// Act
-		bool result = await sut
-			.DeleteAsync(entity)
-			.ConfigureAwait(false);
+		bool result = await sut.DeleteAsync(entity);
 
 		// Assert
 		result
@@ -643,6 +638,73 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
 	/// </summary>
 	[Test]
+	public async Task EncryptFilesAsync_Does_Nothing_If_Failed_To_Save_Contents()
+	{
+		// Arrange
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabase(out _)
+				.Returns(x =>
+				{
+					x[0] = AppUtils.CreateRandomFileName(10);
+
+					return true;
+				});
+
+			dbAccess
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.Returns(false);
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+			TestUtils.CreateFolderDto(),
+			files,
+			AppUtils.CreateRandomString(10));
+
+		// Assert
+		result
+			.Should()
+			.Be(FilesEncryptionResult.FailedToSaveContents);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// </summary>
+	[Test]
 	public async Task EncryptFilesAsync_Does_Nothing_If_Unable_To_Create_Database_Backup()
 	{
 		// Arrange
@@ -710,9 +772,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut
-			.ExecuteFile(TestUtils.CreateFileDto())
-			.ConfigureAwait(false);
+		await sut.ExecuteFile(TestUtils.CreateFileDto());
 
 		// Assert
 		await dbAccess
@@ -757,9 +817,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut
-			.ExecuteFile(dto)
-			.ConfigureAwait(false);
+		await sut.ExecuteFile(dto);
 
 		// Assert
 		dto.IsExecuted
@@ -827,9 +885,7 @@ internal class EditorViewModelTests
 			.AddRange(folders);
 
 		// Act
-		await sut
-			.ExpandCollapseAllFoldersAsync(isExpandAll)
-			.ConfigureAwait(false);
+		await sut.ExpandCollapseAllFoldersAsync(isExpandAll);
 
 		// Assert
 		folders.GetFolders()
@@ -885,9 +941,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut
-			.HandleChangeHotkeysAsync(viewModel, TestUtils.CreateFileDto())
-			.ConfigureAwait(false);
+		await sut.HandleChangeHotkeysAsync(viewModel, TestUtils.CreateFileDto());
 
 		// Assert
 		viewModel.IsDisposed
@@ -1082,9 +1136,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dbAccess));
 
 		// Act
-		OverwriteHotkeysResult result = await sut
-			.OverwriteFileHotkeysAsync(dto, [])
-			.ConfigureAwait(false);
+		OverwriteHotkeysResult result = await sut.OverwriteFileHotkeysAsync(dto, []);
 
 		// Assert
 		result
@@ -1124,9 +1176,7 @@ internal class EditorViewModelTests
 			.Add(dto);
 
 		// Act
-		OverwriteHotkeysResult result = await sut
-			.OverwriteFileHotkeysAsync(TestUtils.CreateFileDto(), newHotkeys)
-			.ConfigureAwait(false);
+		OverwriteHotkeysResult result = await sut.OverwriteFileHotkeysAsync(TestUtils.CreateFileDto(), newHotkeys);
 
 		// Assert
 		result
@@ -1163,9 +1213,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		OverwriteHotkeysResult result = await sut
-			.OverwriteFileHotkeysAsync(dto, newHotkeys)
-			.ConfigureAwait(false);
+		OverwriteHotkeysResult result = await sut.OverwriteFileHotkeysAsync(dto, newHotkeys);
 
 		// Assert
 		result
@@ -1205,9 +1253,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		OverwriteHotkeysResult result = await sut
-			.OverwriteFileHotkeysAsync(dto, newHotkeys)
-			.ConfigureAwait(false);
+		OverwriteHotkeysResult result = await sut.OverwriteFileHotkeysAsync(dto, newHotkeys);
 
 		// Assert
 		result
@@ -1246,9 +1292,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		bool result = await sut
-			.RenameAsync(dto, newName, updatedDate)
-			.ConfigureAwait(false);
+		bool result = await sut.RenameAsync(dto, newName, updatedDate);
 
 		// Assert
 		result
@@ -1286,9 +1330,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dbAccess));
 
 		// Act
-		bool result = await sut
-			.RenameAsync(toBeRenamed, newName, updatedDate)
-			.ConfigureAwait(false);
+		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedDate);
 
 		// Assert
 		result
@@ -1380,9 +1422,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dbAccess));
 
 		// Act
-		await sut
-			.SetFavorite(dto)
-			.ConfigureAwait(false);
+		await sut.SetFavorite(dto);
 
 		// Assert
 		dto.IsFavorite

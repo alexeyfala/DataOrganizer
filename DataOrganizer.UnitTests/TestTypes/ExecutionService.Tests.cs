@@ -57,14 +57,10 @@ internal class ExecutionServiceTests
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
-		await sut
-			.ExecuteAsync(dto, [], default)
-			.ConfigureAwait(false);
+		await sut.ExecuteAsync(dto, [], default);
 
 		// Act
-		await sut
-			.CloseAsync(dto.Id)
-			.ConfigureAwait(false);
+		await sut.CloseAsync(dto.Id);
 
 		// Assert
 		processUtils
@@ -108,9 +104,7 @@ internal class ExecutionServiceTests
 			TypedParameter.From(changeTracker));
 
 		// Act
-		bool result = await sut
-			.ExecuteAsync(dto, [], isReadOnly)
-			.ConfigureAwait(false);
+		bool result = await sut.ExecuteAsync(dto, [], isReadOnly);
 
 		// Assert
 		result
