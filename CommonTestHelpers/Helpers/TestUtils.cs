@@ -66,7 +66,7 @@ public static class TestUtils
 	/// <summary>
 	/// Creates the required number of random <see cref="ContentsIsValidPair" /> objects.
 	/// </summary>
-	public static IEnumerable<ContentsIsValidPair> CreateContents(int count, bool isValid = true)
+	public static IEnumerable<ContentsIsValidPair> CreateContents(int count, bool isValid)
 	{
 		for (int i = 0; i < count; i++)
 		{
