@@ -525,7 +525,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
 	/// </summary>
 	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Db_Returns_Less_Contents_Then_Required()
+	public async Task EncryptFilesAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents()
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -559,7 +559,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
 	/// </summary>
 	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Less_Contents_Encrypted_Then_Required()
+	public async Task EncryptFilesAsync_Does_Nothing_If_Encrypted_Not_Required_Contents()
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];

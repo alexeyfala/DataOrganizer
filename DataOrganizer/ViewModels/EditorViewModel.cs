@@ -1084,7 +1084,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (contents.Length < filesDto.Length || contents.Any(x => !x.IsValid))
+			if (contents.Length != filesDto.Length || contents.Any(x => !x.IsValid))
 			{
 				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
@@ -1095,7 +1095,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				contents,
 				TextHelper.Utf8Encoding.GetBytes(password))];
 
-			if (encrypted.Length < contents.Length
+			if (encrypted.Length != contents.Length
 				|| encrypted.Any(x => !x.IsValid)
 				|| encrypted.Any(x => x.Id.IsDefault()))
 			{
