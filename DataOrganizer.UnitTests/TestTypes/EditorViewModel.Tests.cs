@@ -640,6 +640,52 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFilesAsync_Does_Nothing_If_Unable_To_Create_Database_Backup()
+	{
+		// Arrange
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase(out _)
+				.Returns(false);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+			TestUtils.CreateFolderDto(),
+			files,
+			AppUtils.CreateRandomString(10));
+
+		// Assert
+		result
+			.Should()
+			.Be(FilesEncryptionResult.UnableToCreateDatabaseBackup);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
 	/// </summary>
 	[Test]
