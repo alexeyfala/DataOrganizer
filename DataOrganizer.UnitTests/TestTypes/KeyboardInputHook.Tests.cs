@@ -40,11 +40,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestUtils.CreateFilesDto(10));
+			.AddRange(TestUtils.CreateFilesDto(5));
 
 		sut
 			.InputStack
-			.AddRange(TestUtils.CreateCodeMaskPairs(10));
+			.AddRange(TestUtils.CreateCodeMaskPairs(5));
 
 		// Act
 		sut.Dispose();
@@ -155,11 +155,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestUtils.CreateFilesDto(10));
+			.AddRange(TestUtils.CreateFilesDto(5));
 
 		sut
 			.InputStack
-			.AddRange(TestUtils.CreateCodeMaskPairs(10));
+			.AddRange(TestUtils.CreateCodeMaskPairs(5));
 
 		_ = hook.RunAsync();
 

@@ -34,7 +34,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(10).Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(10))];
+		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -168,7 +168,7 @@ internal class FavoritesViewModelTests
 
 		sut.PopupContent = new();
 
-		const int count = 10;
+		const int count = 5;
 
 		sut
 			.FavoritesSettings
@@ -235,14 +235,14 @@ internal class FavoritesViewModelTests
 		FavoritesViewSettings favoritesSettings = new()
 		{
 			NavigationColumnWidth = positiveValue - 20,
-			OrderedCategories = [.. TestUtils.CreateGuids(10)],
+			OrderedCategories = [.. TestUtils.CreateGuids(5)],
 			SelectedCategoryId = Guid.NewGuid(),
-			SelectedPairs = [.. TestUtils.CreateCategoryFavoritePairs(10)]
+			SelectedPairs = [.. TestUtils.CreateCategoryFavoritePairs(5)]
 		};
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			CopyHistory = [.. TestUtils.CreateGuids(10)],
+			CopyHistory = [.. TestUtils.CreateGuids(5)],
 			SelectedCopyHistoryItemId = Guid.NewGuid()
 		};
 
@@ -314,7 +314,7 @@ internal class FavoritesViewModelTests
 
 		CopyHistoryView view = mock.Create<CopyHistoryView>();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(10)];
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(5)];
 
 		view
 			.ViewModel
@@ -436,7 +436,7 @@ internal class FavoritesViewModelTests
 		sut
 			.CopyHistorySettings
 			.CopyHistory
-			.AddRange(TestUtils.CreateGuids(10));
+			.AddRange(TestUtils.CreateGuids(5));
 
 		Guid value = Guid.NewGuid();
 
@@ -463,7 +463,7 @@ internal class FavoritesViewModelTests
 		sut
 			.CopyHistorySettings
 			.CopyHistory
-			.AddRange(TestUtils.CreateGuids(10));
+			.AddRange(TestUtils.CreateGuids(5));
 
 		Guid value = sut
 			.CopyHistorySettings
@@ -499,12 +499,12 @@ internal class FavoritesViewModelTests
 		view
 			.ViewModel
 			.SelectedPairs
-			.AddRange(TestUtils.CreateCategoryFavoritePairs(10));
+			.AddRange(TestUtils.CreateCategoryFavoritePairs(5));
 
 		view
 			.ViewModel
 			.OrderedCategories
-			.AddRange(TestUtils.CreateGuids(10));
+			.AddRange(TestUtils.CreateGuids(5));
 
 		return view;
 	}

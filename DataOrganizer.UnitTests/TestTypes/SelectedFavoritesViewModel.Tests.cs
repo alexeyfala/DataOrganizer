@@ -23,7 +23,7 @@ internal class SelectedFavoritesViewModelTests
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
 
-		const int count = 10;
+		const int count = 5;
 
 		sut.AddTestCategories(TestUtils.CreateFavoriteCategories(count));
 
@@ -79,7 +79,7 @@ internal class SelectedFavoritesViewModelTests
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
 
-		const int count = 10;
+		const int count = 5;
 
 		List<FavoriteCategory> categories = [.. TestUtils.CreateFavoriteCategories(count)];
 

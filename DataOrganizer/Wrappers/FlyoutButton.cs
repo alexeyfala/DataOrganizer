@@ -5,9 +5,7 @@ using Avalonia.Layout;
 using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
-using Shared.Common;
 using System;
-using System.Threading.Tasks;
 using FontWeight = Avalonia.Media.FontWeight;
 
 namespace DataOrganizer.Wrappers;
@@ -101,25 +99,25 @@ internal sealed class FlyoutButton : Button
 	}
 
 	/// <inheritdoc />
-	//protected override async void OnPointerEntered(PointerEventArgs e)
-	//{
-	//	base.OnPointerEntered(e);
+	protected override async void OnPointerEntered(PointerEventArgs e)
+	{
+		base.OnPointerEntered(e);
 
-	//	if (Flyout is null)
-	//	{
-	//		return;
-	//	}
+		if (Flyout is null)
+		{
+			return;
+		}
 
-	//	await Task
-	//		.Delay(AppUtils.TipDelay)
-	//		.ConfigureAwait(true);
+		await System.Threading.Tasks.Task
+			.Delay(Shared.Common.AppUtils.TipDelay)
+			.ConfigureAwait(true);
 
-	//	if (!IsPointerOver)
-	//	{
-	//		return;
-	//	}
+		if (!IsPointerOver)
+		{
+			return;
+		}
 
-	//	Flyout.ShowAt(this);
-	//}
+		Flyout.ShowAt(this);
+	}
 	#endregion
 }

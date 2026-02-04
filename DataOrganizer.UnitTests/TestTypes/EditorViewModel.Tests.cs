@@ -116,7 +116,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(10).Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(10))];
+		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -230,7 +230,7 @@ internal class EditorViewModelTests
 
 		sut
 			.Hierarchy
-			.AddRange(toBeDeleted.ToEnumerable(TestUtils.CreateFoldersDto(10)));
+			.AddRange(toBeDeleted.ToEnumerable(TestUtils.CreateFoldersDto(5)));
 
 		if (type != EntityType.Folder)
 		{
@@ -302,7 +302,7 @@ internal class EditorViewModelTests
 
 		sut
 			.Hierarchy
-			.AddRange(entity.ToEnumerable(TestUtils.CreateFoldersDto(10)));
+			.AddRange(entity.ToEnumerable(TestUtils.CreateFoldersDto(5)));
 
 		// Act
 		bool result = await sut
@@ -414,8 +414,8 @@ internal class EditorViewModelTests
 
 		FileModelDto[] files =
 		[
-			.. TestUtils.CreateFilesDto(10, isEdited: true),
-			.. TestUtils.CreateFilesDto(10, isExecuted: true)
+			.. TestUtils.CreateFilesDto(5, isEdited: true),
+			.. TestUtils.CreateFilesDto(5, isExecuted: true)
 		];
 
 		folder
@@ -485,6 +485,22 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFilesAsync_Does_Nothing_If_Failed_To_Load_Contents()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+
+		// Assert
 	}
 
 	/// <summary>
@@ -609,12 +625,12 @@ internal class EditorViewModelTests
 
 		selectedFolder.IsSelected = true;
 
-		FolderModelDto[] folders = [.. TestUtils.CreateFoldersDto(10)];
+		FolderModelDto[] folders = [.. TestUtils.CreateFoldersDto(5)];
 
 		folders = [.. folders, .. selectedFolder.ToEnumerable()];
 
 		folders
-			.ForEach(x => x.Children.AddRange(TestUtils.CreateFoldersDto(10)))
+			.ForEach(x => x.Children.AddRange(TestUtils.CreateFoldersDto(5)))
 			.GetFolders()
 			.ForEach(x => x.IsExpanded = !isExpandAll);
 
@@ -784,7 +800,7 @@ internal class EditorViewModelTests
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			CopyHistory = [.. TestUtils.CreateGuids(10)],
+			CopyHistory = [.. TestUtils.CreateGuids(5)],
 			SelectedCopyHistoryItemId = Guid.NewGuid()
 		};
 

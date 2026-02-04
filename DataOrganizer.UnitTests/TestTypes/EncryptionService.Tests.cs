@@ -1,6 +1,5 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using BCrypt.Net;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
 

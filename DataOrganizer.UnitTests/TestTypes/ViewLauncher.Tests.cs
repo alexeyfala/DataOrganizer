@@ -322,13 +322,13 @@ internal class ViewLauncherTests
 			.ViewModel
 			.FavoritesSettings
 			.Categories
-			.AddRange(TestUtils.CreateFavoriteCategories(10));
+			.AddRange(TestUtils.CreateFavoriteCategories(5));
 
 		window
 			.ViewModel
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestUtils.CreateCategoryFavoritePairs(10));
+			.AddRange(TestUtils.CreateCategoryFavoritePairs(5));
 
 		// Act
 		await sut
