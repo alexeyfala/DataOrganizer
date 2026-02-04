@@ -18,34 +18,35 @@ internal static class VisualExtensions
 	/// </summary>
 	public static IEnumerable<Visual> FindAllVisualParents(this Visual element)
 	{
-		Visual? parent = element.GetVisualParent();
+		Visual? item = element.GetVisualParent();
 
-		while (parent is not null)
+		while (item is not null)
 		{
-			yield return parent;
+			yield return item;
 
-			parent = parent.GetVisualParent();
+			item = item.GetVisualParent();
 		}
 	}
 
 	/// <summary>
 	/// Finds the first logical child of a specific type within the logical tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the logical child to find.</typeparam>
-	/// <param name="parent">The parent logical to start the search from.</param>
-	/// <returns>The first logical child of the specified type, or null if not found.</returns>
 	public static T? FindLogicalChild<T>(this ILogical parent) where T : class
 	{
-		foreach (ILogical child in parent.GetLogicalChildren())
+		Stack<ILogical> stack = new(parent.GetLogicalChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			ILogical item = stack.Pop();
+
+			if (item is T found)
 			{
 				return found;
 			}
 
-			if (FindLogicalChild<T>(child) is { } subChild)
+			foreach (ILogical child in item.GetLogicalChildren())
 			{
-				return subChild;
+				stack.Push(child);
 			}
 		}
 
@@ -57,16 +58,36 @@ internal static class VisualExtensions
 	/// </summary>
 	public static T? FindLogicalParent<T>(this StyledElement? element, Predicate<T> condition) where T : class
 	{
-		StyledElement? current = element;
+		StyledElement? item = element?.Parent;
 
-		while (current is not null)
+		while (item is not null)
 		{
-			if (current is T control && condition(control))
+			if (item is T control && condition(control))
 			{
 				return control;
 			}
 
-			current = current.Parent;
+			item = item.Parent;
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Finds a parent object by type.
+	/// </summary>
+	public static T? FindLogicalParent<T>(this StyledElement? element) where T : class
+	{
+		StyledElement? item = element?.Parent;
+
+		while (item is not null)
+		{
+			if (item is T found)
+			{
+				return found;
+			}
+
+			item = item.Parent;
 		}
 
 		return null;
@@ -75,21 +96,22 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds the first visual child of a specific type within the visual tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the visual child to find.</typeparam>
-	/// <param name="parent">The parent visual to start the search from.</param>
-	/// <returns>The first visual child of the specified type, or null if not found.</returns>
 	public static T? FindVisualChild<T>(this Visual parent) where T : class
 	{
-		foreach (Visual child in parent.GetVisualChildren())
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			Visual item = stack.Pop();
+
+			if (item is T found)
 			{
 				return found;
 			}
 
-			if (FindVisualChild<T>(child) is { } subChild)
+			foreach (Visual child in item.GetVisualChildren())
 			{
-				return subChild;
+				stack.Push(child);
 			}
 		}
 
@@ -99,21 +121,22 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds all visual children of a specific type within the visual tree.
 	/// </summary>
-	/// <typeparam name="T">The type of the visual children to find.</typeparam>
-	/// <param name="parent">The parent visual to start the search from.</param>
-	/// <returns>An enumerable collection of all visual children of the specified type.</returns>
 	public static IEnumerable<T> FindVisualChildren<T>(this Visual parent) where T : class
 	{
-		foreach (Visual child in parent.GetVisualChildren())
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
 		{
-			if (child is T found)
+			Visual item = stack.Pop();
+
+			if (item is T found)
 			{
 				yield return found;
 			}
 
-			foreach (T subChild in FindVisualChildren<T>(child))
+			foreach (Visual child in item.GetVisualChildren())
 			{
-				yield return subChild;
+				stack.Push(child);
 			}
 		}
 	}
@@ -123,16 +146,16 @@ internal static class VisualExtensions
 	/// </summary>
 	public static T? FindVisualParent<T>(this Visual element) where T : class
 	{
-		Visual? parent = element.GetVisualParent();
+		Visual? item = element.GetVisualParent();
 
-		while (parent is not null)
+		while (item is not null)
 		{
-			if (parent is T found)
+			if (item is T found)
 			{
 				return found;
 			}
 
-			parent = parent.GetVisualParent();
+			item = item.GetVisualParent();
 		}
 
 		return null;
@@ -145,7 +168,7 @@ internal static class VisualExtensions
 		this Visual element,
 		CancellationToken token = default)
 	{
-		if (element.FindVisualChild<VirtualizingStackPanel>() is not { } panel)
+		if (FindVisualChild<VirtualizingStackPanel>(element) is not { } panel)
 		{
 			return false;
 		}

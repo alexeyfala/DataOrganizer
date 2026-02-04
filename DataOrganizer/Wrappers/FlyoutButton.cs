@@ -1,12 +1,11 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
-using System.Threading.Tasks;
 using FontWeight = Avalonia.Media.FontWeight;
 
 namespace DataOrganizer.Wrappers;
@@ -34,19 +33,21 @@ internal sealed class FlyoutButton : Button
 		FontWeight = FontWeight.Normal;
 
 		HorizontalContentAlignment = HorizontalAlignment.Left;
+
+		Cursor = Cursor.Default;
 	}
 	#endregion
 
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="Button.ClickEvent" /> handler.
-	/// </summary>
-	private async void Button_Click(object? sender, RoutedEventArgs e)
+	#region Methods
+	/// <inheritdoc />
+	protected override void OnClick()
 	{
-		// The delay is necessary, otherwise the button command will not be executed.
-		await Task
-			.Delay(50)
-			.ConfigureAwait(true);
+		base.OnClick();
+
+		if (Flyout is not null)
+		{
+			return;
+		}
 
 		this
 			.FindLogicalParent<Control>(x => x.ContextFlyout is not null)?
@@ -57,24 +58,6 @@ internal sealed class FlyoutButton : Button
 			.FindLogicalParent<Button>(x => x.Flyout is not null)?
 			.Flyout?
 			.Hide();
-	}
-	#endregion
-
-	#region Methods
-	/// <inheritdoc />
-	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-	{
-		base.OnAttachedToVisualTree(e);
-
-		if (Flyout is not null)
-		{
-			return;
-		}
-
-		AddHandler(
-			ClickEvent,
-			Button_Click,
-			RoutingStrategies.Bubble);
 	}
 
 	/// <inheritdoc />
@@ -103,20 +86,38 @@ internal sealed class FlyoutButton : Button
 			Text = Header
 		});
 
+		//if (Flyout is not null)
+		//{
+		//	stackPanel.Children.Add(new MaterialIcon
+		//	{
+		//		Kind = MaterialIconKind.Play,
+		//		HorizontalAlignment = HorizontalAlignment.Right
+		//	});
+		//}
+
 		Content = stackPanel;
 	}
 
 	/// <inheritdoc />
-	protected override void OnUnloaded(RoutedEventArgs e)
+	protected override async void OnPointerEntered(PointerEventArgs e)
 	{
-		base.OnUnloaded(e);
+		base.OnPointerEntered(e);
 
-		if (Flyout is not null)
+		if (Flyout is null)
 		{
 			return;
 		}
 
-		RemoveHandler(ClickEvent, Button_Click);
+		await System.Threading.Tasks.Task
+			.Delay(Shared.Common.AppUtils.TipDelay)
+			.ConfigureAwait(true);
+
+		if (!IsPointerOver)
+		{
+			return;
+		}
+
+		Flyout.ShowAt(this);
 	}
 	#endregion
 }

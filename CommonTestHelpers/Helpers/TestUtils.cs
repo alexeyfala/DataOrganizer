@@ -64,6 +64,24 @@ public static class TestUtils
 	}
 
 	/// <summary>
+	/// Creates the required number of random <see cref="ContentsIsValidPair" /> objects.
+	/// </summary>
+	public static IEnumerable<ContentsIsValidPair> CreateContents(
+		int count,
+		bool isValid,
+		bool generateId = true)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return new()
+			{
+				Id = generateId ? Guid.NewGuid() : default,
+				IsValid = isValid
+			};
+		}
+	}
+
+	/// <summary>
 	/// Creates the required number of random <see cref="FavoriteCategory" /> objects.
 	/// </summary>
 	public static IEnumerable<FavoriteCategory> CreateFavoriteCategories(int count)
@@ -102,13 +120,14 @@ public static class TestUtils
 	/// </summary>
 	public static FileModelDto CreateFileDto(
 		in Guid id = default,
-		in EntityType entityType = EntityType.File,
+		in bool isEdited = false,
 		in bool isExecuted = false) => new()
 		{
 			CreatedDate = DateTime.Now,
-			EntityType = entityType,
+			EntityType = EntityType.File,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
+			IsEdited = isEdited,
 			IsExecuted = isExecuted,
 			Name = AppUtils.CreateRandomString(10),
 			UpdatedDate = DateTime.Now
@@ -128,11 +147,14 @@ public static class TestUtils
 	/// <summary>
 	/// Creates the required number of random <see cref="FileModelDto" /> objects.
 	/// </summary>
-	public static IEnumerable<FileModelDto> CreateFilesDto(int count, EntityType entityType = EntityType.File)
+	public static IEnumerable<FileModelDto> CreateFilesDto(
+		int count,
+		bool isEdited = false,
+		bool isExecuted = false)
 	{
 		for (int i = 0; i < count; i++)
 		{
-			yield return CreateFileDto(entityType: entityType);
+			yield return CreateFileDto(isEdited: isEdited, isExecuted: isExecuted);
 		}
 	}
 

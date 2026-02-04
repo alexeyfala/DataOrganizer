@@ -1,4 +1,7 @@
-﻿namespace DataOrganizer.Interfaces;
+﻿using Repository.DTO;
+using System.Collections.Generic;
+
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Provides encryption methods.
@@ -15,6 +18,11 @@ public interface IEncryptionService
 	/// Encrypts data.
 	/// </summary>
 	bool Encrypt(byte[] input, byte[] password, out byte[] output);
+
+	/// <summary>
+	/// Encrypts a sequence of contents.
+	/// </summary>
+	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
 	string EnhancedHashPassword(string password);

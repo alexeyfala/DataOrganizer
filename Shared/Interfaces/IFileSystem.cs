@@ -26,7 +26,7 @@ public interface IFileSystem
 
 	#region Methods
 	/// <summary>
-	/// Computes the <see cref="SHA256" /> hash of a file.
+	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of a file.
 	/// </summary>
 	byte[] ComputeSha256Hash(string filePath);
 
@@ -35,9 +35,6 @@ public interface IFileSystem
 
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
-
-	/// <inheritdoc cref="File.Delete(string)" />
-	void DeleteFile(string filePath);
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />
@@ -56,9 +53,6 @@ public interface IFileSystem
 		in int bufferSize = DefaultBufferSize,
 		in int passes = DefaultPassCount);
 
-	/// <inheritdoc cref="Path.GetDirectoryName(string)" />
-	string? GetParentDirectory(string? absolutePath);
-
 	/// <summary>
 	/// Determines whether a file exists in the file system, taking into account the case of the path.
 	/// </summary>
@@ -72,12 +66,6 @@ public interface IFileSystem
 	/// <see href="https://code-maze.com/csharp-how-to-check-if-a-file-is-in-use" />
 	/// </summary>
 	bool IsFileLocked(string filePath);
-
-	/// <inheritdoc cref="File.Open(string, FileMode, FileAccess, FileShare)" />
-	FileStream OpenFile(string filePath, FileMode mode, FileAccess access, FileShare share);
-
-	/// <inheritdoc cref="File.ReadAllBytesAsync(string, CancellationToken)" />
-	Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default);
 
 	/// <summary>
 	/// Serializes an object into a Json string, saving it to a file using <see cref="System.Text.Json" />.

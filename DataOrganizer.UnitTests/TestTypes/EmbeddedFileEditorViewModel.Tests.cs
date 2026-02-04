@@ -76,9 +76,7 @@ internal class EmbeddedFileEditorViewModelTests
 		TextEditor editor = Substitute.For<TextEditor>();
 
 		// Act
-		await sut
-			.EditorLoaded(editor)
-			.ConfigureAwait(true);
+		await sut.EditorLoaded(editor);
 
 		// Assert
 		sut.IsInitialized

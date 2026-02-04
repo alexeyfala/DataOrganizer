@@ -55,9 +55,7 @@ internal class DbAccessTests
 			TypedParameter.From(filesRepository));
 
 		// Act
-		ExplorerModelBase? entity = await sut
-			.AddEntityAsync(parameters)
-			.ConfigureAwait(false);
+		ExplorerModelBase? entity = await sut.AddEntityAsync(parameters);
 
 		// Assert
 		entity
@@ -134,9 +132,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		await sut
-			.ConnectAsync(useMigrations)
-			.ConfigureAwait(false);
+		await sut.ConnectAsync(useMigrations);
 
 		// Assert
 		if (useMigrations)
@@ -182,9 +178,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut
-			.DeleteFileAsync(default)
-			.ConfigureAwait(false);
+		bool result = await sut.DeleteFileAsync(default);
 
 		// Assert
 		result
@@ -225,9 +219,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut
-			.DeleteFolderAsync(default)
-			.ConfigureAwait(false);
+		bool result = await sut.DeleteFolderAsync(default);
 
 		// Assert
 		result
@@ -264,9 +256,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FileModel[] result = await sut
-			.GetAllFilesAsync()
-			.ConfigureAwait(false);
+		FileModel[] result = await sut.GetAllFilesAsync();
 
 		// Assert
 		result
@@ -299,9 +289,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FolderModel[] result = await sut
-			.GetAllFoldersAsync()
-			.ConfigureAwait(false);
+		FolderModel[] result = await sut.GetAllFoldersAsync();
 
 		// Assert
 		result
@@ -347,7 +335,7 @@ internal class DbAccessTests
 			nameof(ExplorerModelBaseDto.Index),
 			nameof(ExplorerModelBaseDto.IsSelected),
 			nameof(ExplorerModelBaseDto.Name),
-			nameof(ExplorerModelBaseDto.UpdatedDate)).ConfigureAwait(false);
+			nameof(ExplorerModelBaseDto.UpdatedDate));
 
 		// Assert
 		entity.CreatedDate
@@ -408,9 +396,10 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut
-			.UpdatePropertyAsync(default(Guid), nameof(ExplorerModelBase.Name), newName)
-			.ConfigureAwait(false);
+		bool result = await sut.UpdatePropertyAsync(
+			default(Guid),
+			nameof(ExplorerModelBase.Name),
+			newName);
 
 		// Assert
 		result

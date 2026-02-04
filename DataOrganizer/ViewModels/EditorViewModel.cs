@@ -37,7 +37,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -174,7 +173,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		// When an object is removed from a collection, its selection is reset and its existence must be checked
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
-		if (oldValue is not null && Hierarchy.ConatainsRecursively(oldValue.Id))
+		if (oldValue is not null && Hierarchy.ConatainsId(oldValue.Id))
 		{
 			_ = UpdateIsSelectedInDatabaseAsync(oldValue);
 		}
@@ -238,7 +237,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
 	public Task EncryptFiles(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return Task.CompletedTask;
@@ -246,7 +244,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		FileModelDto[] filesDto = [.. dto
 			.Children
-			.GetFilesRecursively()];
+			.GetFiles()];
+
+		if (filesDto.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.ThereAreNoFilesToEncrypt);
+
+			return Task.CompletedTask;
+		}
 
 		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
 		{
@@ -259,11 +264,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return Task.CompletedTask;
+		}
+
 		view
 			.ViewModel
 			.DefaultPressedCallback = async () =>
 			{
-				DialogOverlayPopupHost? popupHost = view.FindVisualParent<DialogOverlayPopupHost>();
+				DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
 
 				try
 				{
@@ -575,7 +587,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindVisualChild<TreeView>() is not { } container)
+			|| window.FindLogicalChild<TreeView>() is not { } container)
 		{
 			return;
 		}
@@ -610,7 +622,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
 				|| window.Clipboard is not { } clipboard
-				|| window.FindVisualChild<TreeView>() is not { } container)
+				|| window.FindLogicalChild<TreeView>() is not { } container)
 			{
 				return;
 			}
@@ -1058,7 +1070,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Encrypts files in folder.
 	/// </summary>
-	public async Task EncryptFilesAsync(
+	public async Task<FilesEncryptionResult> EncryptFilesAsync(
 		FolderModelDto dto,
 		FileModelDto[] filesDto,
 		string password,
@@ -1066,37 +1078,36 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		try
 		{
-			// TODO: Make test
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (contents.Length < filesDto.Length || contents.Any(x => !x.IsValid))
+			if (contents.Length != filesDto.Length || contents.Any(x => !x.IsValid))
 			{
 				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
-				return;
+				return FilesEncryptionResult.FailedToLoadContents;
 			}
 
-			ContentsIsValidPair[] encrypted = [.. TryEncryptContents(
+			ContentsIsValidPair[] encrypted = [.. _encryption.EncryptContents(
 				contents,
 				TextHelper.Utf8Encoding.GetBytes(password))];
 
-			if (encrypted.Length < contents.Length
+			if (encrypted.Length != contents.Length
 				|| encrypted.Any(x => !x.IsValid)
 				|| encrypted.Any(x => x.Id.IsDefault()))
 			{
 				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
-				return;
+				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
-			if (!_dbAccess.BackupDatabase(out var backupFilePath))
+			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
 			{
 				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
-				return;
+				return FilesEncryptionResult.UnableToCreateDatabaseBackup;
 			}
 
 			DateTime updatedDate = DateTime.Now;
@@ -1118,7 +1129,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return;
+				return FilesEncryptionResult.FailedToSaveContents;
 			}
 
 			string passwordHash = _encryption.EnhancedHashPassword(password);
@@ -1133,13 +1144,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				DeleteBackupFile();
 
-				return;
+				return FilesEncryptionResult.FailedToSavePasswordHash;
 			}
 
 			ExplorerModelBaseDto[] objects =
 			[
 				.. dto.ToEnumerable(),
-				.. dto.Children.GetFoldersRecursively(),
+				.. dto.Children.GetFolders(),
 				.. filesDto
 			];
 
@@ -1148,6 +1159,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			dto.PasswordHash = passwordHash;
 
 			DeleteBackupFile();
+
+			return FilesEncryptionResult.Encrypted;
 
 			async Task RestoreDatabaseAsync()
 			{
@@ -1171,6 +1184,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return FilesEncryptionResult.ExceptionThrown;
 		}
 	}
 
@@ -1188,7 +1203,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			ResetSelectedObject();
 		}
 
-		FolderModelDto[] folders = [.. Hierarchy.GetFoldersRecursively(x => x.IsExpanded != isExpanded)];
+		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
 
 		if (folders.Length == 0)
 		{
@@ -1325,7 +1340,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return OverwriteHotkeysResult.SameHotkeys;
 		}
 
-		if (temp.Length > 0 && Hierarchy.FindFileRecursively(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
+		if (temp.Length > 0 && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
@@ -1459,7 +1474,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Guid id,
 		CancellationToken token = default)
 	{
-		if (window is null || Hierarchy.FindRecursively(id) is not { } found)
+		if (window is null || Hierarchy.FindById(id) is not { } found)
 		{
 			return;
 		}
@@ -1605,7 +1620,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsRecursively(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
@@ -1621,39 +1636,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
-
-	/// <summary>
-	/// Tried to encrypts contents.
-	/// </summary>
-	private IEnumerable<ContentsIsValidPair> TryEncryptContents(ContentsIsValidPair[] contents, byte[] password)
-	{
-		try
-		{
-			foreach (ContentsIsValidPair item in contents)
-			{
-				if (_encryption.Encrypt(
-					item.Contents,
-					password,
-					out byte[] output))
-				{
-					yield return new()
-					{
-						Contents = output,
-						Id = item.Id,
-						IsValid = true
-					};
-				}
-				else
-				{
-					yield break;
-				}
-			}
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(password);
-		}
-	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.

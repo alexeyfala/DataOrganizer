@@ -121,7 +121,7 @@ public sealed class AppController : IAppController
 			ExplorerModelBaseDto[] hierarchy = await LoadAllHierarchyFromDbAsync(token).ConfigureAwait(true);
 
 			hierarchy
-				.GetFoldersRecursively(x => !string.IsNullOrEmpty(x.PasswordHash))
+				.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
 				.ForEach(folder =>
 				{
 					const EncryptionStatus status = EncryptionStatus.Encrypted;

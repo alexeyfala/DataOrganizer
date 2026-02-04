@@ -29,9 +29,7 @@ public sealed class FileSystem : IFileSystem
 	{
 		using FileStream stream = File.OpenRead(filePath);
 
-		using SHA256 hash = SHA256.Create();
-
-		return hash.ComputeHash(stream);
+		return CryptographicOperations.HashData(HashAlgorithmName.SHA256, stream);
 	}
 
 	/// <inheritdoc />
@@ -44,9 +42,6 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void DeleteFile(string filePath) => File.Delete(filePath);
-
-	/// <inheritdoc />
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
@@ -54,7 +49,7 @@ public sealed class FileSystem : IFileSystem
 	{
 		EraseFile(filePath, bufferSize, passes);
 
-		DeleteFile(filePath);
+		File.Delete(filePath);
 	}
 
 	/// <inheritdoc />
@@ -85,9 +80,6 @@ public sealed class FileSystem : IFileSystem
 			}
 		}
 	}
-
-	/// <inheritdoc />
-	public string? GetParentDirectory(string? absolutePath) => Path.GetDirectoryName(absolutePath);
 
 	/// <inheritdoc />
 	public bool IsFileExists([NotNullWhen(true)] string? filePath)
@@ -122,24 +114,6 @@ public sealed class FileSystem : IFileSystem
 		}
 
 		return false;
-	}
-
-	/// <inheritdoc />
-	public FileStream OpenFile(
-		string filePath,
-		FileMode mode,
-		FileAccess access,
-		FileShare share)
-	{
-		return File.Open(filePath, mode, access, share);
-	}
-
-	/// <inheritdoc />
-	public Task<byte[]> ReadAllBytesAsync(
-		string filePath,
-		CancellationToken token = default)
-	{
-		return File.ReadAllBytesAsync(filePath, token);
 	}
 
 	/// <inheritdoc />
