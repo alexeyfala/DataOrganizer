@@ -98,26 +98,26 @@ internal sealed class FlyoutButton : Button
 		Content = stackPanel;
 	}
 
-	/// <inheritdoc />
-	protected override async void OnPointerEntered(PointerEventArgs e)
-	{
-		base.OnPointerEntered(e);
+	///// <inheritdoc />
+	//protected override async void OnPointerEntered(PointerEventArgs e)
+	//{
+	//	base.OnPointerEntered(e);
 
-		if (Flyout is null)
-		{
-			return;
-		}
+	//	if (Flyout is null)
+	//	{
+	//		return;
+	//	}
 
-		await System.Threading.Tasks.Task
-			.Delay(Shared.Common.AppUtils.TipDelay)
-			.ConfigureAwait(true);
+	//	await System.Threading.Tasks.Task
+	//		.Delay(Shared.Common.AppUtils.TipDelay)
+	//		.ConfigureAwait(true);
 
-		if (!IsPointerOver)
-		{
-			return;
-		}
+	//	if (!IsPointerOver)
+	//	{
+	//		return;
+	//	}
 
-		Flyout.ShowAt(this);
-	}
+	//	Flyout.ShowAt(this);
+	//}
 	#endregion
 }
