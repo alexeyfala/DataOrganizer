@@ -451,4 +451,7 @@
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Incorrect password</value>
   </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Change password</value>
+  </data>
 </root>

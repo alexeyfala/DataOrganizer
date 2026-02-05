@@ -471,4 +471,7 @@
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Неверный пароль</value>
   </data>
+  <data name="ChangePassword" xml:space="preserve">
+    <value>Изменить пароль</value>
+  </data>
 </root>

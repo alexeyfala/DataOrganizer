@@ -486,6 +486,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Changes password for folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
+	private void ChangePassword(FolderModelDto? dto)
+	{
+		// TODO: Implement
+	}
+
+	/// <summary>
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
@@ -1654,6 +1663,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return dto is not null
 			&& !dto.IsEdited
 			&& !dto.IsExecuted;
+	}
+
+	/// <summary>
+	/// Validates <see cref="ChangePasswordCommand" />.
+	/// </summary>
+	private bool CanExecuteChangePassword(FolderModelDto? dto)
+	{
+		return IsNotReadOnly()
+			&& dto is not null
+			&& dto.EncryptionStatus == EncryptionStatus.Encrypted;
 	}
 
 	/// <summary>

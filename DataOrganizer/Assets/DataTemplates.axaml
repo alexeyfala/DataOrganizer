@@ -108,6 +108,12 @@
 											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.DecryptFiles}"
 											Icon="LockOffOutline" />
+
+										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ChangePasswordCommand}"
+											CommandParameter="{Binding}"
+											Header="{x:Static prop:Strings.ChangePassword}"
+											Icon="LockReset" />
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>
