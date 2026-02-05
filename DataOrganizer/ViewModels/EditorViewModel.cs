@@ -562,9 +562,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Decrypts file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFiles))]
-	private void DecryptFiles(FolderModelDto? dto)
+	private Task DecryptFiles(FolderModelDto? dto)
 	{
-		// TODO: Implement
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return TakeCryptPasswordAsync(dto, CryptoAction.Decrypt);
 	}
 
 	/// <summary>
@@ -1084,7 +1089,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.. filesDto
 			];
 
-			objects.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+			EncryptionStatus encryptionStatus = action switch
+			{
+				CryptoAction.Encrypt => EncryptionStatus.Encrypted,
+				CryptoAction.Decrypt => EncryptionStatus.None,
+				_ => throw new NotImplementedException()
+			};
+
+			objects.ForEach(x => x.EncryptionStatus = encryptionStatus);
 
 			dto.PasswordHash = passwordHash;
 
