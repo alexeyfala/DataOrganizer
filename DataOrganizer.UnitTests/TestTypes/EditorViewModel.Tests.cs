@@ -826,7 +826,7 @@ internal class EditorViewModelTests
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.Encrypted);
+			.Be(FilesEncryptionResult.Done);
 
 		folder.EncryptionStatus
 			.Should()

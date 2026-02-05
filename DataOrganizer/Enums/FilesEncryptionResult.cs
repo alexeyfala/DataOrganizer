@@ -2,11 +2,11 @@
 
 public enum FilesEncryptionResult : byte
 {
-	Encrypted,
 	FailedToLoadContents,
 	UnableToCreateDatabaseBackup,
 	FailedToEncryptContents,
 	FailedToSaveContents,
 	FailedToSavePasswordHash,
-	ExceptionThrown
+	ExceptionThrown,
+	Done
 }

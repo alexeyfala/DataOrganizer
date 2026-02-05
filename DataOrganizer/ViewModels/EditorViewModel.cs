@@ -1107,7 +1107,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			DeleteBackupFile();
 
-			return FilesEncryptionResult.Encrypted;
+			string doneAction = action switch
+			{
+				CryptoAction.Encrypt => "encrypted",
+				CryptoAction.Decrypt => "decrypted",
+				_ => throw new NotImplementedException()
+			};
+
+			_logger.LogInformation($"{filesDto.Length} files {doneAction} in folder:{dto.GetPropertyValues(
+				true,
+				nameof(FolderModelDto.Id),
+				nameof(FolderModelDto.Name))}");
+
+			return FilesEncryptionResult.Done;
 
 			async Task RestoreDatabaseAsync()
 			{
