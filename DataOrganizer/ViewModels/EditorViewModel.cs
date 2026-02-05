@@ -1067,7 +1067,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToSaveContents;
 			}
 
-			string passwordHash = _encryption.EnhancedHashPassword(password);
+			string? passwordHash = action switch
+			{
+				CryptoAction.Encrypt => _encryption.EnhancedHashPassword(password),
+				CryptoAction.Decrypt => null,
+				_ => throw new NotImplementedException()
+			};
 
 			if (!await _dbAccess.UpdatePropertyAsync(
 				id: dto.Id,
@@ -1089,14 +1094,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.. filesDto
 			];
 
-			EncryptionStatus encryptionStatus = action switch
+			EncryptionStatus newStatus = action switch
 			{
 				CryptoAction.Encrypt => EncryptionStatus.Encrypted,
 				CryptoAction.Decrypt => EncryptionStatus.None,
 				_ => throw new NotImplementedException()
 			};
 
-			objects.ForEach(x => x.EncryptionStatus = encryptionStatus);
+			objects.ForEach(x => x.EncryptionStatus = newStatus);
 
 			dto.PasswordHash = passwordHash;
 

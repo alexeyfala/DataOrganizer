@@ -756,6 +756,13 @@ internal class EditorViewModelTests
 
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
+		EncryptionStatus newStatus = action switch
+		{
+			CryptoAction.Encrypt => EncryptionStatus.Encrypted,
+			CryptoAction.Decrypt => EncryptionStatus.None,
+			_ => throw new NotImplementedException()
+		};
+
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -789,9 +796,16 @@ internal class EditorViewModelTests
 				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
 
+			string? passwordHash = action switch
+			{
+				CryptoAction.Encrypt => AppUtils.CreateRandomString(10),
+				CryptoAction.Decrypt => null,
+				_ => throw new NotImplementedException()
+			};
+
 			encryption
 				.EnhancedHashPassword(Arg.Any<string>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(passwordHash);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -816,15 +830,26 @@ internal class EditorViewModelTests
 
 		folder.EncryptionStatus
 			.Should()
-			.Be(EncryptionStatus.Encrypted);
+			.Be(newStatus);
 
 		files
 			.Should()
-			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => x.EncryptionStatus == newStatus);
 
-		folder.PasswordHash
-			.Should()
-			.NotBeNullOrEmpty();
+		switch (action)
+		{
+			case CryptoAction.Encrypt:
+				folder.PasswordHash
+					.Should()
+					.NotBeNullOrEmpty();
+				break;
+
+			case CryptoAction.Decrypt:
+				folder.PasswordHash
+					.Should()
+					.BeNull();
+				break;
+		}
 
 		fileSystem
 			.Received()
