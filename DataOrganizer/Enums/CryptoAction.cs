@@ -1,7 +1,7 @@
 ﻿namespace DataOrganizer.Enums;
 
 /// <summary>
-/// Cryptography action.
+/// Cryptography operation action.
 /// </summary>
 public enum CryptoAction : byte
 {

@@ -605,7 +605,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return RequestPasswordEncryptDecryptFilesAsync(dto, CryptoAction.Encrypt);
+		return TakeCryptPasswordAsync(dto, CryptoAction.Encrypt);
 	}
 
 	/// <summary>
@@ -996,7 +996,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Encrypts files in folder.
+	/// Encrypts/decrypts files in folder.
 	/// </summary>
 	public async Task<FilesEncryptionResult> EncryptFilesAsync(
 		FolderModelDto dto,
@@ -1375,10 +1375,90 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return true;
 	}
 
+	/// <inheritdoc />
+	public override void SaveCopyHistory()
+	{
+		if (RightSideSheetContent is not CopyHistoryView view)
+		{
+			return;
+		}
+
+		SaveCopyHistory(view.ViewModel);
+	}
+
 	/// <summary>
-	/// Requests password for encryption/decryption files in folder.
+	/// Sets the <see cref="ExplorerModelBaseDto.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
 	/// </summary>
-	public Task RequestPasswordEncryptDecryptFilesAsync(
+	public void SetSelectedObject(ExplorerModelBaseDto selected)
+	{
+		selected.IsSelected = true;
+
+		SelectedObject = selected;
+	}
+
+	/// <inheritdoc />
+	public override async Task ShowInEditorAsync(
+		Window? window,
+		Guid id,
+		CancellationToken token = default)
+	{
+		if (window is null || Hierarchy.FindById(id) is not { } found)
+		{
+			return;
+		}
+
+		FolderModelDto[] parents = [.. found
+			.GetParents()
+			.ForEach(x => x.IsExpanded = true)
+			.Reverse()];
+
+		TreeView? treeView = null;
+
+		Func<bool> condition = () =>
+		{
+			treeView = window.FindVisualChild<TreeView>();
+
+			return treeView is not null;
+		};
+
+		const int delay = 200;
+
+		if (!await condition
+			.WaitAsync(delay, 10, token)
+			.ConfigureAwait(true) || treeView is null)
+		{
+			return;
+		}
+
+		treeView.ScrollIntoView(found);
+
+		if (treeView.FindVisualChild<ScrollViewer>() is { } scrollViewer)
+		{
+			scrollViewer.Offset = new(
+				int.MaxValue,
+				scrollViewer.Offset.Y);
+		}
+
+		SetSelectedObject(found);
+
+		if (FindLastContainer(treeView, parents)?.ContainerFromItem(found) is not TemplatedControl item)
+		{
+			return;
+		}
+
+		await Task
+			.Delay(delay, token)
+			.ConfigureAwait(true);
+
+		await BrushExtensions.ApplyLimeGreenColorAnimation(
+			() => item.Background as Brush,
+			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Takes a password for encryption/decryption files in folder.
+	/// </summary>
+	public Task TakeCryptPasswordAsync(
 		FolderModelDto dto,
 		CryptoAction action,
 		CancellationToken token = default)
@@ -1462,86 +1542,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			};
 
 		return DialogHost.Show(view);
-	}
-
-	/// <inheritdoc />
-	public override void SaveCopyHistory()
-	{
-		if (RightSideSheetContent is not CopyHistoryView view)
-		{
-			return;
-		}
-
-		SaveCopyHistory(view.ViewModel);
-	}
-
-	/// <summary>
-	/// Sets the <see cref="ExplorerModelBaseDto.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
-	/// </summary>
-	public void SetSelectedObject(ExplorerModelBaseDto selected)
-	{
-		selected.IsSelected = true;
-
-		SelectedObject = selected;
-	}
-
-	/// <inheritdoc />
-	public override async Task ShowInEditorAsync(
-		Window? window,
-		Guid id,
-		CancellationToken token = default)
-	{
-		if (window is null || Hierarchy.FindById(id) is not { } found)
-		{
-			return;
-		}
-
-		FolderModelDto[] parents = [.. found
-			.GetParents()
-			.ForEach(x => x.IsExpanded = true)
-			.Reverse()];
-
-		TreeView? treeView = null;
-
-		Func<bool> condition = () =>
-		{
-			treeView = window.FindVisualChild<TreeView>();
-
-			return treeView is not null;
-		};
-
-		const int delay = 200;
-
-		if (!await condition
-			.WaitAsync(delay, 10, token)
-			.ConfigureAwait(true) || treeView is null)
-		{
-			return;
-		}
-
-		treeView.ScrollIntoView(found);
-
-		if (treeView.FindVisualChild<ScrollViewer>() is { } scrollViewer)
-		{
-			scrollViewer.Offset = new(
-				int.MaxValue,
-				scrollViewer.Offset.Y);
-		}
-
-		SetSelectedObject(found);
-
-		if (FindLastContainer(treeView, parents)?.ContainerFromItem(found) is not TemplatedControl item)
-		{
-			return;
-		}
-
-		await Task
-			.Delay(delay, token)
-			.ConfigureAwait(true);
-
-		await BrushExtensions.ApplyLimeGreenColorAnimation(
-			() => item.Background as Brush,
-			token).ConfigureAwait(false);
 	}
 	#endregion
 
