@@ -445,4 +445,10 @@
   <data name="ThereAreNoFilesToEncrypt" xml:space="preserve">
     <value>There are no files to encrypt</value>
   </data>
+  <data name="ThereAreNoFilesToDecrypt" xml:space="preserve">
+    <value>There are no files to decrypt</value>
+  </data>
+  <data name="IncorrectPassword" xml:space="preserve">
+    <value>Incorrect password</value>
+  </data>
 </root>

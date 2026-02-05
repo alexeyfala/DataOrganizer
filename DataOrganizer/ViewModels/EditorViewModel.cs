@@ -233,90 +233,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.AddTab(dto);
 	}
 
-	/// <inheritdoc cref="EncryptFilesAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
-	public Task EncryptFiles(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		FileModelDto[] filesDto = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (filesDto.Length == 0)
-		{
-			ShowInfoSnackbar(Strings.ThereAreNoFilesToEncrypt);
-
-			return Task.CompletedTask;
-		}
-
-		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
-		{
-			ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
-
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return Task.CompletedTask;
-		}
-
-		view
-			.ViewModel
-			.DefaultPressedCallback = async () =>
-			{
-				DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
-
-				try
-				{
-					DialogHost.Close(null);
-
-					if (view
-						.ViewModel
-						.Password is not { } password)
-					{
-						return;
-					}
-
-					try
-					{
-						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-						await condition
-							.WaitAsync(300, 10)
-							.ConfigureAwait(false);
-
-						IsActionInProgress = true;
-
-						await EncryptFilesAsync(
-							dto,
-							filesDto,
-							password).ConfigureAwait(false);
-					}
-					finally
-					{
-						IsActionInProgress = false;
-					}
-				}
-				finally
-				{
-					popupHost = null;
-				}
-			};
-
-		return DialogHost.Show(view);
-	}
-
 	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
@@ -646,9 +562,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Decrypts file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFiles))]
-	private void DecryptFiles(FolderModelDto? dto)
+	private Task DecryptFiles(FolderModelDto? dto)
 	{
-		// TODO: Implement
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return TakeCryptPasswordAsync(dto, CryptoAction.Decrypt);
 	}
 
 	/// <summary>
@@ -678,6 +599,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		};
 
 		return DialogHost.Show(view);
+	}
+
+	/// <inheritdoc cref="EncryptDecryptAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
+	private Task EncryptFiles(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return TakeCryptPasswordAsync(dto, CryptoAction.Encrypt);
 	}
 
 	/// <summary>
@@ -1068,12 +1001,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Encrypts files in folder.
+	/// Encrypts/decrypts files in folder.
 	/// </summary>
-	public async Task<FilesEncryptionResult> EncryptFilesAsync(
+	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
 		FolderModelDto dto,
 		FileModelDto[] filesDto,
 		string password,
+		CryptoAction action,
 		CancellationToken token = default)
 	{
 		try
@@ -1090,13 +1024,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToLoadContents;
 			}
 
-			ContentsIsValidPair[] encrypted = [.. _encryption.EncryptContents(
+			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
 				contents,
-				TextHelper.Utf8Encoding.GetBytes(password))];
+				TextHelper.Utf8Encoding.GetBytes(password),
+				action)];
 
-			if (encrypted.Length != contents.Length
-				|| encrypted.Any(x => !x.IsValid)
-				|| encrypted.Any(x => x.Id.IsDefault()))
+			if (result.Length != contents.Length
+				|| result.Any(x => !x.IsValid)
+				|| result.Any(x => x.Id.IsDefault()))
 			{
 				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
@@ -1112,7 +1047,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
+			Dictionary<Guid, PropertyNameValuePair[]> relations = result.ToDictionary(x => x.Id, x =>
 			{
 				return new PropertyNameValuePair[]
 				{
@@ -1132,7 +1067,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToSaveContents;
 			}
 
-			string passwordHash = _encryption.EnhancedHashPassword(password);
+			string? passwordHash = action switch
+			{
+				CryptoAction.Encrypt => _encryption.EnhancedHashPassword(password),
+				CryptoAction.Decrypt => null,
+				_ => throw new NotImplementedException()
+			};
 
 			if (!await _dbAccess.UpdatePropertyAsync(
 				id: dto.Id,
@@ -1154,7 +1094,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.. filesDto
 			];
 
-			objects.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+			EncryptionStatus newStatus = action switch
+			{
+				CryptoAction.Encrypt => EncryptionStatus.Encrypted,
+				CryptoAction.Decrypt => EncryptionStatus.None,
+				_ => throw new NotImplementedException()
+			};
+
+			objects.ForEach(x => x.EncryptionStatus = newStatus);
 
 			dto.PasswordHash = passwordHash;
 
@@ -1266,6 +1213,73 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
+	}
+
+	/// <summary>
+	/// Handles password input for encryption/decryption files in folder.
+	/// </summary>
+	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
+		PasswordBox view,
+		FolderModelDto dto,
+		FileModelDto[] filesDto,
+		CryptoAction action,
+		CancellationToken token = default)
+	{
+		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
+
+		try
+		{
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				DialogHost.Close(null);
+			}
+
+			if (view
+				.ViewModel
+				.Password is not { } password)
+			{
+				return PasswordMatchResult.NotEntered;
+			}
+
+			try
+			{
+				Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
+
+				await condition
+					.WaitAsync(300, 10, token)
+					.ConfigureAwait(false);
+
+				IsActionInProgress = true;
+
+				if (action == CryptoAction.Decrypt
+					&& dto.PasswordHash is { } passwordHash
+					&& !_encryption.EnhancedVerify(password, passwordHash))
+				{
+					ShowErrorSnackbar(Strings.IncorrectPassword);
+
+					return PasswordMatchResult.DoesNotMatch;
+				}
+
+				await EncryptDecryptAsync(
+					dto,
+					filesDto,
+					password,
+					action,
+					token).ConfigureAwait(false);
+
+				return PasswordMatchResult.Matches;
+			}
+			finally
+			{
+				IsActionInProgress = false;
+			}
+		}
+		finally
+		{
+			popupHost = null;
+		}
 	}
 
 	/// <summary>
@@ -1525,6 +1539,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await BrushExtensions.ApplyLimeGreenColorAnimation(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Takes a password for encryption/decryption files in folder.
+	/// </summary>
+	public Task TakeCryptPasswordAsync(
+		FolderModelDto dto,
+		CryptoAction action,
+		CancellationToken token = default)
+	{
+		FileModelDto[] filesDto = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (filesDto.Length == 0)
+		{
+			ShowInfoSnackbar(action switch
+			{
+				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
+				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
+				_ => throw new NotImplementedException()
+			});
+
+			return Task.CompletedTask;
+		}
+
+		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
+
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return Task.CompletedTask;
+		}
+
+		view
+			.ViewModel
+			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, dto, filesDto, action);
+
+		return DialogHost.Show(view);
 	}
 	#endregion
 

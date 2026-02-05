@@ -610,6 +610,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incorrect password.
+        /// </summary>
+        public static string IncorrectPassword {
+            get {
+                return ResourceManager.GetString("IncorrectPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key.
         /// </summary>
         public static string Key {
@@ -1002,6 +1011,15 @@ namespace Shared.Properties {
         public static string Theme {
             get {
                 return ResourceManager.GetString("Theme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There are no files to decrypt.
+        /// </summary>
+        public static string ThereAreNoFilesToDecrypt {
+            get {
+                return ResourceManager.GetString("ThereAreNoFilesToDecrypt", resourceCulture);
             }
         }
         

@@ -465,4 +465,10 @@
   <data name="ThereAreNoFilesToEncrypt" xml:space="preserve">
     <value>Отсутствуют файлы для шифрования</value>
   </data>
+  <data name="ThereAreNoFilesToDecrypt" xml:space="preserve">
+    <value>Отсутствуют файлы для расшифровывания</value>
+  </data>
+  <data name="IncorrectPassword" xml:space="preserve">
+    <value>Неверный пароль</value>
+  </data>
 </root>
