@@ -1662,7 +1662,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
 	/// </summary>
-	private bool CanExecuteDelete() => IsSelectedObjectNotNull() && IsNotReadOnly();
+	private bool CanExecuteDelete(ExplorerModelBaseDto? dto)
+	{
+		return IsNotReadOnly() && (dto is not null || IsSelectedObjectNotNull());
+	}
 
 	/// <summary>
 	/// Validates <see cref="EncryptFilesCommand" />.
@@ -1678,7 +1681,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.
 	/// </summary>
-	private bool CanExecuteRename() => IsSelectedObjectNotNull() && IsNotReadOnly();
+	private bool CanExecuteRename(ExplorerModelBaseDto? dto)
+	{
+		return IsNotReadOnly() && (dto is not null || IsSelectedObjectNotNull());
+	}
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
