@@ -1216,6 +1216,66 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Handles password input for encryption/decryption files in folder.
+	/// </summary>
+	public async Task HandlePasswordInputAsync(
+		PasswordBox view,
+		FolderModelDto dto,
+		FileModelDto[] filesDto,
+		CryptoAction action,
+		CancellationToken token = default)
+	{
+		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
+
+		try
+		{
+			DialogHost.Close(null);
+
+			if (view
+				.ViewModel
+				.Password is not { } password)
+			{
+				return;
+			}
+
+			try
+			{
+				Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
+
+				await condition
+					.WaitAsync(300, 10, token)
+					.ConfigureAwait(false);
+
+				IsActionInProgress = true;
+
+				if (action == CryptoAction.Decrypt
+					&& dto.PasswordHash is { } passwordHash
+					&& !_encryption.EnhancedVerify(password, passwordHash))
+				{
+					ShowErrorSnackbar(Strings.IncorrectPassword);
+
+					return;
+				}
+
+				await EncryptDecryptAsync(
+					dto,
+					filesDto,
+					password,
+					action,
+					token).ConfigureAwait(false);
+			}
+			finally
+			{
+				IsActionInProgress = false;
+			}
+		}
+		finally
+		{
+			popupHost = null;
+		}
+	}
+
+	/// <summary>
 	/// Performs initialization.
 	/// </summary>
 	public void Initialize(
@@ -1518,57 +1578,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = async () =>
-			{
-				DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
-
-				try
-				{
-					DialogHost.Close(null);
-
-					if (view
-						.ViewModel
-						.Password is not { } password)
-					{
-						return;
-					}
-
-					try
-					{
-						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-						await condition
-							.WaitAsync(300, 10)
-							.ConfigureAwait(false);
-
-						IsActionInProgress = true;
-
-						if (action == CryptoAction.Decrypt
-							&& dto.PasswordHash is { } passwordHash
-							&& !_encryption.EnhancedVerify(password, passwordHash))
-						{
-							ShowErrorSnackbar(Strings.IncorrectPassword);
-
-							return;
-						}
-
-						await EncryptDecryptAsync(
-							dto,
-							filesDto,
-							password,
-							action,
-							token).ConfigureAwait(false);
-					}
-					finally
-					{
-						IsActionInProgress = false;
-					}
-				}
-				finally
-				{
-					popupHost = null;
-				}
-			};
+			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, dto, filesDto, action);
 
 		return DialogHost.Show(view);
 	}
