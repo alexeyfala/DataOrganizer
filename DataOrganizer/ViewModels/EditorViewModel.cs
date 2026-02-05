@@ -1543,6 +1543,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 						IsActionInProgress = true;
 
+						if (action == CryptoAction.Decrypt
+							&& dto.PasswordHash is { } passwordHash
+							&& !_encryption.EnhancedVerify(password, passwordHash))
+						{
+							ShowErrorSnackbar(Strings.IncorrectPassword);
+
+							return;
+						}
+
 						await EncryptDecryptAsync(
 							dto,
 							filesDto,

@@ -268,7 +268,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 					break;
 
 				case LogEventLevel.Error:
-					_logger.LogError(message);
+					_logger.LogError(message, isAssertDebug: false);
 					break;
 
 				default:
