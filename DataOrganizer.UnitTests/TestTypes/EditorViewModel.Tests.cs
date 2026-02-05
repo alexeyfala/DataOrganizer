@@ -357,7 +357,7 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.DisplayExecutedFiles" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public void DisplayExecutedFiles_Displays_ExecutedFilesView_In_Right_Side_Sheet()
 	{
 		// Arrange
@@ -1305,7 +1305,7 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.NavigationColumnWidth" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public void NavigationColumnWidth_Should_Be_Less_Than_The_Window_Width()
 	{
 		// Arrange
