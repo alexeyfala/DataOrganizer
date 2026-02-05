@@ -1128,6 +1128,36 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
 	/// </summary>
 	[AvaloniaTest]
+	public async Task HandlePasswordInputAsync_Allows_Action()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = AppUtils.CreateRandomString(10);
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			TestUtils.CreateFolderDto(),
+			[],
+			CryptoAction.Encrypt);
+
+		// Assert
+		result
+			.Should()
+			.Be(PasswordMatchResult.Matches);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
+	/// </summary>
+	[AvaloniaTest]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Hash_Does_Not_Match()
 	{
 		// Arrange
