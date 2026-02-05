@@ -1006,6 +1006,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There are no files to decrypt.
+        /// </summary>
+        public static string ThereAreNoFilesToDecrypt {
+            get {
+                return ResourceManager.GetString("ThereAreNoFilesToDecrypt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There are no files to encrypt.
         /// </summary>
         public static string ThereAreNoFilesToEncrypt {

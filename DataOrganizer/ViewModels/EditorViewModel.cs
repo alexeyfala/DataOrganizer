@@ -1081,7 +1081,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (filesDto.Length == 0)
 		{
-			ShowInfoSnackbar(Strings.ThereAreNoFilesToEncrypt);
+			ShowInfoSnackbar(action switch
+			{
+				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
+				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
+				_ => throw new NotImplementedException()
+			});
 
 			return Task.CompletedTask;
 		}
