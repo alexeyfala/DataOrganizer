@@ -1127,33 +1127,74 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Hash_Does_Not_Match()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = AppUtils.CreateRandomString(10);
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			folder,
+			[],
+			CryptoAction.Decrypt);
 
 		// Assert
+		result
+			.Should()
+			.Be(PasswordMatchResult.DoesNotMatch);
 	}
 
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Not_Entered()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = null;
+
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			TestUtils.CreateFolderDto(),
+			[],
+			default);
 
 		// Assert
+		result
+			.Should()
+			.Be(PasswordMatchResult.NotEntered);
 	}
 
 	/// <summary>

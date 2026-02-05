@@ -1229,7 +1229,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		try
 		{
-			DialogHost.Close(null);
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				DialogHost.Close(null);
+			}
 
 			if (view
 				.ViewModel
