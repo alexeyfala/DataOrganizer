@@ -1606,7 +1606,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, dto, filesDto, action);
+			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, dto, filesDto, action, token);
 
 		return DialogHost.Show(view);
 	}
