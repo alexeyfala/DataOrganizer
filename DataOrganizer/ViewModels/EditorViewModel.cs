@@ -1218,7 +1218,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
-	public async Task HandlePasswordInputAsync(
+	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		FolderModelDto dto,
 		FileModelDto[] filesDto,
@@ -1235,7 +1235,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.ViewModel
 				.Password is not { } password)
 			{
-				return;
+				return PasswordMatchResult.NotProvided;
 			}
 
 			try
@@ -1254,7 +1254,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				{
 					ShowErrorSnackbar(Strings.IncorrectPassword);
 
-					return;
+					return PasswordMatchResult.DoesNotMatch;
 				}
 
 				await EncryptDecryptAsync(
@@ -1263,6 +1263,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					password,
 					action,
 					token).ConfigureAwait(false);
+
+				return PasswordMatchResult.Matches;
 			}
 			finally
 			{
