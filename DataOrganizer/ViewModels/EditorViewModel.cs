@@ -1019,13 +1019,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToLoadContents;
 			}
 
-			ContentsIsValidPair[] encrypted = [.. _encryption.EncryptContents(
+			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
 				contents,
-				TextHelper.Utf8Encoding.GetBytes(password))];
+				TextHelper.Utf8Encoding.GetBytes(password),
+				action)];
 
-			if (encrypted.Length != contents.Length
-				|| encrypted.Any(x => !x.IsValid)
-				|| encrypted.Any(x => x.Id.IsDefault()))
+			if (result.Length != contents.Length
+				|| result.Any(x => !x.IsValid)
+				|| result.Any(x => x.Id.IsDefault()))
 			{
 				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
@@ -1041,7 +1042,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, PropertyNameValuePair[]> relations = encrypted.ToDictionary(x => x.Id, x =>
+			Dictionary<Guid, PropertyNameValuePair[]> relations = result.ToDictionary(x => x.Id, x =>
 			{
 				return new PropertyNameValuePair[]
 				{

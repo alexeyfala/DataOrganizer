@@ -491,7 +491,7 @@ internal class EditorViewModelTests
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: false, generateId: false));
 
 			builder.RegisterInstance(dbAccess);
@@ -535,7 +535,7 @@ internal class EditorViewModelTests
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length - 2, isValid: true));
 
 			builder.RegisterInstance(dbAccess);
@@ -594,7 +594,7 @@ internal class EditorViewModelTests
 				.Returns(false);
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
 
 			builder.RegisterInstance(dbAccess);
@@ -663,7 +663,7 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
 
 			builder.RegisterInstance(dbAccess);
@@ -721,7 +721,7 @@ internal class EditorViewModelTests
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
 
 			builder.RegisterInstance(dbAccess);
@@ -786,7 +786,7 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
 
 			encryption
