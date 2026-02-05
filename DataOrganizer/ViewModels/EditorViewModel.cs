@@ -596,7 +596,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return DialogHost.Show(view);
 	}
 
-	/// <inheritdoc cref="EncryptFilesAsync" />
+	/// <inheritdoc cref="EncryptDecryptAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
 	private Task EncryptFiles(FolderModelDto? dto)
 	{
@@ -998,10 +998,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
-	public async Task<FilesEncryptionResult> EncryptFilesAsync(
+	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
 		FolderModelDto dto,
 		FileModelDto[] filesDto,
 		string password,
+		CryptoAction action,
 		CancellationToken token = default)
 	{
 		try
@@ -1524,10 +1525,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 						IsActionInProgress = true;
 
-						await EncryptFilesAsync(
+						await EncryptDecryptAsync(
 							dto,
 							filesDto,
 							password,
+							action,
 							token).ConfigureAwait(false);
 					}
 					finally

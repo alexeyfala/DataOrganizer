@@ -399,10 +399,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Db_Returns_Invalid_Contents()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -421,10 +422,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -433,10 +435,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -455,10 +458,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -467,10 +471,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -497,10 +502,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -509,10 +515,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Encrypted_Not_Required_Contents()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -539,10 +546,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -551,10 +559,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Failed_To_Save_Contents()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -598,10 +607,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -618,10 +628,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -665,10 +676,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -685,10 +697,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Does_Nothing_If_Unable_To_Create_Database_Backup()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
@@ -719,10 +732,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			TestUtils.CreateFolderDto(),
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
@@ -731,10 +745,11 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFilesAsync" />.
+	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
 	/// </summary>
-	[Test]
-	public async Task EncryptFilesAsync_Successfully_Encrypts_Files()
+	[TestCase(CryptoAction.Encrypt)]
+	[TestCase(CryptoAction.Decrypt)]
+	public async Task EncryptDecryptAsync_Successfully_Encrypts_Files(CryptoAction action)
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -788,10 +803,11 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptFilesAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
 			folder,
 			files,
-			AppUtils.CreateRandomString(10));
+			AppUtils.CreateRandomString(10),
+			action);
 
 		// Assert
 		result
