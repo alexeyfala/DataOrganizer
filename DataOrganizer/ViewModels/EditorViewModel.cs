@@ -1235,7 +1235,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.ViewModel
 				.Password is not { } password)
 			{
-				return PasswordMatchResult.NotProvided;
+				return PasswordMatchResult.NotEntered;
 			}
 
 			try

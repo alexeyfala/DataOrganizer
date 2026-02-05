@@ -1141,6 +1141,22 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
+	/// </summary>
+	[Test]
+	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Not_Entered()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+
+		// Assert
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.Initialize" />.
 	/// </summary>
 	[AvaloniaTest]

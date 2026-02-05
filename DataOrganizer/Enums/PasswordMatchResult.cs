@@ -5,7 +5,7 @@
 /// </summary>
 public enum PasswordMatchResult : byte
 {
-	NotProvided,
+	NotEntered,
 	DoesNotMatch,
 	Matches
 }
