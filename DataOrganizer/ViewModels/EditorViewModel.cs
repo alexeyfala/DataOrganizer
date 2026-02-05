@@ -233,90 +233,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.AddTab(dto);
 	}
 
-	/// <inheritdoc cref="EncryptFilesAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
-	public Task EncryptFiles(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		FileModelDto[] filesDto = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (filesDto.Length == 0)
-		{
-			ShowInfoSnackbar(Strings.ThereAreNoFilesToEncrypt);
-
-			return Task.CompletedTask;
-		}
-
-		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
-		{
-			ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
-
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return Task.CompletedTask;
-		}
-
-		view
-			.ViewModel
-			.DefaultPressedCallback = async () =>
-			{
-				DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
-
-				try
-				{
-					DialogHost.Close(null);
-
-					if (view
-						.ViewModel
-						.Password is not { } password)
-					{
-						return;
-					}
-
-					try
-					{
-						Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-						await condition
-							.WaitAsync(300, 10)
-							.ConfigureAwait(false);
-
-						IsActionInProgress = true;
-
-						await EncryptFilesAsync(
-							dto,
-							filesDto,
-							password).ConfigureAwait(false);
-					}
-					finally
-					{
-						IsActionInProgress = false;
-					}
-				}
-				finally
-				{
-					popupHost = null;
-				}
-			};
-
-		return DialogHost.Show(view);
-	}
-
 	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
@@ -678,6 +594,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		};
 
 		return DialogHost.Show(view);
+	}
+
+	/// <inheritdoc cref="EncryptFilesAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
+	private Task EncryptFiles(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return RequestPasswordEncryptDecryptFilesAsync(dto, CryptoAction.Encrypt);
 	}
 
 	/// <summary>
