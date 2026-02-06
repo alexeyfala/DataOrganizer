@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -1821,6 +1822,12 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(files);
 
+		TakeCryptPasswordParameters parameters = new()
+		{
+			Action = action,
+			Folder = folder
+		};
+
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -1828,7 +1835,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(folder, action);
+		await sut.TakeCryptPasswordAsync(parameters);
 
 		// Assert
 		viewFactory
@@ -1844,6 +1851,12 @@ internal class EditorViewModelTests
 	public async Task TakeCryptPasswordAsync_Does_Nothing_If_Folder_Has_No_Files(CryptoAction action)
 	{
 		// Arrange
+		TakeCryptPasswordParameters parameters = new()
+		{
+			Action = action,
+			Folder = TestUtils.CreateFolderDto()
+		};
+
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -1851,7 +1864,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(TestUtils.CreateFolderDto(), action);
+		await sut.TakeCryptPasswordAsync(parameters);
 
 		// Assert
 		viewFactory
@@ -1873,6 +1886,12 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(TestUtils.CreateFilesDto(5));
 
+		TakeCryptPasswordParameters parameters = new()
+		{
+			Action = action,
+			Folder = folder
+		};
+
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -1880,7 +1899,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(folder, action);
+		await sut.TakeCryptPasswordAsync(parameters);
 
 		// Assert
 		viewFactory

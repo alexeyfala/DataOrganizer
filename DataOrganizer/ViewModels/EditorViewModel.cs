@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Comparation;
 using DataOrganizer.Abstract;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -578,7 +579,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return TakeCryptPasswordAsync(dto, CryptoAction.Decrypt);
+		TakeCryptPasswordParameters parameters = new()
+		{
+			Action = CryptoAction.Decrypt,
+			Folder = dto
+		};
+
+		return TakeCryptPasswordAsync(parameters);
 	}
 
 	/// <summary>
@@ -619,7 +626,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return TakeCryptPasswordAsync(dto, CryptoAction.Encrypt);
+		TakeCryptPasswordParameters parameters = new()
+		{
+			Action = CryptoAction.Encrypt,
+			Folder = dto
+		};
+
+		return TakeCryptPasswordAsync(parameters);
 	}
 
 	/// <summary>
@@ -1566,17 +1579,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
 	public Task TakeCryptPasswordAsync(
-		FolderModelDto dto,
-		CryptoAction action,
+		TakeCryptPasswordParameters parameters,
 		CancellationToken token = default)
 	{
-		FileModelDto[] filesDto = [.. dto
+		FileModelDto[] filesDto = [.. parameters
+			.Folder
 			.Children
 			.GetFiles()];
 
 		if (filesDto.Length == 0)
 		{
-			ShowInfoSnackbar(action switch
+			ShowInfoSnackbar(parameters.Action switch
 			{
 				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
 				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
@@ -1606,7 +1619,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, dto, filesDto, action, token);
+			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, parameters.Folder, filesDto, parameters.Action, token);
 
 		return DialogHost.Show(view);
 	}
