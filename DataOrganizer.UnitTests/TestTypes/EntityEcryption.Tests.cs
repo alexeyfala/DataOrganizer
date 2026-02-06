@@ -609,10 +609,23 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HandlePasswordInputAsync_Allows_To_Show_Contents_When_Password_Hash_Missing()
+	public async Task HandlePasswordInputAsync_Cannot_Show_File_Contents()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(encryption);
+		});
 
 		PasswordBox view = mock.Create<PasswordBox>();
 
@@ -624,7 +637,7 @@ internal class EntityEcryptionTests
 		{
 			Action = CryptoAction.ShowFileContents,
 			Files = [],
-			Folder = TestUtils.CreateFolderDto()
+			Folder = folder
 		};
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
@@ -638,7 +651,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(HandlePasswordResult.Applied);
+			.Be(HandlePasswordResult.FailedToShowFileContents);
 	}
 
 	/// <summary>

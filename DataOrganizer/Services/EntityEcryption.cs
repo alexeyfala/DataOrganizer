@@ -405,7 +405,10 @@ public sealed class EntityEcryption : IEntityEcryption
 				{
 					return _encryption.EnhancedVerify(password, parent.PasswordHash);
 				}
-				break;
+				else
+				{
+					return false;
+				}
 		}
 
 		return true;
