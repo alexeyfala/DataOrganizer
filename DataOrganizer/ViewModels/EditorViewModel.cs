@@ -217,20 +217,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_ = _executionEngine.CloseAsync(dto.Id);
 	}
 
-	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />
-	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
-	public void EditFile(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		EditFiles
-			.ViewModel
-			.AddTab(dto);
-	}
-
 	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
@@ -609,6 +595,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		};
 
 		return DialogHost.Show(view);
+	}
+
+	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />
+	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
+	private void EditFile(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		EditFiles
+			.ViewModel
+			.AddTab(dto);
 	}
 
 	/// <summary>
