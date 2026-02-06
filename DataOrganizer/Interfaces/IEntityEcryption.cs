@@ -25,7 +25,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
-	Task<PasswordMatchResult> HandlePasswordInputAsync(
+	Task<HandlePasswordResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		EditorViewModel viewModel,
 		HandlePasswordInputParameters parameters,

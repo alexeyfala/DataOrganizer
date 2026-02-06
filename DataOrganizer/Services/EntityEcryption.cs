@@ -212,7 +212,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
+	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		EditorViewModel viewModel,
 		HandlePasswordInputParameters parameters,
@@ -233,7 +233,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				.ViewModel
 				.Password is not { } password)
 			{
-				return PasswordMatchResult.NotEntered;
+				return HandlePasswordResult.PasswordNotEntered;
 			}
 
 			try
@@ -253,12 +253,17 @@ public sealed class EntityEcryption : IEntityEcryption
 				{
 					viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
 
-					return PasswordMatchResult.DoesNotMatch;
+					return HandlePasswordResult.PasswordDoesNotMatch;
 				}
 
 				if (parameters.Action == CryptoAction.ShowFileContents)
 				{
-					ShowFileContents(parameters.Folder, password);
+					if (!ShowFileContents(parameters.Folder, password))
+					{
+						viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
+
+						return HandlePasswordResult.FailedToShowFileContents;
+					}
 				}
 				else
 				{
@@ -268,7 +273,7 @@ public sealed class EntityEcryption : IEntityEcryption
 						token).ConfigureAwait(false);
 				}
 
-				return PasswordMatchResult.Allowed;
+				return HandlePasswordResult.Applied;
 			}
 			finally
 			{

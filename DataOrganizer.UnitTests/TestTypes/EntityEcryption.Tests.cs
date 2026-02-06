@@ -558,7 +558,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
 			view,
 			mock.Create<EditorViewModel>(),
 			parameters);
@@ -566,7 +566,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.Allowed);
+			.Be(HandlePasswordResult.Applied);
 	}
 
 	/// <summary>
@@ -594,7 +594,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
 			view,
 			mock.Create<EditorViewModel>(),
 			parameters);
@@ -602,7 +602,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.Allowed);
+			.Be(HandlePasswordResult.Applied);
 	}
 
 	/// <summary>
@@ -630,7 +630,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
 			view,
 			mock.Create<EditorViewModel>(),
 			parameters);
@@ -638,7 +638,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.Allowed);
+			.Be(HandlePasswordResult.Applied);
 	}
 
 	/// <summary>
@@ -679,7 +679,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
 			view,
 			mock.Create<EditorViewModel>(),
 			parameters);
@@ -687,7 +687,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.DoesNotMatch);
+			.Be(HandlePasswordResult.PasswordDoesNotMatch);
 	}
 
 	/// <summary>
@@ -715,7 +715,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
 			view,
 			mock.Create<EditorViewModel>(),
 			parameters);
@@ -723,7 +723,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.NotEntered);
+			.Be(HandlePasswordResult.PasswordNotEntered);
 	}
 
 	/// <summary>

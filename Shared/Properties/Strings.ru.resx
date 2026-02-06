@@ -471,4 +471,7 @@
   <data name="FailedToProcessFileContents" xml:space="preserve">
     <value>Не удалось обработать содержимое файлов</value>
   </data>
+  <data name="FailedToShowFileContents" xml:space="preserve">
+    <value>Не удалось показать содержимое файлов</value>
+  </data>
 </root>

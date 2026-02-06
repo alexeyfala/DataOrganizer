@@ -439,6 +439,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to show file contents.
+        /// </summary>
+        public static string FailedToShowFileContents {
+            get {
+                return ResourceManager.GetString("FailedToShowFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Favorite.
         /// </summary>
         public static string Favorite {
