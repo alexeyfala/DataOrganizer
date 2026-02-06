@@ -537,7 +537,43 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HandlePasswordInputAsync_Allows_Action()
+	public async Task HandlePasswordInputAsync_Allows_To_Decrypt_When_Password_Hash_Missing()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = AppUtils.CreateRandomString(10);
+
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = CryptoAction.Decrypt,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto()
+		};
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(PasswordMatchResult.Allowed);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HandlePasswordInputAsync_Allows_To_Encrypt()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -551,6 +587,42 @@ internal class EntityEcryptionTests
 		HandlePasswordInputParameters parameters = new()
 		{
 			Action = CryptoAction.Encrypt,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto()
+		};
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(PasswordMatchResult.Allowed);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HandlePasswordInputAsync_Allows_To_Show_Contents_When_Password_Hash_Missing()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = AppUtils.CreateRandomString(10);
+
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = CryptoAction.ShowFileContents,
 			Files = [],
 			Folder = TestUtils.CreateFolderDto()
 		};
