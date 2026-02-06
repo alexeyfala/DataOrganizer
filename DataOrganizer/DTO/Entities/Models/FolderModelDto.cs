@@ -71,6 +71,26 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
+	/// Searches a parent by condition.
+	/// </summary>
+	public FolderModelDto? FindParent(Func<FolderModelDto, bool> condition)
+	{
+		FolderModelDto? item = Parent;
+
+		while (item is not null)
+		{
+			if (condition(item))
+			{
+				return item;
+			}
+
+			item = item.Parent;
+		}
+
+		return null;
+	}
+
+	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()

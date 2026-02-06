@@ -444,9 +444,6 @@
   <data name="FailedToLoadFilesContents" xml:space="preserve">
     <value>Не удалось загрузить содержимое файлов</value>
   </data>
-  <data name="FailedToEncryptFilesContents" xml:space="preserve">
-    <value>Не удалось зашифровать содержимое файлов</value>
-  </data>
   <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
     <value>Не удалось создать резервную копию базы данных</value>
   </data>
@@ -470,5 +467,8 @@
   </data>
   <data name="MissingFiles" xml:space="preserve">
     <value>Отсутствуют файлы</value>
+  </data>
+  <data name="FailedToProcessFileContents" xml:space="preserve">
+    <value>Не удалось обработать содержимое файлов</value>
   </data>
 </root>

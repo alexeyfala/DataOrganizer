@@ -93,7 +93,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				|| result.Any(x => !x.IsValid)
 				|| result.Any(x => x.Id.IsDefault()))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessFileContents);
 
 				return FilesEncryptionResult.FailedToEncryptContents;
 			}
@@ -187,7 +187,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			async Task RestoreDatabaseAsync()
 			{
 				viewModel.ShowErrorSnackbar(
-					Strings.FailedToEncryptFilesContents +
+					Strings.FailedToProcessFileContents +
 					Environment.NewLine +
 					Strings.TheDatabaseWillBeRestored);
 
@@ -246,9 +246,10 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				viewModel.IsActionInProgress = true;
 
-				if (parameters.Action == CryptoAction.Decrypt
-					&& parameters.Folder.PasswordHash is { } passwordHash
-					&& !_encryption.EnhancedVerify(password, passwordHash))
+				if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
+					parameters.Folder,
+					parameters.Action,
+					password))
 				{
 					viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
 
@@ -328,6 +329,38 @@ public sealed class EntityEcryption : IEntityEcryption
 			};
 
 		return DialogHost.Show(view);
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Verifies the password by hash.
+	/// </summary>
+	private bool VerifyPasswordHash(
+		FolderModelDto folder,
+		CryptoAction action,
+		string password)
+	{
+		string? passwordHash = folder.PasswordHash;
+
+		switch (action)
+		{
+			case CryptoAction.Decrypt when !string.IsNullOrEmpty(passwordHash):
+				return _encryption.EnhancedVerify(password, passwordHash);
+
+			case CryptoAction.ShowFileContents:
+				if (!string.IsNullOrEmpty(passwordHash))
+				{
+					return _encryption.EnhancedVerify(password, passwordHash);
+				}
+				else if (folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is { } parent && !string.IsNullOrEmpty(parent.PasswordHash))
+				{
+					return _encryption.EnhancedVerify(password, parent.PasswordHash);
+				}
+				break;
+		}
+
+		return true;
 	}
 	#endregion
 }

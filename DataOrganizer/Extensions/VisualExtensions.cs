@@ -62,9 +62,9 @@ internal static class VisualExtensions
 
 		while (item is not null)
 		{
-			if (item is T control && condition(control))
+			if (item is T parent && condition(parent))
 			{
-				return control;
+				return parent;
 			}
 
 			item = item.Parent;
