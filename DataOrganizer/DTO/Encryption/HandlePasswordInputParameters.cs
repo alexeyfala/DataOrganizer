@@ -1,5 +1,4 @@
 ﻿using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Views;
 
 namespace DataOrganizer.DTO.Encryption;
 
@@ -13,10 +12,5 @@ public class HandlePasswordInputParameters : TakeCryptPasswordParameters
 	/// A sequence to <see cref="FileModelDto" /> objects.
 	/// </summary>
 	public required FileModelDto[] Files { get; init; }
-
-	/// <summary>
-	/// A reference to <see cref="PasswordBox" />.
-	/// </summary>
-	public required PasswordBox View { get; init; }
 	#endregion
 }

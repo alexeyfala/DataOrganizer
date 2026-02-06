@@ -1253,12 +1253,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
 	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
+		PasswordBox view,
 		HandlePasswordInputParameters parameters,
 		CancellationToken token = default)
 	{
-		DialogOverlayPopupHost? popupHost = parameters
-			.View
-			.FindLogicalParent<DialogOverlayPopupHost>();
+		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
 
 		try
 		{
@@ -1269,8 +1268,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				DialogHost.Close(null);
 			}
 
-			if (parameters
-				.View
+			if (view
 				.ViewModel
 				.Password is not { } password)
 			{
@@ -1625,11 +1623,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				{
 					Action = parameters.Action,
 					Files = filesDto,
-					Folder = parameters.Folder,
-					View = view
+					Folder = parameters.Folder
 				};
 
-				return HandlePasswordInputAsync(inputParameters, token);
+				return HandlePasswordInputAsync(view, inputParameters, token);
 			};
 
 		return DialogHost.Show(view);

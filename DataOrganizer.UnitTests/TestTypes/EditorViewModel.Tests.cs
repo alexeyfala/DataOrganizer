@@ -1144,14 +1144,13 @@ internal class EditorViewModelTests
 		{
 			Action = CryptoAction.Encrypt,
 			Files = [],
-			Folder = TestUtils.CreateFolderDto(),
-			View = view
+			Folder = TestUtils.CreateFolderDto()
 		};
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
 
 		// Assert
 		result
@@ -1191,14 +1190,13 @@ internal class EditorViewModelTests
 		{
 			Action = CryptoAction.Decrypt,
 			Files = [],
-			Folder = folder,
-			View = view
+			Folder = folder
 		};
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
 
 		// Assert
 		result
@@ -1225,14 +1223,13 @@ internal class EditorViewModelTests
 		{
 			Action = default,
 			Files = [],
-			Folder = TestUtils.CreateFolderDto(),
-			View = view
+			Folder = TestUtils.CreateFolderDto()
 		};
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
 
 		// Assert
 		result
