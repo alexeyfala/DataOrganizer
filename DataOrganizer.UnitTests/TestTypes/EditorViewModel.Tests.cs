@@ -431,7 +431,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -471,7 +473,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -519,7 +523,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -567,7 +573,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -632,7 +640,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -705,7 +715,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -765,7 +777,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -854,7 +868,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -1182,7 +1198,10 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -1228,7 +1247,10 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -1261,7 +1283,10 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(view, parameters);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		result
@@ -1876,7 +1901,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(parameters);
+		await sut.TakeCryptPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		viewFactory
@@ -1905,7 +1932,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(parameters);
+		await sut.TakeCryptPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		viewFactory
@@ -1940,7 +1969,9 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
 
 		// Act
-		await sut.TakeCryptPasswordAsync(parameters);
+		await sut.TakeCryptPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
 
 		// Assert
 		viewFactory

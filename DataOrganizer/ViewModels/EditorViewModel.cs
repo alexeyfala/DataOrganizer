@@ -585,7 +585,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			Folder = dto
 		};
 
-		return TakeCryptPasswordAsync(parameters);
+		return TakeCryptPasswordAsync(this, parameters);
 	}
 
 	/// <summary>
@@ -632,7 +632,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			Folder = dto
 		};
 
-		return TakeCryptPasswordAsync(parameters);
+		return TakeCryptPasswordAsync(this, parameters);
 	}
 
 	/// <summary>
@@ -1026,6 +1026,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
 	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
+		EditorViewModel viewModel,
 		EncryptDecryptFilesParameters parameters,
 		CancellationToken token = default)
 	{
@@ -1038,7 +1039,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			if (contents.Length != parameters.Files.Length || contents.Any(x => !x.IsValid))
 			{
-				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
 				return FilesEncryptionResult.FailedToLoadContents;
 			}
@@ -1052,14 +1053,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				|| result.Any(x => !x.IsValid)
 				|| result.Any(x => x.Id.IsDefault()))
 			{
-				ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
+				viewModel.ShowErrorSnackbar(Strings.FailedToEncryptFilesContents);
 
 				return FilesEncryptionResult.FailedToEncryptContents;
 			}
 
 			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
 			{
-				ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+				viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 				return FilesEncryptionResult.UnableToCreateDatabaseBackup;
 			}
@@ -1145,7 +1146,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			async Task RestoreDatabaseAsync()
 			{
-				ShowErrorSnackbar(
+				viewModel.ShowErrorSnackbar(
 					Strings.FailedToEncryptFilesContents +
 					Environment.NewLine +
 					Strings.TheDatabaseWillBeRestored);
@@ -1254,6 +1255,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
 		PasswordBox view,
+		EditorViewModel viewModel,
 		HandlePasswordInputParameters inputParameters,
 		CancellationToken token = default)
 	{
@@ -1283,7 +1285,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.WaitAsync(300, 10, token)
 					.ConfigureAwait(false);
 
-				IsActionInProgress = true;
+				viewModel.IsActionInProgress = true;
 
 				if (inputParameters.Action == CryptoAction.Decrypt
 					&& inputParameters.Folder.PasswordHash is { } passwordHash
@@ -1302,13 +1304,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					Password = password,
 				};
 
-				await EncryptDecryptAsync(parameters, token).ConfigureAwait(false);
+				await EncryptDecryptAsync(
+					viewModel,
+					parameters,
+					token).ConfigureAwait(false);
 
 				return PasswordMatchResult.Matches;
 			}
 			finally
 			{
-				IsActionInProgress = false;
+				viewModel.IsActionInProgress = false;
 			}
 		}
 		finally
@@ -1580,6 +1585,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
 	public Task TakeCryptPasswordAsync(
+		EditorViewModel viewModel,
 		TakeCryptPasswordParameters inputParameters,
 		CancellationToken token = default)
 	{
@@ -1629,7 +1635,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					Folder = inputParameters.Folder
 				};
 
-				return HandlePasswordInputAsync(view, parameters, token);
+				return HandlePasswordInputAsync(
+					view,
+					viewModel,
+					parameters,
+					token);
 			};
 
 		return DialogHost.Show(view);
