@@ -284,17 +284,17 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public Task TakeCryptPasswordAsync(
 		EditorViewModel viewModel,
-		TakeCryptPasswordParameters inputParameters,
+		FolderModelDto folder,
+		CryptoAction action,
 		CancellationToken token = default)
 	{
-		FileModelDto[] filesDto = [.. inputParameters
-			.Folder
+		FileModelDto[] filesDto = [.. folder
 			.Children
 			.GetFiles()];
 
 		if (filesDto.Length == 0)
 		{
-			viewModel.ShowInfoSnackbar(inputParameters.Action switch
+			viewModel.ShowInfoSnackbar(action switch
 			{
 				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
 				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
@@ -328,9 +328,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			{
 				HandlePasswordInputParameters parameters = new()
 				{
-					Action = inputParameters.Action,
+					Action = action,
 					Files = filesDto,
-					Folder = inputParameters.Folder
+					Folder = folder
 				};
 
 				return HandlePasswordInputAsync(

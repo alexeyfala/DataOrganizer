@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.DTO.Encryption;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -35,7 +36,8 @@ public interface IEntityEcryption
 	/// </summary>
 	Task TakeCryptPasswordAsync(
 		EditorViewModel viewModel,
-		TakeCryptPasswordParameters inputParameters,
+		FolderModelDto folder,
+		CryptoAction action,
 		CancellationToken token = default);
 	#endregion
 }

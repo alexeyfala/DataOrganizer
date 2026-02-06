@@ -674,12 +674,6 @@ internal class EntityEcryptionTests
 			.Children
 			.AddRange(files);
 
-		TakeCryptPasswordParameters parameters = new()
-		{
-			Action = action,
-			Folder = folder
-		};
-
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -689,7 +683,8 @@ internal class EntityEcryptionTests
 		// Act
 		await sut.TakeCryptPasswordAsync(
 			mock.Create<EditorViewModel>(),
-			parameters);
+			folder,
+			action);
 
 		// Assert
 		viewFactory
@@ -705,12 +700,6 @@ internal class EntityEcryptionTests
 	public async Task TakeCryptPasswordAsync_Does_Nothing_If_Folder_Has_No_Files(CryptoAction action)
 	{
 		// Arrange
-		TakeCryptPasswordParameters parameters = new()
-		{
-			Action = action,
-			Folder = TestUtils.CreateFolderDto()
-		};
-
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -720,7 +709,8 @@ internal class EntityEcryptionTests
 		// Act
 		await sut.TakeCryptPasswordAsync(
 			mock.Create<EditorViewModel>(),
-			parameters);
+			TestUtils.CreateFolderDto(),
+			action);
 
 		// Assert
 		viewFactory
@@ -742,12 +732,6 @@ internal class EntityEcryptionTests
 			.Children
 			.AddRange(TestUtils.CreateFilesDto(5));
 
-		TakeCryptPasswordParameters parameters = new()
-		{
-			Action = action,
-			Folder = folder
-		};
-
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -757,7 +741,8 @@ internal class EntityEcryptionTests
 		// Act
 		await sut.TakeCryptPasswordAsync(
 			mock.Create<EditorViewModel>(),
-			parameters);
+			folder,
+			action);
 
 		// Assert
 		viewFactory

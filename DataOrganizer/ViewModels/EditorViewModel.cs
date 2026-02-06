@@ -9,7 +9,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Comparation;
 using DataOrganizer.Abstract;
-using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -577,13 +576,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		TakeCryptPasswordParameters parameters = new()
-		{
-			Action = CryptoAction.Decrypt,
-			Folder = dto
-		};
-
-		return _entityEcryption.TakeCryptPasswordAsync(this, parameters);
+		return _entityEcryption.TakeCryptPasswordAsync(
+			this,
+			dto,
+			CryptoAction.Decrypt);
 	}
 
 	/// <summary>
@@ -626,13 +622,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		TakeCryptPasswordParameters parameters = new()
-		{
-			Action = CryptoAction.Encrypt,
-			Folder = dto
-		};
-
-		return _entityEcryption.TakeCryptPasswordAsync(this, parameters);
+		return _entityEcryption.TakeCryptPasswordAsync(
+			this,
+			dto,
+			CryptoAction.Encrypt);
 	}
 
 	/// <summary>
