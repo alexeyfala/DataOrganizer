@@ -15,6 +15,11 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.Children" />
 	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
+	/// <summary>
+	/// Encrypted password.
+	/// </summary>
+	public byte[] EncryptedPassword { get; set; } = [];
+
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
 	#endregion

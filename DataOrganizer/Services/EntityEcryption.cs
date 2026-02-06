@@ -258,7 +258,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				if (parameters.Action == CryptoAction.ShowFileContents)
 				{
-					await ShowFileContentsAsync().ConfigureAwait(false);
+					ShowFileContents(parameters.Folder, password);
 				}
 				else
 				{
@@ -343,9 +343,37 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <summary>
 	/// Shows file contents.
 	/// </summary>
-	private async Task ShowFileContentsAsync()
+	private bool ShowFileContents(
+		FolderModelDto folder,
+		string password)
 	{
+		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
+			? folder
+			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
 
+		if (root is null)
+		{
+			return false;
+		}
+
+		bool isEncrypted = _encryption.Encrypt(
+			TextHelper.Utf8Encoding.GetBytes(password),
+			TextHelper.Utf8Encoding.GetBytes(_encryption.GetDeviceId()),
+			out byte[] output);
+
+		if (!isEncrypted)
+		{
+			return false;
+		}
+
+		root.EncryptedPassword = output;
+
+		folder
+			.ToEnumerable()
+			.Concat(folder.GetAllChildren())
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+		return true;
 	}
 
 	/// <summary>

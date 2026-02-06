@@ -1418,7 +1418,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		return IsNotReadOnly()
 			&& dto is not null
-			&& dto.EncryptionStatus == EncryptionStatus.Encrypted;
+			&& !string.IsNullOrEmpty(dto.PasswordHash);
 	}
 
 	/// <summary>
