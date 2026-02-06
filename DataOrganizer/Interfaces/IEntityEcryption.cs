@@ -34,7 +34,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
-	Task TakeCryptPasswordAsync(
+	Task TakePasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
 		CryptoAction action,

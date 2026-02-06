@@ -576,7 +576,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return _entityEcryption.TakeCryptPasswordAsync(
+		return _entityEcryption.TakePasswordAsync(
 			this,
 			dto,
 			CryptoAction.Decrypt);
@@ -622,7 +622,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return _entityEcryption.TakeCryptPasswordAsync(
+		return _entityEcryption.TakePasswordAsync(
 			this,
 			dto,
 			CryptoAction.Encrypt);
@@ -664,7 +664,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
 	private void HideFileContents(FolderModelDto? dto)
 	{
-		// TODO: Implement
+		if (dto is null)
+		{
+			return;
+		}
+
+		;
 	}
 
 	/// <summary>
@@ -751,7 +756,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return _entityEcryption.TakeCryptPasswordAsync(
+		return _entityEcryption.TakePasswordAsync(
 			this,
 			dto,
 			CryptoAction.ShowFileContents);

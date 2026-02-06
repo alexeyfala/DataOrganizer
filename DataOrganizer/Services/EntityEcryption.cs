@@ -287,7 +287,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public Task TakeCryptPasswordAsync(
+	public Task TakePasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
 		CryptoAction action,
