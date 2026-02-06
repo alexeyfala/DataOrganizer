@@ -409,6 +409,14 @@ internal class EditorViewModelTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -423,11 +431,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -445,6 +449,14 @@ internal class EditorViewModelTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -459,11 +471,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -480,6 +488,14 @@ internal class EditorViewModelTests
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -503,11 +519,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -524,6 +536,14 @@ internal class EditorViewModelTests
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -547,11 +567,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -568,6 +584,14 @@ internal class EditorViewModelTests
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -608,11 +632,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -637,6 +657,14 @@ internal class EditorViewModelTests
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -677,11 +705,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -706,6 +730,14 @@ internal class EditorViewModelTests
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -733,11 +765,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result
@@ -756,6 +784,14 @@ internal class EditorViewModelTests
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = action,
+			Files = files,
+			Folder = folder,
+			Password = AppUtils.CreateRandomString(10)
+		};
 
 		EncryptionStatus newStatus = action switch
 		{
@@ -818,11 +854,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			folder,
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(parameters);
 
 		// Assert
 		result

@@ -1026,20 +1026,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
 	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
-		FolderModelDto dto,
-		FileModelDto[] filesDto,
-		string password,
-		CryptoAction action,
+		EncryptDecryptFilesParameters parameters,
 		CancellationToken token = default)
 	{
 		try
 		{
 			ContentsIsValidPair[] contents = await _dbAccess
-				.GetFilesContentsAsync(filesDto.Select(x => x.Id), token)
+				.GetFilesContentsAsync(parameters.Files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (contents.Length != filesDto.Length || contents.Any(x => !x.IsValid))
+			if (contents.Length != parameters.Files.Length || contents.Any(x => !x.IsValid))
 			{
 				ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
@@ -1048,8 +1045,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
 				contents,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				action)];
+				TextHelper.Utf8Encoding.GetBytes(parameters.Password),
+				parameters.Action)];
 
 			if (result.Length != contents.Length
 				|| result.Any(x => !x.IsValid)
@@ -1089,15 +1086,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return FilesEncryptionResult.FailedToSaveContents;
 			}
 
-			string? passwordHash = action switch
+			string? passwordHash = parameters.Action switch
 			{
-				CryptoAction.Encrypt => _encryption.EnhancedHashPassword(password),
+				CryptoAction.Encrypt => _encryption.EnhancedHashPassword(parameters.Password),
 				CryptoAction.Decrypt => null,
 				_ => throw new NotImplementedException()
 			};
 
 			if (!await _dbAccess.UpdatePropertyAsync(
-				id: dto.Id,
+				id: parameters.Folder.Id,
 				propertyName: nameof(FolderModel.PasswordHash),
 				value: passwordHash,
 				token: token).ConfigureAwait(false))
@@ -1111,12 +1108,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			ExplorerModelBaseDto[] objects =
 			[
-				.. dto.ToEnumerable(),
-				.. dto.Children.GetFolders(),
-				.. filesDto
+				.. parameters.Folder.ToEnumerable(),
+				.. parameters.Folder.Children.GetFolders(),
+				.. parameters.Files
 			];
 
-			EncryptionStatus newStatus = action switch
+			EncryptionStatus newStatus = parameters.Action switch
 			{
 				CryptoAction.Encrypt => EncryptionStatus.Encrypted,
 				CryptoAction.Decrypt => EncryptionStatus.None,
@@ -1125,21 +1122,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			objects.ForEach(x => x.EncryptionStatus = newStatus);
 
-			dto.PasswordHash = passwordHash;
+			parameters
+				.Folder
+				.PasswordHash = passwordHash;
 
 			DeleteBackupFile();
 
-			string doneAction = action switch
+			string doneAction = parameters.Action switch
 			{
 				CryptoAction.Encrypt => "encrypted",
 				CryptoAction.Decrypt => "decrypted",
 				_ => throw new NotImplementedException()
 			};
 
-			_logger.LogInformation($"{filesDto.Length} files {doneAction} in folder:{dto.GetPropertyValues(
-				true,
-				nameof(FolderModelDto.Id),
-				nameof(FolderModelDto.Name))}");
+			_logger.LogInformation(
+				$"{parameters.Files.Length} files {doneAction} in folder:{parameters.Folder.GetPropertyValues(
+					true,
+					nameof(FolderModelDto.Id),
+					nameof(FolderModelDto.Name))}");
 
 			return FilesEncryptionResult.Done;
 
@@ -1254,7 +1254,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
 		PasswordBox view,
-		HandlePasswordInputParameters parameters,
+		HandlePasswordInputParameters inputParameters,
 		CancellationToken token = default)
 	{
 		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
@@ -1285,8 +1285,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				IsActionInProgress = true;
 
-				if (parameters.Action == CryptoAction.Decrypt
-					&& parameters.Folder.PasswordHash is { } passwordHash
+				if (inputParameters.Action == CryptoAction.Decrypt
+					&& inputParameters.Folder.PasswordHash is { } passwordHash
 					&& !_encryption.EnhancedVerify(password, passwordHash))
 				{
 					ShowErrorSnackbar(Strings.IncorrectPassword);
@@ -1294,12 +1294,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					return PasswordMatchResult.DoesNotMatch;
 				}
 
-				await EncryptDecryptAsync(
-					parameters.Folder,
-					parameters.Files,
-					password,
-					parameters.Action,
-					token).ConfigureAwait(false);
+				EncryptDecryptFilesParameters parameters = new()
+				{
+					Action = inputParameters.Action,
+					Files = inputParameters.Files,
+					Folder = inputParameters.Folder,
+					Password = password,
+				};
+
+				await EncryptDecryptAsync(parameters, token).ConfigureAwait(false);
 
 				return PasswordMatchResult.Matches;
 			}
@@ -1577,17 +1580,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
 	public Task TakeCryptPasswordAsync(
-		TakeCryptPasswordParameters parameters,
+		TakeCryptPasswordParameters inputParameters,
 		CancellationToken token = default)
 	{
-		FileModelDto[] filesDto = [.. parameters
+		FileModelDto[] filesDto = [.. inputParameters
 			.Folder
 			.Children
 			.GetFiles()];
 
 		if (filesDto.Length == 0)
 		{
-			ShowInfoSnackbar(parameters.Action switch
+			ShowInfoSnackbar(inputParameters.Action switch
 			{
 				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
 				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
@@ -1619,14 +1622,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ViewModel
 			.DefaultPressedCallback = () =>
 			{
-				HandlePasswordInputParameters inputParameters = new()
+				HandlePasswordInputParameters parameters = new()
 				{
-					Action = parameters.Action,
+					Action = inputParameters.Action,
 					Files = filesDto,
-					Folder = parameters.Folder
+					Folder = inputParameters.Folder
 				};
 
-				return HandlePasswordInputAsync(view, inputParameters, token);
+				return HandlePasswordInputAsync(view, parameters, token);
 			};
 
 		return DialogHost.Show(view);
