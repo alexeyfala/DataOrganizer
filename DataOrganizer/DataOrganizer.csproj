@@ -25,7 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="11.3.11" />
-		<PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
+		<PackageReference Include="Avalonia.AvaloniaEdit" Version="11.4.1" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.11" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
 		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.11">
@@ -39,6 +39,7 @@
 		<PackageReference Include="BinToss.GroupBox.Avalonia" Version="1.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Comparation" Version="0.1.7" />
+		<PackageReference Include="DeviceId" Version="6.9.0" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.10.4" />
 		<PackageReference Include="DynamicData" Version="9.4.1" />
 		<PackageReference Include="Mapster" Version="7.4.0" />
@@ -55,7 +56,7 @@
 		<PackageReference Include="SharpHook" Version="7.1.1" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
 		<PackageReference Include="Tulesha.ToolBarControls.Avalonia" Version="11.3.6" />
-		<PackageReference Include="Xaml.Behaviors" Version="11.3.9.3" />
+		<PackageReference Include="Xaml.Behaviors" Version="11.3.9.4" />
 	</ItemGroup>
 
 	<ItemGroup>

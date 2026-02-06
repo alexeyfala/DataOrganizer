@@ -1,5 +1,6 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
 
@@ -147,6 +148,28 @@ internal class EncryptionServiceTests
 		result2
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.GetDeviceId" />.
+	/// </summary>
+	[Test]
+	public void GetDeviceId_Returns_Same_Value_Every_Time()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		// Act
+		string value = sut.GetDeviceId();
+
+		string[] sequence = [.. TestUtils.CreateSequence(sut.GetDeviceId, 10)];
+
+		// Assert
+		sequence
+			.Should()
+			.AllBe(value);
 	}
 	#endregion
 }

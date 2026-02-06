@@ -307,5 +307,16 @@ public static class TestUtils
 		Theme = BaseThemeMode.Dark,
 		TrackHotkeys = trackHotkeys
 	};
+
+	/// <summary>
+	/// Generates a sequence of the required length by calling <see cref="Func{T}" /> from the argument.
+	/// </summary>
+	public static IEnumerable<T> CreateSequence<T>(Func<T> action, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			yield return action();
+		}
+	}
 	#endregion
 }

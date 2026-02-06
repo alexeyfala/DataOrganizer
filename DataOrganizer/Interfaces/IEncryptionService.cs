@@ -33,5 +33,10 @@ public interface IEncryptionService
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
 	bool EnhancedVerify(string password, string passwordHash);
+
+	/// <summary>
+	/// Returns unique characteristics of the PC as an identifier string.
+	/// </summary>
+	string GetDeviceId();
 	#endregion
 }

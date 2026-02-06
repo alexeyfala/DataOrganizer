@@ -1,5 +1,6 @@
 ﻿using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DeviceId;
 using NSec.Cryptography;
 using Repository.DTO;
 using Serilog;
@@ -23,6 +24,9 @@ public sealed class EncryptionService : IEncryptionService
 	/// The encryption algorithm used.
 	/// </summary>
 	private static readonly AeadAlgorithm _algorithm = AeadAlgorithm.XChaCha20Poly1305;
+
+	/// <inheritdoc cref="DeviceIdBuilder" />
+	private static readonly DeviceIdBuilder _deviceIdBuilder = new();
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -180,6 +184,18 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
+
+	/// <inheritdoc />
+	public string GetDeviceId()
+	{
+		return _deviceIdBuilder
+			.AddMachineName()
+			.AddMacAddress()
+			.AddMachineName()
+			.AddOsVersion()
+			.AddUserName()
+			.ToString();
+	}
 	#endregion
 
 	#region Service
