@@ -7,5 +7,5 @@ public enum PasswordMatchResult : byte
 {
 	NotEntered,
 	DoesNotMatch,
-	Matches
+	Allowed
 }

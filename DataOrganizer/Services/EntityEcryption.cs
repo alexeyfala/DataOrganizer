@@ -256,12 +256,19 @@ public sealed class EntityEcryption : IEntityEcryption
 					return PasswordMatchResult.DoesNotMatch;
 				}
 
-				await EncryptDecryptAsync(
-					viewModel,
-					parameters.CreateFrom(password),
-					token).ConfigureAwait(false);
+				if (parameters.Action == CryptoAction.ShowFileContents)
+				{
+					await ShowFileContentsAsync().ConfigureAwait(false);
+				}
+				else
+				{
+					await EncryptDecryptAsync(
+						viewModel,
+						parameters.CreateFrom(password),
+						token).ConfigureAwait(false);
+				}
 
-				return PasswordMatchResult.Matches;
+				return PasswordMatchResult.Allowed;
 			}
 			finally
 			{
@@ -333,6 +340,14 @@ public sealed class EntityEcryption : IEntityEcryption
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Shows file contents.
+	/// </summary>
+	private async Task ShowFileContentsAsync()
+	{
+
+	}
+
 	/// <summary>
 	/// Verifies the password by hash.
 	/// </summary>

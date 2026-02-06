@@ -566,7 +566,7 @@ internal class EntityEcryptionTests
 		// Assert
 		result
 			.Should()
-			.Be(PasswordMatchResult.Matches);
+			.Be(PasswordMatchResult.Allowed);
 	}
 
 	/// <summary>
