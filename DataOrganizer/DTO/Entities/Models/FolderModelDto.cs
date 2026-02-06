@@ -4,7 +4,6 @@ using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace DataOrganizer.DTO.Entities.Models;
 
@@ -56,43 +55,29 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <summary>
 	/// Returns <c>True</c> if any child satisfies the condition.
 	/// </summary>
-	public bool AnyChild(Func<ExplorerModelBaseDto, bool> condition)
+	public bool AnyChild(Predicate<ExplorerModelBaseDto> condition)
 	{
-		ExplorerModelBaseDto[] children = [.. Children];
+		Stack<ExplorerModelBaseDto> stack = new(Children);
 
-		while (children.Length > 0)
+		while (stack.Count > 0)
 		{
-			if (children.Any(condition))
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (condition(item))
 			{
 				return true;
 			}
 
-			children = [.. children
-				.OfType<FolderModelDto>()
-				.SelectMany(x => x.Children)];
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
 		}
 
 		return false;
-	}
-
-	/// <summary>
-	/// Searches a parent by condition.
-	/// </summary>
-	public FolderModelDto? FindParent(Func<FolderModelDto, bool> condition)
-	{
-		FolderModelDto? item = Parent;
-
-		while (item is not null)
-		{
-			if (condition(item))
-			{
-				return item;
-			}
-
-			item = item.Parent;
-		}
-
-		return null;
 	}
 
 	/// <summary>
@@ -100,18 +85,21 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
 	{
-		ExplorerModelBaseDto[] children = [.. Children];
+		Stack<ExplorerModelBaseDto> stack = new(Children);
 
-		while (children.Length > 0)
+		while (stack.Count > 0)
 		{
-			foreach (ExplorerModelBaseDto child in children)
-			{
-				yield return child;
-			}
+			ExplorerModelBaseDto item = stack.Pop();
 
-			children = [.. children
-				.OfType<FolderModelDto>()
-				.SelectMany(x => x.Children)];
+			yield return item;
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
 		}
 	}
 	#endregion

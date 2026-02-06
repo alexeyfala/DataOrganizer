@@ -110,7 +110,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				.SetTextAsync(text)
 				.ConfigureAwait(true);
 
-			FolderModelDto[] parents = [.. dto.GetParents().Reverse()];
+			FolderModelDto[] parents = [.. dto.GetAllParents().Reverse()];
 
 			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
 			{

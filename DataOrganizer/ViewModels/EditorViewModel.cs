@@ -1310,7 +1310,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		FolderModelDto[] parents = [.. found
-			.GetParents()
+			.GetAllParents()
 			.ForEach(x => x.IsExpanded = true)
 			.Reverse()];
 
