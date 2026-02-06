@@ -305,6 +305,7 @@ public sealed class App : Application
 		#region Transients
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
+		services.AddTransient<IEntityEcryption, EntityEcryption>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
