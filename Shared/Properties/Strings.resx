@@ -442,16 +442,13 @@
   <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
     <value>You must close the files you are editing</value>
   </data>
-  <data name="ThereAreNoFilesToEncrypt" xml:space="preserve">
-    <value>There are no files to encrypt</value>
-  </data>
-  <data name="ThereAreNoFilesToDecrypt" xml:space="preserve">
-    <value>There are no files to decrypt</value>
-  </data>
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Incorrect password</value>
   </data>
   <data name="ChangePassword" xml:space="preserve">
     <value>Change password</value>
+  </data>
+  <data name="MissingFiles" xml:space="preserve">
+    <value>Missing files</value>
   </data>
 </root>

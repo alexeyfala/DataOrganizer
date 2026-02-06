@@ -664,6 +664,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing files.
+        /// </summary>
+        public static string MissingFiles {
+            get {
+                return ResourceManager.GetString("MissingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name.
         /// </summary>
         public static string Name {
@@ -1020,24 +1029,6 @@ namespace Shared.Properties {
         public static string Theme {
             get {
                 return ResourceManager.GetString("Theme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There are no files to decrypt.
-        /// </summary>
-        public static string ThereAreNoFilesToDecrypt {
-            get {
-                return ResourceManager.GetString("ThereAreNoFilesToDecrypt", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There are no files to encrypt.
-        /// </summary>
-        public static string ThereAreNoFilesToEncrypt {
-            get {
-                return ResourceManager.GetString("ThereAreNoFilesToEncrypt", resourceCulture);
             }
         }
         

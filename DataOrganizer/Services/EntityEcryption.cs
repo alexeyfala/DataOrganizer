@@ -286,12 +286,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (filesDto.Length == 0)
 		{
-			viewModel.ShowInfoSnackbar(action switch
-			{
-				CryptoAction.Encrypt => Strings.ThereAreNoFilesToEncrypt,
-				CryptoAction.Decrypt => Strings.ThereAreNoFilesToDecrypt,
-				_ => throw new NotImplementedException()
-			});
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
 
 			return Task.CompletedTask;
 		}

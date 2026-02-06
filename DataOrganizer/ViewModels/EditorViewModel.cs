@@ -751,7 +751,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return Task.CompletedTask;
+		return _entityEcryption.TakeCryptPasswordAsync(
+			this,
+			dto,
+			CryptoAction.ShowFileContents);
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
