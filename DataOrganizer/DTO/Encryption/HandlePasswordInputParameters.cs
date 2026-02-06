@@ -20,4 +20,17 @@ public class HandlePasswordInputParameters
 	/// <inheritdoc cref="FolderModelDto" />
 	public required FolderModelDto Folder { get; init; }
 	#endregion
+
+	#region Methods
+	/// <summary>
+	/// Creates <see cref="EncryptDecryptFilesParameters" /> from <see cref="HandlePasswordInputParameters" /> and <paramref name="password"/>.
+	/// </summary>
+	public EncryptDecryptFilesParameters CreateFrom(string password) => new()
+	{
+		Action = Action,
+		Files = Files,
+		Folder = Folder,
+		Password = password
+	};
+	#endregion
 }

@@ -28,7 +28,7 @@ public interface IEntityEcryption
 	Task<PasswordMatchResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		EditorViewModel viewModel,
-		HandlePasswordInputParameters inputParameters,
+		HandlePasswordInputParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>

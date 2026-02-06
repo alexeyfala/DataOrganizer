@@ -7,5 +7,5 @@ public sealed class EncryptDecryptFilesParameters : HandlePasswordInputParameter
 	/// Password.
 	/// </summary>
 	public required string Password { get; init; }
-	#endregion
+	#endregion	
 }

@@ -744,9 +744,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private void ShowFileContents(FolderModelDto? dto)
+	private Task ShowFileContents(FolderModelDto? dto)
 	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
 
+		return Task.CompletedTask;
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />

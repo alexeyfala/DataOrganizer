@@ -215,7 +215,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		EditorViewModel viewModel,
-		HandlePasswordInputParameters inputParameters,
+		HandlePasswordInputParameters parameters,
 		CancellationToken token = default)
 	{
 		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
@@ -246,8 +246,8 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				viewModel.IsActionInProgress = true;
 
-				if (inputParameters.Action == CryptoAction.Decrypt
-					&& inputParameters.Folder.PasswordHash is { } passwordHash
+				if (parameters.Action == CryptoAction.Decrypt
+					&& parameters.Folder.PasswordHash is { } passwordHash
 					&& !_encryption.EnhancedVerify(password, passwordHash))
 				{
 					viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
@@ -255,17 +255,9 @@ public sealed class EntityEcryption : IEntityEcryption
 					return PasswordMatchResult.DoesNotMatch;
 				}
 
-				EncryptDecryptFilesParameters parameters = new()
-				{
-					Action = inputParameters.Action,
-					Files = inputParameters.Files,
-					Folder = inputParameters.Folder,
-					Password = password,
-				};
-
 				await EncryptDecryptAsync(
 					viewModel,
-					parameters,
+					parameters.CreateFrom(password),
 					token).ConfigureAwait(false);
 
 				return PasswordMatchResult.Matches;
