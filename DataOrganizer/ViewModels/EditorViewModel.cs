@@ -1253,13 +1253,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
 	public async Task<PasswordMatchResult> HandlePasswordInputAsync(
-		PasswordBox view,
-		FolderModelDto dto,
-		FileModelDto[] filesDto,
-		CryptoAction action,
+		HandlePasswordInputParameters parameters,
 		CancellationToken token = default)
 	{
-		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
+		DialogOverlayPopupHost? popupHost = parameters
+			.View
+			.FindLogicalParent<DialogOverlayPopupHost>();
 
 		try
 		{
@@ -1270,7 +1269,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				DialogHost.Close(null);
 			}
 
-			if (view
+			if (parameters
+				.View
 				.ViewModel
 				.Password is not { } password)
 			{
@@ -1287,8 +1287,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				IsActionInProgress = true;
 
-				if (action == CryptoAction.Decrypt
-					&& dto.PasswordHash is { } passwordHash
+				if (parameters.Action == CryptoAction.Decrypt
+					&& parameters.Folder.PasswordHash is { } passwordHash
 					&& !_encryption.EnhancedVerify(password, passwordHash))
 				{
 					ShowErrorSnackbar(Strings.IncorrectPassword);
@@ -1297,10 +1297,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				}
 
 				await EncryptDecryptAsync(
-					dto,
-					filesDto,
+					parameters.Folder,
+					parameters.Files,
 					password,
-					action,
+					parameters.Action,
 					token).ConfigureAwait(false);
 
 				return PasswordMatchResult.Matches;
@@ -1619,7 +1619,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		view
 			.ViewModel
-			.DefaultPressedCallback = () => HandlePasswordInputAsync(view, parameters.Folder, filesDto, parameters.Action, token);
+			.DefaultPressedCallback = () =>
+			{
+				HandlePasswordInputParameters inputParameters = new()
+				{
+					Action = parameters.Action,
+					Files = filesDto,
+					Folder = parameters.Folder,
+					View = view
+				};
+
+				return HandlePasswordInputAsync(inputParameters, token);
+			};
 
 		return DialogHost.Show(view);
 	}

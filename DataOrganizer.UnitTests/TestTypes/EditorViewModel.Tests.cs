@@ -1140,14 +1140,18 @@ internal class EditorViewModelTests
 			.ViewModel
 			.Password = AppUtils.CreateRandomString(10);
 
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = CryptoAction.Encrypt,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			View = view
+		};
+
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			TestUtils.CreateFolderDto(),
-			[],
-			CryptoAction.Encrypt);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
 
 		// Assert
 		result
@@ -1183,14 +1187,18 @@ internal class EditorViewModelTests
 			.ViewModel
 			.Password = AppUtils.CreateRandomString(10);
 
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = CryptoAction.Decrypt,
+			Files = [],
+			Folder = folder,
+			View = view
+		};
+
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			folder,
-			[],
-			CryptoAction.Decrypt);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
 
 		// Assert
 		result
@@ -1213,14 +1221,18 @@ internal class EditorViewModelTests
 			.ViewModel
 			.Password = null;
 
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = default,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			View = view
+		};
+
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			TestUtils.CreateFolderDto(),
-			[],
-			default);
+		PasswordMatchResult result = await sut.HandlePasswordInputAsync(parameters);
 
 		// Assert
 		result
