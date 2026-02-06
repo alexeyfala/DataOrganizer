@@ -740,6 +740,80 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HandlePasswordInputAsync_Shows_File_Contents()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		folder
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(5));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		PasswordBox view = mock.Create<PasswordBox>();
+
+		view
+			.ViewModel
+			.Password = AppUtils.CreateRandomString(10);
+
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = CryptoAction.ShowFileContents,
+			Files = [],
+			Folder = folder
+		};
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
+			view,
+			mock.Create<EditorViewModel>(),
+			parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(HandlePasswordResult.Applied);
+
+		folder.EncryptedPassword
+			.Should()
+			.NotBeEmpty();
+
+		folder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Decrypted);
+
+		folder.Children
+			.Should()
+			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.TakeCryptPasswordAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
