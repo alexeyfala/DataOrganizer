@@ -356,6 +356,7 @@ public sealed class App : Application
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
 		services.AddTransient<ToastViewModel>();
+		services.AddTransient<YesNoCancelBoxViewModel>();
 		services.AddTransient<YesNoQuestionBoxViewModel>();
 		#endregion
 
@@ -376,6 +377,7 @@ public sealed class App : Application
 		services.AddTransient<SelectedFavoritesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
+		services.AddTransient<YesNoCancelBox>();
 		services.AddTransient<YesNoQuestionBox>();
 		#endregion
 
