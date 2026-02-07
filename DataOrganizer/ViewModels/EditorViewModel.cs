@@ -321,6 +321,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			{
 				DialogHost.Close(null);
 
+				CloseFiles(dto.GetFiles(x => x.IsEdited), dto.GetFiles(x => x.IsExecuted));
+
+				_entityEcryption.HideFileContents(dto);
+
 				return Task.CompletedTask;
 			};
 
@@ -971,6 +975,26 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		view
 			.ViewModel
 			.ExecutedFiles = null;
+	}
+
+	/// <summary>
+	/// Closes edited and executed files.
+	/// </summary>
+	public void CloseFiles(
+		IEnumerable<FileModelDto> editedFiles,
+		IEnumerable<FileModelDto> executedFiles)
+	{
+		foreach (FileModelDto file in editedFiles)
+		{
+			EditFiles
+				.ViewModel
+				.CloseTab(file);
+		}
+
+		foreach (FileModelDto file in executedFiles)
+		{
+			CloseExecutedFile(file);
+		}
 	}
 
 	/// <summary>

@@ -190,6 +190,49 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.CloseFiles" />.
+	/// </summary>
+	[Test]
+	public void CloseFiles_Closes_Edited_And_Executed_Files()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut.CloseFiles(editedFiles, executedFiles);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.DeleteAsync(ExplorerModelBaseDto, CancellationToken)" />.
 	/// </summary>
 	[TestCase(EntityType.Folder)]

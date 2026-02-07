@@ -130,5 +130,31 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 			}
 		}
 	}
+
+	/// <summary>
+	/// Filters child objects of <see cref="FolderModelDto" /> by condition.
+	/// </summary>
+	public IEnumerable<FileModelDto> GetFiles(Predicate<FileModelDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(Children);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FileModelDto file && condition(file))
+			{
+				yield return file;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+	}
 	#endregion
 }
