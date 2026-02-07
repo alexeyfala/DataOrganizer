@@ -321,7 +321,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			{
 				DialogHost.Close(null);
 
-				CloseFiles(dto.GetFiles(x => x.IsEdited), dto.GetFiles(x => x.IsExecuted));
+				CloseFiles(
+					dto.GetFiles(x => x.IsEdited),
+					dto.GetFiles(x => x.IsExecuted));
 
 				_entityEcryption.HideFileContents(dto);
 
