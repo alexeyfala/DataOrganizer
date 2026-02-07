@@ -290,7 +290,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void HideFileContents(FolderModelDto folder)
 	{
-		if (folder.EncryptedPassword.Length != 0)
+		if (folder.EncryptedPassword.Length > 0)
 		{
 			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
 
