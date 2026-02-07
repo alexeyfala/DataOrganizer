@@ -178,6 +178,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close files being edited.
+        /// </summary>
+        public static string CloseFilesBeingEdited {
+            get {
+                return ResourceManager.GetString("CloseFilesBeingEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collapse All.
         /// </summary>
         public static string CollapseAll {

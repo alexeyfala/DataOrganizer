@@ -817,7 +817,7 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HideFileContents(FolderModelDto)" />.
 	/// </summary>
 	[Test]
-	public void HideFileContents_Do_Work()
+	public void HideFileContents_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();

@@ -454,4 +454,7 @@
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Failed to show file contents</value>
   </data>
+  <data name="CloseFilesBeingEdited" xml:space="preserve">
+    <value>Close files being edited</value>
+  </data>
 </root>

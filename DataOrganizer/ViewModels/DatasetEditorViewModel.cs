@@ -272,7 +272,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			return Task.CompletedTask;
 		}
 
-		MultilineTextEditView view = _viewLauncher.ConfigureMultilineTextEditView(record.Note);
+		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+
+		view
+			.ViewModel
+			.Text = record.Note;
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{
@@ -425,7 +429,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private Task<object?> SortAscending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(Strings.SortAscending + "?");
+		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+
+		view
+			.ViewModel
+			.Text = Strings.SortAscending + "?";
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{
@@ -450,7 +458,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(text);
+		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+
+		view
+			.ViewModel
+			.Text = text;
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{
@@ -468,7 +480,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private Task<object?> SortDescending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(Strings.SortDescending + "?");
+		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+
+		view
+			.ViewModel
+			.Text = Strings.SortDescending + "?";
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{
@@ -494,6 +510,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IViewFactory" />
+	private readonly IViewFactory _viewFactory;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
@@ -505,6 +524,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app)
 	{
 		_clipboardService = clipboardService;
@@ -514,6 +534,8 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 	}
@@ -1017,7 +1039,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		string? questionText,
 		CancellationToken token = default)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox($@"{Strings.Delete} ""{questionText}""?");
+		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+
+		view
+			.ViewModel
+			.Text = $@"{Strings.Delete} ""{questionText}""?";
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{

@@ -668,19 +668,76 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
 	/// </summary>
-	[Test]
-	public void HideFileContents_Asks_The_User_To_Close_Files()
+	[AvaloniaTest]
+	public async Task HideFileContents_Asks_The_User_To_Close_Files()
 	{
-		// TODO: Implement
-
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoQuestionBox>()
+				.Returns(mock.Create<YesNoQuestionBox>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(ecryption);
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
+		await sut.HideFileContents(folder);
 
 		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoQuestionBox>();
+
+		ecryption
+			.Received(0)
+			.HideFileContents(Arg.Any<FolderModelDto>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
+	/// </summary>
+	[Test]
+	public async Task HideFileContents_Does_Work()
+	{
+		// Arrange
+		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(ecryption));
+
+		// Act
+		await sut.HideFileContents(TestUtils.CreateFolderDto());
+
+		// Assert
+		ecryption
+			.Received()
+			.HideFileContents(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>

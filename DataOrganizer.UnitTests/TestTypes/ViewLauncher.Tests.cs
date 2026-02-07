@@ -218,60 +218,6 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureMultilineTextEditView" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void ConfigureMultilineTextEditView_ViewModel_Text_Should_Be_As_Parameter()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMock<MultilineTextEditView>(mock)));
-
-		string text = AppUtils.CreateRandomString(10);
-
-		// Act
-		MultilineTextEditView view = sut.ConfigureMultilineTextEditView(text);
-
-		// Assert
-		view.ViewModel.Text
-			.Should()
-			.Be(text);
-
-		view.ViewModel
-			.Should()
-			.BeAssignableTo<DefaultButtonViewModelBase>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureYesNoQuestionBox" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void ConfigureYesNoQuestionBox_ViewModel_Text_Should_Be_As_Parameter()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMock<YesNoQuestionBox>(mock)));
-
-		string text = AppUtils.CreateRandomString(10);
-
-		// Act
-		YesNoQuestionBox view = sut.ConfigureYesNoQuestionBox(text);
-
-		// Assert
-		view.ViewModel.Text
-			.Should()
-			.Be(text);
-
-		view.ViewModel
-			.Should()
-			.BeAssignableTo<DefaultButtonViewModelBase>();
-	}
-
-	/// <summary>
 	/// Test of <see cref="ViewLauncher.SaveEditorSettingsAsync" />.
 	/// </summary>
 	[AvaloniaTest]

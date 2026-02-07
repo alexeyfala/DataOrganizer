@@ -298,19 +298,45 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
-	public void HideFileContents(FolderModelDto? dto)
+	public Task HideFileContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
+
+		_logger.LogInformation("Hiding files in a folder");
 
 		if (dto.AnyFile(x => x.IsEdited || x.IsExecuted))
 		{
+			YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
 
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			view
+				.ViewModel
+				.DefaultPressedCallback = () =>
+			{
+				DialogHost.Close(null);
+
+				return Task.CompletedTask;
+			};
+
+			if (AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				return Task.CompletedTask;
+			}
+
+			return DialogHost.Show(view);
 		}
 
 		_entityEcryption.HideFileContents(dto);
+
+		return Task.CompletedTask;
 	}
 
 	/// <summary>
@@ -579,6 +605,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
+		_logger.LogInformation("Decrypting files in a folder");
+
 		return _entityEcryption.TakePasswordAsync(
 			this,
 			dto,
@@ -600,7 +628,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox($@"{Strings.Delete} ""{toBeDeleted.Name}""?");
+		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+
+		view
+			.ViewModel
+			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
 
 		view
 			.ViewModel
@@ -638,6 +670,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			return Task.CompletedTask;
 		}
+
+		_logger.LogInformation("Encrypting files in a folder");
 
 		return _entityEcryption.TakePasswordAsync(
 			this,
@@ -758,6 +792,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			return Task.CompletedTask;
 		}
+
+		_logger.LogInformation("Show file contents in a folder");
 
 		return _entityEcryption.TakePasswordAsync(
 			this,

@@ -298,30 +298,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public MultilineTextEditView ConfigureMultilineTextEditView(string? text)
-	{
-		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
-
-		view
-			.ViewModel
-			.Text = text;
-
-		return view;
-	}
-
-	/// <inheritdoc />
-	public YesNoQuestionBox ConfigureYesNoQuestionBox(string text)
-	{
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
-
-		view
-			.ViewModel
-			.Text = text;
-
-		return view;
-	}
-
-	/// <inheritdoc />
 	public Task SaveEditorSettingsAsync(EditorWindow window)
 	{
 		try

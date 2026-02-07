@@ -474,4 +474,7 @@
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Не удалось показать содержимое файлов</value>
   </data>
+  <data name="CloseFilesBeingEdited" xml:space="preserve">
+    <value>Закрыть редактируемые файлы</value>
+  </data>
 </root>
