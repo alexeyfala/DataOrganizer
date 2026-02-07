@@ -81,6 +81,34 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> if any child file satisfies the condition.
+	/// </summary>
+	public bool AnyFile(Predicate<FileModelDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(Children);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FileModelDto file && condition(file))
+			{
+				return true;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()

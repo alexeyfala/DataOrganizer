@@ -666,6 +666,24 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
+	/// </summary>
+	[Test]
+	public void HideFileContents_Asks_The_User_To_Close_Files()
+	{
+		// TODO: Implement
+
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+
+		// Assert
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.Initialize" />.
 	/// </summary>
 	[AvaloniaTest]

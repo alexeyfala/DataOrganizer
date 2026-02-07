@@ -296,6 +296,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		window?.Close();
 	}
 
+	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
+	public void HideFileContents(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		if (dto.AnyFile(x => x.IsEdited || x.IsExecuted))
+		{
+
+		}
+
+		_entityEcryption.HideFileContents(dto);
+	}
+
 	/// <summary>
 	/// Resets the <see cref="SelectedObject" />.
 	/// </summary>
@@ -656,19 +673,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			true,
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name))}");
-	}
-
-	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
-	private void HideFileContents(FolderModelDto? dto)
-	{
-		// TODO: Make test
-		if (dto is null)
-		{
-			return;
-		}
-
-		_entityEcryption.HideFileContents(dto);
 	}
 
 	/// <summary>
