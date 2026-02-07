@@ -85,6 +85,7 @@
 										<wrappers:FlyoutButton
 											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
 											CommandParameter="{Binding}"
+											FontWeight="Bold"
 											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowFileContents}"
 											Icon="LockOpenVariantOutline" />
@@ -92,6 +93,8 @@
 										<wrappers:FlyoutButton
 											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
 											CommandParameter="{Binding}"
+											FontWeight="Bold"
+											Foreground="ForestGreen"
 											Header="{x:Static prop:Strings.HideFileContents}"
 											Icon="LockCheckOutline" />
 

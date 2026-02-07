@@ -814,6 +814,49 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFileContents(FolderModelDto)" />.
+	/// </summary>
+	[Test]
+	public void HideFileContents_Do_Work()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedPassword = TestUtils.CreateRandomBytes(10);
+
+		folder.EncryptionStatus = EncryptionStatus.Decrypted;
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		files.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+		folder
+			.Children
+			.AddRange(files);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		sut.HideFileContents(folder);
+
+		// Assert
+		folder.EncryptedPassword
+			.Should()
+			.BeEmpty();
+
+		folder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		folder.GetAllChildren()
+			.Should()
+			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]

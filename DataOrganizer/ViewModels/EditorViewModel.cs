@@ -658,18 +658,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(FileModelDto.Name))}");
 	}
 
-	/// <summary>
-	/// Hides file contents in folder.
-	/// </summary>
+	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
 	private void HideFileContents(FolderModelDto? dto)
 	{
+		// TODO: Make test
 		if (dto is null)
 		{
 			return;
 		}
 
-		;
+		_entityEcryption.HideFileContents(dto);
 	}
 
 	/// <summary>

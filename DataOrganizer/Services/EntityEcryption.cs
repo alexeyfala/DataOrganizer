@@ -19,6 +19,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -284,6 +285,22 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			popupHost = null;
 		}
+	}
+
+	/// <inheritdoc />
+	public void HideFileContents(FolderModelDto folder)
+	{
+		if (folder.EncryptedPassword.Length != 0)
+		{
+			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
+
+			folder.EncryptedPassword = [];
+		}
+
+		folder
+			.ToEnumerable()
+			.Concat(folder.GetAllChildren())
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 	}
 
 	/// <inheritdoc />

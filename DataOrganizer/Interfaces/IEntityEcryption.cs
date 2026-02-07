@@ -32,6 +32,11 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Hides file contents in folder.
+	/// </summary>
+	void HideFileContents(FolderModelDto folder);
+
+	/// <summary>
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
 	Task TakePasswordAsync(
