@@ -13,4 +13,50 @@
 	<Design.DataContext>
 		<vm:YesNoCancelBoxViewModel />
 	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="Auto,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+
+		<TextBlock
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			HorizontalAlignment="Center"
+			Text="{Binding Text, Mode=OneWay}"
+			TextTrimming="CharacterEllipsis" />
+
+		<UniformGrid
+			Grid.Row="1"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="3">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding YesButtonPressed}"
+				Content="{x:Static prop:Strings.Yes}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding NoButtonPressed}"
+				Content="{x:Static prop:Strings.No}"
+				IsCancel="True"
+				IsVisible="{Binding NoButtonVisible, Mode=OneWay}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding CancelButtonPressed}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True"
+				IsVisible="{Binding CancelButtonVisible, Mode=OneWay}" />
+		</UniformGrid>
+	</Grid>
 </UserControl>

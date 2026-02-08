@@ -635,16 +635,31 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the delete object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDelete))]
-	private Task Delete(ExplorerModelBaseDto? dto)
+	private async Task Delete(ExplorerModelBaseDto? dto)
 	{
 		ExplorerModelBaseDto? toBeDeleted = dto ?? SelectedObject;
 
 		if (toBeDeleted is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Deleting an object using a dialog");
+
+		//YesNoCancelBox v = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		//v
+		//	.ViewModel
+		//	.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
+
+		//_ = DialogHost.Show(v);
+
+		//YesNoCancelResult result = await v
+		//	.ViewModel
+		//	.GetResultAsync(YesNoCancelVariant.YesNo)
+		//	.ConfigureAwait(false);
+
+		//await Task.Delay(100000).ConfigureAwait(true);
 
 		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
 
@@ -661,7 +676,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return DeleteAsync(toBeDeleted);
 		};
 
-		return DialogHost.Show(view);
+		await DialogHost
+			.Show(view)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />

@@ -23,7 +23,7 @@
 		<TextBlock
 			Grid.Row="0"
 			Grid.Column="0"
-			Grid.ColumnSpan="3"
+			Grid.ColumnSpan="2"
 			HorizontalAlignment="Center"
 			Text="{Binding Text, Mode=OneWay}"
 			TextTrimming="CharacterEllipsis" />
