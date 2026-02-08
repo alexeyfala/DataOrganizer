@@ -42,6 +42,11 @@ public interface IEntityEcryption
 	void HideFileContents(FolderModelDto folder);
 
 	/// <summary>
+	/// Resets the session identifier.
+	/// </summary>
+	void ResetSessionId();
+
+	/// <summary>
 	/// Shows file contents.
 	/// </summary>
 	bool ShowFileContents(FolderModelDto folder, string password);

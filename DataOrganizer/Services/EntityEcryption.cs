@@ -220,7 +220,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public byte[] GetSessionId()
 	{
-		// TODO: Make test
 		if (_sessionId?.Length > 0)
 		{
 			return _sessionId;
@@ -322,6 +321,19 @@ public sealed class EntityEcryption : IEntityEcryption
 			.ToEnumerable()
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+	}
+
+	/// <inheritdoc />
+	public void ResetSessionId()
+	{
+		if (_sessionId is null)
+		{
+			return;
+		}
+
+		CryptographicOperations.ZeroMemory(_sessionId);
+
+		_sessionId = null;
 	}
 
 	/// <inheritdoc />

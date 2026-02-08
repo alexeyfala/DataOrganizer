@@ -534,6 +534,53 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.GetSessionId" />.
+	/// </summary>
+	[Test]
+	public void GetSessionId_Returns_Different_Values_Between_Sessions()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		byte[] first = sut.GetSessionId();
+
+		sut.ResetSessionId();
+
+		byte[] second = sut.GetSessionId();
+
+		// Assert
+		first
+			.Should()
+			.NotBeEquivalentTo(second);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.GetSessionId" />.
+	/// </summary>
+	[Test]
+	public void GetSessionId_Returns_Same_Value_During_Session()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		byte[] value = sut.GetSessionId();
+
+		// Assert
+		for (int i = 0; i < 10; i++)
+		{
+			sut.GetSessionId()
+				.Should()
+				.BeEquivalentTo(value);
+		}
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
 	[AvaloniaTest]
