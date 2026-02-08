@@ -18,11 +18,6 @@ namespace CommonTestHelpers.Helpers;
 /// </summary>
 public static class TestUtils
 {
-	#region Data
-	/// <inheritdoc cref="Random" />
-	private static readonly Random _random = new();
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Creates a <see cref="CategoryFavoritePair" /> with random properties.
@@ -257,7 +252,9 @@ public static class TestUtils
 	{
 		byte[] buffer = new byte[length];
 
-		_random.NextBytes(buffer);
+		Random
+			.Shared
+			.NextBytes(buffer);
 
 		return buffer;
 	}
@@ -270,7 +267,9 @@ public static class TestUtils
 	/// </remarks>
 	public static double CreateRandomDouble(in double minValue, in double maxValue)
 	{
-		double value = _random.NextDouble();
+		double value = Random
+			.Shared
+			.NextDouble();
 
 		return minValue + (value * (maxValue - minValue));
 	}
@@ -282,7 +281,9 @@ public static class TestUtils
 	{
 		T[] values = Enum.GetValues<T>();
 
-		int randomIndex = _random.Next(values.Length);
+		int randomIndex = Random
+			.Shared
+			.Next(values.Length);
 
 		return (T)values.GetValue(randomIndex)!;
 	}
@@ -290,7 +291,12 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random <see cref="int" /> number within a given range.
 	/// </summary>
-	public static int CreateRandomInt(in int minValue, in int maxValue) => _random.Next(minValue, maxValue);
+	public static int CreateRandomInt(in int minValue, in int maxValue)
+	{
+		return Random
+			.Shared
+			.Next(minValue, maxValue);
+	}
 
 	/// <summary>
 	/// Generates a random number between 10 and 100.

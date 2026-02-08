@@ -225,9 +225,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return _sessionId;
 		}
 
-		Random random = new();
-
-		_sessionId = RandomNumberGenerator.GetBytes(random.Next(32, 65));
+		_sessionId = RandomNumberGenerator.GetBytes(Random
+			.Shared
+			.Next(32, 65));
 
 		return _sessionId;
 	}
