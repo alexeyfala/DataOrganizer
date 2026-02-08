@@ -42,6 +42,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
+
+	/// <summary>
+	/// Encryption session identifier.
+	/// </summary>
+	private byte[]? _sessionId;
 	#endregion
 
 	#region Constructors
@@ -213,6 +218,22 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public byte[] GetSessionId()
+	{
+		// TODO: Make test
+		if (_sessionId?.Length > 0)
+		{
+			return _sessionId;
+		}
+
+		Random random = new();
+
+		_sessionId = RandomNumberGenerator.GetBytes(random.Next(32, 65));
+
+		return _sessionId;
+	}
+
+	/// <inheritdoc />
 	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
 		PasswordBox view,
 		EditorViewModel viewModel,
@@ -290,25 +311,52 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void HideFileContents(FolderModelDto folder)
 	{
-		if (folder
-			.EncryptedPassword
-			.IsNotDefault())
+		if (folder.EncryptedPassword is not null)
 		{
-			CryptographicOperations.ZeroMemory(folder
-				.EncryptedPassword
-				.Password);
+			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
 
-			CryptographicOperations.ZeroMemory(folder
-				.EncryptedPassword
-				.RandomBytes);
-
-			folder.EncryptedPassword = default;
+			folder.EncryptedPassword = null;
 		}
 
 		folder
 			.ToEnumerable()
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+	}
+
+	/// <inheritdoc />
+	public bool ShowFileContents(
+		FolderModelDto folder,
+		string password)
+	{
+		// TODO: Make test
+		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
+			? folder
+			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+
+		if (root is null)
+		{
+			return false;
+		}
+
+		bool isEncrypted = _encryption.Encrypt(
+			TextHelper.Utf8Encoding.GetBytes(password),
+			GetSessionId(),
+			out byte[] output);
+
+		if (!isEncrypted)
+		{
+			return false;
+		}
+
+		root.EncryptedPassword = output;
+
+		folder
+			.ToEnumerable()
+			.Concat(folder.GetAllChildren())
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+		return true;
 	}
 
 	/// <inheritdoc />
@@ -370,48 +418,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Shows file contents.
-	/// </summary>
-	private bool ShowFileContents(
-		FolderModelDto folder,
-		string password)
-	{
-		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
-			? folder
-			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
-
-		if (root is null)
-		{
-			return false;
-		}
-
-		byte[] randomBytes = RandomNumberGenerator.GetBytes(32);
-
-		bool isEncrypted = _encryption.Encrypt(
-			TextHelper.Utf8Encoding.GetBytes(password),
-			randomBytes,
-			out byte[] output);
-
-		if (!isEncrypted)
-		{
-			return false;
-		}
-
-		root.EncryptedPassword = new()
-		{
-			Password = output,
-			RandomBytes = randomBytes
-		};
-
-		folder
-			.ToEnumerable()
-			.Concat(folder.GetAllChildren())
-			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
-
-		return true;
-	}
-
 	/// <summary>
 	/// Verifies the password by hash.
 	/// </summary>

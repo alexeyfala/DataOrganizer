@@ -23,6 +23,11 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Returns a session identifier.
+	/// </summary>
+	byte[] GetSessionId();
+
+	/// <summary>
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
 	Task<HandlePasswordResult> HandlePasswordInputAsync(
@@ -35,6 +40,11 @@ public interface IEntityEcryption
 	/// Hides file contents in folder.
 	/// </summary>
 	void HideFileContents(FolderModelDto folder);
+
+	/// <summary>
+	/// Shows file contents.
+	/// </summary>
+	bool ShowFileContents(FolderModelDto folder, string password);
 
 	/// <summary>
 	/// Takes a password for encryption/decryption files in folder.

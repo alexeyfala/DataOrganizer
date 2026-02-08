@@ -304,8 +304,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IClipboardService, ClipboardService>();
-		services.AddTransient<IEncryptionService, EncryptionService>();
-		services.AddTransient<IEntityEcryption, EntityEcryption>();
+		services.AddTransient<IEncryptionService, EncryptionService>();		
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
@@ -327,6 +326,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton<IEntityEcryption, EntityEcryption>();
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();

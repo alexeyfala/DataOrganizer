@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
 using System;
@@ -15,8 +14,10 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.Children" />
 	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
-	/// <inheritdoc cref="Encryption.EncryptedPassword" />
-	public EncryptedPassword EncryptedPassword { get; set; }
+	/// <summary>
+	/// Encrypted password.
+	/// </summary>
+	public byte[]? EncryptedPassword { get; set; }
 
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
