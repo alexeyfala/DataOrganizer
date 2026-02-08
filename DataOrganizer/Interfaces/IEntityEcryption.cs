@@ -47,11 +47,6 @@ public interface IEntityEcryption
 	void ResetSessionId();
 
 	/// <summary>
-	/// Shows file contents.
-	/// </summary>
-	bool ShowFileContents(FolderModelDto folder, string password);
-
-	/// <summary>
 	/// Takes a password for encryption/decryption files in folder.
 	/// </summary>
 	Task TakePasswordAsync(

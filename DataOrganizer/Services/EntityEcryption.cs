@@ -337,41 +337,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool ShowFileContents(
-		FolderModelDto folder,
-		string password)
-	{
-		// TODO: Make test
-		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
-			? folder
-			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
-
-		if (root is null)
-		{
-			return false;
-		}
-
-		bool isEncrypted = _encryption.Encrypt(
-			TextHelper.Utf8Encoding.GetBytes(password),
-			GetSessionId(),
-			out byte[] output);
-
-		if (!isEncrypted)
-		{
-			return false;
-		}
-
-		root.EncryptedPassword = output;
-
-		folder
-			.ToEnumerable()
-			.Concat(folder.GetAllChildren())
-			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
-
-		return true;
-	}
-
-	/// <inheritdoc />
 	public Task TakePasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
@@ -430,6 +395,42 @@ public sealed class EntityEcryption : IEntityEcryption
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Shows file contents.
+	/// </summary>
+	private bool ShowFileContents(
+		FolderModelDto folder,
+		string password)
+	{
+		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
+			? folder
+			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+
+		if (root is null)
+		{
+			return false;
+		}
+
+		bool isEncrypted = _encryption.Encrypt(
+			TextHelper.Utf8Encoding.GetBytes(password),
+			GetSessionId(),
+			out byte[] output);
+
+		if (!isEncrypted)
+		{
+			return false;
+		}
+
+		root.EncryptedPassword = output;
+
+		folder
+			.ToEnumerable()
+			.Concat(folder.GetAllChildren())
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+		return true;
+	}
+
 	/// <summary>
 	/// Verifies the password by hash.
 	/// </summary>
