@@ -781,6 +781,10 @@ internal class EditorViewModelTests
 		ecryption
 			.Received()
 			.HideFileContents(Arg.Any<FolderModelDto>());
+
+		ecryption
+			.Received()
+			.ResetSessionId();
 	}
 
 	/// <summary>
