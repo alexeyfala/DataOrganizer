@@ -380,7 +380,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		bool isEncrypted = _encryption.Encrypt(
 			TextHelper.Utf8Encoding.GetBytes(password),
-			TextHelper.Utf8Encoding.GetBytes(_encryption.GetDeviceId()),
+			_encryption.GetSessionId(),
 			out byte[] output);
 
 		if (!isEncrypted)

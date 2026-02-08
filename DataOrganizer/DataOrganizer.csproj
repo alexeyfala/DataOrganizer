@@ -39,7 +39,6 @@
 		<PackageReference Include="BinToss.GroupBox.Avalonia" Version="1.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Comparation" Version="0.1.7" />
-		<PackageReference Include="DeviceId" Version="6.9.0" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.10.4" />
 		<PackageReference Include="DynamicData" Version="9.4.1" />
 		<PackageReference Include="Mapster" Version="7.4.0" />

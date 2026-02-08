@@ -1,8 +1,8 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -151,10 +151,10 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.GetDeviceId" />.
+	/// Test of <see cref="EncryptionService.GetSessionId" />.
 	/// </summary>
 	[Test]
-	public void GetDeviceId_Returns_Same_Value_Every_Time()
+	public async Task GetSessionId_Returns_Same_Value_Every_Time()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -162,14 +162,20 @@ internal class EncryptionServiceTests
 		EncryptionService sut = mock.Create<EncryptionService>();
 
 		// Act
-		string value = sut.GetDeviceId();
-
-		string[] sequence = [.. TestUtils.CreateSequence(sut.GetDeviceId, 10)];
+		byte[] value = sut.GetSessionId();
 
 		// Assert
-		sequence
-			.Should()
-			.AllBe(value);
+		for (int i = 0; i < 10; i++)
+		{
+			await Task
+				.Delay(100)
+				.ConfigureAwait(false);
+
+			sut
+				.GetSessionId()
+				.Should()
+				.BeEquivalentTo(value);
+		}
 	}
 	#endregion
 }

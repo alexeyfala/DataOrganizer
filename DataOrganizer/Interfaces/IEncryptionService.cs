@@ -35,8 +35,8 @@ public interface IEncryptionService
 	bool EnhancedVerify(string password, string passwordHash);
 
 	/// <summary>
-	/// Returns unique characteristics of the PC as an identifier string.
+	/// Returns unique characteristics of the session identifier.
 	/// </summary>
-	string GetDeviceId();
+	byte[] GetSessionId();
 	#endregion
 }
