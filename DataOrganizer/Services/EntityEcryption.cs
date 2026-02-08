@@ -290,11 +290,19 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void HideFileContents(FolderModelDto folder)
 	{
-		if (folder.EncryptedPassword.Length > 0)
+		if (folder
+			.EncryptedPassword
+			.IsNotDefault())
 		{
-			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
+			CryptographicOperations.ZeroMemory(folder
+				.EncryptedPassword
+				.Password);
 
-			folder.EncryptedPassword = [];
+			CryptographicOperations.ZeroMemory(folder
+				.EncryptedPassword
+				.RandomBytes);
+
+			folder.EncryptedPassword = default;
 		}
 
 		folder
@@ -378,9 +386,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return false;
 		}
 
+		byte[] randomBytes = RandomNumberGenerator.GetBytes(32);
+
 		bool isEncrypted = _encryption.Encrypt(
 			TextHelper.Utf8Encoding.GetBytes(password),
-			_encryption.GetSessionId(),
+			randomBytes,
 			out byte[] output);
 
 		if (!isEncrypted)
@@ -388,7 +398,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return false;
 		}
 
-		root.EncryptedPassword = output;
+		root.EncryptedPassword = new()
+		{
+			Password = output,
+			RandomBytes = randomBytes
+		};
 
 		folder
 			.ToEnumerable()

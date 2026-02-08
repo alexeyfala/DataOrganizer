@@ -1,7 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
-using DataOrganizer.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;
@@ -256,9 +255,11 @@ public static class TestUtils
 	/// </summary>
 	public static byte[] CreateRandomBytes(in int length)
 	{
-		return TextHelper
-			.Utf8Encoding
-			.GetBytes(AppUtils.CreateRandomString(length));
+		byte[] buffer = new byte[length];
+
+		_random.NextBytes(buffer);
+
+		return buffer;
 	}
 
 	/// <summary>

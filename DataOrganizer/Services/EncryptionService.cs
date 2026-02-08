@@ -1,5 +1,4 @@
 ﻿using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
@@ -24,11 +23,6 @@ public sealed class EncryptionService : IEncryptionService
 	/// The encryption algorithm used.
 	/// </summary>
 	private static readonly AeadAlgorithm _algorithm = AeadAlgorithm.XChaCha20Poly1305;
-
-	/// <summary>
-	/// The launch date.
-	/// </summary>
-	private static readonly DateTime _launchDate = DateTime.Now;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -186,14 +180,6 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
-
-	/// <inheritdoc />
-	public byte[] GetSessionId()
-	{
-		return CryptographicOperations.HashData(
-			HashAlgorithmName.SHA256,
-			TextHelper.Utf8Encoding.GetBytes(_launchDate.ToString()));
-	}
 	#endregion
 
 	#region Service

@@ -33,10 +33,5 @@ public interface IEncryptionService
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
 	bool EnhancedVerify(string password, string passwordHash);
-
-	/// <summary>
-	/// Returns unique characteristics of the session identifier.
-	/// </summary>
-	byte[] GetSessionId();
 	#endregion
 }

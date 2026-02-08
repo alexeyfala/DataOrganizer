@@ -2,7 +2,6 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Services;
-using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -148,34 +147,6 @@ internal class EncryptionServiceTests
 		result2
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EncryptionService.GetSessionId" />.
-	/// </summary>
-	[Test]
-	public async Task GetSessionId_Returns_Same_Value_Every_Time()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		// Act
-		byte[] value = sut.GetSessionId();
-
-		// Assert
-		for (int i = 0; i < 10; i++)
-		{
-			await Task
-				.Delay(100)
-				.ConfigureAwait(false);
-
-			sut
-				.GetSessionId()
-				.Should()
-				.BeEquivalentTo(value);
-		}
 	}
 	#endregion
 }

@@ -800,9 +800,17 @@ internal class EntityEcryptionTests
 			.Should()
 			.Be(HandlePasswordResult.Applied);
 
-		folder.EncryptedPassword
+		folder.EncryptedPassword.Password
 			.Should()
 			.NotBeEmpty();
+
+		folder.EncryptedPassword.RandomBytes
+			.Should()
+			.NotBeEmpty();
+
+		folder.EncryptedPassword.Password
+			.Should()
+			.NotBeEquivalentTo(folder.EncryptedPassword.RandomBytes);
 
 		folder.EncryptionStatus
 			.Should()
@@ -822,7 +830,11 @@ internal class EntityEcryptionTests
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		folder.EncryptedPassword = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedPassword = new()
+		{
+			Password = TestUtils.CreateRandomBytes(10),
+			RandomBytes = TestUtils.CreateRandomBytes(10)
+		};
 
 		folder.EncryptionStatus = EncryptionStatus.Decrypted;
 
@@ -842,9 +854,13 @@ internal class EntityEcryptionTests
 		sut.HideFileContents(folder);
 
 		// Assert
-		folder.EncryptedPassword
+		folder.EncryptedPassword.Password
 			.Should()
-			.BeEmpty();
+			.BeNull();
+
+		folder.EncryptedPassword.RandomBytes
+			.Should()
+			.BeNull();
 
 		folder.EncryptionStatus
 			.Should()
