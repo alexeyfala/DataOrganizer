@@ -325,7 +325,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					dto.GetFiles(x => x.IsEdited),
 					dto.GetFiles(x => x.IsExecuted));
 
-				_entityEcryption.HideFileContents(dto);
+				HideFileContents();
 
 				return Task.CompletedTask;
 			};
@@ -340,9 +340,21 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return DialogHost.Show(view);
 		}
 
-		_entityEcryption.HideFileContents(dto);
+		HideFileContents();
 
 		return Task.CompletedTask;
+
+		void HideFileContents()
+		{
+			_entityEcryption.HideFileContents(dto);
+
+			if (Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+			{
+				return;
+			}
+
+			_entityEcryption.ResetSessionId();
+		}
 	}
 
 	/// <summary>
