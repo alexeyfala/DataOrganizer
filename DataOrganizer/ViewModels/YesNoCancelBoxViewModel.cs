@@ -50,19 +50,19 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void CancelButtonPressed() => _source.SetResult(YesNoCancelResult.Cancel);
+	private void CancelButtonPressed() => _source.TrySetResult(YesNoCancelResult.Cancel);
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void NoButtonPressed() => _source.SetResult(YesNoCancelResult.No);
+	private void NoButtonPressed() => _source.TrySetResult(YesNoCancelResult.No);
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void YesButtonPressed() => _source.SetResult(YesNoCancelResult.Yes);
+	private void YesButtonPressed() => _source.TrySetResult(YesNoCancelResult.Yes);
 	#endregion
 
 	#region Data
@@ -76,6 +76,7 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// </summary>
 	public Task<YesNoCancelResult> GetResultAsync(in YesNoCancelVariant variant)
 	{
+		// TODO: Make test
 		switch (variant)
 		{
 			case YesNoCancelVariant.YesNo:

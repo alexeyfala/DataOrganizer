@@ -646,42 +646,46 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		YesNoCancelBox v = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		v
+		view
 			.ViewModel
 			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
 
-		_ = DialogHost.Show(v);
+		_ = DialogHost.Show(view);
 
-		YesNoCancelResult result = await v
+		YesNoCancelResult result = await view
 			.ViewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
+
+		DialogHost.Close(null);
 
 		if (result != YesNoCancelResult.Yes)
 		{
 			return;
 		}
 
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 
-		view
-			.ViewModel
-			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
+		//YesNoQuestionBox viewOld = _viewFactory.CreateUserControl<YesNoQuestionBox>();
 
-		view
-			.ViewModel
-			.DefaultPressedCallback = () =>
-		{
-			DialogHost.Close(null);
+		//viewOld
+		//	.ViewModel
+		//	.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
 
-			return DeleteAsync(toBeDeleted);
-		};
+		//viewOld
+		//	.ViewModel
+		//	.DefaultPressedCallback = () =>
+		//{
+		//	DialogHost.Close(null);
 
-		await DialogHost
-			.Show(view)
-			.ConfigureAwait(false);
+		//	return DeleteAsync(toBeDeleted);
+		//};
+
+		//await DialogHost
+		//	.Show(viewOld)
+		//	.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />
