@@ -35,11 +35,12 @@ internal class EditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddAsync(string, EntityType, FolderModelDto?, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.AddAsync" />.
 	/// </summary>
-	[TestCase(EntityType.Folder, false)]
-	[TestCase(EntityType.File, true)]
-	public async Task AddAsync_Returns_Entity(EntityType type, bool hasParent)
+	[Test]
+	public async Task AddAsync_Returns_Entity(
+		[Values] EntityType type,
+		[Values] bool hasParent)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -104,7 +105,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddHierarchy(IEnumerable{ExplorerModelBaseDto})" />.
+	/// Test of <see cref="EditorViewModel.AddHierarchy" />.
 	/// </summary>
 	[Test]
 	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
@@ -152,7 +153,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.CloseExecutedFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.CloseExecutedFile" />.
 	/// </summary>
 	[Test]
 	public void CloseExecutedFile_Closes_File()
@@ -233,7 +234,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync(ExplorerModelBaseDto, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.DeleteAsync" />.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -303,7 +304,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync(ExplorerModelBaseDto, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.DeleteAsync" />.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -441,7 +442,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Contents_Should_Not_Be_Loaded_If_It_Is_Already_Opened()
@@ -474,7 +475,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Executes_File()
@@ -547,11 +548,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync(bool)" />.
+	/// Test of <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders(bool isExpandAll)
+	[Test]
+	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders([Values] bool isExpandAll)
 	{
 		// Arrange
 		FolderModelDto selectedFolder = TestUtils.CreateFolderDto();
@@ -649,9 +649,8 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HandleChangeSettings" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing(bool isSave)
+	[Test]
+	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
 		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
@@ -1034,7 +1033,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync(ExplorerModelBaseDto, string, DateTime, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.RenameAsync" />.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
@@ -1081,7 +1080,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync(ExplorerModelBaseDto, string, DateTime, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.RenameAsync" />.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
@@ -1176,11 +1175,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetFavorite(FileModelDto?)" />.
+	/// Test of <see cref="EditorViewModel.SetFavorite" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database(bool initialValue)
+	[Test]
+	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database([Values] bool initialValue)
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1208,7 +1206,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetSelectedObject(ExplorerModelBaseDto)" />.
+	/// Test of <see cref="EditorViewModel.SetSelectedObject" />.
 	/// </summary>
 	[Test]
 	public void SetSelectedObject_Sets_Object_IsSelected_Property_To_True_And_SelectedObject()
@@ -1236,7 +1234,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowFavorites(EditorWindow?)" />.
+	/// Test of <see cref="EditorViewModel.ShowFavorites" />.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowFavorites_Shows_Favorites_Window()

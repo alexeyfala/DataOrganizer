@@ -418,6 +418,36 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
 	/// </summary>
+	[Test]
+	public async Task EncryptDecryptAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
+	{
+		// Arrange
+		EncryptDecryptFilesParameters parameters = new()
+		{
+			Action = CryptoAction.ShowFileContents,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			Password = AppUtils.CreateRandomString(10)
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+			mock.Create<EditorViewModel>(),
+			parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(FilesEncryptionResult.ExceptionThrown);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
 	public async Task EncryptDecryptAsync_Successfully_Encrypts_Files(CryptoAction action)
@@ -906,9 +936,8 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
 	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakePasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed(CryptoAction action)
+	[Test]
+	public async Task TakePasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed([Values] CryptoAction action)
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -944,9 +973,8 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
 	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakePasswordAsync_Does_Nothing_If_Folder_Has_No_Files(CryptoAction action)
+	[Test]
+	public async Task TakePasswordAsync_Does_Nothing_If_Folder_Has_No_Files([Values] CryptoAction action)
 	{
 		// Arrange
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
@@ -970,9 +998,8 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
 	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakePasswordAsync_Shows_Password_Box(CryptoAction action)
+	[Test]
+	public async Task TakePasswordAsync_Shows_Password_Box([Values] CryptoAction action)
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();

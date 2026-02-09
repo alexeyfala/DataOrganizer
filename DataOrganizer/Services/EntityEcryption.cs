@@ -78,6 +78,11 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		try
 		{
+			if (parameters.Action == CryptoAction.ShowFileContents)
+			{
+				throw new InvalidOperationException("Unsupported action type");
+			}
+
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(parameters.Files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
