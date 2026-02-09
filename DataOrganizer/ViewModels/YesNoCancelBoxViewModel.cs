@@ -6,6 +6,7 @@ using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Shared.Extensions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -76,7 +77,9 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// <summary>
 	/// Returns a result of the user choice.
 	/// </summary>
-	public Task<YesNoCancelResult> GetResultAsync(in YesNoCancelVariant variant)
+	public Task<YesNoCancelResult> GetResultAsync(
+		YesNoCancelVariant variant,
+		CancellationToken token = default)
 	{
 		switch (variant)
 		{
@@ -102,21 +105,30 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
-			_ = Task.Run(async () =>
-			{
-				while (DialogHost.IsDialogOpen(null))
-				{
-					await Task
-						.Delay(500)
-						.ConfigureAwait(false);
-				}
-
-				// In case the user closes the dialog without using the buttons.
-				_source.TrySetResult(YesNoCancelResult.Cancel);
-			});
+			_ = WaitDialogCloseAsync(token);
 		}
 
 		return _source.Task;
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Waits for the dialog <see cref="DialogHost" /> to close.
+	/// </summary>
+	/// <remarks>
+	/// Needed in case the user closes the dialog without using provided buttons.
+	/// </remarks>
+	private async Task WaitDialogCloseAsync(CancellationToken token = default)
+	{
+		while (DialogHost.IsDialogOpen(null))
+		{
+			await Task
+				.Delay(500, token)
+				.ConfigureAwait(false);
+		}
+
+		_source.TrySetResult(YesNoCancelResult.Cancel);
 	}
 	#endregion
 }
