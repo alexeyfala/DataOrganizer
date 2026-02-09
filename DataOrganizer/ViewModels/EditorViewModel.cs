@@ -646,20 +646,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		//YesNoCancelBox v = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		YesNoCancelBox v = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		//v
-		//	.ViewModel
-		//	.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
+		v
+			.ViewModel
+			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
 
-		//_ = DialogHost.Show(v);
+		_ = DialogHost.Show(v);
 
-		//YesNoCancelResult result = await v
-		//	.ViewModel
-		//	.GetResultAsync(YesNoCancelVariant.YesNo)
-		//	.ConfigureAwait(false);
+		YesNoCancelResult result = await v
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
 
-		//await Task.Delay(100000).ConfigureAwait(true);
+		await Task.Delay(100000).ConfigureAwait(true);
 
 		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
 

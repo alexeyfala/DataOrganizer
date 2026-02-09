@@ -15,48 +15,49 @@
 	</Design.DataContext>
 
 	<Grid
-		ColumnDefinitions="*,Auto"
+		ColumnDefinitions="*,Auto,Auto,Auto"
+		ColumnSpacing="{StaticResource ElementSpacing}"
 		RowDefinitions="Auto,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
+
+		<Grid.Styles>
+			<Style Selector="Button">
+				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+			</Style>
+		</Grid.Styles>
 
 		<TextBlock
 			Grid.Row="0"
 			Grid.Column="0"
-			Grid.ColumnSpan="2"
+			Grid.ColumnSpan="4"
 			HorizontalAlignment="Center"
 			Text="{Binding Text, Mode=OneWay}"
 			TextTrimming="CharacterEllipsis" />
 
-		<UniformGrid
+		<Button
 			Grid.Row="1"
 			Grid.Column="1"
-			ColumnSpacing="{StaticResource ElementSpacing}"
-			Columns="3">
-			<UniformGrid.Styles>
-				<Style Selector="Button">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
-				</Style>
-			</UniformGrid.Styles>
+			Classes="primary"
+			Command="{Binding YesButtonPressed}"
+			Content="{x:Static prop:Strings.Yes}"
+			IsDefault="True" />
 
-			<Button
-				Classes="primary"
-				Command="{Binding YesButtonPressed}"
-				Content="{x:Static prop:Strings.Yes}"
-				IsDefault="True" />
+		<Button
+			Grid.Row="1"
+			Grid.Column="2"
+			Classes="primary"
+			Command="{Binding NoButtonPressed}"
+			Content="{x:Static prop:Strings.No}"
+			IsCancel="True"
+			IsVisible="{Binding NoButtonVisible, Mode=OneWay}" />
 
-			<Button
-				Classes="primary"
-				Command="{Binding NoButtonPressed}"
-				Content="{x:Static prop:Strings.No}"
-				IsCancel="True"
-				IsVisible="{Binding NoButtonVisible, Mode=OneWay}" />
-
-			<Button
-				Classes="primary"
-				Command="{Binding CancelButtonPressed}"
-				Content="{x:Static prop:Strings.Cancel}"
-				IsCancel="True"
-				IsVisible="{Binding CancelButtonVisible, Mode=OneWay}" />
-		</UniformGrid>
+		<Button
+			Grid.Row="1"
+			Grid.Column="3"
+			Classes="primary"
+			Command="{Binding CancelButtonPressed}"
+			Content="{x:Static prop:Strings.Cancel}"
+			IsCancel="True"
+			IsVisible="{Binding CancelButtonVisible, Mode=OneWay}" />
 	</Grid>
 </UserControl>
