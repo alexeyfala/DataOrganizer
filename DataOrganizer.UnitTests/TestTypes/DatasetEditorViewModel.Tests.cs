@@ -25,11 +25,10 @@ internal class DatasetEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddGroupAsync(string, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.AddGroupAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task AddGroupAsync_Adds_Group(bool addToGroup)
+	[Test]
+	public async Task AddGroupAsync_Adds_Group([Values] bool addToGroup)
 	{
 		// Arrange
 		string name = AppUtils.CreateRandomString(10);
@@ -81,11 +80,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddKeyValueAsync(string, string?, RecordsGroup?, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.AddKeyValueAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task AddKeyValueAsync_Adds_Key_And_Value_Record(bool addToGroup)
+	[Test]
+	public async Task AddKeyValueAsync_Adds_Key_And_Value_Record([Values] bool addToGroup)
 	{
 		// Arrange
 		string key = AppUtils.CreateRandomString(10);
@@ -139,11 +137,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddValueAsync(string, RecordsGroup?, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.AddValueAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task AddValueAsync_Adds_Value_Record(bool addToGroup)
+	[Test]
+	public async Task AddValueAsync_Adds_Value_Record([Values] bool addToGroup)
 	{
 		// Arrange
 		string value = AppUtils.CreateRandomString(10);
@@ -195,7 +192,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.DeleteRecordAsync" />.
 	/// </summary>
 	[Test]
 	public async Task DeleteRecordAsync_Deletes_Record()
@@ -232,11 +229,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditKeyValueAsync(KeyValueRecord, string, string?, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.EditKeyValueAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task EditKeyValueAsync_Edits_Record(bool isSameValue)
+	[Test]
+	public async Task EditKeyValueAsync_Edits_Record([Values] bool isSameValue)
 	{
 		// Arrange
 		string key = AppUtils.CreateRandomString(10);
@@ -279,7 +275,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditNoteAsync(DatasetRecordBase, string?, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.EditNoteAsync" />.
 	/// </summary>
 	[Test]
 	public async Task EditNoteAsync_Edits_Note_Of_Record()
@@ -312,11 +308,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditValueAsync(ValueRecord, string, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.EditValueAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task EditValueAsync_Edits_Record(bool isSameValue)
+	[Test]
+	public async Task EditValueAsync_Edits_Record([Values] bool isSameValue)
 	{
 		// Arrange
 		string value = AppUtils.CreateRandomString(10);
@@ -351,7 +346,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ExpandCollapseAsync(RecordsGroup?, bool, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />.
 	/// </summary>
 	[TestCase(true, true, true)]
 	[TestCase(false, false, false)]
@@ -541,7 +536,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.RenameGroupAsync(RecordsGroup, string, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.RenameGroupAsync" />.
 	/// </summary>
 	[TestCase(true)]
 	[TestCase(false)]
@@ -580,7 +575,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ShowHideAsync(RecordsGroup?, bool, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.ShowHideAsync" />.
 	/// </summary>
 	[TestCase(true, true, true)]
 	[TestCase(false, false, false)]
@@ -653,7 +648,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.SortAsync(RecordsGroup?, ListSortDirection, CancellationToken)" />.
+	/// Test of <see cref="DatasetEditorViewModel.SortAsync" />.
 	/// </summary>
 	[TestCase(ListSortDirection.Ascending, true, true)]
 	[TestCase(ListSortDirection.Descending, false, false)]
