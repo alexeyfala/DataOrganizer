@@ -656,10 +656,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		YesNoCancelResult result = await v
 			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNoCancel)
+			.GetResultAsync(YesNoCancelVariant.YesNo)
 			.ConfigureAwait(false);
 
-		await Task.Delay(100000).ConfigureAwait(true);
+		if (result != YesNoCancelResult.Yes)
+		{
+			return;
+		}
 
 		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
 

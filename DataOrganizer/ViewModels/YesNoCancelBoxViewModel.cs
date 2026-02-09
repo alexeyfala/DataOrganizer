@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
@@ -20,10 +21,22 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	private bool _cancelButtonVisible;
 
 	/// <summary>
+	/// Returns <c>True</c> if "Cancel" button is <see cref="Button.IsCancel" />.
+	/// </summary>
+	[ObservableProperty]
+	private bool _cancelIsCancel;
+
+	/// <summary>
 	/// Returns <c>True</c> if "No" button is visible.
 	/// </summary>
 	[ObservableProperty]
 	private bool _noButtonVisible;
+
+	/// <summary>
+	/// Returns <c>True</c> if "No" button is <see cref="Button.IsCancel" />.
+	/// </summary>
+	[ObservableProperty]
+	private bool _noIsCancel;
 
 	/// <summary>
 	/// Text.
@@ -67,12 +80,16 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 		{
 			case YesNoCancelVariant.YesNo:
 				NoButtonVisible = true;
+
+				NoIsCancel = true;
 				break;
 
 			case YesNoCancelVariant.YesNoCancel:
 				NoButtonVisible = true;
 
 				CancelButtonVisible = true;
+
+				CancelIsCancel = true;
 				break;
 
 			default:
