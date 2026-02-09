@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
+using Shared.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -77,7 +78,6 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// </summary>
 	public Task<YesNoCancelResult> GetResultAsync(in YesNoCancelVariant variant)
 	{
-		// TODO: Make test
 		switch (variant)
 		{
 			case YesNoCancelVariant.YesNo:
@@ -98,18 +98,23 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 				throw new NotImplementedException();
 		}
 
-		_ = Task.Run(async () =>
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
 		{
-			while (DialogHost.IsDialogOpen(null))
+			_ = Task.Run(async () =>
 			{
-				await Task
-					.Delay(500)
-					.ConfigureAwait(false);
-			}
+				while (DialogHost.IsDialogOpen(null))
+				{
+					await Task
+						.Delay(500)
+						.ConfigureAwait(false);
+				}
 
-			// In case the user closes the dialog without using the buttons.
-			_source.TrySetResult(YesNoCancelResult.Cancel);
-		});
+				// In case the user closes the dialog without using the buttons.
+				_source.TrySetResult(YesNoCancelResult.Cancel);
+			});
+		}
 
 		return _source.Task;
 	}
