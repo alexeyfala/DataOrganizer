@@ -659,7 +659,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo)
 			.ConfigureAwait(true);
 
-		DialogHost.Close(null);
+		if (DialogHost.IsDialogOpen(null))
+		{
+			DialogHost.Close(null);
+		}
 
 		if (result != YesNoCancelResult.Yes)
 		{
@@ -667,25 +670,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
-
-		//YesNoQuestionBox viewOld = _viewFactory.CreateUserControl<YesNoQuestionBox>();
-
-		//viewOld
-		//	.ViewModel
-		//	.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
-
-		//viewOld
-		//	.ViewModel
-		//	.DefaultPressedCallback = () =>
-		//{
-		//	DialogHost.Close(null);
-
-		//	return DeleteAsync(toBeDeleted);
-		//};
-
-		//await DialogHost
-		//	.Show(viewOld)
-		//	.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />

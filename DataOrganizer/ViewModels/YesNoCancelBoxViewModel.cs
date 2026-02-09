@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
+using DialogHostAvalonia;
 using System;
 using System.Threading.Tasks;
 
@@ -96,6 +97,19 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 			default:
 				throw new NotImplementedException();
 		}
+
+		_ = Task.Run(async () =>
+		{
+			while (DialogHost.IsDialogOpen(null))
+			{
+				await Task
+					.Delay(500)
+					.ConfigureAwait(false);
+			}
+
+			// In case the user closes the dialog without using the buttons.
+			_source.TrySetResult(YesNoCancelResult.Cancel);
+		});
 
 		return _source.Task;
 	}
