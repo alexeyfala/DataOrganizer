@@ -657,12 +657,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		YesNoCancelResult result = await view
 			.ViewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(true);
-
-		if (DialogHost.IsDialogOpen(null))
-		{
-			DialogHost.Close(null);
-		}
+			.ConfigureAwait(false);
 
 		if (result != YesNoCancelResult.Yes)
 		{

@@ -53,19 +53,49 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void CancelButtonPressed() => _source.TrySetResult(YesNoCancelResult.Cancel);
+	private void CancelButtonPressed()
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			DialogHost.Close(null);
+		}
+
+		_source.TrySetResult(YesNoCancelResult.Cancel);
+	}
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void NoButtonPressed() => _source.TrySetResult(YesNoCancelResult.No);
+	private void NoButtonPressed()
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			DialogHost.Close(null);
+		}
+
+		_source.TrySetResult(YesNoCancelResult.No);
+	}
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void YesButtonPressed() => _source.TrySetResult(YesNoCancelResult.Yes);
+	private void YesButtonPressed()
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			DialogHost.Close(null);
+		}
+
+		_source.TrySetResult(YesNoCancelResult.Yes);
+	}
 	#endregion
 
 	#region Data

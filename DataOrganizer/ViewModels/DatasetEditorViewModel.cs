@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -427,29 +428,34 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private Task<object?> SortAscending(RecordsGroup? group)
+	private async Task SortAscending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
 			.Text = Strings.SortAscending + "?";
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(group, ListSortDirection.Ascending);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(group, ListSortDirection.Ascending).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsAnyRecords))]
-	private Task<object?> SortAscendingDescending(ListSortDirection direction)
+	private async Task SortAscendingDescending(ListSortDirection direction)
 	{
 		string text = string.Concat(direction switch
 		{
@@ -458,20 +464,25 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
 			.Text = text;
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(null, direction);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(null, direction).ConfigureAwait(false);
 	}
 
 	/// <summary>
