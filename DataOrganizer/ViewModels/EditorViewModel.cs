@@ -656,7 +656,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		YesNoCancelResult result = await v
 			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.GetResultAsync(YesNoCancelVariant.YesNoCancel)
 			.ConfigureAwait(false);
 
 		await Task.Delay(100000).ConfigureAwait(true);

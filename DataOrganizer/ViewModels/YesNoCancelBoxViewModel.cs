@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
+using System;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -62,9 +63,21 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// </summary>
 	public Task<YesNoCancelResult> GetResultAsync(in YesNoCancelVariant variant)
 	{
-		NoButtonVisible = variant == YesNoCancelVariant.YesNo;
+		switch (variant)
+		{
+			case YesNoCancelVariant.YesNo:
+				NoButtonVisible = true;
+				break;
 
-		CancelButtonVisible = variant == YesNoCancelVariant.YesNoCancel;
+			case YesNoCancelVariant.YesNoCancel:
+				NoButtonVisible = true;
+
+				CancelButtonVisible = true;
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
 
 		return _source.Task;
 	}

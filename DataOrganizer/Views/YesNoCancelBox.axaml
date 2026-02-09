@@ -38,7 +38,7 @@
 			Grid.Row="1"
 			Grid.Column="1"
 			Classes="primary"
-			Command="{Binding YesButtonPressed}"
+			Command="{Binding YesButtonPressedCommand}"
 			Content="{x:Static prop:Strings.Yes}"
 			IsDefault="True" />
 
@@ -46,7 +46,7 @@
 			Grid.Row="1"
 			Grid.Column="2"
 			Classes="primary"
-			Command="{Binding NoButtonPressed}"
+			Command="{Binding NoButtonPressedCommand}"
 			Content="{x:Static prop:Strings.No}"
 			IsCancel="True"
 			IsVisible="{Binding NoButtonVisible, Mode=OneWay}" />
@@ -55,7 +55,7 @@
 			Grid.Row="1"
 			Grid.Column="3"
 			Classes="primary"
-			Command="{Binding CancelButtonPressed}"
+			Command="{Binding CancelButtonPressedCommand}"
 			Content="{x:Static prop:Strings.Cancel}"
 			IsCancel="True"
 			IsVisible="{Binding CancelButtonVisible, Mode=OneWay}" />
