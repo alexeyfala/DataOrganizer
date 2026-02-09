@@ -489,22 +489,27 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Descending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private Task<object?> SortDescending(RecordsGroup? group)
+	private async Task SortDescending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
 			.Text = Strings.SortDescending + "?";
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(group, ListSortDirection.Descending);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(group, ListSortDirection.Descending).ConfigureAwait(false);
 	}
 	#endregion
 
@@ -1045,25 +1050,30 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	}
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
-	private Task<object?> DeleteRecordAsync(
+	private async Task DeleteRecordAsync(
 		DatasetRecordBase record,
 		string? questionText,
 		CancellationToken token = default)
 	{
-		YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
 			.Text = $@"{Strings.Delete} ""{questionText}""?";
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo, token)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return DeleteRecordAsync(record, token);
-		};
-
-		return DialogHost.Show(view);
+		await DeleteRecordAsync(record, token).ConfigureAwait(false);
 	}
 
 	/// <summary>
