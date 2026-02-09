@@ -58,5 +58,52 @@ internal class YesNoCancelBoxViewModelTests
 				throw new NotImplementedException();
 		}
 	}
+
+	/// <summary>
+	/// Test of <see cref="YesNoCancelBoxViewModel.GetResultAsync" />.
+	/// </summary>
+	[Test]
+	public async Task GetResultAsync_Does_Work([Values] YesNoCancelResult expected)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		YesNoCancelBoxViewModel sut = mock.Create<YesNoCancelBoxViewModel>();
+
+		// Act
+		_ = Task.Run(() =>
+		{
+			switch (expected)
+			{
+				case YesNoCancelResult.No:
+					sut
+						.NoButtonPressedCommand
+						.Execute(null);
+					break;
+
+				case YesNoCancelResult.Cancel:
+					sut
+						.CancelButtonPressedCommand
+						.Execute(null);
+					break;
+
+				case YesNoCancelResult.Yes:
+					sut
+						.YesButtonPressedCommand
+						.Execute(null);
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
+		});
+
+		YesNoCancelResult result = await sut.GetResultAsync(YesNoCancelVariant.YesNoCancel);
+
+		// Assert
+		result
+			.Should()
+			.Be(expected);
+	}
 	#endregion
 }
