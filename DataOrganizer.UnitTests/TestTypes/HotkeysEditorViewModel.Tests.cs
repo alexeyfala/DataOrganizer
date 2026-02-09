@@ -128,9 +128,8 @@ internal class HotkeysEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="HotkeysEditorViewModel.MakePreview" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public void MakePreview_Creates_Preview_For_Hotkeys(bool isAnyInBuffer)
+	[Test]
+	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
 	{
 		// Arrange
 		CodeMaskPair[] pairs = [.. TestUtils.CreateCodeMaskPairs(5)];
