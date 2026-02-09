@@ -348,12 +348,11 @@ internal class DatasetEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />.
 	/// </summary>
-	[TestCase(true, true, true)]
-	[TestCase(false, false, false)]
+	[Test]
 	public async Task ExpandCollapseAsync_Tests(
-		bool expand,
-		bool isReadOnly,
-		bool inGroup)
+		[Values] bool expand,
+		[Values] bool isReadOnly,
+		[Values] bool inGroup)
 	{
 		// Arrange
 		RecordsGroup[] groups = [.. DatasetEditorViewModel
@@ -418,9 +417,8 @@ internal class DatasetEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.IsHiddenChanged" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task IsHiddenChanged_Saves_Content_Or_Not(bool isReadOnly)
+	[Test]
+	public async Task IsHiddenChanged_Saves_Content_Or_Not([Values] bool isReadOnly)
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -538,9 +536,8 @@ internal class DatasetEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.RenameGroupAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task RenameGroupAsync_Renames_Group(bool isSameValue)
+	[Test]
+	public async Task RenameGroupAsync_Renames_Group([Values] bool isSameValue)
 	{
 		// Arrange
 		string name = AppUtils.CreateRandomString(10);
@@ -577,12 +574,11 @@ internal class DatasetEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.ShowHideAsync" />.
 	/// </summary>
-	[TestCase(true, true, true)]
-	[TestCase(false, false, false)]
+	[Test]
 	public async Task ShowHideAsync_Tests(
-		bool hide,
-		bool isReadOnly,
-		bool inGroup)
+		[Values] bool hide,
+		[Values] bool isReadOnly,
+		[Values] bool inGroup)
 	{
 		// Arrange
 		const int count = 50;
@@ -650,12 +646,11 @@ internal class DatasetEditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.SortAsync" />.
 	/// </summary>
-	[TestCase(ListSortDirection.Ascending, true, true)]
-	[TestCase(ListSortDirection.Descending, false, false)]
+	[Test]
 	public async Task SortAsync(
-		ListSortDirection direction,
-		bool isReadOnly,
-		bool inGroup)
+		[Values] ListSortDirection direction,
+		[Values] bool isReadOnly,
+		[Values] bool inGroup)
 	{
 		// Arrange
 		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords(eachTypes: 5)];
