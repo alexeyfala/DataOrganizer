@@ -119,6 +119,12 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 				NoIsCancel = true;
 				break;
 
+			case YesNoCancelVariant.YesCancel:
+				CancelButtonVisible = true;
+
+				CancelIsCancel = true;
+				break;
+
 			case YesNoCancelVariant.YesNoCancel:
 				NoButtonVisible = true;
 

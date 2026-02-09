@@ -3,5 +3,6 @@
 public enum YesNoCancelVariant : byte
 {
 	YesNo,
+	YesCancel,
 	YesNoCancel
 }

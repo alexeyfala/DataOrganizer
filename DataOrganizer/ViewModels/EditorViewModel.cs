@@ -298,63 +298,54 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
-	public Task HideFileContents(FolderModelDto? dto)
+	public async Task HideFileContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Hiding files in a folder");
 
 		if (dto.AnyFile(x => x.IsEdited || x.IsExecuted))
 		{
-			YesNoQuestionBox view = _viewFactory.CreateUserControl<YesNoQuestionBox>();
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 			view
 				.ViewModel
 				.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-			view
-				.ViewModel
-				.DefaultPressedCallback = () =>
-			{
-				DialogHost.Close(null);
-
-				CloseFiles(
-					dto.GetFiles(x => x.IsEdited),
-					dto.GetFiles(x => x.IsExecuted));
-
-				HideFileContents();
-
-				return Task.CompletedTask;
-			};
-
-			if (AppDomain
+			if (!AppDomain
 				.CurrentDomain
 				.IsRunningFromNUnit())
 			{
-				return Task.CompletedTask;
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
 			}
 
-			return DialogHost.Show(view);
+			// TODO: Run tests
+			CloseFiles(
+				dto.GetFiles(x => x.IsEdited),
+				dto.GetFiles(x => x.IsExecuted));
 		}
 
-		HideFileContents();
+		_entityEcryption.HideFileContents(dto);
 
-		return Task.CompletedTask;
-
-		void HideFileContents()
+		if (Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
-			_entityEcryption.HideFileContents(dto);
-
-			if (Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
-			{
-				return;
-			}
-
-			_entityEcryption.ResetSessionId();
+			return;
 		}
+
+		_entityEcryption.ResetSessionId();
 	}
 
 	/// <summary>

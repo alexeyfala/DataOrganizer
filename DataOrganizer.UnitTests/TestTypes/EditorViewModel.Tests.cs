@@ -737,8 +737,8 @@ internal class EditorViewModelTests
 			using AutoMock mock = AutoMock.GetLoose();
 
 			viewFactory
-				.CreateUserControl<YesNoQuestionBox>()
-				.Returns(mock.Create<YesNoQuestionBox>());
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
 
 			builder.RegisterInstance(viewFactory);
 
@@ -753,7 +753,7 @@ internal class EditorViewModelTests
 		// Assert
 		viewFactory
 			.Received()
-			.CreateUserControl<YesNoQuestionBox>();
+			.CreateUserControl<YesNoCancelBox>();
 
 		ecryption
 			.Received(0)

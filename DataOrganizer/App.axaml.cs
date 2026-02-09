@@ -357,7 +357,6 @@ public sealed class App : Application
 		services.AddTransient<SettingsViewModel>();
 		services.AddTransient<ToastViewModel>();
 		services.AddTransient<YesNoCancelBoxViewModel>();
-		services.AddTransient<YesNoQuestionBoxViewModel>();
 		#endregion
 
 		#region Views
@@ -378,7 +377,6 @@ public sealed class App : Application
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
 		services.AddTransient<YesNoCancelBox>();
-		services.AddTransient<YesNoQuestionBox>();
 		#endregion
 
 		ServiceProvider serviceProvider = services.BuildServiceProvider();

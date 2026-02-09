@@ -40,6 +40,16 @@ internal class YesNoCancelBoxViewModelTests
 					.BeTrue();
 				break;
 
+			case YesNoCancelVariant.YesCancel:
+				sut.CancelButtonVisible
+					.Should()
+					.BeTrue();
+
+				sut.CancelIsCancel
+					.Should()
+					.BeTrue();
+				break;
+
 			case YesNoCancelVariant.YesNoCancel:
 				sut.NoButtonVisible
 					.Should()
