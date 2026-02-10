@@ -220,7 +220,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
+	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
 	public async Task ExecuteFile(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -658,7 +658,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />
-	[RelayCommand(CanExecute = nameof(IsNotOpenedNotExecuted))]
+	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
 	private void EditFile(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -1435,6 +1435,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Service
 	/// <summary>
+	/// Returns <c>True</c> if file can be edited or executed.
+	/// </summary>
+	private static bool CanBeEditedOrExecuted(FileModelDto? dto)
+	{
+		return dto is not null
+			&& dto.EncryptionStatus != EncryptionStatus.Encrypted
+			&& !dto.IsEdited
+			&& !dto.IsExecuted;
+	}
+
+	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
 	private static bool CanExecuteHideFileContents(FolderModelDto? dto)
@@ -1475,16 +1486,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			not null => target.Parent.Children,
 			null => collection
 		};
-
-	/// <summary>
-	/// Returns <c>True</c> if <see cref="FileModelDto.IsExecuted" /> and <see cref="FileModelDto.IsEdited" /> are <c>False</c>.
-	/// </summary>
-	private static bool IsNotOpenedNotExecuted(FileModelDto? dto)
-	{
-		return dto is not null
-			&& !dto.IsEdited
-			&& !dto.IsExecuted;
-	}
 
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
