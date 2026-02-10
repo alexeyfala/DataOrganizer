@@ -298,9 +298,9 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 		output = [];
 
 		if (!_encryption.Decrypt(
-				encryptedPassword,
-				_entityEcryption.GetSessionId(),
-				out byte[] decryptedPassword))
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
 		{
 			return false;
 		}
