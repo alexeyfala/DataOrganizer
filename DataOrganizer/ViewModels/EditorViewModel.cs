@@ -657,7 +657,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
-	/// <inheritdoc cref="EditFilesViewModel.AddTab(FileModelDto)" />
+	/// <inheritdoc cref="EditFilesViewModel.OpenInEditor(FileModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
 	private void EditFile(FileModelDto? dto)
 	{
@@ -668,7 +668,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		EditFiles
 			.ViewModel
-			.AddTab(dto);
+			.OpenInEditor(dto);
 	}
 
 	/// <summary>
