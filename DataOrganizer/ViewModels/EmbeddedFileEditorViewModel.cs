@@ -38,6 +38,9 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 	public string? InitialProperties { get; set; }
 
 	/// <inheritdoc />
+	public bool IsDecrypted { get; set; }
+
+	/// <inheritdoc />
 	public bool IsInitialized { get; private set; }
 
 	/// <inheritdoc />
@@ -72,6 +75,11 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
 			return;
+		}
+
+		if (IsDecrypted)
+		{
+
 		}
 
 		editor.Text = TextHelper

@@ -3,9 +3,9 @@ using Avalonia.Controls.Templates;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using DataOrganizer.Views;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Views;
 using Entities.Enums;
 using System;
 using System.Collections.Generic;
@@ -76,6 +76,8 @@ internal sealed class ViewLocator : IDataTemplate
 			void Initialize(IFileEditor editor)
 			{
 				editor.FileId = dto.Id;
+
+				editor.IsDecrypted = dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted;
 
 				editor.SetPropertiesCallback = SetProperties;
 

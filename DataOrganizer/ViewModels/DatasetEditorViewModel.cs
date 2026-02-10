@@ -44,6 +44,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	public string? InitialProperties { get; set; }
 
 	/// <inheritdoc />
+	public bool IsDecrypted { get; set; }
+
+	/// <inheritdoc />
 	public bool IsInitialized { get; private set; }
 
 	/// <summary>

@@ -16,6 +16,11 @@ public interface IFileEditor
 	string? InitialProperties { get; set; }
 
 	/// <summary>
+	/// Returns <c>True</c> if contents of the file is decrypted.
+	/// </summary>
+	bool IsDecrypted { get; set; }
+
+	/// <summary>
 	/// Returns <c>True</c> if editor is initialized.
 	/// </summary>
 	bool IsInitialized { get; }
