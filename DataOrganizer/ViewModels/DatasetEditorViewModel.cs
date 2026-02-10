@@ -1115,7 +1115,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// </summary>
 	private bool IsNotReadOnly() => !IsReadOnly;
 
-	/// <inheritdoc cref="FileEditorExtensions.SaveContentsAsync(IFileEditor, IDbAccess, ILogger, byte[], CancellationToken)" />
+	/// <inheritdoc cref="FileEditorExtensions.SaveContentsAsync" />
 	private Task SaveContentsAsync(CancellationToken token = default)
 	{
 		return this.SaveContentsAsync(
