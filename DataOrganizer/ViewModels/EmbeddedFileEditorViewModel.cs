@@ -80,32 +80,12 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 		byte[] contents = result.Contents;
 
-		if (EncryptedPassword?.Length > 0)
+		if (EncryptedPassword?.Length > 0 && !DecryptContents(
+			contents,
+			EncryptedPassword,
+			out contents))
 		{
-			if (!_encryption.Decrypt(
-				EncryptedPassword,
-				_entityEcryption.GetSessionId(),
-				out byte[] decryptedPassword))
-			{
-				return;
-			}
-
-			try
-			{
-				if (!_encryption.Decrypt(
-					contents,
-					decryptedPassword,
-					out byte[] decryptedContents))
-				{
-					return;
-				}
-
-				contents = decryptedContents;
-			}
-			finally
-			{
-				CryptographicOperations.ZeroMemory(decryptedPassword);
-			}
+			return;
 		}
 
 		editor.Text = TextHelper
@@ -305,6 +285,44 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			SelectionLength = editor.SelectionLength,
 			SelectionStart = editor.SelectionStart
 		};
+	}
+
+	/// <summary>
+	/// Decrypts file contents.
+	/// </summary>
+	private bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+				encryptedPassword,
+				_entityEcryption.GetSessionId(),
+				out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Decrypt(
+				input,
+				decryptedPassword,
+				out byte[] decryptedContents))
+			{
+				return false;
+			}
+
+			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
 	}
 
 	/// <summary>
