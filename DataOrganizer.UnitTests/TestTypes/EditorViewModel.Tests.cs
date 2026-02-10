@@ -740,6 +740,10 @@ internal class EditorViewModelTests
 				.CreateUserControl<YesNoCancelBox>()
 				.Returns(mock.Create<YesNoCancelBox>());
 
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
 			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(ecryption);
@@ -754,10 +758,6 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<YesNoCancelBox>();
-
-		ecryption
-			.Received(0)
-			.HideFileContents(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>

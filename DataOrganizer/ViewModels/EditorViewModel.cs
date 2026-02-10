@@ -332,7 +332,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				}
 			}
 
-			// TODO: Run tests
 			CloseFiles(
 				dto.GetFiles(x => x.IsEdited),
 				dto.GetFiles(x => x.IsExecuted));
