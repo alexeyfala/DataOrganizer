@@ -217,10 +217,26 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 				return;
 			}
 
+			byte[] contents = TextHelper
+				.Utf8Encoding
+				.GetBytes(editor.Text);
+
+			if (EncryptedPassword?.Length > 0 && !EncryptContents(
+				contents,
+				EncryptedPassword,
+				out contents))
+			{
+				ShowErrorSnackbar(
+					editor.FindLogicalParent<Window>(),
+					Strings.FailedToProcessContents);
+
+				return;
+			}
+
 			_ = this.SaveContentsAsync(
 				_dbAccess,
 				_logger,
-				TextHelper.Utf8Encoding.GetBytes(editor.Text));
+				contents);
 		}
 	}
 	#endregion
@@ -320,6 +336,44 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			}
 
 			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <summary>
+	/// Encrypts file contents.
+	/// </summary>
+	private bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Encrypt(
+				input,
+				decryptedPassword,
+				out byte[] encryptedContents))
+			{
+				return false;
+			}
+
+			output = encryptedContents;
 
 			return true;
 		}
