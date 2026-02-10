@@ -104,7 +104,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				|| result.Any(x => !x.IsValid)
 				|| result.Any(x => x.Id.IsDefault()))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessFileContents);
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return FilesEncryptionResult.FailedToEncryptContents;
 			}
@@ -198,7 +198,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			async Task RestoreDatabaseAsync()
 			{
 				viewModel.ShowErrorSnackbar(
-					Strings.FailedToProcessFileContents +
+					Strings.FailedToProcessContents +
 					Environment.NewLine +
 					Strings.TheDatabaseWillBeRestored);
 

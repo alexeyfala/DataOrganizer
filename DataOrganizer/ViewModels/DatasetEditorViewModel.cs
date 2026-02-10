@@ -423,7 +423,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
 
-	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync(Window?, Guid)" />
+	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
 	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
 
@@ -861,7 +861,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 		try
 		{
-			if (result.Contents.Length == 0)
+			if (result
+				.Contents
+				.Length == 0)
 			{
 				return;
 			}

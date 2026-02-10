@@ -85,6 +85,10 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			EncryptedPassword,
 			out contents))
 		{
+			ShowErrorSnackbar(
+				editor.FindLogicalParent<Window>(),
+				Strings.FailedToProcessContents);
+
 			return;
 		}
 
@@ -132,7 +136,7 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 		editor.Focus();
 	}
 
-	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync(Window?, Guid)" />
+	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
 	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
 	#endregion

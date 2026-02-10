@@ -430,11 +430,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to process file contents.
+        ///   Looks up a localized string similar to Failed to process contents.
         /// </summary>
-        public static string FailedToProcessFileContents {
+        public static string FailedToProcessContents {
             get {
-                return ResourceManager.GetString("FailedToProcessFileContents", resourceCulture);
+                return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
         

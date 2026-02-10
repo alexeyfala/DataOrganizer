@@ -468,8 +468,8 @@
   <data name="MissingFiles" xml:space="preserve">
     <value>Отсутствуют файлы</value>
   </data>
-  <data name="FailedToProcessFileContents" xml:space="preserve">
-    <value>Не удалось обработать содержимое файлов</value>
+  <data name="FailedToProcessContents" xml:space="preserve">
+    <value>Не удалось обработать содержимое</value>
   </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Не удалось показать содержимое файлов</value>

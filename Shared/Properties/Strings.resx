@@ -448,8 +448,8 @@
   <data name="MissingFiles" xml:space="preserve">
     <value>Missing files</value>
   </data>
-  <data name="FailedToProcessFileContents" xml:space="preserve">
-    <value>Failed to process file contents</value>
+  <data name="FailedToProcessContents" xml:space="preserve">
+    <value>Failed to process contents</value>
   </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Failed to show file contents</value>

@@ -73,6 +73,17 @@ public abstract partial class EditorViewModelBase : ObservableDisposable
 			.DisposeWith(_disposables);
 	}
 
+	/// <inheritdoc cref="ViewModelBase.ShowErrorSnackbar" />
+	protected static void ShowErrorSnackbar(Window? window, string text)
+	{
+		if (window?.DataContext is not ViewModelBase viewModel)
+		{
+			return;
+		}
+
+		viewModel.ShowErrorSnackbar(text);
+	}
+
 	/// <summary>
 	/// Displays object in the list.
 	/// </summary>
