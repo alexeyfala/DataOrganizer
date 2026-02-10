@@ -3,15 +3,15 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Views;
 
-public partial class YesNoQuestionBox : UserControl
+public partial class YesNoCancelBox : UserControl
 {
 	#region Properties
-	/// <inheritdoc cref="YesNoQuestionBoxViewModel" />
-	public YesNoQuestionBoxViewModel ViewModel { get; }
+	/// <inheritdoc cref="YesNoCancelBoxViewModel" />
+	public YesNoCancelBoxViewModel ViewModel { get; }
 	#endregion
 
 	#region Constructors
-	public YesNoQuestionBox(YesNoQuestionBoxViewModel viewModel)
+	public YesNoCancelBox(YesNoCancelBoxViewModel viewModel)
 	{
 		InitializeComponent();
 

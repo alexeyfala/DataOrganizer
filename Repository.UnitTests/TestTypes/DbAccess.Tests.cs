@@ -28,9 +28,8 @@ internal class DbAccessTests
 	/// <summary>
 	/// Test of <see cref="DbAccess.AddEntityAsync(AddEntityParameters, CancellationToken)" />.
 	/// </summary>
-	[TestCase(EntityType.Folder)]
-	[TestCase(EntityType.File)]
-	public async Task AddEntityAsync_Returns_Entity(EntityType type)
+	[Test]
+	public async Task AddEntityAsync_Returns_Entity([Values] EntityType type)
 	{
 		// Arrange
 		SqliteDbContext dbContext = GetSqliteDbContextMock();
@@ -111,9 +110,8 @@ internal class DbAccessTests
 	/// <summary>
 	/// Test of <see cref="DbAccess.ConnectAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task ConnectAsync_Connects_To_Database(bool useMigrations)
+	[Test]
+	public async Task ConnectAsync_Connects_To_Database([Values] bool useMigrations)
 	{
 		// Arrange
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();

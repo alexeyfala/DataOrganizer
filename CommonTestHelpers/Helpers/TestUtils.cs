@@ -1,7 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
-using DataOrganizer.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;
@@ -19,11 +18,6 @@ namespace CommonTestHelpers.Helpers;
 /// </summary>
 public static class TestUtils
 {
-	#region Data
-	/// <inheritdoc cref="Random" />
-	private static readonly Random _random = new();
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Creates a <see cref="CategoryFavoritePair" /> with random properties.
@@ -256,9 +250,13 @@ public static class TestUtils
 	/// </summary>
 	public static byte[] CreateRandomBytes(in int length)
 	{
-		return TextHelper
-			.Utf8Encoding
-			.GetBytes(AppUtils.CreateRandomString(length));
+		byte[] buffer = new byte[length];
+
+		Random
+			.Shared
+			.NextBytes(buffer);
+
+		return buffer;
 	}
 
 	/// <summary>
@@ -269,7 +267,9 @@ public static class TestUtils
 	/// </remarks>
 	public static double CreateRandomDouble(in double minValue, in double maxValue)
 	{
-		double value = _random.NextDouble();
+		double value = Random
+			.Shared
+			.NextDouble();
 
 		return minValue + (value * (maxValue - minValue));
 	}
@@ -281,7 +281,9 @@ public static class TestUtils
 	{
 		T[] values = Enum.GetValues<T>();
 
-		int randomIndex = _random.Next(values.Length);
+		int randomIndex = Random
+			.Shared
+			.Next(values.Length);
 
 		return (T)values.GetValue(randomIndex)!;
 	}
@@ -289,7 +291,12 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random <see cref="int" /> number within a given range.
 	/// </summary>
-	public static int CreateRandomInt(in int minValue, in int maxValue) => _random.Next(minValue, maxValue);
+	public static int CreateRandomInt(in int minValue, in int maxValue)
+	{
+		return Random
+			.Shared
+			.Next(minValue, maxValue);
+	}
 
 	/// <summary>
 	/// Generates a random number between 10 and 100.
@@ -307,5 +314,16 @@ public static class TestUtils
 		Theme = BaseThemeMode.Dark,
 		TrackHotkeys = trackHotkeys
 	};
+
+	/// <summary>
+	/// Generates a sequence of the required length by calling <see cref="Func{T}" /> from the argument.
+	/// </summary>
+	public static IEnumerable<T> CreateSequence<T>(Func<T> action, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			yield return action();
+		}
+	}
 	#endregion
 }

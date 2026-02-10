@@ -22,7 +22,6 @@ using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,11 +35,12 @@ internal class EditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddAsync(string, EntityType, FolderModelDto?, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.AddAsync" />.
 	/// </summary>
-	[TestCase(EntityType.Folder, false)]
-	[TestCase(EntityType.File, true)]
-	public async Task AddAsync_Returns_Entity(EntityType type, bool hasParent)
+	[Test]
+	public async Task AddAsync_Returns_Entity(
+		[Values] EntityType type,
+		[Values] bool hasParent)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -105,7 +105,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddHierarchy(IEnumerable{ExplorerModelBaseDto})" />.
+	/// Test of <see cref="EditorViewModel.AddHierarchy" />.
 	/// </summary>
 	[Test]
 	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
@@ -153,7 +153,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.CloseExecutedFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.CloseExecutedFile" />.
 	/// </summary>
 	[Test]
 	public void CloseExecutedFile_Closes_File()
@@ -191,7 +191,50 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync(ExplorerModelBaseDto, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.CloseFiles" />.
+	/// </summary>
+	[Test]
+	public void CloseFiles_Closes_Edited_And_Executed_Files()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut.CloseFiles(editedFiles, executedFiles);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.DeleteAsync" />.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -261,7 +304,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync(ExplorerModelBaseDto, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.DeleteAsync" />.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -399,465 +442,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: false).ToAsyncEnumerable());
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length - 2, isValid: true).ToAsyncEnumerable());
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: false, generateId: false));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length - 2, isValid: true));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			dbAccess
-				.BackupDatabase(out _)
-				.Returns(x =>
-				{
-					x[0] = AppUtils.CreateRandomFileName(10);
-
-					return true;
-				});
-
-			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
-				.Returns(false);
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(fileSystem);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToSaveContents);
-
-		await dbAccess
-			.Received()
-			.RestoreFromBackupAsync(Arg.Any<string>());
-
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			dbAccess
-				.BackupDatabase(out _)
-				.Returns(x =>
-				{
-					x[0] = AppUtils.CreateRandomFileName(10);
-
-					return true;
-				});
-
-			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
-				.Returns(true);
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(fileSystem);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.FailedToSavePasswordHash);
-
-		await dbAccess
-			.Received()
-			.RestoreFromBackupAsync(Arg.Any<string>());
-
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
-	{
-		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.BackupDatabase(out _)
-				.Returns(false);
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			TestUtils.CreateFolderDto(),
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.UnableToCreateDatabaseBackup);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptDecryptAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Successfully_Encrypts_Files(CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		EncryptionStatus newStatus = action switch
-		{
-			CryptoAction.Encrypt => EncryptionStatus.Encrypted,
-			CryptoAction.Decrypt => EncryptionStatus.None,
-			_ => throw new NotImplementedException()
-		};
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
-
-			dbAccess
-				.BackupDatabase(out _)
-				.Returns(x =>
-				{
-					x[0] = AppUtils.CreateRandomFileName(10);
-
-					return true;
-				});
-
-			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
-				.Returns(true);
-
-			dbAccess
-				.UpdatePropertyAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>())
-				.Returns(true);
-
-			encryption
-				.EncryptDecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>(), Arg.Any<CryptoAction>())
-				.Returns(TestUtils.CreateContents(files.Length, isValid: true));
-
-			string? passwordHash = action switch
-			{
-				CryptoAction.Encrypt => AppUtils.CreateRandomString(10),
-				CryptoAction.Decrypt => null,
-				_ => throw new NotImplementedException()
-			};
-
-			encryption
-				.EnhancedHashPassword(Arg.Any<string>())
-				.Returns(passwordHash);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(encryption);
-
-			builder.RegisterInstance(fileSystem);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
-			folder,
-			files,
-			AppUtils.CreateRandomString(10),
-			action);
-
-		// Assert
-		result
-			.Should()
-			.Be(FilesEncryptionResult.Encrypted);
-
-		folder.EncryptionStatus
-			.Should()
-			.Be(newStatus);
-
-		files
-			.Should()
-			.OnlyContain(x => x.EncryptionStatus == newStatus);
-
-		switch (action)
-		{
-			case CryptoAction.Encrypt:
-				folder.PasswordHash
-					.Should()
-					.NotBeNullOrEmpty();
-				break;
-
-			case CryptoAction.Decrypt:
-				folder.PasswordHash
-					.Should()
-					.BeNull();
-				break;
-		}
-
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Contents_Should_Not_Be_Loaded_If_It_Is_Already_Opened()
@@ -890,7 +475,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile(FileModelDto)" />.
+	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Executes_File()
@@ -963,11 +548,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync(bool)" />.
+	/// Test of <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders(bool isExpandAll)
+	[Test]
+	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders([Values] bool isExpandAll)
 	{
 		// Arrange
 		FolderModelDto selectedFolder = TestUtils.CreateFolderDto();
@@ -1065,9 +649,8 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HandleChangeSettings" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing(bool isSave)
+	[Test]
+	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
 		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
@@ -1125,106 +708,82 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HandlePasswordInputAsync_Allows_Action()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			TestUtils.CreateFolderDto(),
-			[],
-			CryptoAction.Encrypt);
-
-		// Assert
-		result
-			.Should()
-			.Be(PasswordMatchResult.Matches);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Hash_Does_Not_Match()
+	public async Task HideFileContents_Asks_The_User_To_Close_Files()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+			using AutoMock mock = AutoMock.GetLoose();
 
-			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
-				.Returns(false);
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
 
-			builder.RegisterInstance(encryption);
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(ecryption);
 		});
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			folder,
-			[],
-			CryptoAction.Decrypt);
+		await sut.HideFileContents(folder);
 
 		// Assert
-		result
-			.Should()
-			.Be(PasswordMatchResult.DoesNotMatch);
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandlePasswordInputAsync" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
 	/// </summary>
-	[AvaloniaTest]
-	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Not_Entered()
+	[Test]
+	public async Task HideFileContents_Does_Work()
 	{
 		// Arrange
+		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
+
 		using AutoMock mock = AutoMock.GetLoose();
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = null;
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(ecryption));
 
 		// Act
-		PasswordMatchResult result = await sut.HandlePasswordInputAsync(
-			view,
-			TestUtils.CreateFolderDto(),
-			[],
-			default);
+		await sut.HideFileContents(TestUtils.CreateFolderDto());
 
 		// Assert
-		result
-			.Should()
-			.Be(PasswordMatchResult.NotEntered);
+		ecryption
+			.Received()
+			.HideFileContents(Arg.Any<FolderModelDto>());
+
+		ecryption
+			.Received()
+			.ResetSessionId();
 	}
 
 	/// <summary>
@@ -1474,7 +1033,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync(ExplorerModelBaseDto, string, DateTime, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.RenameAsync" />.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
@@ -1521,7 +1080,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync(ExplorerModelBaseDto, string, DateTime, CancellationToken)" />.
+	/// Test of <see cref="EditorViewModel.RenameAsync" />.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
@@ -1616,11 +1175,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetFavorite(FileModelDto?)" />.
+	/// Test of <see cref="EditorViewModel.SetFavorite" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database(bool initialValue)
+	[Test]
+	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database([Values] bool initialValue)
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1648,7 +1206,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetSelectedObject(ExplorerModelBaseDto)" />.
+	/// Test of <see cref="EditorViewModel.SetSelectedObject" />.
 	/// </summary>
 	[Test]
 	public void SetSelectedObject_Sets_Object_IsSelected_Property_To_True_And_SelectedObject()
@@ -1676,7 +1234,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowFavorites(EditorWindow?)" />.
+	/// Test of <see cref="EditorViewModel.ShowFavorites" />.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowFavorites_Shows_Favorites_Window()
@@ -1799,93 +1357,6 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<SettingsView>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.TakeCryptPasswordAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakeCryptPasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed(CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] files =
-		[
-			.. TestUtils.CreateFilesDto(5, isEdited: true),
-			.. TestUtils.CreateFilesDto(5, isExecuted: true)
-		];
-
-		folder
-			.Children
-			.AddRange(files);
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakeCryptPasswordAsync(folder, action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.TakeCryptPasswordAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakeCryptPasswordAsync_Does_Nothing_If_Folder_Has_No_Files(CryptoAction action)
-	{
-		// Arrange
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakeCryptPasswordAsync(TestUtils.CreateFolderDto(), action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.TakeCryptPasswordAsync" />.
-	/// </summary>
-	[TestCase(CryptoAction.Encrypt)]
-	[TestCase(CryptoAction.Decrypt)]
-	public async Task TakeCryptPasswordAsync_Shows_Password_Box(CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		folder
-			.Children
-			.AddRange(TestUtils.CreateFilesDto(5));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakeCryptPasswordAsync(folder, action);
-
-		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<PasswordBox>();
 	}
 	#endregion
 }

@@ -25,7 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="11.3.11" />
-		<PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
+		<PackageReference Include="Avalonia.AvaloniaEdit" Version="11.4.1" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.11" />
 		<!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
 		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.11">
@@ -55,7 +55,7 @@
 		<PackageReference Include="SharpHook" Version="7.1.1" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
 		<PackageReference Include="Tulesha.ToolBarControls.Avalonia" Version="11.3.6" />
-		<PackageReference Include="Xaml.Behaviors" Version="11.3.9.3" />
+		<PackageReference Include="Xaml.Behaviors" Version="11.3.9.4" />
 	</ItemGroup>
 
 	<ItemGroup>

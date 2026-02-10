@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -272,7 +273,11 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			return Task.CompletedTask;
 		}
 
-		MultilineTextEditView view = _viewLauncher.ConfigureMultilineTextEditView(record.Note);
+		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+
+		view
+			.ViewModel
+			.Text = record.Note;
 
 		view.ViewModel.DefaultPressedCallback = () =>
 		{
@@ -423,25 +428,34 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private Task<object?> SortAscending(RecordsGroup? group)
+	private async Task SortAscending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(Strings.SortAscending + "?");
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.Text = Strings.SortAscending + "?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(group, ListSortDirection.Ascending);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(group, ListSortDirection.Ascending).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsAnyRecords))]
-	private Task<object?> SortAscendingDescending(ListSortDirection direction)
+	private async Task SortAscendingDescending(ListSortDirection direction)
 	{
 		string text = string.Concat(direction switch
 		{
@@ -450,34 +464,52 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(text);
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.Text = text;
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(null, direction);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(null, direction).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Descending" /> order.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasChildren))]
-	private Task<object?> SortDescending(RecordsGroup? group)
+	private async Task SortDescending(RecordsGroup? group)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox(Strings.SortDescending + "?");
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.Text = Strings.SortDescending + "?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return SortAsync(group, ListSortDirection.Descending);
-		};
-
-		return DialogHost.Show(view);
+		await SortAsync(group, ListSortDirection.Descending).ConfigureAwait(false);
 	}
 	#endregion
 
@@ -494,6 +526,9 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IViewFactory" />
+	private readonly IViewFactory _viewFactory;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
@@ -505,6 +540,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app)
 	{
 		_clipboardService = clipboardService;
@@ -514,6 +550,8 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 	}
@@ -1012,21 +1050,30 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	}
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
-	private Task<object?> DeleteRecordAsync(
+	private async Task DeleteRecordAsync(
 		DatasetRecordBase record,
 		string? questionText,
 		CancellationToken token = default)
 	{
-		YesNoQuestionBox view = _viewLauncher.ConfigureYesNoQuestionBox($@"{Strings.Delete} ""{questionText}""?");
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		view
+			.ViewModel
+			.Text = $@"{Strings.Delete} ""{questionText}""?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo, token)
+			.ConfigureAwait(false);
+
+		if (result != YesNoCancelResult.Yes)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return DeleteRecordAsync(record, token);
-		};
-
-		return DialogHost.Show(view);
+		await DeleteRecordAsync(record, token).ConfigureAwait(false);
 	}
 
 	/// <summary>

@@ -4,7 +4,6 @@ using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace DataOrganizer.DTO.Entities.Models;
 
@@ -14,6 +13,11 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	#region Properties
 	/// <inheritdoc cref="FolderModel.Children" />
 	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+
+	/// <summary>
+	/// Encrypted password.
+	/// </summary>
+	public byte[]? EncryptedPassword { get; set; }
 
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
@@ -51,20 +55,54 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <summary>
 	/// Returns <c>True</c> if any child satisfies the condition.
 	/// </summary>
-	public bool AnyChild(Func<ExplorerModelBaseDto, bool> condition)
+	public bool AnyChild(Predicate<ExplorerModelBaseDto> condition)
 	{
-		ExplorerModelBaseDto[] children = [.. Children];
+		Stack<ExplorerModelBaseDto> stack = new(Children);
 
-		while (children.Length > 0)
+		while (stack.Count > 0)
 		{
-			if (children.Any(condition))
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (condition(item))
 			{
 				return true;
 			}
 
-			children = [.. children
-				.OfType<FolderModelDto>()
-				.SelectMany(x => x.Children)];
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if any child file satisfies the condition.
+	/// </summary>
+	public bool AnyFile(Predicate<FileModelDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(Children);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FileModelDto file && condition(file))
+			{
+				return true;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
 		}
 
 		return false;
@@ -75,18 +113,47 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
 	{
-		ExplorerModelBaseDto[] children = [.. Children];
+		Stack<ExplorerModelBaseDto> stack = new(Children);
 
-		while (children.Length > 0)
+		while (stack.Count > 0)
 		{
-			foreach (ExplorerModelBaseDto child in children)
+			ExplorerModelBaseDto item = stack.Pop();
+
+			yield return item;
+
+			if (item is FolderModelDto folder)
 			{
-				yield return child;
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Filters child objects of <see cref="FolderModelDto" /> by condition.
+	/// </summary>
+	public IEnumerable<FileModelDto> GetFiles(Predicate<FileModelDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(Children);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (item is FileModelDto file && condition(file))
+			{
+				yield return file;
 			}
 
-			children = [.. children
-				.OfType<FolderModelDto>()
-				.SelectMany(x => x.Children)];
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
 		}
 	}
 	#endregion

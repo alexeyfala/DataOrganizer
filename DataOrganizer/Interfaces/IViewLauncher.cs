@@ -52,16 +52,6 @@ public interface IViewLauncher
 	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Configures the <see cref="MultilineTextEditView" />.
-	/// </summary>
-	MultilineTextEditView ConfigureMultilineTextEditView(string? text);
-
-	/// <summary>
-	/// Configures the <see cref="YesNoQuestionBox" />.
-	/// </summary>
-	YesNoQuestionBox ConfigureYesNoQuestionBox(string text);
-
-	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
 	Task SaveEditorSettingsAsync(EditorWindow window);

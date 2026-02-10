@@ -142,6 +142,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change password.
+        /// </summary>
+        public static string ChangePassword {
+            get {
+                return ResourceManager.GetString("ChangePassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clear.
         /// </summary>
         public static string Clear {
@@ -165,6 +174,15 @@ namespace Shared.Properties {
         public static string CloseAll {
             get {
                 return ResourceManager.GetString("CloseAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close files being edited.
+        /// </summary>
+        public static string CloseFilesBeingEdited {
+            get {
+                return ResourceManager.GetString("CloseFilesBeingEdited", resourceCulture);
             }
         }
         
@@ -394,15 +412,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to encrypt files contents.
-        /// </summary>
-        public static string FailedToEncryptFilesContents {
-            get {
-                return ResourceManager.GetString("FailedToEncryptFilesContents", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to load file contents.
         /// </summary>
         public static string FailedToLoadFileContents {
@@ -421,11 +430,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to process file contents.
+        /// </summary>
+        public static string FailedToProcessFileContents {
+            get {
+                return ResourceManager.GetString("FailedToProcessFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to rename.
         /// </summary>
         public static string FailedToRename {
             get {
                 return ResourceManager.GetString("FailedToRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to show file contents.
+        /// </summary>
+        public static string FailedToShowFileContents {
+            get {
+                return ResourceManager.GetString("FailedToShowFileContents", resourceCulture);
             }
         }
         
@@ -651,6 +678,15 @@ namespace Shared.Properties {
         public static string Menu {
             get {
                 return ResourceManager.GetString("Menu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing files.
+        /// </summary>
+        public static string MissingFiles {
+            get {
+                return ResourceManager.GetString("MissingFiles", resourceCulture);
             }
         }
         
@@ -1011,24 +1047,6 @@ namespace Shared.Properties {
         public static string Theme {
             get {
                 return ResourceManager.GetString("Theme", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There are no files to decrypt.
-        /// </summary>
-        public static string ThereAreNoFilesToDecrypt {
-            get {
-                return ResourceManager.GetString("ThereAreNoFilesToDecrypt", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There are no files to encrypt.
-        /// </summary>
-        public static string ThereAreNoFilesToEncrypt {
-            get {
-                return ResourceManager.GetString("ThereAreNoFilesToEncrypt", resourceCulture);
             }
         }
         

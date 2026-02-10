@@ -155,11 +155,9 @@ public static class AppUtils
 	{
 		const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-		Random random = new();
-
 		char[] output = [.. Enumerable
 			.Repeat(alphabet, length)
-			.Select(x => x[random.Next(x.Length)])];
+			.Select(x => x[Random.Shared.Next(x.Length)])];
 
 		return new string(output);
 	}

@@ -61,55 +61,53 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	/// </summary>
 	public bool AnyParent(Predicate<FolderModelDto> condition)
 	{
-		FolderModelDto? current = Parent;
+		FolderModelDto? item = Parent;
 
-		while (current is not null)
+		while (item is not null)
 		{
-			if (condition(current))
+			if (condition(item))
 			{
 				return true;
 			}
 
-			current = current.Parent;
+			item = item.Parent;
 		}
 
 		return false;
 	}
 
 	/// <summary>
-	/// Finds a parent object by condition.
+	/// Searches parent object by a condition.
 	/// </summary>
 	public FolderModelDto? FindParent(Predicate<FolderModelDto> condition)
 	{
-		FolderModelDto? current = Parent;
+		FolderModelDto? item = Parent;
 
-		while (current is not null)
+		while (item is not null)
 		{
-			if (condition(current))
+			if (condition(item))
 			{
-				return current;
+				return item;
 			}
 
-			current = current.Parent;
+			item = item.Parent;
 		}
 
 		return null;
 	}
+
 	/// <summary>
 	/// Return a sequence of <see cref="FolderModelDto" /> parent objects.
 	/// </summary>
-	public IEnumerable<FolderModelDto> GetParents()
+	public IEnumerable<FolderModelDto> GetAllParents()
 	{
-		if (Parent is null)
-		{
-			yield break;
-		}
+		FolderModelDto? item = Parent;
 
-		yield return Parent;
-
-		foreach (FolderModelDto parent in Parent.GetParents())
+		while (item is not null)
 		{
-			yield return parent;
+			yield return item;
+
+			item = item.Parent;
 		}
 	}
 	#endregion

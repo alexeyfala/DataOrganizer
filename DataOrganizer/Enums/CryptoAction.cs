@@ -6,5 +6,6 @@
 public enum CryptoAction : byte
 {
 	Encrypt,
-	Decrypt
+	Decrypt,
+	ShowFileContents
 }

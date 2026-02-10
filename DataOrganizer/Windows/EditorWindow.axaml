@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Windows.EditorWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
@@ -251,6 +252,16 @@
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+								</Style>
+
+								<Style Selector="TreeViewItem">
+									<Setter Property="(Interaction.Behaviors)">
+										<BehaviorCollectionTemplate>
+											<BehaviorCollection>
+												<behaviors:DisableRightClickSelectionBehavior />
+											</BehaviorCollection>
+										</BehaviorCollectionTemplate>
+									</Setter>
 								</Style>
 							</TreeView.Styles>
 

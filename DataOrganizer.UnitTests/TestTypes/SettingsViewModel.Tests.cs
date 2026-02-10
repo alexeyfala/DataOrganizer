@@ -99,10 +99,8 @@ internal class SettingsViewModelTests
 	/// <summary>
 	/// Test of <see cref="SettingsViewModel.IsInheritTheme" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />.
 	/// </summary>
-	[TestCase(BaseThemeMode.Inherit)]
-	[TestCase(BaseThemeMode.Light)]
-	[TestCase(BaseThemeMode.Dark)]
-	public void CurrentSettings_Applies_Theme(BaseThemeMode theme)
+	[Test]
+	public void CurrentSettings_Applies_Theme([Values] BaseThemeMode theme)
 	{
 		// Arrange
 		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();

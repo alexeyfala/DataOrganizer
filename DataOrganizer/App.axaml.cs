@@ -304,7 +304,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IClipboardService, ClipboardService>();
-		services.AddTransient<IEncryptionService, EncryptionService>();
+		services.AddTransient<IEncryptionService, EncryptionService>();		
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
@@ -326,6 +326,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton<IEntityEcryption, EntityEcryption>();
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
@@ -355,7 +356,7 @@ public sealed class App : Application
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
 		services.AddTransient<ToastViewModel>();
-		services.AddTransient<YesNoQuestionBoxViewModel>();
+		services.AddTransient<YesNoCancelBoxViewModel>();
 		#endregion
 
 		#region Views
@@ -375,7 +376,7 @@ public sealed class App : Application
 		services.AddTransient<SelectedFavoritesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
-		services.AddTransient<YesNoQuestionBox>();
+		services.AddTransient<YesNoCancelBox>();
 		#endregion
 
 		ServiceProvider serviceProvider = services.BuildServiceProvider();
