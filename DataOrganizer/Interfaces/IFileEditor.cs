@@ -6,6 +6,11 @@ public interface IFileEditor
 {
 	#region Properties
 	/// <summary>
+	/// Encrypted password.
+	/// </summary>
+	byte[]? EncryptedPassword { get; set; }
+
+	/// <summary>
 	/// File identifier.
 	/// </summary>
 	Guid FileId { get; set; }
@@ -14,11 +19,6 @@ public interface IFileEditor
 	/// Initial properties.
 	/// </summary>
 	string? InitialProperties { get; set; }
-
-	/// <summary>
-	/// Returns <c>True</c> if contents of the file is decrypted.
-	/// </summary>
-	bool IsDecrypted { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if editor is initialized.

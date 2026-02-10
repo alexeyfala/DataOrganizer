@@ -75,9 +75,14 @@ internal sealed class ViewLocator : IDataTemplate
 
 			void Initialize(IFileEditor editor)
 			{
-				editor.FileId = dto.Id;
+				if (dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted)
+				{
+					editor.EncryptedPassword = dto
+						.FindParent(x => x.EncryptedPassword is not null)?
+						.EncryptedPassword;
+				}
 
-				editor.IsDecrypted = dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted;
+				editor.FileId = dto.Id;
 
 				editor.SetPropertiesCallback = SetProperties;
 

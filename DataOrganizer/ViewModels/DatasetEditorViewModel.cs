@@ -38,13 +38,13 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 {
 	#region Properties
 	/// <inheritdoc />
+	public byte[]? EncryptedPassword { get; set; }
+
+	/// <inheritdoc />
 	public Guid FileId { get; set; }
 
 	/// <inheritdoc />
 	public string? InitialProperties { get; set; }
-
-	/// <inheritdoc />
-	public bool IsDecrypted { get; set; }
 
 	/// <inheritdoc />
 	public bool IsInitialized { get; private set; }

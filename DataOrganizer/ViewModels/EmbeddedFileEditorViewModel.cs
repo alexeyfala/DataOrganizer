@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,13 +33,13 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 {
 	#region Properties
 	/// <inheritdoc />
+	public byte[]? EncryptedPassword { get; set; }
+
+	/// <inheritdoc />
 	public Guid FileId { get; set; }
 
 	/// <inheritdoc />
 	public string? InitialProperties { get; set; }
-
-	/// <inheritdoc />
-	public bool IsDecrypted { get; set; }
 
 	/// <inheritdoc />
 	public bool IsInitialized { get; private set; }
@@ -77,14 +78,39 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 			return;
 		}
 
-		if (IsDecrypted)
-		{
+		byte[] contents = result.Contents;
 
+		if (EncryptedPassword?.Length > 0)
+		{
+			if (!_encryption.Decrypt(
+				EncryptedPassword,
+				_entityEcryption.GetSessionId(),
+				out byte[] decryptedPassword))
+			{
+				return;
+			}
+
+			try
+			{
+				if (!_encryption.Decrypt(
+					contents,
+					decryptedPassword,
+					out byte[] decryptedContents))
+				{
+					return;
+				}
+
+				contents = decryptedContents;
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(decryptedPassword);
+			}
 		}
 
 		editor.Text = TextHelper
 			.Utf8Encoding
-			.GetString(result.Contents);
+			.GetString(contents);
 
 		ApplyEditorSettings(editor);
 
@@ -135,6 +161,12 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
+
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
+
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -151,10 +183,16 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 	public EmbeddedFileEditorViewModel(
 		Application app,
 		IDbAccess dbAccess,
+		IEncryptionService encryption,
+		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger) : base(app)
 	{
 		_dbAccess = dbAccess;
+
+		_encryption = encryption;
+
+		_entityEcryption = entityEcryption;
 
 		_jsonSerializer = jsonSerializer;
 
