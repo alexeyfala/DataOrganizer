@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -50,6 +51,23 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 	/// <inheritdoc />
 	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
+	#endregion
+
+	#region Commands
+	/// <inheritdoc cref="TextEditorHelper.Copy" />
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
+
+	/// <inheritdoc cref="TextEditorHelper.Find" />
+	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
+
+	/// <inheritdoc cref="TextEditorHelper.ScrollToEnd" />
+	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorHelper.ScrollToEnd);
+
+	/// <inheritdoc cref="TextEditorHelper.ScrollToTop" />
+	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
+
+	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
 	#endregion
 
 	#region Auto-Generated Commands

@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using AvaloniaEdit;
-using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
@@ -24,82 +23,6 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 	#endregion
 
 	#region Auto-Generated Commands
-	/// <summary>
-	/// Command <see cref="ApplicationCommands.Copy" />.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteCopy))]
-	private static void Copy(TextArea? area)
-	{
-		if (area is null)
-		{
-			return;
-		}
-
-		ApplicationCommands
-			.Copy
-			.Execute(null, area);
-	}
-
-	/// <summary>
-	/// Command <see cref="ApplicationCommands.Find" />.
-	/// </summary>
-	[RelayCommand]
-	private static void Find(TextArea? area)
-	{
-		if (area is null)
-		{
-			return;
-		}
-
-		ApplicationCommands
-			.Find
-			.Execute(null, area);
-	}
-
-	/// <summary>
-	/// Scrolls the editor down.
-	/// </summary>
-	[RelayCommand]
-	private static void ScrollToEnd(TextEditor? editor)
-	{
-		if (editor is null)
-		{
-			return;
-		}
-
-		editor.ScrollToEnd();
-
-		editor
-			.TextArea
-			.Caret
-			.Position = new(line: editor.LineCount, column: 0);
-	}
-
-	/// <summary>
-	/// Scrolls the editor up.
-	/// </summary>
-	[RelayCommand]
-	private static void ScrollToTop(TextEditor? editor)
-	{
-		if (editor is null)
-		{
-			return;
-		}
-
-		editor.ScrollToHome();
-
-		editor
-			.TextArea
-			.Caret
-			.Position = new(line: 0, column: 0);
-	}
-
-	/// <summary>
-	/// Selects all text in the editor.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteSelectAll))]
-	private static void SelectAll(TextEditor? editor) => editor?.Select(0, editor.Text.Length);
-
 	/// <summary>
 	/// Handles <see cref="Spinner.Spin" /> event.
 	/// </summary>
@@ -165,17 +88,5 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 
 		direction.IncreaseDecrease(FontSize, () => FontSize);
 	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Validates <see cref="CopyCommand" />.
-	/// </summary>
-	private static bool CanExecuteCopy(TextArea? area) => area?.Selection.Length > 0;
-
-	/// <summary>
-	/// Validates <see cref="SelectAllCommand" />.
-	/// </summary>
-	private static bool CanExecuteSelectAll(TextEditor? editor) => editor?.Text.Length > 0;
 	#endregion
 }
