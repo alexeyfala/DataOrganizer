@@ -63,6 +63,80 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
+	/// </summary>
+	[RelayCommand]
+	public async Task ContainerLoaded(ScrollViewer? scrollViewer)
+	{
+		if (IsInitialized)
+		{
+			return;
+		}
+
+		ContentsIsValidPair result = await _dbAccess
+			.GetFileContentsAsync(FileId)
+			.ConfigureAwait(false);
+
+		if (result.IsDefault() || !result.IsValid)
+		{
+			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+
+			return;
+		}
+
+		try
+		{
+			if (result
+				.Contents
+				.Length == 0)
+			{
+				return;
+			}
+
+			string json = TextHelper
+				.Utf8Encoding
+				.GetString(result.Contents);
+
+			Records.AddRange(_jsonSerializer
+				.Deserialize<DatasetRecordBase[]>(json)
+				.AsNotNull());
+
+			if (scrollViewer is null)
+			{
+				return;
+			}
+
+			// Virtualization is now disabled.
+			await scrollViewer
+				.WaitVirtualizingStackPanelIsLoadedAsync()
+				.ConfigureAwait(true);
+
+			await InitializePropertiesAsync(scrollViewer).ConfigureAwait(true);
+
+			// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
+			await Task
+				.Delay(300)
+				.ConfigureAwait(true);
+
+			Observable.FromEventPattern<ScrollChangedEventArgs>(
+				x => scrollViewer.ScrollChanged += x,
+				x => scrollViewer.ScrollChanged -= x)
+				.Subscribe(ScrollViewer_ScrollChanged)
+				.DisposeWith(_disposables);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+
+			IsInitialized = true;
+		}
+	}
+
+	/// <summary>
 	/// Handles when the user has manually changed <see cref="ValueRecord.IsHidden" />.
 	/// </summary>
 	[RelayCommand]
@@ -160,12 +234,6 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasGroups))]
 	private Task Collapse(RecordsGroup? group) => ExpandCollapseAsync(group, true);
-
-	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
-	/// </summary>
-	[RelayCommand]
-	private Task ContainerLoaded(ScrollViewer? scrollViewer) => LoadDataAsync(scrollViewer);
 
 	/// <summary>
 	/// Copies <see cref="KeyValueRecord" /> key and value to system clipboard.
@@ -836,79 +904,6 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 		}
 
 		return SaveContentsAsync(token);
-	}
-
-	/// <summary>
-	/// Loads data from the database.
-	/// </summary>
-	public async Task LoadDataAsync(ScrollViewer? scrollViewer = null, CancellationToken token = default)
-	{
-		if (IsInitialized)
-		{
-			return;
-		}
-
-		ContentsIsValidPair result = await _dbAccess
-			.GetFileContentsAsync(FileId, token)
-			.ConfigureAwait(false);
-
-		if (result.IsDefault() || !result.IsValid)
-		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
-
-			return;
-		}
-
-		try
-		{
-			if (result
-				.Contents
-				.Length == 0)
-			{
-				return;
-			}
-
-			string json = TextHelper
-				.Utf8Encoding
-				.GetString(result.Contents);
-
-			Records.AddRange(_jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(json)
-				.AsNotNull());
-
-			if (scrollViewer is null)
-			{
-				return;
-			}
-
-			// Virtualization is now disabled.
-			await scrollViewer
-				.WaitVirtualizingStackPanelIsLoadedAsync(token)
-				.ConfigureAwait(true);
-
-			await InitializePropertiesAsync(scrollViewer, token).ConfigureAwait(true);
-
-			// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
-			await Task
-				.Delay(300, token)
-				.ConfigureAwait(true);
-
-			Observable.FromEventPattern<ScrollChangedEventArgs>(
-				x => scrollViewer.ScrollChanged += x,
-				x => scrollViewer.ScrollChanged -= x)
-				.Subscribe(ScrollViewer_ScrollChanged)
-				.DisposeWith(_disposables);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-
-			IsInitialized = true;
-		}
 	}
 
 	/// <inheritdoc cref="RenameGroup" />

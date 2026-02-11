@@ -192,6 +192,98 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="DatasetEditorViewModel.ContainerLoaded" />.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Adds_Records()
+	{
+		// Arrange
+		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords()];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ContentsIsValidPair pair = new()
+			{
+				Contents = TestUtils.CreateRandomBytes(10),
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(pair);
+
+			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+			jsonSerializer
+				.Deserialize<DatasetRecordBase[]>(Arg.Any<string>())
+				.Returns(records);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+
+		sut.Records
+			.Should()
+			.Contain(records);
+	}
+
+	/// <summary>
+	/// Test of <see cref="DatasetEditorViewModel.ContainerLoaded" />.
+	/// </summary>
+	[Test]
+	public async Task ContainerLoaded_Shoud_Not_Tries_Add_Records_If_File_Content_Is_Empty()
+	{
+		// Arrange
+		IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			ContentsIsValidPair pair = new()
+			{
+				Contents = [],
+				IsValid = true
+			};
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(pair);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Act
+		await sut.ContainerLoaded(null);
+
+		// Assert
+		sut.IsInitialized
+			.Should()
+			.BeTrue();
+
+		jsonSerializer
+			.Received(0)
+			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// Test of <see cref="DatasetEditorViewModel.DeleteRecordAsync" />.
 	/// </summary>
 	[Test]
@@ -439,98 +531,6 @@ internal class DatasetEditorViewModelTests
 			Arg.Any<Guid>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<PropertyNameValuePair[]>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.LoadDataAsync" />.
-	/// </summary>
-	[Test]
-	public async Task LoadDataAsync_Adds_Records()
-	{
-		// Arrange
-		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords()];
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ContentsIsValidPair pair = new()
-			{
-				Contents = TestUtils.CreateRandomBytes(10),
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
-
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
-
-			jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(Arg.Any<string>())
-				.Returns(records);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(jsonSerializer);
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		// Act
-		await sut.LoadDataAsync();
-
-		// Assert
-		sut.IsInitialized
-			.Should()
-			.BeTrue();
-
-		sut.Records
-			.Should()
-			.Contain(records);
-	}
-
-	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.LoadDataAsync" />.
-	/// </summary>
-	[Test]
-	public async Task LoadDataAsync_Shoud_Not_Tries_Add_Records_If_File_Content_Is_Empty()
-	{
-		// Arrange
-		IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			ContentsIsValidPair pair = new()
-			{
-				Contents = [],
-				IsValid = true
-			};
-
-			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(jsonSerializer);
-		});
-
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
-
-		// Act
-		await sut.LoadDataAsync();
-
-		// Assert
-		sut.IsInitialized
-			.Should()
-			.BeTrue();
-
-		jsonSerializer
-			.Received(0)
-			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
 	}
 
 	/// <summary>
