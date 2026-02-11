@@ -15,13 +15,14 @@ using Serilog.Events;
 using Shared.Common;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// View model for <see cref="ConsoleWindow" />.
 /// </summary>
-public sealed partial class ConsoleViewModel : EditorViewModelBase
+public sealed partial class ConsoleViewModel : ObservableDisposable
 {
 	#region Properties
 	/// <summary>
@@ -136,6 +137,9 @@ public sealed partial class ConsoleViewModel : EditorViewModelBase
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <summary>
 	/// Record buffer.
 	/// </summary>
@@ -151,9 +155,7 @@ public sealed partial class ConsoleViewModel : EditorViewModelBase
 	#endregion
 
 	#region Constructors
-	public ConsoleViewModel(
-		Application app,
-		IDispatcher dispatcher) : base(app)
+	public ConsoleViewModel(IDispatcher dispatcher)
 	{
 		_dispatcher = dispatcher;
 
