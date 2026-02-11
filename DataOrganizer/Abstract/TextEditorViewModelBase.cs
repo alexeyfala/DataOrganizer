@@ -7,7 +7,7 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
-using System;
+using DataOrganizer.Extensions;
 
 namespace DataOrganizer.Abstract;
 
@@ -111,7 +111,7 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 			return;
 		}
 
-		ChangeFontSize(e.Direction);
+		e.Direction.IncreaseDecrease(FontSize, () => FontSize);
 	}
 	#endregion
 
@@ -163,7 +163,7 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 				return;
 		}
 
-		ChangeFontSize(direction);
+		direction.IncreaseDecrease(FontSize, () => FontSize);
 	}
 	#endregion
 
@@ -177,27 +177,5 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 	/// Validates <see cref="SelectAllCommand" />.
 	/// </summary>
 	private static bool CanExecuteSelectAll(TextEditor? editor) => editor?.Text.Length > 0;
-
-	/// <summary>
-	/// Changes <see cref="FontSize" />.
-	/// </summary>
-	private void ChangeFontSize(in SpinDirection direction)
-	{
-		const double step = 0.5;
-
-		double value = direction switch
-		{
-			SpinDirection.Increase => FontSize + step,
-			SpinDirection.Decrease => FontSize - step,
-			_ => throw new NotImplementedException()
-		};
-
-		if (value < 6.0 || value > 64.0)
-		{
-			return;
-		}
-
-		FontSize = value;
-	}
 	#endregion
 }
