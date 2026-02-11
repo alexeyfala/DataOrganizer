@@ -98,11 +98,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, I
 
 		_editor = editor;
 
-		TextEditorHelper.SubscribePointerWheelChanged(
-			editor,
-			() => FontSize,
-			() => FontSize);
-
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(false);
@@ -131,6 +126,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, I
 		editor.Text = TextHelper
 			.Utf8Encoding
 			.GetString(contents);
+
+		TextEditorHelper.SubscribePointerWheelChanged(
+			editor,
+			() => FontSize,
+			() => FontSize);
 
 		ApplyEditorSettings(editor);
 
