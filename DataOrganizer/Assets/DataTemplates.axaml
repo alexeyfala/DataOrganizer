@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:abstract="using:DataOrganizer.Abstract"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:localDto="using:DataOrganizer.DTO"
@@ -530,6 +531,10 @@
 				Content="{Binding Children, Mode=OneTime}"
 				Header="{Binding Mode=OneTime}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+
+				<Interaction.Behaviors>
+					<behaviors:ExpanderDoubleClickBehavior />
+				</Interaction.Behaviors>
 
 				<Expander.Styles>
 					<Style Selector="FlyoutPresenter">

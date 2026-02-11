@@ -16,9 +16,9 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds all parents in the visual tree.
 	/// </summary>
-	public static IEnumerable<Visual> FindAllVisualParents(this Visual element)
+	public static IEnumerable<Visual> FindAllVisualParents(this Visual? element)
 	{
-		Visual? item = element.GetVisualParent();
+		Visual? item = element?.GetVisualParent();
 
 		while (item is not null)
 		{
@@ -31,8 +31,13 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds the first logical child of a specific type within the logical tree.
 	/// </summary>
-	public static T? FindLogicalChild<T>(this ILogical parent) where T : class
+	public static T? FindLogicalChild<T>(this ILogical? parent) where T : class
 	{
+		if (parent is null)
+		{
+			return null;
+		}
+
 		Stack<ILogical> stack = new(parent.GetLogicalChildren());
 
 		while (stack.Count > 0)
@@ -40,6 +45,36 @@ internal static class VisualExtensions
 			ILogical item = stack.Pop();
 
 			if (item is T found)
+			{
+				return found;
+			}
+
+			foreach (ILogical child in item.GetLogicalChildren())
+			{
+				stack.Push(child);
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Finds the first logical child of a specific type within the logical tree by condition.
+	/// </summary>
+	public static T? FindLogicalChild<T>(this ILogical? parent, Predicate<T> condition) where T : class
+	{
+		if (parent is null)
+		{
+			return null;
+		}
+
+		Stack<ILogical> stack = new(parent.GetLogicalChildren());
+
+		while (stack.Count > 0)
+		{
+			ILogical item = stack.Pop();
+
+			if (item is T found && condition(found))
 			{
 				return found;
 			}
@@ -96,8 +131,13 @@ internal static class VisualExtensions
 	/// <summary>
 	/// Finds the first visual child of a specific type within the visual tree.
 	/// </summary>
-	public static T? FindVisualChild<T>(this Visual parent) where T : class
+	public static T? FindVisualChild<T>(this Visual? parent) where T : class
 	{
+		if (parent is null)
+		{
+			return null;
+		}
+
 		Stack<Visual> stack = new(parent.GetVisualChildren());
 
 		while (stack.Count > 0)
@@ -119,10 +159,45 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
+	/// Finds the first visual child of a specific type within the visual tree by condition.
+	/// </summary>
+	public static T? FindVisualChild<T>(this Visual? parent, Predicate<T> condition) where T : class
+	{
+		if (parent is null)
+		{
+			return null;
+		}
+
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
+		{
+			Visual item = stack.Pop();
+
+			if (item is T found && condition(found))
+			{
+				return found;
+			}
+
+			foreach (Visual child in item.GetVisualChildren())
+			{
+				stack.Push(child);
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
 	/// Finds all visual children of a specific type within the visual tree.
 	/// </summary>
-	public static IEnumerable<T> FindVisualChildren<T>(this Visual parent) where T : class
+	public static IEnumerable<T> FindVisualChildren<T>(this Visual? parent) where T : class
 	{
+		if (parent is null)
+		{
+			yield break;
+		}
+
 		Stack<Visual> stack = new(parent.GetVisualChildren());
 
 		while (stack.Count > 0)
@@ -142,11 +217,39 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
+	/// Finds all visual children of a specific type within the visual tree by condition.
+	/// </summary>
+	public static IEnumerable<T> FindVisualChildren<T>(this Visual? parent, Predicate<T> condition) where T : class
+	{
+		if (parent is null)
+		{
+			yield break;
+		}
+
+		Stack<Visual> stack = new(parent.GetVisualChildren());
+
+		while (stack.Count > 0)
+		{
+			Visual item = stack.Pop();
+
+			if (item is T found && condition(found))
+			{
+				yield return found;
+			}
+
+			foreach (Visual child in item.GetVisualChildren())
+			{
+				stack.Push(child);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Finds the first visual parent of a specific type in the visual tree.
 	/// </summary>
-	public static T? FindVisualParent<T>(this Visual element) where T : class
+	public static T? FindVisualParent<T>(this Visual? element) where T : class
 	{
-		Visual? item = element.GetVisualParent();
+		Visual? item = element?.GetVisualParent();
 
 		while (item is not null)
 		{
