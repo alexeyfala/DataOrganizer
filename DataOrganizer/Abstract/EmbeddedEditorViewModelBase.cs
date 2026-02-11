@@ -1,10 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
+using Repository.Interfaces;
+using Serilog;
+using Shared.Interfaces;
 using System;
 using System.ComponentModel;
 using System.Reactive;
@@ -29,12 +33,52 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
+	/// <inheritdoc cref="IDbAccess" />
+	protected readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IDispatcher" />
+	protected readonly IDispatcher _dispatcher;
+
+	/// <inheritdoc cref="IEncryptionService" />
+	protected readonly IEncryptionService _encryption;
+
+	/// <inheritdoc cref="IEntityEcryption" />
+	protected readonly IEntityEcryption _entityEcryption;
+
+	/// <inheritdoc cref="IJsonSerializerWrapper" />
+	protected readonly IJsonSerializerWrapper _jsonSerializer;
+
+	/// <inheritdoc cref="ILogger" />
+	protected readonly ILogger _logger;
+
 	/// <inheritdoc cref="Lock" />
 	protected readonly Lock _mutex = new();
 	#endregion
 
 	#region Constructors
-	protected EmbeddedEditorViewModelBase(Application app) => _app = app;
+	protected EmbeddedEditorViewModelBase(
+		Application app,
+		IDbAccess dbAccess,
+		IDispatcher dispatcher,
+		IEncryptionService encryption,
+		IEntityEcryption entityEcryption,
+		IJsonSerializerWrapper jsonSerializer,
+		ILogger logger)
+	{
+		_app = app;
+
+		_dbAccess = dbAccess;
+
+		_dispatcher = dispatcher;
+
+		_encryption = encryption;
+
+		_entityEcryption = entityEcryption;
+
+		_jsonSerializer = jsonSerializer;
+
+		_logger = logger;
+	}
 	#endregion
 
 	#region Event Handlers

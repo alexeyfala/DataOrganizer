@@ -195,24 +195,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
-
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
-
-	/// <inheritdoc cref="IEntityEcryption" />
-	private readonly IEntityEcryption _entityEcryption;
-
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <summary>
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
@@ -227,20 +209,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger) : base(app)
+		ILogger logger) : base(app, dbAccess, dispatcher, encryption, entityEcryption, jsonSerializer, logger)
 	{
-		_dbAccess = dbAccess;
-
-		_dispatcher = dispatcher;
-
-		_encryption = encryption;
-
-		_entityEcryption = entityEcryption;
-
-		_jsonSerializer = jsonSerializer;
-
-		_logger = logger;
-
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion

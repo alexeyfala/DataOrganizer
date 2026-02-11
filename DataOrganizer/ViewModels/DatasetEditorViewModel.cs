@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -588,15 +589,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboardService;
 
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 
@@ -607,20 +599,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
+		IDispatcher dispatcher,
+		IEncryptionService encryption,
+		IEntityEcryption entityEcryption,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app)
+		IViewLauncher viewLauncher) : base(app, dbAccess, dispatcher, encryption, entityEcryption, jsonSerializer, logger)
 	{
 		_clipboardService = clipboardService;
-
-		_dbAccess = dbAccess;
-
-		_jsonSerializer = jsonSerializer;
-
-		_logger = logger;
 
 		_viewFactory = viewFactory;
 
