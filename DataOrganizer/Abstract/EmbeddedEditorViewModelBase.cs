@@ -17,6 +17,7 @@ using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -65,20 +66,11 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="Application" />
-	protected readonly Application _app;
-
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
 	/// <inheritdoc cref="IDispatcher" />
 	protected readonly IDispatcher _dispatcher;
-
-	/// <inheritdoc cref="IEncryptionService" />
-	protected readonly IEncryptionService _encryption;
-
-	/// <inheritdoc cref="IEntityEcryption" />
-	protected readonly IEntityEcryption _entityEcryption;
 
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	protected readonly IJsonSerializerWrapper _jsonSerializer;
@@ -88,6 +80,15 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 	/// <inheritdoc cref="Lock" />
 	protected readonly Lock _mutex = new();
+
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
+
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
 	#endregion
 
 	#region Constructors
@@ -176,6 +177,82 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		}
 
 		return viewModel.ShowInEditorAsync(window, fileId);
+	}
+
+	/// <summary>
+	/// Decrypts file contents.
+	/// </summary>
+	protected bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Decrypt(
+				input,
+				decryptedPassword,
+				out byte[] decryptedContents))
+			{
+				return false;
+			}
+
+			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <summary>
+	/// Encrypts file contents.
+	/// </summary>
+	protected bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Encrypt(
+				input,
+				decryptedPassword,
+				out byte[] encryptedContents))
+			{
+				return false;
+			}
+
+			output = encryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
 	}
 
 	/// <summary>
