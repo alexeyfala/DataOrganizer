@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -145,6 +146,9 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
+
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
@@ -167,12 +171,15 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 	public EmbeddedFileEditorViewModel(
 		Application app,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger) : base(app)
 	{
 		_dbAccess = dbAccess;
+
+		_dispatcher = dispatcher;
 
 		_encryption = encryption;
 
@@ -221,22 +228,29 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 				.Utf8Encoding
 				.GetBytes(editor.Text);
 
-			if (EncryptedPassword?.Length > 0 && !EncryptContents(
-				contents,
-				EncryptedPassword,
-				out contents))
+			// Encryption slows down the UI, so it is performed in a different thread.
+			_ = Task.Run(() =>
 			{
-				ShowErrorSnackbar(
-					editor.FindLogicalParent<Window>(),
-					Strings.FailedToProcessContents);
+				if (EncryptedPassword?.Length > 0 && !EncryptContents(
+					contents,
+					EncryptedPassword,
+					out contents))
+				{
+					_dispatcher.Post(() =>
+					{
+						ShowErrorSnackbar(
+							editor.FindLogicalParent<Window>(),
+							Strings.FailedToProcessContents);
+					});
 
-				return;
-			}
+					return Task.CompletedTask;
+				}
 
-			_ = this.SaveContentsAsync(
-				_dbAccess,
-				_logger,
-				contents);
+				return this.SaveContentsAsync(
+					_dbAccess,
+					_logger,
+					contents);
+			});
 		}
 	}
 	#endregion
