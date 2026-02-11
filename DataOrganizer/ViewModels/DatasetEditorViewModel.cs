@@ -35,31 +35,13 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="DatasetEditorView" />.
 /// </summary>
-public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase, IFileEditor
+public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
-	/// <inheritdoc />
-	public byte[]? EncryptedPassword { get; set; }
-
-	/// <inheritdoc />
-	public Guid FileId { get; set; }
-
-	/// <inheritdoc />
-	public string? InitialProperties { get; set; }
-
-	/// <inheritdoc />
-	public bool IsInitialized { get; private set; }
-
 	/// <summary>
 	/// Records.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Records { get; } = [];
-
-	/// <inheritdoc />
-	public Action<string>? SetPropertiesCallback { get; set; }
-
-	/// <inheritdoc />
-	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -644,7 +626,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			_ = this.SavePropertiesAsync(_dbAccess, _logger, json);
+			_ = SavePropertiesAsync(json);
 		}
 	}
 	#endregion
@@ -1101,12 +1083,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private bool IsNotReadOnly() => !IsReadOnly;
 
-	/// <inheritdoc cref="FileEditorExtensions.SaveContentsAsync" />
+	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private Task SaveContentsAsync(CancellationToken token = default)
 	{
-		return this.SaveContentsAsync(
-			_dbAccess,
-			_logger,
+		return SaveContentsAsync(
 			TextHelper.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
 			token: token);
 	}

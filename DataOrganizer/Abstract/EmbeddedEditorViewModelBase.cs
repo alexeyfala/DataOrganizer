@@ -6,8 +6,11 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
+using Entities.Models;
+using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
+using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.ComponentModel;
@@ -21,6 +24,38 @@ namespace DataOrganizer.Abstract;
 
 public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 {
+	#region Properties
+	/// <summary>
+	/// Encrypted password.
+	/// </summary>
+	public byte[]? EncryptedPassword { get; set; }
+
+	/// <summary>
+	/// File identifier.
+	/// </summary>
+	public Guid FileId { get; set; }
+
+	/// <summary>
+	/// Initial properties.
+	/// </summary>
+	public string? InitialProperties { get; set; }
+
+	/// <summary>
+	/// Returns <c>True</c> if editor is initialized.
+	/// </summary>
+	public bool IsInitialized { get; protected set; }
+
+	/// <summary>
+	/// Callback to set object's properties.
+	/// </summary>
+	public Action<string>? SetPropertiesCallback { get; set; }
+
+	/// <summary>
+	/// Callback to set object's updated date.
+	/// </summary>
+	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
+	#endregion
+
 	#region Auto-Generated Properties
 	/// <summary>
 	/// Read-only mode.
@@ -98,7 +133,9 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Methods
-	/// <inheritdoc cref="IFileEditor.Initialize" />
+	/// <summary>
+	/// Performs initialization.
+	/// </summary>
 	public void Initialize()
 	{
 		if (_app.FindWindow<EditorWindow>() is not EditorWindow window)
@@ -139,6 +176,71 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		}
 
 		return viewModel.ShowInEditorAsync(window, fileId);
+	}
+
+	/// <summary>
+	/// Saves <see cref="FileModel.Contents" /> to the database.
+	/// </summary>
+	protected Task SaveContentsAsync(byte[] contents, CancellationToken token = default)
+	{
+		_logger.LogDebug($@"Saving contents of ""{FileId}"" in the database");
+
+		return UpdatePropertyAsync(
+			propertyName: nameof(FileModel.Contents),
+			value: contents,
+			isUpdatedDate: true,
+			token: token);
+	}
+
+	/// <summary>
+	/// Saves <see cref="FileModel.Properties" /> to the database.
+	/// </summary>
+	protected Task SavePropertiesAsync(
+		string json,
+		CancellationToken token = default)
+	{
+		_logger.LogDebug(
+			$@"Saving properties of ""{FileId}"" in the database:{json}");
+
+		return UpdatePropertyAsync(
+			propertyName: nameof(FileModel.Properties),
+			value: json,
+			isUpdatedDate: false,
+			token: token);
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Updates property of <see cref="FileModel" /> in the database.
+	/// </summary>
+	private async Task UpdatePropertyAsync<T>(
+		string propertyName,
+		T value,
+		bool isUpdatedDate,
+		CancellationToken token) where T : notnull
+	{
+		DateTime updatedDate = DateTime.Now;
+
+		PropertyNameValuePair[] properties =
+		[
+			new PropertyNameValuePair(propertyName, value)
+		];
+
+		if (isUpdatedDate)
+		{
+			properties = [.. properties, new(nameof(FileModel.UpdatedDate), updatedDate)];
+		}
+
+		if (!await _dbAccess.UpdatePropertiesAsync(
+			id: FileId,
+			token: token,
+			properties).ConfigureAwait(false) || !isUpdatedDate)
+		{
+			return;
+		}
+
+		SetUpdatedDateCallback?.Invoke(updatedDate);
 	}
 	#endregion
 }

@@ -32,28 +32,8 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EmbeddedFileEditorView" />.
 /// </summary>
-public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase, IFileEditor
+public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
-	#region Properties
-	/// <inheritdoc />
-	public byte[]? EncryptedPassword { get; set; }
-
-	/// <inheritdoc />
-	public Guid FileId { get; set; }
-
-	/// <inheritdoc />
-	public string? InitialProperties { get; set; }
-
-	/// <inheritdoc />
-	public bool IsInitialized { get; private set; }
-
-	/// <inheritdoc />
-	public Action<string>? SetPropertiesCallback { get; set; }
-
-	/// <inheritdoc />
-	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
-	#endregion
-
 	#region Auto-Generated Properties
 	/// <inheritdoc cref="FileProperties.FontSize" />
 	[ObservableProperty]
@@ -232,7 +212,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_ = this.SavePropertiesAsync(_dbAccess, _logger, json);
+			_ = SavePropertiesAsync(json);
 		}
 	}
 
@@ -270,10 +250,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					return Task.CompletedTask;
 				}
 
-				return this.SaveContentsAsync(
-					_dbAccess,
-					_logger,
-					contents);
+				return SaveContentsAsync(contents);
 			});
 		}
 	}
@@ -306,7 +283,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_ = this.SavePropertiesAsync(_dbAccess, _logger, json);
+			_ = SavePropertiesAsync(json);
 		}
 	}
 	#endregion
@@ -469,9 +446,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			if (!IsReadOnly)
 			{
-				await this.SavePropertiesAsync(
-					_dbAccess,
-					_logger,
+				await SavePropertiesAsync(
 					_jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions),
 					token);
 			}
