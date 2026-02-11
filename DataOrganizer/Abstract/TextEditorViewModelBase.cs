@@ -44,7 +44,7 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 	/// <summary>
 	/// <see cref="InputElement.PointerWheelChangedEvent" /> handler of <see cref="TextEditor" />.
 	/// </summary>
-	private void Editor_PointerWheelChanged(object? _, PointerWheelEventArgs e)
+	private void Editor_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
 	{
 		if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
 		{

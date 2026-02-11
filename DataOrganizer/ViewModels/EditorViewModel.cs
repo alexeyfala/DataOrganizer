@@ -873,7 +873,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
 	/// so I had to use a global event to persist the changes to the database in one place.
 	/// </remarks>
-	private void Folder_IsExpandedChanged(object? _, FolderModelDto e)
+	private void Folder_IsExpandedChanged(object? sender, FolderModelDto e)
 	{
 		if (IsReadOnly)
 		{
