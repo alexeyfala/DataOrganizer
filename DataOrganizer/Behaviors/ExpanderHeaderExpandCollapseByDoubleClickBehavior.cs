@@ -1,11 +1,13 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Extensions;
 
 namespace DataOrganizer.Behaviors;
 
-internal sealed class ExpanderExpandCollapseByDoubleClickBehavior : Behavior<Expander>
+internal sealed class ExpanderHeaderExpandCollapseByDoubleClickBehavior : Behavior<Interactive>
 {
 	#region Event Handlers
 	/// <summary>
@@ -15,7 +17,9 @@ internal sealed class ExpanderExpandCollapseByDoubleClickBehavior : Behavior<Exp
 		object? sender,
 		PointerPressedEventArgs e)
 	{
-		if (e.ClickCount == 2)
+		if (e.ClickCount == 2
+			|| e.Source is not Visual visual
+			|| visual.HasLogicalParent<Button>(x => !string.Equals(x.Name, "PART_toggle")))
 		{
 			return;
 		}

@@ -265,6 +265,26 @@ internal static class VisualExtensions
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> if the element has a parent with condition.
+	/// </summary>
+	public static bool HasLogicalParent<T>(this StyledElement? element, Predicate<T> condition) where T : class
+	{
+		StyledElement? item = element?.Parent;
+
+		while (item is not null)
+		{
+			if (item is T parent && condition(parent))
+			{
+				return true;
+			}
+
+			item = item.Parent;
+		}
+
+		return false;
+	}
+
+	/// <summary>
 	/// Finds the <see cref="" /> within the visual tree and waits until it is loaded.
 	/// </summary>
 	public static async Task<bool> WaitVirtualizingStackPanelIsLoadedAsync(

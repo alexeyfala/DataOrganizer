@@ -532,10 +532,6 @@
 				Header="{Binding Mode=OneTime}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
 
-				<Interaction.Behaviors>
-					<behaviors:ExpanderExpandCollapseByDoubleClickBehavior />
-				</Interaction.Behaviors>
-
 				<Expander.Styles>
 					<Style Selector="FlyoutPresenter">
 						<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
@@ -681,7 +677,11 @@
 							<views:ClipboardTextBlock
 								Padding="{StaticResource RecordPadding}"
 								Note="{Binding Note, Mode=OneWay}"
-								Text="{Binding Name, Mode=OneWay}" />
+								Text="{Binding Name, Mode=OneWay}">
+								<Interaction.Behaviors>
+									<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+								</Interaction.Behaviors>
+							</views:ClipboardTextBlock>
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>
