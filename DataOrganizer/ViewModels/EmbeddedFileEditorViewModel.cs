@@ -68,6 +68,9 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
 	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+
+	/// <inheritdoc cref="TextEditorHelper.Spin" />
+	public RelayCommand<SpinEventArgs> SpinCommand { get; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -206,6 +209,8 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
 

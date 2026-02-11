@@ -57,6 +57,9 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 
 	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
 	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+
+	/// <inheritdoc cref="TextEditorHelper.Spin" />
+	public RelayCommand<SpinEventArgs> SpinCommand { get; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -136,7 +139,14 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	#endregion
 
 	#region Constructors
-	public ConsoleViewModel(Application app, IDispatcher dispatcher) : base(app) => _dispatcher = dispatcher;
+	public ConsoleViewModel(
+		Application app,
+		IDispatcher dispatcher) : base(app)
+	{
+		_dispatcher = dispatcher;
+
+		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
+	}
 	#endregion
 
 	#region Methods

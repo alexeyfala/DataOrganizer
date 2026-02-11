@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using AvaloniaEdit;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 
@@ -20,22 +19,6 @@ public abstract partial class TextEditorViewModelBase : EditorViewModelBase
 	/// <inheritdoc cref="FileProperties.IsWordWrap" />
 	[ObservableProperty]
 	private bool _isWordWrap;
-	#endregion
-
-	#region Auto-Generated Commands
-	/// <summary>
-	/// Handles <see cref="Spinner.Spin" /> event.
-	/// </summary>
-	[RelayCommand]
-	private void Spin(SpinEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		e.Direction.IncreaseDecrease(FontSize, () => FontSize);
-	}
 	#endregion
 
 	#region Constructors
