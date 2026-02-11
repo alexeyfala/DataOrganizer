@@ -32,7 +32,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EmbeddedFileEditorView" />.
 /// </summary>
-public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, IFileEditor
+public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase, IFileEditor
 {
 	#region Properties
 	/// <inheritdoc />
@@ -189,7 +189,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, I
 			() => FontSize);
 	}
 
-	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync" />
+	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
 	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
 	#endregion

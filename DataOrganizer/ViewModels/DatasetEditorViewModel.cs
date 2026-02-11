@@ -34,7 +34,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="DatasetEditorView" />.
 /// </summary>
-public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileEditor
+public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase, IFileEditor
 {
 	#region Properties
 	/// <inheritdoc />
@@ -491,7 +491,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
 
-	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync" />
+	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
 	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
 
@@ -1108,7 +1108,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	private bool IsAnyRecords() => Records.Any();
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="EditorViewModelBase.IsReadOnly" /> is <c>False</c>.
+	/// Returns <c>True</c> if <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c>.
 	/// </summary>
 	private bool IsNotReadOnly() => !IsReadOnly;
 

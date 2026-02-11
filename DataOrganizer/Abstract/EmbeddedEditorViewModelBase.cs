@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class EditorViewModelBase : ObservableDisposable
+public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 {
 	#region Auto-Generated Properties
 	/// <summary>
@@ -34,7 +34,7 @@ public abstract partial class EditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Constructors
-	protected EditorViewModelBase(Application app) => _app = app;
+	protected EmbeddedEditorViewModelBase(Application app) => _app = app;
 	#endregion
 
 	#region Event Handlers
