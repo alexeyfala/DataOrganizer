@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -31,7 +32,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EmbeddedFileEditorView" />.
 /// </summary>
-public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBase, IFileEditor
+public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, IFileEditor
 {
 	#region Properties
 	/// <inheritdoc />
@@ -51,6 +52,16 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 	/// <inheritdoc />
 	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
+	#endregion
+
+	#region Auto-Generated Properties
+	/// <inheritdoc cref="FileProperties.FontSize" />
+	[ObservableProperty]
+	private double _fontSize = 14.0;
+
+	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	[ObservableProperty]
+	private bool _isWordWrap;
 	#endregion
 
 	#region Commands
@@ -87,7 +98,10 @@ public sealed partial class EmbeddedFileEditorViewModel : TextEditorViewModelBas
 
 		_editor = editor;
 
-		SubscribePointerWheelChanged(editor);
+		TextEditorHelper.SubscribePointerWheelChanged(
+			editor,
+			() => FontSize,
+			() => FontSize);
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)

@@ -6,6 +6,7 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
+using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -20,7 +21,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="ConsoleWindow" />.
 /// </summary>
-public sealed partial class ConsoleViewModel : TextEditorViewModelBase
+public sealed partial class ConsoleViewModel : EditorViewModelBase
 {
 	#region Properties
 	/// <summary>
@@ -35,11 +36,19 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	#endregion
 
 	#region Auto-Generated Properties
+	/// <inheritdoc cref="FileProperties.FontSize" />
+	[ObservableProperty]
+	private double _fontSize = 14.0;
+
 	/// <summary>
 	/// Indicates that recording should be paused.
 	/// </summary>
 	[ObservableProperty]
 	private bool _isPaused;
+
+	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	[ObservableProperty]
+	private bool _isWordWrap;
 	#endregion
 
 	#region Commands
@@ -82,7 +91,10 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 			return;
 		}
 
-		SubscribePointerWheelChanged(editor);
+		TextEditorHelper.SubscribePointerWheelChanged(
+			editor,
+			() => FontSize,
+			() => FontSize);
 
 		ApplyEditorSettings(editor);
 
