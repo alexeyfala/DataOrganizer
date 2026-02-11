@@ -5,7 +5,7 @@ using Avalonia.Xaml.Interactivity;
 
 namespace DataOrganizer.Behaviors;
 
-internal sealed class ExpanderDoubleClickBehavior : Behavior<Expander>
+internal sealed class ExpanderExpandCollapseByDoubleClickBehavior : Behavior<Expander>
 {
 	#region Event Handlers
 	/// <summary>

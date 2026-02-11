@@ -533,7 +533,7 @@
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
 
 				<Interaction.Behaviors>
-					<behaviors:ExpanderDoubleClickBehavior />
+					<behaviors:ExpanderExpandCollapseByDoubleClickBehavior />
 				</Interaction.Behaviors>
 
 				<Expander.Styles>
