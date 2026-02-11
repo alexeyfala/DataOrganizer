@@ -157,6 +157,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[RelayCommand]
 	private void DetachedFromVisualTree(TextEditor? editor)
 	{
+		Dispose();
+
 		if (editor is null)
 		{
 			return;

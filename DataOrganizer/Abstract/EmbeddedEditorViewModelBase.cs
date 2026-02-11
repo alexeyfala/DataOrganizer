@@ -179,6 +179,19 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		return viewModel.ShowInEditorAsync(window, fileId);
 	}
 
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		if (EncryptedPassword is null)
+		{
+			return;
+		}
+
+		CryptographicOperations.ZeroMemory(EncryptedPassword);
+
+		EncryptedPassword = null;
+	}
+
 	/// <summary>
 	/// Decrypts file contents.
 	/// </summary>
