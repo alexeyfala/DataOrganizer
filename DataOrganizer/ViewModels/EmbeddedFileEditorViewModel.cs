@@ -89,7 +89,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, I
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="TextEditor" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task EditorLoaded(TextEditor editor)
+	public async Task EditorLoaded(TextEditor? editor)
 	{
 		if (IsInitialized || editor is null)
 		{
@@ -170,6 +170,23 @@ public sealed partial class EmbeddedFileEditorViewModel : EditorViewModelBase, I
 			.ConfigureAwait(true);
 
 		editor.Focus();
+	}
+
+	/// <summary>
+	/// Handles the <see cref="Visual.DetachedFromVisualTree" /> event of <see cref="TextEditor" />.
+	/// </summary>
+	[RelayCommand]
+	private void DetachedFromVisualTree(TextEditor? editor)
+	{
+		if (editor is null)
+		{
+			return;
+		}
+
+		TextEditorHelper.UnsubscribePointerWheelChanged(
+			editor,
+			() => FontSize,
+			() => FontSize);
 	}
 
 	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync" />

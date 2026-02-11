@@ -85,12 +85,12 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	[RelayCommand]
 	private void EditorLoaded(TextEditor? editor)
 	{
-		_editor = editor;
-
 		if (editor is null)
 		{
 			return;
 		}
+
+		_editor = editor;
 
 		TextEditorHelper.SubscribePointerWheelChanged(
 			editor,

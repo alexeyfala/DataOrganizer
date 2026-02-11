@@ -106,6 +106,12 @@
 						Command="{Binding EditorLoadedCommand}"
 						CommandParameter="{Binding #Editor}" />
 				</EventTriggerBehavior>
+
+				<EventTriggerBehavior EventName="DetachedFromVisualTree">
+					<InvokeCommandAction
+						Command="{Binding DetachedFromVisualTreeCommand}"
+						CommandParameter="{Binding #Editor}" />
+				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 
 			<AvaloniaEdit:TextEditor.ContextMenu>
