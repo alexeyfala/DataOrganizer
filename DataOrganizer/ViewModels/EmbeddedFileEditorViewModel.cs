@@ -98,23 +98,17 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			byte[] contents = result.Contents;
-
-			if (EncryptedPassword?.Length > 0 && !DecryptContents(
-				contents,
-				EncryptedPassword,
-				out contents))
+			if (!TryToDecrypt(
+				result.Contents,
+				editor,
+				out byte[] output))
 			{
-				IsContentCorrupted = true;
-
-				ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
-
 				return;
 			}
 
 			editor.Text = TextHelper
 				.Utf8Encoding
-				.GetString(contents);
+				.GetString(output);
 
 			TextEditorHelper.SubscribePointerWheelChanged(
 				editor,
@@ -254,17 +248,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// Encryption slows down the UI, so it is performed in a different thread.
 			_ = Task.Run(() =>
 			{
-				if (EncryptedPassword?.Length > 0 && !EncryptContents(
+				if (!TryToEncrypt(
 					contents,
-					EncryptedPassword,
-					out contents))
+					editor,
+					out byte[] output))
 				{
-					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
-
 					return Task.CompletedTask;
 				}
 
-				return SaveContentsAsync(contents);
+				return SaveContentsAsync(output);
 			});
 		}
 	}

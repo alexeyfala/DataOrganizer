@@ -76,11 +76,11 @@ internal sealed class ViewLocator : IDataTemplate
 
 			void Initialize(EmbeddedEditorViewModelBase viewModel)
 			{
-				if (dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted)
+				if (dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted
+					&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
 				{
-					viewModel.EncryptedPassword = dto
-						.FindParent(x => x.EncryptedPassword is not null)?
-						.EncryptedPassword;
+					// It is important not to pass a reference to the array.
+					viewModel.EncryptedPassword = [.. password];
 				}
 
 				viewModel.FileId = dto.Id;

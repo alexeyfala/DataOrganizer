@@ -188,82 +188,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	}
 
 	/// <summary>
-	/// Decrypts file contents.
-	/// </summary>
-	protected bool DecryptContents(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
-	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			_entityEcryption.GetSessionId(),
-			out byte[] decryptedPassword))
-		{
-			return false;
-		}
-
-		try
-		{
-			if (!_encryption.Decrypt(
-				input,
-				decryptedPassword,
-				out byte[] decryptedContents))
-			{
-				return false;
-			}
-
-			output = decryptedContents;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
-		}
-	}
-
-	/// <summary>
-	/// Encrypts file contents.
-	/// </summary>
-	protected bool EncryptContents(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
-	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			_entityEcryption.GetSessionId(),
-			out byte[] decryptedPassword))
-		{
-			return false;
-		}
-
-		try
-		{
-			if (!_encryption.Encrypt(
-				input,
-				decryptedPassword,
-				out byte[] encryptedContents))
-			{
-				return false;
-			}
-
-			output = encryptedContents;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
-		}
-	}
-
-	/// <summary>
 	/// Saves <see cref="FileModel.Contents" /> to the database.
 	/// </summary>
 	protected Task SaveContentsAsync(byte[] contents, CancellationToken token = default)
@@ -360,6 +284,82 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Decrypts file contents.
+	/// </summary>
+	private bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Decrypt(
+				input,
+				decryptedPassword,
+				out byte[] decryptedContents))
+			{
+				return false;
+			}
+
+			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <summary>
+	/// Encrypts file contents.
+	/// </summary>
+	private bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			_entityEcryption.GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Encrypt(
+				input,
+				decryptedPassword,
+				out byte[] encryptedContents))
+			{
+				return false;
+			}
+
+			output = encryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
 	/// <summary>
 	/// Updates property of <see cref="FileModel" /> in the database.
 	/// </summary>
