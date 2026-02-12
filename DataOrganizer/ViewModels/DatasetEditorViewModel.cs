@@ -115,9 +115,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 		finally
 		{
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-
 			IsInitialized = true;
+
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 		}
 	}
 
