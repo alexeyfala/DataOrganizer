@@ -69,9 +69,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IDispatcher" />
-	protected readonly IDispatcher _dispatcher;
-
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	protected readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -83,6 +80,9 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -153,17 +153,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			x => window.ViewModel.PropertyChanged -= x)
 			.Subscribe(EditorViewModel_PropertyChanged)
 			.DisposeWith(_disposables);
-	}
-
-	/// <inheritdoc cref="ViewModelBase.ShowErrorSnackbar" />
-	protected static void ShowErrorSnackbar(Window? window, string text)
-	{
-		if (window?.DataContext is not ViewModelBase viewModel)
-		{
-			return;
-		}
-
-		viewModel.ShowErrorSnackbar(text);
 	}
 
 	/// <summary>
@@ -297,6 +286,22 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			value: json,
 			isUpdatedDate: false,
 			token: token);
+	}
+
+	/// <inheritdoc cref="ViewModelBase.ShowErrorSnackbar" />
+	protected void ShowErrorSnackbar(StyledElement? element, string text)
+	{
+		_dispatcher.Post(() =>
+		{
+			if (element
+				.FindLogicalParent<Window>()?
+				.DataContext is not ViewModelBase viewModel)
+			{
+				return;
+			}
+
+			viewModel.ShowErrorSnackbar(text);
+		});
 	}
 	#endregion
 

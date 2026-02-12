@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
@@ -95,12 +94,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			EncryptedPassword,
 			out contents))
 		{
-			_dispatcher.Post(() =>
-			{
-				ShowErrorSnackbar(
-					editor.FindLogicalParent<Window>(),
-					Strings.FailedToProcessContents);
-			});
+			ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
 
 			return;
 		}
@@ -242,12 +236,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					EncryptedPassword,
 					out contents))
 				{
-					_dispatcher.Post(() =>
-					{
-						ShowErrorSnackbar(
-							editor.FindLogicalParent<Window>(),
-							Strings.FailedToProcessContents);
-					});
+					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
 
 					return Task.CompletedTask;
 				}

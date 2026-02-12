@@ -111,12 +111,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			_logger.LogException(ex, isAssertDebug: false);
 
-			_dispatcher.Post(() =>
-			{
-				ShowErrorSnackbar(
-					scrollViewer.FindLogicalParent<Window>(),
-					Strings.FailedToProcessContents);
-			});
+			ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
 		}
 		finally
 		{
