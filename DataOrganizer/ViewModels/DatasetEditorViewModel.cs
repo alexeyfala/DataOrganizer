@@ -109,7 +109,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, isAssertDebug: false);
+
+			_dispatcher.Post(() =>
+			{
+				ShowErrorSnackbar(
+					scrollViewer.FindLogicalParent<Window>(),
+					Strings.FailedToProcessContents);
+			});
 		}
 		finally
 		{

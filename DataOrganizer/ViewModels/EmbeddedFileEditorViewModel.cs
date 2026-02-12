@@ -95,9 +95,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			EncryptedPassword,
 			out contents))
 		{
-			ShowErrorSnackbar(
-				editor.FindLogicalParent<Window>(),
-				Strings.FailedToProcessContents);
+			_dispatcher.Post(() =>
+			{
+				ShowErrorSnackbar(
+					editor.FindLogicalParent<Window>(),
+					Strings.FailedToProcessContents);
+			});
 
 			return;
 		}
@@ -365,7 +368,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, false);
+			_logger.LogException(ex, isAssertDebug: false);
 
 			if (!IsReadOnly)
 			{
