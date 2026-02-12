@@ -67,8 +67,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			IsContentCorrupted = true;
-
 			if (!result.IsValid)
 			{
 				IsContentCorrupted = true;
@@ -620,7 +618,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		lock (_mutex)
 		{
-			if (e.Sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
 			{
 				return;
 			}
@@ -882,7 +880,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation($"{(expand ? "Expand" : "Collapse")} all groups");
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsContentCorrupted)
 		{
 			return Task.CompletedTask;
 		}
@@ -1003,14 +1001,22 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
-	private static bool HasChildren(RecordsGroup? group) => group is not null && group.Children.Any();
+	private static bool HasChildren(RecordsGroup? group)
+	{
+		return group?
+			.Children
+			.Any() == true;
+	}
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
 	/// </summary>
 	private static bool HasGroups(RecordsGroup? group)
 	{
-		return group is not null && group.Children.OfType<RecordsGroup>().Any();
+		return group?
+			.Children
+			.OfType<RecordsGroup>()
+			.Any() == true;
 	}
 
 	/// <summary>
