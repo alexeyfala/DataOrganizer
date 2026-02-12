@@ -83,9 +83,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
+			if (!TryToDecrypt(
+				result.Contents,
+				scrollViewer,
+				out byte[] output))
+			{
+				return;
+			}
+
 			string json = TextHelper
 				.Utf8Encoding
-				.GetString(result.Contents);
+				.GetString(output);
 
 			Records.AddRange(_jsonSerializer
 				.Deserialize<DatasetRecordBase[]>(json)
@@ -1105,8 +1113,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private Task SaveContentsAsync(CancellationToken token = default)
 	{
+		byte[] contents = TextHelper
+			.Utf8Encoding
+			.GetBytes(_jsonSerializer.Serialize(Records));
+
+		if (!TryToEncrypt(
+			contents,
+			null,
+			out byte[] output))
+		{
+			return Task.CompletedTask;
+		}
+
 		return SaveContentsAsync(
-			TextHelper.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
+			output,
 			token: token);
 	}
 	#endregion
