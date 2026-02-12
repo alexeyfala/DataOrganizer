@@ -60,15 +60,22 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(false);
 
-		if (result.IsDefault() || !result.IsValid)
+		if (result.IsDefault())
 		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
-
 			return;
 		}
 
 		try
 		{
+			if (!result.IsValid)
+			{
+				IsContentCorrupted = true;
+
+				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+
+				return;
+			}
+
 			if (result
 				.Contents
 				.Length == 0)
@@ -109,6 +116,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 		catch (Exception ex)
 		{
+			IsContentCorrupted = true;
+
 			_logger.LogException(ex, isAssertDebug: false);
 
 			ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
