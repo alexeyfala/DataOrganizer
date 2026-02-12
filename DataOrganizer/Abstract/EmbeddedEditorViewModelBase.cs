@@ -42,7 +42,12 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	public string? InitialProperties { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if editor is initialized.
+	/// Returns <c>True</c> if the initialization process revealed that the file contents were corrupted.
+	/// </summary>
+	public bool IsContentCorrupted { get; protected set; }
+
+	/// <summary>
+	/// Returns <c>True</c> if editor is initialized once.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 

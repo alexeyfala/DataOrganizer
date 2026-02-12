@@ -80,74 +80,88 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(false);
 
-		if (result.IsDefault() || !result.IsValid)
+		if (result.IsDefault())
 		{
-			_logger.LogError(
-				$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
-				isAssertDebug: false);
-
 			return;
 		}
 
-		byte[] contents = result.Contents;
-
-		if (EncryptedPassword?.Length > 0 && !DecryptContents(
-			contents,
-			EncryptedPassword,
-			out contents))
+		try
 		{
-			ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
+			if (!result.IsValid)
+			{
+				IsContentCorrupted = true;
 
-			return;
+				_logger.LogError(
+					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
+					isAssertDebug: false);
+
+				return;
+			}
+
+			byte[] contents = result.Contents;
+
+			if (EncryptedPassword?.Length > 0 && !DecryptContents(
+				contents,
+				EncryptedPassword,
+				out contents))
+			{
+				IsContentCorrupted = true;
+
+				ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
+
+				return;
+			}
+
+			editor.Text = TextHelper
+				.Utf8Encoding
+				.GetString(contents);
+
+			TextEditorHelper.SubscribePointerWheelChanged(
+				editor,
+				() => FontSize,
+				() => FontSize);
+
+			ApplyEditorSettings(editor);
+
+			await InitializePropertiesAsync(editor).ConfigureAwait(false);
+
+			Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => editor.TextChanged += x,
+				x => editor.TextChanged -= x)
+				.Subscribe(Editor_TextChanged)
+				.DisposeWith(_disposables);
+
+			Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => editor.TextArea.Caret.PositionChanged += x,
+				x => editor.TextArea.Caret.PositionChanged -= x)
+				.Subscribe(Editor_PropertyChanged)
+				.DisposeWith(_disposables);
+
+			Observable.FromEventPattern<EventHandler, EventArgs>(
+				x => editor.TextArea.SelectionChanged += x,
+				x => editor.TextArea.SelectionChanged -= x)
+				.Subscribe(Editor_PropertyChanged)
+				.DisposeWith(_disposables);
+
+			//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
+			//Observable.FromEventPattern<EventHandler, EventArgs>(
+			//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
+			//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
+			//	.Subscribe(Editor_PropertyChanged)
+			//	.DisposeWith(_disposables);
+
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+
+			await Task
+				.Delay(100)
+				.ConfigureAwait(true);
+
+			editor.Focus();
 		}
-
-		editor.Text = TextHelper
-			.Utf8Encoding
-			.GetString(contents);
-
-		TextEditorHelper.SubscribePointerWheelChanged(
-			editor,
-			() => FontSize,
-			() => FontSize);
-
-		ApplyEditorSettings(editor);
-
-		await InitializePropertiesAsync(editor).ConfigureAwait(false);
-
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => editor.TextChanged += x,
-			x => editor.TextChanged -= x)
-			.Subscribe(Editor_TextChanged)
-			.DisposeWith(_disposables);
-
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => editor.TextArea.Caret.PositionChanged += x,
-			x => editor.TextArea.Caret.PositionChanged -= x)
-			.Subscribe(Editor_PropertyChanged)
-			.DisposeWith(_disposables);
-
-		Observable.FromEventPattern<EventHandler, EventArgs>(
-			x => editor.TextArea.SelectionChanged += x,
-			x => editor.TextArea.SelectionChanged -= x)
-			.Subscribe(Editor_PropertyChanged)
-			.DisposeWith(_disposables);
-
-		//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
-		//Observable.FromEventPattern<EventHandler, EventArgs>(
-		//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
-		//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
-		//	.Subscribe(Editor_PropertyChanged)
-		//	.DisposeWith(_disposables);
-
-		_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-
-		IsInitialized = true;
-
-		await Task
-			.Delay(100)
-			.ConfigureAwait(true);
-
-		editor.Focus();
+		finally
+		{
+			IsInitialized = true;
+		}
 	}
 
 	/// <summary>
@@ -201,6 +215,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
+			if (IsContentCorrupted)
+			{
+				return;
+			}
+
 			string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
 
 			SetPropertiesCallback?.Invoke(json);
@@ -221,7 +240,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	{
 		lock (_mutex)
 		{
-			if (IsReadOnly || e.Sender is not TextEditor editor)
+			if (IsContentCorrupted
+				|| IsReadOnly
+				|| e.Sender is not TextEditor editor)
 			{
 				return;
 			}
@@ -257,7 +278,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		lock (_mutex)
 		{
-			if (!IsInitialized)
+			if (IsContentCorrupted || !IsInitialized)
 			{
 				return;
 			}
@@ -287,11 +308,17 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private static void ApplyEditorSettings(TextEditor editor)
 	{
-		editor.Options.HighlightCurrentLine = true;
+		editor
+			.Options
+			.HighlightCurrentLine = true;
 
-		editor.Options.EnableEmailHyperlinks = false;
+		editor
+			.Options
+			.EnableEmailHyperlinks = false;
 
-		editor.Options.AllowScrollBelowDocument = false;
+		editor
+			.Options
+			.AllowScrollBelowDocument = false;
 	}
 
 	/// <summary>
