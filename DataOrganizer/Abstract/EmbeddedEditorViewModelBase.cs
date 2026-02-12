@@ -12,6 +12,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.ComponentModel;
 using System.Reactive;
@@ -307,6 +308,54 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 			viewModel.ShowErrorSnackbar(text);
 		});
+	}
+
+	/// <summary>
+	/// Tries to decrypt the content, if it is encrypted.
+	/// </summary>
+	protected bool TryToDecrypt(
+		byte[] input,
+		StyledElement? element,
+		out byte[] output)
+	{
+		output = input;
+
+		if (EncryptedPassword?.Length > 0 && !DecryptContents(
+			input,
+			EncryptedPassword,
+			out output))
+		{
+			IsContentCorrupted = true;
+
+			ShowErrorSnackbar(element, Strings.FailedToProcessContents);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Tries to encrypt the content, if it has been decrypted.
+	/// </summary>
+	protected bool TryToEncrypt(
+		byte[] input,
+		StyledElement? element,
+		out byte[] output)
+	{
+		output = input;
+
+		if (EncryptedPassword?.Length > 0 && !EncryptContents(
+			input,
+			EncryptedPassword,
+			out output))
+		{
+			ShowErrorSnackbar(element, Strings.FailedToProcessContents);
+
+			return false;
+		}
+
+		return true;
 	}
 	#endregion
 
