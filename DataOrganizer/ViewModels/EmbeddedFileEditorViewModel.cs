@@ -82,7 +82,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		if (result.IsDefault() || !result.IsValid)
 		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+			_logger.LogError(
+				$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
+				isAssertDebug: false);
 
 			return;
 		}
