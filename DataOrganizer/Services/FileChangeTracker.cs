@@ -81,7 +81,6 @@ public class FileChangeTracker : IFileChangeTracker
 
 					byte[] bytes = memoryStream.ToArray();
 
-					// TODO: Compare file hash if possible
 					if (!bytes.SequenceEqual(contents))
 					{
 						DateTime updatedDate = DateTime.Now;
