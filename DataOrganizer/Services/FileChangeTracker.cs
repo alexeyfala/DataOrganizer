@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Entities.Models;
+﻿using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using Entities.Models;
 using Repository.DTO;
@@ -47,30 +47,27 @@ public class FileChangeTracker : IFileChangeTracker
 	/// Tracks changes of the executed file.
 	/// </summary>
 	public async Task TrackChangesAsync(
-		FileModelDto dto,
-		string filePath,
-		byte[] contents,
-		SemaphoreSlim semaphore,
-		Predicate<Guid> condition,
+		TrackChangesParameters parameters,
 		CancellationToken token = default)
 	{
 		try
 		{
-			while (_fileSystem.IsFileExists(filePath) && condition(dto.Id))
+			while (_fileSystem.IsFileExists(parameters.FilePath) && parameters.Condition(parameters.File.Id))
 			{
 				try
 				{
-					await semaphore
+					await parameters
+						.Semaphore
 						.WaitAsync(token)
 						.ConfigureAwait(false);
 
-					if (!_fileSystem.IsFileExists(filePath) || !condition(dto.Id))
+					if (!_fileSystem.IsFileExists(parameters.FilePath) || !parameters.Condition(parameters.File.Id))
 					{
 						return;
 					}
 
 					await using FileStream fileStream = File.Open(
-						filePath,
+						parameters.FilePath,
 						FileMode.Open,
 						FileAccess.Read,
 						FileShare.ReadWrite);
@@ -81,7 +78,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 					byte[] bytes = memoryStream.ToArray();
 
-					if (!bytes.SequenceEqual(contents))
+					if (!bytes.SequenceEqual(parameters.Contents))
 					{
 						DateTime updatedDate = DateTime.Now;
 
@@ -92,26 +89,30 @@ public class FileChangeTracker : IFileChangeTracker
 						];
 
 						if (await _dbAccess.UpdatePropertiesAsync(
-							id: dto.Id,
+							id: parameters.File.Id,
 							token: token,
 							properties).ConfigureAwait(false))
 						{
 							_logger.LogDebug(
 								"Contents of file is updated in database:" + Environment.NewLine +
-								$"File Id = {dto.Id}," + Environment.NewLine +
-								$"File path = {filePath}," + Environment.NewLine +
-								$"Old bytes length = {contents.Length}," + Environment.NewLine +
+								$"File Id = {parameters.File.Id}," + Environment.NewLine +
+								$"File path = {parameters.FilePath}," + Environment.NewLine +
+								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
 								$"New bytes length = {bytes.Length}.");
 
-							contents = bytes;
+							parameters.Contents = bytes;
 
-							dto.UpdatedDate = updatedDate;
+							parameters
+								.File
+								.UpdatedDate = updatedDate;
 						}
 					}
 				}
 				finally
 				{
-					semaphore.Release();
+					parameters
+						.Semaphore
+						.Release();
 				}
 
 				await Task

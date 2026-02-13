@@ -180,13 +180,16 @@ public class ExecutionEngine : IExecutionEngine
 
 			if (!isReadOnly)
 			{
-				_ = _changeTracker.TrackChangesAsync(
-					dto: dto,
-					filePath: filePath,
-					contents: contents,
-					semaphore: _semaphore,
-					condition: _executedFiles.ContainsKey,
-					token: token);
+				TrackChangesParameters parameters = new()
+				{
+					Condition = _executedFiles.ContainsKey,
+					Contents = contents,
+					File = dto,
+					FilePath = filePath,
+					Semaphore = _semaphore
+				};
+
+				_ = _changeTracker.TrackChangesAsync(parameters, token);
 			}
 
 			_logger.LogInformation(

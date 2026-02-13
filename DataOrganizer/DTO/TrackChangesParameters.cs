@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace DataOrganizer.DTO;
 
-public sealed class TrackChangesParameters
+public struct TrackChangesParameters
 {
 	#region Properties
 	/// <summary>
@@ -15,7 +15,7 @@ public sealed class TrackChangesParameters
 	/// <summary>
 	/// A contents of the file.
 	/// </summary>
-	public required byte[] Contents { get; init; }
+	public required byte[] Contents { get; set; }
 
 	/// <inheritdoc cref="FileModelDto" />
 	public required FileModelDto File { get; init; }

@@ -2,6 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
@@ -130,12 +131,9 @@ internal class ExecutionServiceTests
 			.Received()
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
 
-		await changeTracker.Received(isReadOnly ? 0 : 1).TrackChangesAsync(
-			Arg.Any<FileModelDto>(),
-			Arg.Any<string>(),
-			Arg.Any<byte[]>(),
-			Arg.Any<SemaphoreSlim>(),
-			Arg.Any<Predicate<Guid>>());
+		await changeTracker
+			.Received(isReadOnly ? 0 : 1)
+			.TrackChangesAsync(Arg.Any<TrackChangesParameters>());
 	}
 	#endregion
 }
