@@ -15,6 +15,22 @@ public interface IEntityEcryption
 {
 	#region Methods
 	/// <summary>
+	/// Decrypts file contents.
+	/// </summary>
+	bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output);
+
+	/// <summary>
+	/// Encrypts file contents.
+	/// </summary>
+	bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output);
+
+	/// <summary>
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
 	Task<FilesEncryptionResult> EncryptDecryptAsync(

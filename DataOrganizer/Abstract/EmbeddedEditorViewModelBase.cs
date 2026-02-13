@@ -244,7 +244,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		if (EncryptedPassword?.Length > 0 && !DecryptContents(
+		if (EncryptedPassword?.Length > 0 && !_entityEcryption.DecryptContents(
 			input,
 			EncryptedPassword,
 			out output))
@@ -269,7 +269,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		if (EncryptedPassword?.Length > 0 && !EncryptContents(
+		if (EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
 			input,
 			EncryptedPassword,
 			out output))
@@ -284,82 +284,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Decrypts file contents.
-	/// </summary>
-	private bool DecryptContents(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
-	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			_entityEcryption.GetSessionId(),
-			out byte[] decryptedPassword))
-		{
-			return false;
-		}
-
-		try
-		{
-			if (!_encryption.Decrypt(
-				input,
-				decryptedPassword,
-				out byte[] decryptedContents))
-			{
-				return false;
-			}
-
-			output = decryptedContents;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
-		}
-	}
-
-	/// <summary>
-	/// Encrypts file contents.
-	/// </summary>
-	private bool EncryptContents(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
-	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			_entityEcryption.GetSessionId(),
-			out byte[] decryptedPassword))
-		{
-			return false;
-		}
-
-		try
-		{
-			if (!_encryption.Encrypt(
-				input,
-				decryptedPassword,
-				out byte[] encryptedContents))
-			{
-				return false;
-			}
-
-			output = encryptedContents;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
-		}
-	}
-
 	/// <summary>
 	/// Updates property of <see cref="FileModel" /> in the database.
 	/// </summary>

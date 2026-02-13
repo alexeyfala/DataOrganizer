@@ -1,5 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -144,6 +145,12 @@ public class ExecutionEngine : IExecutionEngine
 			if (_fileAssociation.GetApplicationByExtension(Path.GetExtension(dto.Name)) is { } appPath)
 			{
 				_logger.LogDebug($@"Application path to open file ""{dto.Name}"" is: {appPath}");
+			}
+
+			if (dto.EncryptionStatus == EncryptionStatus.Decrypted
+				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+			{
+
 			}
 
 			await _fileSystem

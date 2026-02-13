@@ -71,6 +71,78 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
+	public bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Decrypt(
+				input,
+				decryptedPassword,
+				out byte[] decryptedContents))
+			{
+				return false;
+			}
+
+			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <inheritdoc />
+	public bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Encrypt(
+				input,
+				decryptedPassword,
+				out byte[] encryptedContents))
+			{
+				return false;
+			}
+
+			output = encryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
 		EditorViewModel viewModel,
 		EncryptDecryptFilesParameters parameters,
