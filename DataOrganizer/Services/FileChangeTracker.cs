@@ -9,6 +9,7 @@ using Shared.Interfaces;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -123,6 +124,13 @@ public class FileChangeTracker : IFileChangeTracker
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+		finally
+		{
+			if (parameters.EncryptedPassword is not null)
+			{
+				CryptographicOperations.ZeroMemory(parameters.EncryptedPassword);
+			}
 		}
 	}
 	#endregion

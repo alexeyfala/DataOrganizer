@@ -11,6 +11,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -156,16 +157,24 @@ public class ExecutionEngine : IExecutionEngine
 				_logger.LogDebug($@"Application path to open file ""{dto.Name}"" is: {appPath}");
 			}
 
-			if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
-				&& !_entityEcryption.DecryptContents(
-					contents,
-					encryptedPassword,
-					out contents))
-			{
-				viewModel?.ShowErrorSnackbar(Strings.FailedToProcessContents);
+			byte[]? encryptedPassword = null;
 
-				return false;
+			if (dto.EncryptionStatus == EncryptionStatus.Decrypted
+				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+			{
+				encryptedPassword = [.. password];
+
+				if (!_entityEcryption.DecryptContents(
+					contents,
+					password,
+					out contents))
+				{
+					viewModel?.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+					CryptographicOperations.ZeroMemory(encryptedPassword);
+
+					return false;
+				}
 			}
 
 			await _fileSystem
@@ -184,6 +193,7 @@ public class ExecutionEngine : IExecutionEngine
 				{
 					Condition = _executedFiles.ContainsKey,
 					Contents = contents,
+					EncryptedPassword = encryptedPassword,
 					File = dto,
 					FilePath = filePath,
 					Semaphore = _semaphore
