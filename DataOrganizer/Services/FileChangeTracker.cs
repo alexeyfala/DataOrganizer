@@ -6,6 +6,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
@@ -96,6 +97,10 @@ public class FileChangeTracker : IFileChangeTracker
 								parameters.EncryptedPassword,
 								out contents))
 							{
+								parameters
+									.ViewModel?
+									.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
 								return;
 							}
 

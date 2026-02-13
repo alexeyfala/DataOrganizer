@@ -196,7 +196,8 @@ public class ExecutionEngine : IExecutionEngine
 					EncryptedPassword = encryptedPassword,
 					File = dto,
 					FilePath = filePath,
-					Semaphore = _semaphore
+					Semaphore = _semaphore,
+					ViewModel = viewModel
 				};
 
 				_ = _changeTracker.TrackChangesAsync(parameters, token);

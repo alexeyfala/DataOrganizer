@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO.Entities.Models;
+﻿using DataOrganizer.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using System;
 using System.Threading;
 
@@ -32,5 +33,8 @@ public struct TrackChangesParameters
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	public required SemaphoreSlim Semaphore { get; init; }
+
+	/// <inheritdoc cref="ViewModelBase" />
+	public required ViewModelBase? ViewModel { get; init; }
 	#endregion
 }
