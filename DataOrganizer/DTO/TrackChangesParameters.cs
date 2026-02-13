@@ -20,7 +20,7 @@ public struct TrackChangesParameters
 	/// <summary>
 	/// Encrypted password.
 	/// </summary>
-	public byte[]? EncryptedPassword { get; init; }
+	public required byte[]? EncryptedPassword { get; init; }
 
 	/// <inheritdoc cref="FileModelDto" />
 	public required FileModelDto File { get; init; }

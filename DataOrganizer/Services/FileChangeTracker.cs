@@ -22,6 +22,9 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -32,10 +35,13 @@ public class FileChangeTracker : IFileChangeTracker
 	#region Constructors
 	public FileChangeTracker(
 		IDbAccess dbAccess,
+		IEntityEcryption entityEcryption,
 		IFileSystem fileSystem,
 		ILogger logger)
 	{
 		_dbAccess = dbAccess;
+
+		_entityEcryption = entityEcryption;
 
 		_fileSystem = fileSystem;
 
@@ -79,33 +85,53 @@ public class FileChangeTracker : IFileChangeTracker
 
 					byte[] bytes = memoryStream.ToArray();
 
-					if (!bytes.SequenceEqual(parameters.Contents))
+					try
 					{
-						DateTime updatedDate = DateTime.Now;
-
-						PropertyNameValuePair[] properties =
-						[
-							new PropertyNameValuePair(nameof(FileModel.Contents), bytes),
-							new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-						];
-
-						if (await _dbAccess.UpdatePropertiesAsync(
-							id: parameters.File.Id,
-							token: token,
-							properties).ConfigureAwait(false))
+						if (!bytes.SequenceEqual(parameters.Contents))
 						{
-							_logger.LogDebug(
-								"Contents of file is updated in database:" + Environment.NewLine +
-								$"File Id = {parameters.File.Id}," + Environment.NewLine +
-								$"File path = {parameters.FilePath}," + Environment.NewLine +
-								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
-								$"New bytes length = {bytes.Length}.");
+							byte[] contents = bytes;
 
-							parameters.Contents = bytes;
+							if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
+								bytes,
+								parameters.EncryptedPassword,
+								out contents))
+							{
+								return;
+							}
 
-							parameters
-								.File
-								.UpdatedDate = updatedDate;
+							DateTime updatedDate = DateTime.Now;
+
+							PropertyNameValuePair[] properties =
+							[
+								new PropertyNameValuePair(nameof(FileModel.Contents), contents),
+								new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
+							];
+
+							if (await _dbAccess.UpdatePropertiesAsync(
+								id: parameters.File.Id,
+								token: token,
+								properties).ConfigureAwait(false))
+							{
+								_logger.LogDebug(
+									"Contents of file is updated in database:" + Environment.NewLine +
+									$"File Id = {parameters.File.Id}," + Environment.NewLine +
+									$"File path = {parameters.FilePath}," + Environment.NewLine +
+									$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
+									$"New bytes length = {bytes.Length}.");
+
+								parameters.Contents = [.. bytes];
+
+								parameters
+									.File
+									.UpdatedDate = updatedDate;
+							}
+						}
+					}
+					finally
+					{
+						if (parameters.EncryptedPassword is not null)
+						{
+							CryptographicOperations.ZeroMemory(bytes);
 						}
 					}
 				}
@@ -130,6 +156,8 @@ public class FileChangeTracker : IFileChangeTracker
 			if (parameters.EncryptedPassword is not null)
 			{
 				CryptographicOperations.ZeroMemory(parameters.EncryptedPassword);
+
+				CryptographicOperations.ZeroMemory(parameters.Contents);
 			}
 		}
 	}
