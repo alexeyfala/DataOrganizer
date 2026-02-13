@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO.Entities.Models;
+﻿using DataOrganizer.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ public interface IExecutionEngine
 		FileModelDto dto,
 		byte[] contents,
 		bool isReadOnly,
+		ViewModelBase? viewModel = null,
 		CancellationToken token = default);
 
 	/// <summary>

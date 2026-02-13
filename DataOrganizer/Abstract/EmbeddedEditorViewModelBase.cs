@@ -90,9 +90,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
-
 	/// <inheritdoc cref="IEntityEcryption" />
 	private readonly IEntityEcryption _entityEcryption;
 	#endregion
@@ -102,7 +99,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		Application app,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger)
@@ -112,8 +108,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_dbAccess = dbAccess;
 
 		_dispatcher = dispatcher;
-
-		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 

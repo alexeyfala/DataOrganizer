@@ -192,10 +192,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Application app,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger) : base(app, dbAccess, dispatcher, encryption, entityEcryption, jsonSerializer, logger)
+		ILogger logger) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}

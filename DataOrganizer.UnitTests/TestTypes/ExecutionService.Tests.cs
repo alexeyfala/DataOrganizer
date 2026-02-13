@@ -83,9 +83,8 @@ internal class ExecutionServiceTests
 	/// <summary>
 	/// Test of <see cref="ExecutionEngine.ExecuteAsync(FileModelDto, byte[], CancellationToken)" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task ExecuteAsync_Executes_File(bool isReadOnly)
+	[Test]
+	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();

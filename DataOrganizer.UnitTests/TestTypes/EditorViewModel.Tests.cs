@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -487,9 +488,11 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			engine
-				.ExecuteAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<bool>())
-				.Returns(true);
+			engine.ExecuteAsync(
+				Arg.Any<FileModelDto>(),
+				Arg.Any<byte[]>(),
+				Arg.Any<bool>(),
+				Arg.Any<ViewModelBase>()).Returns(true);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -524,7 +527,7 @@ internal class EditorViewModelTests
 
 		await engine
 			.Received()
-			.ExecuteAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<bool>());
+			.ExecuteAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<bool>(), Arg.Any<ViewModelBase>());
 	}
 
 	/// <summary>

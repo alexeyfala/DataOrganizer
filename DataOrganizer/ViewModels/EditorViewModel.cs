@@ -272,7 +272,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				nameof(FileModelDto.UpdatedDate))}");
 
 		if (!await _executionEngine
-			.ExecuteAsync(dto, result.Contents, IsReadOnly)
+			.ExecuteAsync(dto, result.Contents, IsReadOnly, this)
 			.ConfigureAwait(false))
 		{
 			return;

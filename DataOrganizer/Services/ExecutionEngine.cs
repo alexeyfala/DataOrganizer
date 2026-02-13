@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO;
+﻿using DataOrganizer.Abstract;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -6,6 +7,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -20,6 +22,9 @@ public class ExecutionEngine : IExecutionEngine
 	#region Data
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
+
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
 
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
 	private readonly ConcurrentDictionary<Guid, ExecutedFileInfo> _executedFiles = [];
@@ -42,13 +47,16 @@ public class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IFileChangeTracker changeTracker,
+		IEntityEcryption entityEcryption,
 		IFileAssociationService fileAssociation,
+		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils)
 	{
 		_changeTracker = changeTracker;
+
+		_entityEcryption = entityEcryption;
 
 		_fileAssociation = fileAssociation;
 
@@ -130,6 +138,7 @@ public class ExecutionEngine : IExecutionEngine
 		FileModelDto dto,
 		byte[] contents,
 		bool isReadOnly,
+		ViewModelBase? viewModel = null,
 		CancellationToken token = default)
 	{
 		try
@@ -148,9 +157,15 @@ public class ExecutionEngine : IExecutionEngine
 			}
 
 			if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password
+				&& !_entityEcryption.DecryptContents(
+					contents,
+					password,
+					out contents))
 			{
+				viewModel?.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
+				return false;
 			}
 
 			await _fileSystem

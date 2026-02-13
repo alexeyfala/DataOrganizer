@@ -601,14 +601,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	public DatasetEditorViewModel(
 		Application app,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, dbAccess, dispatcher, encryption, entityEcryption, jsonSerializer, logger)
+		IViewLauncher viewLauncher) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
 		_clipboardService = clipboardService;
 
