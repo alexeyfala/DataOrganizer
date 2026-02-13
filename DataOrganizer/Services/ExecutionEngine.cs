@@ -157,10 +157,10 @@ public class ExecutionEngine : IExecutionEngine
 			}
 
 			if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password
+				&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
 				&& !_entityEcryption.DecryptContents(
 					contents,
-					password,
+					encryptedPassword,
 					out contents))
 			{
 				viewModel?.ShowErrorSnackbar(Strings.FailedToProcessContents);
