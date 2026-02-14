@@ -42,6 +42,21 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public void DeleteDirectoryRecursively(
+		string directoryPath,
+		bool removeFileReadOnlySign = false)
+	{
+		if (removeFileReadOnlySign)
+		{
+			Directory
+				.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
+				.ForEach(x => SetFileReadOnly(x, false));
+		}
+
+		Directory.Delete(directoryPath, recursive: true);
+	}
+
+	/// <inheritdoc />
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
@@ -78,6 +93,32 @@ public sealed class FileSystem : IFileSystem
 
 				position += buffer.Length;
 			}
+		}
+	}
+
+	/// <inheritdoc />
+	[return: NotNullIfNotNull(nameof(directoryPath))]
+	public bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath)
+	{
+		if (!Directory.Exists(directoryPath))
+		{
+			return false;
+		}
+
+		if (Path.GetDirectoryName(directoryPath) is not { } parent)
+		{
+			return true;
+		}
+
+		try
+		{
+			return Array.Exists(Directory.GetDirectories(parent), x => x == Path.GetFullPath(directoryPath));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+
+			return false;
 		}
 	}
 

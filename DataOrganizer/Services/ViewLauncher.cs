@@ -13,6 +13,8 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -298,7 +300,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveEditorSettingsAsync(EditorWindow window)
+	public Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -345,7 +347,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync();
+			return TryShutdownAppAsync(token);
 		}
 		catch (Exception ex)
 		{
@@ -356,7 +358,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveFavoritesSettingsAsync(FavoritesWindow window)
+	public Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -395,7 +397,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync();
+			return TryShutdownAppAsync(token);
 		}
 		catch (Exception ex)
 		{
@@ -427,9 +429,57 @@ public class ViewLauncher : IViewLauncher
 
 	#region Service
 	/// <summary>
+	/// Tries to delete directory multiple times.
+	/// </summary>
+	private async Task DeleteDirectoryAsync(
+		string directoryPath,
+		int maxAttepmts,
+		int currentAttepmt = 0,
+		CancellationToken token = default)
+	{
+		if (!_fileSystem.IsDirectoryExists(directoryPath))
+		{
+			_logger.LogInformation($@"Folder ""{directoryPath}"" does not exist");
+
+			return;
+		}
+
+		if (currentAttepmt >= maxAttepmts)
+		{
+			_logger.LogInformation($@"Can't delete folder ""{directoryPath}"" with {currentAttepmt} attepmts");
+
+			return;
+		}
+
+		currentAttepmt++;
+
+		await Task
+			.Delay(300, token)
+			.ConfigureAwait(false);
+
+		_logger.LogInformation(
+			$@"Trying to delete folder ""{directoryPath}"". Attepmt №{currentAttepmt}");
+
+		try
+		{
+			_fileSystem.DeleteDirectoryRecursively(directoryPath, true);
+
+			_logger.LogInformation($@"Folder ""{directoryPath}"" is deleted");
+		}
+		catch (IOException)
+		{
+			await DeleteDirectoryAsync(
+				directoryPath,
+				maxAttepmts,
+				currentAttepmt,
+				token).ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
 	/// Tries to shutdown the application.
 	/// </summary>
-	private async Task TryShutdownAppAsync()
+	private async Task TryShutdownAppAsync(CancellationToken token = default)
 	{
 		_keyboardInputHook.Dispose();
 
@@ -445,10 +495,15 @@ public class ViewLauncher : IViewLauncher
 			while (_app.IsAnyWindow<ConsoleWindow>())
 			{
 				await Task
-					.Delay(300)
+					.Delay(300, token)
 					.ConfigureAwait(true);
 			}
 		}
+
+		await DeleteDirectoryAsync(
+			directoryPath: AppUtils.SandboxDirectoryPath,
+			maxAttepmts: 10,
+			token: token).ConfigureAwait(false);
 
 		desktop.TryShutdown();
 	}

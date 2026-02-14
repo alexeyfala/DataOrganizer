@@ -7,6 +7,7 @@ using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -54,12 +55,12 @@ public interface IViewLauncher
 	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
-	Task SaveEditorSettingsAsync(EditorWindow window);
+	Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default);
 
 	/// <summary>
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
-	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
+	Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default);
 
 	/// <summary>
 	/// Sets default <see cref="Window.WindowStartupLocation" /> to the window.

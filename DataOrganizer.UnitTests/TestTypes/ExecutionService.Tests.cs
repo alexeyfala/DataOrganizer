@@ -20,7 +20,7 @@ internal class ExecutionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.CloseAsync(Guid, CancellationToken)" />.
+	/// Test of <see cref="ExecutionEngine.CloseAsync" />.
 	/// </summary>
 	[Test]
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
@@ -82,7 +82,7 @@ internal class ExecutionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.ExecuteAsync(FileModelDto, byte[], CancellationToken)" />.
+	/// Test of <see cref="ExecutionEngine.ExecuteAsync" />.
 	/// </summary>
 	[Test]
 	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)
