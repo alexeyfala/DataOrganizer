@@ -36,6 +36,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -272,17 +273,39 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				nameof(FileModelDto.EntityType),
 				nameof(FileModelDto.UpdatedDate))}");
 
+		byte[] contents = result.Contents;
+
+		byte[]? encryptedPassword = null;
+
+		if (dto.EncryptionStatus == EncryptionStatus.Decrypted
+			&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+		{
+			encryptedPassword = [.. password];
+
+			if (!_entityEcryption.DecryptContents(
+				contents,
+				password,
+				out contents))
+			{
+				ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				CryptographicOperations.ZeroMemory(encryptedPassword);
+
+				return;
+			}
+		}
+
 		ExecuteFileParameters parameters = new()
 		{
-			Contents = result.Contents,
-			EncryptedPassword = null,
+			Contents = contents,
+			EncryptedPassword = encryptedPassword,
 			File = dto,
 			IsReadOnly = IsReadOnly,
 			ViewModel = this
 		};
 
 		if (!await _executionEngine
-			.ExecuteAsync(dto, result.Contents, IsReadOnly, this)
+			.ExecuteAsync(dto, contents, IsReadOnly, this)
 			.ConfigureAwait(false))
 		{
 			return;
