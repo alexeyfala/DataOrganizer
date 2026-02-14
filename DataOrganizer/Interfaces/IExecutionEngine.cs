@@ -1,5 +1,4 @@
-﻿using DataOrganizer.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+﻿using DataOrganizer.DTO;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +19,7 @@ public interface IExecutionEngine
 	/// <summary>
 	/// Executes a file in the operating system.
 	/// </summary>
-	Task<bool> ExecuteAsync(
-		FileModelDto dto,
-		byte[] contents,
-		bool isReadOnly,
-		ViewModelBase? viewModel = null,
-		CancellationToken token = default);
+	Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns <c>True</c> if the file is already executed in the operating system.

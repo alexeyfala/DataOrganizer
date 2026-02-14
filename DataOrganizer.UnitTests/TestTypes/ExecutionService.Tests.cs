@@ -10,7 +10,6 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Interfaces;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -58,7 +57,16 @@ internal class ExecutionServiceTests
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
-		await sut.ExecuteAsync(dto, [], default);
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedPassword = null,
+			File = dto,
+			IsReadOnly = default,
+			ViewModel = null
+		};
+
+		await sut.ExecuteAsync(parameters);
 
 		// Act
 		await sut.CloseAsync(dto.Id);
@@ -103,8 +111,17 @@ internal class ExecutionServiceTests
 			TypedParameter.From(processUtils),
 			TypedParameter.From(changeTracker));
 
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedPassword = null,
+			File = dto,
+			IsReadOnly = isReadOnly,
+			ViewModel = null
+		};
+
 		// Act
-		bool result = await sut.ExecuteAsync(dto, [], isReadOnly);
+		bool result = await sut.ExecuteAsync(parameters);
 
 		// Assert
 		result

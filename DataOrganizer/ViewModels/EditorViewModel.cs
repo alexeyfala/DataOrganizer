@@ -305,7 +305,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		};
 
 		if (!await _executionEngine
-			.ExecuteAsync(dto, contents, IsReadOnly, this)
+			.ExecuteAsync(parameters)
 			.ConfigureAwait(false))
 		{
 			return;
