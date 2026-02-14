@@ -17,5 +17,8 @@ public abstract class ExecuteFileParametersBase
 
 	/// <inheritdoc cref="FileModelDto" />
 	public required FileModelDto File { get; init; }
+
+	/// <inheritdoc cref="ViewModelBase" />
+	public required ViewModelBase? ViewModel { get; init; }
 	#endregion
 }

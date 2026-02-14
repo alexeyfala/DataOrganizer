@@ -19,8 +19,5 @@ public sealed class TrackChangesParameters : ExecuteFileParametersBase
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	public required SemaphoreSlim Semaphore { get; init; }
-
-	/// <inheritdoc cref="ViewModelBase" />
-	public required ViewModelBase? ViewModel { get; init; }
 	#endregion
 }

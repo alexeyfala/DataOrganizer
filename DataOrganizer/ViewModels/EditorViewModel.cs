@@ -277,7 +277,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			Contents = result.Contents,
 			EncryptedPassword = null,
 			File = dto,
-			IsReadOnly = IsReadOnly
+			IsReadOnly = IsReadOnly,
+			ViewModel = this
 		};
 
 		if (!await _executionEngine
