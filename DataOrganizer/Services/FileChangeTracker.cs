@@ -88,48 +88,50 @@ public class FileChangeTracker : IFileChangeTracker
 
 					try
 					{
-						if (!bytes.SequenceEqual(parameters.Contents))
+						if (bytes.SequenceEqual(parameters.Contents))
 						{
-							byte[] contents = bytes;
+							continue;
+						}
 
-							if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
-								bytes,
-								parameters.EncryptedPassword,
-								out contents))
-							{
-								parameters
-									.ViewModel?
-									.ShowErrorSnackbar(Strings.FailedToProcessContents);
+						byte[] contents = bytes;
 
-								return;
-							}
+						if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
+							bytes,
+							parameters.EncryptedPassword,
+							out contents))
+						{
+							parameters
+								.ViewModel?
+								.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-							DateTime updatedDate = DateTime.Now;
+							return;
+						}
 
-							PropertyNameValuePair[] properties =
-							[
-								new PropertyNameValuePair(nameof(FileModel.Contents), contents),
-								new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-							];
+						DateTime updatedDate = DateTime.Now;
 
-							if (await _dbAccess.UpdatePropertiesAsync(
-								id: parameters.File.Id,
-								token: token,
-								properties).ConfigureAwait(false))
-							{
-								_logger.LogDebug(
-									"Contents of file is updated in database:" + Environment.NewLine +
-									$"File Id = {parameters.File.Id}," + Environment.NewLine +
-									$"File path = {parameters.FilePath}," + Environment.NewLine +
-									$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
-									$"New bytes length = {bytes.Length}.");
+						PropertyNameValuePair[] properties =
+						[
+							new PropertyNameValuePair(nameof(FileModel.Contents), contents),
+							new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
+						];
 
-								parameters.Contents = [.. bytes];
+						if (await _dbAccess.UpdatePropertiesAsync(
+							id: parameters.File.Id,
+							token: token,
+							properties).ConfigureAwait(false))
+						{
+							_logger.LogDebug(
+								"Contents of file is updated in database:" + Environment.NewLine +
+								$"File Id = {parameters.File.Id}," + Environment.NewLine +
+								$"File path = {parameters.FilePath}," + Environment.NewLine +
+								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
+								$"New bytes length = {bytes.Length}.");
 
-								parameters
-									.File
-									.UpdatedDate = updatedDate;
-							}
+							parameters.Contents = [.. bytes];
+
+							parameters
+								.File
+								.UpdatedDate = updatedDate;
 						}
 					}
 					finally
