@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Comparation;
 using DataOrganizer.Abstract;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -270,6 +271,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				nameof(FileModelDto.Name),
 				nameof(FileModelDto.EntityType),
 				nameof(FileModelDto.UpdatedDate))}");
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = result.Contents,
+			EncryptedPassword = null,
+			File = dto,
+			IsReadOnly = IsReadOnly
+		};
 
 		if (!await _executionEngine
 			.ExecuteAsync(dto, result.Contents, IsReadOnly, this)
