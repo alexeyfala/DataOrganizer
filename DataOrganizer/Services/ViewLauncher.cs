@@ -14,6 +14,7 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
@@ -26,6 +27,9 @@ public class ViewLauncher : IViewLauncher
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
+
+	/// <inheritdoc cref="IExecutionEngine" />
+	private readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -46,6 +50,7 @@ public class ViewLauncher : IViewLauncher
 	#region Constructors
 	public ViewLauncher(
 		Application app,
+		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,
@@ -53,6 +58,8 @@ public class ViewLauncher : IViewLauncher
 		IViewFactory viewFactory)
 	{
 		_app = app;
+
+		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
 
@@ -347,7 +354,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync(token);
+			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
 		}
 		catch (Exception ex)
 		{
@@ -397,7 +404,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync(token);
+			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
 		}
 		catch (Exception ex)
 		{
@@ -479,7 +486,9 @@ public class ViewLauncher : IViewLauncher
 	/// <summary>
 	/// Tries to shutdown the application.
 	/// </summary>
-	private async Task TryShutdownAppAsync(CancellationToken token = default)
+	private async Task TryShutdownAppAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
 	{
 		_keyboardInputHook.Dispose();
 
@@ -498,6 +507,17 @@ public class ViewLauncher : IViewLauncher
 					.Delay(300, token)
 					.ConfigureAwait(true);
 			}
+		}
+
+		Guid[] executedFiles = [.. hierarchy
+			.GetFilesBy(x => x.IsExecuted)
+			.Select(x => x.Id)];
+
+		if (executedFiles.Length > 0)
+		{
+			await executedFiles
+				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))
+				.ConfigureAwait(false);
 		}
 
 		await DeleteDirectoryAsync(
