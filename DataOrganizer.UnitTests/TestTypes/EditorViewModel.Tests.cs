@@ -479,7 +479,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
-	public async Task ExecuteFile_Executes_File()
+	public async Task ExecuteFile_Does_Work()
 	{
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
