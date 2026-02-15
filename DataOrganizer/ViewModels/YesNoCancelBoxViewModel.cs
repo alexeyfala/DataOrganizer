@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
@@ -14,7 +15,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="YesNoCancelBox" />.
 /// </summary>
-public sealed partial class YesNoCancelBoxViewModel : ObservableObject
+public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelResult>
 {
 	#region Auto-Generated Properties
 	/// <summary>
@@ -98,11 +99,6 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	}
 	#endregion
 
-	#region Data
-	/// <inheritdoc cref="TaskCompletionSource" />
-	private readonly TaskCompletionSource<YesNoCancelResult> _source = new();
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Returns a result of the user choice.
@@ -137,34 +133,7 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 				throw new NotImplementedException();
 		}
 
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			_ = WaitDialogCloseAsync(token);
-		}
-
-		return _source.Task;
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Waits for the dialog <see cref="DialogHost" /> to close.
-	/// </summary>
-	/// <remarks>
-	/// Needed in case the user closes the dialog without using provided buttons.
-	/// </remarks>
-	private async Task WaitDialogCloseAsync(CancellationToken token = default)
-	{
-		while (DialogHost.IsDialogOpen(null))
-		{
-			await Task
-				.Delay(500, token)
-				.ConfigureAwait(false);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Cancel);
+		return GetResultAsync(YesNoCancelResult.Cancel, token);
 	}
 	#endregion
 }
