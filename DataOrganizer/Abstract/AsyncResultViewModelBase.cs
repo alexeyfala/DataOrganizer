@@ -12,6 +12,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	#region Data
 	/// <inheritdoc cref="TaskCompletionSource" />
 	private readonly TaskCompletionSource<TResult> _source = new();
+
+	/// <summary>
+	/// Returns <c>True</c> if result is set my method <see cref="SetResultAsync" />.
+	/// </summary>
+	private bool _isResultSet;
 	#endregion
 
 	#region Methods
@@ -35,13 +40,28 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <summary>
 	/// Sets a result and closes <see cref="DialogHost" />.
 	/// </summary>
-	protected void SetResult(TResult result)
+	protected async Task SetResultAsync(TResult result, CancellationToken token = default)
 	{
+		_isResultSet = true;
+
 		if (!AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
+			DialogOverlayPopupHost? host = DialogHost
+				.GetDialogSession(null)?
+				.Host;
+
 			DialogHost.Close(null);
+
+			if (host is not null)
+			{
+				Func<bool> condition = () => !host.IsActuallyOpen;
+
+				await condition
+					.WaitAsync(300, 10, token)
+					.ConfigureAwait(false);
+			}
 		}
 
 		_source.TrySetResult(result);
@@ -64,6 +84,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 			await Task
 				.Delay(500, token)
 				.ConfigureAwait(false);
+		}
+
+		if (_isResultSet)
+		{
+			return;
 		}
 
 		_source.TrySetResult(defaultResult);

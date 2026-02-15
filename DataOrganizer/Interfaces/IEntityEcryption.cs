@@ -2,7 +2,6 @@
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,7 +46,7 @@ public interface IEntityEcryption
 	/// Handles password input for encryption/decryption files in folder.
 	/// </summary>
 	Task<HandlePasswordResult> HandlePasswordInputAsync(
-		PasswordBox view,
+		string? password,
 		EditorViewModel viewModel,
 		HandlePasswordInputParameters parameters,
 		CancellationToken token = default);

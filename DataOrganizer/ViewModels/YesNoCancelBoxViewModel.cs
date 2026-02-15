@@ -52,25 +52,23 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void CancelButtonPressed() => SetResult(YesNoCancelResult.Cancel);
+	private Task CancelButtonPressed() => SetResultAsync(YesNoCancelResult.Cancel);
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void NoButtonPressed() => SetResult(YesNoCancelResult.No);
+	private Task NoButtonPressed() => SetResultAsync(YesNoCancelResult.No);
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void YesButtonPressed() => SetResult(YesNoCancelResult.Yes);
+	private Task YesButtonPressed() => SetResultAsync(YesNoCancelResult.Yes);
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Returns a result of the user choice.
-	/// </summary>
+	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
 	public Task<YesNoCancelResult> GetResultAsync(
 		YesNoCancelVariant variant,
 		CancellationToken token = default)
@@ -101,7 +99,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 				throw new NotImplementedException();
 		}
 
-		return GetResultAsync(YesNoCancelResult.Cancel, token);
+		return GetResultAsync(defaultResult: YesNoCancelResult.Cancel, token);
 	}
 	#endregion
 }

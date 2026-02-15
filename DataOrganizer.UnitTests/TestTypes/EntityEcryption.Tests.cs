@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Encryption;
@@ -613,17 +612,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Allows_To_Decrypt_When_Password_Hash_Missing()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -636,7 +629,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -649,17 +642,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Allows_To_Encrypt()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -672,7 +659,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -685,7 +672,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Cannot_Show_File_Contents()
 	{
 		// Arrange
@@ -704,12 +691,6 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFileContents,
@@ -721,7 +702,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -734,7 +715,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Hash_Does_Not_Match()
 	{
 		// Arrange
@@ -753,12 +734,6 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
@@ -770,7 +745,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -783,17 +758,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Not_Entered()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = null;
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -806,7 +775,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			null,
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -819,7 +788,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Shows_File_Contents()
 	{
 		// Arrange
@@ -851,12 +820,6 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFileContents,
@@ -868,7 +831,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 

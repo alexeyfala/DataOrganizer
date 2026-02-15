@@ -311,76 +311,52 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc />
 	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
-		PasswordBox view,
+		string? password,
 		EditorViewModel viewModel,
 		HandlePasswordInputParameters parameters,
 		CancellationToken token = default)
 	{
-		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
+		if (string.IsNullOrEmpty(password))
+		{
+			return HandlePasswordResult.PasswordNotEntered;
+		}
 
 		try
 		{
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
+			viewModel.IsActionInProgress = true;
+
+			if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
+				parameters.Folder,
+				parameters.Action,
+				password))
 			{
-				DialogHost.Close(null);
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return HandlePasswordResult.PasswordDoesNotMatch;
 			}
 
-			if (view
-				.ViewModel
-				.Password is not { } password)
+			if (parameters.Action == CryptoAction.ShowFileContents)
 			{
-				return HandlePasswordResult.PasswordNotEntered;
-			}
-
-			try
-			{
-				Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-				await condition
-					.WaitAsync(300, 10, token)
-					.ConfigureAwait(false);
-
-				viewModel.IsActionInProgress = true;
-
-				if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
-					parameters.Folder,
-					parameters.Action,
-					password))
+				if (!ShowFileContents(parameters.Folder, password))
 				{
-					viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+					viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 
-					return HandlePasswordResult.PasswordDoesNotMatch;
+					return HandlePasswordResult.FailedToShowFileContents;
 				}
-
-				if (parameters.Action == CryptoAction.ShowFileContents)
-				{
-					if (!ShowFileContents(parameters.Folder, password))
-					{
-						viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
-
-						return HandlePasswordResult.FailedToShowFileContents;
-					}
-				}
-				else
-				{
-					await EncryptDecryptAsync(
-						viewModel,
-						parameters.CreateFrom(password),
-						token).ConfigureAwait(false);
-				}
-
-				return HandlePasswordResult.Applied;
 			}
-			finally
+			else
 			{
-				viewModel.IsActionInProgress = false;
+				await EncryptDecryptAsync(
+					viewModel,
+					parameters.CreateFrom(password),
+					token).ConfigureAwait(false);
 			}
+
+			return HandlePasswordResult.Applied;
 		}
 		finally
 		{
-			popupHost = null;
+			viewModel.IsActionInProgress = false;
 		}
 	}
 
@@ -414,7 +390,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public Task TakePasswordAsync(
+	public async Task TakePasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
 		CryptoAction action,
@@ -428,14 +404,14 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
 		{
 			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show password box");
@@ -446,28 +422,40 @@ public sealed class EntityEcryption : IEntityEcryption
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		view
+		_ = DialogHost.Show(view);
+
+		if (!await view
 			.ViewModel
-			.DefaultPressedCallback = () =>
-			{
-				HandlePasswordInputParameters parameters = new()
-				{
-					Action = action,
-					Files = filesDto,
-					Folder = folder
-				};
+			.GetResultAsync(token)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
 
-				return HandlePasswordInputAsync(
-					view,
-					viewModel,
-					parameters,
-					token);
-			};
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = action,
+			Files = filesDto,
+			Folder = folder
+		};
 
-		return DialogHost.Show(view);
+		try
+		{
+			await HandlePasswordInputAsync(
+				view.ViewModel.Password,
+				viewModel,
+				parameters,
+				token).ConfigureAwait(false);
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+		}
 	}
 	#endregion
 
