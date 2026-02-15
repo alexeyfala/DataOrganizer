@@ -23,13 +23,13 @@ public sealed partial class PasswordBoxViewModel : AsyncResultViewModelBase<bool
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Cancels saving a <see cref="Password" />.
+	/// Cancel.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
 
 	/// <summary>
-	/// Saves a <see cref="Password" />.
+	/// Save.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteSave))]
 	private Task Save() => SetResultAsync(true);

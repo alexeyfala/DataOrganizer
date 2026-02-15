@@ -339,11 +339,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Edits <see cref="DatasetRecordBase.Note" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task EditNote(DatasetRecordBase? record)
+	private async Task EditNote(DatasetRecordBase? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
@@ -352,14 +352,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.ViewModel
 			.Text = record.Note;
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false))
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return EditNoteAsync(record, view.ViewModel.Text);
-		};
-
-		return DialogHost.Show(view);
+		await EditNoteAsync(record, view.ViewModel.Text).ConfigureAwait(false);
 	}
 
 	/// <summary>
