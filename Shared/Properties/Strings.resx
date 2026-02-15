@@ -457,4 +457,7 @@
   <data name="CloseFilesBeingEdited" xml:space="preserve">
     <value>Close files being edited</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
 </root>

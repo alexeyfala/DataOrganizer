@@ -477,4 +477,7 @@
   <data name="CloseFilesBeingEdited" xml:space="preserve">
     <value>Закрыть редактируемые файлы</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Свойства</value>
+  </data>
 </root>

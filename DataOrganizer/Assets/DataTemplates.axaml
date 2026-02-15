@@ -122,6 +122,14 @@
 								</Flyout>
 							</Button.Flyout>
 						</wrappers:FlyoutButton>
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Properties}"
+							Icon="WrenchOutline" />
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>
@@ -232,7 +240,7 @@
 							Icon="ContentCopy"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
 
-						<Separator />
+						<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}" />
 
 						<wrappers:FlyoutButton
 							Header="{x:Static prop:Strings.Encryption}"
@@ -261,7 +269,7 @@
 							</Button.Flyout>
 						</wrappers:FlyoutButton>
 
-						<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}" />
+						<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
 
 						<wrappers:FlyoutButton
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).SetFavoriteCommand}"
@@ -276,6 +284,14 @@
 							Header="{x:Static prop:Strings.Hotkeys}"
 							Icon="KeyboardVariant"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Properties}"
+							Icon="WrenchOutline" />
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>

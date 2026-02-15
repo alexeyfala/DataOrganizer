@@ -754,6 +754,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Hides file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteHideContents))]
+	private void HideContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		// TODO: Implement
+	}
+
+	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteRename))]
@@ -793,7 +807,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Shows file contents.
 	/// </summary>
-	[RelayCommand]
+	[RelayCommand(CanExecute = nameof(CanExecuteShowContents))]
 	private void ShowContents(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -864,10 +878,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
 
 	/// <summary>
-	/// Hides file contents.
+	/// Shows a properties view.
 	/// </summary>
 	[RelayCommand]
-	private void HideContents(FileModelDto? dto)
+	private void ShowProperties(ExplorerModelBaseDto? dto)
 	{
 		if (dto is null)
 		{
@@ -1507,6 +1521,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Validates <see cref="HideContentsCommand" />.
+	/// </summary>
+	private static bool CanExecuteHideContents(FileModelDto? dto)
+	{
+		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Decrypted;
+	}
+
+	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
 	private static bool CanExecuteHideFileContents(FolderModelDto? dto)
@@ -1514,6 +1536,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return dto is not null
 			&& dto.EncryptionStatus.IsNotDefault()
 			&& dto.AnyChild(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// Validates <see cref="ShowContentsCommand" />.
+	/// </summary>
+	private static bool CanExecuteShowContents(FileModelDto? dto)
+	{
+		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Encrypted;
 	}
 
 	/// <summary>
