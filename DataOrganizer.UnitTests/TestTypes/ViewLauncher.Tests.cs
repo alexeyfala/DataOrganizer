@@ -4,15 +4,12 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using NSubstitute;
-using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -123,27 +120,6 @@ internal class ViewLauncherTests
 
 		// Assert
 		window.ViewModel.IsInitialized
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureKeyValueInputView" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void ConfigureKeyValueInputView_ViewModel_Should_Apply_Property_Values()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMock<KeyValueInputView>(mock)));
-
-		// Act
-		KeyValueInputView view = sut.ConfigureKeyValueInputView(AppUtils.CreateRandomString(10));
-
-		// Assert
-		view.ViewModel.IsInitialized
 			.Should()
 			.BeTrue();
 	}

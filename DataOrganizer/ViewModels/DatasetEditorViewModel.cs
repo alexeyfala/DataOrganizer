@@ -161,7 +161,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddGroup,
 			keyHint: Strings.Name);
 
@@ -184,7 +186,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddKeyAndValue,
 			keyHint: Strings.Key,
 			valueHint: Strings.Value);
@@ -211,7 +215,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddValue,
 			keyHint: Strings.Name);
 
@@ -310,7 +316,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: record.Key,
 			keyHint: Strings.Key,
@@ -374,7 +382,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: record.Value,
 			keyHint: Strings.Edit);
@@ -438,7 +448,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: group.Name,
 			keyHint: Strings.Rename);
@@ -589,9 +601,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
-
-	/// <inheritdoc cref="IViewLauncher" />
-	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
@@ -603,14 +612,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
+		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
 		_clipboardService = clipboardService;
 
 		_viewFactory = viewFactory;
-
-		_viewLauncher = viewLauncher;
 	}
 	#endregion
 

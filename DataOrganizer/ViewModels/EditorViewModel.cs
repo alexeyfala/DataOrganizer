@@ -788,7 +788,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Renaming an object using dialog");
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Rename,
 			key: toBeRenamed.Name,
 			keyHint: Strings.Name);

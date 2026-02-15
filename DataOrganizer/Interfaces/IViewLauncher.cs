@@ -2,7 +2,6 @@
 using Avalonia.Layout;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
@@ -36,16 +35,6 @@ public interface IViewLauncher
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
 	FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
-
-	/// <summary>
-	/// Configures the <see cref="KeyValueInputView" />.
-	/// </summary>
-	KeyValueInputView ConfigureKeyValueInputView(
-		string defaultButtonText,
-		string? key = null,
-		string? keyHint = null,
-		string? value = null,
-		string? valueHint = null);
 
 	/// <summary>
 	/// Configures the main application window.

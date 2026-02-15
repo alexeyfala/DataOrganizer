@@ -5,7 +5,6 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Serilog;
 using Shared.Common;
@@ -266,26 +265,6 @@ public class ViewLauncher : IViewLauncher
 		window.Closing += FavoritesWindow_Closing;
 
 		return window;
-	}
-
-	/// <inheritdoc />
-	public KeyValueInputView ConfigureKeyValueInputView(
-		string defaultButtonText,
-		string? key = null,
-		string? keyHint = null,
-		string? value = null,
-		string? valueHint = null)
-	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(
-			defaultButtonText: defaultButtonText,
-			key: key,
-			keyHint: keyHint,
-			value: value,
-			valueHint: valueHint);
-
-		return view;
 	}
 
 	/// <inheritdoc />

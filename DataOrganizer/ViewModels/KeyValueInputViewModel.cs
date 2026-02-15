@@ -11,16 +11,6 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModelBase
 {
-	#region Properties
-	/// <summary>
-	/// Returns <c>True</c> if initialization has completed.
-	/// </summary>
-	/// <remarks>
-	/// For test purposes.
-	/// </remarks>
-	public bool IsInitialized { get; private set; }
-	#endregion
-
 	#region Auto-Generated Properties
 	/// <summary>
 	/// Text for default button.
@@ -96,8 +86,6 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 		ValueHint = valueHint;
 
 		IsValueInputVisible = !string.IsNullOrEmpty(valueHint);
-
-		IsInitialized = true;
 	}
 	#endregion
 
