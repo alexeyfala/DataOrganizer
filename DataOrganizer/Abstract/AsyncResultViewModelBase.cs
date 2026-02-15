@@ -11,7 +11,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {
 	#region Data
 	/// <inheritdoc cref="TaskCompletionSource" />
-	protected readonly TaskCompletionSource<TResult> _source = new();
+	private readonly TaskCompletionSource<TResult> _source = new();
 	#endregion
 
 	#region Methods
@@ -30,6 +30,21 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		}
 
 		return _source.Task;
+	}
+
+	/// <summary>
+	/// Sets a result and closes <see cref="DialogHost" />.
+	/// </summary>
+	protected void SetResult(TResult result)
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			DialogHost.Close(null);
+		}
+
+		_source.TrySetResult(result);
 	}
 	#endregion
 

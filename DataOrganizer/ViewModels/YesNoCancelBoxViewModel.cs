@@ -4,8 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
-using DialogHostAvalonia;
-using Shared.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,49 +52,19 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void CancelButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Cancel);
-	}
+	private void CancelButtonPressed() => SetResult(YesNoCancelResult.Cancel);
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void NoButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.No);
-	}
+	private void NoButtonPressed() => SetResult(YesNoCancelResult.No);
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void YesButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Yes);
-	}
+	private void YesButtonPressed() => SetResult(YesNoCancelResult.Yes);
 	#endregion
 
 	#region Methods
