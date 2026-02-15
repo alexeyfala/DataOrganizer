@@ -709,7 +709,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task HideFileContents_Asks_The_User_To_Close_Files()
@@ -762,7 +762,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[Test]
 	public async Task HideFileContents_Does_Work()

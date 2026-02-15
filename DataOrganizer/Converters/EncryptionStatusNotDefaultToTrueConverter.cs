@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace DataOrganizer.Converters;
 
-internal sealed class EncryptionStatusToIconVisibilityConverter : IValueConverter
+internal sealed class EncryptionStatusNotDefaultToTrueConverter : IValueConverter
 {
 	#region Methods
 	/// <inheritdoc />

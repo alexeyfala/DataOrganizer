@@ -16,10 +16,10 @@
 	</Design.DataContext>
 
 	<UserControl.Resources>
+		<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
 		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
 		<converters:EncryptionStatusToIconDescriptionConverter x:Key="EncryptionStatusToIconDescriptionConverter" />
 		<converters:EncryptionStatusToIconKindConverter x:Key="EncryptionStatusToIconKindConverter" />
-		<converters:EncryptionStatusToIconVisibilityConverter x:Key="EncryptionStatusToIconVisibilityConverter" />
 	</UserControl.Resources>
 
 	<StackPanel
@@ -60,7 +60,7 @@
 
 		<materialIcons:MaterialIcon
 			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconBrushConverter}}"
-			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconVisibilityConverter}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
 			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconKindConverter}}"
 			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconDescriptionConverter}}" />
 	</StackPanel>

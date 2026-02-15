@@ -406,11 +406,11 @@
   <data name="Size" xml:space="preserve">
     <value>Size</value>
   </data>
-  <data name="ShowFileContents" xml:space="preserve">
-    <value>Show File Contents</value>
+  <data name="ShowContents" xml:space="preserve">
+    <value>Show Contents</value>
   </data>
-  <data name="HideFileContents" xml:space="preserve">
-    <value>Hide File Contents</value>
+  <data name="HideContents" xml:space="preserve">
+    <value>Hide Contents</value>
   </data>
   <data name="EncryptFiles" xml:space="preserve">
     <value>Encrypt Files</value>

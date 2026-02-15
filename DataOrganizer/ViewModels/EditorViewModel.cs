@@ -791,6 +791,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Shows file contents.
+	/// </summary>
+	[RelayCommand]
+	private void ShowContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		// TODO: Implement
+	}
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -848,6 +862,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
 	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
+
+	/// <summary>
+	/// Hides file contents.
+	/// </summary>
+	[RelayCommand]
+	private void HideContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		// TODO: Implement
+	}
 	#endregion
 
 	#region Data
