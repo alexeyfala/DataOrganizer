@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Views;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -10,7 +9,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="MultilineTextEditView" />.
 /// </summary>
-public sealed partial class MultilineTextEditViewModel : AsyncResultViewModelBase<bool>
+public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewModelBase
 {
 	#region Auto-Generated Properties
 	/// <summary>
@@ -32,13 +31,5 @@ public sealed partial class MultilineTextEditViewModel : AsyncResultViewModelBas
 	/// </summary>
 	[RelayCommand]
 	private Task Save() => SetResultAsync(true);
-	#endregion
-
-	#region Methods
-	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<bool> GetResultAsync(CancellationToken token = default)
-	{
-		return GetResultAsync(defaultResult: false, token);
-	}
 	#endregion
 }

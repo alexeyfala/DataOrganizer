@@ -520,17 +520,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the add object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task<object?> Add(FolderModelDto? parent)
+	private async Task Add(FolderModelDto? parent)
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
 		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
 
-		view
-			.ViewModel
-			.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		try
 		{
-			DialogHost.Close(null);
+			if (!await view
+				.ViewModel
+				.GetResultAsync()
+				.ConfigureAwait(false))
+			{
+				return;
+			}
 
 			EntityType entityType = view.ViewModel switch
 			{
@@ -540,12 +546,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				_ => throw new NotImplementedException()
 			};
 
-			return AddAsync(view.ViewModel.Name, entityType, parent);
-		};
-
-		return DialogHost.Show(view, Dialog_Closing);
-
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
+			await AddAsync(
+				view.ViewModel.Name,
+				entityType,
+				parent).ConfigureAwait(false);
+		}
+		finally
 		{
 			view
 				.ViewModel
