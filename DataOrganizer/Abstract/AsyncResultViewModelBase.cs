@@ -27,9 +27,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		TResult defaultResult,
 		CancellationToken token = default)
 	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
+		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
 		{
 			_ = WaitDialogCloseAsync(defaultResult, token);
 		}
@@ -44,9 +42,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		_isResultSet = true;
 
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
+		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
 		{
 			DialogOverlayPopupHost? host = DialogHost
 				.GetDialogSession(null)?
@@ -64,7 +60,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 			}
 		}
 
-		_source.TrySetResult(result);
+		_source.SetResult(result);
 	}
 	#endregion
 
@@ -91,7 +87,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 			return;
 		}
 
-		_source.TrySetResult(defaultResult);
+		_source.SetResult(defaultResult);
 	}
 	#endregion
 }
