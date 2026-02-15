@@ -146,10 +146,6 @@ internal class ViewLauncherTests
 		view.ViewModel.IsInitialized
 			.Should()
 			.BeTrue();
-
-		view.ViewModel
-			.Should()
-			.BeAssignableTo<DefaultButtonViewModelBase>();
 	}
 
 	/// <summary>

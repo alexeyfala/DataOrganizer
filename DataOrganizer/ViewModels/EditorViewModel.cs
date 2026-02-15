@@ -777,13 +777,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteRename))]
-	private Task Rename(ExplorerModelBaseDto? dto)
+	private async Task Rename(ExplorerModelBaseDto? dto)
 	{
 		ExplorerModelBaseDto? toBeRenamed = dto ?? SelectedObject;
 
 		if (toBeRenamed is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Renaming an object using dialog");
@@ -793,21 +793,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			key: toBeRenamed.Name,
 			keyHint: Strings.Name);
 
-		view
+		_ = DialogHost.Show(view);
+
+		if (!await view
 			.ViewModel
-			.DefaultPressedCallback = () =>
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } newName)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } newName)
-			{
-				return Task.CompletedTask;
-			}
-
-			return RenameAsync(toBeRenamed, newName, DateTime.Now);
-		};
-
-		return DialogHost.Show(view);
+		await RenameAsync(
+			toBeRenamed,
+			newName,
+			DateTime.Now).ConfigureAwait(false);
 	}
 
 	/// <summary>

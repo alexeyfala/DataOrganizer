@@ -159,76 +159,73 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Adds a <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task<object?> AddGroup(RecordsGroup? group)
+	private async Task AddGroup(RecordsGroup? group)
 	{
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
 			defaultButtonText: Strings.AddGroup,
 			keyHint: Strings.Name);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } name)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddGroupAsync(name, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddGroupAsync(name, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Adds a <see cref="KeyValueRecord" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task<object?> AddKeyValue(RecordsGroup? group)
+	private async Task AddKeyValue(RecordsGroup? group)
 	{
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
 			defaultButtonText: Strings.AddKeyAndValue,
 			keyHint: Strings.Key,
 			valueHint: Strings.Value);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } key)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddKeyValueAsync(key, view.ViewModel.Value, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddKeyValueAsync(
+			key,
+			view.ViewModel.Value,
+			group).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Adds a <see cref="ValueRecord" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task<object?> AddValue(RecordsGroup? group)
+	private async Task AddValue(RecordsGroup? group)
 	{
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
 			defaultButtonText: Strings.AddValue,
 			keyHint: Strings.Name);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } value)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddValueAsync(value, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddValueAsync(value, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -306,11 +303,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Edits a <see cref="KeyValueRecord" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task EditKeyValue(KeyValueRecord? record)
+	private async Task EditKeyValue(KeyValueRecord? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
@@ -320,19 +317,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			value: record.Value,
 			valueHint: Strings.Value);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } key)
-			{
-				return Task.CompletedTask;
-			}
-
-			return EditKeyValueAsync(record, key, view.ViewModel.Value);
-		};
-
-		return DialogHost.Show(view);
+		await EditKeyValueAsync(
+			record,
+			key,
+			view.ViewModel.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -369,11 +367,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Edits a <see cref="ValueRecord" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task EditValue(ValueRecord? record)
+	private async Task EditValue(ValueRecord? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
@@ -381,19 +379,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			key: record.Value,
 			keyHint: Strings.Edit);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } value)
-			{
-				return Task.CompletedTask;
-			}
-
-			return EditValueAsync(record, value);
-		};
-
-		return DialogHost.Show(view);
+		await EditValueAsync(record, value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -435,11 +431,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Renames a <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
-	private Task RenameGroup(RecordsGroup? group)
+	private async Task RenameGroup(RecordsGroup? group)
 	{
 		if (group is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
@@ -447,19 +443,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			key: group.Name,
 			keyHint: Strings.Rename);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } name)
-			{
-				return Task.CompletedTask;
-			}
-
-			return RenameGroupAsync(group, name);
-		};
-
-		return DialogHost.Show(view);
+		await RenameGroupAsync(group, name).ConfigureAwait(false);
 	}
 
 	/// <summary>
