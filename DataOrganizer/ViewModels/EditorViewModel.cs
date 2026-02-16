@@ -329,6 +329,48 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		window?.Close();
 	}
 
+	/// <summary>
+	/// Hides file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteHideContents))]
+	public async Task HideContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		if (dto.IsEdited || dto.IsExecuted)
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
+
+				CloseFile(dto);
+			}
+		}
+
+		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+	}
+
 	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
 	public async Task HideFileContents(FolderModelDto? dto)
@@ -760,20 +802,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Hides file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteHideContents))]
-	private void HideContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		// TODO: Implement
-	}
-
-	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteRename))]
@@ -1114,17 +1142,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (dto is FileModelDto file)
 		{
-			if (file.IsEdited)
-			{
-				EditFiles
-					.ViewModel
-					.CloseTab(file);
-			}
-
-			if (file.IsExecuted)
-			{
-				CloseExecutedFile(file);
-			}
+			CloseFile(file);
 		}
 
 		CountHierarchy();
@@ -1641,6 +1659,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
 	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsBy(x => x.IsFavorite);
+
+	/// <summary>
+	/// Closes file that is being edited or executed;
+	/// </summary>
+	private void CloseFile(FileModelDto file)
+	{
+		if (file.IsEdited)
+		{
+			EditFiles
+				.ViewModel
+				.CloseTab(file);
+		}
+
+		if (file.IsExecuted)
+		{
+			CloseExecutedFile(file);
+		}
+	}
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
