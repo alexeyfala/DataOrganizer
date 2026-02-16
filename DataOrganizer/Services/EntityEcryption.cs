@@ -361,7 +361,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public void HideFileContents(FolderModelDto folder)
+	public void HideFolderContents(FolderModelDto folder)
 	{
 		if (folder.EncryptedPassword is not null)
 		{

@@ -332,8 +332,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Hides file contents.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteHideContents))]
-	public async Task HideContents(FileModelDto? dto)
+	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	public async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -371,9 +371,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.EncryptionStatus = EncryptionStatus.Encrypted;
 	}
 
-	/// <inheritdoc cref="IEntityEcryption.HideFileContents(FolderModelDto)" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFileContents))]
-	public async Task HideFileContents(FolderModelDto? dto)
+	/// <inheritdoc cref="IEntityEcryption.HideFolderContents(FolderModelDto)" />
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	public async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -412,7 +412,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				dto.GetFiles(x => x.IsExecuted));
 		}
 
-		_entityEcryption.HideFileContents(dto);
+		_entityEcryption.HideFolderContents(dto);
 
 		if (Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
@@ -840,20 +840,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Shows file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowContents))]
-	private void ShowContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		// TODO: Implement
-	}
-
-	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -890,10 +876,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Shows file contents in folder.
+	/// Shows file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private Task ShowFileContents(FolderModelDto? dto)
+	private async Task ShowFileContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Shows file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
+	private Task ShowFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -1546,17 +1546,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Validates <see cref="HideContentsCommand" />.
+	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteHideContents(FileModelDto? dto)
+	private static bool CanExecuteFileContents(FileModelDto? dto)
 	{
 		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Decrypted;
 	}
 
 	/// <summary>
-	/// Validates <see cref="HideFileContentsCommand" />.
+	/// Validates <see cref="HideFolderContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteHideFileContents(FolderModelDto? dto)
+	private static bool CanExecuteHideFolderContents(FolderModelDto? dto)
 	{
 		return dto is not null
 			&& dto.EncryptionStatus.IsNotDefault()
@@ -1564,9 +1564,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Validates <see cref="ShowContentsCommand" />.
+	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteShowContents(FileModelDto? dto)
+	private static bool CanExecuteShowFileContents(FileModelDto? dto)
 	{
 		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Encrypted;
 	}
@@ -1574,7 +1574,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteShowFileContents(FolderModelDto? dto)
+	private static bool CanExecuteShowFolderContents(FolderModelDto? dto)
 	{
 		return dto is not null
 			&& dto.EncryptionStatus.IsNotDefault()

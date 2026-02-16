@@ -854,10 +854,10 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFileContents(FolderModelDto)" />.
+	/// Test of <see cref="EntityEcryption.HideFolderContents(FolderModelDto)" />.
 	/// </summary>
 	[Test]
-	public void HideFileContents_Does_Work()
+	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -879,7 +879,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		sut.HideFileContents(folder);
+		sut.HideFolderContents(folder);
 
 		// Assert
 		folder.EncryptedPassword

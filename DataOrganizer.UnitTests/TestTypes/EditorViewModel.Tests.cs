@@ -709,10 +709,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideContents" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideContents_Asks_The_User_To_Close_File([Values] bool isEdited)
+	public async Task HideFileContents_Asks_The_User_To_Close_File([Values] bool isEdited)
 	{
 		// Arrange
 		FileModelDto file = isEdited
@@ -735,7 +735,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut.HideContents(file);
+		await sut.HideFileContents(file);
 
 		// Assert
 		viewFactory
@@ -744,10 +744,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideContents" />.
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[Test]
-	public async Task HideContents_Does_Work()
+	public async Task HideFileContents_Does_Work()
 	{
 		// Arrange
 		FileModelDto file = TestUtils.CreateFileDto();
@@ -757,7 +757,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut.HideContents(file);
+		await sut.HideFileContents(file);
 
 		// Assert
 		file.EncryptionStatus
@@ -766,10 +766,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents" />.
+	/// Test of <see cref="EditorViewModel.HideFolderContents" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideFileContents_Asks_The_User_To_Close_Files()
+	public async Task HideFolderContents_Asks_The_User_To_Close_Files()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -810,7 +810,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut.HideFileContents(folder);
+		await sut.HideFolderContents(folder);
 
 		// Assert
 		viewFactory
@@ -819,10 +819,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents" />.
+	/// Test of <see cref="EditorViewModel.HideFolderContents" />.
 	/// </summary>
 	[Test]
-	public async Task HideFileContents_Does_Work()
+	public async Task HideFolderContents_Does_Work()
 	{
 		// Arrange
 		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
@@ -832,12 +832,12 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(ecryption));
 
 		// Act
-		await sut.HideFileContents(TestUtils.CreateFolderDto());
+		await sut.HideFolderContents(TestUtils.CreateFolderDto());
 
 		// Assert
 		ecryption
 			.Received()
-			.HideFileContents(Arg.Any<FolderModelDto>());
+			.HideFolderContents(Arg.Any<FolderModelDto>());
 
 		ecryption
 			.Received()

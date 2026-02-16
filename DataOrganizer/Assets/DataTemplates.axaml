@@ -84,14 +84,14 @@
 									Placement="Right">
 									<StackPanel Orientation="Vertical">
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFolderContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowContents}"
 											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFolderContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="ForestGreen"
 											Header="{x:Static prop:Strings.HideContents}"
@@ -252,14 +252,14 @@
 									Placement="Right">
 									<StackPanel Orientation="Vertical">
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.ShowContents}"
 											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="ForestGreen"
 											Header="{x:Static prop:Strings.HideContents}"
