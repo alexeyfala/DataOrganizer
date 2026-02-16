@@ -78,7 +78,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			.GetFileContentsAsync(dto.Id)
 			.ConfigureAwait(false);
 
-		if (result.IsDefault() || !result.IsValid)
+		if (!result.IsValid)
 		{
 			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{dto.Id}""");
 

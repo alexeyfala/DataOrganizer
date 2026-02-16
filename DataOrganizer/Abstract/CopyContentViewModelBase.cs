@@ -75,7 +75,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		try
 		{
-			if (TopLevel.GetTopLevel(container)?.Clipboard is not { } clipboard)
+			if (TopLevel
+				.GetTopLevel(container)?
+				.Clipboard is not { } clipboard)
 			{
 				return;
 			}
@@ -84,7 +86,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				.GetFileContentsAsync(dto.Id, token)
 				.ConfigureAwait(true);
 
-			if (result.IsDefault() || !result.IsValid)
+			if (!result.IsValid)
 			{
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{dto.Id}""");
 

@@ -158,7 +158,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					.GetFileContentsAsync(file.Id)
 					.ConfigureAwait(false);
 
-				if (result.IsDefault() || !result.IsValid)
+				if (!result.IsValid)
 				{
 					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
