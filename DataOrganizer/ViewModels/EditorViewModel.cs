@@ -328,57 +328,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		window?.Close();
 	}
 
-	/// <inheritdoc cref="IEntityEcryption.HideFolderContents(FolderModelDto)" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	public async Task HideFolderContents(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hiding files in a folder");
-
-		if (dto.AnyFile(x => x.IsEdited || x.IsExecuted))
-		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-
-				YesNoCancelResult result = await view
-					.ViewModel
-					.GetResultAsync(YesNoCancelVariant.YesCancel)
-					.ConfigureAwait(true);
-
-				if (result != YesNoCancelResult.Yes)
-				{
-					return;
-				}
-			}
-
-			CloseFiles(
-				dto.GetFiles(x => x.IsEdited),
-				dto.GetFiles(x => x.IsExecuted));
-		}
-
-		_entityEcryption.HideFolderContents(dto);
-
-		if (Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
-		{
-			return;
-		}
-
-		_entityEcryption.ResetSessionId();
-	}
-
 	/// <summary>
 	/// Resets the <see cref="SelectedObject" />.
 	/// </summary>
@@ -770,6 +719,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Hide file contents");
 
 		return _entityEcryption.HideFileContentsAsync(dto, this);
+	}
+
+	/// <inheritdoc cref="IEntityEcryption.HideFolderContentsAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	private Task HideFolderContents(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Hiding files in a folder");
+
+		return _entityEcryption.HideFolderContentsAsync(dto, this);
 	}
 
 	/// <summary>

@@ -55,14 +55,17 @@ public interface IEntityEcryption
 	/// Hides file contents.
 	/// </summary>
 	Task HideFileContentsAsync(
-		FileModelDto dto,
+		FileModelDto file,
 		EditorViewModel viewModel,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	void HideFolderContents(FolderModelDto folder);
+	Task HideFolderContentsAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Resets the session identifier.
@@ -73,7 +76,7 @@ public interface IEntityEcryption
 	/// Shows file contents.
 	/// </summary>
 	Task ShowFileContentsAsync(
-		FileModelDto dto,
+		FileModelDto file,
 		EditorViewModel viewModel,
 		CancellationToken token = default);
 

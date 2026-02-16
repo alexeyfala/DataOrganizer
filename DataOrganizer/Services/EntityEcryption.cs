@@ -362,11 +362,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc />
 	public async Task HideFileContentsAsync(
-		FileModelDto dto,
+		FileModelDto file,
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
-		if (dto.IsEdited || dto.IsExecuted)
+		if (file.IsEdited || file.IsExecuted)
 		{
 			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
@@ -390,16 +390,49 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				viewModel.CloseFile(dto);
+				viewModel.CloseFile(file);
 			}
 		}
 
-		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+		file.EncryptionStatus = EncryptionStatus.Encrypted;
 	}
 
 	/// <inheritdoc />
-	public void HideFolderContents(FolderModelDto folder)
+	public async Task HideFolderContentsAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
 	{
+		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
+			}
+
+			viewModel.CloseFiles(
+				folder.GetFiles(x => x.IsEdited),
+				folder.GetFiles(x => x.IsExecuted));
+		}
+
 		if (folder.EncryptedPassword is not null)
 		{
 			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
@@ -411,6 +444,15 @@ public sealed class EntityEcryption : IEntityEcryption
 			.ToEnumerable()
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+
+		if (viewModel
+			.Hierarchy
+			.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+		{
+			return;
+		}
+
+		ResetSessionId();
 	}
 
 	/// <inheritdoc />
@@ -428,12 +470,12 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc />
 	public async Task ShowFileContentsAsync(
-		FileModelDto dto,
+		FileModelDto file,
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		if (dto
+		if (file
 			.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash))?
 			.PasswordHash is not { } passwordHash)
 		{

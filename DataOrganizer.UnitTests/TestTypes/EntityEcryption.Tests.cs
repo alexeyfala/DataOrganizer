@@ -912,10 +912,59 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFolderContents(FolderModelDto)" />.
+	/// Test of <see cref="IEntityEcryption.HideFolderContentsAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideFolderContentsAsync_Asks_The_User_To_Close_Files()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
 	/// </summary>
 	[Test]
-	public void HideFolderContents_Does_Work()
+	public async Task HideFolderContentsAsync_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -937,7 +986,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		sut.HideFolderContents(folder);
+		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
 
 		// Assert
 		folder.EncryptedPassword
