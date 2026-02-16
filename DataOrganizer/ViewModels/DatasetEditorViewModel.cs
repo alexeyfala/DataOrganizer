@@ -60,11 +60,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(false);
 
-		if (result.IsDefault())
-		{
-			return;
-		}
-
 		try
 		{
 			if (!result.IsValid)

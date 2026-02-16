@@ -80,11 +80,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(false);
 
-		if (result.IsDefault())
-		{
-			return;
-		}
-
 		try
 		{
 			if (!result.IsValid)
