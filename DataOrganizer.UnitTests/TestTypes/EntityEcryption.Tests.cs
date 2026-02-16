@@ -423,7 +423,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		EncryptDecryptFilesParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			Password = AppUtils.CreateRandomString(10)
@@ -693,7 +693,7 @@ internal class EntityEcryptionTests
 
 		HandlePasswordInputParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = folder
 		};
@@ -822,7 +822,7 @@ internal class EntityEcryptionTests
 
 		HandlePasswordInputParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = folder
 		};

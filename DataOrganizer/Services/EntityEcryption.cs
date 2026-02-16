@@ -150,7 +150,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		try
 		{
-			if (parameters.Action == CryptoAction.ShowFileContents)
+			if (parameters.Action == CryptoAction.ShowFolderContents)
 			{
 				throw new InvalidOperationException("Unsupported action type");
 			}
@@ -335,9 +335,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return HandlePasswordResult.PasswordDoesNotMatch;
 			}
 
-			if (parameters.Action == CryptoAction.ShowFileContents)
+			if (parameters.Action == CryptoAction.ShowFolderContents)
 			{
-				if (!ShowFileContents(parameters.Folder, password))
+				if (!ShowFolderContents(parameters.Folder, password))
 				{
 					viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 
@@ -461,9 +461,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Service
 	/// <summary>
-	/// Shows file contents.
+	/// Shows file contents in folder.
 	/// </summary>
-	private bool ShowFileContents(
+	private bool ShowFolderContents(
 		FolderModelDto folder,
 		string password)
 	{
@@ -511,7 +511,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			case CryptoAction.Decrypt when !string.IsNullOrEmpty(passwordHash):
 				return _encryption.EnhancedVerify(password, passwordHash);
 
-			case CryptoAction.ShowFileContents:
+			case CryptoAction.ShowFolderContents:
 				if (!string.IsNullOrEmpty(passwordHash))
 				{
 					return _encryption.EnhancedVerify(password, passwordHash);

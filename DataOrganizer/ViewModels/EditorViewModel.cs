@@ -28,7 +28,6 @@ using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -490,6 +489,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Shows file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
+	public async Task ShowFileContents(FileModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto?
+			.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash))?
+			.PasswordHash is not { } passwordHash)
+		{
+			return;
+		}
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			if (!_encryption.EnhancedVerify(password, passwordHash))
+			{
+				ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return;
+			}
+
+			;
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+
+			IsActionInProgress = false;
+		}
+	}
+
+	/// <summary>
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
@@ -876,46 +924,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Shows file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private async Task ShowFileContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			var res = view.ViewModel.Password;
-			;
-		}
-		finally
-		{
-			view
-				.ViewModel
-				.Password = null;
-
-			IsActionInProgress = false;
-		}
-	}
-
-	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
@@ -931,7 +939,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return _entityEcryption.TakePasswordAsync(
 			this,
 			dto,
-			CryptoAction.ShowFileContents);
+			CryptoAction.ShowFolderContents);
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -954,6 +962,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
+
 	/// <inheritdoc cref="IEntityEcryption" />
 	private readonly IEntityEcryption _entityEcryption;
 
@@ -979,7 +990,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -987,6 +997,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{
+		_encryption = encryption;
+
 		_entityEcryption = entityEcryption;
 
 		_executionEngine = executionEngine;
