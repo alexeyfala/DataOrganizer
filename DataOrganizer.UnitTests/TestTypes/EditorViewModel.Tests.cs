@@ -709,6 +709,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideContents" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideContents_Asks_The_User_To_Close_File([Values] bool isEdited)
+	{
+		// Arrange
+		FileModelDto file = isEdited
+			? TestUtils.CreateFileDto(isEdited: true)
+			: TestUtils.CreateFileDto(isExecuted: true);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideContents(file);
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideContents" />.
+	/// </summary>
+	[Test]
+	public async Task HideContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideContents(file);
+
+		// Assert
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[AvaloniaTest]
