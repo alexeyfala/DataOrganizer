@@ -361,6 +361,43 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public async Task HideFileContentsAsync(
+		FileModelDto dto,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		if (dto.IsEdited || dto.IsExecuted)
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
+
+				viewModel.CloseFile(dto);
+			}
+		}
+
+		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+	}
+
+	/// <inheritdoc />
 	public void HideFolderContents(FolderModelDto folder)
 	{
 		if (folder.EncryptedPassword is not null)
@@ -387,6 +424,55 @@ public sealed class EntityEcryption : IEntityEcryption
 		CryptographicOperations.ZeroMemory(_sessionId);
 
 		_sessionId = null;
+	}
+
+	/// <inheritdoc />
+	public async Task ShowFileContentsAsync(
+		FileModelDto dto,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		// TODO: Make test
+		if (dto
+			.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash))?
+			.PasswordHash is not { } passwordHash)
+		{
+			return;
+		}
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			viewModel.IsActionInProgress = true;
+
+			if (!_encryption.EnhancedVerify(password, passwordHash))
+			{
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return;
+			}
+
+			;
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+
+			viewModel.IsActionInProgress = false;
+		}
 	}
 
 	/// <inheritdoc />

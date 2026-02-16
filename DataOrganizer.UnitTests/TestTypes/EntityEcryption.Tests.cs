@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Encryption;
@@ -851,6 +852,63 @@ internal class EntityEcryptionTests
 		folder.Children
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideFileContentsAsync_Asks_The_User_To_Close_File([Values] bool isEdited)
+	{
+		// Arrange
+		FileModelDto file = isEdited
+			? TestUtils.CreateFileDto(isEdited: true)
+			: TestUtils.CreateFileDto(isExecuted: true);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task HideFileContentsAsync_Does_Work()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
+
+		// Assert
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>

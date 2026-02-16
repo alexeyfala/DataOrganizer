@@ -328,48 +328,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		window?.Close();
 	}
 
-	/// <summary>
-	/// Hides file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	public async Task HideFileContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		if (dto.IsEdited || dto.IsExecuted)
-		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-
-				YesNoCancelResult result = await view
-					.ViewModel
-					.GetResultAsync(YesNoCancelVariant.YesCancel)
-					.ConfigureAwait(true);
-
-				if (result != YesNoCancelResult.Yes)
-				{
-					return;
-				}
-
-				CloseFile(dto);
-			}
-		}
-
-		dto.EncryptionStatus = EncryptionStatus.Encrypted;
-	}
-
 	/// <inheritdoc cref="IEntityEcryption.HideFolderContents(FolderModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
 	public async Task HideFolderContents(FolderModelDto? dto)
@@ -486,55 +444,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_viewLauncher
 			.ConfigureFavoritesWindow(Hierarchy)
 			.Show();
-	}
-
-	/// <summary>
-	/// Shows file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	public async Task ShowFileContents(FileModelDto? dto)
-	{
-		// TODO: Make test
-		if (dto?
-			.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash))?
-			.PasswordHash is not { } passwordHash)
-		{
-			return;
-		}
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
-		{
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			if (!_encryption.EnhancedVerify(password, passwordHash))
-			{
-				ShowErrorSnackbar(Strings.IncorrectPassword);
-
-				return;
-			}
-
-			;
-		}
-		finally
-		{
-			view
-				.ViewModel
-				.Password = null;
-
-			IsActionInProgress = false;
-		}
 	}
 
 	/// <summary>
@@ -849,6 +758,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(FileModelDto.Name))}");
 	}
 
+	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	private Task HideFileContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Hide file contents");
+
+		return _entityEcryption.HideFileContentsAsync(dto, this);
+	}
+
 	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
@@ -923,6 +846,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 	}
 
+	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
+	private Task ShowFileContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Show file contents");
+
+		return _entityEcryption.ShowFileContentsAsync(dto, this);
+	}
+
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
@@ -962,9 +899,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
-
 	/// <inheritdoc cref="IEntityEcryption" />
 	private readonly IEntityEcryption _entityEcryption;
 
@@ -986,7 +920,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
@@ -997,8 +930,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
 	{
-		_encryption = encryption;
-
 		_entityEcryption = entityEcryption;
 
 		_executionEngine = executionEngine;
@@ -1130,6 +1061,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		view
 			.ViewModel
 			.ExecutedFiles = null;
+	}
+
+	/// <summary>
+	/// Closes file that is being edited or executed;
+	/// </summary>
+	public void CloseFile(FileModelDto file)
+	{
+		if (file.IsEdited)
+		{
+			EditFiles
+				.ViewModel
+				.CloseTab(file);
+		}
+
+		if (file.IsExecuted)
+		{
+			CloseExecutedFile(file);
+		}
 	}
 
 	/// <summary>
@@ -1697,24 +1646,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
 	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsBy(x => x.IsFavorite);
-
-	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	private void CloseFile(FileModelDto file)
-	{
-		if (file.IsEdited)
-		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
-		}
-
-		if (file.IsExecuted)
-		{
-			CloseExecutedFile(file);
-		}
-	}
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
