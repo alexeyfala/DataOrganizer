@@ -475,9 +475,8 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		if (file
-			.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash))?
-			.PasswordHash is not { } passwordHash)
+		if (file.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is not { } root
+			|| root.PasswordHash is not { } passwordHash)
 		{
 			return;
 		}
@@ -505,7 +504,19 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			;
+			bool isEncrypted = _encryption.Encrypt(
+				TextHelper.Utf8Encoding.GetBytes(password),
+				GetSessionId(),
+				out byte[] output);
+
+			if (!isEncrypted)
+			{
+				return;
+			}
+
+			root.EncryptedPassword = output;
+
+			file.EncryptionStatus = EncryptionStatus.Decrypted;
 		}
 		finally
 		{
