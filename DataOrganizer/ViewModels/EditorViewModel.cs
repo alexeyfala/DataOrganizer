@@ -887,6 +887,32 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			var res = view.ViewModel.Password;
+			;
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+
+			IsActionInProgress = false;
+		}
 	}
 
 	/// <summary>
