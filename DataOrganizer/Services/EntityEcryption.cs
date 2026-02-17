@@ -456,6 +456,75 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public async Task RequestPasswordAsync(
+		EditorViewModel viewModel,
+		FolderModelDto folder,
+		CryptoAction action,
+		CancellationToken token = default)
+	{
+		FileModelDto[] filesDto = [.. folder
+			.Children
+			.GetFiles()];
+
+		if (filesDto.Length == 0)
+		{
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
+
+			return;
+		}
+
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return;
+		}
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		HandlePasswordParameters parameters = new()
+		{
+			Action = action,
+			Files = filesDto,
+			Folder = folder
+		};
+
+		try
+		{
+			await HandlePasswordInputAsync(
+				view.ViewModel.Password,
+				viewModel,
+				parameters,
+				token).ConfigureAwait(false);
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+		}
+	}
+
+	/// <inheritdoc />
 	public void ResetSessionId()
 	{
 		if (_sessionId is null)
@@ -529,75 +598,6 @@ public sealed class EntityEcryption : IEntityEcryption
 				.Password = null;
 
 			viewModel.IsActionInProgress = false;
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task TakePasswordAsync(
-		EditorViewModel viewModel,
-		FolderModelDto folder,
-		CryptoAction action,
-		CancellationToken token = default)
-	{
-		FileModelDto[] filesDto = [.. folder
-			.Children
-			.GetFiles()];
-
-		if (filesDto.Length == 0)
-		{
-			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
-		{
-			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
-
-			return;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		HandlePasswordParameters parameters = new()
-		{
-			Action = action,
-			Files = filesDto,
-			Folder = folder
-		};
-
-		try
-		{
-			await HandlePasswordInputAsync(
-				view.ViewModel.Password,
-				viewModel,
-				parameters,
-				token).ConfigureAwait(false);
-		}
-		finally
-		{
-			view
-				.ViewModel
-				.Password = null;
 		}
 	}
 	#endregion

@@ -602,7 +602,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Decrypting files in a folder");
 
-		return _entityEcryption.TakePasswordAsync(
+		return _entityEcryption.RequestPasswordAsync(
 			this,
 			dto,
 			CryptoAction.Decrypt);
@@ -671,7 +671,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Encrypting files in a folder");
 
-		return _entityEcryption.TakePasswordAsync(
+		return _entityEcryption.RequestPasswordAsync(
 			this,
 			dto,
 			CryptoAction.Encrypt);
@@ -836,7 +836,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		return _entityEcryption.TakePasswordAsync(
+		return _entityEcryption.RequestPasswordAsync(
 			this,
 			dto,
 			CryptoAction.ShowFolderContents);

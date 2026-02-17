@@ -1256,6 +1256,99 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed([Values] CryptoAction action)
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files =
+		[
+			.. TestUtils.CreateFilesDto(5, isEdited: true),
+			.. TestUtils.CreateFilesDto(5, isExecuted: true)
+		];
+
+		folder
+			.Children
+			.AddRange(files);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			folder,
+			action);
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Does_Nothing_If_Folder_Has_No_Files([Values] CryptoAction action)
+	{
+		// Arrange
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			TestUtils.CreateFolderDto(),
+			action);
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Shows_Password_Box([Values] CryptoAction action)
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(5));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			folder,
+			action);
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.ShowFileContentsAsync" />.
 	/// </summary>
 	[AvaloniaTest]
@@ -1327,99 +1420,6 @@ internal class EntityEcryptionTests
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Decrypted);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed([Values] CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] files =
-		[
-			.. TestUtils.CreateFilesDto(5, isEdited: true),
-			.. TestUtils.CreateFilesDto(5, isExecuted: true)
-		];
-
-		folder
-			.Children
-			.AddRange(files);
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			folder,
-			action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Does_Nothing_If_Folder_Has_No_Files([Values] CryptoAction action)
-	{
-		// Arrange
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			TestUtils.CreateFolderDto(),
-			action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Shows_Password_Box([Values] CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		folder
-			.Children
-			.AddRange(TestUtils.CreateFilesDto(5));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			folder,
-			action);
-
-		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<PasswordBox>();
 	}
 	#endregion
 }

@@ -81,9 +81,9 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Takes a password for encryption/decryption files in folder.
+	/// Requests a password for encryption/decryption files in folder.
 	/// </summary>
-	Task TakePasswordAsync(
+	Task RequestPasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
 		CryptoAction action,
