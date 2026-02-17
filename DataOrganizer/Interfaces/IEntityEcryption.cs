@@ -32,9 +32,9 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
-	Task<FilesEncryptionResult> EncryptDecryptFolderAsync(
+	Task<FolderEncryptionResult> EncryptDecryptFolderAsync(
 		EditorViewModel viewModel,
-		EncryptDecryptFolderParameters parameters,
+		FolderEncryptionParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -48,7 +48,7 @@ public interface IEntityEcryption
 	Task<HandlePasswordResult> HandlePasswordInputAsync(
 		string? password,
 		EditorViewModel viewModel,
-		HandlePasswordInputParameters parameters,
+		HandlePasswordParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>

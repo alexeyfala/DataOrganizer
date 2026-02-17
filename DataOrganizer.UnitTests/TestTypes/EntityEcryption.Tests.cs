@@ -289,7 +289,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -311,14 +311,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
+			.Be(FolderEncryptionResult.FailedToLoadContents);
 	}
 
 	/// <summary>
@@ -331,7 +331,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -353,14 +353,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
+			.Be(FolderEncryptionResult.FailedToLoadContents);
 	}
 
 	/// <summary>
@@ -373,7 +373,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -403,14 +403,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
+			.Be(FolderEncryptionResult.FailedToEncryptContents);
 	}
 
 	/// <summary>
@@ -423,7 +423,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -453,14 +453,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
+			.Be(FolderEncryptionResult.FailedToEncryptContents);
 	}
 
 	/// <summary>
@@ -473,7 +473,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -520,14 +520,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToSaveContents);
+			.Be(FolderEncryptionResult.FailedToSaveContents);
 
 		await dbAccess
 			.Received()
@@ -548,7 +548,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -595,14 +595,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToSavePasswordHash);
+			.Be(FolderEncryptionResult.FailedToSavePasswordHash);
 
 		await dbAccess
 			.Received()
@@ -623,7 +623,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -657,14 +657,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.UnableToCreateDatabaseBackup);
+			.Be(FolderEncryptionResult.UnableToCreateDatabaseBackup);
 	}
 
 	/// <summary>
@@ -674,7 +674,7 @@ internal class EntityEcryptionTests
 	public async Task EncryptDecryptFolderAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
 	{
 		// Arrange
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -687,14 +687,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.ExceptionThrown);
+			.Be(FolderEncryptionResult.ExceptionThrown);
 	}
 
 	/// <summary>
@@ -709,7 +709,7 @@ internal class EntityEcryptionTests
 
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFolderParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -778,14 +778,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.Done);
+			.Be(FolderEncryptionResult.Done);
 
 		folder.EncryptionStatus
 			.Should()
@@ -871,7 +871,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
 			Files = [],
@@ -901,7 +901,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Encrypt,
 			Files = [],
@@ -944,7 +944,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -987,7 +987,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
 			Files = [],
@@ -1017,7 +1017,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = default,
 			Files = [],
@@ -1073,7 +1073,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],

@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.Enums;
 
-public enum FilesEncryptionResult : byte
+public enum FolderEncryptionResult : byte
 {
 	FailedToLoadContents,
 	UnableToCreateDatabaseBackup,

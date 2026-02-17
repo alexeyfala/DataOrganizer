@@ -143,9 +143,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task<FilesEncryptionResult> EncryptDecryptFolderAsync(
+	public async Task<FolderEncryptionResult> EncryptDecryptFolderAsync(
 		EditorViewModel viewModel,
-		EncryptDecryptFolderParameters parameters,
+		FolderEncryptionParameters parameters,
 		CancellationToken token = default)
 	{
 		try
@@ -164,7 +164,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			{
 				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
-				return FilesEncryptionResult.FailedToLoadContents;
+				return FolderEncryptionResult.FailedToLoadContents;
 			}
 
 			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
@@ -178,14 +178,14 @@ public sealed class EntityEcryption : IEntityEcryption
 			{
 				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-				return FilesEncryptionResult.FailedToEncryptContents;
+				return FolderEncryptionResult.FailedToEncryptContents;
 			}
 
 			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
 			{
 				viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
-				return FilesEncryptionResult.UnableToCreateDatabaseBackup;
+				return FolderEncryptionResult.UnableToCreateDatabaseBackup;
 			}
 
 			DateTime updatedDate = DateTime.Now;
@@ -207,7 +207,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				DeleteBackupFile();
 
-				return FilesEncryptionResult.FailedToSaveContents;
+				return FolderEncryptionResult.FailedToSaveContents;
 			}
 
 			string? passwordHash = parameters.Action switch
@@ -227,7 +227,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				DeleteBackupFile();
 
-				return FilesEncryptionResult.FailedToSavePasswordHash;
+				return FolderEncryptionResult.FailedToSavePasswordHash;
 			}
 
 			ExplorerModelBaseDto[] objects =
@@ -265,7 +265,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					nameof(FolderModelDto.Id),
 					nameof(FolderModelDto.Name))}");
 
-			return FilesEncryptionResult.Done;
+			return FolderEncryptionResult.Done;
 
 			async Task RestoreDatabaseAsync()
 			{
@@ -290,7 +290,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_logger.LogException(ex);
 
-			return FilesEncryptionResult.ExceptionThrown;
+			return FolderEncryptionResult.ExceptionThrown;
 		}
 	}
 
@@ -313,7 +313,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
 		string? password,
 		EditorViewModel viewModel,
-		HandlePasswordInputParameters parameters,
+		HandlePasswordParameters parameters,
 		CancellationToken token = default)
 	{
 		if (string.IsNullOrEmpty(password))
@@ -578,7 +578,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = action,
 			Files = filesDto,
