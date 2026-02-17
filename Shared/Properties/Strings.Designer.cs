@@ -430,11 +430,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to process file contents.
+        ///   Looks up a localized string similar to Failed to process contents.
         /// </summary>
-        public static string FailedToProcessFileContents {
+        public static string FailedToProcessContents {
             get {
-                return ResourceManager.GetString("FailedToProcessFileContents", resourceCulture);
+                return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
         
@@ -601,11 +601,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hide File Contents.
+        ///   Looks up a localized string similar to Hide Contents.
         /// </summary>
-        public static string HideFileContents {
+        public static string HideContents {
             get {
-                return ResourceManager.GetString("HideFileContents", resourceCulture);
+                return ResourceManager.GetString("HideContents", resourceCulture);
             }
         }
         
@@ -808,6 +808,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Properties.
+        /// </summary>
+        public static string Properties {
+            get {
+                return ResourceManager.GetString("Properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read-only mode.
         /// </summary>
         public static string ReadOnlyMode {
@@ -943,11 +952,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show File Contents.
+        ///   Looks up a localized string similar to Show Contents.
         /// </summary>
-        public static string ShowFileContents {
+        public static string ShowContents {
             get {
-                return ResourceManager.GetString("ShowFileContents", resourceCulture);
+                return ResourceManager.GetString("ShowContents", resourceCulture);
             }
         }
         

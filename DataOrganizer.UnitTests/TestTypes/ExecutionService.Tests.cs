@@ -2,6 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
@@ -9,7 +10,6 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Interfaces;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -19,7 +19,7 @@ internal class ExecutionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.CloseAsync(Guid, CancellationToken)" />.
+	/// Test of <see cref="ExecutionEngine.CloseAsync" />.
 	/// </summary>
 	[Test]
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
@@ -57,7 +57,16 @@ internal class ExecutionServiceTests
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
-		await sut.ExecuteAsync(dto, [], default);
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedPassword = null,
+			File = dto,
+			IsReadOnly = default,
+			ViewModel = null
+		};
+
+		await sut.ExecuteAsync(parameters);
 
 		// Act
 		await sut.CloseAsync(dto.Id);
@@ -81,11 +90,10 @@ internal class ExecutionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.ExecuteAsync(FileModelDto, byte[], CancellationToken)" />.
+	/// Test of <see cref="ExecutionEngine.ExecuteAsync" />.
 	/// </summary>
-	[TestCase(true)]
-	[TestCase(false)]
-	public async Task ExecuteAsync_Executes_File(bool isReadOnly)
+	[Test]
+	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -103,8 +111,17 @@ internal class ExecutionServiceTests
 			TypedParameter.From(processUtils),
 			TypedParameter.From(changeTracker));
 
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = [],
+			EncryptedPassword = null,
+			File = dto,
+			IsReadOnly = isReadOnly,
+			ViewModel = null
+		};
+
 		// Act
-		bool result = await sut.ExecuteAsync(dto, [], isReadOnly);
+		bool result = await sut.ExecuteAsync(parameters);
 
 		// Assert
 		result
@@ -131,12 +148,9 @@ internal class ExecutionServiceTests
 			.Received()
 			.StartProcess(Arg.Any<string>(), out Arg.Any<int>());
 
-		await changeTracker.Received(isReadOnly ? 0 : 1).TrackChangesAsync(
-			Arg.Any<FileModelDto>(),
-			Arg.Any<string>(),
-			Arg.Any<byte[]>(),
-			Arg.Any<SemaphoreSlim>(),
-			Arg.Any<Predicate<Guid>>());
+		await changeTracker
+			.Received(isReadOnly ? 0 : 1)
+			.TrackChangesAsync(Arg.Any<TrackChangesParameters>());
 	}
 	#endregion
 }

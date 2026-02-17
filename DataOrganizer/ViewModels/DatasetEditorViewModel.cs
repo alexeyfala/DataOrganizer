@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -34,31 +35,104 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="DatasetEditorView" />.
 /// </summary>
-public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileEditor
+public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
-	/// <inheritdoc />
-	public Guid FileId { get; set; }
-
-	/// <inheritdoc />
-	public string? InitialProperties { get; set; }
-
-	/// <inheritdoc />
-	public bool IsInitialized { get; private set; }
-
 	/// <summary>
 	/// Records.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Records { get; } = [];
-
-	/// <inheritdoc />
-	public Action<string>? SetPropertiesCallback { get; set; }
-
-	/// <inheritdoc />
-	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
+	/// <summary>
+	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
+	/// </summary>
+	[RelayCommand]
+	public async Task ContainerLoaded(ScrollViewer? scrollViewer)
+	{
+		if (IsInitialized)
+		{
+			return;
+		}
+
+		ContentsIsValidPair result = await _dbAccess
+			.GetFileContentsAsync(FileId)
+			.ConfigureAwait(false);
+
+		try
+		{
+			if (!result.IsValid)
+			{
+				IsContentCorrupted = true;
+
+				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
+
+				return;
+			}
+
+			if (result
+				.Contents
+				.Length == 0)
+			{
+				return;
+			}
+
+			if (!TryToDecrypt(
+				result.Contents,
+				scrollViewer,
+				out byte[] output))
+			{
+				return;
+			}
+
+			string json = TextHelper
+				.Utf8Encoding
+				.GetString(output);
+
+			Records.AddRange(_jsonSerializer
+				.Deserialize<DatasetRecordBase[]>(json)
+				.AsNotNull());
+
+			if (scrollViewer is null)
+			{
+				return;
+			}
+
+			// Virtualization is now disabled.
+			await scrollViewer
+				.WaitVirtualizingStackPanelIsLoadedAsync()
+				.ConfigureAwait(true);
+
+			await InitializePropertiesAsync(scrollViewer).ConfigureAwait(true);
+
+			// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
+			await Task
+				.Delay(300)
+				.ConfigureAwait(true);
+
+			Observable.FromEventPattern<ScrollChangedEventArgs>(
+				x => scrollViewer.ScrollChanged += x,
+				x => scrollViewer.ScrollChanged -= x)
+				.Subscribe(ScrollViewer_ScrollChanged)
+				.DisposeWith(_disposables);
+		}
+		catch (Exception ex)
+		{
+			IsContentCorrupted = true;
+
+			_logger.LogException(ex, isAssertDebug: false);
+
+			ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+		}
+		finally
+		{
+			IsInitialized = true;
+
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+		}
+	}
+
 	/// <summary>
 	/// Handles when the user has manually changed <see cref="ValueRecord.IsHidden" />.
 	/// </summary>
@@ -79,77 +153,80 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Adds a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task<object?> AddGroup(RecordsGroup? group)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddGroup,
 			keyHint: Strings.Name);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } name)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddGroupAsync(name, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddGroupAsync(name, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Adds a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task<object?> AddKeyValue(RecordsGroup? group)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddKeyAndValue,
 			keyHint: Strings.Key,
 			valueHint: Strings.Value);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } key)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddKeyValueAsync(key, view.ViewModel.Value, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddKeyValueAsync(
+			key,
+			view.ViewModel.Value,
+			group).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Adds a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task<object?> AddValue(RecordsGroup? group)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.AddValue,
 			keyHint: Strings.Name);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } value)
-			{
-				return Task.CompletedTask;
-			}
-
-			return AddValueAsync(value, group);
-		};
-
-		return DialogHost.Show(view);
+		await AddValueAsync(value, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -157,12 +234,6 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasGroups))]
 	private Task Collapse(RecordsGroup? group) => ExpandCollapseAsync(group, true);
-
-	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
-	/// </summary>
-	[RelayCommand]
-	private Task ContainerLoaded(ScrollViewer? scrollViewer) => LoadDataAsync(scrollViewer);
 
 	/// <summary>
 	/// Copies <see cref="KeyValueRecord" /> key and value to system clipboard.
@@ -190,7 +261,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Deletes a <see cref="RecordsGroup" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private Task DeleteGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -204,7 +275,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Deletes a <see cref="KeyValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private Task DeleteKeyValueRecord(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -218,7 +289,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Deletes a <see cref="ValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private Task DeleteValueRecord(ValueRecord? record)
 	{
 		if (record is null)
@@ -232,45 +303,48 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Edits a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task EditKeyValue(KeyValueRecord? record)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task EditKeyValue(KeyValueRecord? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: record.Key,
 			keyHint: Strings.Key,
 			value: record.Value,
 			valueHint: Strings.Value);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } key)
-			{
-				return Task.CompletedTask;
-			}
-
-			return EditKeyValueAsync(record, key, view.ViewModel.Value);
-		};
-
-		return DialogHost.Show(view);
+		await EditKeyValueAsync(
+			record,
+			key,
+			view.ViewModel.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Edits <see cref="DatasetRecordBase.Note" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task EditNote(DatasetRecordBase? record)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task EditNote(DatasetRecordBase? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
@@ -279,45 +353,48 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 			.ViewModel
 			.Text = record.Note;
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false))
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			return EditNoteAsync(record, view.ViewModel.Text);
-		};
-
-		return DialogHost.Show(view);
+		await EditNoteAsync(record, view.ViewModel.Text).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Edits a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task EditValue(ValueRecord? record)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task EditValue(ValueRecord? record)
 	{
 		if (record is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: record.Value,
 			keyHint: Strings.Edit);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } value)
-			{
-				return Task.CompletedTask;
-			}
-
-			return EditValueAsync(record, value);
-		};
-
-		return DialogHost.Show(view);
+		await EditValueAsync(record, value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -335,7 +412,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Handles the <see cref="Expander.Expanded" />, <see cref="Expander.Collapsed" /> events by user.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
 	{
 		if (e?.Source is not Expander expander || !expander.IsPointerOver)
@@ -358,32 +435,32 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Renames a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private Task RenameGroup(RecordsGroup? group)
+	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	private async Task RenameGroup(RecordsGroup? group)
 	{
 		if (group is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		KeyValueInputView view = _viewLauncher.ConfigureKeyValueInputView(
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view.ViewModel.Initialize(
 			defaultButtonText: Strings.Save,
 			key: group.Name,
 			keyHint: Strings.Rename);
 
-		view.ViewModel.DefaultPressedCallback = () =>
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync()
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
 		{
-			DialogHost.Close(null);
+			return;
+		}
 
-			if (view.ViewModel.Key is not { } name)
-			{
-				return Task.CompletedTask;
-			}
-
-			return RenameGroupAsync(group, name);
-		};
-
-		return DialogHost.Show(view);
+		await RenameGroupAsync(group, name).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -420,7 +497,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
 
-	/// <inheritdoc cref="EditorViewModelBase.ShowInListAsync(Window?, Guid)" />
+	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
 	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
 
@@ -517,43 +594,24 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboardService;
 
-	/// <inheritdoc cref="IDbAccess" />
-	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
-
-	/// <inheritdoc cref="IViewLauncher" />
-	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
+		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app)
+		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
 		_clipboardService = clipboardService;
 
-		_dbAccess = dbAccess;
-
-		_jsonSerializer = jsonSerializer;
-
-		_logger = logger;
-
 		_viewFactory = viewFactory;
-
-		_viewLauncher = viewLauncher;
 	}
 	#endregion
 
@@ -565,7 +623,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	{
 		lock (_mutex)
 		{
-			if (e.Sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
 			{
 				return;
 			}
@@ -584,7 +642,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 				return;
 			}
 
-			_ = this.SavePropertiesAsync(_dbAccess, _logger, json);
+			_ = SavePropertiesAsync(json);
 		}
 	}
 	#endregion
@@ -827,83 +885,12 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 		_logger.LogInformation($"{(expand ? "Expand" : "Collapse")} all groups");
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsContentCorrupted)
 		{
 			return Task.CompletedTask;
 		}
 
 		return SaveContentsAsync(token);
-	}
-
-	/// <summary>
-	/// Loads data from the database.
-	/// </summary>
-	public async Task LoadDataAsync(ScrollViewer? scrollViewer = null, CancellationToken token = default)
-	{
-		if (IsInitialized)
-		{
-			return;
-		}
-
-		ContentsIsValidPair result = await _dbAccess
-			.GetFileContentsAsync(FileId, token)
-			.ConfigureAwait(false);
-
-		if (result.IsDefault() || !result.IsValid)
-		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
-
-			return;
-		}
-
-		try
-		{
-			if (result.Contents.Length == 0)
-			{
-				return;
-			}
-
-			string json = TextHelper
-				.Utf8Encoding
-				.GetString(result.Contents);
-
-			Records.AddRange(_jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(json)
-				.AsNotNull());
-
-			if (scrollViewer is null)
-			{
-				return;
-			}
-
-			// Virtualization is now disabled.
-			await scrollViewer
-				.WaitVirtualizingStackPanelIsLoadedAsync(token)
-				.ConfigureAwait(true);
-
-			await InitializePropertiesAsync(scrollViewer, token).ConfigureAwait(true);
-
-			// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
-			await Task
-				.Delay(300, token)
-				.ConfigureAwait(true);
-
-			Observable.FromEventPattern<ScrollChangedEventArgs>(
-				x => scrollViewer.ScrollChanged += x,
-				x => scrollViewer.ScrollChanged -= x)
-				.Subscribe(ScrollViewer_ScrollChanged)
-				.DisposeWith(_disposables);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
-
-			IsInitialized = true;
-		}
 	}
 
 	/// <inheritdoc cref="RenameGroup" />
@@ -948,7 +935,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 		records.ForEach(x => x.IsHidden = hide);
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsContentCorrupted)
 		{
 			return Task.CompletedTask;
 		}
@@ -985,7 +972,7 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 
 		records.AddRange(sorted);
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsContentCorrupted)
 		{
 			return Task.CompletedTask;
 		}
@@ -1019,14 +1006,22 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
-	private static bool HasChildren(RecordsGroup? group) => group is not null && group.Children.Any();
+	private static bool HasChildren(RecordsGroup? group)
+	{
+		return group?
+			.Children
+			.Any() == true;
+	}
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
 	/// </summary>
 	private static bool HasGroups(RecordsGroup? group)
 	{
-		return group is not null && group.Children.OfType<RecordsGroup>().Any();
+		return group?
+			.Children
+			.OfType<RecordsGroup>()
+			.Any() == true;
 	}
 
 	/// <summary>
@@ -1108,17 +1103,27 @@ public sealed partial class DatasetEditorViewModel : EditorViewModelBase, IFileE
 	private bool IsAnyRecords() => Records.Any();
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="EditorViewModelBase.IsReadOnly" /> is <c>False</c>.
+	/// Returns <c>True</c> if <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
 	/// </summary>
-	private bool IsNotReadOnly() => !IsReadOnly;
+	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
 
-	/// <inheritdoc cref="FileEditorExtensions.SaveContentsAsync(IFileEditor, IDbAccess, ILogger, byte[], CancellationToken)" />
+	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private Task SaveContentsAsync(CancellationToken token = default)
 	{
-		return this.SaveContentsAsync(
-			_dbAccess,
-			_logger,
-			TextHelper.Utf8Encoding.GetBytes(_jsonSerializer.Serialize(Records)),
+		byte[] contents = TextHelper
+			.Utf8Encoding
+			.GetBytes(_jsonSerializer.Serialize(Records));
+
+		if (!TryToEncrypt(
+			contents,
+			null,
+			out byte[] output))
+		{
+			return Task.CompletedTask;
+		}
+
+		return SaveContentsAsync(
+			output,
 			token: token);
 	}
 	#endregion

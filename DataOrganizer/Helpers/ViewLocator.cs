@@ -3,9 +3,10 @@ using Avalonia.Controls.Templates;
 using Avalonia.Layout;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using DataOrganizer.Views;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Views;
 using Entities.Enums;
 using System;
 using System.Collections.Generic;
@@ -73,17 +74,24 @@ internal sealed class ViewLocator : IDataTemplate
 				return view;
 			}
 
-			void Initialize(IFileEditor editor)
+			void Initialize(EmbeddedEditorViewModelBase viewModel)
 			{
-				editor.FileId = dto.Id;
+				if (dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted
+					&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword)
+				{
+					// It is important not to pass a reference to the array.
+					viewModel.EncryptedPassword = [.. encryptedPassword];
+				}
 
-				editor.SetPropertiesCallback = SetProperties;
+				viewModel.FileId = dto.Id;
 
-				editor.SetUpdatedDateCallback = SetUpdatedDate;
+				viewModel.SetPropertiesCallback = SetProperties;
 
-				editor.InitialProperties = dto.Properties;
+				viewModel.SetUpdatedDateCallback = SetUpdatedDate;
 
-				editor.Initialize();
+				viewModel.InitialProperties = dto.Properties;
+
+				viewModel.Initialize();
 			}
 
 			void SetProperties(string properties) => dto.Properties = properties;

@@ -424,7 +424,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		EncryptDecryptFilesParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			Password = AppUtils.CreateRandomString(10)
@@ -613,17 +613,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Allows_To_Decrypt_When_Password_Hash_Missing()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -636,7 +630,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -649,17 +643,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Allows_To_Encrypt()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -672,7 +660,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -685,7 +673,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Cannot_Show_File_Contents()
 	{
 		// Arrange
@@ -704,15 +692,9 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = folder
 		};
@@ -721,7 +703,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -734,7 +716,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Hash_Does_Not_Match()
 	{
 		// Arrange
@@ -753,12 +735,6 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
@@ -770,7 +746,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -783,17 +759,11 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Does_Nothing_If_Password_Not_Entered()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
-
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = null;
 
 		HandlePasswordInputParameters parameters = new()
 		{
@@ -806,7 +776,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			null,
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -819,7 +789,7 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HandlePasswordInputAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HandlePasswordInputAsync_Shows_File_Contents()
 	{
 		// Arrange
@@ -851,15 +821,9 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		PasswordBox view = mock.Create<PasswordBox>();
-
-		view
-			.ViewModel
-			.Password = AppUtils.CreateRandomString(10);
-
 		HandlePasswordInputParameters parameters = new()
 		{
-			Action = CryptoAction.ShowFileContents,
+			Action = CryptoAction.ShowFolderContents,
 			Files = [],
 			Folder = folder
 		};
@@ -868,7 +832,7 @@ internal class EntityEcryptionTests
 
 		// Act
 		HandlePasswordResult result = await sut.HandlePasswordInputAsync(
-			view,
+			AppUtils.CreateRandomString(10),
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -891,10 +855,116 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFileContents(FolderModelDto)" />.
+	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideFileContentsAsync_Asks_The_User_To_Close_File([Values] bool isEdited)
+	{
+		// Arrange
+		FileModelDto file = isEdited
+			? TestUtils.CreateFileDto(isEdited: true)
+			: TestUtils.CreateFileDto(isExecuted: true);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
 	/// </summary>
 	[Test]
-	public void HideFileContents_Does_Work()
+	public async Task HideFileContentsAsync_Does_Work()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
+
+		// Assert
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="IEntityEcryption.HideFolderContentsAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideFolderContentsAsync_Asks_The_User_To_Close_Files()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+
+		editedFiles.ForEach(x => x.IsEdited = true);
+
+		executedFiles.ForEach(x => x.IsExecuted = true);
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(mock.Create<YesNoCancelBox>());
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<YesNoCancelBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task HideFolderContentsAsync_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -916,7 +986,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		sut.HideFileContents(folder);
+		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
 
 		// Assert
 		folder.EncryptedPassword
@@ -931,6 +1001,80 @@ internal class EntityEcryptionTests
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.ShowFileContentsAsync" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowFileContentsAsync_Does_Work()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			PasswordBox view = mock.Create<PasswordBox>();
+
+			view
+				.ViewModel
+				.Password = AppUtils.CreateRandomString(10);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<PasswordBox>()
+				.Returns(view);
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(encryption);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(true);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.ShowFileContentsAsync(file, mock.Create<EditorViewModel>());
+
+		// Assert
+		folder.EncryptedPassword
+			.Should()
+			.NotBeEmpty();
+
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Decrypted);
 	}
 
 	/// <summary>

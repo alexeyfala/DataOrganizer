@@ -1,17 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Views;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Properties;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// View model for <see cref="EntityCreationView" />.
 /// </summary>
-public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
+public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModelBase
 {
 	#region Auto-Generated Properties
 	/// <inheritdoc cref="EntityCreationViewSettings.IsDatasetSelected" />
@@ -28,7 +30,7 @@ public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
 
 	/// <inheritdoc cref="EntityCreationViewSettings.Name" />
 	[ObservableProperty]
-	[NotifyCanExecuteChangedFor(nameof(DefaultPressedCommand))]
+	[NotifyCanExecuteChangedFor(nameof(SaveCommand))]
 	private string _name = string.Empty;
 
 	/// <summary>
@@ -48,6 +50,20 @@ public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
 			? Strings.NameAndExtension
 			: Strings.Name;
 	}
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Cancel.
+	/// </summary>
+	[RelayCommand]
+	private Task Cancel() => SetResultAsync(false);
+
+	/// <summary>
+	/// Save.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteSave))]
+	private Task Save() => SetResultAsync(true);
 	#endregion
 
 	#region Data
@@ -88,12 +104,14 @@ public sealed partial class EntityCreationViewModel : DefaultButtonViewModelBase
 			AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
 			false);
 	}
-
-	/// <inheritdoc />
-	protected override bool CanExecuteDefaultPressed() => !string.IsNullOrWhiteSpace(Name);
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Validates <see cref="SaveCommand" />.
+	/// </summary>
+	private bool CanExecuteSave() => !string.IsNullOrWhiteSpace(Name);
+
 	/// <summary>
 	/// Initializes settings from file.
 	/// </summary>

@@ -34,7 +34,10 @@ public sealed class EncryptionService : IEncryptionService
 
 	#region Methods
 	/// <inheritdoc />
-	public bool Decrypt(byte[] input, byte[] password, out byte[] output)
+	public bool Decrypt(
+		byte[] input,
+		byte[] password,
+		out byte[] output)
 	{
 		output = [];
 
@@ -76,7 +79,10 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public bool Encrypt(byte[] input, byte[] password, out byte[] output)
+	public bool Encrypt(
+		byte[] input,
+		byte[] password,
+		out byte[] output)
 	{
 		output = [];
 

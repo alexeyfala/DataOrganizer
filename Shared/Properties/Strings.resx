@@ -406,11 +406,11 @@
   <data name="Size" xml:space="preserve">
     <value>Size</value>
   </data>
-  <data name="ShowFileContents" xml:space="preserve">
-    <value>Show File Contents</value>
+  <data name="ShowContents" xml:space="preserve">
+    <value>Show Contents</value>
   </data>
-  <data name="HideFileContents" xml:space="preserve">
-    <value>Hide File Contents</value>
+  <data name="HideContents" xml:space="preserve">
+    <value>Hide Contents</value>
   </data>
   <data name="EncryptFiles" xml:space="preserve">
     <value>Encrypt Files</value>
@@ -448,13 +448,16 @@
   <data name="MissingFiles" xml:space="preserve">
     <value>Missing files</value>
   </data>
-  <data name="FailedToProcessFileContents" xml:space="preserve">
-    <value>Failed to process file contents</value>
+  <data name="FailedToProcessContents" xml:space="preserve">
+    <value>Failed to process contents</value>
   </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Failed to show file contents</value>
   </data>
   <data name="CloseFilesBeingEdited" xml:space="preserve">
     <value>Close files being edited</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
   </data>
 </root>

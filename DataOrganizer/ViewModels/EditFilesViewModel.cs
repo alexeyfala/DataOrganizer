@@ -134,9 +134,9 @@ public sealed partial class EditFilesViewModel : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Adds tab in <see cref="TabControl" />.
+	/// Opens a file in built-in the editor.
 	/// </summary>
-	public void AddTab(FileModelDto dto)
+	public void OpenInEditor(FileModelDto dto)
 	{
 		if (dto is null)
 		{

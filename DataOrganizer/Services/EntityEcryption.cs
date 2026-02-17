@@ -71,6 +71,78 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
+	public bool DecryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Decrypt(
+				input,
+				decryptedPassword,
+				out byte[] decryptedContents))
+			{
+				return false;
+			}
+
+			output = decryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <inheritdoc />
+	public bool EncryptContents(
+		byte[] input,
+		byte[] encryptedPassword,
+		out byte[] output)
+	{
+		output = [];
+
+		if (!_encryption.Decrypt(
+			encryptedPassword,
+			GetSessionId(),
+			out byte[] decryptedPassword))
+		{
+			return false;
+		}
+
+		try
+		{
+			if (!_encryption.Encrypt(
+				input,
+				decryptedPassword,
+				out byte[] encryptedContents))
+			{
+				return false;
+			}
+
+			output = encryptedContents;
+
+			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedPassword);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
 		EditorViewModel viewModel,
 		EncryptDecryptFilesParameters parameters,
@@ -78,7 +150,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		try
 		{
-			if (parameters.Action == CryptoAction.ShowFileContents)
+			if (parameters.Action == CryptoAction.ShowFolderContents)
 			{
 				throw new InvalidOperationException("Unsupported action type");
 			}
@@ -104,7 +176,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				|| result.Any(x => !x.IsValid)
 				|| result.Any(x => x.Id.IsDefault()))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessFileContents);
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return FilesEncryptionResult.FailedToEncryptContents;
 			}
@@ -198,7 +270,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			async Task RestoreDatabaseAsync()
 			{
 				viewModel.ShowErrorSnackbar(
-					Strings.FailedToProcessFileContents +
+					Strings.FailedToProcessContents +
 					Environment.NewLine +
 					Strings.TheDatabaseWillBeRestored);
 
@@ -239,82 +311,128 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc />
 	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
-		PasswordBox view,
+		string? password,
 		EditorViewModel viewModel,
 		HandlePasswordInputParameters parameters,
 		CancellationToken token = default)
 	{
-		DialogOverlayPopupHost? popupHost = view.FindLogicalParent<DialogOverlayPopupHost>();
+		if (string.IsNullOrEmpty(password))
+		{
+			return HandlePasswordResult.PasswordNotEntered;
+		}
 
 		try
 		{
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
+			viewModel.IsActionInProgress = true;
+
+			if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
+				parameters.Folder,
+				parameters.Action,
+				password))
 			{
-				DialogHost.Close(null);
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return HandlePasswordResult.PasswordDoesNotMatch;
 			}
 
-			if (view
-				.ViewModel
-				.Password is not { } password)
+			if (parameters.Action == CryptoAction.ShowFolderContents)
 			{
-				return HandlePasswordResult.PasswordNotEntered;
-			}
-
-			try
-			{
-				Func<bool> condition = () => popupHost?.IsActuallyOpen == false;
-
-				await condition
-					.WaitAsync(300, 10, token)
-					.ConfigureAwait(false);
-
-				viewModel.IsActionInProgress = true;
-
-				if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
-					parameters.Folder,
-					parameters.Action,
-					password))
+				if (!ShowFolderContents(parameters.Folder, password))
 				{
-					viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+					viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 
-					return HandlePasswordResult.PasswordDoesNotMatch;
+					return HandlePasswordResult.FailedToShowFileContents;
 				}
-
-				if (parameters.Action == CryptoAction.ShowFileContents)
-				{
-					if (!ShowFileContents(parameters.Folder, password))
-					{
-						viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
-
-						return HandlePasswordResult.FailedToShowFileContents;
-					}
-				}
-				else
-				{
-					await EncryptDecryptAsync(
-						viewModel,
-						parameters.CreateFrom(password),
-						token).ConfigureAwait(false);
-				}
-
-				return HandlePasswordResult.Applied;
 			}
-			finally
+			else
 			{
-				viewModel.IsActionInProgress = false;
+				await EncryptDecryptAsync(
+					viewModel,
+					parameters.CreateFrom(password),
+					token).ConfigureAwait(false);
 			}
+
+			return HandlePasswordResult.Applied;
 		}
 		finally
 		{
-			popupHost = null;
+			viewModel.IsActionInProgress = false;
 		}
 	}
 
 	/// <inheritdoc />
-	public void HideFileContents(FolderModelDto folder)
+	public async Task HideFileContentsAsync(
+		FileModelDto file,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
 	{
+		if (file.IsEdited || file.IsExecuted)
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
+
+				viewModel.CloseFile(file);
+			}
+		}
+
+		file.EncryptionStatus = EncryptionStatus.Encrypted;
+	}
+
+	/// <inheritdoc />
+	public async Task HideFolderContentsAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+
+				YesNoCancelResult result = await view
+					.ViewModel
+					.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+					.ConfigureAwait(true);
+
+				if (result != YesNoCancelResult.Yes)
+				{
+					return;
+				}
+			}
+
+			viewModel.CloseFiles(
+				folder.GetFiles(x => x.IsEdited),
+				folder.GetFiles(x => x.IsExecuted));
+		}
+
 		if (folder.EncryptedPassword is not null)
 		{
 			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
@@ -326,6 +444,15 @@ public sealed class EntityEcryption : IEntityEcryption
 			.ToEnumerable()
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+
+		if (viewModel
+			.Hierarchy
+			.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+		{
+			return;
+		}
+
+		ResetSessionId();
 	}
 
 	/// <inheritdoc />
@@ -342,7 +469,71 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public Task TakePasswordAsync(
+	public async Task ShowFileContentsAsync(
+		FileModelDto file,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		if (file.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is not { } root
+			|| root.PasswordHash is not { } passwordHash)
+		{
+			return;
+		}
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			_ = DialogHost.Show(view);
+		}
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			viewModel.IsActionInProgress = true;
+
+			if (!_encryption.EnhancedVerify(password, passwordHash))
+			{
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return;
+			}
+
+			bool isEncrypted = _encryption.Encrypt(
+				TextHelper.Utf8Encoding.GetBytes(password),
+				GetSessionId(),
+				out byte[] output);
+
+			if (!isEncrypted)
+			{
+				return;
+			}
+
+			root.EncryptedPassword = output;
+
+			file.EncryptionStatus = EncryptionStatus.Decrypted;
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+
+			viewModel.IsActionInProgress = false;
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task TakePasswordAsync(
 		EditorViewModel viewModel,
 		FolderModelDto folder,
 		CryptoAction action,
@@ -356,14 +547,14 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
 		{
 			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
 
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show password box");
@@ -374,36 +565,48 @@ public sealed class EntityEcryption : IEntityEcryption
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		view
+		_ = DialogHost.Show(view);
+
+		if (!await view
 			.ViewModel
-			.DefaultPressedCallback = () =>
-			{
-				HandlePasswordInputParameters parameters = new()
-				{
-					Action = action,
-					Files = filesDto,
-					Folder = folder
-				};
+			.GetResultAsync(token)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
 
-				return HandlePasswordInputAsync(
-					view,
-					viewModel,
-					parameters,
-					token);
-			};
+		HandlePasswordInputParameters parameters = new()
+		{
+			Action = action,
+			Files = filesDto,
+			Folder = folder
+		};
 
-		return DialogHost.Show(view);
+		try
+		{
+			await HandlePasswordInputAsync(
+				view.ViewModel.Password,
+				viewModel,
+				parameters,
+				token).ConfigureAwait(false);
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+		}
 	}
 	#endregion
 
 	#region Service
 	/// <summary>
-	/// Shows file contents.
+	/// Shows file contents in folder.
 	/// </summary>
-	private bool ShowFileContents(
+	private bool ShowFolderContents(
 		FolderModelDto folder,
 		string password)
 	{
@@ -451,7 +654,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			case CryptoAction.Decrypt when !string.IsNullOrEmpty(passwordHash):
 				return _encryption.EnhancedVerify(password, passwordHash);
 
-			case CryptoAction.ShowFileContents:
+			case CryptoAction.ShowFolderContents:
 				if (!string.IsNullOrEmpty(passwordHash))
 				{
 					return _encryption.EnhancedVerify(password, passwordHash);

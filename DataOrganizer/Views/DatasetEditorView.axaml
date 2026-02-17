@@ -44,13 +44,9 @@
 					<Flyout
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
-						<StackPanel Orientation="Vertical">
-							<StackPanel.Styles>
-								<Style Selector="Button">
-									<Setter Property="Margin" Value="0.0" />
-								</Style>
-							</StackPanel.Styles>
-
+						<StackPanel
+							Cursor="Arrow"
+							Orientation="Vertical">
 							<wrappers:FlyoutButton
 								Command="{Binding AddKeyValueCommand}"
 								Header="{x:Static prop:Strings.AddKeyAndValue}"

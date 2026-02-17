@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -478,7 +479,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.ExecuteFile" />.
 	/// </summary>
 	[Test]
-	public async Task ExecuteFile_Executes_File()
+	public async Task ExecuteFile_Does_Work()
 	{
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
@@ -488,7 +489,7 @@ internal class EditorViewModelTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			engine
-				.ExecuteAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<bool>())
+				.ExecuteAsync(Arg.Any<ExecuteFileParameters>())
 				.Returns(true);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -524,7 +525,7 @@ internal class EditorViewModelTests
 
 		await engine
 			.Received()
-			.ExecuteAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<bool>());
+			.ExecuteAsync(Arg.Any<ExecuteFileParameters>());
 	}
 
 	/// <summary>
@@ -705,85 +706,6 @@ internal class EditorViewModelTests
 		await hook
 			.Received()
 			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task HideFileContents_Asks_The_User_To_Close_Files()
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
-
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
-
-		editedFiles.ForEach(x => x.IsEdited = true);
-
-		executedFiles.ForEach(x => x.IsExecuted = true);
-
-		folder
-			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(mock.Create<YesNoCancelBox>());
-
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			builder.RegisterInstance(viewFactory);
-
-			builder.RegisterInstance(ecryption);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HideFileContents(folder);
-
-		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<YesNoCancelBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents(FolderModelDto?)" />.
-	/// </summary>
-	[Test]
-	public async Task HideFileContents_Does_Work()
-	{
-		// Arrange
-		IEntityEcryption ecryption = Substitute.For<IEntityEcryption>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(ecryption));
-
-		// Act
-		await sut.HideFileContents(TestUtils.CreateFolderDto());
-
-		// Assert
-		ecryption
-			.Received()
-			.HideFileContents(Arg.Any<FolderModelDto>());
-
-		ecryption
-			.Received()
-			.ResetSessionId();
 	}
 
 	/// <summary>

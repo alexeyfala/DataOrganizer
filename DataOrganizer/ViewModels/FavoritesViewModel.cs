@@ -341,12 +341,23 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IDispatcher dispatcher,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
+		IViewLauncher viewLauncher) : base(
+			app,
+			settingsManager,
+			dbAccess,
+			dispatcher,
+			entityEcryption,
+			eventSimulator,
+			keyboardInputHook,
+			logger,
+			viewFactory,
+			viewLauncher)
 	{
 	}
 	#endregion

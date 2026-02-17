@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:abstract="using:DataOrganizer.Abstract"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:localDto="using:DataOrganizer.DTO"
@@ -83,17 +84,17 @@
 									Placement="Right">
 									<StackPanel Orientation="Vertical">
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFolderContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="{StaticResource WarningBrush}"
-											Header="{x:Static prop:Strings.ShowFileContents}"
+											Header="{x:Static prop:Strings.ShowContents}"
 											Icon="LockOpenVariantOutline" />
 
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFolderContentsCommand}"
 											CommandParameter="{Binding}"
 											Foreground="ForestGreen"
-											Header="{x:Static prop:Strings.HideFileContents}"
+											Header="{x:Static prop:Strings.HideContents}"
 											Icon="LockCheckOutline" />
 
 										<Separator />
@@ -121,6 +122,14 @@
 								</Flyout>
 							</Button.Flyout>
 						</wrappers:FlyoutButton>
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Properties}"
+							Icon="WrenchOutline" />
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>
@@ -153,11 +162,10 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Grid.Resources>
+				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
-
-				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
-
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
+				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 			</Grid.Resources>
 
 			<Interaction.Behaviors>
@@ -232,7 +240,36 @@
 							Icon="ContentCopy"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
 
-						<Separator />
+						<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}" />
+
+						<wrappers:FlyoutButton
+							Header="{x:Static prop:Strings.Encryption}"
+							Icon="LockOutline"
+							IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}">
+							<Button.Flyout>
+								<Flyout
+									OverlayDismissEventPassThrough="True"
+									Placement="Right">
+									<StackPanel Orientation="Vertical">
+										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowFileContentsCommand}"
+											CommandParameter="{Binding}"
+											Foreground="{StaticResource WarningBrush}"
+											Header="{x:Static prop:Strings.ShowContents}"
+											Icon="LockOpenVariantOutline" />
+
+										<wrappers:FlyoutButton
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).HideFileContentsCommand}"
+											CommandParameter="{Binding}"
+											Foreground="ForestGreen"
+											Header="{x:Static prop:Strings.HideContents}"
+											Icon="LockCheckOutline" />
+									</StackPanel>
+								</Flyout>
+							</Button.Flyout>
+						</wrappers:FlyoutButton>
+
+						<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
 
 						<wrappers:FlyoutButton
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).SetFavoriteCommand}"
@@ -247,6 +284,14 @@
 							Header="{x:Static prop:Strings.Hotkeys}"
 							Icon="KeyboardVariant"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+
+						<Separator />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowPropertiesCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Properties}"
+							Icon="WrenchOutline" />
 					</StackPanel>
 				</Flyout>
 			</Grid.ContextFlyout>
@@ -676,7 +721,11 @@
 							<views:ClipboardTextBlock
 								Padding="{StaticResource RecordPadding}"
 								Note="{Binding Note, Mode=OneWay}"
-								Text="{Binding Name, Mode=OneWay}" />
+								Text="{Binding Name, Mode=OneWay}">
+								<Interaction.Behaviors>
+									<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+								</Interaction.Behaviors>
+							</views:ClipboardTextBlock>
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>

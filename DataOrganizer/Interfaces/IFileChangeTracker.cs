@@ -1,5 +1,4 @@
-﻿using DataOrganizer.DTO.Entities.Models;
-using System;
+﻿using DataOrganizer.DTO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,12 +13,6 @@ public interface IFileChangeTracker
 	/// <summary>
 	/// Tracks changes of the executed file.
 	/// </summary>
-	Task TrackChangesAsync(
-		FileModelDto dto,
-		string filePath,
-		byte[] contents,
-		SemaphoreSlim semaphore,
-		Predicate<Guid> condition,
-		CancellationToken token = default);	
+	Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default);
 	#endregion
 }

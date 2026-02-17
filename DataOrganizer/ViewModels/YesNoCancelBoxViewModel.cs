@@ -1,10 +1,9 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
-using DialogHostAvalonia;
-using Shared.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="YesNoCancelBox" />.
 /// </summary>
-public sealed partial class YesNoCancelBoxViewModel : ObservableObject
+public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelResult>
 {
 	#region Auto-Generated Properties
 	/// <summary>
@@ -53,60 +52,23 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void CancelButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Cancel);
-	}
+	private Task CancelButtonPressed() => SetResultAsync(YesNoCancelResult.Cancel);
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void NoButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.No);
-	}
+	private Task NoButtonPressed() => SetResultAsync(YesNoCancelResult.No);
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private void YesButtonPressed()
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			DialogHost.Close(null);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Yes);
-	}
-	#endregion
-
-	#region Data
-	/// <inheritdoc cref="TaskCompletionSource" />
-	private readonly TaskCompletionSource<YesNoCancelResult> _source = new();
+	private Task YesButtonPressed() => SetResultAsync(YesNoCancelResult.Yes);
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Returns a result of the user choice.
-	/// </summary>
+	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
 	public Task<YesNoCancelResult> GetResultAsync(
 		YesNoCancelVariant variant,
 		CancellationToken token = default)
@@ -137,34 +99,7 @@ public sealed partial class YesNoCancelBoxViewModel : ObservableObject
 				throw new NotImplementedException();
 		}
 
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			_ = WaitDialogCloseAsync(token);
-		}
-
-		return _source.Task;
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Waits for the dialog <see cref="DialogHost" /> to close.
-	/// </summary>
-	/// <remarks>
-	/// Needed in case the user closes the dialog without using provided buttons.
-	/// </remarks>
-	private async Task WaitDialogCloseAsync(CancellationToken token = default)
-	{
-		while (DialogHost.IsDialogOpen(null))
-		{
-			await Task
-				.Delay(500, token)
-				.ConfigureAwait(false);
-		}
-
-		_source.TrySetResult(YesNoCancelResult.Cancel);
+		return GetResultAsync(defaultResult: YesNoCancelResult.Cancel, token);
 	}
 	#endregion
 }

@@ -426,11 +426,11 @@
   <data name="Size" xml:space="preserve">
     <value>Размер</value>
   </data>
-  <data name="ShowFileContents" xml:space="preserve">
-    <value>Показать содержимое файлов</value>
+  <data name="ShowContents" xml:space="preserve">
+    <value>Показать содержимое</value>
   </data>
-  <data name="HideFileContents" xml:space="preserve">
-    <value>Скрыть содержимое файлов</value>
+  <data name="HideContents" xml:space="preserve">
+    <value>Скрыть содержимое</value>
   </data>
   <data name="EncryptFiles" xml:space="preserve">
     <value>Зашифровать файлы</value>
@@ -468,13 +468,16 @@
   <data name="MissingFiles" xml:space="preserve">
     <value>Отсутствуют файлы</value>
   </data>
-  <data name="FailedToProcessFileContents" xml:space="preserve">
-    <value>Не удалось обработать содержимое файлов</value>
+  <data name="FailedToProcessContents" xml:space="preserve">
+    <value>Не удалось обработать содержимое</value>
   </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Не удалось показать содержимое файлов</value>
   </data>
   <data name="CloseFilesBeingEdited" xml:space="preserve">
     <value>Закрыть редактируемые файлы</value>
+  </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Свойства</value>
   </data>
 </root>

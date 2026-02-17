@@ -5,7 +5,6 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Serilog;
 using Shared.Common;
@@ -13,6 +12,9 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -24,6 +26,9 @@ public class ViewLauncher : IViewLauncher
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
+
+	/// <inheritdoc cref="IExecutionEngine" />
+	private readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -44,6 +49,7 @@ public class ViewLauncher : IViewLauncher
 	#region Constructors
 	public ViewLauncher(
 		Application app,
+		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,
@@ -51,6 +57,8 @@ public class ViewLauncher : IViewLauncher
 		IViewFactory viewFactory)
 	{
 		_app = app;
+
+		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
 
@@ -260,26 +268,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public KeyValueInputView ConfigureKeyValueInputView(
-		string defaultButtonText,
-		string? key = null,
-		string? keyHint = null,
-		string? value = null,
-		string? valueHint = null)
-	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(
-			defaultButtonText: defaultButtonText,
-			key: key,
-			keyHint: keyHint,
-			value: value,
-			valueHint: valueHint);
-
-		return view;
-	}
-
-	/// <inheritdoc />
 	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		string filePath = AppUtils.GetSettingsFilePath(nameof(CurrentWindow));
@@ -298,7 +286,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveEditorSettingsAsync(EditorWindow window)
+	public Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -345,7 +333,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync();
+			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
 		}
 		catch (Exception ex)
 		{
@@ -356,7 +344,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveFavoritesSettingsAsync(FavoritesWindow window)
+	public Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -395,7 +383,7 @@ public class ViewLauncher : IViewLauncher
 				return Task.CompletedTask;
 			}
 
-			return TryShutdownAppAsync();
+			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
 		}
 		catch (Exception ex)
 		{
@@ -427,9 +415,59 @@ public class ViewLauncher : IViewLauncher
 
 	#region Service
 	/// <summary>
+	/// Tries to delete directory multiple times.
+	/// </summary>
+	private async Task DeleteDirectoryAsync(
+		string directoryPath,
+		int maxAttepmts,
+		int currentAttepmt = 0,
+		CancellationToken token = default)
+	{
+		if (!_fileSystem.IsDirectoryExists(directoryPath))
+		{
+			_logger.LogInformation($@"Folder ""{directoryPath}"" does not exist");
+
+			return;
+		}
+
+		if (currentAttepmt >= maxAttepmts)
+		{
+			_logger.LogInformation($@"Can't delete folder ""{directoryPath}"" with {currentAttepmt} attepmts");
+
+			return;
+		}
+
+		currentAttepmt++;
+
+		await Task
+			.Delay(300, token)
+			.ConfigureAwait(false);
+
+		_logger.LogInformation(
+			$@"Trying to delete folder ""{directoryPath}"". Attepmt №{currentAttepmt}");
+
+		try
+		{
+			_fileSystem.DeleteDirectoryRecursively(directoryPath, true);
+
+			_logger.LogInformation($@"Folder ""{directoryPath}"" is deleted");
+		}
+		catch (IOException)
+		{
+			await DeleteDirectoryAsync(
+				directoryPath,
+				maxAttepmts,
+				currentAttepmt,
+				token).ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
 	/// Tries to shutdown the application.
 	/// </summary>
-	private async Task TryShutdownAppAsync()
+	private async Task TryShutdownAppAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
 	{
 		_keyboardInputHook.Dispose();
 
@@ -445,10 +483,26 @@ public class ViewLauncher : IViewLauncher
 			while (_app.IsAnyWindow<ConsoleWindow>())
 			{
 				await Task
-					.Delay(300)
+					.Delay(300, token)
 					.ConfigureAwait(true);
 			}
 		}
+
+		Guid[] executedFiles = [.. hierarchy
+			.GetFilesBy(x => x.IsExecuted)
+			.Select(x => x.Id)];
+
+		if (executedFiles.Length > 0)
+		{
+			await executedFiles
+				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))
+				.ConfigureAwait(false);
+		}
+
+		await DeleteDirectoryAsync(
+			directoryPath: AppUtils.SandboxDirectoryPath,
+			maxAttepmts: 10,
+			token: token).ConfigureAwait(false);
 
 		desktop.TryShutdown();
 	}

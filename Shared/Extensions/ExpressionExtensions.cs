@@ -8,20 +8,6 @@ public static class ExpressionExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Returns the value from an object's property.
-	/// </summary>
-	/// <typeparam name="T">Property type.</typeparam>
-	/// <param name="expression">Property in the form of a lambda expression.</param>
-	public static object? GetValue<T>(this Expression<Func<T>> expression)
-	{
-		PropertyInfo? propertyInfo = expression.GetPropertyInfo();
-
-		object? entity = expression.GetEntityReference();
-
-		return propertyInfo?.GetValue(entity);
-	}
-
-	/// <summary>
 	/// Sets a value to a property of an object.
 	/// </summary>
 	/// <typeparam name="TProp">Property type.</typeparam>
@@ -35,16 +21,6 @@ public static class ExpressionExtensions
 		object? entity = expression.GetEntityReference();
 
 		propertyInfo?.SetValue(entity, value);
-	}
-
-	/// <summary>
-	/// Sets the property to the given value, then resets it to the default value.
-	/// </summary>
-	public static void Switch<T>(this Expression<Func<T>> expression, T value)
-	{
-		expression.SetValue(value);
-
-		expression.SetValue(default(T));
 	}
 	#endregion
 

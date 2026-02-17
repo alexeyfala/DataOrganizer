@@ -37,6 +37,16 @@ public interface IFileSystem
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
 	/// <summary>
+	/// <inheritdoc cref="Directory.Delete(string, bool)" />
+	/// </summary>
+	/// <remarks>
+	/// If <paramref name="removeFileReadonlySign"/> is <c>True</c>, removes preliminarily the sign <see cref="FileAttributes.ReadOnly" /> for all files.
+	/// </remarks>
+	void DeleteDirectoryRecursively(
+		string directoryPath,
+		bool removeFileReadonlySign = false);
+
+	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />
 	/// <inheritdoc cref="DeleteFile(string)" />
 	/// </summary>
@@ -52,6 +62,16 @@ public interface IFileSystem
 		string filePath,
 		in int bufferSize = DefaultBufferSize,
 		in int passes = DefaultPassCount);
+
+	/// <summary>
+	/// Determines whether a folder exists in the file system, taking into account the case of the path.
+	/// </summary>
+	/// <remarks>
+	/// The case-sensitivity of the path parameter corresponds to that of the file system on which the code is running.
+	/// For example, it's case-insensitive on NTFS (the default Windows file system) and case-sensitive on Linux file systems.
+	/// </remarks>
+	[return: NotNullIfNotNull(nameof(directoryPath))]
+	bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath);
 
 	/// <summary>
 	/// Determines whether a file exists in the file system, taking into account the case of the path.

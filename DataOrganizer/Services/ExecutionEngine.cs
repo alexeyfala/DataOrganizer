@@ -1,5 +1,4 @@
 ﻿using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -41,8 +40,8 @@ public class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IFileChangeTracker changeTracker,
 		IFileAssociationService fileAssociation,
+		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils)
@@ -126,49 +125,54 @@ public class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(
-		FileModelDto dto,
-		byte[] contents,
-		bool isReadOnly,
+		ExecuteFileParameters parameters,
 		CancellationToken token = default)
 	{
 		try
 		{
 			string directoryPath = Path.Combine(
 				AppUtils.SandboxDirectoryPath,
-				dto.Id.ToString());
+				parameters.File.Id.ToString());
 
 			_fileSystem.CreateDirectory(directoryPath);
 
-			string filePath = Path.Combine(directoryPath, dto.Name);
+			string filePath = Path.Combine(directoryPath, parameters.File.Name);
 
-			if (_fileAssociation.GetApplicationByExtension(Path.GetExtension(dto.Name)) is { } appPath)
+			if (_fileAssociation.GetApplicationByExtension(Path.GetExtension(parameters.File.Name)) is { } appPath)
 			{
-				_logger.LogDebug($@"Application path to open file ""{dto.Name}"" is: {appPath}");
+				_logger.LogDebug($@"Application path to open file ""{parameters.File.Name}"" is: {appPath}");
 			}
 
 			await _fileSystem
-				.WriteAllBytesAsync(filePath, contents, token)
+				.WriteAllBytesAsync(filePath, parameters.Contents, token)
 				.ConfigureAwait(false);
 
-			_fileSystem.SetFileReadOnly(filePath, isReadOnly);
+			_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
 
 			_processUtils.StartProcess(filePath, out int processId);
 
-			_executedFiles.TryAdd(dto.Id, new(filePath, directoryPath, processId));
+			_executedFiles.TryAdd(
+				parameters.File.Id,
+				new(filePath, directoryPath, processId));
 
-			if (!isReadOnly)
+			if (!parameters.IsReadOnly)
 			{
-				_ = _changeTracker.TrackChangesAsync(
-					dto: dto,
-					filePath: filePath,
-					contents: contents,
-					semaphore: _semaphore,
-					condition: _executedFiles.ContainsKey,
-					token: token);
+				TrackChangesParameters trackParameters = new()
+				{
+					Condition = _executedFiles.ContainsKey,
+					Contents = parameters.Contents,
+					EncryptedPassword = parameters.EncryptedPassword,
+					File = parameters.File,
+					FilePath = filePath,
+					Semaphore = _semaphore,
+					ViewModel = parameters.ViewModel
+				};
+
+				_ = _changeTracker.TrackChangesAsync(trackParameters, token);
 			}
 
 			_logger.LogInformation(
-				$@"The file {filePath} is opened{(isReadOnly ? " in read-only mode" : string.Empty)}");
+				$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
 
 			return true;
 		}
@@ -176,7 +180,7 @@ public class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 
-			_executedFiles.TryRemove(dto.Id, out var _);
+			_executedFiles.TryRemove(parameters.File.Id, out var _);
 
 			return false;
 		}

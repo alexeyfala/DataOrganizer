@@ -2,9 +2,11 @@
 using Avalonia.Controls;
 using Avalonia.Threading;
 using AvaloniaEdit;
+using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
+using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -13,13 +15,14 @@ using Serilog.Events;
 using Shared.Common;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// View model for <see cref="ConsoleWindow" />.
 /// </summary>
-public sealed partial class ConsoleViewModel : TextEditorViewModelBase
+public sealed partial class ConsoleViewModel : ObservableDisposable
 {
 	#region Properties
 	/// <summary>
@@ -34,11 +37,39 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	#endregion
 
 	#region Auto-Generated Properties
+	/// <inheritdoc cref="FileProperties.FontSize" />
+	[ObservableProperty]
+	private double _fontSize = 14.0;
+
 	/// <summary>
 	/// Indicates that recording should be paused.
 	/// </summary>
 	[ObservableProperty]
 	private bool _isPaused;
+
+	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	[ObservableProperty]
+	private bool _isWordWrap;
+	#endregion
+
+	#region Commands
+	/// <inheritdoc cref="TextEditorHelper.Copy" />
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
+
+	/// <inheritdoc cref="TextEditorHelper.Find" />
+	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
+
+	/// <inheritdoc cref="TextEditorHelper.ScrollToEnd" />
+	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorHelper.ScrollToEnd);
+
+	/// <inheritdoc cref="TextEditorHelper.ScrollToTop" />
+	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
+
+	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+
+	/// <inheritdoc cref="TextEditorHelper.Spin" />
+	public RelayCommand<SpinEventArgs> SpinCommand { get; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -54,14 +85,17 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	[RelayCommand]
 	private void EditorLoaded(TextEditor? editor)
 	{
-		_editor = editor;
-
 		if (editor is null)
 		{
 			return;
 		}
 
-		SubscribePointerWheelChanged(editor);
+		_editor = editor;
+
+		TextEditorHelper.SubscribePointerWheelChanged(
+			editor,
+			() => FontSize,
+			() => FontSize);
 
 		ApplyEditorSettings(editor);
 
@@ -103,6 +137,9 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <summary>
 	/// Record buffer.
 	/// </summary>
@@ -118,7 +155,12 @@ public sealed partial class ConsoleViewModel : TextEditorViewModelBase
 	#endregion
 
 	#region Constructors
-	public ConsoleViewModel(Application app, IDispatcher dispatcher) : base(app) => _dispatcher = dispatcher;
+	public ConsoleViewModel(IDispatcher dispatcher)
+	{
+		_dispatcher = dispatcher;
+
+		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
+	}
 	#endregion
 
 	#region Methods
