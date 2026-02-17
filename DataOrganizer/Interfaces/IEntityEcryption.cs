@@ -14,7 +14,7 @@ public interface IEntityEcryption
 {
 	#region Methods
 	/// <summary>
-	/// Decrypts file contents.
+	/// Decrypts binary with encrypted password.
 	/// </summary>
 	bool DecryptContents(
 		byte[] input,
@@ -22,7 +22,7 @@ public interface IEntityEcryption
 		out byte[] output);
 
 	/// <summary>
-	/// Encrypts file contents.
+	/// Encrypts binary with encrypted password.
 	/// </summary>
 	bool EncryptContents(
 		byte[] input,
