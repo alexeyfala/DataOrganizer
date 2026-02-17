@@ -474,7 +474,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (file.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is not { } root
 			|| root.PasswordHash is not { } passwordHash)
 		{
@@ -483,7 +482,12 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
-		_ = DialogHost.Show(view);
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			_ = DialogHost.Show(view);
+		}
 
 		if (!await view
 			.ViewModel

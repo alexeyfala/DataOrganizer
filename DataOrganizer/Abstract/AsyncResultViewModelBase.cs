@@ -21,24 +21,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 
 	#region Methods
 	/// <summary>
-	/// Returns a result.
-	/// </summary>
-	protected Task<TResult> GetResultAsync(
-		TResult defaultResult,
-		CancellationToken token = default)
-	{
-		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
-		{
-			_ = WaitDialogCloseAsync(defaultResult, token);
-		}
-
-		return _source.Task;
-	}
-
-	/// <summary>
 	/// Sets a result and closes <see cref="DialogHost" />.
 	/// </summary>
-	protected async Task SetResultAsync(TResult result, CancellationToken token = default)
+	public async Task SetResultAsync(TResult result, CancellationToken token = default)
 	{
 		_isResultSet = true;
 
@@ -61,6 +46,21 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		}
 
 		_source.SetResult(result);
+	}
+
+	/// <summary>
+	/// Returns a result.
+	/// </summary>
+	protected Task<TResult> GetResultAsync(
+		TResult defaultResult,
+		CancellationToken token = default)
+	{
+		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
+		{
+			_ = WaitDialogCloseAsync(defaultResult, token);
+		}
+
+		return _source.Task;
 	}
 	#endregion
 
