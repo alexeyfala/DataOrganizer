@@ -68,6 +68,15 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Requests a password for encryption/decryption files in folder.
+	/// </summary>
+	Task RequestPasswordAsync(
+		EditorViewModel viewModel,
+		FolderModelDto folder,
+		CryptoAction action,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Resets the session identifier.
 	/// </summary>
 	void ResetSessionId();
@@ -78,15 +87,6 @@ public interface IEntityEcryption
 	Task ShowFileContentsAsync(
 		FileModelDto file,
 		EditorViewModel viewModel,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Requests a password for encryption/decryption files in folder.
-	/// </summary>
-	Task RequestPasswordAsync(
-		EditorViewModel viewModel,
-		FolderModelDto folder,
-		CryptoAction action,
 		CancellationToken token = default);
 	#endregion
 }
