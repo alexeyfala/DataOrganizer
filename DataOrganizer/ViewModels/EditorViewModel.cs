@@ -1,8 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
-using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -592,15 +590,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Decrypts files in folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFiles))]
-	private Task DecryptFiles(FolderModelDto? dto)
+	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
+	private Task DecryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
 			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Decrypting files in a folder");
+		_logger.LogInformation("Decrypt files in a folder");
 
 		return _entityEcryption.RequestPasswordAsync(
 			this,
@@ -661,15 +659,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Encrypts files in folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFiles))]
-	private Task EncryptFiles(FolderModelDto? dto)
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
+	private Task EncryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
 			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Encrypting files in a folder");
+		_logger.LogInformation("Encrypt files in a folder");
 
 		return _entityEcryption.RequestPasswordAsync(
 			this,
@@ -682,30 +680,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
-
-	/// <summary>
-	/// <see cref="InputElement.DoubleTapped" /> event handler on <see cref="FileModelDto" />.<see cref="DataTemplate" />.
-	/// </summary>
-	[RelayCommand]
-	private void FileDoubleTapped(Control? container)
-	{
-		if (container?.ContextFlyout is not { } flyout)
-		{
-			return;
-		}
-
-		flyout.ShowAt(container);
-
-		if (SelectedObject is null)
-		{
-			return;
-		}
-
-		_logger.LogDebug($"Double tapped on file:{SelectedObject.GetPropertyValues(
-			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name))}");
-	}
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
@@ -730,9 +704,33 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Hiding files in a folder");
+		_logger.LogInformation("Hide files in a folder");
 
 		return _entityEcryption.HideFolderContentsAsync(dto, this);
+	}
+
+	/// <summary>
+	/// Opens a file context menu.
+	/// </summary>
+	[RelayCommand]
+	private void OpenFileContextMenu(Control? container)
+	{
+		if (container?.ContextFlyout is not { } flyout)
+		{
+			return;
+		}
+
+		flyout.ShowAt(container);
+
+		if (SelectedObject is null)
+		{
+			return;
+		}
+
+		_logger.LogDebug($"Open a file context menu:{SelectedObject.GetPropertyValues(
+			true,
+			nameof(FileModelDto.Id),
+			nameof(FileModelDto.Name))}");
 	}
 
 	/// <summary>
@@ -1582,9 +1580,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteCloseAllExecutedFiles() => ExecutedFiles.Count > 0;
 
 	/// <summary>
-	/// Validates <see cref="DecryptFilesCommand" />.
+	/// Validates <see cref="DecryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteDecryptFiles(FolderModelDto? dto)
+	private bool CanExecuteDecryptFolder(FolderModelDto? dto)
 	{
 		return IsNotReadOnly()
 			&& dto is not null
@@ -1600,9 +1598,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Validates <see cref="EncryptFilesCommand" />.
+	/// Validates <see cref="EncryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteEncryptFiles(FolderModelDto? dto)
+	private bool CanExecuteEncryptFolder(FolderModelDto? dto)
 	{
 		return IsNotReadOnly()
 			&& dto is not null
