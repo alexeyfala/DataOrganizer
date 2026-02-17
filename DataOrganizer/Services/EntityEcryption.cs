@@ -71,7 +71,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
-	public bool DecryptContents(
+	public bool Decrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output)
@@ -107,7 +107,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool EncryptContents(
+	public bool Encrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output)

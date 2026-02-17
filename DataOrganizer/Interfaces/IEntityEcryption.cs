@@ -14,17 +14,17 @@ public interface IEntityEcryption
 {
 	#region Methods
 	/// <summary>
-	/// Decrypts binary with encrypted password.
+	/// Decrypts binary data using the encrypted password.
 	/// </summary>
-	bool DecryptContents(
+	bool Decrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output);
 
 	/// <summary>
-	/// Encrypts binary with encrypted password.
+	/// Encrypts binary data using the encrypted password.
 	/// </summary>
-	bool EncryptContents(
+	bool Encrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output);

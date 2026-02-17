@@ -106,7 +106,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			if (file.EncryptionStatus == EncryptionStatus.Decrypted &&
 				(file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is not { } encryptedPassword
 				|| encryptedPassword.Length == 0
-				|| !_entityEcryption.DecryptContents(result.Contents, encryptedPassword, out contents)))
+				|| !_entityEcryption.Decrypt(result.Contents, encryptedPassword, out contents)))
 			{
 				return;
 			}

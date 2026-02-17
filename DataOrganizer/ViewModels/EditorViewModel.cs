@@ -281,7 +281,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			encryptedPassword = [.. password];
 
-			if (!_entityEcryption.DecryptContents(
+			if (!_entityEcryption.Decrypt(
 				contents,
 				password,
 				out contents))
