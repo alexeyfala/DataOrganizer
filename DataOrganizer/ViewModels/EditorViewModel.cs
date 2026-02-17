@@ -681,6 +681,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
 
+	/// <summary>
+	/// Hides all file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
+	private async Task HideAllFiles()
+	{
+		// TODO: Implement
+	}
+
 	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
 	private Task HideFileContents(FileModelDto? dto)
@@ -1607,6 +1616,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& string.IsNullOrEmpty(dto.PasswordHash)
 			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
 	}
+
+	/// <summary>
+	/// Validates <see cref="HideAllFilesCommand" />.
+	/// </summary>
+	private bool CanExecuteHideAllFiles() => Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.

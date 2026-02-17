@@ -48,6 +48,36 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> if the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
+	/// </summary>
+	public static bool ConatainsBy(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Predicate<ExplorerModelBaseDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (condition(item))
+			{
+				return true;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
 	/// </summary>
 	public static bool ConatainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
