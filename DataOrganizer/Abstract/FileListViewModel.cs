@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -124,7 +125,8 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	protected FileListViewModel(
 		Application app,
 		IDbAccess dbAccess,
-		ILogger logger) : base(app, dbAccess, logger)
+		IEntityEcryption entityEcryption,
+		ILogger logger) : base(app, dbAccess, entityEcryption, logger)
 	{
 	}
 	#endregion

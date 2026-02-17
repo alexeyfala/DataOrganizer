@@ -862,9 +862,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IEntityEcryption" />
-	private readonly IEntityEcryption _entityEcryption;
-
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
@@ -891,10 +888,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IMapper mapper,
 		IProcessUtils processUtils,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, settingsManager, dbAccess, eventSimulator, keyboardInputHook, logger, dispatcher, viewFactory, viewLauncher)
+		IViewLauncher viewLauncher) : base(
+			app,
+			settingsManager,
+			dbAccess,
+			dispatcher,
+			entityEcryption,
+			eventSimulator,
+			keyboardInputHook,
+			logger,
+			viewFactory,
+			viewLauncher)
 	{
-		_entityEcryption = entityEcryption;
-
 		_executionEngine = executionEngine;
 
 		_mapper = mapper;

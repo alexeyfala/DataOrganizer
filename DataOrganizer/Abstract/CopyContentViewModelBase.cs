@@ -4,8 +4,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -28,6 +30,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IEntityEcryption" />
+	protected readonly IEntityEcryption _entityEcryption;
+
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 	#endregion
@@ -36,11 +41,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected CopyContentViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
+		IEntityEcryption entityEcryption,
 		ILogger logger)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
+
+		_entityEcryption = entityEcryption;
 
 		_logger = logger;
 	}
@@ -69,7 +77,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
 	protected async Task CopyContentAsync(
-		FileModelDto dto,
+		FileModelDto file,
 		ItemsControl container,
 		CancellationToken token = default)
 	{
@@ -83,38 +91,48 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			}
 
 			ContentsIsValidPair result = await _dbAccess
-				.GetFileContentsAsync(dto.Id, token)
+				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
 
 			if (!result.IsValid)
 			{
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{dto.Id}""");
+				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
+				return;
+			}
+
+			byte[] contents = result.Contents;
+
+			if (file.EncryptionStatus == EncryptionStatus.Decrypted &&
+				(file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is not { } encryptedPassword
+				|| encryptedPassword.Length == 0
+				|| !_entityEcryption.DecryptContents(result.Contents, encryptedPassword, out contents)))
+			{
 				return;
 			}
 
 			string text = TextHelper
 				.Utf8Encoding
-				.GetString(result.Contents);
+				.GetString(contents);
 
 			ViewModelBase? viewModel = _app.FindDataContext<ViewModelBase>();
 
 			if (string.IsNullOrEmpty(text))
 			{
-				viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{dto.Name}""");
+				viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;
 			}
 
-			viewModel?.UpdateCopyHistory(dto.Id);
+			viewModel?.UpdateCopyHistory(file.Id);
 
 			await clipboard
 				.SetTextAsync(text)
 				.ConfigureAwait(true);
 
-			FolderModelDto[] parents = [.. dto.GetAllParents().Reverse()];
+			FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
 
-			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
+			if (FindLastContainer(container, parents)?.ContainerFromItem(file) is not TemplatedControl item)
 			{
 				return;
 			}
