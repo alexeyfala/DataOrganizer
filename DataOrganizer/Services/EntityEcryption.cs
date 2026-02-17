@@ -143,9 +143,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task<FilesEncryptionResult> EncryptDecryptAsync(
+	public async Task<FilesEncryptionResult> EncryptDecryptFolderAsync(
 		EditorViewModel viewModel,
-		EncryptDecryptFilesParameters parameters,
+		EncryptDecryptFolderParameters parameters,
 		CancellationToken token = default)
 	{
 		try
@@ -346,7 +346,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			else
 			{
-				await EncryptDecryptAsync(
+				await EncryptDecryptFolderAsync(
 					viewModel,
 					parameters.CreateFrom(password),
 					token).ConfigureAwait(false);

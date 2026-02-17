@@ -32,9 +32,9 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
-	Task<FilesEncryptionResult> EncryptDecryptAsync(
+	Task<FilesEncryptionResult> EncryptDecryptFolderAsync(
 		EditorViewModel viewModel,
-		EncryptDecryptFilesParameters parameters,
+		EncryptDecryptFolderParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>

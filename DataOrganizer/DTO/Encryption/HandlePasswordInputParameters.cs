@@ -23,9 +23,9 @@ public class HandlePasswordInputParameters
 
 	#region Methods
 	/// <summary>
-	/// Creates <see cref="EncryptDecryptFilesParameters" /> from <see cref="HandlePasswordInputParameters" /> and <paramref name="password"/>.
+	/// Creates <see cref="EncryptDecryptFolderParameters" /> from <see cref="HandlePasswordInputParameters" /> and <paramref name="password"/>.
 	/// </summary>
-	public EncryptDecryptFilesParameters CreateFrom(string password) => new()
+	public EncryptDecryptFolderParameters CreateFrom(string password) => new()
 	{
 		Action = Action,
 		Files = Files,

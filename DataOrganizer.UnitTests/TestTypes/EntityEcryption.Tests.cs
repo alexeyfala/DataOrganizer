@@ -280,16 +280,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -311,7 +311,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -322,16 +322,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -353,7 +353,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -364,16 +364,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -403,7 +403,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -414,16 +414,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -453,7 +453,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -464,16 +464,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -520,7 +520,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -539,16 +539,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -595,7 +595,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -614,16 +614,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -657,7 +657,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -668,13 +668,13 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[Test]
-	public async Task EncryptDecryptAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
+	public async Task EncryptDecryptFolderAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
 	{
 		// Arrange
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -687,7 +687,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
@@ -698,18 +698,18 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Successfully_Encrypts_Files(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Successfully_Encrypts_Files(CryptoAction action)
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		EncryptDecryptFolderParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -778,7 +778,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FilesEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
