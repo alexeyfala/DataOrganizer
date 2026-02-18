@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
