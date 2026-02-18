@@ -1169,7 +1169,7 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideFolderContentsAsync_Asks_The_User_To_Close_Files()
+	public async Task HideFolderContentsAsync_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -1193,14 +1193,20 @@ internal class EntityEcryptionTests
 			using AutoMock mock = AutoMock.GetLoose();
 
 			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(mock.Create<YesNoCancelBox>());
-
-			viewFactory
 				.CreateUserControl<EditFilesView>()
 				.Returns(mock.Create<EditFilesView>());
 
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(view);
+
 			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
 		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
@@ -1212,37 +1218,7 @@ internal class EntityEcryptionTests
 		viewFactory
 			.Received()
 			.CreateUserControl<YesNoCancelBox>();
-	}
 
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
-	/// </summary>
-	[Test]
-	public async Task HideFolderContentsAsync_Does_Work()
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		folder.EncryptedPassword = TestUtils.CreateRandomBytes(10);
-
-		folder.EncryptionStatus = EncryptionStatus.Decrypted;
-
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		files.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
-
-		folder
-			.Children
-			.AddRange(files);
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
-
-		// Assert
 		folder.EncryptedPassword
 			.Should()
 			.BeNull();
@@ -1255,6 +1231,13 @@ internal class EntityEcryptionTests
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
 	}
 
 	/// <summary>
