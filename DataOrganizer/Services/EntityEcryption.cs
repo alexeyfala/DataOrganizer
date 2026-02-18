@@ -379,19 +379,19 @@ public sealed class EntityEcryption : IEntityEcryption
 				.IsRunningFromNUnit())
 			{
 				_ = DialogHost.Show(view);
-
-				YesNoCancelResult result = await view
-					.ViewModel
-					.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-					.ConfigureAwait(true);
-
-				if (result != YesNoCancelResult.Yes)
-				{
-					return;
-				}
-
-				viewModel.CloseFile(file);
 			}
+
+			YesNoCancelResult result = await view
+				.ViewModel
+				.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+				.ConfigureAwait(true);
+
+			if (result != YesNoCancelResult.Yes)
+			{
+				return;
+			}
+
+			viewModel.CloseFile(file);
 		}
 
 		file.EncryptionStatus = EncryptionStatus.Encrypted;

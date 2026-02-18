@@ -1110,12 +1110,14 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideFileContentsAsync_Asks_The_User_To_Close_File([Values] bool isEdited)
+	public async Task HideFileContentsAsync_Does_Work([Values] bool isEdited)
 	{
 		// Arrange
 		FileModelDto file = isEdited
 			? TestUtils.CreateFileDto(isEdited: true)
 			: TestUtils.CreateFileDto(isExecuted: true);
+
+		file.EncryptionStatus = EncryptionStatus.Decrypted;
 
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -1124,10 +1126,20 @@ internal class EntityEcryptionTests
 			using AutoMock mock = AutoMock.GetLoose();
 
 			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
+			viewFactory
 				.CreateUserControl<YesNoCancelBox>()
-				.Returns(mock.Create<YesNoCancelBox>());
+				.Returns(view);
 
 			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
 		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
@@ -1139,32 +1151,22 @@ internal class EntityEcryptionTests
 		viewFactory
 			.Received()
 			.CreateUserControl<YesNoCancelBox>();
-	}
 
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
-	/// </summary>
-	[Test]
-	public async Task HideFileContentsAsync_Does_Work()
-	{
-		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		file.IsEdited
+			.Should()
+			.BeFalse();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		file.IsExecuted
+			.Should()
+			.BeFalse();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
-
-		// Assert
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
-	/// Test of <see cref="IEntityEcryption.HideFolderContentsAsync" />.
+	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task HideFolderContentsAsync_Asks_The_User_To_Close_Files()
