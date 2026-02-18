@@ -685,9 +685,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
-	private async Task HideAllFiles()
+	private async Task HideAllFileContents()
 	{
-		// TODO: Implement
+		Hierarchy
+			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
@@ -834,19 +838,21 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
-	private Task ShowFolderContents(FolderModelDto? dto)
+	private async Task ShowFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		return _entityEcryption.RequestPasswordAsync(
+		await _entityEcryption.RequestPasswordAsync(
 			this,
 			dto,
-			CryptoAction.ShowFolderContents);
+			CryptoAction.ShowFolderContents).ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />

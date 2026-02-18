@@ -610,6 +610,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hide the contents of all files.
+        /// </summary>
+        public static string HideTheContentsOfAllFiles {
+            get {
+                return ResourceManager.GetString("HideTheContentsOfAllFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hotkeys.
         /// </summary>
         public static string Hotkeys {
