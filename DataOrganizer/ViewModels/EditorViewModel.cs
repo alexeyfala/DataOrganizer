@@ -731,30 +731,38 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	private Task HideFileContents(FileModelDto? dto)
+	private async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Hide file contents");
 
-		return _entityEcryption.HideFileContentsAsync(dto, this);
+		await _entityEcryption
+			.HideFileContentsAsync(dto, this)
+			.ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.HideFolderContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	private Task HideFolderContents(FolderModelDto? dto)
+	private async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Hide files in a folder");
 
-		return _entityEcryption.HideFolderContentsAsync(dto, this);
+		await _entityEcryption
+			.HideFolderContentsAsync(dto, this)
+			.ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -857,16 +865,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private Task ShowFileContents(FileModelDto? dto)
+	private async Task ShowFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show file contents");
 
-		return _entityEcryption.ShowFileContentsAsync(dto, this);
+		await _entityEcryption
+			.ShowFileContentsAsync(dto, this)
+			.ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
