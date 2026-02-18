@@ -20,7 +20,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
-	public static bool ConatainsBy(
+	public static bool ContainsBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Predicate<FileModelDto> condition)
 	{
@@ -50,7 +50,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
 	/// </summary>
-	public static bool ConatainsBy(
+	public static bool ContainsBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		Predicate<ExplorerModelBaseDto> condition)
 	{
@@ -80,7 +80,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
 	/// </summary>
-	public static bool ConatainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
+	public static bool ContainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 

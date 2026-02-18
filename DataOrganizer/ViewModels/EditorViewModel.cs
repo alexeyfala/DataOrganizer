@@ -170,7 +170,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		// When an object is removed from a collection, its selection is reset and its existence must be checked
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
-		if (oldValue is not null && Hierarchy.ConatainsId(oldValue.Id))
+		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
 			_ = UpdateIsSelectedInDatabaseAsync(oldValue);
 		}
@@ -324,6 +324,54 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IsShutdown = true;
 
 		window?.Close();
+	}
+
+	/// <summary>
+	/// Hides all file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
+	public async Task HideAllFileContents()
+	{
+		// TODO: Make test
+		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted))
+		{
+			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+			view
+				.ViewModel
+				.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				_ = DialogHost.Show(view);
+			}
+
+			YesNoCancelResult result = await view
+				.ViewModel
+				.GetResultAsync(YesNoCancelVariant.YesCancel)
+				.ConfigureAwait(true);
+
+			if (result != YesNoCancelResult.Yes)
+			{
+				return;
+			}
+		}
+
+		Hierarchy
+			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
+			.ForEach(dto =>
+			{
+				if (dto is FileModelDto file)
+				{
+					CloseFile(file);
+				}
+
+				dto.EncryptionStatus = EncryptionStatus.Encrypted;
+			});
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -680,19 +728,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
-
-	/// <summary>
-	/// Hides all file contents.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
-	private async Task HideAllFileContents()
-	{
-		Hierarchy
-			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
-			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
 
 	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
@@ -1626,7 +1661,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="HideAllFilesCommand" />.
 	/// </summary>
-	private bool CanExecuteHideAllFiles() => Hierarchy.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	private bool CanExecuteHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.
@@ -1639,7 +1674,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => Hierarchy.ConatainsBy(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => Hierarchy.ContainsBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.

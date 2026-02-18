@@ -447,7 +447,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (viewModel
 			.Hierarchy
-			.ConatainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
 			return;
 		}
