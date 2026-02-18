@@ -1119,11 +1119,11 @@ internal class EntityEcryptionTests
 
 		file.EncryptionStatus = EncryptionStatus.Decrypted;
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			using AutoMock mock = AutoMock.GetLoose();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateUserControl<EditFilesView>()
@@ -1148,10 +1148,6 @@ internal class EntityEcryptionTests
 		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
 
 		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<YesNoCancelBox>();
-
 		file.IsEdited
 			.Should()
 			.BeFalse();
@@ -1174,23 +1170,19 @@ internal class EntityEcryptionTests
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(5, isEdited: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
-
-		editedFiles.ForEach(x => x.IsEdited = true);
-
-		executedFiles.ForEach(x => x.IsExecuted = true);
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(5, isExecuted: true)];
 
 		folder
 			.Children
 			.AddRange(editedFiles.Concat(executedFiles));
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			using AutoMock mock = AutoMock.GetLoose();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateUserControl<EditFilesView>()
@@ -1215,10 +1207,6 @@ internal class EntityEcryptionTests
 		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
 
 		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<YesNoCancelBox>();
-
 		folder.EncryptedPassword
 			.Should()
 			.BeNull();

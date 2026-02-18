@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Enums;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;
@@ -115,9 +116,11 @@ public static class TestUtils
 	public static FileModelDto CreateFileDto(
 		in Guid id = default,
 		in bool isEdited = false,
-		in bool isExecuted = false) => new()
+		in bool isExecuted = false,
+		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
 		{
 			CreatedDate = DateTime.Now,
+			EncryptionStatus = encryptionStatus,
 			EntityType = EntityType.File,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
@@ -144,11 +147,15 @@ public static class TestUtils
 	public static IEnumerable<FileModelDto> CreateFilesDto(
 		int count,
 		bool isEdited = false,
-		bool isExecuted = false)
+		bool isExecuted = false,
+		EncryptionStatus encryptionStatus = EncryptionStatus.None)
 	{
 		for (int i = 0; i < count; i++)
 		{
-			yield return CreateFileDto(isEdited: isEdited, isExecuted: isExecuted);
+			yield return CreateFileDto(
+				isEdited: isEdited,
+				isExecuted: isExecuted,
+				encryptionStatus: encryptionStatus);
 		}
 	}
 

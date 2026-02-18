@@ -709,6 +709,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideAllFileContents" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideAllFileContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(view);
+
+			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy(editedFiles.Concat(executedFiles));
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited && x.EncryptionStatus == EncryptionStatus.Encrypted);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted && x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.Initialize" />.
 	/// </summary>
 	[AvaloniaTest]

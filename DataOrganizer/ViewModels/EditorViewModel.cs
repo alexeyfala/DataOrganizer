@@ -332,7 +332,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		// TODO: Make test
 		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted))
 		{
 			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
