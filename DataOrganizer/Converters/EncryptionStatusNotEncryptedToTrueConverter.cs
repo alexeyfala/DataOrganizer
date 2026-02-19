@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace DataOrganizer.Converters;
 
-internal sealed class EncryptionStatusNotDefaultToTrueConverter : IValueConverter
+internal sealed class EncryptionStatusNotEncryptedToTrueConverter : IValueConverter
 {
 	#region Methods
 	/// <inheritdoc />
@@ -15,7 +15,7 @@ internal sealed class EncryptionStatusNotDefaultToTrueConverter : IValueConverte
 		object? parameter,
 		CultureInfo culture)
 	{
-		return value is EncryptionStatus status && status != EncryptionStatus.None;
+		return value is EncryptionStatus status && status != EncryptionStatus.Encrypted;
 	}
 
 	/// <inheritdoc />

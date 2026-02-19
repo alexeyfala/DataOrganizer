@@ -839,6 +839,10 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">
 
+			<Grid.Resources>
+				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
+			</Grid.Resources>
+
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
@@ -891,6 +895,7 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}"
 				Kind="EyeOutline">
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">

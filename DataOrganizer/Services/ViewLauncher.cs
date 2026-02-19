@@ -165,6 +165,11 @@ public class ViewLauncher : IViewLauncher
 			.ViewModel
 			.AddHierarchy(hierarchy);
 
+		window
+			.ViewModel
+			.HideAllFileContentsCommand
+			.NotifyCanExecuteChanged();
+
 		if (showObjectId.IsNotDefault())
 		{
 			_ = window
