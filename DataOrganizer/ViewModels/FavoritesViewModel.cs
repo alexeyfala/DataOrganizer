@@ -10,6 +10,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
@@ -578,6 +579,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			yield return new()
 			{
 				Children = files,
+				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
 				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
 				Name = parent?.Name ?? "Root"
 			};
