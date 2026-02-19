@@ -435,6 +435,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		window?.Close();
 
+		Hierarchy
+			.GetFilesBy(x => x.IsEdited)
+			.ForEach(EditFiles.ViewModel.CloseEditor);
+
 		_viewLauncher
 			.ConfigureFavoritesWindow(Hierarchy)
 			.Show();

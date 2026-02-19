@@ -1223,13 +1223,21 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
 			using AutoMock mock = AutoMock.GetLoose();
 
 			viewLauncher
 				.ConfigureFavoritesWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
 				.Returns(mock.Create<FavoritesWindow>());
 
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
 			builder.RegisterInstance(viewLauncher);
+
+			builder.RegisterInstance(viewFactory);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();

@@ -819,7 +819,7 @@
 			<views:IconsBlock
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}" />
-			
+
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
@@ -837,7 +837,7 @@
 
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,Auto,Auto,*">
+			ColumnDefinitions="Auto,Auto,*,Auto">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -911,6 +911,13 @@
 				Grid.Column="2"
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}" />
+
+			<views:IconsBlock
+				Grid.Column="3"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
+				IsEdited="{Binding IsEdited, Mode=OneWay}"
+				IsExecuted="{Binding IsExecuted, Mode=OneWay}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">

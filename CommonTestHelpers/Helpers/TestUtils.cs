@@ -93,6 +93,7 @@ public static class TestUtils
 	public static FavoriteCategory CreateFavoriteCategory() => new()
 	{
 		Children = [],
+		EncryptionStatus = EncryptionStatus.None,
 		Id = Guid.NewGuid(),
 		Name = AppUtils.CreateRandomString(10)
 	};
