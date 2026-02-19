@@ -3,6 +3,7 @@ using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace DataOrganizer.DTO;
@@ -15,7 +16,7 @@ public sealed partial class FavoriteCategory : EntityModelBaseDto, IName
 	/// <summary>
 	/// Child objects.
 	/// </summary>
-	public required FileModelDto[] Children { get; init; }
+	public required List<FileModelDto> Children { get; init; }
 
 	/// <inheritdoc cref="Enums.EncryptionStatus" />
 	public required EncryptionStatus EncryptionStatus { get; init; }

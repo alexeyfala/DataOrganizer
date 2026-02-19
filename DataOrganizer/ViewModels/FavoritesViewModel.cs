@@ -428,6 +428,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		FavoritesSettings
 			.Categories
+			.ForEach(x => x.Children.Clear());
+
+		FavoritesSettings
+			.Categories
 			.Clear();
 
 		FavoritesSettings
@@ -570,9 +574,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	private static IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		FileModelDto[] files = [.. hierarchy.OfType<FileModelDto>().Where(x => x.IsFavorite)];
+		List<FileModelDto> files = [.. hierarchy
+			.OfType<FileModelDto>()
+			.Where(x => x.IsFavorite)];
 
-		if (files.Length > 0)
+		if (files.Count > 0)
 		{
 			FolderModelDto? parent = files[0].Parent;
 
