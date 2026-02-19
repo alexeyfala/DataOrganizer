@@ -62,7 +62,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	[RelayCommand]
 	private async Task PreviewPointerEntered(MaterialIcon? icon)
 	{
-		if (icon?.DataContext is not FileModelDto dto)
+		if (icon?.DataContext is not FileModelDto file)
 		{
 			return;
 		}
@@ -77,25 +77,33 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 		}
 
 		ContentsIsValidPair result = await _dbAccess
-			.GetFileContentsAsync(dto.Id)
+			.GetFileContentsAsync(file.Id)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
 		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{dto.Id}""");
+			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
+			return;
+		}
+
+		if (!TryToDecrypt(
+			result.Contents,
+			file,
+			out byte[] contents))
+		{
 			return;
 		}
 
 		string text = TextHelper
 			.Utf8Encoding
-			.GetString(result.Contents);
+			.GetString(contents);
 
 		if (string.IsNullOrEmpty(text))
 		{
 			_app
 				.FindDataContext<ViewModelBase>()?
-				.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{dto.Name}""");
+				.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 			return;
 		}
@@ -104,7 +112,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 		ToolTip.SetIsOpen(icon, true);
 
-		_logger.LogDebug($@"Display content prewiew for ""{dto.Id}""");
+		_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
 	}
 
 	/// <summary>

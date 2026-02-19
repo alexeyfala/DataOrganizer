@@ -101,12 +101,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
-			byte[] contents = result.Contents;
-
-			if (file.EncryptionStatus == EncryptionStatus.Decrypted &&
-				(file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is not { } encryptedPassword
-				|| encryptedPassword.Length == 0
-				|| !_entityEcryption.Decrypt(result.Contents, encryptedPassword, out contents)))
+			if (!TryToDecrypt(
+				result.Contents,
+				file,
+				out byte[] contents))
 			{
 				return;
 			}
@@ -145,6 +143,22 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		{
 			_logger.LogException(ex);
 		}
+	}
+
+	/// <summary>
+	/// Tries to decrypt the content, if it is encrypted.
+	/// </summary>
+	protected bool TryToDecrypt(
+		byte[] input,
+		FileModelDto file,
+		out byte[] output)
+	{
+		output = input;
+
+		return file.EncryptionStatus != EncryptionStatus.Decrypted ||
+			(file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
+			&& encryptedPassword.Length != 0
+			&& _entityEcryption.Decrypt(input, encryptedPassword, out output));
 	}
 	#endregion
 }
