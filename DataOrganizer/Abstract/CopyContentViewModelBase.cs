@@ -101,6 +101,11 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
+			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+			{
+				// TODO: Show password box
+			}
+
 			if (!TryToDecrypt(
 				result.Contents,
 				file,
@@ -146,7 +151,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	}
 
 	/// <summary>
-	/// Tries to decrypt the content, if it is encrypted.
+	/// Tries to decrypt the content, if it is decrypted.
 	/// </summary>
 	protected bool TryToDecrypt(
 		byte[] input,

@@ -578,7 +578,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
+	[RelayCommand]
 	private async Task CopyContent(FileModelDto? dto)
 	{
 		if (dto is null
@@ -1561,14 +1561,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& dto.EncryptionStatus != EncryptionStatus.Encrypted
 			&& !dto.IsEdited
 			&& !dto.IsExecuted;
-	}
-
-	/// <summary>
-	/// Validates <see cref="CopyContentCommand" />.
-	/// </summary>
-	private static bool CanExecuteCopyContent(FileModelDto? dto)
-	{
-		return dto is not null && dto.EncryptionStatus != EncryptionStatus.Encrypted;
 	}
 
 	/// <summary>
