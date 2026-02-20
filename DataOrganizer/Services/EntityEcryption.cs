@@ -495,7 +495,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (!await view
 			.ViewModel
-			.GetResultAsync(token)
+			.GetResultAsync(token: token)
 			.ConfigureAwait(false))
 		{
 			return;
@@ -560,7 +560,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (!await view
 			.ViewModel
-			.GetResultAsync(token)
+			.GetResultAsync(token: token)
 			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
 		{
 			return;

@@ -53,9 +53,12 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// </summary>
 	protected Task<TResult> GetResultAsync(
 		TResult defaultResult,
-		CancellationToken token = default)
+		in bool waitDialogHostCloses = true,
+		in CancellationToken token = default)
 	{
-		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
+		if (waitDialogHostCloses
+			&& !AppDomain.CurrentDomain.IsRunningFromNUnit()
+			&& DialogHost.IsDialogOpen(null))
 		{
 			_ = WaitDialogCloseAsync(defaultResult, token);
 		}

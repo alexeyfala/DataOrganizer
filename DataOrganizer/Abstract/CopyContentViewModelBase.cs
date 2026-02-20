@@ -117,7 +117,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				if (!await view
 					.ViewModel
-					.GetResultAsync(token)
+					.GetResultAsync(waitDialogHostCloses: false, token: token)
 					.ConfigureAwait(true))
 				{
 					return;
