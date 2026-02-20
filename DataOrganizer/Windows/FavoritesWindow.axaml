@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -132,19 +133,23 @@
 						<Border
 							Background="{StaticResource MaterialBackgroundBrush}"
 							CornerRadius="{StaticResource CornerRadius}">
-							<materialControls:SnackbarHost
-								x:Name="SnackbarHost"
-								Foreground="{Binding SnackbarForeground, Mode=OneWay}"
-								HostName="{Binding $self.Name}"
-								SnackbarHorizontalAlignment="Center">
-								<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
-									<ContentPresenter.KeyBindings>
-										<KeyBinding
-											Command="{Binding ClosePopupCommand}"
-											Gesture="Escape" />
-									</ContentPresenter.KeyBindings>
-								</ContentPresenter>
-							</materialControls:SnackbarHost>
+							<dialogHost:DialogHost
+								dialogHost:DialogHostStyle.CornerRadius="6.0"
+								CloseOnClickAway="True">
+								<materialControls:SnackbarHost
+									x:Name="SnackbarHost"
+									Foreground="{Binding SnackbarForeground, Mode=OneWay}"
+									HostName="{Binding $self.Name}"
+									SnackbarHorizontalAlignment="Center">
+									<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
+										<ContentPresenter.KeyBindings>
+											<KeyBinding
+												Command="{Binding ClosePopupCommand}"
+												Gesture="Escape" />
+										</ContentPresenter.KeyBindings>
+									</ContentPresenter>
+								</materialControls:SnackbarHost>
+							</dialogHost:DialogHost>
 						</Border>
 					</Border>
 

@@ -8,6 +8,8 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Views;
+using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -35,6 +37,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
+
+	/// <inheritdoc cref="IViewFactory" />
+	protected readonly IViewFactory _viewFactory;
 	#endregion
 
 	#region Constructors
@@ -42,7 +47,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		Application app,
 		IDbAccess dbAccess,
 		IEntityEcryption entityEcryption,
-		ILogger logger)
+		ILogger logger,
+		IViewFactory viewFactory)
 	{
 		_app = app;
 
@@ -51,6 +57,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		_entityEcryption = entityEcryption;
 
 		_logger = logger;
+
+		_viewFactory = viewFactory;
 	}
 	#endregion
 
@@ -103,7 +111,19 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 			{
-				// TODO: Show password box
+				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+				_ = DialogHost.Show(view);
+
+				if (!await view
+					.ViewModel
+					.GetResultAsync(token)
+					.ConfigureAwait(true))
+				{
+					return;
+				}
+
+				;
 			}
 
 			if (!TryToDecrypt(

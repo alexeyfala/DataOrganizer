@@ -89,7 +89,8 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 		Application app,
 		IDbAccess dbAccess,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(app, dbAccess, entityEcryption, logger)
+		ILogger logger,
+		IViewFactory viewFactory) : base(app, dbAccess, entityEcryption, logger, viewFactory)
 	{
 		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(
 			x => x.HistorySearch,

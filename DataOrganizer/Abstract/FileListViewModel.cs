@@ -135,7 +135,8 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 		Application app,
 		IDbAccess dbAccess,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(app, dbAccess, entityEcryption, logger)
+		ILogger logger,
+		IViewFactory viewFactory) : base(app, dbAccess, entityEcryption, logger, viewFactory)
 	{
 	}
 	#endregion

@@ -197,7 +197,8 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 		Application app,
 		IDbAccess dbAccess,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(app, dbAccess, entityEcryption, logger)
+		ILogger logger,
+		IViewFactory viewFactory) : base(app, dbAccess, entityEcryption, logger, viewFactory)
 	{
 		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(
 			x => x.CategorySearch,
