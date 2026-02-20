@@ -4,6 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -16,6 +17,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
@@ -87,32 +89,44 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			return;
 		}
 
-		if (!TryToDecrypt(
-			result.Contents,
+		byte[] contents = result.Contents;
+
+		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+			contents,
 			file,
-			out byte[] contents))
+			out contents))
 		{
 			return;
 		}
 
-		string text = TextHelper
-			.Utf8Encoding
-			.GetString(contents);
-
-		if (string.IsNullOrEmpty(text))
+		try
 		{
-			_app
-				.FindDataContext<ViewModelBase>()?
-				.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+			string text = TextHelper
+				.Utf8Encoding
+				.GetString(contents);
 
-			return;
+			if (string.IsNullOrEmpty(text))
+			{
+				_app
+					.FindDataContext<ViewModelBase>()?
+					.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+				return;
+			}
+
+			ToolTip.SetTip(icon, text.Truncate(200));
+
+			ToolTip.SetIsOpen(icon, true);
+
+			_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
 		}
-
-		ToolTip.SetTip(icon, text.Truncate(200));
-
-		ToolTip.SetIsOpen(icon, true);
-
-		_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
+		finally
+		{
+			if (file.EncryptionStatus == EncryptionStatus.Decrypted)
+			{
+				CryptographicOperations.ZeroMemory(contents);
+			}
+		}
 	}
 
 	/// <summary>

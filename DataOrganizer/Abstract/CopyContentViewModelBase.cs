@@ -17,6 +17,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -126,43 +127,55 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				;
 			}
 
-			if (!TryToDecrypt(
-				result.Contents,
+			byte[] contents = result.Contents;
+
+			if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+				contents,
 				file,
-				out byte[] contents))
+				out contents))
 			{
 				return;
 			}
 
-			string text = TextHelper
-				.Utf8Encoding
-				.GetString(contents);
-
-			ViewModelBase? viewModel = _app.FindDataContext<ViewModelBase>();
-
-			if (string.IsNullOrEmpty(text))
+			try
 			{
-				viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+				string text = TextHelper
+					.Utf8Encoding
+					.GetString(contents);
 
-				return;
+				ViewModelBase? viewModel = _app.FindDataContext<ViewModelBase>();
+
+				if (string.IsNullOrEmpty(text))
+				{
+					viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+					return;
+				}
+
+				viewModel?.UpdateCopyHistory(file.Id);
+
+				await clipboard
+					.SetTextAsync(text)
+					.ConfigureAwait(true);
+
+				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
+
+				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is not TemplatedControl item)
+				{
+					return;
+				}
+
+				await BrushExtensions
+					.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
+					.ConfigureAwait(false);
 			}
-
-			viewModel?.UpdateCopyHistory(file.Id);
-
-			await clipboard
-				.SetTextAsync(text)
-				.ConfigureAwait(true);
-
-			FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
-
-			if (FindLastContainer(container, parents)?.ContainerFromItem(file) is not TemplatedControl item)
+			finally
 			{
-				return;
+				if (file.EncryptionStatus != EncryptionStatus.None)
+				{
+					CryptographicOperations.ZeroMemory(contents);
+				}
 			}
-
-			await BrushExtensions
-				.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
-				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -180,10 +193,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		output = input;
 
-		return file.EncryptionStatus != EncryptionStatus.Decrypted ||
-			(file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
+		return file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
 			&& encryptedPassword.Length != 0
-			&& _entityEcryption.Decrypt(input, encryptedPassword, out output));
+			&& _entityEcryption.Decrypt(input, encryptedPassword, out output);
 	}
 	#endregion
 }
