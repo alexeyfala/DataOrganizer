@@ -382,9 +382,10 @@ internal class FavoritesViewModelTests
 		{
 			using AutoMock mock = AutoMock.GetLoose();
 
-			viewLauncher
-				.ConfigureEditorWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
-				.Returns(mock.Create<EditorWindow>());
+			viewLauncher.ConfigureEditorWindow(
+				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+				Arg.Any<IEnumerable<FileModelDto>>())
+			.Returns(mock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewLauncher);
 		});
@@ -415,9 +416,9 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher
-			.Received()
-			.ConfigureEditorWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+		viewLauncher.Received().ConfigureEditorWindow(
+			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+			Arg.Any<IEnumerable<FileModelDto>>());
 	}
 
 	/// <summary>

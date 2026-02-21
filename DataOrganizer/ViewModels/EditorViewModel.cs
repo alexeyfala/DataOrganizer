@@ -48,11 +48,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#region Properties
 	/// <inheritdoc cref="EditFilesView" />
 	public EditFilesView EditFiles { get; }
-
-	/// <summary>
-	/// Executed in operating system files.
-	/// </summary>
-	public ObservableCollection<FileModelDto> ExecutedFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Properties
@@ -440,7 +435,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ForEach(EditFiles.ViewModel.CloseEditor);
 
 		_viewLauncher
-			.ConfigureFavoritesWindow(Hierarchy)
+			.ConfigureFavoritesWindow(Hierarchy, ExecutedFiles)
 			.Show();
 	}
 

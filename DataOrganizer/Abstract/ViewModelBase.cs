@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -35,6 +36,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewSettings" />
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
+
+	/// <summary>
+	/// Executed in operating system files.
+	/// </summary>
+	public ObservableCollection<FileModelDto> ExecutedFiles { get; } = [];
 
 	/// <summary>
 	/// Hierarchical sequence of objects.

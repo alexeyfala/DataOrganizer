@@ -562,9 +562,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		window?.Close();
 
-		_viewLauncher
-			.ConfigureEditorWindow(Hierarchy, id)
-			.Show();
+		_viewLauncher.ConfigureEditorWindow(
+			Hierarchy,
+			ExecutedFiles,
+			id).Show();
 
 		return Task.CompletedTask;
 	}

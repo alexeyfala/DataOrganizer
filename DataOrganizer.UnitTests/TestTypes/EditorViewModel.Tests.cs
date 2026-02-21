@@ -1227,9 +1227,10 @@ internal class EditorViewModelTests
 
 			using AutoMock mock = AutoMock.GetLoose();
 
-			viewLauncher
-				.ConfigureFavoritesWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
-				.Returns(mock.Create<FavoritesWindow>());
+			viewLauncher.ConfigureFavoritesWindow(
+				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+				Arg.Any<IEnumerable<FileModelDto>>())
+			.Returns(mock.Create<FavoritesWindow>());
 
 			viewFactory
 				.CreateUserControl<EditFilesView>()
@@ -1250,9 +1251,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher
-			.Received()
-			.ConfigureFavoritesWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+		viewLauncher.Received().ConfigureFavoritesWindow(
+			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+			Arg.Any<IEnumerable<FileModelDto>>());
 	}
 
 	/// <summary>
