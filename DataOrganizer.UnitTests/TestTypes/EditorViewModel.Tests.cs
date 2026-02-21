@@ -709,6 +709,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideAllFileContents" />.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HideAllFileContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(view);
+
+			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy(editedFiles.Concat(executedFiles));
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited && x.EncryptionStatus == EncryptionStatus.Encrypted);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted && x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.Initialize" />.
 	/// </summary>
 	[AvaloniaTest]
@@ -1166,13 +1223,22 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
 			using AutoMock mock = AutoMock.GetLoose();
 
-			viewLauncher
-				.ConfigureFavoritesWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
-				.Returns(mock.Create<FavoritesWindow>());
+			viewLauncher.ConfigureFavoritesWindow(
+				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+				Arg.Any<IEnumerable<FileModelDto>>())
+			.Returns(mock.Create<FavoritesWindow>());
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
 
 			builder.RegisterInstance(viewLauncher);
+
+			builder.RegisterInstance(viewFactory);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1185,9 +1251,9 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher
-			.Received()
-			.ConfigureFavoritesWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+		viewLauncher.Received().ConfigureFavoritesWindow(
+			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+			Arg.Any<IEnumerable<FileModelDto>>());
 	}
 
 	/// <summary>

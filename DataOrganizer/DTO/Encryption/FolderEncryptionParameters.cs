@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.DTO.Encryption;
 
-public sealed class EncryptDecryptFilesParameters : HandlePasswordInputParameters
+public sealed class FolderEncryptionParameters : HandlePasswordParameters
 {
 	#region Properties
 	/// <summary>

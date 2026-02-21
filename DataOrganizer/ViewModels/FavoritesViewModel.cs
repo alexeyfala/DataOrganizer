@@ -10,6 +10,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
@@ -342,6 +343,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
+		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
@@ -352,6 +354,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			settingsManager,
 			dbAccess,
 			dispatcher,
+			encryption,
 			entityEcryption,
 			eventSimulator,
 			keyboardInputHook,
@@ -425,6 +428,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		FavoritesSettings
+			.Categories
+			.ForEach(x => x.Children.Clear());
+
 		FavoritesSettings
 			.Categories
 			.Clear();
@@ -555,9 +562,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		window?.Close();
 
-		_viewLauncher
-			.ConfigureEditorWindow(Hierarchy, id)
-			.Show();
+		_viewLauncher.ConfigureEditorWindow(
+			Hierarchy,
+			OpenedInEditorFiles,
+			ExecutedFiles,
+			id).Show();
 
 		return Task.CompletedTask;
 	}
@@ -569,15 +578,18 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	private static IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		FileModelDto[] files = [.. hierarchy.OfType<FileModelDto>().Where(x => x.IsFavorite)];
+		List<FileModelDto> files = [.. hierarchy
+			.OfType<FileModelDto>()
+			.Where(x => x.IsFavorite)];
 
-		if (files.Length > 0)
+		if (files.Count > 0)
 		{
 			FolderModelDto? parent = files[0].Parent;
 
 			yield return new()
 			{
 				Children = files,
+				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
 				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
 				Name = parent?.Name ?? "Root"
 			};

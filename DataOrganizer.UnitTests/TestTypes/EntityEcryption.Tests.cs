@@ -11,6 +11,7 @@ using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
@@ -28,16 +29,267 @@ internal class EntityEcryptionTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// </summary>
+	[Test]
+	public void Decrypt_Cannot_Decrypt_Binary()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(true, false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Decrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received(2).Decrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// </summary>
+	[Test]
+	public void Decrypt_Cannot_Decrypt_Encrypted_Password()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Decrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received(1).Decrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// </summary>
+	[Test]
+	public void Decrypt_Does_Work()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(_ => true, x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Decrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out byte[] output);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		output
+			.Should()
+			.NotBeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.Encrypt" />.
+	/// </summary>
+	[Test]
+	public void Encrypt_Cannot_Decrypt_Encrypted_Password()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Encrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received(0).Encrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.Encrypt" />.
+	/// </summary>
+	[Test]
+	public void Encrypt_Cannot_Encrypt_Binary()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(true);
+
+			encryption.Encrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Encrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received().Encrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+
+		encryption.Received().Decrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.Encrypt" />.
+	/// </summary>
+	[Test]
+	public void Encrypt_Does_Work()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(true);
+
+			encryption.Encrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.Encrypt(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out byte[] output);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		output
+			.Should()
+			.NotBeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Db_Returns_Invalid_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -59,27 +311,27 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
+			.Be(FolderEncryptionResult.FailedToLoadContents);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Db_Returns_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -101,27 +353,27 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToLoadContents);
+			.Be(FolderEncryptionResult.FailedToLoadContents);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Encrypted_Contents_Are_Invalid_Or_Have_No_Identifiers(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -151,27 +403,27 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
+			.Be(FolderEncryptionResult.FailedToEncryptContents);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Encrypted_Not_Required_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -201,27 +453,27 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToEncryptContents);
+			.Be(FolderEncryptionResult.FailedToEncryptContents);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Failed_To_Save_Contents(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -268,14 +520,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToSaveContents);
+			.Be(FolderEncryptionResult.FailedToSaveContents);
 
 		await dbAccess
 			.Received()
@@ -287,16 +539,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Failed_ToSave_Hash_Of_Password(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -343,14 +595,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.FailedToSavePasswordHash);
+			.Be(FolderEncryptionResult.FailedToSavePasswordHash);
 
 		await dbAccess
 			.Received()
@@ -362,16 +614,16 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Does_Nothing_If_Unable_To_Create_Database_Backup(CryptoAction action)
 	{
 		// Arrange
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -405,24 +657,24 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.UnableToCreateDatabaseBackup);
+			.Be(FolderEncryptionResult.UnableToCreateDatabaseBackup);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[Test]
-	public async Task EncryptDecryptAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
+	public async Task EncryptDecryptFolderAsync_Does_Throws_Exception_When_Unsupported_Action_Type()
 	{
 		// Arrange
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -435,29 +687,29 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.ExceptionThrown);
+			.Be(FolderEncryptionResult.ExceptionThrown);
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptDecryptAsync" />.
+	/// Test of <see cref="EntityEcryption.EncryptDecryptFolderAsync" />.
 	/// </summary>
 	[TestCase(CryptoAction.Encrypt)]
 	[TestCase(CryptoAction.Decrypt)]
-	public async Task EncryptDecryptAsync_Successfully_Encrypts_Files(CryptoAction action)
+	public async Task EncryptDecryptFolderAsync_Successfully_Encrypts_Files(CryptoAction action)
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
-		EncryptDecryptFilesParameters parameters = new()
+		FolderEncryptionParameters parameters = new()
 		{
 			Action = action,
 			Files = files,
@@ -526,14 +778,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		FilesEncryptionResult result = await sut.EncryptDecryptAsync(
+		FolderEncryptionResult result = await sut.EncryptDecryptFolderAsync(
 			mock.Create<EditorViewModel>(),
 			parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(FilesEncryptionResult.Done);
+			.Be(FolderEncryptionResult.Done);
 
 		folder.EncryptionStatus
 			.Should()
@@ -619,7 +871,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
 			Files = [],
@@ -649,7 +901,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Encrypt,
 			Files = [],
@@ -692,7 +944,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -735,7 +987,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.Decrypt,
 			Files = [],
@@ -765,7 +1017,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = default,
 			Files = [],
@@ -821,7 +1073,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		HandlePasswordInputParameters parameters = new()
+		HandlePasswordParameters parameters = new()
 		{
 			Action = CryptoAction.ShowFolderContents,
 			Files = [],
@@ -858,24 +1110,36 @@ internal class EntityEcryptionTests
 	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideFileContentsAsync_Asks_The_User_To_Close_File([Values] bool isEdited)
+	public async Task HideFileContentsAsync_Does_Work([Values] bool isEdited)
 	{
 		// Arrange
 		FileModelDto file = isEdited
 			? TestUtils.CreateFileDto(isEdited: true)
 			: TestUtils.CreateFileDto(isExecuted: true);
 
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+		file.EncryptionStatus = EncryptionStatus.Decrypted;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			using AutoMock mock = AutoMock.GetLoose();
 
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
 			viewFactory
 				.CreateUserControl<YesNoCancelBox>()
-				.Returns(mock.Create<YesNoCancelBox>());
+				.Returns(view);
 
 			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
 		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
@@ -884,104 +1148,58 @@ internal class EntityEcryptionTests
 		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
 
 		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<YesNoCancelBox>();
-	}
+		file.IsEdited
+			.Should()
+			.BeFalse();
 
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
-	/// </summary>
-	[Test]
-	public async Task HideFileContentsAsync_Does_Work()
-	{
-		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		file.IsExecuted
+			.Should()
+			.BeFalse();
 
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
-
-		// Assert
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
-	/// Test of <see cref="IEntityEcryption.HideFolderContentsAsync" />.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task HideFolderContentsAsync_Asks_The_User_To_Close_Files()
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
-
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
-
-		editedFiles.ForEach(x => x.IsEdited = true);
-
-		executedFiles.ForEach(x => x.IsExecuted = true);
-
-		folder
-			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(mock.Create<YesNoCancelBox>());
-
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
-
-		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<YesNoCancelBox>();
-	}
-
-	/// <summary>
 	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
 	/// </summary>
-	[Test]
+	[AvaloniaTest]
 	public async Task HideFolderContentsAsync_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		folder.EncryptedPassword = TestUtils.CreateRandomBytes(10);
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(5, isEdited: true)];
 
-		folder.EncryptionStatus = EncryptionStatus.Decrypted;
-
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
-
-		files.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(5, isExecuted: true)];
 
 		folder
 			.Children
-			.AddRange(files);
+			.AddRange(editedFiles.Concat(executedFiles));
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
+
+			viewFactory
+				.CreateUserControl<YesNoCancelBox>()
+				.Returns(view);
+
+			builder.RegisterInstance(viewFactory);
+
+			_ = view
+				.ViewModel
+				.SetResultAsync(YesNoCancelResult.Yes);
+		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
@@ -1001,6 +1219,106 @@ internal class EntityEcryptionTests
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed([Values] CryptoAction action)
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files =
+		[
+			.. TestUtils.CreateFilesDto(5, isEdited: true),
+			.. TestUtils.CreateFilesDto(5, isExecuted: true)
+		];
+
+		folder
+			.Children
+			.AddRange(files);
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			folder,
+			action);
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Does_Nothing_If_Folder_Has_No_Files([Values] CryptoAction action)
+	{
+		// Arrange
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			TestUtils.CreateFolderDto(),
+			action);
+
+		// Assert
+		viewFactory
+			.Received(0)
+			.CreateUserControl<PasswordBox>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.RequestPasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task RequestPasswordAsync_Shows_Password_Box([Values] CryptoAction action)
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(5));
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
+
+		// Act
+		await sut.RequestPasswordAsync(
+			mock.Create<EditorViewModel>(),
+			folder,
+			action);
+
+		// Assert
+		viewFactory
+			.Received()
+			.CreateUserControl<PasswordBox>();
 	}
 
 	/// <summary>
@@ -1075,99 +1393,6 @@ internal class EntityEcryptionTests
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Decrypted);
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Does_Nothing_If_File_Is_Being_Edited_Or_Executed([Values] CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		FileModelDto[] files =
-		[
-			.. TestUtils.CreateFilesDto(5, isEdited: true),
-			.. TestUtils.CreateFilesDto(5, isExecuted: true)
-		];
-
-		folder
-			.Children
-			.AddRange(files);
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			folder,
-			action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Does_Nothing_If_Folder_Has_No_Files([Values] CryptoAction action)
-	{
-		// Arrange
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			TestUtils.CreateFolderDto(),
-			action);
-
-		// Assert
-		viewFactory
-			.Received(0)
-			.CreateUserControl<PasswordBox>();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.TakePasswordAsync" />.
-	/// </summary>
-	[Test]
-	public async Task TakePasswordAsync_Shows_Password_Box([Values] CryptoAction action)
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		folder
-			.Children
-			.AddRange(TestUtils.CreateFilesDto(5));
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEcryption sut = mock.Create<EntityEcryption>(TypedParameter.From(viewFactory));
-
-		// Act
-		await sut.TakePasswordAsync(
-			mock.Create<EditorViewModel>(),
-			folder,
-			action);
-
-		// Assert
-		viewFactory
-			.Received()
-			.CreateUserControl<PasswordBox>();
 	}
 	#endregion
 }

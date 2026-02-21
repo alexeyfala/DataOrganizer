@@ -20,6 +20,7 @@
 		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
 		<converters:EncryptionStatusToIconDescriptionConverter x:Key="EncryptionStatusToIconDescriptionConverter" />
 		<converters:EncryptionStatusToIconKindConverter x:Key="EncryptionStatusToIconKindConverter" />
+		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 	</UserControl.Resources>
 
 	<StackPanel
@@ -43,7 +44,7 @@
 		<materialIcons:MaterialIcon
 			Foreground="LimeGreen"
 			IsVisible="{Binding IsExecuted, Mode=OneWay}"
-			Kind="FileEditOutline"
+			Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
 
 		<materialIcons:MaterialIcon

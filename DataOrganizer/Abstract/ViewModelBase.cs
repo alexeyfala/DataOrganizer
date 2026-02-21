@@ -5,6 +5,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -37,6 +38,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public CopyHistoryViewSettings CopyHistorySettings { get; } = new();
 
 	/// <summary>
+	/// Executed in operating system files.
+	/// </summary>
+	public ObservableCollection<FileModelDto> ExecutedFiles { get; } = [];
+
+	/// <summary>
 	/// Hierarchical sequence of objects.
 	/// </summary>
 	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
@@ -50,6 +56,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Returns <c>True</c> if shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
+
+	/// <summary>
+	/// Opened in editor files.
+	/// </summary>
+	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Properties
@@ -87,9 +98,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
 
@@ -103,12 +111,19 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
+		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, dbAccess, entityEcryption, logger)
+		IViewLauncher viewLauncher) : base(
+			app,
+			dbAccess,
+			encryption,
+			entityEcryption,
+			logger,
+			viewFactory)
 	{
 		_dispatcher = dispatcher;
 
@@ -117,8 +132,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_keyboardInputHook = keyboardInputHook;
 
 		_settingsManager = settingsManager;
-
-		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 

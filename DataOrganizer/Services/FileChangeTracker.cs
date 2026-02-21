@@ -92,7 +92,7 @@ public class FileChangeTracker : IFileChangeTracker
 						{
 							byte[] contents = bytes;
 
-							if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
+							if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.Encrypt(
 								bytes,
 								parameters.EncryptedPassword,
 								out contents))

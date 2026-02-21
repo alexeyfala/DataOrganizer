@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Layout;
 using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using System;
@@ -29,12 +30,17 @@ public interface IViewLauncher
 	/// </summary>
 	EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
+		IEnumerable<FileModelDto> executedFiles,
 		in Guid showObjectId = default);
 
 	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
-	FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
+	FavoritesWindow ConfigureFavoritesWindow(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
+		IEnumerable<FileModelDto> executedFiles);
 
 	/// <summary>
 	/// Configures the main application window.

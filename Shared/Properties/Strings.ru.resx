@@ -480,4 +480,10 @@
   <data name="Properties" xml:space="preserve">
     <value>Свойства</value>
   </data>
+  <data name="HideTheContentsOfAllFiles" xml:space="preserve">
+    <value>Скрыть содержимое всех файлов</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
 </root>

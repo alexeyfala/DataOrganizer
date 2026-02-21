@@ -7,6 +7,14 @@ public abstract class BooleanAsyncResultViewModelBase : AsyncResultViewModelBase
 {
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<bool> GetResultAsync(CancellationToken token = default) => GetResultAsync(false, token);
+	public Task<bool> GetResultAsync(
+		in bool waitDialogHostCloses = true,
+		in CancellationToken token = default)
+	{
+		return GetResultAsync(
+			defaultResult: false,
+			waitDialogHostCloses: waitDialogHostCloses,
+			token: token);
+	}
 	#endregion
 }

@@ -14,17 +14,17 @@ public interface IEntityEcryption
 {
 	#region Methods
 	/// <summary>
-	/// Decrypts file contents.
+	/// Decrypts binary data using the encrypted password.
 	/// </summary>
-	bool DecryptContents(
+	bool Decrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output);
 
 	/// <summary>
-	/// Encrypts file contents.
+	/// Encrypts binary data using the encrypted password.
 	/// </summary>
-	bool EncryptContents(
+	bool Encrypt(
 		byte[] input,
 		byte[] encryptedPassword,
 		out byte[] output);
@@ -32,9 +32,9 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
 	/// </summary>
-	Task<FilesEncryptionResult> EncryptDecryptAsync(
+	Task<FolderEncryptionResult> EncryptDecryptFolderAsync(
 		EditorViewModel viewModel,
-		EncryptDecryptFilesParameters parameters,
+		FolderEncryptionParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -48,7 +48,7 @@ public interface IEntityEcryption
 	Task<HandlePasswordResult> HandlePasswordInputAsync(
 		string? password,
 		EditorViewModel viewModel,
-		HandlePasswordInputParameters parameters,
+		HandlePasswordParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -68,6 +68,15 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Requests a password for encryption/decryption files in folder.
+	/// </summary>
+	Task RequestPasswordAsync(
+		EditorViewModel viewModel,
+		FolderModelDto folder,
+		CryptoAction action,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Resets the session identifier.
 	/// </summary>
 	void ResetSessionId();
@@ -78,15 +87,6 @@ public interface IEntityEcryption
 	Task ShowFileContentsAsync(
 		FileModelDto file,
 		EditorViewModel viewModel,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Takes a password for encryption/decryption files in folder.
-	/// </summary>
-	Task TakePasswordAsync(
-		EditorViewModel viewModel,
-		FolderModelDto folder,
-		CryptoAction action,
 		CancellationToken token = default);
 	#endregion
 }

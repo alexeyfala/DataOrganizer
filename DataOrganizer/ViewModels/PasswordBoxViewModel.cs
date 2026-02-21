@@ -16,29 +16,29 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBa
 	/// Password.
 	/// </summary>
 	[ObservableProperty]
-	[NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+	[NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
 	private string? _password;
 	#endregion
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Save.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteApply))]
+	private Task Apply() => SetResultAsync(true);
+
+	/// <summary>
 	/// Cancel.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
-
-	/// <summary>
-	/// Save.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteSave))]
-	private Task Save() => SetResultAsync(true);
 	#endregion
 
 	#region Service
 	/// <summary>
-	/// Validates <see cref="SaveCommand" />.
+	/// Validates <see cref="ApplyCommand" />.
 	/// </summary>
-	private bool CanExecuteSave()
+	private bool CanExecuteApply()
 	{
 		const char space = ' ';
 

@@ -229,7 +229,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	}
 
 	/// <summary>
-	/// Tries to decrypt the content, if it is encrypted.
+	/// Tries to decrypt the content, if it is decrypted.
 	/// </summary>
 	protected bool TryToDecrypt(
 		byte[] input,
@@ -238,7 +238,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		if (EncryptedPassword?.Length > 0 && !_entityEcryption.DecryptContents(
+		if (EncryptedPassword?.Length > 0 && !_entityEcryption.Decrypt(
 			input,
 			EncryptedPassword,
 			out output))
@@ -263,7 +263,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		if (EncryptedPassword?.Length > 0 && !_entityEcryption.EncryptContents(
+		if (EncryptedPassword?.Length > 0 && !_entityEcryption.Encrypt(
 			input,
 			EncryptedPassword,
 			out output))

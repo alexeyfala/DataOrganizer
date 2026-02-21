@@ -53,16 +53,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 
 		dto.IsEdited = false;
 
-		EditFiles.Remove(dto);
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		ViewLocator.RemoveFromCache(dto);
+		CloseEditor(dto);
 	}
 
 	/// <summary>
@@ -133,6 +124,23 @@ public sealed partial class EditFilesViewModel : ObservableObject
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Closes editor associated with the object.
+	/// </summary>
+	public void CloseEditor(FileModelDto dto)
+	{
+		EditFiles.Remove(dto);
+
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return;
+		}
+
+		ViewLocator.RemoveFromCache(dto);
+	}
+
 	/// <summary>
 	/// Opens a file in built-in the editor.
 	/// </summary>

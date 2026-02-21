@@ -99,7 +99,9 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 				throw new NotImplementedException();
 		}
 
-		return GetResultAsync(defaultResult: YesNoCancelResult.Cancel, token);
+		return GetResultAsync(
+			defaultResult: YesNoCancelResult.Cancel,
+			token: token);
 	}
 	#endregion
 }

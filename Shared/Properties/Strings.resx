@@ -460,4 +460,10 @@
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
+  <data name="HideTheContentsOfAllFiles" xml:space="preserve">
+    <value>Hide the contents of all files</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
 </root>

@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -153,6 +154,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
+		IEnumerable<FileModelDto> executedFiles,
 		in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
@@ -164,6 +167,23 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.AddHierarchy(hierarchy);
+
+		window
+			.ViewModel
+			.EditFiles
+			.ViewModel
+			.EditFiles
+			.AddRange(editFiles);
+
+		window
+			.ViewModel
+			.ExecutedFiles
+			.AddRange(executedFiles);
+
+		window
+			.ViewModel
+			.HideAllFileContentsCommand
+			.NotifyCanExecuteChanged();
 
 		if (showObjectId.IsNotDefault())
 		{
@@ -227,7 +247,10 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public FavoritesWindow ConfigureFavoritesWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public FavoritesWindow ConfigureFavoritesWindow(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
+		IEnumerable<FileModelDto> executedFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
@@ -236,6 +259,16 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.AddHierarchy(hierarchy);
+
+		window
+			.ViewModel
+			.OpenedInEditorFiles
+			.AddRange(editFiles);
+
+		window
+			.ViewModel
+			.ExecutedFiles
+			.AddRange(executedFiles);
 
 		string filePath = AppUtils.GetSettingsFilePath(nameof(FavoritesWindowSettings));
 
@@ -276,13 +309,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				CurrentWindow.Editor => ConfigureEditorWindow(hierarchy),
-				CurrentWindow.Favorites => ConfigureFavoritesWindow(hierarchy),
+				CurrentWindow.Editor => ConfigureEditorWindow(hierarchy, [], []),
+				CurrentWindow.Favorites => ConfigureFavoritesWindow(hierarchy, [], []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return ConfigureEditorWindow(hierarchy);
+		return ConfigureEditorWindow(hierarchy, [], []);
 	}
 
 	/// <inheritdoc />

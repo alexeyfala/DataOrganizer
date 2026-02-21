@@ -33,7 +33,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(GetViewFactoryMockForEditorView(mock)));
 
 		// Act
-		EditorWindow window = sut.ConfigureEditorWindow([]);
+		EditorWindow window = sut.ConfigureEditorWindow([], []);
 
 		// Assert
 		AssertWindowHasDefaultSettings(window);
@@ -65,7 +65,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(GetSerializerMockForSettings(settings)));
 
 		// Act
-		EditorWindow window = sut.ConfigureEditorWindow([]);
+		EditorWindow window = sut.ConfigureEditorWindow([], []);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -86,7 +86,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(GetViewFactoryMockForFavoritesView(mock)));
 
 		// Act
-		FavoritesWindow window = sut.ConfigureFavoritesWindow([]);
+		FavoritesWindow window = sut.ConfigureFavoritesWindow([], []);
 
 		// Assert
 		AssertWindowHasDefaultSettings(window);
@@ -116,7 +116,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(GetSerializerMockForSettings(settings)));
 
 		// Act
-		FavoritesWindow window = sut.ConfigureFavoritesWindow([]);
+		FavoritesWindow window = sut.ConfigureFavoritesWindow([], []);
 
 		// Assert
 		window.ViewModel.IsInitialized

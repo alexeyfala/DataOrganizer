@@ -124,6 +124,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string Apply {
+            get {
+                return ResourceManager.GetString("Apply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Assigning hotkeys....
         /// </summary>
         public static string AssigningHotkeys {
@@ -606,6 +615,15 @@ namespace Shared.Properties {
         public static string HideContents {
             get {
                 return ResourceManager.GetString("HideContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide the contents of all files.
+        /// </summary>
+        public static string HideTheContentsOfAllFiles {
+            get {
+                return ResourceManager.GetString("HideTheContentsOfAllFiles", resourceCulture);
             }
         }
         

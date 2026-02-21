@@ -1,11 +1,12 @@
 ﻿using Avalonia.Data.Converters;
-using DataOrganizer.Enums;
+using Material.Icons;
+using Shared.Common;
 using System;
 using System.Globalization;
 
 namespace DataOrganizer.Converters;
 
-internal sealed class EncryptionStatusNotDefaultToTrueConverter : IValueConverter
+internal sealed class OperatingSystemToIconKindConverter : IValueConverter
 {
 	#region Methods
 	/// <inheritdoc />
@@ -15,7 +16,22 @@ internal sealed class EncryptionStatusNotDefaultToTrueConverter : IValueConverte
 		object? parameter,
 		CultureInfo culture)
 	{
-		return value is EncryptionStatus status && status != EncryptionStatus.None;
+		if (AppUtils.IsWindows)
+		{
+			return MaterialIconKind.MicrosoftWindows;
+		}
+
+		if (AppUtils.IsLinux)
+		{
+			return MaterialIconKind.Linux;
+		}
+
+		if (AppUtils.IsMacOs)
+		{
+			return MaterialIconKind.Apple;
+		}
+
+		return default(MaterialIconKind);
 	}
 
 	/// <inheritdoc />

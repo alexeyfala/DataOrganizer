@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -21,10 +22,22 @@ internal sealed class FlyoutButton : Button
 	/// <summary>
 	/// Icon.
 	/// </summary>
-	public MaterialIconKind Icon { get; init; }
+	public MaterialIconKind Icon
+	{
+		get => GetValue(IconProperty);
+		set => SetValue(IconProperty, value);
+	}
 
 	/// <inheritdoc />
 	protected override Type StyleKeyOverride { get; } = typeof(Button);
+	#endregion
+
+	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="Icon" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<MaterialIconKind> IconProperty = AvaloniaProperty
+		.Register<FlyoutButton, MaterialIconKind>(name: nameof(Icon));
 	#endregion
 
 	#region Constructors

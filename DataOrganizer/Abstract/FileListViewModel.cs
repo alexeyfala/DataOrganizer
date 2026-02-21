@@ -1,8 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -15,6 +17,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
@@ -61,7 +64,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	[RelayCommand]
 	private async Task PreviewPointerEntered(MaterialIcon? icon)
 	{
-		if (icon?.DataContext is not FileModelDto dto)
+		if (icon?.DataContext is not FileModelDto file)
 		{
 			return;
 		}
@@ -76,34 +79,54 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 		}
 
 		ContentsIsValidPair result = await _dbAccess
-			.GetFileContentsAsync(dto.Id)
+			.GetFileContentsAsync(file.Id)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
 		{
-			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{dto.Id}""");
+			_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
 			return;
 		}
 
-		string text = TextHelper
-			.Utf8Encoding
-			.GetString(result.Contents);
+		byte[] contents = result.Contents;
 
-		if (string.IsNullOrEmpty(text))
+		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+			contents,
+			file,
+			out contents))
 		{
-			_app
-				.FindDataContext<ViewModelBase>()?
-				.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{dto.Name}""");
-
 			return;
 		}
 
-		ToolTip.SetTip(icon, text.Truncate(200));
+		try
+		{
+			string text = TextHelper
+				.Utf8Encoding
+				.GetString(contents);
 
-		ToolTip.SetIsOpen(icon, true);
+			if (string.IsNullOrEmpty(text))
+			{
+				_app
+					.FindDataContext<ViewModelBase>()?
+					.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
-		_logger.LogDebug($@"Display content prewiew for ""{dto.Id}""");
+				return;
+			}
+
+			ToolTip.SetTip(icon, text.Truncate(200));
+
+			ToolTip.SetIsOpen(icon, true);
+
+			_logger.LogDebug($@"Display content prewiew for ""{file.Id}""");
+		}
+		finally
+		{
+			if (file.EncryptionStatus == EncryptionStatus.Decrypted)
+			{
+				CryptographicOperations.ZeroMemory(contents);
+			}
+		}
 	}
 
 	/// <summary>
@@ -125,8 +148,10 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	protected FileListViewModel(
 		Application app,
 		IDbAccess dbAccess,
+		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(app, dbAccess, entityEcryption, logger)
+		ILogger logger,
+		IViewFactory viewFactory) : base(app, dbAccess, encryption, entityEcryption, logger, viewFactory)
 	{
 	}
 	#endregion

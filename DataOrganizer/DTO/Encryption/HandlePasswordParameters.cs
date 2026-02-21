@@ -6,7 +6,7 @@ namespace DataOrganizer.DTO.Encryption;
 /// <summary>
 /// The parameters for password input for encryption/decryption files in folder.
 /// </summary>
-public class HandlePasswordInputParameters
+public class HandlePasswordParameters
 {
 	#region Properties
 	/// <inheritdoc cref="CryptoAction" />
@@ -23,9 +23,9 @@ public class HandlePasswordInputParameters
 
 	#region Methods
 	/// <summary>
-	/// Creates <see cref="EncryptDecryptFilesParameters" /> from <see cref="HandlePasswordInputParameters" /> and <paramref name="password"/>.
+	/// Creates <see cref="FolderEncryptionParameters" /> from <see cref="HandlePasswordParameters" /> and <paramref name="password"/>.
 	/// </summary>
-	public EncryptDecryptFilesParameters CreateFrom(string password) => new()
+	public FolderEncryptionParameters CreateFrom(string password) => new()
 	{
 		Action = Action,
 		Files = Files,

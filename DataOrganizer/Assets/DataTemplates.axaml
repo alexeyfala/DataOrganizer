@@ -100,13 +100,13 @@
 										<Separator />
 
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EncryptFilesCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EncryptFolderCommand}"
 											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.EncryptFiles}"
 											Icon="LockOutline" />
 
 										<wrappers:FlyoutButton
-											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFilesCommand}"
+											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFolderCommand}"
 											CommandParameter="{Binding}"
 											Header="{x:Static prop:Strings.DecryptFiles}"
 											Icon="LockOffOutline" />
@@ -166,12 +166,13 @@
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
 				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
+				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 			</Grid.Resources>
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).FileDoubleTappedCommand}"
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
 						CommandParameter="{Binding $parent[Grid]}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -222,7 +223,7 @@
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecuteFileCommand}"
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.OpenInOS}"
-							Icon="FileEditOutline"
+							Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
 
 						<Separator />
@@ -776,7 +777,7 @@
 
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,*">
+			ColumnDefinitions="Auto,*,Auto">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -814,7 +815,11 @@
 			<TextBlock
 				Grid.Column="1"
 				Classes="DtoNameTextBlockStyle"
-				Text="{Binding Name, Mode=OneWay}" />
+				Text="{Binding Name, Mode=OneTime}" />
+
+			<views:IconsBlock
+				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
@@ -833,7 +838,11 @@
 
 		<Grid
 			Background="Transparent"
-			ColumnDefinitions="Auto,Auto,Auto,*">
+			ColumnDefinitions="Auto,Auto,*,Auto">
+
+			<Grid.Resources>
+				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
+			</Grid.Resources>
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -887,6 +896,7 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}"
 				Kind="EyeOutline">
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">
@@ -907,6 +917,13 @@
 				Grid.Column="2"
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}" />
+
+			<views:IconsBlock
+				Grid.Column="3"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
+				IsEdited="{Binding IsEdited, Mode=OneWay}"
+				IsExecuted="{Binding IsExecuted, Mode=OneWay}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">

@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
@@ -21,6 +22,10 @@
 	<Design.DataContext>
 		<vm:EditorViewModel />
 	</Design.DataContext>
+
+	<Window.Resources>
+		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+	</Window.Resources>
 
 	<dialogHost:DialogHost
 		dialogHost:DialogHostStyle.CornerRadius="6.0"
@@ -174,6 +179,19 @@
 
 						<Button
 							Classes="primary"
+							Command="{Binding HideAllFileContentsCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
+							                                            Size={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
+							<Button.Styles>
+								<Style Selector="Button:not(:disabled)">
+									<Setter Property="Background" Value="{StaticResource WarningBrush}" />
+								</Style>
+							</Button.Styles>
+						</Button>
+
+						<Button
+							Classes="primary"
 							Command="{Binding ResetSelectedObjectCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=SelectionEllipseRemove,
 							                                            Size={StaticResource ToolBarIconSize}}"
@@ -185,10 +203,13 @@
 							<Button
 								Classes="primary"
 								Command="{Binding ShowExecutedFilesCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=FileEditOutline,
-								                                            Size={StaticResource ToolBarIconSize}}"
 								Theme="{StaticResource MaterialFlatButton}"
-								ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}" />
+								ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}">
+								<materialIcons:MaterialIcon
+									Width="{StaticResource ToolBarIconSize}"
+									Height="{StaticResource ToolBarIconSize}"
+									Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}" />
+							</Button>
 
 							<TextBlock
 								Margin="0.0,0.0,8.0,0.0"
