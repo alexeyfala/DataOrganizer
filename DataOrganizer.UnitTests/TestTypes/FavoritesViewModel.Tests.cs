@@ -384,6 +384,7 @@ internal class FavoritesViewModelTests
 
 			viewLauncher.ConfigureEditorWindow(
 				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+				Arg.Any<IEnumerable<FileModelDto>>(),
 				Arg.Any<IEnumerable<FileModelDto>>())
 			.Returns(mock.Create<EditorWindow>());
 
@@ -418,6 +419,7 @@ internal class FavoritesViewModelTests
 
 		viewLauncher.Received().ConfigureEditorWindow(
 			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
+			Arg.Any<IEnumerable<FileModelDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>());
 	}
 
