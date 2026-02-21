@@ -223,7 +223,7 @@
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecuteFileCommand}"
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.OpenInOS}"
-							Icon="FileEditOutline"
+							Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
 
 						<Separator />
