@@ -493,23 +493,23 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		_ = DialogHost.Show(view);
 
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token: token)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		HandlePasswordParameters parameters = new()
-		{
-			Action = action,
-			Files = filesDto,
-			Folder = folder
-		};
-
 		try
 		{
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token: token)
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
+			HandlePasswordParameters parameters = new()
+			{
+				Action = action,
+				Files = filesDto,
+				Folder = folder
+			};
+
 			await HandlePasswordInputAsync(
 				view.ViewModel.Password,
 				viewModel,
@@ -558,19 +558,19 @@ public sealed class EntityEcryption : IEntityEcryption
 			_ = DialogHost.Show(view);
 		}
 
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token: token)
-			.ConfigureAwait(false) || view.ViewModel.Password is not { } password)
-		{
-			return;
-		}
-
 		try
 		{
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token: token)
+				.ConfigureAwait(false) || view.ViewModel.Password is null)
+			{
+				return;
+			}
+
 			viewModel.IsActionInProgress = true;
 
-			if (!_encryption.EnhancedVerify(password, passwordHash))
+			if (!_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
 			{
 				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
 
@@ -578,7 +578,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 
 			bool isEncrypted = _encryption.Encrypt(
-				TextHelper.Utf8Encoding.GetBytes(password),
+				TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
 				GetSessionId(),
 				out byte[] output);
 

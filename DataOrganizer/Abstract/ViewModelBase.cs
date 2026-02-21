@@ -100,12 +100,19 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
+		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(app, dbAccess, entityEcryption, logger, viewFactory)
+		IViewLauncher viewLauncher) : base(
+			app,
+			dbAccess,
+			encryption,
+			entityEcryption,
+			logger,
+			viewFactory)
 	{
 		_dispatcher = dispatcher;
 

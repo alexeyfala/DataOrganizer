@@ -41,12 +41,16 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 	/// <inheritdoc cref="IViewFactory" />
 	protected readonly IViewFactory _viewFactory;
+
+	/// <inheritdoc cref="IEncryptionService" />
+	private readonly IEncryptionService _encryption;
 	#endregion
 
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
+		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger,
 		IViewFactory viewFactory)
@@ -54,6 +58,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		_app = app;
 
 		_dbAccess = dbAccess;
+
+		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 
@@ -110,31 +116,50 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
+			byte[] contents = result.Contents;
+
 			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 			{
 				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
 				_ = DialogHost.Show(view);
 
-				if (!await view
-					.ViewModel
-					.GetResultAsync(waitDialogHostCloses: false, token: token)
-					.ConfigureAwait(true))
+				try
 				{
-					return;
-				}
+					if (!await view
+						.ViewModel
+						.GetResultAsync(waitDialogHostCloses: false, token: token)
+						.ConfigureAwait(true) || view.ViewModel.Password is null)
+					{
+						return;
+					}
 
-				if (file.FindParent(x => x.PasswordHash is not null)?.PasswordHash is { } passwordHash)
+					if (file.FindParent(x => x.PasswordHash is not null)?.PasswordHash is { } passwordHash
+						&& !_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
+					{
+						_app
+							.FindDataContext<ViewModelBase>()?
+							.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+						return;
+					}
+
+					if (!_encryption.Decrypt(
+						contents,
+						TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
+						out contents))
+					{
+						return;
+					}
+				}
+				finally
 				{
-
+					view
+						.ViewModel
+						.Password = null;
 				}
-
-				;
 			}
-
-			byte[] contents = result.Contents;
-
-			if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+			else if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
 				contents,
 				file,
 				out contents))
