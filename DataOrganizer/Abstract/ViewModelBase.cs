@@ -56,6 +56,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Returns <c>True</c> if shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
+
+	/// <summary>
+	/// Opened in editor files.
+	/// </summary>
+	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Properties

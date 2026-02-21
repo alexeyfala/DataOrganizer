@@ -154,6 +154,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
 		IEnumerable<FileModelDto> executedFiles,
 		in Guid showObjectId = default)
 	{
@@ -166,6 +167,13 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.AddHierarchy(hierarchy);
+
+		window
+			.ViewModel
+			.EditFiles
+			.ViewModel
+			.EditFiles
+			.AddRange(editFiles);
 
 		window
 			.ViewModel
@@ -241,6 +249,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public FavoritesWindow ConfigureFavoritesWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
 		IEnumerable<FileModelDto> executedFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
@@ -250,6 +259,11 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.AddHierarchy(hierarchy);
+
+		window
+			.ViewModel
+			.OpenedInEditorFiles
+			.AddRange(editFiles);
 
 		window
 			.ViewModel
@@ -295,13 +309,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				CurrentWindow.Editor => ConfigureEditorWindow(hierarchy, []),
-				CurrentWindow.Favorites => ConfigureFavoritesWindow(hierarchy, []),
+				CurrentWindow.Editor => ConfigureEditorWindow(hierarchy, [], []),
+				CurrentWindow.Favorites => ConfigureFavoritesWindow(hierarchy, [], []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return ConfigureEditorWindow(hierarchy, []);
+		return ConfigureEditorWindow(hierarchy, [], []);
 	}
 
 	/// <inheritdoc />

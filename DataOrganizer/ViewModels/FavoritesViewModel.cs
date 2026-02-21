@@ -564,6 +564,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		_viewLauncher.ConfigureEditorWindow(
 			Hierarchy,
+			OpenedInEditorFiles,
 			ExecutedFiles,
 			id).Show();
 

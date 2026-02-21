@@ -30,6 +30,7 @@ public interface IViewLauncher
 	/// </summary>
 	EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
 		IEnumerable<FileModelDto> executedFiles,
 		in Guid showObjectId = default);
 
@@ -38,6 +39,7 @@ public interface IViewLauncher
 	/// </summary>
 	FavoritesWindow ConfigureFavoritesWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<FileModelDto> editFiles,
 		IEnumerable<FileModelDto> executedFiles);
 
 	/// <summary>
