@@ -166,6 +166,7 @@
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
 				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
+				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 			</Grid.Resources>
 
 			<Interaction.Behaviors>
