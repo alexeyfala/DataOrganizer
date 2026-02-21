@@ -124,6 +124,11 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					return;
 				}
 
+				if (file.FindParent(x => x.PasswordHash is not null)?.PasswordHash is { } passwordHash)
+				{
+
+				}
+
 				;
 			}
 
