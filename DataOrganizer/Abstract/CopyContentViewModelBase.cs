@@ -149,6 +149,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 						TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
 						out contents))
 					{
+						_app
+							.FindDataContext<ViewModelBase>()?
+							.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
 						return;
 					}
 				}
