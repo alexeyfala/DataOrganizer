@@ -35,11 +35,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		RecordsGroup? group = null;
 
@@ -92,11 +101,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		RecordsGroup? group = null;
 
@@ -147,11 +165,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		RecordsGroup? group = null;
 
@@ -296,11 +323,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		sut
 			.Records
@@ -342,11 +378,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
 		await sut.EditKeyValueAsync(target, key, value);
@@ -379,11 +424,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
 		await sut.EditNoteAsync(target, note);
@@ -417,11 +471,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
 		await sut.EditValueAsync(target, value);
@@ -454,11 +517,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		sut.IsReadOnly = isReadOnly;
 
@@ -515,11 +587,20 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		sut.IsReadOnly = isReadOnly;
 
@@ -551,11 +632,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		// Act
 		await sut.RenameGroupAsync(group, name);
@@ -591,11 +681,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		sut.IsReadOnly = isReadOnly;
 
@@ -657,11 +756,20 @@ internal class DatasetEditorViewModelTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(CreateSerializerMock()));
+			serializer
+				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
 
 		sut.IsReadOnly = isReadOnly;
 
@@ -723,22 +831,6 @@ internal class DatasetEditorViewModelTests
 			Arg.Any<Guid>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<PropertyNameValuePair[]>());
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Creates <see cref="IJsonSerializerWrapper" /> that returns a random string.
-	/// </summary>
-	private static IJsonSerializerWrapper CreateSerializerMock()
-	{
-		IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
-
-		serializer
-			.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-			.Returns(AppUtils.CreateRandomString(10));
-
-		return serializer;
 	}
 	#endregion
 }

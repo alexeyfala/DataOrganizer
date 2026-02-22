@@ -168,12 +168,17 @@ public class ViewLauncher : IViewLauncher
 			.ViewModel
 			.AddHierarchy(hierarchy);
 
-		window
-			.ViewModel
-			.EditFiles
-			.ViewModel
-			.EditFiles
-			.AddRange(editFiles);
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			window
+				.ViewModel
+				.EditFiles
+				.ViewModel
+				.EditFiles
+				.AddRange(editFiles);
+		}
 
 		window
 			.ViewModel
