@@ -27,16 +27,40 @@ internal class ViewLauncherTests
 	public void ConfigureEditorView_Creates_Window_With_Default_Settings_For_The_First_Launch()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForEditorView(mock)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateWindow<EditorWindow>()
+				.Returns(mock.Create<EditorWindow>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		EditorWindow window = sut.ConfigureEditorWindow([], [], []);
 
 		// Assert
-		AssertWindowHasDefaultSettings(window);
+		window.Width
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Width);
+
+		window.Height
+			.Should()
+			.Be(IViewLauncher.DefaultWindowSize.Height);
+
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+
+		window.ViewModel.NavigationColumnWidth.Value
+			.Should()
+			.Be(window.Width / 3.0);
 	}
 
 	/// <summary>
@@ -58,11 +82,28 @@ internal class ViewLauncherTests
 			Y = positiveValue
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForEditorView(mock)),
-			TypedParameter.From(GetSerializerMockForSettings(settings)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+			jsonSerializer
+				.FromFile<EditorWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateWindow<EditorWindow>()
+				.Returns(mock.Create<EditorWindow>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		EditorWindow window = sut.ConfigureEditorWindow([], [], []);
@@ -80,16 +121,44 @@ internal class ViewLauncherTests
 	public void ConfigureFavoritesWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForFavoritesView(mock)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>()
+				.Returns(mock.Create<FavoritesWindow>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		FavoritesWindow window = sut.ConfigureFavoritesWindow([], [], []);
 
 		// Assert
-		AssertWindowHasDefaultSettings(window);
+		window.WindowStartupLocation
+			.Should()
+			.Be(WindowStartupLocation.CenterScreen);
+
+		window.ViewModel.PopupHeight
+			.Should()
+			.Be(250.0);
+
+		window.ViewModel.PopupWidth
+			.Should()
+			.Be(window.ViewModel.PopupHeight * 2.0);
+
+		window.ViewModel.FavoritesSettings.NavigationColumnWidth
+			.Should()
+			.Be(window.ViewModel.PopupWidth / 2.0);
+
+		window.ViewModel.FavoritesSettings.SelectedCategoryId
+			.Should()
+			.Be(Guid.Empty);
 	}
 
 	/// <summary>
@@ -109,11 +178,28 @@ internal class ViewLauncherTests
 			Y = positiveValue
 		};
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForFavoritesView(mock)),
-			TypedParameter.From(GetSerializerMockForSettings(settings)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+			jsonSerializer
+				.FromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>()
+				.Returns(mock.Create<FavoritesWindow>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		FavoritesWindow window = sut.ConfigureFavoritesWindow([], [], []);
@@ -131,11 +217,26 @@ internal class ViewLauncherTests
 	public void ConfigureMainWindow_Configures_Editor()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForEditorView(mock)),
-			TypedParameter.From(GetSerializerMockForSettings(CurrentWindow.Editor)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+			jsonSerializer
+				.FromFile<CurrentWindow>(Arg.Any<string>())
+				.Returns(CurrentWindow.Editor);
+
+			viewFactory
+				.CreateWindow<EditorWindow>()
+				.Returns(mock.Create<EditorWindow>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		Window window = sut.ConfigureMainWindow([]);
@@ -153,10 +254,20 @@ internal class ViewLauncherTests
 	public void ConfigureMainWindow_Configures_Editor_If_No_Settings()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForEditorView(mock)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateWindow<EditorWindow>()
+				.Returns(mock.Create<EditorWindow>());
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		Window window = sut.ConfigureMainWindow([]);
@@ -174,11 +285,28 @@ internal class ViewLauncherTests
 	public void ConfigureMainWindow_Configures_Favorites()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock mock = AutoMock.GetLoose();
 
-		ViewLauncher sut = mock.Create<ViewLauncher>(
-			TypedParameter.From(GetViewFactoryMockForFavoritesView(mock)),
-			TypedParameter.From(GetSerializerMockForSettings(CurrentWindow.Favorites)));
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+
+			jsonSerializer
+				.FromFile<CurrentWindow>(Arg.Any<string>())
+				.Returns(CurrentWindow.Favorites);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>()
+				.Returns(mock.Create<FavoritesWindow>());
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(jsonSerializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
 		Window window = sut.ConfigureMainWindow([]);
@@ -271,112 +399,6 @@ internal class ViewLauncherTests
 			CurrentWindow.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Asserts that <see cref="EditorWindow" /> has default settings.
-	/// </summary>
-	private static void AssertWindowHasDefaultSettings(EditorWindow window)
-	{
-		window.Width
-			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Width);
-
-		window.Height
-			.Should()
-			.Be(IViewLauncher.DefaultWindowSize.Height);
-
-		window.WindowStartupLocation
-			.Should()
-			.Be(WindowStartupLocation.CenterScreen);
-
-		window.ViewModel.NavigationColumnWidth.Value
-			.Should()
-			.Be(window.Width / 3.0);
-	}
-
-	/// <summary>
-	/// Asserts that <see cref="FavoritesWindow" /> has default settings.
-	/// </summary>
-	private static void AssertWindowHasDefaultSettings(FavoritesWindow window)
-	{
-		window.WindowStartupLocation
-			.Should()
-			.Be(WindowStartupLocation.CenterScreen);
-
-		window.ViewModel.PopupHeight
-			.Should()
-			.Be(250.0);
-
-		window.ViewModel.PopupWidth
-			.Should()
-			.Be(window.ViewModel.PopupHeight * 2.0);
-
-		window.ViewModel.FavoritesSettings.NavigationColumnWidth
-			.Should()
-			.Be(window.ViewModel.PopupWidth / 2.0);
-
-		window.ViewModel.FavoritesSettings.SelectedCategoryId
-			.Should()
-			.Be(Guid.Empty);
-	}
-
-	/// <summary>
-	/// Prepares mock of <see cref="IJsonSerializerWrapper.FromFile{T}" /> to return settings.
-	/// </summary>
-	private static IJsonSerializerWrapper GetSerializerMockForSettings<T>(T settings)
-	{
-		IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
-
-		jsonSerializer
-			.FromFile<T>(Arg.Any<string>())
-			.Returns(settings);
-
-		return jsonSerializer;
-	}
-
-	/// <summary>
-	/// Prepares mock of <see cref="IViewFactory.CreateUserControl{T}" /> to return <see cref="UserControl" />.
-	/// </summary>
-	private static IViewFactory GetViewFactoryMock<T>(AutoMock mock) where T : UserControl
-	{
-		IViewFactory factory = Substitute.For<IViewFactory>();
-
-		factory
-			.CreateUserControl<T>()
-			.Returns(mock.Create<T>());
-
-		return factory;
-	}
-
-	/// <summary>
-	/// Prepares mock of <see cref="IViewFactory.CreateWindow{T}" /> to return <see cref="EditorWindow" />.
-	/// </summary>
-	private static IViewFactory GetViewFactoryMockForEditorView(AutoMock mock)
-	{
-		IViewFactory factory = Substitute.For<IViewFactory>();
-
-		factory
-			.CreateWindow<EditorWindow>()
-			.Returns(mock.Create<EditorWindow>());
-
-		return factory;
-	}
-
-	/// <summary>
-	/// Prepares mock of <see cref="IViewFactory.CreateWindow{T}" /> to return <see cref="FavoritesWindow" />.
-	/// </summary>
-	private static IViewFactory GetViewFactoryMockForFavoritesView(AutoMock mock)
-	{
-		IViewFactory factory = Substitute.For<IViewFactory>();
-
-		factory
-			.CreateWindow<FavoritesWindow>()
-			.Returns(mock.Create<FavoritesWindow>());
-
-		return factory;
 	}
 	#endregion
 }
