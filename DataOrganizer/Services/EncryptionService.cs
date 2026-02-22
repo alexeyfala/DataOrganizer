@@ -33,6 +33,37 @@ public sealed class EncryptionService : IEncryptionService
 	#endregion
 
 	#region Methods
+	public byte[] CreateWrappedDek(byte[] password)
+	{
+		byte[] dek = RandomNumberGenerator.GetBytes(_algorithm.KeySize);
+
+		byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+
+		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
+
+		using Key wrappingKey = DeriveKey(password, salt);
+
+		using Key dekKey = ImportKey(dek);
+
+		byte[] encryptedDek = _algorithm.Encrypt(
+			wrappingKey,
+			nonce,
+			associatedData: [],
+			dek);
+
+		byte[] result = new byte[salt.Length + nonce.Length + encryptedDek.Length];
+
+		Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
+
+		Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
+
+		Buffer.BlockCopy(encryptedDek, 0, result, salt.Length + nonce.Length, encryptedDek.Length);
+
+		CryptographicOperations.ZeroMemory(dek);
+
+		return result;
+	}
+
 	/// <inheritdoc />
 	public bool Decrypt(
 		byte[] input,
@@ -186,9 +217,72 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
+
+	public byte[] RewrapDek(
+		byte[] wrappedDek,
+		byte[] oldPassword,
+		byte[] newPassword)
+	{
+		byte[] dek = UnwrapDek(wrappedDek, oldPassword);
+
+		byte[] newWrappedDek = CreateWrappedDekFromExistingDek(dek, newPassword);
+
+		CryptographicOperations.ZeroMemory(dek);
+
+		return newWrappedDek;
+	}
+
+	public byte[] UnwrapDek(byte[] wrappedDek, byte[] password)
+	{
+		byte[] salt = new byte[_saltSize];
+
+		byte[] nonce = new byte[_algorithm.NonceSize];
+
+		byte[] ciphertext = new byte[wrappedDek.Length - salt.Length - nonce.Length];
+
+		Buffer.BlockCopy(wrappedDek, 0, salt, 0, salt.Length);
+
+		Buffer.BlockCopy(wrappedDek, salt.Length, nonce, 0, nonce.Length);
+
+		Buffer.BlockCopy(wrappedDek, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
+
+		using Key wrappingKey = DeriveKey(password, salt);
+
+		return _algorithm.Decrypt(
+			wrappingKey,
+			nonce,
+			associatedData: [],
+			ciphertext)
+			?? throw new CryptographicException("Invalid password.");
+	}
 	#endregion
 
 	#region Service
+	private static byte[] CreateWrappedDekFromExistingDek(byte[] dek, byte[] password)
+	{
+		byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+
+		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
+
+		using Key wrappingKey = DeriveKey(password, salt);
+
+		byte[] encryptedDek = _algorithm.Encrypt(
+			wrappingKey,
+			nonce,
+			associatedData: [],
+			dek);
+
+		byte[] result = new byte[salt.Length + nonce.Length + encryptedDek.Length];
+
+		Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
+
+		Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
+
+		Buffer.BlockCopy(encryptedDek, 0, result, salt.Length + nonce.Length, encryptedDek.Length);
+
+		return result;
+	}
+
 	/// <summary>
 	/// Derives a key.
 	/// </summary>
@@ -208,15 +302,20 @@ public sealed class EncryptionService : IEncryptionService
 
 		try
 		{
-			return Key.Import(
-				algorithm: _algorithm,
-				blob: blob,
-				format: KeyBlobFormat.RawSymmetricKey);
+			return ImportKey(blob);
 		}
 		finally
 		{
 			CryptographicOperations.ZeroMemory(blob);
 		}
+	}
+
+	private static Key ImportKey(byte[] blob)
+	{
+		return Key.Import(
+			algorithm: _algorithm,
+			blob: blob,
+			format: KeyBlobFormat.RawSymmetricKey);
 	}
 	#endregion
 }

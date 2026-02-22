@@ -15,6 +15,11 @@ public sealed class FolderModel : ExplorerModelBase
 	public Collection<ExplorerModelBase> Children { get; } = [];
 
 	/// <summary>
+	/// Encrypted DEK (Data Encryption Key)
+	/// </summary>
+	public byte[]? EncryptedDEK { get; init; }
+
+	/// <summary>
 	/// Returns <c>True</c> if the folder is expanded.
 	/// </summary>
 	public bool IsExpanded { get; init; }
