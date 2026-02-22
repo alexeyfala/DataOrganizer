@@ -88,9 +88,9 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-			jsonSerializer
+			serializer
 				.FromFile<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
@@ -100,7 +100,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(jsonSerializer);
+			builder.RegisterInstance(serializer);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -184,9 +184,9 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-			jsonSerializer
+			serializer
 				.FromFile<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
@@ -196,7 +196,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(jsonSerializer);
+			builder.RegisterInstance(serializer);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
@@ -223,9 +223,9 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-			jsonSerializer
+			serializer
 				.FromFile<CurrentWindow>(Arg.Any<string>())
 				.Returns(CurrentWindow.Editor);
 
@@ -291,9 +291,9 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
-			jsonSerializer
+			serializer
 				.FromFile<CurrentWindow>(Arg.Any<string>())
 				.Returns(CurrentWindow.Favorites);
 
@@ -303,7 +303,7 @@ internal class ViewLauncherTests
 
 			builder.RegisterInstance(viewFactory);
 
-			builder.RegisterInstance(jsonSerializer);
+			builder.RegisterInstance(serializer);
 		});
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
