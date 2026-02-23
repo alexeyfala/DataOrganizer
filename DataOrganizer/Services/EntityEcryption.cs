@@ -78,10 +78,14 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		byte[] encryptedDek = _encryption.RewrapDek(
+		if (!_encryption.RewrapDek(
 			folder.EncryptedDek,
 			TextHelper.Utf8Encoding.GetBytes("123"),
-			TextHelper.Utf8Encoding.GetBytes("456"));
+			TextHelper.Utf8Encoding.GetBytes("456"),
+			out byte[] encryptedDek))
+		{
+			return;
+		}
 
 		string passwordHash = _encryption.EnhancedHashPassword("456");
 

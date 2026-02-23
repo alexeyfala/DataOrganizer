@@ -45,9 +45,10 @@ public interface IEncryptionService
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
 	/// </summary>
-	byte[] RewrapDek(
+	bool RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword);
+		byte[] newPassword,
+		out byte[] newWrappedDek);
 	#endregion
 }
