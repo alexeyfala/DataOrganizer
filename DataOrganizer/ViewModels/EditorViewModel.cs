@@ -565,7 +565,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Change password of the folder");
 
-		return _entityEcryption.ChangePasswordAsync(dto);
+		return _entityEcryption.ChangePasswordAsync(dto, this);
 	}
 
 	/// <summary>

@@ -16,7 +16,10 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Changes the password.
 	/// </summary>
-	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
+	Task ChangePasswordAsync(
+		FolderModelDto dto,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Decrypts binary data using the encrypted password.

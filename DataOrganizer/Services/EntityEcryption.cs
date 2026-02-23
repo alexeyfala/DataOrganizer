@@ -71,23 +71,73 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
+	public async Task ChangePasswordAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
 	{
-		if (folder.EncryptedDek is null)
+		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
 		}
 
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.Label = Strings.OldPassword;
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token: token)
+			.ConfigureAwait(true) || view.ViewModel.Password is not { } oldPassword)
+		{
+			return;
+		}
+
+		if (!_encryption.EnhancedVerify(oldPassword, folder.PasswordHash))
+		{
+			viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+			return;
+		}
+
+		view
+			.ViewModel
+			.Password = null;
+
+		view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.Label = Strings.NewPassword;
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token: token)
+			.ConfigureAwait(false) || view.ViewModel.Password is not { } newPassword)
+		{
+			return;
+		}
+
+		view
+			.ViewModel
+			.Password = null;
+
 		if (!_encryption.RewrapDek(
 			folder.EncryptedDek,
-			TextHelper.Utf8Encoding.GetBytes("123"),
-			TextHelper.Utf8Encoding.GetBytes("456"),
+			TextHelper.Utf8Encoding.GetBytes(oldPassword),
+			TextHelper.Utf8Encoding.GetBytes(newPassword),
 			out byte[] encryptedDek))
 		{
 			return;
 		}
 
-		string passwordHash = _encryption.EnhancedHashPassword("456");
+		string passwordHash = _encryption.EnhancedHashPassword(newPassword);
 
 		PropertyNameValuePair[] properties =
 		[
@@ -106,6 +156,8 @@ public sealed class EntityEcryption : IEntityEcryption
 		folder.PasswordHash = passwordHash;
 
 		folder.EncryptedDek = encryptedDek;
+
+		viewModel.ShowInfoSnackbar(Strings.PasswordChanged);
 	}
 
 	/// <inheritdoc />

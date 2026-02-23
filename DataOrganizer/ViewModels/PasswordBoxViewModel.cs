@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Views;
+using Shared.Properties;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -12,6 +13,12 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBase
 {
 	#region Auto-Generated Properties
+	/// <summary>
+	/// The label.
+	/// </summary>
+	[ObservableProperty]
+	private string _label = Strings.Password;
+
 	/// <summary>
 	/// Password.
 	/// </summary>
