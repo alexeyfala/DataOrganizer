@@ -207,40 +207,21 @@ public sealed class EncryptionService : IEncryptionService
 			return false;
 		}
 
-		newWrappedDek = CreateWrappedDekFromExistingDek(dek, newPassword);
-
-		CryptographicOperations.ZeroMemory(dek);
-
-		return true;
+		try
+		{
+			return Encrypt(
+				dek,
+				newPassword,
+				out newWrappedDek);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(dek);
+		}
 	}
 	#endregion
 
 	#region Service
-	private static byte[] CreateWrappedDekFromExistingDek(byte[] dek, byte[] password)
-	{
-		byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
-
-		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-
-		using Key key = DeriveKey(password, salt);
-
-		byte[] encryptedDek = _algorithm.Encrypt(
-			key,
-			nonce,
-			associatedData: [],
-			dek);
-
-		byte[] result = new byte[salt.Length + nonce.Length + encryptedDek.Length];
-
-		Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
-
-		Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
-
-		Buffer.BlockCopy(encryptedDek, 0, result, salt.Length + nonce.Length, encryptedDek.Length);
-
-		return result;
-	}
-
 	/// <summary>
 	/// Derives a key.
 	/// </summary>
