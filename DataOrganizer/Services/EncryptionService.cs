@@ -36,37 +36,6 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
-	public byte[] CreateWrappedDek(byte[] password)
-	{
-		byte[] dek = RandomNumberGenerator.GetBytes(_algorithm.KeySize);
-
-		byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
-
-		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-
-		using Key wrappingKey = DeriveKey(password, salt);
-
-		using Key dekKey = ImportKey(dek);
-
-		byte[] encryptedDek = _algorithm.Encrypt(
-			wrappingKey,
-			nonce,
-			associatedData: [],
-			dek);
-
-		byte[] result = new byte[salt.Length + nonce.Length + encryptedDek.Length];
-
-		Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
-
-		Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
-
-		Buffer.BlockCopy(encryptedDek, 0, result, salt.Length + nonce.Length, encryptedDek.Length);
-
-		CryptographicOperations.ZeroMemory(dek);
-
-		return result;
-	}
-
 	/// <inheritdoc />
 	public bool Decrypt(
 		byte[] input,
