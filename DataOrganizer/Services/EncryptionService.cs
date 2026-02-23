@@ -235,31 +235,6 @@ public sealed class EncryptionService : IEncryptionService
 
 		return newWrappedDek;
 	}
-
-	/// <inheritdoc />
-	public byte[] UnwrapDek(byte[] wrappedDek, byte[] password)
-	{
-		byte[] salt = new byte[_saltSize];
-
-		byte[] nonce = new byte[_algorithm.NonceSize];
-
-		byte[] ciphertext = new byte[wrappedDek.Length - salt.Length - nonce.Length];
-
-		Buffer.BlockCopy(wrappedDek, 0, salt, 0, salt.Length);
-
-		Buffer.BlockCopy(wrappedDek, salt.Length, nonce, 0, nonce.Length);
-
-		Buffer.BlockCopy(wrappedDek, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
-
-		using Key wrappingKey = DeriveKey(password, salt);
-
-		return _algorithm.Decrypt(
-			wrappingKey,
-			nonce,
-			associatedData: [],
-			ciphertext)
-			?? throw new CryptographicException("Invalid password.");
-	}
 	#endregion
 
 	#region Service
@@ -269,10 +244,10 @@ public sealed class EncryptionService : IEncryptionService
 
 		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
 
-		using Key wrappingKey = DeriveKey(password, salt);
+		using Key key = DeriveKey(password, salt);
 
 		byte[] encryptedDek = _algorithm.Encrypt(
-			wrappingKey,
+			key,
 			nonce,
 			associatedData: [],
 			dek);
@@ -321,6 +296,33 @@ public sealed class EncryptionService : IEncryptionService
 			algorithm: _algorithm,
 			blob: blob,
 			format: KeyBlobFormat.RawSymmetricKey);
+	}
+
+	/// <summary>
+	/// Unwraps the DEK (Data Encryption Key) with password.
+	/// </summary>
+	private static byte[] UnwrapDek(byte[] wrappedDek, byte[] password)
+	{
+		byte[] salt = new byte[_saltSize];
+
+		byte[] nonce = new byte[_algorithm.NonceSize];
+
+		byte[] ciphertext = new byte[wrappedDek.Length - salt.Length - nonce.Length];
+
+		Buffer.BlockCopy(wrappedDek, 0, salt, 0, salt.Length);
+
+		Buffer.BlockCopy(wrappedDek, salt.Length, nonce, 0, nonce.Length);
+
+		Buffer.BlockCopy(wrappedDek, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
+
+		using Key key = DeriveKey(password, salt);
+
+		return _algorithm.Decrypt(
+			key,
+			nonce,
+			associatedData: [],
+			ciphertext)
+			?? throw new CryptographicException("Invalid password.");
 	}
 	#endregion
 }

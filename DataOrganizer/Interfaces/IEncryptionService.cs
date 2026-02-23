@@ -42,11 +42,12 @@ public interface IEncryptionService
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
 	bool EnhancedVerify(string password, string passwordHash);
 
+	/// <summary>
+	/// Rewraps the DEK (Data Encryption Key) with new password.
+	/// </summary>
 	byte[] RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
 		byte[] newPassword);
-
-	byte[] UnwrapDek(byte[] wrappedDek, byte[] password);
 	#endregion
 }
