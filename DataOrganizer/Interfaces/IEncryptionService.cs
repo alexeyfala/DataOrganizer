@@ -10,15 +10,23 @@ namespace DataOrganizer.Interfaces;
 public interface IEncryptionService
 {
 	#region Methods
+	byte[] CreateRandomDEK();
+
 	/// <summary>
 	/// Decrypts data.
 	/// </summary>
-	bool Decrypt(byte[] input, byte[] password, out byte[] output);
+	bool Decrypt(
+		byte[] input,
+		byte[] password,
+		out byte[] output);
 
 	/// <summary>
 	/// Encrypts data.
 	/// </summary>
-	bool Encrypt(byte[] input, byte[] password, out byte[] output);
+	bool Encrypt(
+		byte[] input,
+		byte[] password,
+		out byte[] output);
 
 	/// <summary>
 	/// Encrypts/decrypts a sequence of contents.
@@ -33,5 +41,12 @@ public interface IEncryptionService
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
 	bool EnhancedVerify(string password, string passwordHash);
+
+	byte[] RewrapDek(
+		byte[] wrappedDek,
+		byte[] oldPassword,
+		byte[] newPassword);
+
+	byte[] UnwrapDek(byte[] wrappedDek, byte[] password);
 	#endregion
 }

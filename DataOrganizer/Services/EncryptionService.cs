@@ -33,6 +33,9 @@ public sealed class EncryptionService : IEncryptionService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public byte[] CreateRandomDEK() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
+
 	public byte[] CreateWrappedDek(byte[] password)
 	{
 		byte[] dek = RandomNumberGenerator.GetBytes(_algorithm.KeySize);
@@ -218,6 +221,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
 
+	/// <inheritdoc />
 	public byte[] RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
@@ -232,6 +236,7 @@ public sealed class EncryptionService : IEncryptionService
 		return newWrappedDek;
 	}
 
+	/// <inheritdoc />
 	public byte[] UnwrapDek(byte[] wrappedDek, byte[] password)
 	{
 		byte[] salt = new byte[_saltSize];
