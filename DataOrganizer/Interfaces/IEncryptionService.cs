@@ -10,7 +10,7 @@ namespace DataOrganizer.Interfaces;
 public interface IEncryptionService
 {
 	#region Methods
-	byte[] CreateRandomDEK();
+	byte[] CreateRandomDek();
 
 	/// <summary>
 	/// Decrypts data.

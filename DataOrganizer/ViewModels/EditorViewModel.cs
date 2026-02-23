@@ -556,9 +556,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Changes password for folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
-	private void ChangePassword(FolderModelDto? dto)
+	private Task ChangePassword(FolderModelDto? dto)
 	{
-		// TODO: Implement
+		if (dto is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		_logger.LogInformation("Change password of the folder");
+
+		return _entityEcryption.ChangePasswordAsync(dto);
 	}
 
 	/// <summary>
@@ -1622,12 +1629,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
-	private bool CanExecuteChangePassword(FolderModelDto? dto)
-	{
-		return IsNotReadOnly()
-			&& dto is not null
-			&& !string.IsNullOrEmpty(dto.PasswordHash);
-	}
+	private bool CanExecuteChangePassword(FolderModelDto? dto) => IsNotReadOnly() && dto?.IsPasswordKeeper() == true;
 
 	/// <summary>
 	/// Validates <see cref="CloseAllExecutedFilesCommand" />.
@@ -1637,12 +1639,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteDecryptFolder(FolderModelDto? dto)
-	{
-		return IsNotReadOnly()
-			&& dto is not null
-			&& !string.IsNullOrEmpty(dto.PasswordHash);
-	}
+	private bool CanExecuteDecryptFolder(FolderModelDto? dto) => IsNotReadOnly() && dto?.IsPasswordKeeper() == true;
 
 	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
@@ -1658,9 +1655,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteEncryptFolder(FolderModelDto? dto)
 	{
 		return IsNotReadOnly()
-			&& dto is not null
-			&& string.IsNullOrEmpty(dto.PasswordHash)
-			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+			&& dto?.IsPasswordKeeper() == false
+			&& !dto.AnyParent(x => !x.IsPasswordKeeper());
 	}
 
 	/// <summary>

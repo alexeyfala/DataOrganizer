@@ -71,6 +71,40 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
+	{
+		if (folder.EncryptedDek is null)
+		{
+			return;
+		}
+
+		byte[] encryptedDek = _encryption.RewrapDek(
+			folder.EncryptedDek,
+			TextHelper.Utf8Encoding.GetBytes("123"),
+			TextHelper.Utf8Encoding.GetBytes("456"));
+
+		string passwordHash = _encryption.EnhancedHashPassword("456");
+
+		PropertyNameValuePair[] properties =
+		[
+			new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+			new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+		];
+
+		if (!await _dbAccess.UpdatePropertiesAsync(
+			id: folder.Id,
+			token: token,
+			properties: properties).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		folder.PasswordHash = passwordHash;
+
+		folder.EncryptedDek = encryptedDek;
+	}
+
+	/// <inheritdoc />
 	public bool Decrypt(
 		byte[] input,
 		byte[] encryptedPassword,
@@ -167,10 +201,61 @@ public sealed class EntityEcryption : IEntityEcryption
 				return FolderEncryptionResult.FailedToLoadContents;
 			}
 
-			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
-				contents,
-				TextHelper.Utf8Encoding.GetBytes(parameters.Password),
-				parameters.Action)];
+			ContentsIsValidPair[] result = [];
+
+			byte[]? encryptedDek = null;
+
+			switch (parameters.Action)
+			{
+				case CryptoAction.Encrypt:
+					byte[] dek = _encryption.CreateRandomDek();
+
+					result = [.. _encryption.EncryptDecryptContents(
+						contents,
+						[.. dek],
+						parameters.Action)];
+
+					if (!_encryption.Encrypt(
+						dek,
+						TextHelper.Utf8Encoding.GetBytes(parameters.Password),
+						out encryptedDek))
+					{
+						return FolderEncryptionResult.FailedToEncryptContents;
+					}
+
+					CryptographicOperations.ZeroMemory(dek);
+					break;
+
+				case CryptoAction.Decrypt:
+					if (parameters.Folder.EncryptedDek is null)
+					{
+						return FolderEncryptionResult.FailedToDecryptContents;
+					}
+
+					if (!_encryption.Decrypt(
+						parameters.Folder.EncryptedDek,
+						TextHelper.Utf8Encoding.GetBytes(parameters.Password),
+						out byte[] decryptedDek))
+					{
+						return FolderEncryptionResult.FailedToDecryptContents;
+					}
+
+					try
+					{
+						result = [.. _encryption.EncryptDecryptContents(
+							contents,
+							decryptedDek,
+							parameters.Action)];
+					}
+					finally
+					{
+						CryptographicOperations.ZeroMemory(decryptedDek);
+					}
+					break;
+
+				default:
+					throw new InvalidOperationException("Unsupported action type");
+			}
 
 			if (result.Length != contents.Length
 				|| result.Any(x => !x.IsValid)
@@ -181,7 +266,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				return FolderEncryptionResult.FailedToEncryptContents;
 			}
 
-			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
+			if (!_dbAccess.BackupDatabase(out string? backupFilePath))
 			{
 				viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
@@ -217,11 +302,16 @@ public sealed class EntityEcryption : IEntityEcryption
 				_ => throw new NotImplementedException()
 			};
 
-			if (!await _dbAccess.UpdatePropertyAsync(
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+			];
+
+			if (!await _dbAccess.UpdatePropertiesAsync(
 				id: parameters.Folder.Id,
-				propertyName: nameof(FolderModel.PasswordHash),
-				value: passwordHash,
-				token: token).ConfigureAwait(false))
+				token: token,
+				properties: properties).ConfigureAwait(false))
 			{
 				await RestoreDatabaseAsync().ConfigureAwait(false);
 
@@ -249,6 +339,10 @@ public sealed class EntityEcryption : IEntityEcryption
 			parameters
 				.Folder
 				.PasswordHash = passwordHash;
+
+			parameters
+				.Folder
+				.EncryptedDek = encryptedDek;
 
 			DeleteBackupFile();
 

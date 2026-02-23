@@ -34,7 +34,7 @@ public sealed class EncryptionService : IEncryptionService
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] CreateRandomDEK() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
+	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
 	public byte[] CreateWrappedDek(byte[] password)
 	{

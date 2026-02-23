@@ -14,6 +14,11 @@ public interface IEntityEcryption
 {
 	#region Methods
 	/// <summary>
+	/// Changes the password.
+	/// </summary>
+	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
+
+	/// <summary>
 	/// Decrypts binary data using the encrypted password.
 	/// </summary>
 	bool Decrypt(

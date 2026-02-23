@@ -17,7 +17,7 @@ public sealed class FolderModel : ExplorerModelBase
 	/// <summary>
 	/// Encrypted DEK (Data Encryption Key)
 	/// </summary>
-	public byte[]? EncryptedDEK { get; init; }
+	public byte[]? EncryptedDek { get; init; }
 
 	/// <summary>
 	/// Returns <c>True</c> if the folder is expanded.

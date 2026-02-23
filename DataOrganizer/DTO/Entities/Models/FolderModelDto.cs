@@ -14,8 +14,8 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.Children" />
 	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
-	/// <inheritdoc cref="FolderModel.EncryptedDEK" />
-	public byte[]? EncryptedDEK { get; init; }
+	/// <inheritdoc cref="FolderModel.EncryptedDek" />
+	public byte[]? EncryptedDek { get; set; }
 
 	/// <summary>
 	/// Encrypted password.
@@ -158,6 +158,16 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if <see cref="EncryptedDek" />, <see cref="EncryptedPassword" /> have values.
+	/// </summary>
+	public bool IsPasswordKeeper()
+	{
+		return EncryptedDek is { } dek
+			&& dek.Length > 0
+			&& !string.IsNullOrEmpty(PasswordHash);
 	}
 	#endregion
 }
