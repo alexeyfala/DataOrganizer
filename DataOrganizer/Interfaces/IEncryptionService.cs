@@ -13,12 +13,12 @@ public interface IEncryptionService
 	/// <summary>
 	/// Decrypts data.
 	/// </summary>
-	bool Decrypt(byte[] input, byte[] password, out byte[] output);
+	bool Decrypt(byte[] input, byte[] dek, out byte[] output);
 
 	/// <summary>
 	/// Encrypts data.
 	/// </summary>
-	bool Encrypt(byte[] input, byte[] password, out byte[] output);
+	bool Encrypt(byte[] input, byte[] dek, out byte[] output);
 
 	/// <summary>
 	/// Encrypts/decrypts a sequence of contents.

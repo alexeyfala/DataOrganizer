@@ -67,26 +67,22 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public bool Decrypt(
 		byte[] input,
-		byte[] password,
+		byte[] dek,
 		out byte[] output)
 	{
 		output = [];
 
 		try
 		{
-			byte[] salt = new byte[_saltSize];
-
 			byte[] nonce = new byte[_algorithm.NonceSize];
 
-			byte[] ciphertext = new byte[input.Length - salt.Length - nonce.Length];
+			byte[] ciphertext = new byte[input.Length - nonce.Length];
 
-			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
+			Buffer.BlockCopy(input, 0, nonce, 0, nonce.Length);
 
-			Buffer.BlockCopy(input, salt.Length, nonce, 0, nonce.Length);
+			Buffer.BlockCopy(input, nonce.Length, ciphertext, 0, ciphertext.Length);
 
-			Buffer.BlockCopy(input, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
-
-			using Key key = DeriveKey(password, salt);
+			using Key key = ImportKey(dek);
 
 			if (_algorithm.Decrypt(
 				key: key,
@@ -112,34 +108,28 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public bool Encrypt(
 		byte[] input,
-		byte[] password,
+		byte[] dek,
 		out byte[] output)
 	{
 		output = [];
 
 		try
 		{
-			byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
-
 			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
 
-			using Key key = DeriveKey(password, salt);
+			using Key key = ImportKey(dek);
 
-			byte[] encrypted = _algorithm.Encrypt(
+			byte[] ciphertext = _algorithm.Encrypt(
 				key,
 				nonce,
 				associatedData: [],
 				input);
 
-			byte[] result = new byte[salt.Length + nonce.Length + encrypted.Length];
+			output = new byte[nonce.Length + ciphertext.Length];
 
-			Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
+			Buffer.BlockCopy(nonce, 0, output, 0, nonce.Length);
 
-			Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
-
-			Buffer.BlockCopy(encrypted, 0, result, salt.Length + nonce.Length, encrypted.Length);
-
-			output = result;
+			Buffer.BlockCopy(ciphertext, 0, output, nonce.Length, ciphertext.Length);
 
 			return true;
 		}
