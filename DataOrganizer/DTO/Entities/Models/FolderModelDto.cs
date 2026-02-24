@@ -24,6 +24,11 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
+
+	/// <summary>
+	/// Encrypted within the session DEK.
+	/// </summary>
+	public byte[]? SessionEncryptedDek { get; set; }
 	#endregion
 
 	#region Auto-Generated Properties

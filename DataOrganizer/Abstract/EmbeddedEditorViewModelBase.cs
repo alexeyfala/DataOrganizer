@@ -228,7 +228,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	}
 
 	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
+	/// Tries to decrypt the content, if it has been decrypted.
 	/// </summary>
 	protected bool TryToDecrypt(byte[] input, out byte[] output)
 	{

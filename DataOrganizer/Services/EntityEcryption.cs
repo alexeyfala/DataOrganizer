@@ -765,29 +765,29 @@ public sealed class EntityEcryption : IEntityEcryption
 			? folder
 			: folder.FindParent(x => x.IsPasswordKeeper());
 
-		if (root is null)
+		if (root is null
+			|| root.EncryptedDek is null
+			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] output)
+			|| !_encryption.Encrypt(output, GetSessionId(), out byte[] sessionEncryptedDek))
 		{
 			return false;
 		}
 
-		bool isEncrypted = _encryption.Encrypt(
-			TextHelper.Utf8Encoding.GetBytes(password),
-			GetSessionId(),
-			out byte[] encryptedPassword);
-
-		if (!isEncrypted)
+		try
 		{
-			return false;
+			root.SessionEncryptedDek = sessionEncryptedDek;
+
+			folder
+				.ToEnumerable()
+				.Concat(folder.GetAllChildren())
+				.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+			return true;
 		}
-
-		root.EncryptedPassword = encryptedPassword;
-
-		folder
-			.ToEnumerable()
-			.Concat(folder.GetAllChildren())
-			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
-
-		return true;
+		finally
+		{
+			CryptographicOperations.ZeroMemory(output);
+		}
 	}
 
 	/// <summary>
