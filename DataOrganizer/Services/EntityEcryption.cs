@@ -570,11 +570,11 @@ public sealed class EntityEcryption : IEntityEcryption
 				folder.GetFiles(x => x.IsExecuted));
 		}
 
-		if (folder.EncryptedPassword is not null)
+		if (folder.SessionEncryptedDek is not null)
 		{
-			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
+			CryptographicOperations.ZeroMemory(folder.SessionEncryptedDek);
 
-			folder.EncryptedPassword = null;
+			folder.SessionEncryptedDek = null;
 		}
 
 		folder
