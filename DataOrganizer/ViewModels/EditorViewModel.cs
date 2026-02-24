@@ -33,7 +33,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -267,21 +266,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		byte[] contents = result.Contents;
 
-		byte[]? encryptedPassword = null;
+		byte[]? sessionEncryptedDek = null;
 
 		if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-			&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+			&& dto.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } encryptedDek)
 		{
-			encryptedPassword = [.. password];
+			sessionEncryptedDek = [.. encryptedDek];
 
 			if (!_entityEcryption.Decrypt(
 				contents,
-				password,
+				sessionEncryptedDek,
 				out contents))
 			{
 				ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				CryptographicOperations.ZeroMemory(encryptedPassword);
 
 				return;
 			}
@@ -290,9 +287,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = contents,
-			EncryptedPassword = encryptedPassword,
 			File = dto,
 			IsReadOnly = IsReadOnly,
+			SessionEncryptedDek = sessionEncryptedDek,
 			ViewModel = this
 		};
 

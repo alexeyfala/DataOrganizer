@@ -161,7 +161,7 @@ public class ExecutionEngine : IExecutionEngine
 				{
 					Condition = _executedFiles.ContainsKey,
 					Contents = parameters.Contents,
-					EncryptedPassword = parameters.EncryptedPassword,
+					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
 					FilePath = filePath,
 					Semaphore = _semaphore,

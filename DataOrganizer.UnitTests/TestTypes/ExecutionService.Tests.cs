@@ -60,9 +60,9 @@ internal class ExecutionServiceTests
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = [],
-			EncryptedPassword = null,
 			File = dto,
 			IsReadOnly = default,
+			SessionEncryptedDek = null,
 			ViewModel = null
 		};
 
@@ -114,9 +114,9 @@ internal class ExecutionServiceTests
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = [],
-			EncryptedPassword = null,
 			File = dto,
 			IsReadOnly = isReadOnly,
+			SessionEncryptedDek = null,
 			ViewModel = null
 		};
 
