@@ -680,8 +680,9 @@ public sealed class EntityEcryption : IEntityEcryption
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
-		if (file.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is not { } root
-			|| root.PasswordHash is not { } passwordHash)
+		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+			|| root.PasswordHash is null
+			|| root.EncryptedDek is null)
 		{
 			return;
 		}
@@ -707,26 +708,39 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			viewModel.IsActionInProgress = true;
 
-			if (!_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
+			if (!_encryption.EnhancedVerify(view.ViewModel.Password, root.PasswordHash))
 			{
 				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
 
 				return;
 			}
 
-			bool isEncrypted = _encryption.Encrypt(
+			if (!_encryption.Decrypt(
+				root.EncryptedDek,
 				TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
-				GetSessionId(),
-				out byte[] output);
-
-			if (!isEncrypted)
+				out byte[] decryptedDek))
 			{
 				return;
 			}
 
-			root.EncryptedPassword = output;
+			try
+			{
+				if (!_encryption.Encrypt(
+					decryptedDek,
+					GetSessionId(),
+					out byte[] sessionEncryptedDek))
+				{
+					return;
+				}
 
-			file.EncryptionStatus = EncryptionStatus.Decrypted;
+				root.SessionEncryptedDek = sessionEncryptedDek;
+
+				file.EncryptionStatus = EncryptionStatus.Decrypted;
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(decryptedDek);
+			}
 		}
 		finally
 		{
