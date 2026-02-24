@@ -108,6 +108,7 @@
 										<wrappers:FlyoutButton
 											Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).DecryptFolderCommand}"
 											CommandParameter="{Binding}"
+											Foreground="{StaticResource WarningBrush}"
 											Header="{x:Static prop:Strings.DecryptFiles}"
 											Icon="LockOffOutline" />
 

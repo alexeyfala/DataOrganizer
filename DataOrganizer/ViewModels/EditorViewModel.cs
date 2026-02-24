@@ -1636,7 +1636,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteDecryptFolder(FolderModelDto? dto) => IsNotReadOnly() && dto?.IsPasswordKeeper() == true;
+	private bool CanExecuteDecryptFolder(FolderModelDto? dto)
+	{
+		return IsNotReadOnly()
+			&& dto?.IsPasswordKeeper() == true
+			&& dto.EncryptionStatus == EncryptionStatus.Encrypted
+			&& dto.Children.AllBy(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
 
 	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
