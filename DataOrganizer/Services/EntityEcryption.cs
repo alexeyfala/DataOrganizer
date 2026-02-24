@@ -76,6 +76,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
+		// TODO: Make test
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
@@ -760,9 +761,9 @@ public sealed class EntityEcryption : IEntityEcryption
 		FolderModelDto folder,
 		string password)
 	{
-		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
+		FolderModelDto? root = folder.IsPasswordKeeper()
 			? folder
-			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+			: folder.FindParent(x => x.IsPasswordKeeper());
 
 		if (root is null)
 		{
@@ -772,14 +773,14 @@ public sealed class EntityEcryption : IEntityEcryption
 		bool isEncrypted = _encryption.Encrypt(
 			TextHelper.Utf8Encoding.GetBytes(password),
 			GetSessionId(),
-			out byte[] output);
+			out byte[] encryptedPassword);
 
 		if (!isEncrypted)
 		{
 			return false;
 		}
 
-		root.EncryptedPassword = output;
+		root.EncryptedPassword = encryptedPassword;
 
 		folder
 			.ToEnumerable()

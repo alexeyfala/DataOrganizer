@@ -66,6 +66,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
+				ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
 				return;
@@ -78,11 +80,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			if (!TryToDecrypt(
-				result.Contents,
-				scrollViewer,
-				out byte[] output))
+			if (!TryToDecrypt(result.Contents, out byte[] output))
 			{
+				IsContentCorrupted = true;
+
+				ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+
 				return;
 			}
 
@@ -1114,11 +1117,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Utf8Encoding
 			.GetBytes(_jsonSerializer.Serialize(Records));
 
-		if (!TryToEncrypt(
-			contents,
-			null,
-			out byte[] output))
+		if (!TryToEncrypt(contents, out byte[] output))
 		{
+			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
+
 			return Task.CompletedTask;
 		}
 
