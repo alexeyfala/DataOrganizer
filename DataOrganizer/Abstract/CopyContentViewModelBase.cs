@@ -253,9 +253,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		output = input;
 
-		return file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
-			&& encryptedPassword.Length != 0
-			&& _entityEcryption.Decrypt(input, encryptedPassword, out output);
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
+			&& root.SessionEncryptedDek is not null
+			&& _entityEcryption.DecryptSessionContents(input, root.SessionEncryptedDek, out output);
 	}
 	#endregion
 }

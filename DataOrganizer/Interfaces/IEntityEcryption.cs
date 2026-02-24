@@ -24,18 +24,10 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Decrypts contents using the session encrypted DEK.
 	/// </summary>
-	bool Decrypt(
+	bool DecryptSessionContents(
 		byte[] encryptedContents,
 		byte[] sessionEncryptedDek,
 		out byte[] decryptedContents);
-
-	/// <summary>
-	/// Encrypts contents using the session encrypted DEK.
-	/// </summary>
-	bool Encrypt(
-		byte[] decryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] encryptedContents);
 
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
@@ -44,6 +36,14 @@ public interface IEntityEcryption
 		EditorViewModel viewModel,
 		FolderEncryptionParameters parameters,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Encrypts contents using the session encrypted DEK.
+	/// </summary>
+	bool EncryptSessionContents(
+		byte[] decryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] encryptedContents);
 
 	/// <summary>
 	/// Returns a session identifier.

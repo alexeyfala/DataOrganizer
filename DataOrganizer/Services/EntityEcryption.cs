@@ -162,7 +162,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool Decrypt(
+	public bool DecryptSessionContents(
 		byte[] encryptedContents,
 		byte[] sessionEncryptedDek,
 		out byte[] decryptedContents)
@@ -183,35 +183,6 @@ public sealed class EntityEcryption : IEntityEcryption
 				encryptedContents,
 				decryptedDek,
 				out decryptedContents);
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
-		}
-	}
-
-	/// <inheritdoc />
-	public bool Encrypt(
-		byte[] decryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] encryptedContents)
-	{
-		encryptedContents = [];
-
-		if (!_encryption.Decrypt(
-			sessionEncryptedDek,
-			GetSessionId(),
-			out byte[] decryptedDek))
-		{
-			return false;
-		}
-
-		try
-		{
-			return _encryption.Encrypt(
-				decryptedContents,
-				decryptedDek,
-				out encryptedContents);
 		}
 		finally
 		{
@@ -428,6 +399,35 @@ public sealed class EntityEcryption : IEntityEcryption
 			_logger.LogException(ex);
 
 			return FolderEncryptionResult.ExceptionThrown;
+		}
+	}
+
+	/// <inheritdoc />
+	public bool EncryptSessionContents(
+		byte[] decryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] encryptedContents)
+	{
+		encryptedContents = [];
+
+		if (!_encryption.Decrypt(
+			sessionEncryptedDek,
+			GetSessionId(),
+			out byte[] decryptedDek))
+		{
+			return false;
+		}
+
+		try
+		{
+			return _encryption.Encrypt(
+				decryptedContents,
+				decryptedDek,
+				out encryptedContents);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedDek);
 		}
 	}
 

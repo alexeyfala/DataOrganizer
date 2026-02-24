@@ -234,7 +234,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		return SessionEncryptedDek is null || _entityEcryption.Decrypt(
+		return SessionEncryptedDek is null || _entityEcryption.DecryptSessionContents(
 			input,
 			SessionEncryptedDek,
 			out output);
@@ -247,7 +247,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		return SessionEncryptedDek is null || _entityEcryption.Encrypt(
+		return SessionEncryptedDek is null || _entityEcryption.EncryptSessionContents(
 			input,
 			SessionEncryptedDek,
 			out output);

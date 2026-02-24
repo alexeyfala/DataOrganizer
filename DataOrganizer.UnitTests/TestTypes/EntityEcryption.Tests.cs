@@ -29,10 +29,10 @@ internal class EntityEcryptionTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
-	public void Decrypt_Cannot_Decrypt_Binary()
+	public void DecryptSessionContents_Cannot_Decrypt_Binary()
 	{
 		// Arrange
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -50,7 +50,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.Decrypt(
+		bool result = sut.DecryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
 			TestUtils.CreateRandomBytes(10),
 			out _);
@@ -67,10 +67,10 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
-	public void Decrypt_Cannot_Decrypt_Encrypted_Password()
+	public void DecryptSessionContents_Cannot_Decrypt_Encrypted_Password()
 	{
 		// Arrange
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -88,7 +88,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.Decrypt(
+		bool result = sut.DecryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
 			TestUtils.CreateRandomBytes(10),
 			out _);
@@ -105,10 +105,10 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.Decrypt" />.
+	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
-	public void Decrypt_Does_Work()
+	public void DecryptSessionContents_Does_Work()
 	{
 		// Arrange
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -131,140 +131,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.Decrypt(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out byte[] output);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		output
-			.Should()
-			.NotBeEmpty();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.Encrypt" />.
-	/// </summary>
-	[Test]
-	public void Encrypt_Cannot_Decrypt_Encrypted_Password()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption.Decrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(false);
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		bool result = sut.Encrypt(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out _);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		encryption.Received(0).Encrypt(
-			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
-			out Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.Encrypt" />.
-	/// </summary>
-	[Test]
-	public void Encrypt_Cannot_Encrypt_Binary()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption.Decrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(true);
-
-			encryption.Encrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(false);
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		bool result = sut.Encrypt(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out _);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		encryption.Received().Encrypt(
-			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
-			out Arg.Any<byte[]>());
-
-		encryption.Received().Decrypt(
-			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
-			out Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EntityEcryption.Encrypt" />.
-	/// </summary>
-	[Test]
-	public void Encrypt_Does_Work()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption.Decrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(true);
-
-			encryption.Encrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(x =>
-				{
-					x[2] = TestUtils.CreateRandomBytes(10);
-
-					return true;
-				});
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		bool result = sut.Encrypt(
+		bool result = sut.DecryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
 			TestUtils.CreateRandomBytes(10),
 			out byte[] output);
@@ -816,6 +683,139 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// </summary>
+	[Test]
+	public void EncryptSessionContents_Cannot_Decrypt_Encrypted_Password()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.EncryptSessionContents(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received(0).Encrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// </summary>
+	[Test]
+	public void EncryptSessionContents_Cannot_Encrypt_Binary()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(true);
+
+			encryption.Encrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(false);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.EncryptSessionContents(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out _);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		encryption.Received().Encrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+
+		encryption.Received().Decrypt(
+			Arg.Any<byte[]>(),
+			Arg.Any<byte[]>(),
+			out Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// </summary>
+	[Test]
+	public void EncryptSessionContents_Does_Work()
+	{
+		// Arrange
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			encryption.Decrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(true);
+
+			encryption.Encrypt(
+				Arg.Any<byte[]>(),
+				Arg.Any<byte[]>(),
+				out Arg.Any<byte[]>()).Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.EncryptSessionContents(
+			TestUtils.CreateRandomBytes(10),
+			TestUtils.CreateRandomBytes(10),
+			out byte[] output);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		output
+			.Should()
+			.NotBeEmpty();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.GetSessionId" />.
 	/// </summary>
 	[Test]
@@ -1093,7 +1093,7 @@ internal class EntityEcryptionTests
 			.Should()
 			.Be(HandlePasswordResult.Applied);
 
-		folder.EncryptedPassword
+		folder.SessionEncryptedDek
 			.Should()
 			.NotBeEmpty();
 
@@ -1207,7 +1207,7 @@ internal class EntityEcryptionTests
 		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
 
 		// Assert
-		folder.EncryptedPassword
+		folder.SessionEncryptedDek
 			.Should()
 			.BeNull();
 
@@ -1386,7 +1386,7 @@ internal class EntityEcryptionTests
 		await sut.ShowFileContentsAsync(file, mock.Create<EditorViewModel>());
 
 		// Assert
-		folder.EncryptedPassword
+		folder.SessionEncryptedDek
 			.Should()
 			.NotBeEmpty();
 

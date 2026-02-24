@@ -273,7 +273,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			sessionEncryptedDek = [.. encryptedDek];
 
-			if (!_entityEcryption.Decrypt(
+			if (!_entityEcryption.DecryptSessionContents(
 				contents,
 				sessionEncryptedDek,
 				out contents))

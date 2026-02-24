@@ -17,11 +17,6 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.EncryptedDek" />
 	public byte[]? EncryptedDek { get; set; }
 
-	/// <summary>
-	/// Encrypted password.
-	/// </summary>
-	public byte[]? EncryptedPassword { get; set; }
-
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
 
