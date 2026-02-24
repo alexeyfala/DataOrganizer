@@ -77,7 +77,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		// TODO: Check if there are opened or executed files
+		// TODO: Check if there are opened, executed, decrypted files
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
