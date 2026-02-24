@@ -126,6 +126,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				try
 				{
+					// TODO: waitDialogHostCloses: false ony for favorites window
 					if (!await view
 						.ViewModel
 						.GetResultAsync(waitDialogHostCloses: false, token: token)
@@ -134,8 +135,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 						return;
 					}
 
-					if (file.FindParent(x => x.PasswordHash is not null)?.PasswordHash is { } passwordHash
-						&& !_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
+					if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+						|| root.PasswordHash is null
+						|| root.EncryptedDek is null)
+					{
+						return;
+					}
+
+					if (!_encryption.EnhancedVerify(view.ViewModel.Password, root.PasswordHash))
 					{
 						_app
 							.FindDataContext<ViewModelBase>()?
@@ -145,15 +152,34 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					}
 
 					if (!_encryption.Decrypt(
-						contents,
+						root.EncryptedDek,
 						TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
-						out contents))
+						out byte[] decryptedDek))
 					{
 						_app
 							.FindDataContext<ViewModelBase>()?
 							.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 						return;
+					}
+
+					try
+					{
+						if (!_encryption.Decrypt(
+							contents,
+							decryptedDek,
+							out contents))
+						{
+							_app
+								.FindDataContext<ViewModelBase>()?
+								.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+							return;
+						}
+					}
+					finally
+					{
+						CryptographicOperations.ZeroMemory(decryptedDek);
 					}
 				}
 				finally

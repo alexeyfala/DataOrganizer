@@ -166,7 +166,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="EncryptedDek" />, <see cref="EncryptedPassword" /> have values.
+	/// Returns <c>True</c> if <see cref="EncryptedDek" />, <see cref="PasswordHash" /> have values.
 	/// </summary>
 	public bool IsPasswordKeeper()
 	{
