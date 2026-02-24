@@ -46,57 +46,57 @@ internal sealed class ViewLocator : IDataTemplate
 	/// <inheritdoc />
 	public Control? Build(object? param)
 	{
-		if (param is FileModelDto dto && dto.IsEdited)
+		if (param is FileModelDto file && file.IsEdited)
 		{
-			if (_cache.TryGetValue(dto, out Control? value))
+			if (_cache.TryGetValue(file, out Control? value))
 			{
 				return value;
 			}
 
-			if (dto.EntityType == EntityType.File)
+			if (file.EntityType == EntityType.File)
 			{
 				EmbeddedFileEditorView view = _viewFactory.CreateUserControl<EmbeddedFileEditorView>();
 
 				Initialize(view.ViewModel);
 
-				_cache.Add(dto, view);
+				_cache.Add(file, view);
 
 				return view;
 			}
-			else if (dto.EntityType == EntityType.DataSet)
+			else if (file.EntityType == EntityType.DataSet)
 			{
 				DatasetEditorView view = _viewFactory.CreateUserControl<DatasetEditorView>();
 
 				Initialize(view.ViewModel);
 
-				_cache.Add(dto, view);
+				_cache.Add(file, view);
 
 				return view;
 			}
 
 			void Initialize(EmbeddedEditorViewModelBase viewModel)
 			{
-				if (dto.EncryptionStatus == Enums.EncryptionStatus.Decrypted
-					&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword)
+				if (file.EncryptionStatus == Enums.EncryptionStatus.Decrypted
+					&& file.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } sessionEncryptedDek)
 				{
 					// It is important not to pass a reference to the array.
-					viewModel.EncryptedPassword = [.. encryptedPassword];
+					viewModel.SessionEncryptedDek = [.. sessionEncryptedDek];
 				}
 
-				viewModel.FileId = dto.Id;
+				viewModel.FileId = file.Id;
 
 				viewModel.SetPropertiesCallback = SetProperties;
 
 				viewModel.SetUpdatedDateCallback = SetUpdatedDate;
 
-				viewModel.InitialProperties = dto.Properties;
+				viewModel.InitialProperties = file.Properties;
 
 				viewModel.Initialize();
 			}
 
-			void SetProperties(string properties) => dto.Properties = properties;
+			void SetProperties(string properties) => file.Properties = properties;
 
-			void SetUpdatedDate(DateTime updatedDate) => dto.UpdatedDate = updatedDate;
+			void SetUpdatedDate(DateTime updatedDate) => file.UpdatedDate = updatedDate;
 		}
 
 		return GetPlugControl(param?.GetType().Name);

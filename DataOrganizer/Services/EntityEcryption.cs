@@ -163,73 +163,59 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc />
 	public bool Decrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
+		byte[] encryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] decryptedContents)
 	{
-		output = [];
+		decryptedContents = [];
 
 		if (!_encryption.Decrypt(
-			encryptedPassword,
+			sessionEncryptedDek,
 			GetSessionId(),
-			out byte[] decryptedPassword))
+			out byte[] decryptedDek))
 		{
 			return false;
 		}
 
 		try
 		{
-			if (!_encryption.Decrypt(
-				input,
-				decryptedPassword,
-				out byte[] decryptedContents))
-			{
-				return false;
-			}
-
-			output = decryptedContents;
-
-			return true;
+			return _encryption.Decrypt(
+				encryptedContents,
+				decryptedDek,
+				out decryptedContents);
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
+			CryptographicOperations.ZeroMemory(decryptedDek);
 		}
 	}
 
 	/// <inheritdoc />
 	public bool Encrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
+		byte[] decryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] encryptedContents)
 	{
-		output = [];
+		encryptedContents = [];
 
 		if (!_encryption.Decrypt(
-			encryptedPassword,
+			sessionEncryptedDek,
 			GetSessionId(),
-			out byte[] decryptedPassword))
+			out byte[] decryptedDek))
 		{
 			return false;
 		}
 
 		try
 		{
-			if (!_encryption.Encrypt(
-				input,
-				decryptedPassword,
-				out byte[] encryptedContents))
-			{
-				return false;
-			}
-
-			output = encryptedContents;
-
-			return true;
+			return _encryption.Encrypt(
+				decryptedContents,
+				decryptedDek,
+				out encryptedContents);
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
+			CryptographicOperations.ZeroMemory(decryptedDek);
 		}
 	}
 

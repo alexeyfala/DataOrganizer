@@ -27,11 +27,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 {
 	#region Properties
 	/// <summary>
-	/// Encrypted password.
-	/// </summary>
-	public byte[]? EncryptedPassword { get; set; }
-
-	/// <summary>
 	/// File identifier.
 	/// </summary>
 	public Guid FileId { get; set; }
@@ -50,6 +45,11 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// Returns <c>True</c> if editor is initialized once.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
+
+	/// <summary>
+	/// Encrypted within the session DEK.
+	/// </summary>
+	public byte[]? SessionEncryptedDek { get; set; }
 
 	/// <summary>
 	/// Callback to set object's properties.
@@ -170,14 +170,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
-		if (EncryptedPassword is null)
+		if (SessionEncryptedDek is null)
 		{
 			return;
 		}
 
-		CryptographicOperations.ZeroMemory(EncryptedPassword);
+		CryptographicOperations.ZeroMemory(SessionEncryptedDek);
 
-		EncryptedPassword = null;
+		SessionEncryptedDek = null;
 	}
 
 	/// <summary>
@@ -234,9 +234,9 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		return EncryptedPassword is null || _entityEcryption.Decrypt(
+		return SessionEncryptedDek is null || _entityEcryption.Decrypt(
 			input,
-			EncryptedPassword,
+			SessionEncryptedDek,
 			out output);
 	}
 
@@ -247,9 +247,9 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		output = input;
 
-		return EncryptedPassword is null || _entityEcryption.Encrypt(
+		return SessionEncryptedDek is null || _entityEcryption.Encrypt(
 			input,
-			EncryptedPassword,
+			SessionEncryptedDek,
 			out output);
 	}
 	#endregion

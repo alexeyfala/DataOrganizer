@@ -22,20 +22,20 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Decrypts binary data using the encrypted password.
+	/// Decrypts contents using the session encrypted DEK.
 	/// </summary>
 	bool Decrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output);
+		byte[] encryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] decryptedContents);
 
 	/// <summary>
-	/// Encrypts binary data using the encrypted password.
+	/// Encrypts contents using the session encrypted DEK.
 	/// </summary>
 	bool Encrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output);
+		byte[] decryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] encryptedContents);
 
 	/// <summary>
 	/// Encrypts/decrypts files in folder.
