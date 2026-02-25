@@ -114,6 +114,14 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Shows file contents in folder.
+	/// </summary>
+	Task ShowFolderContentsAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates the database.
 	/// </summary>
 	Task UpdateDatabaseAsync(

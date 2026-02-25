@@ -937,6 +937,56 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public async Task ShowFolderContentsAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		// TODO: Make test
+		if (folder.PasswordHash is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. folder
+			.Children
+			.GetFiles()];
+
+		if (!AreFilesValid(files, viewModel))
+		{
+			return;
+		}
+
+		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			viewModel.IsActionInProgress = true;
+
+			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			{
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return;
+			}
+
+			if (ShowFolderContents(folder, password))
+			{
+				return;
+			}
+
+			viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
+		}
+		finally
+		{
+			viewModel.IsActionInProgress = false;
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		EditorViewModel viewModel,
@@ -1123,8 +1173,8 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (root is null
 			|| root.EncryptedDek is null
-			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] output)
-			|| !_encryption.Encrypt(output, GetSessionId(), out byte[] sessionEncryptedDek))
+			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] dek)
+			|| !_encryption.Encrypt(dek, GetSessionId(), out byte[] sessionEncryptedDek))
 		{
 			return false;
 		}
@@ -1142,7 +1192,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(output);
+			CryptographicOperations.ZeroMemory(dek);
 		}
 	}
 

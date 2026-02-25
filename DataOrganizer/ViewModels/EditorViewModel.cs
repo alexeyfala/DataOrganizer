@@ -891,10 +891,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		await _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.ShowFolderContents).ConfigureAwait(true);
+		await _entityEcryption.ShowFolderContentsAsync(dto, this).ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
