@@ -275,9 +275,23 @@ internal class EntityEcryptionTests
 			parameters);
 
 		// Assert
-		result
-			.Should()
-			.Be(FolderEncryptionResult.FailedToEncryptContents);
+		switch (action)
+		{
+			case CryptoAction.Encrypt:
+				result
+					.Should()
+					.Be(FolderEncryptionResult.FailedToEncryptContents);
+				break;
+
+			case CryptoAction.Decrypt:
+				result
+					.Should()
+					.Be(FolderEncryptionResult.FailedToDecryptContents);
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
 	}
 
 	/// <summary>
@@ -325,9 +339,23 @@ internal class EntityEcryptionTests
 			parameters);
 
 		// Assert
-		result
-			.Should()
-			.Be(FolderEncryptionResult.FailedToEncryptContents);
+		switch (action)
+		{
+			case CryptoAction.Encrypt:
+				result
+					.Should()
+					.Be(FolderEncryptionResult.FailedToEncryptContents);
+				break;
+
+			case CryptoAction.Decrypt:
+				result
+					.Should()
+					.Be(FolderEncryptionResult.FailedToDecryptContents);
+				break;
+
+			default:
+				throw new NotImplementedException();
+		}
 	}
 
 	/// <summary>
