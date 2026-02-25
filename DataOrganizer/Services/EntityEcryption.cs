@@ -163,6 +163,29 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public async Task DecryptFolderAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		FileModelDto[] files = [.. folder
+			.Children
+			.GetFiles()];
+
+		if (!AreValidFiles(files, viewModel))
+		{
+			return;
+		}
+
+		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
+		;
+	}
+
+	/// <inheritdoc />
 	public bool DecryptSessionContents(
 		byte[] encryptedContents,
 		byte[] sessionEncryptedDek,
@@ -755,6 +778,61 @@ public sealed class EntityEcryption : IEntityEcryption
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Returns <c>True</c> if the files are valid.
+	/// </summary>
+	private static bool AreValidFiles(FileModelDto[] files, EditorViewModel viewModel)
+	{
+		if (files.Length == 0)
+		{
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
+
+			return false;
+		}
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Requests a password from user.
+	/// </summary>
+	private async Task<string?> RequestUserPasswordAsync(CancellationToken token = default)
+	{
+		_logger.LogInformation("Show password box");
+
+		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token: token)
+			.ConfigureAwait(false) || view.ViewModel.Password is null)
+		{
+			return null;
+		}
+
+		try
+		{
+			return view
+				.ViewModel
+				.Password;
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Password = null;
+		}
+	}
+
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>

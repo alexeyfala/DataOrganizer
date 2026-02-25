@@ -22,6 +22,14 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Decrypts files in folder.
+	/// </summary>
+	Task DecryptFolderAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Decrypts contents using the session encrypted DEK.
 	/// </summary>
 	bool DecryptSessionContents(
