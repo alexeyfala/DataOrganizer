@@ -958,6 +958,91 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <summary>
+	/// Updates the database.
+	/// </summary>
+	private async Task UpdateDatabaseAsync(
+		FolderModelDto folder,
+		FileModelDto[] files,
+		EncryptionStatus newStatus,
+		ContentsIsValidPair[] contents,
+		byte[]? encryptedDek,
+		string? passwordHash,
+		string backupFilePath,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		try
+		{
+			DateTime updatedDate = DateTime.Now;
+
+			Dictionary<Guid, PropertyNameValuePair[]> relations = contents.ToDictionary(x => x.Id, x =>
+			{
+				return new PropertyNameValuePair[]
+				{
+					new(nameof(FileModel.Contents), x.Contents),
+					new(nameof(FileModel.UpdatedDate), updatedDate)
+				};
+			});
+
+			if (!await _dbAccess
+				.UpdatePropertiesAsync(relations, token)
+				.ConfigureAwait(false))
+			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(backupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(backupFilePath);
+
+				return;
+			}
+
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+			];
+
+			if (!await _dbAccess.UpdatePropertiesAsync(
+				id: folder.Id,
+				token: token,
+				properties: properties).ConfigureAwait(false))
+			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(backupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(backupFilePath);
+
+				return;
+			}
+
+			ExplorerModelBaseDto[] objects =
+			[
+				.. folder.ToEnumerable(),
+				.. folder.Children.GetFolders(),
+				.. files
+			];
+
+			objects.ForEach(x => x.EncryptionStatus = newStatus);
+
+			folder.PasswordHash = passwordHash;
+
+			folder.EncryptedDek = encryptedDek;
+
+			DeleteDatabaseBackupFile(backupFilePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
 	/// Verifies the password by hash.
 	/// </summary>
 	private bool VerifyPasswordHash(
