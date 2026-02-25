@@ -82,6 +82,30 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
+	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password)
+	{
+		foreach (ContentsIsValidPair item in contents)
+		{
+			if (Decrypt(
+				item.Contents,
+				password,
+				out byte[] output))
+			{
+				yield return new()
+				{
+					Contents = output,
+					Id = item.Id,
+					IsValid = true
+				};
+			}
+			else
+			{
+				yield break;
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public bool Encrypt(
 		byte[] input,
 		byte[] password,

@@ -203,11 +203,10 @@ public sealed class EntityEcryption : IEntityEcryption
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (!AreLoadedContentsValid(
-				contents,
-				files.Length,
-				viewModel))
+			if (!AreLoadedContentsValid(contents, files.Length))
 			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
 				return;
 			}
 
@@ -219,11 +218,18 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			;
-
 			try
 			{
+				ContentsIsValidPair[] decrypted = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
+				if (!AreDecryptedContentsValid(decrypted, contents.Length))
+				{
+					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+					return;
+				}
+
+				;
 			}
 			finally
 			{
@@ -830,6 +836,16 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Service
 	/// <summary>
+	/// Returns <c>True</c> if the decrypted contents are valid.
+	/// </summary>
+	private static bool AreDecryptedContentsValid(ContentsIsValidPair[] decrypted, int encryptedCount)
+	{
+		return decrypted.Length == encryptedCount
+			&& decrypted.All(x => x.IsValid)
+			&& !decrypted.Any(x => x.Id.IsDefault());
+	}
+
+	/// <summary>
 	/// Returns <c>True</c> if the files are valid.
 	/// </summary>
 	private static bool AreFilesValid(FileModelDto[] files, EditorViewModel viewModel)
@@ -854,19 +870,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <summary>
 	/// Returns <c>True</c> if the loaded from database contents are valid.
 	/// </summary>
-	private static bool AreLoadedContentsValid(
-		ContentsIsValidPair[] contents,
-		int fileCount,
-		EditorViewModel viewModel)
+	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
 	{
-		if (contents.Length != fileCount || contents.Any(x => !x.IsValid))
-		{
-			viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
-
-			return false;
-		}
-
-		return true;
+		return contents.Length == fileCount && contents.All(x => x.IsValid);
 	}
 
 	/// <summary>
