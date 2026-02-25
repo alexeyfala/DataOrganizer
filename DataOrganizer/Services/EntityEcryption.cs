@@ -961,13 +961,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// Updates the database.
 	/// </summary>
 	private async Task UpdateDatabaseAsync(
-		FolderModelDto folder,
-		FileModelDto[] files,
-		EncryptionStatus newStatus,
-		ContentsIsValidPair[] contents,
-		byte[]? encryptedDek,
-		string? passwordHash,
-		string backupFilePath,
+		UpdateDatabaseParameters parameters,
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
@@ -975,7 +969,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, PropertyNameValuePair[]> relations = contents.ToDictionary(x => x.Id, x =>
+			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
 			{
 				return new PropertyNameValuePair[]
 				{
@@ -991,50 +985,54 @@ public sealed class EntityEcryption : IEntityEcryption
 				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				await _dbAccess
-					.RestoreFromBackupAsync(backupFilePath, token)
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteDatabaseBackupFile(backupFilePath);
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
 
 				return;
 			}
 
 			PropertyNameValuePair[] properties =
 			[
-				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
 			];
 
 			if (!await _dbAccess.UpdatePropertiesAsync(
-				id: folder.Id,
+				id: parameters.Folder.Id,
 				token: token,
 				properties: properties).ConfigureAwait(false))
 			{
 				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				await _dbAccess
-					.RestoreFromBackupAsync(backupFilePath, token)
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteDatabaseBackupFile(backupFilePath);
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
 
 				return;
 			}
 
 			ExplorerModelBaseDto[] objects =
 			[
-				.. folder.ToEnumerable(),
-				.. folder.Children.GetFolders(),
-				.. files
+				.. parameters.Folder.ToEnumerable(),
+				.. parameters.Folder.Children.GetFolders(),
+				.. parameters.Files
 			];
 
-			objects.ForEach(x => x.EncryptionStatus = newStatus);
+			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
 
-			folder.PasswordHash = passwordHash;
+			parameters
+				.Folder
+				.PasswordHash = parameters.PasswordHash;
 
-			folder.EncryptedDek = encryptedDek;
+			parameters
+				.Folder
+				.EncryptedDek = parameters.EncryptedDek;
 
-			DeleteDatabaseBackupFile(backupFilePath);
+			DeleteDatabaseBackupFile(parameters.BackupFilePath);
 		}
 		catch (Exception ex)
 		{
