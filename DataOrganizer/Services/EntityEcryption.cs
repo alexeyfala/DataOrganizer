@@ -871,28 +871,16 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
+		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
 		{
-			_ = DialogHost.Show(view);
+			return;
 		}
 
 		try
 		{
-			if (!await view
-				.ViewModel
-				.GetResultAsync(token: token)
-				.ConfigureAwait(false) || view.ViewModel.Password is null)
-			{
-				return;
-			}
-
 			viewModel.IsActionInProgress = true;
 
-			if (!_encryption.EnhancedVerify(view.ViewModel.Password, root.PasswordHash))
+			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
 			{
 				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
 
@@ -901,7 +889,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			if (!_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
+				TextHelper.Utf8Encoding.GetBytes(password),
 				out byte[] decryptedDek))
 			{
 				return;
@@ -928,10 +916,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			view
-				.ViewModel
-				.Password = null;
-
 			viewModel.IsActionInProgress = false;
 		}
 	}
