@@ -104,5 +104,13 @@ public interface IEntityEcryption
 		FileModelDto file,
 		EditorViewModel viewModel,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Updates the database.
+	/// </summary>
+	Task UpdateDatabaseAsync(
+		UpdateDatabaseParameters parameters,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
 	#endregion
 }

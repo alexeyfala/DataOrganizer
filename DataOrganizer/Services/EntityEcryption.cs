@@ -220,9 +220,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			try
 			{
-				ContentsIsValidPair[] decrypted = [.. _encryption.DecryptContents(contents, decryptedDek)];
+				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
-				if (!AreDecryptedContentsValid(decrypted, contents.Length))
+				if (!AreDecryptedContentsValid(result, contents.Length))
 				{
 					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
@@ -236,7 +236,21 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backupFilePath,
+					Contents = result,
+					EncryptedDek = null,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.None,
+					PasswordHash = null
+				};
 
+				await UpdateDatabaseAsync(
+					parameters,
+					viewModel,
+					token).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -828,6 +842,88 @@ public sealed class EntityEcryption : IEntityEcryption
 			viewModel.IsActionInProgress = false;
 		}
 	}
+
+	/// <inheritdoc />
+	public async Task UpdateDatabaseAsync(
+		UpdateDatabaseParameters parameters,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		try
+		{
+			// TODO: Make test
+			DateTime updatedDate = DateTime.Now;
+
+			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
+			{
+				return new PropertyNameValuePair[]
+				{
+					new(nameof(FileModel.Contents), x.Contents),
+					new(nameof(FileModel.UpdatedDate), updatedDate)
+				};
+			});
+
+			if (!await _dbAccess
+				.UpdatePropertiesAsync(relations, token)
+				.ConfigureAwait(false))
+			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+				return;
+			}
+
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
+			];
+
+			if (!await _dbAccess.UpdatePropertiesAsync(
+				id: parameters.Folder.Id,
+				token: token,
+				properties: properties).ConfigureAwait(false))
+			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+				return;
+			}
+
+			ExplorerModelBaseDto[] objects =
+			[
+				.. parameters.Folder.ToEnumerable(),
+				.. parameters.Folder.Children.GetFolders(),
+				.. parameters.Files
+			];
+
+			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
+
+			parameters
+				.Folder
+				.PasswordHash = parameters.PasswordHash;
+
+			parameters
+				.Folder
+				.EncryptedDek = parameters.EncryptedDek;
+
+			DeleteDatabaseBackupFile(parameters.BackupFilePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
 	#endregion
 
 	#region Service
@@ -954,89 +1050,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		finally
 		{
 			CryptographicOperations.ZeroMemory(output);
-		}
-	}
-
-	/// <summary>
-	/// Updates the database.
-	/// </summary>
-	private async Task UpdateDatabaseAsync(
-		UpdateDatabaseParameters parameters,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
-	{
-		try
-		{
-			DateTime updatedDate = DateTime.Now;
-
-			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
-			{
-				return new PropertyNameValuePair[]
-				{
-					new(nameof(FileModel.Contents), x.Contents),
-					new(nameof(FileModel.UpdatedDate), updatedDate)
-				};
-			});
-
-			if (!await _dbAccess
-				.UpdatePropertiesAsync(relations, token)
-				.ConfigureAwait(false))
-			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
-					.ConfigureAwait(false);
-
-				DeleteDatabaseBackupFile(parameters.BackupFilePath);
-
-				return;
-			}
-
-			PropertyNameValuePair[] properties =
-			[
-				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
-				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
-			];
-
-			if (!await _dbAccess.UpdatePropertiesAsync(
-				id: parameters.Folder.Id,
-				token: token,
-				properties: properties).ConfigureAwait(false))
-			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
-					.ConfigureAwait(false);
-
-				DeleteDatabaseBackupFile(parameters.BackupFilePath);
-
-				return;
-			}
-
-			ExplorerModelBaseDto[] objects =
-			[
-				.. parameters.Folder.ToEnumerable(),
-				.. parameters.Folder.Children.GetFolders(),
-				.. parameters.Files
-			];
-
-			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
-
-			parameters
-				.Folder
-				.PasswordHash = parameters.PasswordHash;
-
-			parameters
-				.Folder
-				.EncryptedDek = parameters.EncryptedDek;
-
-			DeleteDatabaseBackupFile(parameters.BackupFilePath);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
 		}
 	}
 
