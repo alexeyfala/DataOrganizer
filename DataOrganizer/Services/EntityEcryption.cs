@@ -83,18 +83,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.Label = Strings.OldPassword;
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token: token)
-			.ConfigureAwait(true) || view.ViewModel.Password is not { } oldPassword)
+		if (await RequestUserPasswordAsync(Strings.OldPassword, token).ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
 		}
@@ -106,29 +95,10 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		view
-			.ViewModel
-			.Password = null;
-
-		view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.Label = Strings.NewPassword;
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token: token)
-			.ConfigureAwait(false) || view.ViewModel.Password is not { } newPassword)
+		if (await RequestUserPasswordAsync(Strings.NewPassword, token).ConfigureAwait(false) is not { } newPassword)
 		{
 			return;
 		}
-
-		view
-			.ViewModel
-			.Password = null;
 
 		if (!_encryption.RewrapDek(
 			folder.EncryptedDek,
@@ -183,7 +153,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -510,7 +480,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -871,7 +841,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -890,7 +860,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			if (!_encryption.Decrypt(
 				root.EncryptedDek,
 				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] decryptedDek))
+				out byte[] dek))
 			{
 				return;
 			}
@@ -898,7 +868,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			try
 			{
 				if (!_encryption.Encrypt(
-					decryptedDek,
+					dek,
 					GetSessionId(),
 					out byte[] sessionEncryptedDek))
 				{
@@ -911,7 +881,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(decryptedDek);
+				CryptographicOperations.ZeroMemory(dek);
 			}
 		}
 		finally
@@ -941,7 +911,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -1114,11 +1084,15 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
-	private async Task<string?> RequestUserPasswordAsync(CancellationToken token = default)
+	private async Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
 	{
 		_logger.LogInformation("Show password box");
 
 		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+		view
+			.ViewModel
+			.Label = label;
 
 		_ = DialogHost.Show(view);
 
