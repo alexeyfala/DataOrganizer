@@ -447,9 +447,6 @@
   <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
     <value>Не удалось создать резервную копию базы данных</value>
   </data>
-  <data name="TheDatabaseWillBeRestored" xml:space="preserve">
-    <value>База данных будет восстановлена</value>
-  </data>
   <data name="ContentIsEncrypted" xml:space="preserve">
     <value>Содержимое зашифровано</value>
   </data>

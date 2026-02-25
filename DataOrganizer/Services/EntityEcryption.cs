@@ -229,7 +229,14 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				;
+				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
+				{
+					viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+
+					return;
+				}
+
+
 			}
 			finally
 			{
@@ -383,9 +390,13 @@ public sealed class EntityEcryption : IEntityEcryption
 				.UpdatePropertiesAsync(relations, token)
 				.ConfigureAwait(false))
 			{
-				await RestoreDatabaseAsync().ConfigureAwait(false);
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-				DeleteBackupFile();
+				await _dbAccess
+					.RestoreFromBackupAsync(backupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(backupFilePath);
 
 				return FolderEncryptionResult.FailedToSaveContents;
 			}
@@ -408,9 +419,13 @@ public sealed class EntityEcryption : IEntityEcryption
 				token: token,
 				properties: properties).ConfigureAwait(false))
 			{
-				await RestoreDatabaseAsync().ConfigureAwait(false);
+				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-				DeleteBackupFile();
+				await _dbAccess
+					.RestoreFromBackupAsync(backupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(backupFilePath);
 
 				return FolderEncryptionResult.FailedToSavePasswordHash;
 			}
@@ -439,7 +454,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				.Folder
 				.EncryptedDek = encryptedDek;
 
-			DeleteBackupFile();
+			DeleteDatabaseBackupFile(backupFilePath);
 
 			string doneAction = parameters.Action switch
 			{
@@ -455,25 +470,6 @@ public sealed class EntityEcryption : IEntityEcryption
 					nameof(FolderModelDto.Name))}");
 
 			return FolderEncryptionResult.Done;
-
-			async Task RestoreDatabaseAsync()
-			{
-				viewModel.ShowErrorSnackbar(
-					Strings.FailedToProcessContents +
-					Environment.NewLine +
-					Strings.TheDatabaseWillBeRestored);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(backupFilePath, token)
-					.ConfigureAwait(false);
-			}
-
-			void DeleteBackupFile()
-			{
-				SqliteConnection.ClearAllPools();
-
-				_fileSystem.EraseAndDeleteFile(backupFilePath);
-			}
 		}
 		catch (Exception ex)
 		{
@@ -873,6 +869,23 @@ public sealed class EntityEcryption : IEntityEcryption
 	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
 	{
 		return contents.Length == fileCount && contents.All(x => x.IsValid);
+	}
+
+	/// <summary>
+	/// Deletes the database backup file.
+	/// </summary>
+	private void DeleteDatabaseBackupFile(string filePath)
+	{
+		try
+		{
+			SqliteConnection.ClearAllPools();
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 
 	/// <summary>
