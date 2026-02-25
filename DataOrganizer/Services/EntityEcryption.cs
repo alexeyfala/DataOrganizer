@@ -168,11 +168,16 @@ public sealed class EntityEcryption : IEntityEcryption
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
+		if (folder.EncryptedDek is null || folder.PasswordHash is null)
+		{
+			return;
+		}
+
 		FileModelDto[] files = [.. folder
 			.Children
 			.GetFiles()];
 
-		if (!AreValidFiles(files, viewModel))
+		if (!AreFilesValid(files, viewModel))
 		{
 			return;
 		}
@@ -182,7 +187,53 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		;
+		try
+		{
+			viewModel.IsActionInProgress = true;
+
+			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			{
+				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return;
+			}
+
+			ContentsIsValidPair[] contents = await _dbAccess
+				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			if (!AreLoadedContentsValid(
+				contents,
+				files.Length,
+				viewModel))
+			{
+				return;
+			}
+
+			if (!_encryption.Decrypt(
+				folder.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(password),
+				out byte[] decryptedDek))
+			{
+				return;
+			}
+
+			;
+
+			try
+			{
+
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(decryptedDek);
+			}
+		}
+		finally
+		{
+			viewModel.IsActionInProgress = false;
+		}
 	}
 
 	/// <inheritdoc />
@@ -781,7 +832,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <summary>
 	/// Returns <c>True</c> if the files are valid.
 	/// </summary>
-	private static bool AreValidFiles(FileModelDto[] files, EditorViewModel viewModel)
+	private static bool AreFilesValid(FileModelDto[] files, EditorViewModel viewModel)
 	{
 		if (files.Length == 0)
 		{
@@ -793,6 +844,24 @@ public sealed class EntityEcryption : IEntityEcryption
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
 			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if the loaded from database contents are valid.
+	/// </summary>
+	private static bool AreLoadedContentsValid(
+		ContentsIsValidPair[] contents,
+		int fileCount,
+		EditorViewModel viewModel)
+	{
+		if (contents.Length != fileCount || contents.Any(x => !x.IsValid))
+		{
+			viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
 			return false;
 		}

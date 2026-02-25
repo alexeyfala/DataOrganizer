@@ -651,10 +651,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Decrypt files in a folder");
 
-		return _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.Decrypt);
+		return _entityEcryption.DecryptFolderAsync(dto, this);
+
+		//return _entityEcryption.RequestPasswordAsync(
+		//	this,
+		//	dto,
+		//	CryptoAction.Decrypt);
 	}
 
 	/// <summary>
