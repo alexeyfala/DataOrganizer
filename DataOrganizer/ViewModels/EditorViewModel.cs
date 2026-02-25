@@ -717,10 +717,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Encrypt files in a folder");
 
-		return _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.Encrypt);
+		return _entityEcryption.EncryptFolderAsync(dto, this);
 	}
 
 	/// <summary>

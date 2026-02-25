@@ -46,6 +46,14 @@ public interface IEntityEcryption
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Encryptd files in folder.
+	/// </summary>
+	Task EncryptFolderAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Encrypts contents using the session encrypted DEK.
 	/// </summary>
 	bool EncryptSessionContents(

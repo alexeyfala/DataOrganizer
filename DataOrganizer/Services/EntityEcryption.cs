@@ -168,6 +168,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
+		// TODO: Make test
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
@@ -222,7 +223,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			{
 				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
-				if (!AreDecryptedContentsValid(result, contents.Length))
+				if (!AreContentsValid(result, contents.Length))
 				{
 					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
@@ -490,6 +491,98 @@ public sealed class EntityEcryption : IEntityEcryption
 			_logger.LogException(ex);
 
 			return FolderEncryptionResult.ExceptionThrown;
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task EncryptFolderAsync(
+		FolderModelDto folder,
+		EditorViewModel viewModel,
+		CancellationToken token = default)
+	{
+		// TODO: Make test
+		FileModelDto[] files = [.. folder
+			.Children
+			.GetFiles()];
+
+		if (!AreFilesValid(files, viewModel))
+		{
+			return;
+		}
+
+		if (await RequestUserPasswordAsync(token).ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			viewModel.IsActionInProgress = true;
+
+			ContentsIsValidPair[] contents = await _dbAccess
+				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			if (!AreLoadedContentsValid(contents, files.Length))
+			{
+				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+				return;
+			}
+
+			byte[] dek = _encryption.CreateRandomDek();
+
+			try
+			{
+				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+
+				if (!AreContentsValid(result, contents.Length))
+				{
+					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+					return;
+				}
+
+				if (!_encryption.Encrypt(
+					dek,
+					TextHelper.Utf8Encoding.GetBytes(password),
+					out byte[] encryptedDek))
+				{
+					return;
+				}
+
+				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
+				{
+					viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+
+					return;
+				}
+
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backupFilePath,
+					Contents = result,
+					EncryptedDek = encryptedDek,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.Encrypted,
+					PasswordHash = _encryption.EnhancedHashPassword(password)
+				};
+
+				await UpdateDatabaseAsync(
+					parameters,
+					viewModel,
+					token).ConfigureAwait(false);
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(dek);
+			}
+		}
+		finally
+		{
+			viewModel.IsActionInProgress = false;
 		}
 	}
 
@@ -928,13 +1021,13 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Service
 	/// <summary>
-	/// Returns <c>True</c> if the decrypted contents are valid.
+	/// Returns <c>True</c> if the contents are valid.
 	/// </summary>
-	private static bool AreDecryptedContentsValid(ContentsIsValidPair[] decrypted, int encryptedCount)
+	private static bool AreContentsValid(ContentsIsValidPair[] contents, int shouldBe)
 	{
-		return decrypted.Length == encryptedCount
-			&& decrypted.All(x => x.IsValid)
-			&& !decrypted.Any(x => x.Id.IsDefault());
+		return contents.Length == shouldBe
+			&& contents.All(x => x.IsValid)
+			&& !contents.Any(x => x.Id.IsDefault());
 	}
 
 	/// <summary>

@@ -34,6 +34,11 @@ public interface IEncryptionService
 		out byte[] output);
 
 	/// <summary>
+	/// Encrypts a sequence of contents.
+	/// </summary>
+	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
+
+	/// <summary>
 	/// Encrypts/decrypts a sequence of contents.
 	/// </summary>
 	IEnumerable<ContentsIsValidPair> EncryptDecryptContents(
