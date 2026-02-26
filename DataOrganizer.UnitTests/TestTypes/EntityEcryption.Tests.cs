@@ -454,6 +454,8 @@ internal class EntityEcryptionTests
 
 		folder.PasswordHash = AppUtils.CreateRandomString(10);
 
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		folder
@@ -483,6 +485,15 @@ internal class EntityEcryptionTests
 			encryption
 				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
 				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
 
 			encryption
 				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)

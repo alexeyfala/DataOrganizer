@@ -773,7 +773,12 @@ public sealed class EntityEcryption : IEntityEcryption
 			.ViewModel
 			.Label = label;
 
-		_ = DialogHost.Show(view);
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			_ = DialogHost.Show(view);
+		}
 
 		if (!await view
 			.ViewModel
