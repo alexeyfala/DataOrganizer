@@ -1,6 +1,5 @@
 ﻿using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Enums;
 using DataOrganizer.ViewModels;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,14 +37,6 @@ public interface IEntityEcryption
 		out byte[] decryptedContents);
 
 	/// <summary>
-	/// Encrypts/decrypts files in folder.
-	/// </summary>
-	Task<FolderEncryptionResult> EncryptDecryptFolderAsync(
-		EditorViewModel viewModel,
-		FolderEncryptionParameters parameters,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Encryptd files in folder.
 	/// </summary>
 	Task EncryptFolderAsync(
@@ -67,15 +58,6 @@ public interface IEntityEcryption
 	byte[] GetSessionId();
 
 	/// <summary>
-	/// Handles password input for encryption/decryption files in folder.
-	/// </summary>
-	Task<HandlePasswordResult> HandlePasswordInputAsync(
-		string? password,
-		EditorViewModel viewModel,
-		HandlePasswordParameters parameters,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Hides file contents.
 	/// </summary>
 	Task HideFileContentsAsync(
@@ -89,15 +71,6 @@ public interface IEntityEcryption
 	Task HideFolderContentsAsync(
 		FolderModelDto folder,
 		EditorViewModel viewModel,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Requests a password for encryption/decryption files in folder.
-	/// </summary>
-	Task RequestPasswordAsync(
-		EditorViewModel viewModel,
-		FolderModelDto folder,
-		CryptoAction action,
 		CancellationToken token = default);
 
 	/// <summary>

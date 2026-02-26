@@ -1,5 +1,4 @@
-﻿using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+﻿using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
 using Serilog;
@@ -168,67 +167,6 @@ public sealed class EncryptionService : IEncryptionService
 			{
 				yield break;
 			}
-		}
-	}
-
-	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> EncryptDecryptContents(
-		ContentsIsValidPair[] contents,
-		byte[] password,
-		CryptoAction action)
-	{
-		try
-		{
-			switch (action)
-			{
-				case CryptoAction.Encrypt:
-					foreach (ContentsIsValidPair item in contents)
-					{
-						if (Encrypt(
-							item.Contents,
-							password,
-							out byte[] output))
-						{
-							yield return new()
-							{
-								Contents = output,
-								Id = item.Id,
-								IsValid = true
-							};
-						}
-						else
-						{
-							yield break;
-						}
-					}
-					break;
-
-				case CryptoAction.Decrypt:
-					foreach (ContentsIsValidPair item in contents)
-					{
-						if (Decrypt(
-							item.Contents,
-							password,
-							out byte[] output))
-						{
-							yield return new()
-							{
-								Contents = output,
-								Id = item.Id,
-								IsValid = true
-							};
-						}
-						else
-						{
-							yield break;
-						}
-					}
-					break;
-			}
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(password);
 		}
 	}
 

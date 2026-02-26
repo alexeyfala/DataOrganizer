@@ -1,5 +1,4 @@
-﻿using DataOrganizer.Enums;
-using Repository.DTO;
+﻿using Repository.DTO;
 using System.Collections.Generic;
 
 namespace DataOrganizer.Interfaces;
@@ -37,14 +36,6 @@ public interface IEncryptionService
 	/// Encrypts a sequence of contents.
 	/// </summary>
 	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
-
-	/// <summary>
-	/// Encrypts/decrypts a sequence of contents.
-	/// </summary>
-	IEnumerable<ContentsIsValidPair> EncryptDecryptContents(
-		ContentsIsValidPair[] contents,
-		byte[] password,
-		CryptoAction action);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
 	string EnhancedHashPassword(string password);
