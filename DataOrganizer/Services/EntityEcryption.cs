@@ -77,10 +77,23 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		// TODO: Check if there are opened, executed, decrypted files
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
+		}
+
+		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await viewModel
+				.RequestUserCloseFilesAsync(token)
+				.ConfigureAwait(true))
+			{
+				return;
+			}
+
+			viewModel.CloseFiles(
+				folder.GetFiles(x => x.IsEdited),
+				folder.GetFiles(x => x.IsExecuted));
 		}
 
 		if (await RequestUserPasswordAsync(Strings.OldPassword, token).ConfigureAwait(true) is not { } oldPassword)
@@ -407,25 +420,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		if (file.IsEdited || file.IsExecuted)
 		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
+			if (!await viewModel
+				.RequestUserCloseFilesAsync(token)
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -444,25 +441,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
 		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
+			if (!await viewModel
+				.RequestUserCloseFilesAsync(token)
+				.ConfigureAwait(true))
 			{
 				return;
 			}

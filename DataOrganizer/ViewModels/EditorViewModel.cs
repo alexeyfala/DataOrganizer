@@ -324,30 +324,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted))
+		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await RequestUserCloseFilesAsync().ConfigureAwait(true))
 		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
-			{
-				return;
-			}
+			return;
 		}
 
 		Hierarchy
@@ -1461,6 +1440,32 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.UpdatedDate = updatedDate;
 
 		return true;
+	}
+
+	/// <summary>
+	/// Requests the user to close files.
+	/// </summary>
+	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			_ = DialogHost.Show(view);
+		}
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
 	}
 
 	/// <inheritdoc />
