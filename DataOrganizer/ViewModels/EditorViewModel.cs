@@ -1655,7 +1655,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		return IsNotReadOnly()
 			&& dto?.IsPasswordKeeper() == false
-			&& !dto.AnyParent(x => x.IsPasswordKeeper());
+			&& !dto.AnyParent(x => x.IsPasswordKeeper())
+			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
 	}
 
 	/// <summary>
