@@ -161,6 +161,13 @@ public sealed class EntityEcryption : IEntityEcryption
 			.Children
 			.GetFiles()];
 
+		if (files.Length == 0)
+		{
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
 		if (!AreFilesValid(files, viewModel))
 		{
 			return;
@@ -286,6 +293,13 @@ public sealed class EntityEcryption : IEntityEcryption
 		FileModelDto[] files = [.. folder
 			.Children
 			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
 
 		if (!AreFilesValid(files, viewModel))
 		{
@@ -566,6 +580,13 @@ public sealed class EntityEcryption : IEntityEcryption
 			.Children
 			.GetFiles()];
 
+		if (files.Length == 0)
+		{
+			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
 		if (!AreFilesValid(files, viewModel))
 		{
 			return;
@@ -699,13 +720,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// </summary>
 	private static bool AreFilesValid(FileModelDto[] files, EditorViewModel viewModel)
 	{
-		if (files.Length == 0)
-		{
-			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
-
-			return false;
-		}
-
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
 			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
