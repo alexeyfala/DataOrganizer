@@ -211,6 +211,48 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Decrypts files in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
+	public async Task DecryptFolder(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		_logger.LogInformation("Decrypt files in a folder");
+
+		await _entityEcryption
+			.DecryptFolderAsync(dto, files, this)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
@@ -615,22 +657,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			_logger.LogException(ex);
 		}
-	}
-
-	/// <summary>
-	/// Decrypts files in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
-	private Task DecryptFolder(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Decrypt files in a folder");
-
-		return _entityEcryption.DecryptFolderAsync(dto, this);
 	}
 
 	/// <summary>

@@ -25,6 +25,7 @@ public interface IEntityEcryption
 	/// </summary>
 	Task DecryptFolderAsync(
 		FolderModelDto folder,
+		FileModelDto[] files,
 		EditorViewModel viewModel,
 		CancellationToken token = default);
 
