@@ -271,26 +271,11 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public async Task EncryptFolderAsync(
 		FolderModelDto folder,
+		FileModelDto[] files,
 		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		FileModelDto[] files = [.. folder
-			.Children
-			.GetFiles()];
-
-		if (files.Length == 0)
-		{
-			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		if (!AreFilesValid(files, viewModel))
-		{
-			return;
-		}
-
 		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;

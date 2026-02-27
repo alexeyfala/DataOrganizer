@@ -253,6 +253,48 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
+	public async Task EncryptFolder(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		_logger.LogInformation("Encrypt files in a folder");
+
+		await _entityEcryption
+			.EncryptFolderAsync(dto, files, this)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
@@ -707,22 +749,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		EditFiles
 			.ViewModel
 			.OpenInEditor(dto);
-	}
-
-	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
-	private Task EncryptFolder(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Encrypt files in a folder");
-
-		return _entityEcryption.EncryptFolderAsync(dto, this);
 	}
 
 	/// <summary>
