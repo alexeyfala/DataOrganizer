@@ -70,10 +70,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	Task HideFolderContentsAsync(
-		FolderModelDto folder,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
+	void HideFolderContents(FolderModelDto folder, EditorViewModel viewModel);
 
 	/// <summary>
 	/// Resets the session identifier.

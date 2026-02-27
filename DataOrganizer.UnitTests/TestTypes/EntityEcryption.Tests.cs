@@ -377,10 +377,10 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFolderContentsAsync" />.
+	/// Test of <see cref="EntityEcryption.HideFolderContents" />.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task HideFolderContentsAsync_Does_Work()
+	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
@@ -419,7 +419,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		await sut.HideFolderContentsAsync(folder, mock.Create<EditorViewModel>());
+		sut.HideFolderContents(folder, mock.Create<EditorViewModel>());
 
 		// Assert
 		folder.SessionEncryptedDek

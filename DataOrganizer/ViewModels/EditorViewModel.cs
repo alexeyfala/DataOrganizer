@@ -428,6 +428,39 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
+	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	public async Task HideFolderContents(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		_logger.LogInformation("Hide files in a folder");
+
+		_entityEcryption.HideFolderContents(dto, this);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
 	/// <summary>
 	/// Resets the <see cref="SelectedObject" />.
 	/// </summary>
@@ -812,24 +845,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		await _entityEcryption
 			.HideFileContentsAsync(dto, this)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
-
-	/// <inheritdoc cref="IEntityEcryption.HideFolderContentsAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	private async Task HideFolderContents(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide files in a folder");
-
-		await _entityEcryption
-			.HideFolderContentsAsync(dto, this)
 			.ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
