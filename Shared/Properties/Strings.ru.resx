@@ -453,9 +453,6 @@
   <data name="ContentIsDecrypted" xml:space="preserve">
     <value>Содержимое расшифровано</value>
   </data>
-  <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
-    <value>Необходимо закрыть редактируемые файлы</value>
-  </data>
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Неверный пароль</value>
   </data>

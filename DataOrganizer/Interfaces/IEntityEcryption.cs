@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO.Encryption;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.ViewModels;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,10 +16,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Changes the password.
 	/// </summary>
-	Task ChangePasswordAsync(
-		FolderModelDto dto,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
+	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
 
 	/// <summary>
 	/// Decrypts files in folder.
@@ -26,7 +24,6 @@ public interface IEntityEcryption
 	Task DecryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		EditorViewModel viewModel,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -43,7 +40,6 @@ public interface IEntityEcryption
 	Task EncryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		EditorViewModel viewModel,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -62,7 +58,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	void HideFolderContents(FolderModelDto folder, EditorViewModel viewModel);
+	void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
 	/// Resets the session identifier.
@@ -72,25 +68,16 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Shows file contents.
 	/// </summary>
-	Task ShowFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
+	Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default);
 
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
-	Task ShowFolderContentsAsync(
-		FolderModelDto folder,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
+	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the database.
 	/// </summary>
-	Task UpdateDatabaseAsync(
-		UpdateDatabaseParameters parameters,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
+	Task UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default);
 	#endregion
 }

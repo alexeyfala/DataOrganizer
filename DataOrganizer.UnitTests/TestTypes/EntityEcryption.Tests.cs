@@ -7,7 +7,6 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
@@ -364,7 +363,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		sut.HideFolderContents(folder, mock.Create<EditorViewModel>());
+		sut.HideFolderContents(folder, []);
 
 		// Assert
 		folder.SessionEncryptedDek
@@ -461,7 +460,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		await sut.ShowFileContentsAsync(file, mock.Create<EditorViewModel>());
+		await sut.ShowFileContentsAsync(file);
 
 		// Assert
 		folder.SessionEncryptedDek

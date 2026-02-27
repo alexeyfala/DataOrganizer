@@ -215,7 +215,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Change password of the folder");
 
 		await _entityEcryption
-			.ChangePasswordAsync(dto, this)
+			.ChangePasswordAsync(dto)
 			.ConfigureAwait(false);
 	}
 
@@ -283,7 +283,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Decrypt files in a folder");
 
 		await _entityEcryption
-			.DecryptFolderAsync(dto, files, this)
+			.DecryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
 
@@ -325,7 +325,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Encrypt files in a folder");
 
 		await _entityEcryption
-			.EncryptFolderAsync(dto, files, this)
+			.EncryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
 
@@ -520,7 +520,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Hide files in a folder");
 
-		_entityEcryption.HideFolderContents(dto, this);
+		_entityEcryption.HideFolderContents(dto, Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -634,7 +634,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		await _entityEcryption.ShowFolderContentsAsync(dto, this).ConfigureAwait(true);
+		await _entityEcryption
+			.ShowFolderContentsAsync(dto)
+			.ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -990,7 +992,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Show file contents");
 
 		await _entityEcryption
-			.ShowFileContentsAsync(dto, this)
+			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();

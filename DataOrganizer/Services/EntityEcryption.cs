@@ -1,4 +1,6 @@
-﻿using DataOrganizer.DTO.Encryption;
+﻿using Avalonia;
+using Avalonia.Threading;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
@@ -28,8 +30,14 @@ namespace DataOrganizer.Services;
 public sealed class EntityEcryption : IEntityEcryption
 {
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -51,13 +59,19 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Constructors
 	public EntityEcryption(
+		Application app,
 		IDbAccess dbAccess,
+		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IViewFactory viewFactory)
 	{
+		_app = app;
+
 		_dbAccess = dbAccess;
+
+		_dispatcher = dispatcher;
 
 		_encryption = encryption;
 
@@ -71,10 +85,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ChangePasswordAsync(
-		FolderModelDto folder,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
+	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
 	{
 		// TODO: Make test
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
@@ -89,7 +100,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (!_encryption.EnhancedVerify(oldPassword, folder.PasswordHash))
 		{
-			viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+			ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 			return;
 		}
@@ -128,14 +139,13 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		folder.EncryptedDek = encryptedDek;
 
-		viewModel.ShowInfoSnackbar(Strings.PasswordChanged);
+		ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
 	}
 
 	/// <inheritdoc />
 	public async Task DecryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
 		// TODO: Make test
@@ -151,11 +161,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			viewModel.IsActionInProgress = true;
+			ExecuteInEditor(x => x.IsActionInProgress = true);
 
 			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
 			{
-				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return;
 			}
@@ -167,7 +177,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			if (!AreLoadedContentsValid(contents, files.Length))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
 
 				return;
 			}
@@ -186,14 +196,14 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				if (!AreContentsValid(result, contents.Length))
 				{
-					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 					return;
 				}
 
 				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
 				{
-					viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
 					return;
 				}
@@ -209,10 +219,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					PasswordHash = null
 				};
 
-				await UpdateDatabaseAsync(
-					parameters,
-					viewModel,
-					token).ConfigureAwait(false);
+				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -221,7 +228,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			viewModel.IsActionInProgress = false;
+			ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
 
@@ -258,7 +265,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	public async Task EncryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		EditorViewModel viewModel,
 		CancellationToken token = default)
 	{
 		// TODO: Make test
@@ -269,7 +275,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			viewModel.IsActionInProgress = true;
+			ExecuteInEditor(x => x.IsActionInProgress = true);
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
@@ -278,7 +284,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			if (!AreLoadedContentsValid(contents, files.Length))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
 
 				return;
 			}
@@ -291,7 +297,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				if (!AreContentsValid(result, contents.Length))
 				{
-					viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 					return;
 				}
@@ -306,7 +312,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
 				{
-					viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
 					return;
 				}
@@ -322,10 +328,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					PasswordHash = _encryption.EnhancedHashPassword(password)
 				};
 
-				await UpdateDatabaseAsync(
-					parameters,
-					viewModel,
-					token).ConfigureAwait(false);
+				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -334,7 +337,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			viewModel.IsActionInProgress = false;
+			ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
 
@@ -383,7 +386,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public void HideFolderContents(FolderModelDto folder, EditorViewModel viewModel)
+	public void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		if (folder.SessionEncryptedDek is not null)
 		{
@@ -397,9 +400,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
-		if (viewModel
-			.Hierarchy
-			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+		if (hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
 			return;
 		}
@@ -421,10 +422,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
+	public async Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
 			|| root.PasswordHash is null
@@ -440,11 +438,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			viewModel.IsActionInProgress = true;
+			ExecuteInEditor(x => x.IsActionInProgress = true);
 
 			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
 			{
-				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return;
 			}
@@ -478,15 +476,12 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			viewModel.IsActionInProgress = false;
+			ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFolderContentsAsync(
-		FolderModelDto folder,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
+	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
 		// TODO: Make test
 		if (folder.PasswordHash is null)
@@ -501,11 +496,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			viewModel.IsActionInProgress = true;
+			ExecuteInEditor(x => x.IsActionInProgress = true);
 
 			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
 			{
-				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return;
 			}
@@ -515,19 +510,16 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
+			ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
 		}
 		finally
 		{
-			viewModel.IsActionInProgress = false;
+			ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
 
 	/// <inheritdoc />
-	public async Task UpdateDatabaseAsync(
-		UpdateDatabaseParameters parameters,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
+	public async Task UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default)
 	{
 		try
 		{
@@ -547,7 +539,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				.UpdatePropertiesAsync(relations, token)
 				.ConfigureAwait(false))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				await _dbAccess
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
@@ -569,7 +561,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				token: token,
 				properties: properties).ConfigureAwait(false))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				await _dbAccess
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
@@ -641,6 +633,19 @@ public sealed class EntityEcryption : IEntityEcryption
 			_logger.LogException(ex);
 		}
 	}
+
+	/// <summary>
+	/// Searches <see cref="EditorViewModel" /> in main thread and executes the action.
+	/// </summary>
+	private void ExecuteInEditor(Action<EditorViewModel> action) => _dispatcher.Post(() =>
+	{
+		if (_app.FindDataContext<EditorViewModel>() is not { } viewModel)
+		{
+			return;
+		}
+
+		action(viewModel);
+	});
 
 	/// <summary>
 	/// Requests a password from user.

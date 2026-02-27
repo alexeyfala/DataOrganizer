@@ -433,9 +433,6 @@
   <data name="ContentIsDecrypted" xml:space="preserve">
     <value>Content Is Decrypted</value>
   </data>
-  <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
-    <value>You must close the files you are editing</value>
-  </data>
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Incorrect password</value>
   </data>
