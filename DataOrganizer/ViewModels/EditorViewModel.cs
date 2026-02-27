@@ -185,6 +185,41 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Changes password for folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
+	public async Task ChangePassword(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		_logger.LogInformation("Change password of the folder");
+
+		await _entityEcryption
+			.ChangePasswordAsync(dto, this)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Closes a file executed in the operating system.
 	/// </summary>
 	[RelayCommand]
@@ -717,22 +752,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Changes password for folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
-	private Task ChangePassword(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Change password of the folder");
-
-		return _entityEcryption.ChangePasswordAsync(dto, this);
-	}
-
-	/// <summary>
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
@@ -1169,24 +1188,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	public void CloseFile(FileModelDto file)
-	{
-		if (file.IsEdited)
-		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
-		}
-
-		if (file.IsExecuted)
-		{
-			CloseExecutedFile(file);
-		}
-	}
-
-	/// <summary>
 	/// Closes edited and executed files.
 	/// </summary>
 	public void CloseFiles(
@@ -1544,32 +1545,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return true;
 	}
 
-	/// <summary>
-	/// Requests the user to close files.
-	/// </summary>
-	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
-	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			_ = DialogHost.Show(view);
-		}
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelResult.Yes;
-	}
-
 	/// <inheritdoc />
 	public override void SaveCopyHistory()
 	{
@@ -1780,6 +1755,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteShowFavorites() => Hierarchy.ContainsBy(x => x.IsFavorite);
 
 	/// <summary>
+	/// Closes file that is being edited or executed;
+	/// </summary>
+	private void CloseFile(FileModelDto file)
+	{
+		if (file.IsEdited)
+		{
+			EditFiles
+				.ViewModel
+				.CloseTab(file);
+		}
+
+		if (file.IsExecuted)
+		{
+			CloseExecutedFile(file);
+		}
+	}
+
+	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
@@ -1793,6 +1786,32 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
+
+	/// <summary>
+	/// Requests the user to close files.
+	/// </summary>
+	private async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			_ = DialogHost.Show(view);
+		}
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.

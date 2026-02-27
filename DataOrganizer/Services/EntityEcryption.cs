@@ -82,20 +82,6 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
-		{
-			if (!await viewModel
-				.RequestUserCloseFilesAsync(token)
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			viewModel.CloseFiles(
-				folder.GetFiles(x => x.IsEdited),
-				folder.GetFiles(x => x.IsExecuted));
-		}
-
 		if (await RequestUserPasswordAsync(Strings.OldPassword, token).ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
