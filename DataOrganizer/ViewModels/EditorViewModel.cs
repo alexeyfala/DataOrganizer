@@ -501,6 +501,48 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Shows file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
+	public async Task ShowFolderContents(FolderModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		_logger.LogInformation("Show file contents in a folder");
+
+		await _entityEcryption.ShowFolderContentsAsync(dto, this).ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
@@ -905,24 +947,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await _entityEcryption
 			.ShowFileContentsAsync(dto, this)
 			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
-
-	/// <summary>
-	/// Shows file contents in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
-	private async Task ShowFolderContents(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show file contents in a folder");
-
-		await _entityEcryption.ShowFolderContentsAsync(dto, this).ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}

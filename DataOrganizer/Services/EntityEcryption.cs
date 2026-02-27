@@ -546,22 +546,6 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		FileModelDto[] files = [.. folder
-			.Children
-			.GetFiles()];
-
-		if (files.Length == 0)
-		{
-			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		if (!AreFilesValid(files, viewModel))
-		{
-			return;
-		}
-
 		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -683,21 +667,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		return contents.Length == shouldBe
 			&& contents.All(x => x.IsValid)
 			&& !contents.Any(x => x.Id.IsDefault());
-	}
-
-	/// <summary>
-	/// Returns <c>True</c> if the files are valid.
-	/// </summary>
-	private static bool AreFilesValid(FileModelDto[] files, EditorViewModel viewModel)
-	{
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
-		{
-			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
-
-			return false;
-		}
-
-		return true;
 	}
 
 	/// <summary>
