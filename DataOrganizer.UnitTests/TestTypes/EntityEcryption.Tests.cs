@@ -322,61 +322,6 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFileContentsAsync" />.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task HideFileContentsAsync_Does_Work([Values] bool isEdited)
-	{
-		// Arrange
-		FileModelDto file = isEdited
-			? TestUtils.CreateFileDto(isEdited: true)
-			: TestUtils.CreateFileDto(isExecuted: true);
-
-		file.EncryptionStatus = EncryptionStatus.Decrypted;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock mock = AutoMock.GetLoose();
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(view);
-
-			builder.RegisterInstance(viewFactory);
-
-			_ = view
-				.ViewModel
-				.SetResultAsync(YesNoCancelResult.Yes);
-		});
-
-		EntityEcryption sut = mock.Create<EntityEcryption>();
-
-		// Act
-		await sut.HideFileContentsAsync(file, mock.Create<EditorViewModel>());
-
-		// Assert
-		file.IsEdited
-			.Should()
-			.BeFalse();
-
-		file.IsExecuted
-			.Should()
-			.BeFalse();
-
-		file.EncryptionStatus
-			.Should()
-			.Be(EncryptionStatus.Encrypted);
-	}
-
-	/// <summary>
 	/// Test of <see cref="EntityEcryption.HideFolderContents" />.
 	/// </summary>
 	[AvaloniaTest]

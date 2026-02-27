@@ -428,6 +428,35 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
+	/// <summary>
+	/// Hides file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	public async Task HideFileContents(FileModelDto? dto)
+	{
+		// TODO: Make test
+		if (dto is null)
+		{
+			return;
+		}
+
+		if (dto.IsEdited || dto.IsExecuted)
+		{
+			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFile(dto);
+		}
+
+		_logger.LogInformation("Hide file contents");
+
+		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
 	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
 	public async Task HideFolderContents(FolderModelDto? dto)
@@ -831,24 +860,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
-
-	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	private async Task HideFileContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide file contents");
-
-		await _entityEcryption
-			.HideFileContentsAsync(dto, this)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
 
 	/// <summary>
 	/// Opens a file context menu.

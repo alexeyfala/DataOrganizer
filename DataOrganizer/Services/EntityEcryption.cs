@@ -397,27 +397,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task HideFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
-	{
-		if (file.IsEdited || file.IsExecuted)
-		{
-			if (!await viewModel
-				.RequestUserCloseFilesAsync(token)
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			viewModel.CloseFile(file);
-		}
-
-		file.EncryptionStatus = EncryptionStatus.Encrypted;
-	}
-
-	/// <inheritdoc />
 	public void HideFolderContents(FolderModelDto folder, EditorViewModel viewModel)
 	{
 		if (folder.SessionEncryptedDek is not null)

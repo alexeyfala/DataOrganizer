@@ -60,14 +60,6 @@ public interface IEntityEcryption
 	byte[] GetSessionId();
 
 	/// <summary>
-	/// Hides file contents.
-	/// </summary>
-	Task HideFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
 	void HideFolderContents(FolderModelDto folder, EditorViewModel viewModel);
