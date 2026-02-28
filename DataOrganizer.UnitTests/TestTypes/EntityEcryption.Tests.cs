@@ -741,5 +741,57 @@ internal class EntityEcryptionTests
 			.Received()
 			.EraseAndDeleteFile(Arg.Any<string>());
 	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Properties_In_Database()
+	{
+		// Arrange
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = null,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			NewStatus = default,
+			PasswordHash = null
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
 	#endregion
 }
