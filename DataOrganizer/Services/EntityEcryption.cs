@@ -85,7 +85,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;
@@ -150,7 +149,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
 			return;

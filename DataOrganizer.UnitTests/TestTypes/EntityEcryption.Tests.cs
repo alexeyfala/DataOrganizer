@@ -96,6 +96,22 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.DecryptFolderAsync" />.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Does_Work()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+
+		// Assert
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
