@@ -14,6 +14,7 @@ using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -102,13 +103,62 @@ internal class EntityEcryptionTests
 	public async Task DecryptFolderAsync_Does_Work()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(true);
+
+			encryption
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
+		await sut.DecryptFolderAsync(folder, files);
 
 		// Assert
+		await dbAccess
+			.Received()
+			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
 	}
 
 	/// <summary>

@@ -203,7 +203,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
+				if (_dbAccess.BackupDatabase() is not { } backupFilePath)
 				{
 					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -314,7 +314,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				if (!_dbAccess.BackupDatabase(out string? backupFilePath))
+				if (_dbAccess.BackupDatabase() is not { } backupFilePath)
 				{
 					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -614,7 +614,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		return contents.Length == shouldBe
 			&& contents.All(x => x.IsValid)
-			&& !contents.Any(x => x.Id.IsDefault());
+			&& contents.All(x => x.Id.IsNotDefault());
 	}
 
 	/// <summary>

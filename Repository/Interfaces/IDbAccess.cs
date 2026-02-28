@@ -4,7 +4,6 @@ using Entities.Models;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Tries to backup database in file, and returns a path to it.
 	/// </summary>
-	bool BackupDatabase([NotNullWhen(true)] out string? backupFilePath);
+	string? BackupDatabase();
 
 	/// <summary>
 	/// Establishes a connection to the database.
