@@ -488,7 +488,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (folder.PasswordHash is null)
 		{
 			return;

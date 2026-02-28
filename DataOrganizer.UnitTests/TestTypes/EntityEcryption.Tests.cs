@@ -286,13 +286,54 @@ internal class EntityEcryptionTests
 	public async Task EncryptFolderAsync_Does_Work()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(true);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
+		await sut.EncryptFolderAsync(folder, files);
 
 		// Assert
+		await dbAccess
+			.Received()
+			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
 	}
 
 	/// <summary>
@@ -582,6 +623,22 @@ internal class EntityEcryptionTests
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Decrypted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.ShowFolderContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Does_Work()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+
+		// Assert
 	}
 	#endregion
 }
