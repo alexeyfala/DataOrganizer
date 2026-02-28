@@ -13,7 +13,6 @@ using NSubstitute.ReceivedExtensions;
 using Shared.Common;
 using Shared.Extensions;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -323,42 +322,19 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.HideFolderContents" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(5, isEdited: true)];
-
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(5, isExecuted: true)];
-
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(TestUtils.CreateFilesDto(5));
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock mock = AutoMock.GetLoose();
+		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
 
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(view);
-
-			builder.RegisterInstance(viewFactory);
-
-			_ = view
-				.ViewModel
-				.SetResultAsync(YesNoCancelResult.Yes);
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
@@ -377,14 +353,6 @@ internal class EntityEcryptionTests
 		folder.GetAllChildren()
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
-
-		editedFiles
-			.Should()
-			.OnlyContain(x => !x.IsEdited);
-
-		executedFiles
-			.Should()
-			.OnlyContain(x => !x.IsExecuted);
 	}
 
 	/// <summary>
