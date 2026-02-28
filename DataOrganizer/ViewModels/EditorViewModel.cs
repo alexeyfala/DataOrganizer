@@ -200,18 +200,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
 		{
-			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+			return;
 		}
 
 		_logger.LogInformation("Change password of the folder");
@@ -270,18 +261,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
 		{
-			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+			return;
 		}
 
 		_logger.LogInformation("Decrypt files in a folder");
@@ -314,18 +296,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
 		{
-			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+			return;
 		}
 
 		_logger.LogInformation("Encrypt files in a folder");
@@ -512,22 +485,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
-			.Children
-			.GetFiles()];
-
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (!await TryCloseEditedExecutedFilesAsync([.. dto.Children.GetFiles()]).ConfigureAwait(true))
 		{
-			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+			return;
 		}
 
 		_logger.LogInformation("Hide files in a folder");
@@ -632,18 +592,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
 		{
-			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
-				.ConfigureAwait(true))
-			{
-				return;
-			}
-
-			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+			return;
 		}
 
 		_logger.LogInformation("Show file contents in a folder");
@@ -1808,6 +1759,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
+
+	/// <summary>
+	/// Tries to close edited or executed files if any.
+	/// </summary>
+	private async Task<bool> TryCloseEditedExecutedFilesAsync(
+		FileModelDto[] files,
+		CancellationToken token = default)
+	{
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync(token)
+				.ConfigureAwait(true))
+			{
+				return false;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		return true;
+	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
