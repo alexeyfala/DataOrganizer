@@ -269,7 +269,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (await _dialogService
 			.RequestUserPasswordAsync(Strings.Password, token)
 			.ConfigureAwait(false) is not { } password)
