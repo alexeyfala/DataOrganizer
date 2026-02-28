@@ -8,9 +8,13 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
+using Repository.DTO;
+using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -50,9 +54,30 @@ internal class EntityEcryptionTests
 				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
 				.Returns(true);
 
+			encryption
+				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[3] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			encryption
+				.EnhancedHashPassword(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.Returns(true);
+
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
 		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
