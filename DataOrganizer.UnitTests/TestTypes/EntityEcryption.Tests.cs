@@ -1,13 +1,11 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.Views;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Common;
@@ -21,6 +19,57 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class EntityEcryptionTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.ChangePasswordAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Does_Work()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		byte[] encryptedDek = TestUtils.CreateRandomBytes(10);
+
+		string passwordHash = AppUtils.CreateRandomString(10);
+
+		folder.EncryptedDek = encryptedDek;
+
+		folder.PasswordHash = passwordHash;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		folder.EncryptedDek
+			.Should()
+			.NotBeEquivalentTo(encryptedDek);
+
+		folder.PasswordHash
+			.Should()
+			.NotBeEquivalentTo(passwordHash);
+	}
+
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
 	/// </summary>
@@ -358,15 +407,15 @@ internal class EntityEcryptionTests
 	/// <summary>
 	/// Test of <see cref="EntityEcryption.ShowFileContentsAsync" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task ShowFileContentsAsync_Does_Work()
 	{
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
 
 		FileModelDto file = TestUtils.CreateFileDto();
 
@@ -378,19 +427,11 @@ internal class EntityEcryptionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			IDialogService dialogService = Substitute.For<IDialogService>();
 
-			PasswordBox view = mock.Create<PasswordBox>();
-
-			view
-				.ViewModel
-				.Password = AppUtils.CreateRandomString(10);
-
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			viewFactory
-				.CreateUserControl<PasswordBox>()
-				.Returns(view);
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -416,13 +457,9 @@ internal class EntityEcryptionTests
 					return true;
 				});
 
-			builder.RegisterInstance(viewFactory);
+			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
-
-			_ = view
-				.ViewModel
-				.SetResultAsync(true);
 		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();

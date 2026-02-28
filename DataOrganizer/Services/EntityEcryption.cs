@@ -8,8 +8,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
-using DialogHostAvalonia;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Repository.DTO;
@@ -36,6 +34,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
@@ -48,9 +49,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
-
 	/// <summary>
 	/// Encryption session identifier.
 	/// </summary>
@@ -61,15 +59,17 @@ public sealed class EntityEcryption : IEntityEcryption
 	public EntityEcryption(
 		Application app,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
-		ILogger logger,
-		IViewFactory viewFactory)
+		ILogger logger		)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
+
+		_dialogService = dialogService;
 
 		_dispatcher = dispatcher;
 
@@ -78,8 +78,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		_fileSystem = fileSystem;
 
 		_logger = logger;
-
-		_viewFactory = viewFactory;
 	}
 	#endregion
 
@@ -93,7 +91,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(Strings.OldPassword, token).ConfigureAwait(true) is not { } oldPassword)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.OldPassword, token)
+			.ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
 		}
@@ -105,7 +105,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(Strings.NewPassword, token).ConfigureAwait(false) is not { } newPassword)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.NewPassword, token)
+			.ConfigureAwait(false) is not { } newPassword)
 		{
 			return;
 		}
@@ -154,7 +156,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -268,7 +272,9 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		// TODO: Make test
-		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -431,7 +437,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -489,7 +497,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await RequestUserPasswordAsync(Strings.Password, token).ConfigureAwait(false) is not { } password)
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
 		{
 			return;
 		}
@@ -646,48 +656,6 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		action(viewModel);
 	});
-
-	/// <summary>
-	/// Requests a password from user.
-	/// </summary>
-	private async Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
-	{
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		view
-			.ViewModel
-			.Label = label;
-
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			_ = DialogHost.Show(view);
-		}
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token: token)
-			.ConfigureAwait(false) || view.ViewModel.Password is null)
-		{
-			return null;
-		}
-
-		try
-		{
-			return view
-				.ViewModel
-				.Password;
-		}
-		finally
-		{
-			view
-				.ViewModel
-				.Password = null;
-		}
-	}
 
 	/// <summary>
 	/// Shows file contents in folder.
