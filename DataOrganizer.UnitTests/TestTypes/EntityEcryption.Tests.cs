@@ -13,6 +13,7 @@ using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -714,9 +715,15 @@ internal class EntityEcryptionTests
 			PasswordHash = null
 		};
 
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEcryption sut = mock.Create<EntityEcryption>(
+			TypedParameter.From(dbAccess),
+			TypedParameter.From(fileSystem));
 
 		// Act
 		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
@@ -725,6 +732,14 @@ internal class EntityEcryptionTests
 		result
 			.Should()
 			.Be(UpdateDatabaseResult.FailedToSaveContentsInDb);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 	#endregion
 }
