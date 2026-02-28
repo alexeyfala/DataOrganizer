@@ -632,13 +632,67 @@ internal class EntityEcryptionTests
 	public async Task ShowFolderContentsAsync_Does_Work()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptionStatus = EncryptionStatus.Encrypted;
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		folder
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10));
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(true);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+		});
 
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
+		await sut.ShowFolderContentsAsync(folder);
 
 		// Assert
+		folder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Decrypted);
+
+		folder.GetAllChildren().Select(x => x.EncryptionStatus)
+			.Should()
+			.OnlyContain(x => x == EncryptionStatus.Decrypted);
+
+		folder.SessionEncryptedDek
+			.Should()
+			.NotBeNullOrEmpty();
 	}
 	#endregion
 }
