@@ -2,6 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -693,6 +694,37 @@ internal class EntityEcryptionTests
 		folder.SessionEncryptedDek
 			.Should()
 			.NotBeNullOrEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Cannot_Save_Contents_In_Database()
+	{
+		// Arrange
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = null,
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			NewStatus = default,
+			PasswordHash = null
+		};
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.FailedToSaveContentsInDb);
 	}
 	#endregion
 }

@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -78,6 +79,6 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Updates the database.
 	/// </summary>
-	Task UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default);
+	Task<UpdateDatabaseResult> UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default);
 	#endregion
 }

@@ -525,11 +525,10 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default)
+	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default)
 	{
 		try
 		{
-			// TODO: Make test
 			DateTime updatedDate = DateTime.Now;
 
 			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
@@ -553,7 +552,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				DeleteDatabaseBackupFile(parameters.BackupFilePath);
 
-				return;
+				return UpdateDatabaseResult.FailedToSaveContentsInDb;
 			}
 
 			PropertyNameValuePair[] properties =
@@ -575,7 +574,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				DeleteDatabaseBackupFile(parameters.BackupFilePath);
 
-				return;
+				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
 
 			ExplorerModelBaseDto[] objects =
@@ -596,10 +595,14 @@ public sealed class EntityEcryption : IEntityEcryption
 				.EncryptedDek = parameters.EncryptedDek;
 
 			DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+			return UpdateDatabaseResult.Done;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return UpdateDatabaseResult.ExceptionThrown;
 		}
 	}
 	#endregion
