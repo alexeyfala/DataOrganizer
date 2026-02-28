@@ -202,7 +202,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -270,7 +272,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -312,7 +316,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -443,7 +449,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await RequestUserCloseFilesAsync().ConfigureAwait(true))
+		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await _dialogService
+			.RequestUserCloseFilesAsync()
+			.ConfigureAwait(true))
 		{
 			return;
 		}
@@ -477,7 +485,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (dto.IsEdited || dto.IsExecuted)
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -508,7 +518,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -622,7 +634,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (files.Any(x => x.IsEdited || x.IsExecuted))
 		{
-			if (!await RequestUserCloseFilesAsync().ConfigureAwait(true))
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -1018,6 +1032,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
@@ -1035,6 +1052,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
@@ -1058,6 +1076,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
+		_dialogService = dialogService;
+
 		_executionEngine = executionEngine;
 
 		_mapper = mapper;
@@ -1788,32 +1808,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
-
-	/// <summary>
-	/// Requests the user to close files.
-	/// </summary>
-	private async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
-	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			_ = DialogHost.Show(view);
-		}
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-			.ConfigureAwait(false);
-
-		return result == YesNoCancelResult.Yes;
-	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.

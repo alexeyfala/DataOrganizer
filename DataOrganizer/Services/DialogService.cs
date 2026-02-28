@@ -1,8 +1,10 @@
-﻿using DataOrganizer.Interfaces;
+﻿using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Serilog;
 using Shared.Extensions;
+using Shared.Properties;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +30,25 @@ public sealed class DialogService : IDialogService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
 	/// <inheritdoc />
 	public async Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
 	{
