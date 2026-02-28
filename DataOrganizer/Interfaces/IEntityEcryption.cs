@@ -79,6 +79,8 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Updates the database.
 	/// </summary>
-	Task<UpdateDatabaseResult> UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default);
+	Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+		UpdateDatabaseParameters parameters,
+		CancellationToken token = default);
 	#endregion
 }

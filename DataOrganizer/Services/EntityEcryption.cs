@@ -525,7 +525,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(UpdateDatabaseParameters parameters, CancellationToken token = default)
+	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+		UpdateDatabaseParameters parameters,
+		CancellationToken token = default)
 	{
 		try
 		{

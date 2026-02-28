@@ -11,6 +11,7 @@ using Shared.Common;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CommonTestHelpers.Helpers;
 
@@ -176,15 +177,18 @@ public static class TestUtils
 	/// <summary>
 	/// Creates a <see cref="FolderModelDto" /> with random properties.
 	/// </summary>
-	public static FolderModelDto CreateFolderDto(in Guid id = default) => new()
-	{
-		CreatedDate = DateTime.Now,
-		EntityType = EntityType.Folder,
-		Id = id == default ? Guid.NewGuid() : id,
-		Index = CreateRandomIntFrom10To100(),
-		Name = AppUtils.CreateRandomString(10),
-		UpdatedDate = DateTime.Now
-	};
+	public static FolderModelDto CreateFolderDto(
+		in Guid id = default,
+		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
+		{
+			CreatedDate = DateTime.Now,
+			EncryptionStatus = encryptionStatus,
+			EntityType = EntityType.Folder,
+			Id = id == default ? Guid.NewGuid() : id,
+			Index = CreateRandomIntFrom10To100(),
+			Name = AppUtils.CreateRandomString(10),
+			UpdatedDate = DateTime.Now
+		};
 
 	/// <summary>
 	/// Creates the required number of random <see cref="FolderModel" /> objects.
@@ -332,6 +336,28 @@ public static class TestUtils
 		{
 			yield return action();
 		}
+	}
+
+	/// <summary>
+	/// Returns a random value from enum except defined in <paramref name="toExclude"/>.
+	/// </summary>
+	public static T GetRandomEnumValueExcept<T>(T toExclude) where T : Enum
+	{
+		T[] filtered = [.. Enum
+			.GetValues(typeof(T))
+			.Cast<T>()
+			.Where(value => !EqualityComparer<T>.Default.Equals(value, toExclude))];
+
+		if (filtered.Length == 0)
+		{
+			throw new InvalidOperationException("No enum values available to select after exclusion.");
+		}
+
+		int index = Random
+			.Shared
+			.Next(0, filtered.Length);
+
+		return filtered[index];
 	}
 	#endregion
 }

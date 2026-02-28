@@ -525,7 +525,7 @@ internal class EntityEcryptionTests
 	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		folder
 			.Children
@@ -567,7 +567,7 @@ internal class EntityEcryptionTests
 
 		folder.PasswordHash = AppUtils.CreateRandomString(10);
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
 			.Children
@@ -634,9 +634,7 @@ internal class EntityEcryptionTests
 	public async Task ShowFolderContentsAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		folder.EncryptionStatus = EncryptionStatus.Encrypted;
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
@@ -788,6 +786,72 @@ internal class EntityEcryptionTests
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)
+	{
+		// Arrange
+		EncryptionStatus randomStatus = TestUtils.GetRandomEnumValueExcept(newStatus);
+
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: randomStatus);
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5, encryptionStatus: randomStatus)];
+
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			Files = files,
+			Folder = folder,
+			NewStatus = newStatus,
+			PasswordHash = AppUtils.CreateRandomString(10)
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.Returns(true);
+
+			dbAccess
+				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.Done);
+
+		parameters.Folder.EncryptionStatus
+			.Should()
+			.Be(newStatus);
+
+		parameters.Files.Select(x => x.EncryptionStatus)
+			.Should()
+			.OnlyContain(x => x == newStatus);
 
 		fileSystem
 			.Received()
