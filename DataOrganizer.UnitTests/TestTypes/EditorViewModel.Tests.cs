@@ -136,15 +136,13 @@ internal class EditorViewModelTests
 		// Arrange
 		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true,
-			encryptionStatus: EncryptionStatus.Encrypted)];
+			isEdited: true)];
 
 		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true,
-			encryptionStatus: EncryptionStatus.Encrypted)];
+			isExecuted: true)];
 
-		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FolderModelDto folder = TestUtils.CreateFolderDto();
 
 		folder
 			.Children
@@ -280,6 +278,28 @@ internal class EditorViewModelTests
 		executedFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.DecryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.DecryptFolder(TestUtils.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.Received(0)
+			.RequestUserCloseFilesAsync();
 	}
 
 	/// <summary>
@@ -759,19 +779,17 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HideAllFileContents" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HideAllFileContents_Does_Work()
 	{
 		// Arrange
 		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true,
-			encryptionStatus: EncryptionStatus.Decrypted)];
+			isEdited: true)];
 
 		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true,
-			encryptionStatus: EncryptionStatus.Decrypted)];
+			isExecuted: true)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
