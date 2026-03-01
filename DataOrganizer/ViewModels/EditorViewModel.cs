@@ -190,7 +190,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
 	public async Task ChangePassword(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return;
@@ -244,7 +243,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
 	public async Task DecryptFolder(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return;
