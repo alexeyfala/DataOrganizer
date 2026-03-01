@@ -128,6 +128,55 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.ChangePassword" />.
+	/// </summary>
+	[Test]
+	public async Task ChangePassword_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true,
+			encryptionStatus: EncryptionStatus.Encrypted)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true,
+			encryptionStatus: EncryptionStatus.Encrypted)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEcryption);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ChangePassword(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.ChangePasswordAsync(folder);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ClearExecutedFilesView" />.
 	/// </summary>
 	[Test]
@@ -732,6 +781,16 @@ internal class EditorViewModelTests
 			dialogService
 				.RequestUserCloseFilesAsync()
 				.Returns(true);
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			using AutoMock mock = AutoMock.GetLoose();
+
+			viewFactory
+				.CreateUserControl<EditFilesView>()
+				.Returns(mock.Create<EditFilesView>());
+
+			builder.RegisterInstance(viewFactory);
 
 			builder.RegisterInstance(dialogService);
 		});
