@@ -8,9 +8,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
-using DataOrganizer.Windows;
-using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -34,14 +31,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDialogService" />
+	protected readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IEntityEcryption" />
 	protected readonly IEntityEcryption _entityEcryption;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
-
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -51,22 +48,22 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected CopyContentViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
-		ILogger logger,
-		IViewFactory viewFactory)
+		ILogger logger)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
+
+		_dialogService = dialogService;
 
 		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 
 		_logger = logger;
-
-		_viewFactory = viewFactory;
 	}
 	#endregion
 
@@ -121,42 +118,47 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 			{
-				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+				if (await _dialogService
+					.RequestUserPasswordAsync(Strings.Password, token)
+					.ConfigureAwait(true) is not { } password)
+				{
+					return;
+				}
 
-				_ = DialogHost.Show(view);
+				if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+					|| root.PasswordHash is null
+					|| root.EncryptedDek is null)
+				{
+					return;
+				}
+
+				if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+				{
+					_app
+						.FindDataContext<ViewModelBase>()?
+						.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+					return;
+				}
+
+				if (!_encryption.Decrypt(
+					root.EncryptedDek,
+					TextHelper.Utf8Encoding.GetBytes(password),
+					out byte[] decryptedDek))
+				{
+					_app
+						.FindDataContext<ViewModelBase>()?
+						.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+					return;
+				}
 
 				try
 				{
-					bool waitDialogHostCloses = container.FindLogicalParent<FavoritesWindow>() is null;
-
-					if (!await view
-						.ViewModel
-						.GetResultAsync(waitDialogHostCloses: waitDialogHostCloses, token: token)
-						.ConfigureAwait(true) || view.ViewModel.Password is null)
-					{
-						return;
-					}
-
-					if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-						|| root.PasswordHash is null
-						|| root.EncryptedDek is null)
-					{
-						return;
-					}
-
-					if (!_encryption.EnhancedVerify(view.ViewModel.Password, root.PasswordHash))
-					{
-						_app
-							.FindDataContext<ViewModelBase>()?
-							.ShowErrorSnackbar(Strings.IncorrectPassword);
-
-						return;
-					}
-
 					if (!_encryption.Decrypt(
-						root.EncryptedDek,
-						TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
-						out byte[] decryptedDek))
+						contents,
+						decryptedDek,
+						out contents))
 					{
 						_app
 							.FindDataContext<ViewModelBase>()?
@@ -164,31 +166,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 						return;
 					}
-
-					try
-					{
-						if (!_encryption.Decrypt(
-							contents,
-							decryptedDek,
-							out contents))
-						{
-							_app
-								.FindDataContext<ViewModelBase>()?
-								.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-							return;
-						}
-					}
-					finally
-					{
-						CryptographicOperations.ZeroMemory(decryptedDek);
-					}
 				}
 				finally
 				{
-					view
-						.ViewModel
-						.Password = null;
+					CryptographicOperations.ZeroMemory(decryptedDek);
 				}
 			}
 			else if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(

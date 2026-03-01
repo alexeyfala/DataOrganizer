@@ -27,7 +27,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		_isResultSet = true;
 
-		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
+		if (DialogHost.IsDialogOpen(null))
 		{
 			DialogOverlayPopupHost? host = DialogHost
 				.GetDialogSession(null)?
@@ -51,14 +51,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <summary>
 	/// Returns a result.
 	/// </summary>
-	protected Task<TResult> GetResultAsync(
-		TResult defaultResult,
-		in bool waitDialogHostCloses = true,
-		in CancellationToken token = default)
+	protected Task<TResult> GetResultAsync(TResult defaultResult, in CancellationToken token = default)
 	{
-		if (waitDialogHostCloses
-			&& !AppDomain.CurrentDomain.IsRunningFromNUnit()
-			&& DialogHost.IsDialogOpen(null))
+		if (DialogHost.IsDialogOpen(null))
 		{
 			_ = WaitDialogCloseAsync(defaultResult, token);
 		}

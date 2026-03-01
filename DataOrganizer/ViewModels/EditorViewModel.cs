@@ -977,9 +977,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
@@ -1012,6 +1009,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			app,
 			settingsManager,
 			dbAccess,
+			dialogService,
 			dispatcher,
 			encryption,
 			entityEcryption,
@@ -1021,8 +1019,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
-		_dialogService = dialogService;
-
 		_executionEngine = executionEngine;
 
 		_mapper = mapper;
