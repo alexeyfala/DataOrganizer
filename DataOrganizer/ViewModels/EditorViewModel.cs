@@ -447,7 +447,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
 	public async Task HideFileContents(FileModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return;

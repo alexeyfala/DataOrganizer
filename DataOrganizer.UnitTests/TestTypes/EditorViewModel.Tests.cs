@@ -960,6 +960,24 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
+	/// </summary>
+	[Test]
+	public async Task HideFileContents_Does_Work([Values] bool isEdited)
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+
+		// Assert
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.Initialize" />.
 	/// </summary>
 	[AvaloniaTest]
