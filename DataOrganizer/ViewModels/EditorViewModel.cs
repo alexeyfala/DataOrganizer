@@ -570,7 +570,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
 	public async Task ShowFolderContents(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return;

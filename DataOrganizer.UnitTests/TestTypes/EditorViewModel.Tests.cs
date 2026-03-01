@@ -1547,6 +1547,85 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.ShowFolderContents" />.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.ShowFolderContents(TestUtils.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.Received(0)
+			.RequestUserCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.ShowFolderContents" />.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ShowFolderContents(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ShowHotkeysEditor" />.
 	/// </summary>
 	[AvaloniaTest]
