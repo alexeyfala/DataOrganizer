@@ -154,6 +154,14 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
 			builder.RegisterInstance(entityEcryption);
 		});
 
