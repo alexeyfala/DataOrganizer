@@ -966,15 +966,40 @@ internal class EditorViewModelTests
 	public async Task HideFileContents_Does_Work([Values] bool isEdited)
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = isEdited
+			? TestUtils.CreateFileDto(isEdited: true)
+			: TestUtils.CreateFileDto(isExecuted: true);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			RegisterEditFilesView(builder);
+		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
+		await sut.HideFileContents(file);
 
 		// Assert
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		file.IsEdited
+			.Should()
+			.BeFalse();
+
+		file.IsExecuted
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
