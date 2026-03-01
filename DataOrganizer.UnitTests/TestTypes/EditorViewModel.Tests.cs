@@ -727,25 +727,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			IDialogService dialogService = Substitute.For<IDialogService>();
 
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
 
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(view);
-
-			builder.RegisterInstance(viewFactory);
-
-			_ = view
-				.ViewModel
-				.SetResultAsync(YesNoCancelResult.Yes);
+			builder.RegisterInstance(dialogService);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
