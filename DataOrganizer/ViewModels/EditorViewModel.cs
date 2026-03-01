@@ -475,7 +475,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
 	public async Task HideFolderContents(FolderModelDto? dto)
 	{
-		// TODO: Make test
 		if (dto is null)
 		{
 			return;
