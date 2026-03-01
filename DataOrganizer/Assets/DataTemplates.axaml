@@ -330,7 +330,7 @@
 			<ToggleButton
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				IsChecked="{Binding $parent[Window].((vm:EditorViewModel)DataContext).IsRightSideSheetOpened, Mode=TwoWay}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Hide}" />
@@ -339,7 +339,7 @@
 				Classes="primary"
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContentType, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />

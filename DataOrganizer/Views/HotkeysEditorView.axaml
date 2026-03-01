@@ -40,14 +40,14 @@
 				Classes="primary"
 				Command="{Binding SaveAndCloseCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
 
 			<Button
 				Classes="primary"
 				Command="{Binding ClearCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 		</StackPanel>
 

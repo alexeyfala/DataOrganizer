@@ -44,7 +44,7 @@
 			Classes="primary"
 			Command="{Binding SelectCommand}"
 			Content="{materialIcons:MaterialIconTextExt Kind=DotsHorizontal,
-			                                            Size={StaticResource ToolBarIconSize}}"
+			                                            IconSize={StaticResource ToolBarIconSize}}"
 			ToolTip.Tip="{x:Static prop:Strings.Select}" />
 
 		<Button
@@ -52,7 +52,7 @@
 			Classes="primary"
 			Command="{Binding ClearCommand}"
 			Content="{materialIcons:MaterialIconTextExt Kind=Close,
-			                                            Size={StaticResource ToolBarIconSize}}"
+			                                            IconSize={StaticResource ToolBarIconSize}}"
 			ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 	</Grid>
 </UserControl>

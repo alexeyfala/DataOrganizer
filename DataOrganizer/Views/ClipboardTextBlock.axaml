@@ -169,7 +169,7 @@
 								Padding="0.0"
 								HorizontalAlignment="Right"
 								Content="{materialIcons:MaterialIconTextExt Kind=Close,
-								                                            Size={StaticResource ToolBarIconSize}}"
+								                                            IconSize={StaticResource ToolBarIconSize}}"
 								Foreground="{StaticResource MaterialPaperBrush}"
 								IsChecked="{Binding !ShowNote, Mode=TwoWay}"
 								Theme="{StaticResource MaterialFlatButton}"

@@ -46,7 +46,7 @@
 							HorizontalAlignment="Right"
 							Classes="primary"
 							Content="{materialIcons:MaterialIconExt Kind=ChevronDoubleLeft,
-							                                        Size={StaticResource ToolBarIconSize}}"
+							                                        IconSize={StaticResource ToolBarIconSize}}"
 							IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
 							Theme="{StaticResource MaterialFlatButton}"
 							ToolTip.Tip="{x:Static prop:Strings.Hide}" />
@@ -133,7 +133,7 @@
 						<ToggleButton
 							Classes="primary"
 							Content="{materialIcons:MaterialIconTextExt Kind=Menu,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
 							Theme="{StaticResource MaterialFlatButton}"
 							ToolTip.Tip="{x:Static prop:Strings.Menu}" />
@@ -142,21 +142,21 @@
 							Classes="primary"
 							Command="{Binding AddCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=Plus,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.Add}" />
 
 						<Button
 							Classes="primary"
 							Command="{Binding RenameCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.Rename}" />
 
 						<Button
 							Classes="primary"
 							Command="{Binding DeleteCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.Delete}" />
 
 						<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -165,14 +165,14 @@
 							Classes="primary"
 							Command="{Binding CollapseAllFoldersCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
 
 						<Button
 							Classes="primary"
 							Command="{Binding ExpandAllFoldersCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
 
 						<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -181,7 +181,7 @@
 							Classes="primary"
 							Command="{Binding HideAllFileContentsCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
 							<Button.Styles>
 								<Style Selector="Button:not(:disabled)">
@@ -194,7 +194,7 @@
 							Classes="primary"
 							Command="{Binding ResetSelectedObjectCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=SelectionEllipseRemove,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							ToolTip.Tip="{x:Static prop:Strings.ResetSelectedObject}" />
 
 						<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -225,7 +225,7 @@
 							Classes="primary"
 							Command="{Binding ShowCopyHistoryCommand}"
 							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-							                                            Size={StaticResource ToolBarIconSize}}"
+							                                            IconSize={StaticResource ToolBarIconSize}}"
 							Theme="{StaticResource MaterialFlatButton}"
 							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 

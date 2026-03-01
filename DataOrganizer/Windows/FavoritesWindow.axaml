@@ -252,7 +252,7 @@
 					<ToggleButton
 						Classes="primary"
 						Content="{materialIcons:MaterialIconTextExt Kind=StarOutline,
-						                                            Size={StaticResource ToolBarIconSize}}"
+						                                            IconSize={StaticResource ToolBarIconSize}}"
 						IsChecked="{Binding ShowFavorites, Mode=TwoWay}"
 						IsEnabled="{Binding !ShowFavorites, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.Favorites}" />
@@ -262,7 +262,7 @@
 						Command="{Binding ShowEditorCommand}"
 						CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 						Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
-						                                            Size={StaticResource ToolBarIconSize}}"
+						                                            IconSize={StaticResource ToolBarIconSize}}"
 						ToolTip.Tip="{x:Static prop:Strings.Editor}" />
 
 					<Button
@@ -273,7 +273,7 @@
 					<ToggleButton
 						Classes="primary"
 						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-						                                            Size={StaticResource ToolBarIconSize}}"
+						                                            IconSize={StaticResource ToolBarIconSize}}"
 						IsChecked="{Binding ShowContentCopyHistory, Mode=TwoWay}"
 						IsEnabled="{Binding !ShowContentCopyHistory, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
