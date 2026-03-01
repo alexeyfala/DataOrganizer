@@ -831,7 +831,7 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.NavigationColumnWidth" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public void NavigationColumnWidth_Should_Be_Less_Than_The_Window_Width()
 	{
 		// Arrange
