@@ -9,6 +9,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
+using DataOrganizer.Windows;
 using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -126,10 +127,11 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				try
 				{
-					// TODO: waitDialogHostCloses: false ony for favorites window
+					bool waitDialogHostCloses = container.FindLogicalParent<FavoritesWindow>() is null;
+
 					if (!await view
 						.ViewModel
-						.GetResultAsync(waitDialogHostCloses: false, token: token)
+						.GetResultAsync(waitDialogHostCloses: waitDialogHostCloses, token: token)
 						.ConfigureAwait(true) || view.ViewModel.Password is null)
 					{
 						return;
