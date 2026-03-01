@@ -181,7 +181,7 @@ internal class EditorViewModelTests
 
 		await entityEcryption
 			.Received()
-			.ChangePasswordAsync(folder);
+			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>
@@ -300,6 +300,63 @@ internal class EditorViewModelTests
 		await dialogService
 			.Received(0)
 			.RequestUserCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.DecryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolder_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.DecryptFolder(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.DecryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
 
 	/// <summary>
@@ -785,11 +842,13 @@ internal class EditorViewModelTests
 		// Arrange
 		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEdited: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
 
 		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuted: true,
+			encryptionStatus: EncryptionStatus.Decrypted)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
