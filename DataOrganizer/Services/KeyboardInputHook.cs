@@ -1,6 +1,10 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -37,6 +41,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboardService;
 
@@ -64,6 +71,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	#region Constructors
 	public KeyboardInputHook(
+		Application app,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
@@ -72,6 +80,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		ILogger logger,
 		INotificationService notificationService)
 	{
+		_app = app;
+
 		_clipboardService = clipboardService;
 
 		_dbAccess = dbAccess;
@@ -172,6 +182,24 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
 					return;
+				}
+
+				if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+				{
+					await _dispatcher.PostAsync(() =>
+					{
+						if (_app.FindWindow<Window>(x => x.DataContext is ViewModelBase) is not { } window)
+						{
+							return;
+						}
+
+						if (window.WindowState == WindowState.Minimized)
+						{
+							window.WindowState = WindowState.Normal;
+						}
+
+						window.Activate();
+					}).ConfigureAwait(false);
 				}
 
 				if (await _entityEcryption
