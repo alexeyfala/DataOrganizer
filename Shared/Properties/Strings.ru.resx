@@ -489,4 +489,13 @@
   <data name="PasswordChanged" xml:space="preserve">
     <value>Пароль изменен</value>
   </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Изменен</value>
+  </data>
 </root>

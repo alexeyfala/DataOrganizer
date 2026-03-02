@@ -972,7 +972,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		;
+		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
+
+		view
+			.ViewModel
+			.Properties
+			.AddRange(GetPropertyDescriptions(dto));
+
+		DialogHost.Show(view);
 	}
 	#endregion
 
@@ -1658,6 +1665,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			not null => target.Parent.Children,
 			null => collection
 		};
+
+	/// <summary>
+	/// Returns a sequence with information on the properties of an object.
+	/// </summary>
+	private static IEnumerable<PropertyNameValuePair> GetPropertyDescriptions(ExplorerModelBaseDto dto)
+	{
+		const string format = "dd.MM.yyyy HH:mm:ss";
+
+		yield return new(
+			Strings.Type,
+			dto.EntityType switch
+			{
+				EntityType.Folder => Strings.Folder,
+				EntityType.File => Strings.File,
+				EntityType.DataSet => Strings.Dataset,
+				_ => throw new NotImplementedException()
+			});
+
+		yield return new(Strings.Name, dto.Name);
+
+		yield return new(Strings.Created, dto.CreatedDate.ToString(format));
+
+		yield return new(Strings.Updated, dto.UpdatedDate.ToString(format));
+	}
 
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.

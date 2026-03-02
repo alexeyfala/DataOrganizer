@@ -469,4 +469,13 @@
   <data name="PasswordChanged" xml:space="preserve">
     <value>Password Changed</value>
   </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Updated</value>
+  </data>
 </root>

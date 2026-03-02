@@ -354,6 +354,7 @@ public sealed class App : Application
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
 		services.AddTransient<PasswordBoxViewModel>();
+		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
 		services.AddTransient<ToastViewModel>();
@@ -374,6 +375,7 @@ public sealed class App : Application
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
 		services.AddTransient<PasswordBox>();
+		services.AddTransient<PropertiesView>();
 		services.AddTransient<SelectedFavoritesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();

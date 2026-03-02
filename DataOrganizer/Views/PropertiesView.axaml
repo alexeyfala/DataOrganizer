@@ -1,0 +1,17 @@
+<UserControl
+	x:Class="DataOrganizer.Views.PropertiesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:PropertiesViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:PropertiesViewModel />
+	</Design.DataContext>
+
+	<ItemsControl ItemsSource="{Binding Properties, Mode=OneTime}" />
+</UserControl>
