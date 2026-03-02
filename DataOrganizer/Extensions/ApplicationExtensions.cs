@@ -4,7 +4,9 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
+using DialogHostAvalonia;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -68,6 +70,14 @@ internal static class ApplicationExtensions
 		}
 
 		return default;
+	}
+
+	/// <summary>
+	/// Searches for a <see cref="DialogHost" /> in window among those already running in the application.
+	/// </summary>
+	public static DialogHost? FindDialogHost(this Application target)
+	{
+		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase).FindLogicalChild<DialogHost>();
 	}
 
 	/// <summary>
@@ -174,6 +184,14 @@ internal static class ApplicationExtensions
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if there is opened <see cref="DialogHost" /> dialog.
+	/// </summary>
+	public static bool IsDialogHostOpened(this Application target)
+	{
+		return FindDialogHost(target) is { } dialogHost && dialogHost.IsOpen;
 	}
 	#endregion
 

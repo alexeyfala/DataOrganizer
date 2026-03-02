@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Views;
@@ -62,6 +63,12 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDefaultPressed))]
 	private Task DefaultPressed() => SetResultAsync(true);
+	#endregion
+
+	#region Constructors
+	public KeyValueInputViewModel(Application app) : base(app)
+	{
+	}
 	#endregion
 
 	#region Methods

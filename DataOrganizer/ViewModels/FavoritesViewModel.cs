@@ -136,6 +136,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		ShowContentCopyHistory = false;
 
 		ShowFavorites = false;
+
+		if (_app.FindDialogHost() is not { } dialogHost || !dialogHost.IsOpen)
+		{
+			return;
+		}
+
+		dialogHost.IsOpen = false;
 	}
 
 	/// <summary>

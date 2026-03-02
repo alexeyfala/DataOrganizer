@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Settings;
@@ -75,7 +76,10 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#endregion
 
 	#region Constructors
-	public EntityCreationViewModel(IFileSystem fileSystem, IJsonSerializerWrapper jsonSerializer)
+	public EntityCreationViewModel(
+		Application app,
+		IFileSystem fileSystem,
+		IJsonSerializerWrapper jsonSerializer) : base(app)
 	{
 		_fileSystem = fileSystem;
 
