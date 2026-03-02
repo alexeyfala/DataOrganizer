@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Threading;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -563,9 +564,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
 			{
-				_app
-					.FindBaseDataContext()?
-					.ShowErrorSnackbar(Strings.IncorrectPassword);
+				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return null;
 			}
@@ -575,9 +574,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				TextHelper.Utf8Encoding.GetBytes(password),
 				out byte[] decryptedDek))
 			{
-				_app
-					.FindBaseDataContext()?
-					.ShowErrorSnackbar(Strings.FailedToProcessContents);
+				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				return null;
 			}
@@ -589,9 +586,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					decryptedDek,
 					out byte[] decrypted))
 				{
-					_app
-						.FindBaseDataContext()?
-						.ShowErrorSnackbar(Strings.FailedToProcessContents);
+					ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 					return null;
 				}
@@ -739,6 +734,19 @@ public sealed class EntityEcryption : IEntityEcryption
 			_logger.LogException(ex);
 		}
 	}
+
+	/// <summary>
+	/// Searches <see cref="ViewModelBase" /> in main thread and executes the action.
+	/// </summary>
+	private void ExecuteInBaseViewModel(Action<ViewModelBase> action) => _dispatcher.Post(() =>
+	{
+		if (_app.FindBaseDataContext() is not { } viewModel)
+		{
+			return;
+		}
+
+		action(viewModel);
+	});
 
 	/// <summary>
 	/// Searches <see cref="EditorViewModel" /> in main thread and executes the action.

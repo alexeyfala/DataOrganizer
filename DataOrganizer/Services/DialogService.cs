@@ -1,4 +1,5 @@
-﻿using DataOrganizer.Enums;
+﻿using Avalonia.Threading;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
@@ -13,6 +14,9 @@ namespace DataOrganizer.Services;
 public sealed class DialogService : IDialogService
 {
 	#region Data
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -21,8 +25,13 @@ public sealed class DialogService : IDialogService
 	#endregion
 
 	#region Constructors
-	public DialogService(ILogger logger, IViewFactory viewFactory)
+	public DialogService(
+		IDispatcher dispatcher,
+		ILogger logger,
+		IViewFactory viewFactory)
 	{
+		_dispatcher = dispatcher;
+
 		_logger = logger;
 
 		_viewFactory = viewFactory;
@@ -50,38 +59,45 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
+	public Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
 	{
 		_logger.LogInformation("Show password box");
 
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+		TaskCompletionSource<string?> source = new();
 
-		view
-			.ViewModel
-			.Label = label;
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync(token)
-			.ConfigureAwait(false) || view.ViewModel.Password is null)
+		_dispatcher.Post(async () =>
 		{
-			return null;
-		}
+			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
-		try
-		{
-			return view
-				.ViewModel
-				.Password;
-		}
-		finally
-		{
 			view
 				.ViewModel
-				.Password = null;
-		}
+				.Label = label;
+
+			_ = DialogHost.Show(view);
+
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token)
+				.ConfigureAwait(false) || view.ViewModel.Password is null)
+			{
+				source.SetResult(null);
+
+				return;
+			}
+
+			try
+			{
+				source.SetResult(view.ViewModel.Password);
+			}
+			finally
+			{
+				view
+					.ViewModel
+					.Password = null;
+			}
+		});
+
+		return source.Task;
 	}
 	#endregion
 }
