@@ -46,6 +46,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
+
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
 
@@ -64,6 +67,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IGlobalHook hook,
 		ILogger logger,
 		INotificationService notificationService)
@@ -73,6 +77,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		_dbAccess = dbAccess;
 
 		_dispatcher = dispatcher;
+
+		_entityEcryption = entityEcryption;
 
 		_hook = hook;
 
@@ -114,12 +120,15 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public async Task HandleKeyReleasedAsync(EventMask rawMask, KeyCode code)
+	public async Task HandleKeyReleasedAsync(
+		EventMask rawMask,
+		KeyCode code,
+		CancellationToken token = default)
 	{
 		try
 		{
 			await _semaphore
-				.WaitAsync()
+				.WaitAsync(token)
 				.ConfigureAwait(false);
 
 			if (Files.Count == 0)
@@ -155,7 +164,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				}
 
 				ContentsIsValidPair result = await _dbAccess
-					.GetFileContentsAsync(file.Id)
+					.GetFileContentsAsync(file.Id, token)
 					.ConfigureAwait(false);
 
 				if (!result.IsValid)
@@ -165,9 +174,16 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
+				if (await _entityEcryption
+					.TryToDecryptContentsAsync(file, result.Contents, token)
+					.ConfigureAwait(false) is not { } contents)
+				{
+					return;
+				}
+
 				string text = TextHelper
 					.Utf8Encoding
-					.GetString(result.Contents);
+					.GetString(contents);
 
 				if (string.IsNullOrEmpty(text))
 				{
