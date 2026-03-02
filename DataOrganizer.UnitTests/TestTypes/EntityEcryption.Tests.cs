@@ -696,6 +696,66 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.TryToDecrypt" />.
+	/// </summary>
+	[Test]
+	public void TryToDecrypt_Does_Work()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		byte[] contents = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		bool result = sut.TryToDecrypt(contents, file, out byte[] output);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		output
+			.Should()
+			.NotBeNullOrEmpty();
+
+		output
+			.Should()
+			.NotBeEquivalentTo(contents);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
 	/// </summary>
 	[Test]
@@ -725,7 +785,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[2] = TestUtils.CreateRandomBytes(10);
@@ -789,7 +849,7 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[2] = TestUtils.CreateRandomBytes(10);

@@ -533,7 +533,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		output = input;
 
-		// TODO: Make test
 		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
 			&& root.SessionEncryptedDek is not null
 			&& DecryptSessionContents(input, root.SessionEncryptedDek, out output);
@@ -794,6 +793,11 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			CryptographicOperations.ZeroMemory(dek);
 		}
+	}
+
+	public object TryToDecrypt(byte[] contents, FileModelDto file)
+	{
+		throw new NotImplementedException();
 	}
 	#endregion
 }
