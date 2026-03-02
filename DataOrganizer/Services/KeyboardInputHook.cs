@@ -8,6 +8,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -186,20 +187,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 				if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 				{
-					await _dispatcher.PostAsync(() =>
-					{
-						if (_app.FindWindow<Window>(x => x.DataContext is ViewModelBase) is not { } window)
-						{
-							return;
-						}
-
-						if (window.WindowState == WindowState.Minimized)
-						{
-							window.WindowState = WindowState.Normal;
-						}
-
-						window.Activate();
-					}).ConfigureAwait(false);
+					await ActivateWindowAsync().ConfigureAwait(false);
 				}
 
 				if (await _entityEcryption
@@ -331,5 +319,33 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				.ConfigureAwait(false);
 		}
 	}
+
+	/// <summary>
+	/// Activates the main window.
+	/// </summary>
+	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
+	{
+		if (_app.FindWindow<Window>(x => x.DataContext is ViewModelBase) is not { } window)
+		{
+			return;
+		}
+
+		if (window.WindowState == WindowState.Minimized)
+		{
+			window.WindowState = WindowState.Normal;
+		}
+
+		window.Activate();
+
+		if (_app.FindDataContext<FavoritesViewModel>() is not { } faforites)
+		{
+			return;
+		}
+
+		faforites.ShowFavorites = true;
+
+		faforites.IsPopupOpen = true;
+	});
+
 	#endregion
 }
