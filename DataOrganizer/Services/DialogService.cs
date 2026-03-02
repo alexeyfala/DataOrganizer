@@ -78,7 +78,7 @@ public sealed class DialogService : IDialogService
 			if (!await view
 				.ViewModel
 				.GetResultAsync(token)
-				.ConfigureAwait(false) || view.ViewModel.Password is null)
+				.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
 			{
 				source.SetResult(null);
 

@@ -696,6 +696,152 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		byte[] contents = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNullOrEmpty();
+
+		result
+			.Should()
+			.NotBeEquivalentTo(contents);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		byte[] contents = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(string.Empty);
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Returns(x =>
+				{
+					x[2] = TestUtils.CreateRandomBytes(10);
+
+					return true;
+				});
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNullOrEmpty();
+
+		result
+			.Should()
+			.NotBeEquivalentTo(contents);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// </summary>
+	[Test]
+	public async Task TryToDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
+	{
+		// Arrange
+		byte[] contents = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityEcryption sut = mock.Create<EntityEcryption>();
+
+		// Act
+		byte[]? result = await sut.TryToDecryptContentsAsync(
+			TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.None),
+			contents);
+
+		// Assert
+		result
+			.Should()
+			.BeEquivalentTo(contents);
+	}
+
+	/// <summary>
 	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
 	/// </summary>
 	[Test]

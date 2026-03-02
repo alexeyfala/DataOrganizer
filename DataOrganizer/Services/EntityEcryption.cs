@@ -429,8 +429,8 @@ public sealed class EntityEcryption : IEntityEcryption
 	public async Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-			|| root.PasswordHash is null
-			|| root.EncryptedDek is null)
+			|| root.EncryptedDek is null
+			|| root.PasswordHash is null)
 		{
 			return;
 		}
@@ -545,7 +545,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		byte[] contents,
 		CancellationToken token = default)
 	{
-		// TODO: Make test
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			if (await _dialogService
@@ -556,8 +555,8 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 
 			if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-				|| root.PasswordHash is null
-				|| root.EncryptedDek is null)
+				|| root.EncryptedDek is null
+				|| root.PasswordHash is null)
 			{
 				return null;
 			}
