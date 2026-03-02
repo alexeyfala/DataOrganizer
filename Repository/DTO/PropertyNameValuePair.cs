@@ -17,11 +17,11 @@ public sealed class PropertyNameValuePair
 	/// <summary>
 	/// The value for <see cref="PropertyName" />.
 	/// </summary>
-	public object Value { get; }
+	public object? Value { get; }
 	#endregion
 
 	#region Constructors
-	public PropertyNameValuePair(string propertyName, object value)
+	public PropertyNameValuePair(string propertyName, object? value)
 	{
 		PropertyName = propertyName;
 

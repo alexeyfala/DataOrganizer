@@ -18,6 +18,36 @@ public static class EnumerableExtensions
 {
 	#region Methods
 	/// <summary>
+	/// Returns <c>True</c> if all elements in the hierarchy satisfy a certain condition.
+	/// </summary>
+	public static bool AllBy(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Predicate<ExplorerModelBaseDto> condition)
+	{
+		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+
+		while (stack.Count > 0)
+		{
+			ExplorerModelBaseDto item = stack.Pop();
+
+			if (!condition(item))
+			{
+				return false;
+			}
+
+			if (item is FolderModelDto folder)
+			{
+				foreach (ExplorerModelBaseDto child in folder.Children)
+				{
+					stack.Push(child);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsBy(

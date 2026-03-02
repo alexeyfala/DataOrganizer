@@ -1,7 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Views;
+using Shared.Properties;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -12,6 +14,12 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBase
 {
 	#region Auto-Generated Properties
+	/// <summary>
+	/// The label.
+	/// </summary>
+	[ObservableProperty]
+	private string _label = Strings.Password;
+
 	/// <summary>
 	/// Password.
 	/// </summary>
@@ -32,6 +40,12 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBa
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
+	#endregion
+
+	#region Constructors
+	public PasswordBoxViewModel(Application app) : base(app)
+	{
+	}
 	#endregion
 
 	#region Service

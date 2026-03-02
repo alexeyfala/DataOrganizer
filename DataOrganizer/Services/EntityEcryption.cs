@@ -1,4 +1,7 @@
-﻿using DataOrganizer.DTO.Encryption;
+﻿using Avalonia;
+using Avalonia.Threading;
+using DataOrganizer.Abstract;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
@@ -6,8 +9,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
-using DialogHostAvalonia;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Repository.DTO;
@@ -28,8 +29,17 @@ namespace DataOrganizer.Services;
 public sealed class EntityEcryption : IEntityEcryption
 {
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
+
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -40,9 +50,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
-
 	/// <summary>
 	/// Encryption session identifier.
 	/// </summary>
@@ -51,246 +58,319 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	#region Constructors
 	public EntityEcryption(
+		Application app,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
+		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
-		ILogger logger,
-		IViewFactory viewFactory)
+		ILogger logger)
 	{
+		_app = app;
+
 		_dbAccess = dbAccess;
+
+		_dialogService = dialogService;
+
+		_dispatcher = dispatcher;
 
 		_encryption = encryption;
 
 		_fileSystem = fileSystem;
 
 		_logger = logger;
-
-		_viewFactory = viewFactory;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public bool Decrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
+	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			GetSessionId(),
-			out byte[] decryptedPassword))
+		if (folder.EncryptedDek is null || folder.PasswordHash is null)
 		{
-			return false;
+			return;
 		}
 
-		try
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.OldPassword, token)
+			.ConfigureAwait(true) is not { } oldPassword)
 		{
-			if (!_encryption.Decrypt(
-				input,
-				decryptedPassword,
-				out byte[] decryptedContents))
-			{
-				return false;
-			}
-
-			output = decryptedContents;
-
-			return true;
+			return;
 		}
-		finally
+
+		if (!_encryption.EnhancedVerify(oldPassword, folder.PasswordHash))
 		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
+			ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+			return;
 		}
+
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.NewPassword, token)
+			.ConfigureAwait(false) is not { } newPassword)
+		{
+			return;
+		}
+
+		if (!_encryption.RewrapDek(
+			folder.EncryptedDek,
+			TextHelper.Utf8Encoding.GetBytes(oldPassword),
+			TextHelper.Utf8Encoding.GetBytes(newPassword),
+			out byte[] encryptedDek))
+		{
+			return;
+		}
+
+		string passwordHash = _encryption.EnhancedHashPassword(newPassword);
+
+		PropertyNameValuePair[] properties =
+		[
+			new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+			new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+		];
+
+		if (!await _dbAccess.UpdatePropertiesAsync(
+			id: folder.Id,
+			token: token,
+			properties: properties).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		folder.PasswordHash = passwordHash;
+
+		folder.EncryptedDek = encryptedDek;
+
+		ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
 	}
 
 	/// <inheritdoc />
-	public bool Encrypt(
-		byte[] input,
-		byte[] encryptedPassword,
-		out byte[] output)
-	{
-		output = [];
-
-		if (!_encryption.Decrypt(
-			encryptedPassword,
-			GetSessionId(),
-			out byte[] decryptedPassword))
-		{
-			return false;
-		}
-
-		try
-		{
-			if (!_encryption.Encrypt(
-				input,
-				decryptedPassword,
-				out byte[] encryptedContents))
-			{
-				return false;
-			}
-
-			output = encryptedContents;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedPassword);
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<FolderEncryptionResult> EncryptDecryptFolderAsync(
-		EditorViewModel viewModel,
-		FolderEncryptionParameters parameters,
+	public async Task DecryptFolderAsync(
+		FolderModelDto folder,
+		FileModelDto[] files,
 		CancellationToken token = default)
 	{
+		if (folder.EncryptedDek is null || folder.PasswordHash is null)
+		{
+			return;
+		}
+
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
 		try
 		{
-			if (parameters.Action == CryptoAction.ShowFolderContents)
+			ExecuteInEditor(x => x.IsActionInProgress = true);
+
+			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
 			{
-				throw new InvalidOperationException("Unsupported action type");
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+				return;
 			}
 
 			ContentsIsValidPair[] contents = await _dbAccess
-				.GetFilesContentsAsync(parameters.Files.Select(x => x.Id), token)
+				.GetFilesContentsAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (contents.Length != parameters.Files.Length || contents.Any(x => !x.IsValid))
+			if (!AreLoadedContentsValid(contents, files.Length))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
 
-				return FolderEncryptionResult.FailedToLoadContents;
+				return;
 			}
 
-			ContentsIsValidPair[] result = [.. _encryption.EncryptDecryptContents(
-				contents,
-				TextHelper.Utf8Encoding.GetBytes(parameters.Password),
-				parameters.Action)];
-
-			if (result.Length != contents.Length
-				|| result.Any(x => !x.IsValid)
-				|| result.Any(x => x.Id.IsDefault()))
+			if (!_encryption.Decrypt(
+				folder.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(password),
+				out byte[] decryptedDek))
 			{
-				viewModel.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				return FolderEncryptionResult.FailedToEncryptContents;
+				return;
 			}
 
-			if (!_dbAccess.BackupDatabase(out var backupFilePath) || string.IsNullOrEmpty(backupFilePath))
+			try
 			{
-				viewModel.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
-				return FolderEncryptionResult.UnableToCreateDatabaseBackup;
-			}
-
-			DateTime updatedDate = DateTime.Now;
-
-			Dictionary<Guid, PropertyNameValuePair[]> relations = result.ToDictionary(x => x.Id, x =>
-			{
-				return new PropertyNameValuePair[]
+				if (!AreContentsValid(result, contents.Length))
 				{
-					new(nameof(FileModel.Contents), x.Contents),
-					new(nameof(FileModel.UpdatedDate), updatedDate)
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+					return;
+				}
+
+				if (_dbAccess.BackupDatabase() is not { } backupFilePath)
+				{
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+
+					return;
+				}
+
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backupFilePath,
+					Contents = result,
+					EncryptedDek = null,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.None,
+					PasswordHash = null
 				};
-			});
 
-			if (!await _dbAccess
-				.UpdatePropertiesAsync(relations, token)
-				.ConfigureAwait(false))
-			{
-				await RestoreDatabaseAsync().ConfigureAwait(false);
-
-				DeleteBackupFile();
-
-				return FolderEncryptionResult.FailedToSaveContents;
+				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 			}
-
-			string? passwordHash = parameters.Action switch
+			finally
 			{
-				CryptoAction.Encrypt => _encryption.EnhancedHashPassword(parameters.Password),
-				CryptoAction.Decrypt => null,
-				_ => throw new NotImplementedException()
-			};
-
-			if (!await _dbAccess.UpdatePropertyAsync(
-				id: parameters.Folder.Id,
-				propertyName: nameof(FolderModel.PasswordHash),
-				value: passwordHash,
-				token: token).ConfigureAwait(false))
-			{
-				await RestoreDatabaseAsync().ConfigureAwait(false);
-
-				DeleteBackupFile();
-
-				return FolderEncryptionResult.FailedToSavePasswordHash;
-			}
-
-			ExplorerModelBaseDto[] objects =
-			[
-				.. parameters.Folder.ToEnumerable(),
-				.. parameters.Folder.Children.GetFolders(),
-				.. parameters.Files
-			];
-
-			EncryptionStatus newStatus = parameters.Action switch
-			{
-				CryptoAction.Encrypt => EncryptionStatus.Encrypted,
-				CryptoAction.Decrypt => EncryptionStatus.None,
-				_ => throw new NotImplementedException()
-			};
-
-			objects.ForEach(x => x.EncryptionStatus = newStatus);
-
-			parameters
-				.Folder
-				.PasswordHash = passwordHash;
-
-			DeleteBackupFile();
-
-			string doneAction = parameters.Action switch
-			{
-				CryptoAction.Encrypt => "encrypted",
-				CryptoAction.Decrypt => "decrypted",
-				_ => throw new NotImplementedException()
-			};
-
-			_logger.LogInformation(
-				$"{parameters.Files.Length} files {doneAction} in folder:{parameters.Folder.GetPropertyValues(
-					true,
-					nameof(FolderModelDto.Id),
-					nameof(FolderModelDto.Name))}");
-
-			return FolderEncryptionResult.Done;
-
-			async Task RestoreDatabaseAsync()
-			{
-				viewModel.ShowErrorSnackbar(
-					Strings.FailedToProcessContents +
-					Environment.NewLine +
-					Strings.TheDatabaseWillBeRestored);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(backupFilePath, token)
-					.ConfigureAwait(false);
-			}
-
-			void DeleteBackupFile()
-			{
-				SqliteConnection.ClearAllPools();
-
-				_fileSystem.EraseAndDeleteFile(backupFilePath);
+				CryptographicOperations.ZeroMemory(decryptedDek);
 			}
 		}
-		catch (Exception ex)
+		finally
 		{
-			_logger.LogException(ex);
+			ExecuteInEditor(x => x.IsActionInProgress = false);
+		}
+	}
 
-			return FolderEncryptionResult.ExceptionThrown;
+	/// <inheritdoc />
+	public bool DecryptSessionContents(
+		byte[] encryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] decryptedContents)
+	{
+		decryptedContents = [];
+
+		if (!_encryption.Decrypt(
+			sessionEncryptedDek,
+			GetSessionId(),
+			out byte[] decryptedDek))
+		{
+			return false;
+		}
+
+		try
+		{
+			return _encryption.Decrypt(
+				encryptedContents,
+				decryptedDek,
+				out decryptedContents);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedDek);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task EncryptFolderAsync(
+		FolderModelDto folder,
+		FileModelDto[] files,
+		CancellationToken token = default)
+	{
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			ExecuteInEditor(x => x.IsActionInProgress = true);
+
+			ContentsIsValidPair[] contents = await _dbAccess
+				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			if (!AreLoadedContentsValid(contents, files.Length))
+			{
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
+
+				return;
+			}
+
+			byte[] dek = _encryption.CreateRandomDek();
+
+			try
+			{
+				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+
+				if (!AreContentsValid(result, contents.Length))
+				{
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+					return;
+				}
+
+				if (!_encryption.Encrypt(
+					dek,
+					TextHelper.Utf8Encoding.GetBytes(password),
+					out byte[] encryptedDek))
+				{
+					return;
+				}
+
+				if (_dbAccess.BackupDatabase() is not { } backupFilePath)
+				{
+					ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+
+					return;
+				}
+
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backupFilePath,
+					Contents = result,
+					EncryptedDek = encryptedDek,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.Encrypted,
+					PasswordHash = _encryption.EnhancedHashPassword(password)
+				};
+
+				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(dek);
+			}
+		}
+		finally
+		{
+			ExecuteInEditor(x => x.IsActionInProgress = false);
+		}
+	}
+
+	/// <inheritdoc />
+	public bool EncryptSessionContents(
+		byte[] decryptedContents,
+		byte[] sessionEncryptedDek,
+		out byte[] encryptedContents)
+	{
+		encryptedContents = [];
+
+		if (!_encryption.Decrypt(
+			sessionEncryptedDek,
+			GetSessionId(),
+			out byte[] decryptedDek))
+		{
+			return false;
+		}
+
+		try
+		{
+			return _encryption.Encrypt(
+				decryptedContents,
+				decryptedDek,
+				out encryptedContents);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedDek);
 		}
 	}
 
@@ -310,134 +390,13 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task<HandlePasswordResult> HandlePasswordInputAsync(
-		string? password,
-		EditorViewModel viewModel,
-		HandlePasswordParameters parameters,
-		CancellationToken token = default)
+	public void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (string.IsNullOrEmpty(password))
+		if (folder.SessionEncryptedDek is not null)
 		{
-			return HandlePasswordResult.PasswordNotEntered;
-		}
+			CryptographicOperations.ZeroMemory(folder.SessionEncryptedDek);
 
-		try
-		{
-			viewModel.IsActionInProgress = true;
-
-			if (parameters.Action != CryptoAction.Encrypt && !VerifyPasswordHash(
-				parameters.Folder,
-				parameters.Action,
-				password))
-			{
-				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
-
-				return HandlePasswordResult.PasswordDoesNotMatch;
-			}
-
-			if (parameters.Action == CryptoAction.ShowFolderContents)
-			{
-				if (!ShowFolderContents(parameters.Folder, password))
-				{
-					viewModel.ShowErrorSnackbar(Strings.FailedToShowFileContents);
-
-					return HandlePasswordResult.FailedToShowFileContents;
-				}
-			}
-			else
-			{
-				await EncryptDecryptFolderAsync(
-					viewModel,
-					parameters.CreateFrom(password),
-					token).ConfigureAwait(false);
-			}
-
-			return HandlePasswordResult.Applied;
-		}
-		finally
-		{
-			viewModel.IsActionInProgress = false;
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task HideFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
-	{
-		if (file.IsEdited || file.IsExecuted)
-		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
-			{
-				return;
-			}
-
-			viewModel.CloseFile(file);
-		}
-
-		file.EncryptionStatus = EncryptionStatus.Encrypted;
-	}
-
-	/// <inheritdoc />
-	public async Task HideFolderContentsAsync(
-		FolderModelDto folder,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
-	{
-		if (folder.AnyFile(x => x.IsEdited || x.IsExecuted))
-		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
-			{
-				return;
-			}
-
-			viewModel.CloseFiles(
-				folder.GetFiles(x => x.IsEdited),
-				folder.GetFiles(x => x.IsExecuted));
-		}
-
-		if (folder.EncryptedPassword is not null)
-		{
-			CryptographicOperations.ZeroMemory(folder.EncryptedPassword);
-
-			folder.EncryptedPassword = null;
+			folder.SessionEncryptedDek = null;
 		}
 
 		folder
@@ -445,83 +404,12 @@ public sealed class EntityEcryption : IEntityEcryption
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
-		if (viewModel
-			.Hierarchy
-			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
+		if (hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
 		{
 			return;
 		}
 
 		ResetSessionId();
-	}
-
-	/// <inheritdoc />
-	public async Task RequestPasswordAsync(
-		EditorViewModel viewModel,
-		FolderModelDto folder,
-		CryptoAction action,
-		CancellationToken token = default)
-	{
-		FileModelDto[] filesDto = [.. folder
-			.Children
-			.GetFiles()];
-
-		if (filesDto.Length == 0)
-		{
-			viewModel.ShowInfoSnackbar(Strings.MissingFiles);
-
-			return;
-		}
-
-		if (filesDto.Any(x => x.IsEdited || x.IsExecuted))
-		{
-			viewModel.ShowInfoSnackbar(Strings.YouMustCloseTheFilesYouAreEditing);
-
-			return;
-		}
-
-		_logger.LogInformation("Show password box");
-
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		_ = DialogHost.Show(view);
-
-		try
-		{
-			if (!await view
-				.ViewModel
-				.GetResultAsync(token: token)
-				.ConfigureAwait(false))
-			{
-				return;
-			}
-
-			HandlePasswordParameters parameters = new()
-			{
-				Action = action,
-				Files = filesDto,
-				Folder = folder
-			};
-
-			await HandlePasswordInputAsync(
-				view.ViewModel.Password,
-				viewModel,
-				parameters,
-				token).ConfigureAwait(false);
-		}
-		finally
-		{
-			view
-				.ViewModel
-				.Password = null;
-		}
 	}
 
 	/// <inheritdoc />
@@ -538,71 +426,339 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFileContentsAsync(
-		FileModelDto file,
-		EditorViewModel viewModel,
-		CancellationToken token = default)
+	public async Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
-		if (file.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is not { } root
-			|| root.PasswordHash is not { } passwordHash)
+		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+			|| root.EncryptedDek is null
+			|| root.PasswordHash is null)
 		{
 			return;
 		}
 
-		PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
 		{
-			_ = DialogHost.Show(view);
+			return;
 		}
 
 		try
 		{
-			if (!await view
-				.ViewModel
-				.GetResultAsync(token: token)
-				.ConfigureAwait(false) || view.ViewModel.Password is null)
-			{
-				return;
-			}
+			ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			viewModel.IsActionInProgress = true;
-
-			if (!_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
+			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
 			{
-				viewModel.ShowErrorSnackbar(Strings.IncorrectPassword);
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return;
 			}
 
-			bool isEncrypted = _encryption.Encrypt(
-				TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
-				GetSessionId(),
-				out byte[] output);
-
-			if (!isEncrypted)
+			if (!_encryption.Decrypt(
+				root.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(password),
+				out byte[] dek))
 			{
 				return;
 			}
 
-			root.EncryptedPassword = output;
+			try
+			{
+				if (!_encryption.Encrypt(
+					dek,
+					GetSessionId(),
+					out byte[] sessionEncryptedDek))
+				{
+					return;
+				}
 
-			file.EncryptionStatus = EncryptionStatus.Decrypted;
+				root.SessionEncryptedDek = sessionEncryptedDek;
+
+				file.EncryptionStatus = EncryptionStatus.Decrypted;
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(dek);
+			}
 		}
 		finally
 		{
-			view
-				.ViewModel
-				.Password = null;
+			ExecuteInEditor(x => x.IsActionInProgress = false);
+		}
+	}
 
-			viewModel.IsActionInProgress = false;
+	/// <inheritdoc />
+	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
+	{
+		if (folder.PasswordHash is null)
+		{
+			return;
+		}
+
+		if (await _dialogService
+			.RequestUserPasswordAsync(Strings.Password, token)
+			.ConfigureAwait(false) is not { } password)
+		{
+			return;
+		}
+
+		try
+		{
+			ExecuteInEditor(x => x.IsActionInProgress = true);
+
+			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			{
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+				return;
+			}
+
+			if (ShowFolderContents(folder, password))
+			{
+				return;
+			}
+
+			ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+		}
+		finally
+		{
+			ExecuteInEditor(x => x.IsActionInProgress = false);
+		}
+	}
+
+	/// <inheritdoc />
+	public bool TryToDecrypt(
+		byte[] input,
+		FileModelDto file,
+		out byte[] output)
+	{
+		output = input;
+
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
+			&& root.SessionEncryptedDek is not null
+			&& DecryptSessionContents(input, root.SessionEncryptedDek, out output);
+	}
+
+	/// <inheritdoc />
+	public async Task<byte[]?> TryToDecryptContentsAsync(
+		FileModelDto file,
+		byte[] contents,
+		CancellationToken token = default)
+	{
+		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+		{
+			if (await _dialogService
+				.RequestUserPasswordAsync(Strings.Password, token)
+				.ConfigureAwait(true) is not { } password)
+			{
+				return null;
+			}
+
+			if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+				|| root.EncryptedDek is null
+				|| root.PasswordHash is null)
+			{
+				return null;
+			}
+
+			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+			{
+				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+				return null;
+			}
+
+			if (!_encryption.Decrypt(
+				root.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(password),
+				out byte[] decryptedDek))
+			{
+				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+				return null;
+			}
+
+			try
+			{
+				if (!_encryption.Decrypt(
+					contents,
+					decryptedDek,
+					out byte[] decrypted))
+				{
+					ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+					return null;
+				}
+
+				return decrypted;
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(decryptedDek);
+			}
+		}
+		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
+		{
+			if (!TryToDecrypt(
+				contents,
+				file,
+				out byte[] decrypted))
+			{
+				return null;
+			}
+
+			return decrypted;
+		}
+
+		return contents;
+	}
+
+	/// <inheritdoc />
+	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+		UpdateDatabaseParameters parameters,
+		CancellationToken token = default)
+	{
+		try
+		{
+			DateTime updatedDate = DateTime.Now;
+
+			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
+			{
+				return new PropertyNameValuePair[]
+				{
+					new(nameof(FileModel.Contents), x.Contents),
+					new(nameof(FileModel.UpdatedDate), updatedDate)
+				};
+			});
+
+			if (!await _dbAccess
+				.UpdatePropertiesAsync(relations, token)
+				.ConfigureAwait(false))
+			{
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+				await _dbAccess
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+				return UpdateDatabaseResult.FailedToSaveContentsInDb;
+			}
+
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
+			];
+
+			if (!await _dbAccess.UpdatePropertiesAsync(
+				id: parameters.Folder.Id,
+				token: token,
+				properties: properties).ConfigureAwait(false))
+			{
+				ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+				await _dbAccess
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
+			}
+
+			ExplorerModelBaseDto[] objects =
+			[
+				.. parameters.Folder.ToEnumerable(),
+				.. parameters.Folder.Children.GetFolders(),
+				.. parameters.Files
+			];
+
+			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
+
+			parameters
+				.Folder
+				.PasswordHash = parameters.PasswordHash;
+
+			parameters
+				.Folder
+				.EncryptedDek = parameters.EncryptedDek;
+
+			DeleteDatabaseBackupFile(parameters.BackupFilePath);
+
+			return UpdateDatabaseResult.Done;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return UpdateDatabaseResult.ExceptionThrown;
 		}
 	}
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Returns <c>True</c> if the contents are valid.
+	/// </summary>
+	private static bool AreContentsValid(ContentsIsValidPair[] contents, int shouldBe)
+	{
+		return contents.Length == shouldBe
+			&& contents.All(x => x.IsValid)
+			&& contents.All(x => x.Id.IsNotDefault());
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if the loaded from database contents are valid.
+	/// </summary>
+	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
+	{
+		return contents.Length == fileCount && contents.All(x => x.IsValid);
+	}
+
+	/// <summary>
+	/// Deletes the database backup file.
+	/// </summary>
+	private void DeleteDatabaseBackupFile(string filePath)
+	{
+		try
+		{
+			SqliteConnection.ClearAllPools();
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Searches <see cref="ViewModelBase" /> in main thread and executes the action.
+	/// </summary>
+	private void ExecuteInBaseViewModel(Action<ViewModelBase> action) => _dispatcher.Post(() =>
+	{
+		if (_app.FindBaseDataContext() is not { } viewModel)
+		{
+			return;
+		}
+
+		action(viewModel);
+	});
+
+	/// <summary>
+	/// Searches <see cref="EditorViewModel" /> in main thread and executes the action.
+	/// </summary>
+	private void ExecuteInEditor(Action<EditorViewModel> action) => _dispatcher.Post(() =>
+	{
+		if (_app.FindDataContext<EditorViewModel>() is not { } viewModel)
+		{
+			return;
+		}
+
+		action(viewModel);
+	});
+
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
@@ -610,66 +766,38 @@ public sealed class EntityEcryption : IEntityEcryption
 		FolderModelDto folder,
 		string password)
 	{
-		FolderModelDto? root = !string.IsNullOrEmpty(folder.PasswordHash)
+		FolderModelDto? root = folder.IsPasswordKeeper()
 			? folder
-			: folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+			: folder.FindParent(x => x.IsPasswordKeeper());
 
-		if (root is null)
+		if (root is null
+			|| root.EncryptedDek is null
+			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] dek)
+			|| !_encryption.Encrypt(dek, GetSessionId(), out byte[] sessionEncryptedDek))
 		{
 			return false;
 		}
 
-		bool isEncrypted = _encryption.Encrypt(
-			TextHelper.Utf8Encoding.GetBytes(password),
-			GetSessionId(),
-			out byte[] output);
-
-		if (!isEncrypted)
+		try
 		{
-			return false;
+			root.SessionEncryptedDek = sessionEncryptedDek;
+
+			folder
+				.ToEnumerable()
+				.Concat(folder.GetAllChildren())
+				.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
+
+			return true;
 		}
-
-		root.EncryptedPassword = output;
-
-		folder
-			.ToEnumerable()
-			.Concat(folder.GetAllChildren())
-			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Decrypted);
-
-		return true;
+		finally
+		{
+			CryptographicOperations.ZeroMemory(dek);
+		}
 	}
 
-	/// <summary>
-	/// Verifies the password by hash.
-	/// </summary>
-	private bool VerifyPasswordHash(
-		FolderModelDto folder,
-		CryptoAction action,
-		string password)
+	public object TryToDecrypt(byte[] contents, FileModelDto file)
 	{
-		string? passwordHash = folder.PasswordHash;
-
-		switch (action)
-		{
-			case CryptoAction.Decrypt when !string.IsNullOrEmpty(passwordHash):
-				return _encryption.EnhancedVerify(password, passwordHash);
-
-			case CryptoAction.ShowFolderContents:
-				if (!string.IsNullOrEmpty(passwordHash))
-				{
-					return _encryption.EnhancedVerify(password, passwordHash);
-				}
-				else if (folder.FindParent(x => !string.IsNullOrEmpty(x.PasswordHash)) is { } parent && !string.IsNullOrEmpty(parent.PasswordHash))
-				{
-					return _encryption.EnhancedVerify(password, parent.PasswordHash);
-				}
-				else
-				{
-					return false;
-				}
-		}
-
-		return true;
+		throw new NotImplementedException();
 	}
 	#endregion
 }

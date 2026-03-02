@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -102,6 +103,12 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 		return GetResultAsync(
 			defaultResult: YesNoCancelResult.Cancel,
 			token: token);
+	}
+	#endregion
+
+	#region Constructors
+	public YesNoCancelBoxViewModel(Application app) : base(app)
+	{
 	}
 	#endregion
 }

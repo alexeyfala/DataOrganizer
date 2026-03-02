@@ -82,22 +82,16 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			if (!result.IsValid)
+			if (!result.IsValid || !TryToDecrypt(result.Contents, out byte[] output))
 			{
 				IsContentCorrupted = true;
+
+				ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
 					isAssertDebug: false);
 
-				return;
-			}
-
-			if (!TryToDecrypt(
-				result.Contents,
-				editor,
-				out byte[] output))
-			{
 				return;
 			}
 
@@ -242,11 +236,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// Encryption slows down the UI, so it is performed in a different thread.
 			_ = Task.Run(() =>
 			{
-				if (!TryToEncrypt(
-					contents,
-					editor,
-					out byte[] output))
+				if (!TryToEncrypt(contents, out byte[] output))
 				{
+					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
+
 					return Task.CompletedTask;
 				}
 

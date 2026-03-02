@@ -33,7 +33,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -186,6 +185,33 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Changes password for folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
+	public async Task ChangePassword(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_logger.LogInformation("Change password of the folder");
+
+		await _entityEcryption
+			.ChangePasswordAsync(dto)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Closes a file executed in the operating system.
 	/// </summary>
 	[RelayCommand]
@@ -209,6 +235,74 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.IsExecuted = false;
 
 		_ = _executionEngine.CloseAsync(dto.Id);
+	}
+
+	/// <summary>
+	/// Decrypts files in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
+	public async Task DecryptFolder(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_logger.LogInformation("Decrypt files in a folder");
+
+		await _entityEcryption
+			.DecryptFolderAsync(dto, files)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Encrypts files in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
+	public async Task EncryptFolder(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_logger.LogInformation("Encrypt files in a folder");
+
+		await _entityEcryption
+			.EncryptFolderAsync(dto, files)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -267,21 +361,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		byte[] contents = result.Contents;
 
-		byte[]? encryptedPassword = null;
+		byte[]? sessionEncryptedDek = null;
 
 		if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-			&& dto.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } password)
+			&& dto.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } encryptedDek)
 		{
-			encryptedPassword = [.. password];
+			sessionEncryptedDek = [.. encryptedDek];
 
-			if (!_entityEcryption.Decrypt(
+			if (!_entityEcryption.DecryptSessionContents(
 				contents,
-				password,
+				sessionEncryptedDek,
 				out contents))
 			{
 				ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-				CryptographicOperations.ZeroMemory(encryptedPassword);
 
 				return;
 			}
@@ -290,9 +382,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = contents,
-			EncryptedPassword = encryptedPassword,
 			File = dto,
 			IsReadOnly = IsReadOnly,
+			SessionEncryptedDek = sessionEncryptedDek,
 			ViewModel = this
 		};
 
@@ -327,30 +419,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted))
+		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await _dialogService
+			.RequestUserCloseFilesAsync()
+			.ConfigureAwait(true))
 		{
-			YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-			view
-				.ViewModel
-				.Text = $"{Strings.CloseFilesBeingEdited}?";
-
-			if (!AppDomain
-				.CurrentDomain
-				.IsRunningFromNUnit())
-			{
-				_ = DialogHost.Show(view);
-			}
-
-			YesNoCancelResult result = await view
-				.ViewModel
-				.GetResultAsync(YesNoCancelVariant.YesCancel)
-				.ConfigureAwait(true);
-
-			if (result != YesNoCancelResult.Yes)
-			{
-				return;
-			}
+			return;
 		}
 
 		Hierarchy
@@ -364,6 +437,57 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				dto.EncryptionStatus = EncryptionStatus.Encrypted;
 			});
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Hides file contents.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	public async Task HideFileContents(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		if (dto.IsEdited || dto.IsExecuted)
+		{
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync()
+				.ConfigureAwait(true))
+			{
+				return;
+			}
+
+			CloseFile(dto);
+		}
+
+		_logger.LogInformation("Hide file contents");
+
+		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
+	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	public async Task HideFolderContents(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		if (!await TryCloseEditedExecutedFilesAsync([.. dto.Children.GetFiles()]).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_logger.LogInformation("Hide files in a folder");
+
+		_entityEcryption.HideFolderContents(dto, Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -438,6 +562,42 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Hierarchy
 			.GetFilesBy(x => x.IsEdited)
 			.ForEach(EditFiles.ViewModel.CloseEditor);
+	}
+
+	/// <summary>
+	/// Shows file contents in folder.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
+	public async Task ShowFolderContents(FolderModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		FileModelDto[] files = [.. dto
+			.Children
+			.GetFiles()];
+
+		if (files.Length == 0)
+		{
+			ShowInfoSnackbar(Strings.MissingFiles);
+
+			return;
+		}
+
+		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		_logger.LogInformation("Show file contents in a folder");
+
+		await _entityEcryption
+			.ShowFolderContentsAsync(dto)
+			.ConfigureAwait(true);
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -553,15 +713,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Changes password for folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
-	private void ChangePassword(FolderModelDto? dto)
-	{
-		// TODO: Implement
-	}
-
-	/// <summary>
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
@@ -635,25 +786,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Decrypts files in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
-	private Task DecryptFolder(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Decrypt files in a folder");
-
-		return _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.Decrypt);
-	}
-
-	/// <summary>
 	/// Displays the delete object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDelete))]
@@ -704,65 +836,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Encrypts files in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
-	private Task EncryptFolder(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return Task.CompletedTask;
-		}
-
-		_logger.LogInformation("Encrypt files in a folder");
-
-		return _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.Encrypt);
-	}
-
-	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
-
-	/// <inheritdoc cref="IEntityEcryption.HideFileContentsAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	private async Task HideFileContents(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide file contents");
-
-		await _entityEcryption
-			.HideFileContentsAsync(dto, this)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
-
-	/// <inheritdoc cref="IEntityEcryption.HideFolderContentsAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	private async Task HideFolderContents(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Hide files in a folder");
-
-		await _entityEcryption
-			.HideFolderContentsAsync(dto, this)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
 
 	/// <summary>
 	/// Opens a file context menu.
@@ -874,29 +951,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation("Show file contents");
 
 		await _entityEcryption
-			.ShowFileContentsAsync(dto, this)
+			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-	}
-
-	/// <summary>
-	/// Shows file contents in folder.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
-	private async Task ShowFolderContents(FolderModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show file contents in a folder");
-
-		await _entityEcryption.RequestPasswordAsync(
-			this,
-			dto,
-			CryptoAction.ShowFolderContents).ConfigureAwait(true);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -938,6 +994,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
@@ -952,6 +1009,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			app,
 			settingsManager,
 			dbAccess,
+			dialogService,
 			dispatcher,
 			encryption,
 			entityEcryption,
@@ -1090,24 +1148,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		view
 			.ViewModel
 			.ExecutedFiles = null;
-	}
-
-	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	public void CloseFile(FileModelDto file)
-	{
-		if (file.IsEdited)
-		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
-		}
-
-		if (file.IsExecuted)
-		{
-			CloseExecutedFile(file);
-		}
 	}
 
 	/// <summary>
@@ -1622,12 +1662,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
-	private bool CanExecuteChangePassword(FolderModelDto? dto)
-	{
-		return IsNotReadOnly()
-			&& dto is not null
-			&& !string.IsNullOrEmpty(dto.PasswordHash);
-	}
+	private bool CanExecuteChangePassword(FolderModelDto? dto) => IsNotReadOnly() && dto?.IsPasswordKeeper() == true;
 
 	/// <summary>
 	/// Validates <see cref="CloseAllExecutedFilesCommand" />.
@@ -1640,8 +1675,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteDecryptFolder(FolderModelDto? dto)
 	{
 		return IsNotReadOnly()
-			&& dto is not null
-			&& !string.IsNullOrEmpty(dto.PasswordHash);
+			&& dto?.IsPasswordKeeper() == true
+			&& dto.EncryptionStatus == EncryptionStatus.Encrypted
+			&& dto.Children.AllBy(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
@@ -1658,9 +1694,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteEncryptFolder(FolderModelDto? dto)
 	{
 		return IsNotReadOnly()
-			&& dto is not null
-			&& string.IsNullOrEmpty(dto.PasswordHash)
-			&& !dto.AnyParent(x => !string.IsNullOrEmpty(x.PasswordHash));
+			&& dto?.IsPasswordKeeper() == false
+			&& !dto.AnyParent(x => x.IsPasswordKeeper())
+			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
 	}
 
 	/// <summary>
@@ -1682,6 +1718,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteShowFavorites() => Hierarchy.ContainsBy(x => x.IsFavorite);
 
 	/// <summary>
+	/// Closes file that is being edited or executed;
+	/// </summary>
+	private void CloseFile(FileModelDto file)
+	{
+		if (file.IsEdited)
+		{
+			EditFiles
+				.ViewModel
+				.CloseTab(file);
+		}
+
+		if (file.IsExecuted)
+		{
+			CloseExecutedFile(file);
+		}
+	}
+
+	/// <summary>
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
@@ -1695,6 +1749,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Returns <c>True</c> if <see cref="SelectedObject" /> is not null.
 	/// </summary>
 	private bool IsSelectedObjectNotNull() => SelectedObject is not null;
+
+	/// <summary>
+	/// Tries to close edited or executed files if any.
+	/// </summary>
+	private async Task<bool> TryCloseEditedExecutedFilesAsync(
+		FileModelDto[] files,
+		CancellationToken token = default)
+	{
+		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		{
+			if (!await _dialogService
+				.RequestUserCloseFilesAsync(token)
+				.ConfigureAwait(true))
+			{
+				return false;
+			}
+
+			CloseFiles(
+				files.Where(x => x.IsEdited),
+				files.Where(x => x.IsExecuted));
+		}
+
+		return true;
+	}
 
 	/// <summary>
 	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.

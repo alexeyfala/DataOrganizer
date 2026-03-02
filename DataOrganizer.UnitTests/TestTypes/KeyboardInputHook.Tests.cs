@@ -108,6 +108,14 @@ internal class KeyboardInputHookTests
 				.FindClipboard()
 				.Returns(clipboard);
 
+			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+			entityEcryption
+				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(entityEcryption);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(clipboardService);

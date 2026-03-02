@@ -54,9 +54,7 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <summary>
 	/// Tracks changes of the executed file.
 	/// </summary>
-	public async Task TrackChangesAsync(
-		TrackChangesParameters parameters,
-		CancellationToken token = default)
+	public async Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default)
 	{
 		try
 		{
@@ -92,9 +90,9 @@ public class FileChangeTracker : IFileChangeTracker
 						{
 							byte[] contents = bytes;
 
-							if (parameters.EncryptedPassword?.Length > 0 && !_entityEcryption.Encrypt(
+							if (parameters.SessionEncryptedDek is not null && !_entityEcryption.EncryptSessionContents(
 								bytes,
-								parameters.EncryptedPassword,
+								parameters.SessionEncryptedDek,
 								out contents))
 							{
 								parameters
@@ -134,7 +132,7 @@ public class FileChangeTracker : IFileChangeTracker
 					}
 					finally
 					{
-						if (parameters.EncryptedPassword is not null)
+						if (parameters.SessionEncryptedDek is not null)
 						{
 							CryptographicOperations.ZeroMemory(bytes);
 						}
@@ -158,9 +156,9 @@ public class FileChangeTracker : IFileChangeTracker
 		}
 		finally
 		{
-			if (parameters.EncryptedPassword is not null)
+			if (parameters.SessionEncryptedDek is not null)
 			{
-				CryptographicOperations.ZeroMemory(parameters.EncryptedPassword);
+				CryptographicOperations.ZeroMemory(parameters.SessionEncryptedDek);
 
 				CryptographicOperations.ZeroMemory(parameters.Contents);
 			}

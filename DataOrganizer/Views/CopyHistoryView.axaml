@@ -23,7 +23,7 @@
 			Classes="primary"
 			Command="{Binding Clear}"
 			Content="{materialIcons:MaterialIconTextExt Kind=EraserVariant,
-			                                            Size={StaticResource ToolBarIconSize}}"
+			                                            IconSize={StaticResource ToolBarIconSize}}"
 			Theme="{StaticResource MaterialFlatButton}"
 			ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 

@@ -8,8 +8,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
-using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -33,14 +31,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDialogService" />
+	protected readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IEntityEcryption" />
 	protected readonly IEntityEcryption _entityEcryption;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
-
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -50,22 +48,22 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected CopyContentViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
-		ILogger logger,
-		IViewFactory viewFactory)
+		ILogger logger)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
+
+		_dialogService = dialogService;
 
 		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 
 		_logger = logger;
-
-		_viewFactory = viewFactory;
 	}
 	#endregion
 
@@ -116,57 +114,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
-			byte[] contents = result.Contents;
-
-			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-			{
-				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-				_ = DialogHost.Show(view);
-
-				try
-				{
-					if (!await view
-						.ViewModel
-						.GetResultAsync(waitDialogHostCloses: false, token: token)
-						.ConfigureAwait(true) || view.ViewModel.Password is null)
-					{
-						return;
-					}
-
-					if (file.FindParent(x => x.PasswordHash is not null)?.PasswordHash is { } passwordHash
-						&& !_encryption.EnhancedVerify(view.ViewModel.Password, passwordHash))
-					{
-						_app
-							.FindDataContext<ViewModelBase>()?
-							.ShowErrorSnackbar(Strings.IncorrectPassword);
-
-						return;
-					}
-
-					if (!_encryption.Decrypt(
-						contents,
-						TextHelper.Utf8Encoding.GetBytes(view.ViewModel.Password),
-						out contents))
-					{
-						_app
-							.FindDataContext<ViewModelBase>()?
-							.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-						return;
-					}
-				}
-				finally
-				{
-					view
-						.ViewModel
-						.Password = null;
-				}
-			}
-			else if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
-				contents,
-				file,
-				out contents))
+			if (await _entityEcryption
+				.TryToDecryptContentsAsync(file, result.Contents, token)
+				.ConfigureAwait(true) is not { } contents)
 			{
 				return;
 			}
@@ -177,7 +127,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					.Utf8Encoding
 					.GetString(contents);
 
-				ViewModelBase? viewModel = _app.FindDataContext<ViewModelBase>();
+				ViewModelBase? viewModel = _app.FindBaseDataContext();
 
 				if (string.IsNullOrEmpty(text))
 				{
@@ -215,21 +165,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		{
 			_logger.LogException(ex);
 		}
-	}
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
-	protected bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output)
-	{
-		output = input;
-
-		return file.FindParent(x => x.EncryptedPassword is not null)?.EncryptedPassword is { } encryptedPassword
-			&& encryptedPassword.Length != 0
-			&& _entityEcryption.Decrypt(input, encryptedPassword, out output);
 	}
 	#endregion
 }

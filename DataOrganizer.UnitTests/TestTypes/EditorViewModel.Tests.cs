@@ -128,6 +128,63 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EditorViewModel.ChangePassword" />.
+	/// </summary>
+	[Test]
+	public async Task ChangePassword_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ChangePassword(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
+	}
+
+	/// <summary>
 	/// Test of <see cref="EditorViewModel.ClearExecutedFilesView" />.
 	/// </summary>
 	[Test]
@@ -206,18 +263,7 @@ internal class EditorViewModelTests
 
 		executedFiles.ForEach(x => x.IsExecuted = true);
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
+		using AutoMock mock = AutoMock.GetLoose(RegisterEditFilesView);
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -232,6 +278,85 @@ internal class EditorViewModelTests
 		executedFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.DecryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.DecryptFolder(TestUtils.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.Received(0)
+			.RequestUserCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.DecryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolder_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.DecryptFolder(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.DecryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
 
 	/// <summary>
@@ -440,6 +565,85 @@ internal class EditorViewModelTests
 		sut.IsRightSideSheetOpened
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolder_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.EncryptFolder(TestUtils.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.Received(0)
+			.RequestUserCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.EncryptFolder" />.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolder_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.EncryptFolder(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.EncryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
 
 	/// <summary>
@@ -711,7 +915,7 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.HideAllFileContents" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task HideAllFileContents_Does_Work()
 	{
 		// Arrange
@@ -727,25 +931,15 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			IDialogService dialogService = Substitute.For<IDialogService>();
 
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
 
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
+			builder.RegisterInstance(dialogService);
 
-			YesNoCancelBox view = mock.Create<YesNoCancelBox>();
-
-			viewFactory
-				.CreateUserControl<YesNoCancelBox>()
-				.Returns(view);
-
-			builder.RegisterInstance(viewFactory);
-
-			_ = view
-				.ViewModel
-				.SetResultAsync(YesNoCancelResult.Yes);
+			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -763,6 +957,106 @@ internal class EditorViewModelTests
 		executedFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted && x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideFileContents" />.
+	/// </summary>
+	[Test]
+	public async Task HideFileContents_Does_Work([Values] bool isEdited)
+	{
+		// Arrange
+		FileModelDto file = isEdited
+			? TestUtils.CreateFileDto(isEdited: true)
+			: TestUtils.CreateFileDto(isExecuted: true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideFileContents(file);
+
+		// Assert
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		file.IsEdited
+			.Should()
+			.BeFalse();
+
+		file.IsExecuted
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.HideFolderContents" />.
+	/// </summary>
+	[Test]
+	public async Task HideFolderContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideFolderContents(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		entityEcryption
+			.Received()
+			.HideFolderContents(Arg.Any<FolderModelDto>(), Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
 
 	/// <summary>
@@ -843,7 +1137,7 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.NavigationColumnWidth" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public void NavigationColumnWidth_Should_Be_Less_Than_The_Window_Width()
 	{
 		// Arrange
@@ -1223,8 +1517,6 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
 			using AutoMock mock = AutoMock.GetLoose();
 
 			viewLauncher.ConfigureFavoritesWindow(
@@ -1233,13 +1525,9 @@ internal class EditorViewModelTests
 				Arg.Any<IEnumerable<FileModelDto>>())
 			.Returns(mock.Create<FavoritesWindow>());
 
-			viewFactory
-				.CreateUserControl<EditFilesView>()
-				.Returns(mock.Create<EditFilesView>());
-
 			builder.RegisterInstance(viewLauncher);
 
-			builder.RegisterInstance(viewFactory);
+			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1256,6 +1544,85 @@ internal class EditorViewModelTests
 			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.ShowFolderContents" />.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dialogService));
+
+		// Act
+		await sut.ShowFolderContents(TestUtils.CreateFolderDto());
+
+		// Assert
+		await dialogService
+			.Received(0)
+			.RequestUserCloseFilesAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.ShowFolderContents" />.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContents_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.AddRange(editedFiles.Concat(executedFiles));
+
+		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEcryption);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.ShowFolderContents(folder);
+
+		// Assert
+		editedFiles
+			.Should()
+			.OnlyContain(x => !x.IsEdited);
+
+		executedFiles
+			.Should()
+			.OnlyContain(x => !x.IsExecuted);
+
+		await entityEcryption
+			.Received()
+			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>
@@ -1347,6 +1714,24 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<SettingsView>();
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Registers <see cref="EditFilesView" /> in <see cref="ContainerBuilder" />.
+	/// </summary>
+	private static void RegisterEditFilesView(ContainerBuilder builder)
+	{
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		viewFactory
+			.CreateUserControl<EditFilesView>()
+			.Returns(mock.Create<EditFilesView>());
+
+		builder.RegisterInstance(viewFactory);
 	}
 	#endregion
 }

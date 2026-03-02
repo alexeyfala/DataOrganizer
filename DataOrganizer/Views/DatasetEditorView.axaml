@@ -37,7 +37,7 @@
 			<Button
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=Plus,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.Add}">
 
 				<Button.Flyout>
@@ -89,7 +89,7 @@
 				Command="{Binding ExpandCollapseCommand}"
 				CommandParameter="{x:False}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
 
 			<Button
@@ -97,7 +97,7 @@
 				Command="{Binding ExpandCollapseCommand}"
 				CommandParameter="{x:True}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
-				                                            Size={StaticResource ToolBarIconSize}}"
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />

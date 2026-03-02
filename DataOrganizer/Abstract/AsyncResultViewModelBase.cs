@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
+using DataOrganizer.Extensions;
 using DialogHostAvalonia;
 using Shared.Extensions;
 using System;
@@ -10,6 +12,9 @@ namespace DataOrganizer.Abstract;
 public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="TaskCompletionSource" />
 	private readonly TaskCompletionSource<TResult> _source = new();
 
@@ -17,6 +22,10 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// Returns <c>True</c> if result is set my method <see cref="SetResultAsync" />.
 	/// </summary>
 	private bool _isResultSet;
+	#endregion
+
+	#region Constructors
+	protected AsyncResultViewModelBase(Application app) => _app = app;
 	#endregion
 
 	#region Methods
@@ -27,7 +36,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		_isResultSet = true;
 
-		if (!AppDomain.CurrentDomain.IsRunningFromNUnit() && DialogHost.IsDialogOpen(null))
+		if (_app.IsDialogHostOpened())
 		{
 			DialogOverlayPopupHost? host = DialogHost
 				.GetDialogSession(null)?
@@ -51,14 +60,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <summary>
 	/// Returns a result.
 	/// </summary>
-	protected Task<TResult> GetResultAsync(
-		TResult defaultResult,
-		in bool waitDialogHostCloses = true,
-		in CancellationToken token = default)
+	protected Task<TResult> GetResultAsync(TResult defaultResult, in CancellationToken token = default)
 	{
-		if (waitDialogHostCloses
-			&& !AppDomain.CurrentDomain.IsRunningFromNUnit()
-			&& DialogHost.IsDialogOpen(null))
+		if (_app.IsDialogHostOpened())
 		{
 			_ = WaitDialogCloseAsync(defaultResult, token);
 		}
@@ -78,11 +82,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 		TResult defaultResult,
 		CancellationToken token = default)
 	{
-		while (DialogHost.IsDialogOpen(null))
+		while (_app.IsDialogHostOpened())
 		{
 			await Task
 				.Delay(500, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 		}
 
 		if (_isResultSet)

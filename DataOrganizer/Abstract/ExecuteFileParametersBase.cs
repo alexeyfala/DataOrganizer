@@ -10,13 +10,13 @@ public abstract class ExecuteFileParametersBase
 	/// </summary>
 	public required byte[] Contents { get; set; }
 
-	/// <summary>
-	/// Encrypted password.
-	/// </summary>
-	public required byte[]? EncryptedPassword { get; init; }
-
 	/// <inheritdoc cref="FileModelDto" />
 	public required FileModelDto File { get; init; }
+
+	/// <summary>
+	/// Encrypted within the session DEK.
+	/// </summary>
+	public required byte[]? SessionEncryptedDek { get; set; }
 
 	/// <inheritdoc cref="ViewModelBase" />
 	public required ViewModelBase? ViewModel { get; init; }

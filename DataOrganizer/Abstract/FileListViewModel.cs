@@ -91,7 +91,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 		byte[] contents = result.Contents;
 
-		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !_entityEcryption.TryToDecrypt(
 			contents,
 			file,
 			out contents))
@@ -108,7 +108,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			if (string.IsNullOrEmpty(text))
 			{
 				_app
-					.FindDataContext<ViewModelBase>()?
+					.FindBaseDataContext()?
 					.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;
@@ -148,10 +148,10 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	protected FileListViewModel(
 		Application app,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
-		ILogger logger,
-		IViewFactory viewFactory) : base(app, dbAccess, encryption, entityEcryption, logger, viewFactory)
+		ILogger logger) : base(app, dbAccess, dialogService, encryption, entityEcryption, logger)
 	{
 	}
 	#endregion

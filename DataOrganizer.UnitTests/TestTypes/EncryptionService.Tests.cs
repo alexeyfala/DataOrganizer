@@ -10,6 +10,26 @@ internal class EncryptionServiceTests
 {
 	#region Methods
 	/// <summary>
+	/// Test of <see cref="EncryptionService.CreateRandomDek" />.
+	/// </summary>
+	[Test]
+	public void CreateRandomDek_Does_Work()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		// Act
+		byte[] result = sut.CreateRandomDek();
+
+		// Assert
+		result
+			.Should()
+			.NotBeEmpty();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EncryptionService.Decrypt" />.
 	/// </summary>
 	[Test]

@@ -1,9 +1,14 @@
-﻿using Avalonia.Threading;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -37,6 +42,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboardService;
 
@@ -45,6 +53,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
+
+	/// <inheritdoc cref="IEntityEcryption" />
+	private readonly IEntityEcryption _entityEcryption;
 
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
@@ -61,18 +72,24 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	#region Constructors
 	public KeyboardInputHook(
+		Application app,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IGlobalHook hook,
 		ILogger logger,
 		INotificationService notificationService)
 	{
+		_app = app;
+
 		_clipboardService = clipboardService;
 
 		_dbAccess = dbAccess;
 
 		_dispatcher = dispatcher;
+
+		_entityEcryption = entityEcryption;
 
 		_hook = hook;
 
@@ -114,12 +131,15 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public async Task HandleKeyReleasedAsync(EventMask rawMask, KeyCode code)
+	public async Task HandleKeyReleasedAsync(
+		EventMask rawMask,
+		KeyCode code,
+		CancellationToken token = default)
 	{
 		try
 		{
 			await _semaphore
-				.WaitAsync()
+				.WaitAsync(token)
 				.ConfigureAwait(false);
 
 			if (Files.Count == 0)
@@ -155,7 +175,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				}
 
 				ContentsIsValidPair result = await _dbAccess
-					.GetFileContentsAsync(file.Id)
+					.GetFileContentsAsync(file.Id, token)
 					.ConfigureAwait(false);
 
 				if (!result.IsValid)
@@ -165,9 +185,21 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
+				if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+				{
+					await ActivateWindowAsync().ConfigureAwait(false);
+				}
+
+				if (await _entityEcryption
+					.TryToDecryptContentsAsync(file, result.Contents, token)
+					.ConfigureAwait(false) is not { } contents)
+				{
+					return;
+				}
+
 				string text = TextHelper
 					.Utf8Encoding
-					.GetString(result.Contents);
+					.GetString(contents);
 
 				if (string.IsNullOrEmpty(text))
 				{
@@ -287,5 +319,33 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				.ConfigureAwait(false);
 		}
 	}
+
+	/// <summary>
+	/// Activates the main window.
+	/// </summary>
+	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
+	{
+		if (_app.FindWindow<Window>(x => x.DataContext is ViewModelBase) is not { } window)
+		{
+			return;
+		}
+
+		if (window.WindowState == WindowState.Minimized)
+		{
+			window.WindowState = WindowState.Normal;
+		}
+
+		window.Activate();
+
+		if (_app.FindDataContext<FavoritesViewModel>() is not { } faforites)
+		{
+			return;
+		}
+
+		faforites.ShowFavorites = true;
+
+		faforites.IsPopupOpen = true;
+	});
+
 	#endregion
 }

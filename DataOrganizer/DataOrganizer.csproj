@@ -44,7 +44,7 @@
 		<PackageReference Include="Mapster" Version="7.4.0" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
 		<PackageReference Include="Material.Avalonia" Version="3.13.4" />
-		<PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
+		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
 		<PackageReference Include="NSec.Cryptography" Version="25.4.0" />
 		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />

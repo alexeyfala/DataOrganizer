@@ -15,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -169,17 +168,15 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Tries to backup database in file, and returns a path to it.
 	/// </summary>
-	public bool BackupDatabase([NotNullWhen(true)] out string? backupFilePath)
+	public string? BackupDatabase()
 	{
-		backupFilePath = null;
-
 		try
 		{
 			string dbFilePath = GetDbFilePath();
 
 			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
 			{
-				return false;
+				return null;
 			}
 
 			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
@@ -188,18 +185,16 @@ public sealed class DbAccess : IDbAccess
 
 			if (!_fileSystem.IsFileExists(backupPath))
 			{
-				return false;
+				return null;
 			}
 
-			backupFilePath = backupPath;
-
-			return true;
+			return backupPath;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return false;
+			return null;
 		}
 	}
 

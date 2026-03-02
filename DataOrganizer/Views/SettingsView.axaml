@@ -29,7 +29,7 @@
 			Classes="primary"
 			Command="{Binding SaveAndCloseCommand}"
 			Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
-			                                            Size={StaticResource ToolBarIconSize}}"
+			                                            IconSize={StaticResource ToolBarIconSize}}"
 			Theme="{StaticResource MaterialFlatButton}"
 			ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
 

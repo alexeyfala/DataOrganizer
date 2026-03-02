@@ -1,5 +1,4 @@
-﻿using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+﻿using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
 using Serilog;
@@ -33,6 +32,9 @@ public sealed class EncryptionService : IEncryptionService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
+
 	/// <inheritdoc />
 	public bool Decrypt(
 		byte[] input,
@@ -79,6 +81,30 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
+	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password)
+	{
+		foreach (ContentsIsValidPair item in contents)
+		{
+			if (Decrypt(
+				item.Contents,
+				password,
+				out byte[] output))
+			{
+				yield return new()
+				{
+					Contents = output,
+					Id = item.Id,
+					IsValid = true
+				};
+			}
+			else
+			{
+				yield break;
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public bool Encrypt(
 		byte[] input,
 		byte[] password,
@@ -121,63 +147,26 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> EncryptDecryptContents(
-		ContentsIsValidPair[] contents,
-		byte[] password,
-		CryptoAction action)
+	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password)
 	{
-		try
+		foreach (ContentsIsValidPair item in contents)
 		{
-			switch (action)
+			if (Encrypt(
+				item.Contents,
+				password,
+				out byte[] output))
 			{
-				case CryptoAction.Encrypt:
-					foreach (ContentsIsValidPair item in contents)
-					{
-						if (Encrypt(
-							item.Contents,
-							password,
-							out byte[] output))
-						{
-							yield return new()
-							{
-								Contents = output,
-								Id = item.Id,
-								IsValid = true
-							};
-						}
-						else
-						{
-							yield break;
-						}
-					}
-					break;
-
-				case CryptoAction.Decrypt:
-					foreach (ContentsIsValidPair item in contents)
-					{
-						if (Decrypt(
-							item.Contents,
-							password,
-							out byte[] output))
-						{
-							yield return new()
-							{
-								Contents = output,
-								Id = item.Id,
-								IsValid = true
-							};
-						}
-						else
-						{
-							yield break;
-						}
-					}
-					break;
+				yield return new()
+				{
+					Contents = output,
+					Id = item.Id,
+					IsValid = true
+				};
 			}
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(password);
+			else
+			{
+				yield break;
+			}
 		}
 	}
 
@@ -186,6 +175,36 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
+
+	/// <inheritdoc />
+	public bool RewrapDek(
+		byte[] wrappedDek,
+		byte[] oldPassword,
+		byte[] newPassword,
+		out byte[] newWrappedDek)
+	{
+		newWrappedDek = [];
+
+		if (!Decrypt(
+			wrappedDek,
+			oldPassword,
+			out byte[] dek))
+		{
+			return false;
+		}
+
+		try
+		{
+			return Encrypt(
+				dek,
+				newPassword,
+				out newWrappedDek);
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(dek);
+		}
+	}
 	#endregion
 
 	#region Service
@@ -208,15 +227,20 @@ public sealed class EncryptionService : IEncryptionService
 
 		try
 		{
-			return Key.Import(
-				algorithm: _algorithm,
-				blob: blob,
-				format: KeyBlobFormat.RawSymmetricKey);
+			return ImportKey(blob);
 		}
 		finally
 		{
 			CryptographicOperations.ZeroMemory(blob);
 		}
+	}
+
+	private static Key ImportKey(byte[] blob)
+	{
+		return Key.Import(
+			algorithm: _algorithm,
+			blob: blob,
+			format: KeyBlobFormat.RawSymmetricKey);
 	}
 	#endregion
 }

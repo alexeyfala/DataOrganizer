@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Views;
@@ -17,6 +18,12 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	/// </summary>
 	[ObservableProperty]
 	private string? _text;
+	#endregion
+
+	#region Constructors
+	public MultilineTextEditViewModel(Application app) : base(app)
+	{
+	}
 	#endregion
 
 	#region Auto-Generated Commands

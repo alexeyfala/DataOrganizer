@@ -14,13 +14,16 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.Children" />
 	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
-	/// <summary>
-	/// Encrypted password.
-	/// </summary>
-	public byte[]? EncryptedPassword { get; set; }
+	/// <inheritdoc cref="FolderModel.EncryptedDek" />
+	public byte[]? EncryptedDek { get; set; }
 
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
+
+	/// <summary>
+	/// Encrypted within the session DEK.
+	/// </summary>
+	public byte[]? SessionEncryptedDek { get; set; }
 	#endregion
 
 	#region Auto-Generated Properties
@@ -155,6 +158,16 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if <see cref="EncryptedDek" />, <see cref="PasswordHash" /> have values.
+	/// </summary>
+	public bool IsPasswordKeeper()
+	{
+		return EncryptedDek is { } dek
+			&& dek.Length > 0
+			&& !string.IsNullOrEmpty(PasswordHash);
 	}
 	#endregion
 }

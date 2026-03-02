@@ -447,17 +447,11 @@
   <data name="UnableToCreateDatabaseBackup" xml:space="preserve">
     <value>Не удалось создать резервную копию базы данных</value>
   </data>
-  <data name="TheDatabaseWillBeRestored" xml:space="preserve">
-    <value>База данных будет восстановлена</value>
-  </data>
   <data name="ContentIsEncrypted" xml:space="preserve">
     <value>Содержимое зашифровано</value>
   </data>
   <data name="ContentIsDecrypted" xml:space="preserve">
     <value>Содержимое расшифровано</value>
-  </data>
-  <data name="YouMustCloseTheFilesYouAreEditing" xml:space="preserve">
-    <value>Необходимо закрыть редактируемые файлы</value>
   </data>
   <data name="IncorrectPassword" xml:space="preserve">
     <value>Неверный пароль</value>
@@ -485,5 +479,14 @@
   </data>
   <data name="Apply" xml:space="preserve">
     <value>Применить</value>
+  </data>
+  <data name="OldPassword" xml:space="preserve">
+    <value>Старый пароль</value>
+  </data>
+  <data name="NewPassword" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="PasswordChanged" xml:space="preserve">
+    <value>Пароль изменен</value>
   </data>
 </root>

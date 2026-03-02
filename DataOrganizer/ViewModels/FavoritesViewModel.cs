@@ -136,6 +136,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		ShowContentCopyHistory = false;
 
 		ShowFavorites = false;
+
+		if (_app.FindDialogHost() is not { } dialogHost || !dialogHost.IsOpen)
+		{
+			return;
+		}
+
+		dialogHost.IsOpen = false;
 	}
 
 	/// <summary>
@@ -342,6 +349,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		Application app,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
@@ -353,6 +361,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			app,
 			settingsManager,
 			dbAccess,
+			dialogService,
 			dispatcher,
 			encryption,
 			entityEcryption,
