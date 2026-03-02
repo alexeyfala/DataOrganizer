@@ -77,10 +77,26 @@ public interface IEntityEcryption
 	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
 
 	/// <summary>
+	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
+	/// </summary>
+	Task<byte[]?> TryToDecryptContentsAsync(
+		FileModelDto file,
+		byte[] contents,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates the database.
 	/// </summary>
 	Task<UpdateDatabaseResult> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Tries to decrypt the content, if it is decrypted.
+	/// </summary>
+	bool TryToDecrypt(
+		byte[] input,
+		FileModelDto file,
+		out byte[] output);
 	#endregion
 }

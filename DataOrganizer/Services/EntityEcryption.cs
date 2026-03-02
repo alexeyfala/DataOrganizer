@@ -63,7 +63,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
-		ILogger logger		)
+		ILogger logger)
 	{
 		_app = app;
 
@@ -522,6 +522,101 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
+	}
+
+	/// <inheritdoc />
+	public bool TryToDecrypt(
+		byte[] input,
+		FileModelDto file,
+		out byte[] output)
+	{
+		output = input;
+
+		// TODO: Make test
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
+			&& root.SessionEncryptedDek is not null
+			&& DecryptSessionContents(input, root.SessionEncryptedDek, out output);
+	}
+
+	/// <inheritdoc />
+	public async Task<byte[]?> TryToDecryptContentsAsync(
+		FileModelDto file,
+		byte[] contents,
+		CancellationToken token = default)
+	{
+		// TODO: Make test
+		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
+		{
+			if (await _dialogService
+				.RequestUserPasswordAsync(Strings.Password, token)
+				.ConfigureAwait(true) is not { } password)
+			{
+				return null;
+			}
+
+			if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+				|| root.PasswordHash is null
+				|| root.EncryptedDek is null)
+			{
+				return null;
+			}
+
+			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+			{
+				_app
+					.FindBaseDataContext()?
+					.ShowErrorSnackbar(Strings.IncorrectPassword);
+
+				return null;
+			}
+
+			if (!_encryption.Decrypt(
+				root.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(password),
+				out byte[] decryptedDek))
+			{
+				_app
+					.FindBaseDataContext()?
+					.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+				return null;
+			}
+
+			try
+			{
+				if (!_encryption.Decrypt(
+					contents,
+					decryptedDek,
+					out byte[] decrypted))
+				{
+					_app
+						.FindBaseDataContext()?
+						.ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+					return null;
+				}
+
+				return decrypted;
+			}
+			finally
+			{
+				CryptographicOperations.ZeroMemory(decryptedDek);
+			}
+		}
+		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
+		{
+			if (!TryToDecrypt(
+				contents,
+				file,
+				out byte[] decrypted))
+			{
+				return null;
+			}
+
+			return decrypted;
+		}
+
+		return contents;
 	}
 
 	/// <inheritdoc />

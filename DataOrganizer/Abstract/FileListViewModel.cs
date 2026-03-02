@@ -91,7 +91,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 		byte[] contents = result.Contents;
 
-		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
+		if (file.EncryptionStatus == EncryptionStatus.Decrypted && !_entityEcryption.TryToDecrypt(
 			contents,
 			file,
 			out contents))

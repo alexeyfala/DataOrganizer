@@ -114,68 +114,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				return;
 			}
 
-			byte[] contents = result.Contents;
-
-			if (file.EncryptionStatus == EncryptionStatus.Encrypted)
-			{
-				if (await _dialogService
-					.RequestUserPasswordAsync(Strings.Password, token)
-					.ConfigureAwait(true) is not { } password)
-				{
-					return;
-				}
-
-				if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-					|| root.PasswordHash is null
-					|| root.EncryptedDek is null)
-				{
-					return;
-				}
-
-				if (!_encryption.EnhancedVerify(password, root.PasswordHash))
-				{
-					_app
-						.FindBaseDataContext()?
-						.ShowErrorSnackbar(Strings.IncorrectPassword);
-
-					return;
-				}
-
-				if (!_encryption.Decrypt(
-					root.EncryptedDek,
-					TextHelper.Utf8Encoding.GetBytes(password),
-					out byte[] decryptedDek))
-				{
-					_app
-						.FindBaseDataContext()?
-						.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-					return;
-				}
-
-				try
-				{
-					if (!_encryption.Decrypt(
-						contents,
-						decryptedDek,
-						out contents))
-					{
-						_app
-							.FindBaseDataContext()?
-							.ShowErrorSnackbar(Strings.FailedToProcessContents);
-
-						return;
-					}
-				}
-				finally
-				{
-					CryptographicOperations.ZeroMemory(decryptedDek);
-				}
-			}
-			else if (file.EncryptionStatus == EncryptionStatus.Decrypted && !TryToDecrypt(
-				contents,
-				file,
-				out contents))
+			if (await _entityEcryption
+				.TryToDecryptContentsAsync(file, result.Contents, token)
+				.ConfigureAwait(true) is not { } contents)
 			{
 				return;
 			}
@@ -224,21 +165,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		{
 			_logger.LogException(ex);
 		}
-	}
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
-	protected bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output)
-	{
-		output = input;
-
-		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
-			&& root.SessionEncryptedDek is not null
-			&& _entityEcryption.DecryptSessionContents(input, root.SessionEncryptedDek, out output);
 	}
 	#endregion
 }
