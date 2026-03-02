@@ -135,7 +135,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				if (!_encryption.EnhancedVerify(password, root.PasswordHash))
 				{
 					_app
-						.FindDataContext<ViewModelBase>()?
+						.FindBaseDataContext()?
 						.ShowErrorSnackbar(Strings.IncorrectPassword);
 
 					return;
@@ -147,7 +147,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					out byte[] decryptedDek))
 				{
 					_app
-						.FindDataContext<ViewModelBase>()?
+						.FindBaseDataContext()?
 						.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 					return;
@@ -161,7 +161,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 						out contents))
 					{
 						_app
-							.FindDataContext<ViewModelBase>()?
+							.FindBaseDataContext()?
 							.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 						return;
@@ -186,7 +186,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					.Utf8Encoding
 					.GetString(contents);
 
-				ViewModelBase? viewModel = _app.FindDataContext<ViewModelBase>();
+				ViewModelBase? viewModel = _app.FindBaseDataContext();
 
 				if (string.IsNullOrEmpty(text))
 				{

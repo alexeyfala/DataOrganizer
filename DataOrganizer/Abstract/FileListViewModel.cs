@@ -108,7 +108,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			if (string.IsNullOrEmpty(text))
 			{
 				_app
-					.FindDataContext<ViewModelBase>()?
+					.FindBaseDataContext()?
 					.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;

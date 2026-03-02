@@ -34,6 +34,11 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
+	/// Searches for a <see cref="ViewModelBase" /> as a <see cref="StyledElement.DataContext" /> among windows already running in the application.
+	/// </summary>
+	public static ViewModelBase? FindBaseDataContext(this Application target) => FindDataContext<ViewModelBase>(target);
+
+	/// <summary>
 	/// Searches for a <see cref="TopLevel.Clipboard" /> among windows already running in the application.
 	/// </summary>
 	public static IClipboard? FindClipboard(this Application target)
