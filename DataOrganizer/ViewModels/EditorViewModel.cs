@@ -972,7 +972,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		// TODO: Implement
+		;
 	}
 	#endregion
 
