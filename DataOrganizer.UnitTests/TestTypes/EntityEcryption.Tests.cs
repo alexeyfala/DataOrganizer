@@ -58,7 +58,7 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[3] = TestUtils.CreateRandomBytes(10);
@@ -130,7 +130,7 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(true);
 
 			encryption
@@ -313,7 +313,7 @@ internal class EntityEcryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(true);
 
 			dbAccess
@@ -590,7 +590,7 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[2] = TestUtils.CreateRandomBytes(10);
@@ -599,7 +599,7 @@ internal class EntityEcryptionTests
 				});
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[2] = TestUtils.CreateRandomBytes(10);
@@ -659,11 +659,11 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(true);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out _)
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					x[2] = TestUtils.CreateRandomBytes(10);
