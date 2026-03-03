@@ -234,38 +234,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool DecryptSessionContents(
-		byte[] encryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] decryptedContents)
-	{
-		decryptedContents = [];
-
-		if (_encryption.Decrypt(
-			sessionEncryptedDek,
-			GetSessionId()) is not { } decryptedDek)
-		{
-			return false;
-		}
-
-		try
-		{
-			if (_encryption.Decrypt(encryptedContents, decryptedDek) is not { } decrypted)
-			{
-				return false;
-			}
-
-			decryptedContents = decrypted;
-
-			return true;
-		}
-		finally
-		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
-		}
-	}
-
-	/// <inheritdoc />
 	public byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek)
 	{
 		if (_encryption.Decrypt(
