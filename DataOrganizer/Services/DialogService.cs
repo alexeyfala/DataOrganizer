@@ -59,7 +59,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default)
+	public Task<string?> RequestUserPasswordAsync(string? label = null, CancellationToken token = default)
 	{
 		_logger.LogInformation("Show password box");
 
@@ -71,7 +71,7 @@ public sealed class DialogService : IDialogService
 
 			view
 				.ViewModel
-				.Label = label;
+				.Label = label ?? Strings.Password;
 
 			_ = DialogHost.Show(view);
 

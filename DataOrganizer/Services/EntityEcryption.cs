@@ -156,7 +156,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -271,7 +271,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -436,7 +436,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -495,7 +495,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -547,7 +547,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			if (await _dialogService
-				.RequestUserPasswordAsync(Strings.Password, token)
+				.RequestUserPasswordAsync(token: token)
 				.ConfigureAwait(true) is not { } password)
 			{
 				return null;

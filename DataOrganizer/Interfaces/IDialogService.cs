@@ -17,6 +17,6 @@ public interface IDialogService
 	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
-	Task<string?> RequestUserPasswordAsync(string label, CancellationToken token = default);
+	Task<string?> RequestUserPasswordAsync(string? label = null, CancellationToken token = default);
 	#endregion
 }
