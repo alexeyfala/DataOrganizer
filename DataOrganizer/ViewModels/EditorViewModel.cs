@@ -422,24 +422,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await _dialogService
-			.RequestUserCloseFilesAsync()
-			.ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+
+		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
 
 		Hierarchy
 			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
-			.ForEach(dto =>
-			{
-				if (dto is FileModelDto file)
-				{
-					CloseFile(file);
-				}
-
-				dto.EncryptionStatus = EncryptionStatus.Encrypted;
-			});
+			.ForEach(dto => dto.EncryptionStatus = EncryptionStatus.Encrypted);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -860,6 +852,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private async Task Import()
 	{
 		// TODO: Test
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+
+		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		// TODO: Implement
 	}
 
 	/// <summary>
