@@ -58,13 +58,8 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			encryption
-				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
-				.Returns(x =>
-				{
-					x[3] = TestUtils.CreateRandomBytes(10);
-
-					return true;
-				});
+				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
 				.EnhancedHashPassword(Arg.Any<string>())

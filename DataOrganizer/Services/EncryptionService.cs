@@ -152,29 +152,19 @@ public sealed class EncryptionService : IEncryptionService
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
 
 	/// <inheritdoc />
-	public bool RewrapDek(
+	public byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword,
-		out byte[] newWrappedDek)
+		byte[] newPassword)
 	{
-		newWrappedDek = [];
-
 		if (Decrypt(wrappedDek, oldPassword) is not { } dek)
 		{
-			return false;
+			return null;
 		}
 
 		try
 		{
-			if (Encrypt(dek, newPassword) is not { } encrypted)
-			{
-				return false;
-			}
-
-			newWrappedDek = encrypted;
-
-			return true;
+			return Encrypt(dek, newPassword);
 		}
 		finally
 		{

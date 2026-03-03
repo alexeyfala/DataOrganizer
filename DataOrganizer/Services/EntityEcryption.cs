@@ -112,11 +112,10 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (!_encryption.RewrapDek(
+		if (_encryption.RewrapDek(
 			folder.EncryptedDek,
 			TextHelper.Utf8Encoding.GetBytes(oldPassword),
-			TextHelper.Utf8Encoding.GetBytes(newPassword),
-			out byte[] encryptedDek))
+			TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
 		{
 			return;
 		}

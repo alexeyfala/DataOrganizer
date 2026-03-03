@@ -9,6 +9,9 @@ namespace DataOrganizer.Interfaces;
 public interface IEncryptionService
 {
 	#region Methods
+	/// <summary>
+	/// Creates a random DEK (Data Encryption Key).
+	/// </summary>
 	byte[] CreateRandomDek();
 
 	/// <summary>
@@ -40,10 +43,9 @@ public interface IEncryptionService
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
 	/// </summary>
-	bool RewrapDek(
+	byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword,
-		out byte[] newWrappedDek);
+		byte[] newPassword);
 	#endregion
 }
