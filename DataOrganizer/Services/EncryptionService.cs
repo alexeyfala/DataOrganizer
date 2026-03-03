@@ -81,6 +81,39 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
+	public byte[]? Decrypt(byte[] input, byte[] password)
+	{
+		try
+		{
+			byte[] salt = new byte[_saltSize];
+
+			byte[] nonce = new byte[_algorithm.NonceSize];
+
+			byte[] ciphertext = new byte[input.Length - salt.Length - nonce.Length];
+
+			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
+
+			Buffer.BlockCopy(input, salt.Length, nonce, 0, nonce.Length);
+
+			Buffer.BlockCopy(input, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
+
+			using Key key = DeriveKey(password, salt);
+
+			return _algorithm.Decrypt(
+				key: key,
+				nonce: nonce,
+				associatedData: [],
+				ciphertext: ciphertext);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
+	/// <inheritdoc />
 	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password)
 	{
 		foreach (ContentsIsValidPair item in contents)

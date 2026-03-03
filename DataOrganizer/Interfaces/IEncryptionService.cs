@@ -20,6 +20,11 @@ public interface IEncryptionService
 		out byte[] output);
 
 	/// <summary>
+	/// Decrypts data.
+	/// </summary>
+	byte[]? Decrypt(byte[] input, byte[] password);
+
+	/// <summary>
 	/// Decrypts a sequence of contents.
 	/// </summary>
 	IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password);
