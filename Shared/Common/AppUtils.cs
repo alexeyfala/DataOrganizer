@@ -74,11 +74,6 @@ public static class AppUtils
 	public static bool IsWindows { get; } = CurrentOs == OperateSystem.Windows;
 
 	/// <summary>
-	/// Json file extension with dot.
-	/// </summary>
-	public static string JsonExtension => ".json";
-
-	/// <summary>
 	/// Json serialization options.
 	/// </summary>
 	public static JsonSerializerOptions JsonOptions { get; } = new()
@@ -186,7 +181,7 @@ public static class AppUtils
 		return Path.Combine(
 			AppDataDirectoryPath,
 			Settings,
-			fileName + JsonExtension);
+			fileName + ".json");
 	}
 
 	/// <summary>

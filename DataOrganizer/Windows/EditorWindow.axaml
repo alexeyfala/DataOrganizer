@@ -282,7 +282,6 @@
 									</StackPanel>
 								</Flyout>
 							</Button.Flyout>
-
 						</Button>
 					</toolBarControls:ToolBar>
 

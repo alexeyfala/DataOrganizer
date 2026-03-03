@@ -510,4 +510,7 @@
   <data name="ExportingObjects" xml:space="preserve">
     <value>Экспорт объектов</value>
   </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Сохранить как</value>
+  </data>
 </root>

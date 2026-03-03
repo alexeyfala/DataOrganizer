@@ -490,4 +490,7 @@
   <data name="ExportingObjects" xml:space="preserve">
     <value>Exporting Objects</value>
   </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Save as</value>
+  </data>
 </root>

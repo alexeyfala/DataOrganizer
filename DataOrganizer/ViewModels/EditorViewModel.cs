@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,6 +26,7 @@ using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook;
@@ -843,6 +845,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private async Task Export()
 	{
 		// TODO: Test
+		if (_app
+			.FindWindow<EditorWindow>()?
+			.StorageProvider is not { } storageProvider)
+		{
+			return;
+		}
+
+		FilePickerFileType[] choices =
+		[
+			new("JSON Files")
+			{
+				Patterns = ["*.json"],
+				MimeTypes = ["application/json"]
+			},
+			new("XML Files")
+			{
+				Patterns = ["*.xml"],
+				MimeTypes = ["application/xml"]
+			}
+		];
+
+		FilePickerSaveOptions options = new()
+		{
+			DefaultExtension = "json",
+			FileTypeChoices = choices,
+			ShowOverwritePrompt = true,
+			SuggestedFileName = AppUtils.AppNameInOneWord,
+			Title = Strings.SaveAs
+		};
+
+		if (await storageProvider
+			.SaveFilePickerAsync(options)
+			.ConfigureAwait(false) is not { } file)
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			string filePath = file
+				.Path
+				.AbsolutePath;
+		}
+		finally
+		{
+			IsActionInProgress = false;
+		}
 	}
 
 	/// <summary>
