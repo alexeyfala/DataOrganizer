@@ -847,7 +847,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Exports data.
 	/// </summary>
-	[RelayCommand]
+	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
 	private async Task Export()
 	{
 		// TODO: Test
@@ -1750,6 +1750,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& !dto.AnyParent(x => x.IsPasswordKeeper())
 			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
 	}
+
+	/// <summary>
+	/// Validates <see cref="ExportCommand" />.
+	/// </summary>
+	private bool CanExecuteExport() => Hierarchy.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="HideAllFilesCommand" />.
