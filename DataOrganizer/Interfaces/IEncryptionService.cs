@@ -14,14 +14,6 @@ public interface IEncryptionService
 	/// <summary>
 	/// Decrypts data.
 	/// </summary>
-	bool Decrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output);
-
-	/// <summary>
-	/// Decrypts data.
-	/// </summary>
 	byte[]? Decrypt(byte[] input, byte[] password);
 
 	/// <summary>

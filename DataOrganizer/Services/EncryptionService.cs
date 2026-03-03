@@ -36,51 +36,6 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
 	/// <inheritdoc />
-	public bool Decrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output)
-	{
-		output = [];
-
-		try
-		{
-			byte[] salt = new byte[_saltSize];
-
-			byte[] nonce = new byte[_algorithm.NonceSize];
-
-			byte[] ciphertext = new byte[input.Length - salt.Length - nonce.Length];
-
-			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
-
-			Buffer.BlockCopy(input, salt.Length, nonce, 0, nonce.Length);
-
-			Buffer.BlockCopy(input, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
-
-			using Key key = DeriveKey(password, salt);
-
-			if (_algorithm.Decrypt(
-				key: key,
-				nonce: nonce,
-				associatedData: [],
-				ciphertext: ciphertext) is { } decrypted)
-			{
-				output = decrypted;
-
-				return true;
-			}
-
-			return false;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-	}
-
-	/// <inheritdoc />
 	public byte[]? Decrypt(byte[] input, byte[] password)
 	{
 		try

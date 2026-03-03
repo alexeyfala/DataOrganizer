@@ -50,15 +50,14 @@ internal class EncryptionServiceTests
 			TextHelper.Utf8Encoding.GetBytes("SomePassword"),
 			out byte[] encrypted);
 
-		bool isDecrypted = sut.Decrypt(
+		byte[]? result = sut.Decrypt(
 			encrypted,
-			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
-			out byte[] decrypted);
+			TextHelper.Utf8Encoding.GetBytes("WrongPassword"));
 
 		// Assert
-		isDecrypted
+		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 	}
 
 	/// <summary>
@@ -86,17 +85,14 @@ internal class EncryptionServiceTests
 			password,
 			out byte[] encrypted);
 
-		bool isDecrypted = sut.Decrypt(
-			encrypted,
-			password,
-			out byte[] decrypted);
+		byte[]? decrypted = sut.Decrypt(encrypted, password);
 
 		// Assert
-		isEncrypted
+		decrypted
 			.Should()
-			.BeTrue();
+			.NotBeNullOrEmpty();
 
-		isDecrypted
+		isEncrypted
 			.Should()
 			.BeTrue();
 

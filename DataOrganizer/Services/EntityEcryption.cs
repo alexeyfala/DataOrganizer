@@ -768,7 +768,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (root is null
 			|| root.EncryptedDek is null
-			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] dek)
+			|| _encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek
 			|| !_encryption.Encrypt(dek, GetSessionId(), out byte[] sessionEncryptedDek))
 		{
 			return false;
