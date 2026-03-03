@@ -10,6 +10,7 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:repositoryDto="clr-namespace:Repository.DTO;assembly=Repository"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
@@ -19,7 +20,7 @@
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
-		DataType="models:FolderModelDto"
+		x:DataType="models:FolderModelDto"
 		ItemsSource="{Binding Children, Mode=OneTime}">
 		<Grid
 			Background="Transparent"
@@ -158,7 +159,7 @@
 	<!-- FileInTreeViewTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewTemplate"
-		DataType="models:FileModelDto">
+		x:DataType="models:FileModelDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -428,7 +429,7 @@
 	<!-- KeyValueRecordTemplate -->
 	<DataTemplate
 		x:Key="KeyValueRecordTemplate"
-		DataType="localModels:KeyValueRecord">
+		x:DataType="localModels:KeyValueRecord">
 		<Grid
 			Classes="PointerOverBackgroundStyle"
 			ColumnDefinitions="Auto,*">
@@ -505,7 +506,7 @@
 	<!-- ValueRecordTemplate -->
 	<DataTemplate
 		x:Key="ValueRecordTemplate"
-		DataType="localModels:ValueRecord">
+		x:DataType="localModels:ValueRecord">
 		<Grid Classes="PointerOverBackgroundStyle">
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -564,7 +565,7 @@
 	<!-- RecordsGroupTemplate -->
 	<DataTemplate
 		x:Key="RecordsGroupTemplate"
-		DataType="localModels:RecordsGroup">
+		x:DataType="localModels:RecordsGroup">
 
 		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
 		<Border
@@ -718,7 +719,7 @@
 				</Expander.ContextFlyout>
 
 				<Expander.HeaderTemplate>
-					<DataTemplate DataType="localModels:RecordsGroup">
+					<DataTemplate x:DataType="localModels:RecordsGroup">
 						<Grid Classes="PointerOverBackgroundStyle">
 							<views:ClipboardTextBlock
 								Padding="{StaticResource RecordPadding}"
@@ -774,7 +775,7 @@
 	<!-- FavoriteCategoryTemplate -->
 	<DataTemplate
 		x:Key="FavoriteCategoryTemplate"
-		DataType="localDto:FavoriteCategory">
+		x:DataType="localDto:FavoriteCategory">
 
 		<Grid
 			Background="Transparent"
@@ -835,7 +836,7 @@
 	<!-- FileInListTemplate -->
 	<DataTemplate
 		x:Key="FileInListTemplate"
-		DataType="models:FileModelDto">
+		x:DataType="models:FileModelDto">
 
 		<Grid
 			Background="Transparent"
@@ -952,6 +953,22 @@
 				Grid.Column="1"
 				Classes="ColorSampleStyle"
 				Fill="{Binding Mode=OneTime, Converter={StaticResource MaterialDesignColorToBrushConverter}}" />
+		</Grid>
+	</DataTemplate>
+
+	<!-- ObjectPropertyTemplate -->
+	<DataTemplate
+		x:Key="ObjectPropertyTemplate"
+		x:DataType="repositoryDto:PropertyNameValuePair">
+		<Grid ColumnDefinitions="Auto,*,Auto">
+			<SelectableTextBlock Grid.Column="0">
+				<Run Text="{Binding PropertyName, Mode=OneTime}" />
+				<Run Text=":" />
+			</SelectableTextBlock>
+
+			<SelectableTextBlock
+				Grid.Column="2"
+				Text="{Binding Value, Mode=OneTime}" />
 		</Grid>
 	</DataTemplate>
 </ResourceDictionary>

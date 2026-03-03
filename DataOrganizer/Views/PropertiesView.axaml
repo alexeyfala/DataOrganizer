@@ -1,0 +1,50 @@
+<UserControl
+	x:Class="DataOrganizer.Views.PropertiesView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:PropertiesViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:PropertiesViewModel />
+	</Design.DataContext>
+
+	<Grid
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Classes="HeaderTextBlockStyle"
+			Text="{x:Static prop:Strings.Properties}" />
+
+		<ScrollViewer
+			Grid.Row="1"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto">
+			<ItemsControl
+				ItemTemplate="{StaticResource ObjectPropertyTemplate}"
+				ItemsSource="{Binding Properties, Mode=OneTime}">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel
+							Orientation="Vertical"
+							Spacing="{StaticResource ElementSpacing}" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+			</ItemsControl>
+		</ScrollViewer>
+
+		<Button
+			Grid.Row="2"
+			HorizontalAlignment="Right"
+			Classes="primary"
+			Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+			Content="{x:Static prop:Strings.OK}"
+			Theme="{StaticResource MaterialFlatButton}" />
+	</Grid>
+</UserControl>

@@ -111,4 +111,9 @@
 		<Setter Property="MaxWidth" Value="200.0" />
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
 	</Style>
+
+	<Style Selector="TextBlock.HeaderTextBlockStyle">
+		<Setter Property="FontSize" Value="16.0" />
+		<Setter Property="FontWeight" Value="Bold" />
+	</Style>
 </Styles>

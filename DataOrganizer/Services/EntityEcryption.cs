@@ -92,7 +92,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.OldPassword, token)
+			.RequestUserPasswordAsync(Strings.ChangePassword,  Strings.OldPassword, token)
 			.ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
@@ -106,7 +106,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.NewPassword, token)
+			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
 			.ConfigureAwait(false) is not { } newPassword)
 		{
 			return;
@@ -156,7 +156,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -271,7 +271,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(Strings.EncryptFiles, token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -436,7 +436,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -495,7 +495,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.Password, token)
+			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
 			.ConfigureAwait(false) is not { } password)
 		{
 			return;
@@ -547,7 +547,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			if (await _dialogService
-				.RequestUserPasswordAsync(Strings.Password, token)
+				.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
 				.ConfigureAwait(true) is not { } password)
 			{
 				return null;
