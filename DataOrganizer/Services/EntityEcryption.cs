@@ -92,7 +92,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ChangePassword,  Strings.OldPassword, token)
+			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
 			.ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
@@ -112,11 +112,10 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (!_encryption.RewrapDek(
+		if (_encryption.RewrapDek(
 			folder.EncryptedDek,
 			TextHelper.Utf8Encoding.GetBytes(oldPassword),
-			TextHelper.Utf8Encoding.GetBytes(newPassword),
-			out byte[] encryptedDek))
+			TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
 		{
 			return;
 		}
@@ -185,10 +184,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				folder.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] decryptedDek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
 			{
 				return;
 			}
@@ -236,27 +234,18 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool DecryptSessionContents(
-		byte[] encryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] decryptedContents)
+	public byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek)
 	{
-		decryptedContents = [];
-
-		if (!_encryption.Decrypt(
+		if (_encryption.Decrypt(
 			sessionEncryptedDek,
-			GetSessionId(),
-			out byte[] decryptedDek))
+			GetSessionId()) is not { } decryptedDek)
 		{
-			return false;
+			return null;
 		}
 
 		try
 		{
-			return _encryption.Decrypt(
-				encryptedContents,
-				decryptedDek,
-				out decryptedContents);
+			return _encryption.Decrypt(encryptedContents, decryptedDek);
 		}
 		finally
 		{
@@ -306,10 +295,9 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				if (!_encryption.Encrypt(
+				if (_encryption.Encrypt(
 					dek,
-					TextHelper.Utf8Encoding.GetBytes(password),
-					out byte[] encryptedDek))
+					TextHelper.Utf8Encoding.GetBytes(password)) is not { } encryptedDek)
 				{
 					return;
 				}
@@ -346,27 +334,18 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool EncryptSessionContents(
-		byte[] decryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] encryptedContents)
+	public byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek)
 	{
-		encryptedContents = [];
-
-		if (!_encryption.Decrypt(
+		if (_encryption.Decrypt(
 			sessionEncryptedDek,
-			GetSessionId(),
-			out byte[] decryptedDek))
+			GetSessionId()) is not { } decryptedDek)
 		{
-			return false;
+			return null;
 		}
 
 		try
 		{
-			return _encryption.Encrypt(
-				decryptedContents,
-				decryptedDek,
-				out encryptedContents);
+			return _encryption.Encrypt(decryptedContents, decryptedDek);
 		}
 		finally
 		{
@@ -453,20 +432,18 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] dek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek)
 			{
 				return;
 			}
 
 			try
 			{
-				if (!_encryption.Encrypt(
+				if (_encryption.Encrypt(
 					dek,
-					GetSessionId(),
-					out byte[] sessionEncryptedDek))
+					GetSessionId()) is not { } sessionEncryptedDek)
 				{
 					return;
 				}
@@ -526,16 +503,11 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output)
+	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
 	{
-		output = input;
-
-		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
-			&& root.SessionEncryptedDek is not null
-			&& DecryptSessionContents(input, root.SessionEncryptedDek, out output);
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root && root.SessionEncryptedDek is not null
+			? DecryptSessionContents(input, root.SessionEncryptedDek)
+			: null;
 	}
 
 	/// <inheritdoc />
@@ -567,10 +539,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return null;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] decryptedDek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
 			{
 				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
@@ -579,10 +550,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			try
 			{
-				if (!_encryption.Decrypt(
-					contents,
-					decryptedDek,
-					out byte[] decrypted))
+				if (_encryption.Decrypt(contents, decryptedDek) is not { } decrypted)
 				{
 					ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
@@ -598,15 +566,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
-			if (!TryToDecrypt(
-				contents,
-				file,
-				out byte[] decrypted))
-			{
-				return null;
-			}
-
-			return decrypted;
+			return TryToDecrypt(file, contents);
 		}
 
 		return contents;
@@ -772,8 +732,8 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (root is null
 			|| root.EncryptedDek is null
-			|| !_encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password), out byte[] dek)
-			|| !_encryption.Encrypt(dek, GetSessionId(), out byte[] sessionEncryptedDek))
+			|| _encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek
+			|| _encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
 		{
 			return false;
 		}
@@ -793,11 +753,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			CryptographicOperations.ZeroMemory(dek);
 		}
-	}
-
-	public object TryToDecrypt(byte[] contents, FileModelDto file)
-	{
-		throw new NotImplementedException();
 	}
 	#endregion
 }

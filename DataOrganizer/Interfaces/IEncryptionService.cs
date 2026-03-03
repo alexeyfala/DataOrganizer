@@ -9,15 +9,15 @@ namespace DataOrganizer.Interfaces;
 public interface IEncryptionService
 {
 	#region Methods
+	/// <summary>
+	/// Creates a random DEK (Data Encryption Key).
+	/// </summary>
 	byte[] CreateRandomDek();
 
 	/// <summary>
 	/// Decrypts data.
 	/// </summary>
-	bool Decrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output);
+	byte[]? Decrypt(byte[] input, byte[] password);
 
 	/// <summary>
 	/// Decrypts a sequence of contents.
@@ -27,10 +27,7 @@ public interface IEncryptionService
 	/// <summary>
 	/// Encrypts data.
 	/// </summary>
-	bool Encrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output);
+	byte[]? Encrypt(byte[] input, byte[] password);
 
 	/// <summary>
 	/// Encrypts a sequence of contents.
@@ -46,10 +43,9 @@ public interface IEncryptionService
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
 	/// </summary>
-	bool RewrapDek(
+	byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword,
-		out byte[] newWrappedDek);
+		byte[] newPassword);
 	#endregion
 }

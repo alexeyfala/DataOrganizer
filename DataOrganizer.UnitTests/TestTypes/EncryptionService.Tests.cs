@@ -44,21 +44,22 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		// Act
-		sut.Encrypt(
+		// Act, Assert
+		byte[]? encrypted = sut.Encrypt(
 			input,
-			TextHelper.Utf8Encoding.GetBytes("SomePassword"),
-			out byte[] encrypted);
+			TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
-		bool isDecrypted = sut.Decrypt(
-			encrypted,
-			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
-			out byte[] decrypted);
-
-		// Assert
-		isDecrypted
+		encrypted
 			.Should()
-			.BeFalse();
+			.NotBeNull();
+
+		byte[]? result = sut.Decrypt(
+			encrypted,
+			TextHelper.Utf8Encoding.GetBytes("WrongPassword"));
+
+		result
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -80,25 +81,18 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes("SomePassword");
 
-		// Act
-		bool isEncrypted = sut.Encrypt(
-			input,
-			password,
-			out byte[] encrypted);
+		// Act, Assert
+		byte[]? encrypted = sut.Encrypt(input, password);
 
-		bool isDecrypted = sut.Decrypt(
-			encrypted,
-			password,
-			out byte[] decrypted);
-
-		// Assert
-		isEncrypted
+		encrypted
 			.Should()
-			.BeTrue();
+			.NotBeNullOrEmpty();
 
-		isDecrypted
+		byte[]? decrypted = sut.Decrypt(encrypted, password);
+
+		decrypted
 			.Should()
-			.BeTrue();
+			.NotBeNullOrEmpty();
 
 		TextHelper.Utf8Encoding.GetString(encrypted)
 			.Should()

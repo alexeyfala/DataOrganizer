@@ -36,13 +36,8 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
 	/// <inheritdoc />
-	public bool Decrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output)
+	public byte[]? Decrypt(byte[] input, byte[] password)
 	{
-		output = [];
-
 		try
 		{
 			byte[] salt = new byte[_saltSize];
@@ -59,24 +54,17 @@ public sealed class EncryptionService : IEncryptionService
 
 			using Key key = DeriveKey(password, salt);
 
-			if (_algorithm.Decrypt(
+			return _algorithm.Decrypt(
 				key: key,
 				nonce: nonce,
 				associatedData: [],
-				ciphertext: ciphertext) is { } decrypted)
-			{
-				output = decrypted;
-
-				return true;
-			}
-
-			return false;
+				ciphertext: ciphertext);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return false;
+			return null;
 		}
 	}
 
@@ -85,10 +73,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Decrypt(
-				item.Contents,
-				password,
-				out byte[] output))
+			if (Decrypt(item.Contents, password) is { } output)
 			{
 				yield return new()
 				{
@@ -105,13 +90,8 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public bool Encrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output)
+	public byte[]? Encrypt(byte[] input, byte[] password)
 	{
-		output = [];
-
 		try
 		{
 			byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
@@ -134,15 +114,13 @@ public sealed class EncryptionService : IEncryptionService
 
 			Buffer.BlockCopy(encrypted, 0, result, salt.Length + nonce.Length, encrypted.Length);
 
-			output = result;
-
-			return true;
+			return result;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return false;
+			return null;
 		}
 	}
 
@@ -151,10 +129,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Encrypt(
-				item.Contents,
-				password,
-				out byte[] output))
+			if (Encrypt(item.Contents, password) is { } output)
 			{
 				yield return new()
 				{
@@ -177,28 +152,19 @@ public sealed class EncryptionService : IEncryptionService
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
 
 	/// <inheritdoc />
-	public bool RewrapDek(
+	public byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword,
-		out byte[] newWrappedDek)
+		byte[] newPassword)
 	{
-		newWrappedDek = [];
-
-		if (!Decrypt(
-			wrappedDek,
-			oldPassword,
-			out byte[] dek))
+		if (Decrypt(wrappedDek, oldPassword) is not { } dek)
 		{
-			return false;
+			return null;
 		}
 
 		try
 		{
-			return Encrypt(
-				dek,
-				newPassword,
-				out newWrappedDek);
+			return Encrypt(dek, newPassword);
 		}
 		finally
 		{

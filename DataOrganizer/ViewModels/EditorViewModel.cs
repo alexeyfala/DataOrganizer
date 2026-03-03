@@ -368,15 +368,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			sessionEncryptedDek = [.. encryptedDek];
 
-			if (!_entityEcryption.DecryptSessionContents(
+			byte[]? decryptedContents = _entityEcryption.DecryptSessionContents(
 				contents,
-				sessionEncryptedDek,
-				out contents))
+				sessionEncryptedDek);
+
+			if (decryptedContents is null)
 			{
 				ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
+
+			contents = decryptedContents;
 		}
 
 		ExecuteFileParameters parameters = new()

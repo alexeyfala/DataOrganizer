@@ -90,16 +90,18 @@ public class FileChangeTracker : IFileChangeTracker
 						{
 							byte[] contents = bytes;
 
-							if (parameters.SessionEncryptedDek is not null && !_entityEcryption.EncryptSessionContents(
-								bytes,
-								parameters.SessionEncryptedDek,
-								out contents))
+							if (parameters.SessionEncryptedDek is not null)
 							{
-								parameters
+								if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+								{
+									parameters
 									.ViewModel?
 									.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
-								return;
+									return;
+								}
+
+								contents = encrypted;
 							}
 
 							DateTime updatedDate = DateTime.Now;
