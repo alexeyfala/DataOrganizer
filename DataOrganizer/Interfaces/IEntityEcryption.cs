@@ -84,14 +84,6 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Tries to decrypt the content, if it is decrypted.
 	/// </summary>
-	bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output);
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
 	byte[]? TryToDecrypt(FileModelDto file, byte[] input);
 
 	/// <summary>

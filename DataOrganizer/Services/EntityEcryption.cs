@@ -549,19 +549,6 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output)
-	{
-		output = input;
-
-		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
-			&& root.SessionEncryptedDek is not null
-			&& DecryptSessionContents(input, root.SessionEncryptedDek, out output);
-	}
-
-	/// <inheritdoc />
 	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
 	{
 		return file.FindParent(x => x.IsPasswordKeeper()) is { } root && root.SessionEncryptedDek is not null
@@ -625,15 +612,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
-			if (!TryToDecrypt(
-				contents,
-				file,
-				out byte[] decrypted))
-			{
-				return null;
-			}
-
-			return decrypted;
+			return TryToDecrypt(file, contents);
 		}
 
 		return contents;

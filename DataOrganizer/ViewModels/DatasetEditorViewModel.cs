@@ -80,7 +80,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			if (!TryToDecrypt(result.Contents, out byte[] output))
+			if (TryToDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 

@@ -82,7 +82,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			if (!result.IsValid || !TryToDecrypt(result.Contents, out byte[] output))
+			if (!result.IsValid || TryToDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 

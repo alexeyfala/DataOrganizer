@@ -684,13 +684,9 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.TryToDecrypt(contents, file, out byte[] output);
+		byte[]? output = sut.TryToDecrypt(file, contents);
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		output
 			.Should()
 			.NotBeNullOrEmpty();
