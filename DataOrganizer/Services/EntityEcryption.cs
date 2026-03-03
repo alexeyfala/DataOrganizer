@@ -242,20 +242,23 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		decryptedContents = [];
 
-		if (!_encryption.Decrypt(
+		if (_encryption.Decrypt(
 			sessionEncryptedDek,
-			GetSessionId(),
-			out byte[] decryptedDek))
+			GetSessionId()) is not { } decryptedDek)
 		{
 			return false;
 		}
 
 		try
 		{
-			return _encryption.Decrypt(
-				encryptedContents,
-				decryptedDek,
-				out decryptedContents);
+			if (_encryption.Decrypt(encryptedContents, decryptedDek) is not { } decrypted)
+			{
+				return false;
+			}
+
+			decryptedContents = decrypted;
+
+			return true;
 		}
 		finally
 		{
@@ -352,10 +355,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		encryptedContents = [];
 
-		if (!_encryption.Decrypt(
+		if (_encryption.Decrypt(
 			sessionEncryptedDek,
-			GetSessionId(),
-			out byte[] decryptedDek))
+			GetSessionId()) is not { } decryptedDek)
 		{
 			return false;
 		}
@@ -452,10 +454,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] dek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek)
 			{
 				return;
 			}
@@ -566,10 +567,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return null;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] decryptedDek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
 			{
 				ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
@@ -578,10 +578,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			try
 			{
-				if (!_encryption.Decrypt(
-					contents,
-					decryptedDek,
-					out byte[] decrypted))
+				if (_encryption.Decrypt(contents, decryptedDek) is not { } decrypted)
 				{
 					ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
