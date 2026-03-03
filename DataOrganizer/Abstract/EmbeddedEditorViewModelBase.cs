@@ -245,14 +245,16 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <summary>
 	/// Tries to encrypt the content, if it has been decrypted.
 	/// </summary>
-	protected bool TryToEncrypt(byte[] input, out byte[] output)
+	protected byte[]? TryToEncrypt(byte[] input)
 	{
-		output = input;
+		if (SessionEncryptedDek is null)
+		{
+			return input;
+		}
 
-		return SessionEncryptedDek is null || _entityEcryption.EncryptSessionContents(
+		return _entityEcryption.EncryptSessionContents(
 			input,
-			SessionEncryptedDek,
-			out output);
+			SessionEncryptedDek);
 	}
 	#endregion
 

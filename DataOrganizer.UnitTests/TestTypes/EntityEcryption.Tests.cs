@@ -337,15 +337,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.EncryptSessionContents(
+		byte[]? result = sut.EncryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out _);
+			TestUtils.CreateRandomBytes(10));
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 
 		encryption
 			.Received(0)
@@ -377,15 +376,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.EncryptSessionContents(
+		byte[]? result = sut.EncryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out _);
+			TestUtils.CreateRandomBytes(10));
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 
 		encryption
 			.Received()
@@ -403,10 +401,10 @@ internal class EntityEcryptionTests
 	public void EncryptSessionContents_Does_Work()
 	{
 		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
@@ -421,19 +419,14 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		bool result = sut.EncryptSessionContents(
+		byte[]? output = sut.EncryptSessionContents(
 			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10),
-			out byte[] output);
+			TestUtils.CreateRandomBytes(10));
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		output
 			.Should()
-			.NotBeEmpty();
+			.NotBeNullOrEmpty();
 	}
 
 	/// <summary>

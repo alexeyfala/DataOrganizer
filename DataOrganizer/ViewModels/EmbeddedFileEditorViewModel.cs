@@ -236,7 +236,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// Encryption slows down the UI, so it is performed in a different thread.
 			_ = Task.Run(() =>
 			{
-				if (!TryToEncrypt(contents, out byte[] output))
+				if (TryToEncrypt(contents) is not { } output)
 				{
 					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
 

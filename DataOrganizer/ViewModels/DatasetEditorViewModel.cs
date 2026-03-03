@@ -1117,7 +1117,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Utf8Encoding
 			.GetBytes(_jsonSerializer.Serialize(Records));
 
-		if (!TryToEncrypt(contents, out byte[] output))
+		if (TryToEncrypt(contents) is not { } output)
 		{
 			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
 

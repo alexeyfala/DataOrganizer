@@ -43,10 +43,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Encrypts contents using the session encrypted DEK.
 	/// </summary>
-	bool EncryptSessionContents(
-		byte[] decryptedContents,
-		byte[] sessionEncryptedDek,
-		out byte[] encryptedContents);
+	byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek);
 
 	/// <summary>
 	/// Returns a session identifier.
