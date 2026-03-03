@@ -36,6 +36,11 @@ public interface IEntityEcryption
 		out byte[] decryptedContents);
 
 	/// <summary>
+	/// Decrypts contents using the session encrypted DEK.
+	/// </summary>
+	byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek);
+
+	/// <summary>
 	/// Encryptd files in folder.
 	/// </summary>
 	Task EncryptFolderAsync(
@@ -77,6 +82,14 @@ public interface IEntityEcryption
 	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
 
 	/// <summary>
+	/// Tries to decrypt the content, if it is decrypted.
+	/// </summary>
+	bool TryToDecrypt(
+		byte[] input,
+		FileModelDto file,
+		out byte[] output);
+
+	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
 	/// </summary>
 	Task<byte[]?> TryToDecryptContentsAsync(
@@ -90,13 +103,5 @@ public interface IEntityEcryption
 	Task<UpdateDatabaseResult> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
-	bool TryToDecrypt(
-		byte[] input,
-		FileModelDto file,
-		out byte[] output);
 	#endregion
 }

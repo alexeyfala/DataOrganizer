@@ -92,7 +92,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ChangePassword,  Strings.OldPassword, token)
+			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
 			.ConfigureAwait(true) is not { } oldPassword)
 		{
 			return;
@@ -258,6 +258,26 @@ public sealed class EntityEcryption : IEntityEcryption
 			decryptedContents = decrypted;
 
 			return true;
+		}
+		finally
+		{
+			CryptographicOperations.ZeroMemory(decryptedDek);
+		}
+	}
+
+	/// <inheritdoc />
+	public byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek)
+	{
+		if (_encryption.Decrypt(
+			sessionEncryptedDek,
+			GetSessionId()) is not { } decryptedDek)
+		{
+			return null;
+		}
+
+		try
+		{
+			return _encryption.Decrypt(encryptedContents, decryptedDek);
 		}
 		finally
 		{
@@ -792,11 +812,6 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			CryptographicOperations.ZeroMemory(dek);
 		}
-	}
-
-	public object TryToDecrypt(byte[] contents, FileModelDto file)
-	{
-		throw new NotImplementedException();
 	}
 	#endregion
 }
