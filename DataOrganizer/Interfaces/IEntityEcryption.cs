@@ -90,6 +90,11 @@ public interface IEntityEcryption
 		out byte[] output);
 
 	/// <summary>
+	/// Tries to decrypt the content, if it is decrypted.
+	/// </summary>
+	byte[]? TryToDecrypt(FileModelDto file, byte[] input);
+
+	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
 	/// </summary>
 	Task<byte[]?> TryToDecryptContentsAsync(

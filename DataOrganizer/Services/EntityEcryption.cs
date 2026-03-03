@@ -562,6 +562,14 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
+	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
+	{
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root && root.SessionEncryptedDek is not null
+			? DecryptSessionContents(input, root.SessionEncryptedDek)
+			: null;
+	}
+
+	/// <inheritdoc />
 	public async Task<byte[]?> TryToDecryptContentsAsync(
 		FileModelDto file,
 		byte[] contents,
