@@ -185,10 +185,9 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (!_encryption.Decrypt(
+			if (_encryption.Decrypt(
 				folder.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password),
-				out byte[] decryptedDek))
+				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
 			{
 				return;
 			}

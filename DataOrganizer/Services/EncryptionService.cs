@@ -118,10 +118,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Decrypt(
-				item.Contents,
-				password,
-				out byte[] output))
+			if (Decrypt(item.Contents, password) is { } output)
 			{
 				yield return new()
 				{
@@ -218,10 +215,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		newWrappedDek = [];
 
-		if (!Decrypt(
-			wrappedDek,
-			oldPassword,
-			out byte[] dek))
+		if (Decrypt(wrappedDek, oldPassword) is not { } dek)
 		{
 			return false;
 		}
