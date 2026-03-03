@@ -24,10 +24,7 @@ public interface IEncryptionService
 	/// <summary>
 	/// Encrypts data.
 	/// </summary>
-	bool Encrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output);
+	byte[]? Encrypt(byte[] input, byte[] password);
 
 	/// <summary>
 	/// Encrypts a sequence of contents.

@@ -90,13 +90,8 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public bool Encrypt(
-		byte[] input,
-		byte[] password,
-		out byte[] output)
+	public byte[]? Encrypt(byte[] input, byte[] password)
 	{
-		output = [];
-
 		try
 		{
 			byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
@@ -119,15 +114,13 @@ public sealed class EncryptionService : IEncryptionService
 
 			Buffer.BlockCopy(encrypted, 0, result, salt.Length + nonce.Length, encrypted.Length);
 
-			output = result;
-
-			return true;
+			return result;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return false;
+			return null;
 		}
 	}
 
@@ -136,10 +129,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Encrypt(
-				item.Contents,
-				password,
-				out byte[] output))
+			if (Encrypt(item.Contents, password) is { } output)
 			{
 				yield return new()
 				{
@@ -177,10 +167,14 @@ public sealed class EncryptionService : IEncryptionService
 
 		try
 		{
-			return Encrypt(
-				dek,
-				newPassword,
-				out newWrappedDek);
+			if (Encrypt(dek, newPassword) is not { } encrypted)
+			{
+				return false;
+			}
+
+			newWrappedDek = encrypted;
+
+			return true;
 		}
 		finally
 		{

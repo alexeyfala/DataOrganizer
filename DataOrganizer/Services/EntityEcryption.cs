@@ -308,10 +308,9 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
-				if (!_encryption.Encrypt(
+				if (_encryption.Encrypt(
 					dek,
-					TextHelper.Utf8Encoding.GetBytes(password),
-					out byte[] encryptedDek))
+					TextHelper.Utf8Encoding.GetBytes(password)) is not { } encryptedDek)
 				{
 					return;
 				}
@@ -364,10 +363,16 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			return _encryption.Encrypt(
+			if (_encryption.Encrypt(
 				decryptedContents,
-				decryptedDek,
-				out encryptedContents);
+				decryptedDek) is not { } encrypted)
+			{
+				return false;
+			}
+
+			encryptedContents = encrypted;
+
+			return true;
 		}
 		finally
 		{
@@ -463,10 +468,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			try
 			{
-				if (!_encryption.Encrypt(
+				if (_encryption.Encrypt(
 					dek,
-					GetSessionId(),
-					out byte[] sessionEncryptedDek))
+					GetSessionId()) is not { } sessionEncryptedDek)
 				{
 					return;
 				}
@@ -769,7 +773,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		if (root is null
 			|| root.EncryptedDek is null
 			|| _encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek
-			|| !_encryption.Encrypt(dek, GetSessionId(), out byte[] sessionEncryptedDek))
+			|| _encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
 		{
 			return false;
 		}

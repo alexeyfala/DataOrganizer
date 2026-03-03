@@ -303,8 +303,8 @@ internal class EntityEcryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
-				.Returns(true);
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns([]);
 
 			dbAccess
 				.BackupDatabase()
@@ -359,10 +359,9 @@ internal class EntityEcryptionTests
 			.Should()
 			.BeFalse();
 
-		encryption.Received(0).Encrypt(
-			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
-			out Arg.Any<byte[]>());
+		encryption
+			.Received(0)
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -380,10 +379,9 @@ internal class EntityEcryptionTests
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
-			encryption.Encrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(false);
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(default(byte[]));
 
 			builder.RegisterInstance(encryption);
 		});
@@ -401,10 +399,9 @@ internal class EntityEcryptionTests
 			.Should()
 			.BeFalse();
 
-		encryption.Received().Encrypt(
-			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
-			out Arg.Any<byte[]>());
+		encryption
+			.Received()
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 
 		encryption
 			.Received()
@@ -426,15 +423,9 @@ internal class EntityEcryptionTests
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
-			encryption.Encrypt(
-				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
-				out Arg.Any<byte[]>()).Returns(x =>
-				{
-					x[2] = TestUtils.CreateRandomBytes(10);
-
-					return true;
-				});
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
 		});
@@ -580,13 +571,8 @@ internal class EntityEcryptionTests
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
-				.Returns(x =>
-				{
-					x[2] = TestUtils.CreateRandomBytes(10);
-
-					return true;
-				});
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(dialogService);
 
@@ -644,13 +630,8 @@ internal class EntityEcryptionTests
 				.Returns([]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), out Arg.Any<byte[]>())
-				.Returns(x =>
-				{
-					x[2] = TestUtils.CreateRandomBytes(10);
-
-					return true;
-				});
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
 
