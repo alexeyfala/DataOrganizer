@@ -412,6 +412,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exporting Objects.
+        /// </summary>
+        public static string ExportingObjects {
+            get {
+                return ResourceManager.GetString("ExportingObjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to add.
         /// </summary>
         public static string FailedToAdd {
@@ -660,6 +669,24 @@ namespace Shared.Properties {
         public static string IdenticalNames {
             get {
                 return ResourceManager.GetString("IdenticalNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import/Export.
+        /// </summary>
+        public static string ImportExport {
+            get {
+                return ResourceManager.GetString("ImportExport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Importing Objects.
+        /// </summary>
+        public static string ImportingObjects {
+            get {
+                return ResourceManager.GetString("ImportingObjects", resourceCulture);
             }
         }
         

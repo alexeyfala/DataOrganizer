@@ -481,4 +481,13 @@
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="ImportExport" xml:space="preserve">
+    <value>Import/Export</value>
+  </data>
+  <data name="ImportingObjects" xml:space="preserve">
+    <value>Importing Objects</value>
+  </data>
+  <data name="ExportingObjects" xml:space="preserve">
+    <value>Exporting Objects</value>
+  </data>
 </root>

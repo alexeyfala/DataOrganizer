@@ -501,4 +501,13 @@
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
   </data>
+  <data name="ImportExport" xml:space="preserve">
+    <value>Импорт/экспорт</value>
+  </data>
+  <data name="ImportingObjects" xml:space="preserve">
+    <value>Импорт объектов</value>
+  </data>
+  <data name="ExportingObjects" xml:space="preserve">
+    <value>Экспорт объектов</value>
+  </data>
 </root>

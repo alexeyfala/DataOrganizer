@@ -845,6 +845,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
 
 	/// <summary>
+	/// Exports data.
+	/// </summary>
+	[RelayCommand]
+	private async Task Export()
+	{
+		// TODO: Test
+	}
+
+	/// <summary>
+	/// Imports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	private async Task Import()
+	{
+		// TODO: Test
+	}
+
+	/// <summary>
 	/// Opens a file context menu.
 	/// </summary>
 	[RelayCommand]

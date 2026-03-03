@@ -27,8 +27,9 @@
 				</Style>
 
 				<Style Selector="FlyoutPresenter">
-					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+					<Setter Property="Cursor" Value="Arrow" />
+					<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
 				</Style>
 
 				<FluentTheme />
@@ -44,9 +45,7 @@
 					<Flyout
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
-						<StackPanel
-							Cursor="Arrow"
-							Orientation="Vertical">
+						<StackPanel Orientation="Vertical">
 							<wrappers:FlyoutButton
 								Command="{Binding AddKeyValueCommand}"
 								Header="{x:Static prop:Strings.AddKeyAndValue}"
