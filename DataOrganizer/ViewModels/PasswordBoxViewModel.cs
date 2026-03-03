@@ -15,6 +15,12 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBa
 {
 	#region Auto-Generated Properties
 	/// <summary>
+	/// Header.
+	/// </summary>
+	[ObservableProperty]
+	private string? _header;
+
+	/// <summary>
 	/// The label.
 	/// </summary>
 	[ObservableProperty]

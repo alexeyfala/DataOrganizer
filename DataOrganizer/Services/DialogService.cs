@@ -59,7 +59,10 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public Task<string?> RequestUserPasswordAsync(string? label = null, CancellationToken token = default)
+	public Task<string?> RequestUserPasswordAsync(
+		string header,
+		string? label = null,
+		CancellationToken token = default)
 	{
 		_logger.LogInformation("Show password box");
 
@@ -68,6 +71,10 @@ public sealed class DialogService : IDialogService
 		_dispatcher.Post(async () =>
 		{
 			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+			view
+				.ViewModel
+				.Header = header;
 
 			view
 				.ViewModel
