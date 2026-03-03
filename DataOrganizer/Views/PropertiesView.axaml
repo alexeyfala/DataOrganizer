@@ -16,10 +16,14 @@
 	</Design.DataContext>
 
 	<Grid
-		RowDefinitions="*,Auto"
+		RowDefinitions="Auto,*,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Classes="HeaderTextBlockStyle"
+			Text="{x:Static prop:Strings.Properties}" />
+
 		<ScrollViewer
-			Grid.Row="0"
+			Grid.Row="1"
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Auto">
 			<ItemsControl
@@ -36,7 +40,7 @@
 		</ScrollViewer>
 
 		<Button
-			Grid.Row="1"
+			Grid.Row="2"
 			HorizontalAlignment="Right"
 			Classes="primary"
 			Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"

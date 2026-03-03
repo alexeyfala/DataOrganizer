@@ -215,8 +215,7 @@
 								Margin="0.0,0.0,8.0,0.0"
 								HorizontalAlignment="Right"
 								VerticalAlignment="Bottom"
-								FontSize="16.0"
-								FontWeight="Bold"
+								Classes="HeaderTextBlockStyle"
 								Foreground="LimeGreen"
 								Text="{Binding ExecutedFiles.Count, Mode=OneWay}" />
 						</Grid>
