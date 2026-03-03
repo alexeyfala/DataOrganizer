@@ -478,4 +478,7 @@
   <data name="Updated" xml:space="preserve">
     <value>Updated</value>
   </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
 </root>
