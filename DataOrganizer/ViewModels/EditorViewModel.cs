@@ -23,12 +23,12 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Material.Styles.Controls;
+using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -901,18 +901,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				.Path
 				.AbsolutePath;
 
-			if (_fileSystem.IsFileExists(filePath))
-			{
-				try
-				{
-					File.Delete(filePath);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
-			}
-
 			switch (Path.GetExtension(filePath))
 			{
 				case jsonExt:
@@ -923,6 +911,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 				case AppUtils.SQLiteExtension:
 					_dbAccess.BackupSqliteDatabase(_dbAccess.GetDbFilePath(), filePath);
+
+					SqliteConnection.ClearAllPools();
 					break;
 
 				default:
@@ -1102,9 +1092,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -1125,7 +1112,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -1146,8 +1132,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewLauncher)
 	{
 		_executionEngine = executionEngine;
-
-		_fileSystem = fileSystem;
 
 		_mapper = mapper;
 
