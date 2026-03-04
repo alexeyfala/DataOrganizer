@@ -37,6 +37,11 @@ public interface IDbAccess : IDisposable
 	string? BackupDatabase();
 
 	/// <summary>
+	/// Backups SQLite database.
+	/// </summary>
+	void BackupSqliteDatabase(string sourceFilePath, string destFilePath);
+
+	/// <summary>
 	/// Establishes a connection to the database.
 	/// </summary>
 	Task ConnectAsync(
@@ -74,6 +79,11 @@ public interface IDbAccess : IDisposable
 	Task<FolderModel[]> GetAllFoldersAsync(
 		bool trackChanges = false,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Gets the database file path.
+	/// </summary>
+	string GetDbFilePath();
 
 	/// <summary>
 	/// Returns <see cref="ContentsIsValidPair" />.

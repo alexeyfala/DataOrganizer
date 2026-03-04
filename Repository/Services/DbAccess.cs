@@ -165,9 +165,7 @@ public sealed class DbAccess : IDbAccess
 		}
 	}
 
-	/// <summary>
-	/// Tries to backup database in file, and returns a path to it.
-	/// </summary>
+	/// <inheritdoc />
 	public string? BackupDatabase()
 	{
 		try
@@ -196,6 +194,30 @@ public sealed class DbAccess : IDbAccess
 
 			return null;
 		}
+	}
+
+	/// <inheritdoc />
+	public void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = sourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = destFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection destination = new(destBuilder.ToString());
+
+		source.Open();
+
+		destination.Open();
+
+		source.BackupDatabase(destination);
 	}
 
 	/// <inheritdoc />
@@ -408,6 +430,15 @@ public sealed class DbAccess : IDbAccess
 		{
 			_semaphore.Release();
 		}
+	}
+
+	/// <inheritdoc />
+	public string GetDbFilePath()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
 	}
 
 	/// <inheritdoc />
@@ -699,32 +730,6 @@ public sealed class DbAccess : IDbAccess
 
 	#region Service
 	/// <summary>
-	/// Backups SQLite database.
-	/// </summary>
-	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
-	{
-		SqliteConnectionStringBuilder sourceBuilder = new()
-		{
-			DataSource = sourceFilePath
-		};
-
-		SqliteConnectionStringBuilder destBuilder = new()
-		{
-			DataSource = destFilePath
-		};
-
-		using SqliteConnection source = new(sourceBuilder.ToString());
-
-		using SqliteConnection destination = new(destBuilder.ToString());
-
-		source.Open();
-
-		destination.Open();
-
-		source.BackupDatabase(destination);
-	}
-
-	/// <summary>
 	/// Adds an <see cref="FileModel" /> to the database.
 	/// </summary>
 	private async Task<FileModel> AddFileAsync(
@@ -891,17 +896,6 @@ public sealed class DbAccess : IDbAccess
 				yield return item;
 			}
 		}
-	}
-
-	/// <summary>
-	/// Gets the database file path.
-	/// </summary>
-	private string GetDbFilePath()
-	{
-		return _dbContext
-			.Database
-			.GetDbConnection()
-			.DataSource;
 	}
 	#endregion
 }
