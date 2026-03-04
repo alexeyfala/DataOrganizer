@@ -262,7 +262,7 @@ public sealed class App : Application
 			.WriteTo.Async(configure =>
 			{
 				configure.FileEx(
-					path: Path.Combine(AppUtils.AppDataDirectoryPath, AppUtils.Logs, AppUtils.TxtExtension),
+					path: Path.Combine(AppUtils.AppDataDirectoryPath, "Logs", ".txt"),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",

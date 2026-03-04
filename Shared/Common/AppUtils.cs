@@ -15,9 +15,9 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// The extension of plain text file with dot.
+	/// The extension of SQLite database file with dot.
 	/// </summary>
-	public const string TxtExtension = ".txt";
+	public const string SQLiteExtension = ".sqlite";
 
 	/// <summary>
 	/// Path to the directory containing application data.
@@ -83,11 +83,6 @@ public static class AppUtils
 	};
 
 	/// <summary>
-	/// Application logs directory name.
-	/// </summary>
-	public static string Logs => nameof(Logs);
-
-	/// <summary>
 	/// Time format for logging.
 	/// </summary>
 	public static string LogTimestampFormat => "HH:mm:ss.fff";
@@ -113,11 +108,6 @@ public static class AppUtils
 	/// Application settings directory name.
 	/// </summary>
 	public static string Settings => nameof(Settings);
-
-	/// <summary>
-	/// The extension of SQLite database file with dot.
-	/// </summary>
-	public static string SQLiteExtension { get; } = ".sqlite";
 
 	/// <summary>
 	/// Delay in millideconds for displaying the tip.

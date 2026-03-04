@@ -33,6 +33,7 @@ using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -852,23 +853,32 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
+		const string jsonExt = ".json";
+
+		const string xmlExt = ".xml";
+
 		FilePickerFileType[] choices =
 		[
-			new("JSON Files")
+			new("JSON File")
 			{
-				Patterns = ["*.json"],
+				Patterns = [$"*{jsonExt}"],
 				MimeTypes = ["application/json"]
 			},
-			new("XML Files")
+			new("XML File")
 			{
-				Patterns = ["*.xml"],
+				Patterns = [$"*{xmlExt}"],
 				MimeTypes = ["application/xml"]
+			},
+			new("SQLite Database File")
+			{
+				Patterns = [$"*{AppUtils.SQLiteExtension}"],
+				MimeTypes = ["application/x-sqlite3"]
 			}
 		];
 
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = "json",
+			DefaultExtension = jsonExt.TrimStart('.'),
 			FileTypeChoices = choices,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameInOneWord,
@@ -889,6 +899,21 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			string filePath = file
 				.Path
 				.AbsolutePath;
+
+			switch (Path.GetExtension(filePath))
+			{
+				case jsonExt:
+					break;
+
+				case xmlExt:
+					break;
+
+				case AppUtils.SQLiteExtension:
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
 		}
 		finally
 		{
