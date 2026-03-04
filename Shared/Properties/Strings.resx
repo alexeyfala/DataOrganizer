@@ -493,4 +493,10 @@
   <data name="SaveAs" xml:space="preserve">
     <value>Save as</value>
   </data>
+  <data name="ReplaceTheList" xml:space="preserve">
+    <value>Replace the list</value>
+  </data>
+  <data name="AddToEndOfList" xml:space="preserve">
+    <value>Add to end of list</value>
+  </data>
 </root>

@@ -88,6 +88,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to end of list.
+        /// </summary>
+        public static string AddToEndOfList {
+            get {
+                return ResourceManager.GetString("AddToEndOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add To Folder.
         /// </summary>
         public static string AddToFolder {
@@ -930,6 +939,15 @@ namespace Shared.Properties {
         public static string RenamedTo {
             get {
                 return ResourceManager.GetString("RenamedTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the list.
+        /// </summary>
+        public static string ReplaceTheList {
+            get {
+                return ResourceManager.GetString("ReplaceTheList", resourceCulture);
             }
         }
         
