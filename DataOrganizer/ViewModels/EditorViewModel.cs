@@ -1160,6 +1160,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	private readonly IMapper _mapper;
 
+	/// <inheritdoc cref="IFileSystemEnrtyPicker" />
+	private readonly IFileSystemEnrtyPicker _picker;
+
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 	#endregion
@@ -1175,12 +1178,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
+		IFileSystemEnrtyPicker picker,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher
+		) : base(
 			app,
 			settingsManager,
 			dbAccess,
@@ -1197,6 +1202,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_executionEngine = executionEngine;
 
 		_mapper = mapper;
+
+		_picker = picker;
 
 		_processUtils = processUtils;
 

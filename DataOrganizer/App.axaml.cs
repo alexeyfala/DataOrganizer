@@ -310,6 +310,7 @@ public sealed class App : Application
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileSystem, FileSystem>();
+		services.AddTransient<IFileSystemEnrtyPicker, FileSystemEnrtyPicker>();
 		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<INotificationService, NotificationService>();
