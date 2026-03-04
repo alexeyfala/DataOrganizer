@@ -909,48 +909,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (_app
-			.FindWindow<EditorWindow>()?
-			.StorageProvider is not { } storageProvider)
-		{
-			return;
-		}
-
-		const string jsonExt = ".json";
-
-		const string xmlExt = ".xml";
-
-		FilePickerFileType[] types =
-		[
-			new("JSON File")
-			{
-				Patterns = [$"*{jsonExt}"],
-				MimeTypes = ["application/json"]
-			},
-			new("XML File")
-			{
-				Patterns = [$"*{xmlExt}"],
-				MimeTypes = ["application/xml"]
-			},
-			new("SQLite Database File")
-			{
-				Patterns = [$"*{AppUtils.SQLiteExtension}"],
-				MimeTypes = ["application/x-sqlite3"]
-			}
-		];
-
 		FilePickerOpenOptions options = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = types,
+			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
 			Title = Strings.Select
 		};
 
-		IReadOnlyList<IStorageFile> files = await storageProvider
-			.OpenFilePickerAsync(options)
+		string[] filePaths = await _picker
+			.SelectFilesAsync<EditorWindow>(options)
 			.ConfigureAwait(false);
 
-		if (files.Count == 0)
+		if (filePaths.Length == 0)
 		{
 			return;
 		}
@@ -959,9 +929,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			IsActionInProgress = true;
 
-			string filePath = files[0]
-				.Path
-				.AbsolutePath;
+			string filePath = filePaths[0];
 
 			;
 		}

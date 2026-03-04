@@ -51,5 +51,10 @@ public interface IFileSystemEnrtyPicker
 	/// Opens a dialog for saving the file and returns the path to it.
 	/// </summary>
 	Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window;
+
+	/// <summary>
+	/// Opens a dialog for selecting files and returns paths to them.
+	/// </summary>
+	Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window;
 	#endregion
 }
