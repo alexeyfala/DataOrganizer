@@ -15,11 +15,6 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// The extension of SQLite database file with dot.
-	/// </summary>
-	public const string SQLiteExtension = ".sqlite";
-
-	/// <summary>
 	/// Path to the directory containing application data.
 	/// </summary>
 	public static string AppDataDirectoryPath { get; } = Path.Combine(
@@ -113,6 +108,13 @@ public static class AppUtils
 	/// Delay in millideconds for displaying the tip.
 	/// </summary>
 	public static int TipDelay => 400;
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// The extension of SQLite database file with dot.
+	/// </summary>
+	public const string SQLiteExtension = ".sqlite";
 	#endregion
 
 	#region Constructors

@@ -847,48 +847,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private async Task Export()
 	{
 		// TODO: Test
-		if (_app
-			.FindWindow<EditorWindow>()?
-			.StorageProvider is not { } storageProvider)
-		{
-			return;
-		}
-
-		const string jsonExt = ".json";
-
-		const string xmlExt = ".xml";
-
-		FilePickerFileType[] types =
-		[
-			new("JSON File")
-			{
-				Patterns = [$"*{jsonExt}"],
-				MimeTypes = ["application/json"]
-			},
-			new("XML File")
-			{
-				Patterns = [$"*{xmlExt}"],
-				MimeTypes = ["application/xml"]
-			},
-			new("SQLite Database File")
-			{
-				Patterns = [$"*{AppUtils.SQLiteExtension}"],
-				MimeTypes = ["application/x-sqlite3"]
-			}
-		];
-
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = jsonExt.TrimStart('.'),
-			FileTypeChoices = types,
+			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
+			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameInOneWord,
 			Title = Strings.SaveAs
 		};
 
-		if (await storageProvider
-			.SaveFilePickerAsync(options)
-			.ConfigureAwait(false) is not { } file)
+		if (await _picker
+			.SaveFileAsync<EditorWindow>(options)
+			.ConfigureAwait(false) is not { } filePath)
 		{
 			return;
 		}
@@ -897,16 +867,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			IsActionInProgress = true;
 
-			string filePath = file
-				.Path
-				.AbsolutePath;
-
 			switch (Path.GetExtension(filePath))
 			{
-				case jsonExt:
+				case IFileSystemEnrtyPicker.JsonExt:
 					break;
 
-				case xmlExt:
+				case IFileSystemEnrtyPicker.XmlExt:
 					break;
 
 				case AppUtils.SQLiteExtension:
