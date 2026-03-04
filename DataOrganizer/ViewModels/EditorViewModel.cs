@@ -858,7 +858,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		const string xmlExt = ".xml";
 
-		FilePickerFileType[] choices =
+		FilePickerFileType[] types =
 		[
 			new("JSON File")
 			{
@@ -880,7 +880,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		FilePickerSaveOptions options = new()
 		{
 			DefaultExtension = jsonExt.TrimStart('.'),
-			FileTypeChoices = choices,
+			FileTypeChoices = types,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameInOneWord,
 			Title = Strings.SaveAs
@@ -943,7 +943,70 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		// TODO: Implement
+		if (_app
+			.FindWindow<EditorWindow>()?
+			.StorageProvider is not { } storageProvider)
+		{
+			return;
+		}
+
+		const string jsonExt = ".json";
+
+		const string xmlExt = ".xml";
+
+		FilePickerFileType[] types =
+		[
+			new("JSON File")
+			{
+				Patterns = [$"*{jsonExt}"],
+				MimeTypes = ["application/json"]
+			},
+			new("XML File")
+			{
+				Patterns = [$"*{xmlExt}"],
+				MimeTypes = ["application/xml"]
+			},
+			new("SQLite Database File")
+			{
+				Patterns = [$"*{AppUtils.SQLiteExtension}"],
+				MimeTypes = ["application/x-sqlite3"]
+			}
+		];
+
+		FilePickerOpenOptions options = new()
+		{
+			AllowMultiple = false,
+			FileTypeFilter = types,
+			Title = Strings.Select
+		};
+
+		IReadOnlyList<IStorageFile> files = await storageProvider
+			.OpenFilePickerAsync(options)
+			.ConfigureAwait(false);
+
+		if (files.Count == 0)
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			string filePath = files[0]
+				.Path
+				.AbsolutePath;
+
+			;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			IsActionInProgress = false;
+		}
 	}
 
 	/// <summary>
