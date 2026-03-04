@@ -354,6 +354,7 @@ public sealed class App : Application
 		services.AddTransient<HotkeysEditorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
+		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
@@ -375,6 +376,7 @@ public sealed class App : Application
 		services.AddTransient<HotkeysEditorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
+		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SelectedFavoritesView>();

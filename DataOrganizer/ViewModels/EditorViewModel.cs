@@ -421,6 +421,61 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Exports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
+	public async Task Export()
+	{
+		// TODO: Test
+		FilePickerSaveOptions options = new()
+		{
+			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
+			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			ShowOverwritePrompt = true,
+			SuggestedFileName = AppUtils.AppNameInOneWord,
+			Title = Strings.SaveAs
+		};
+
+		if (await _picker
+			.SaveFileAsync<EditorWindow>(options)
+			.ConfigureAwait(false) is not { } filePath)
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			switch (Path.GetExtension(filePath))
+			{
+				case IFileSystemEnrtyPicker.JsonExt:
+					break;
+
+				case IFileSystemEnrtyPicker.XmlExt:
+					break;
+
+				case AppUtils.SQLiteExtension:
+					_dbAccess.BackupSqliteDatabase(_dbAccess.GetDbFilePath(), filePath);
+
+					SqliteConnection.ClearAllPools();
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			IsActionInProgress = false;
+		}
+	}
+
+	/// <summary>
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
@@ -489,6 +544,74 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_entityEcryption.HideFolderContents(dto, Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Imports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	public async Task Import()
+	{
+		// TODO: Test
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+
+		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		ImportListVariant variant = ImportListVariant.Replace;
+
+		if (Hierarchy.Count != 0)
+		{
+			ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
+		}
+
+		FilePickerOpenOptions options = new()
+		{
+			AllowMultiple = false,
+			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			Title = Strings.Select
+		};
+
+		string[] filePaths = await _picker
+			.SelectFilesAsync<EditorWindow>(options)
+			.ConfigureAwait(false);
+
+		if (filePaths.Length == 0)
+		{
+			return;
+		}
+
+		try
+		{
+			IsActionInProgress = true;
+
+			string filePath = filePaths[0];
+
+			switch (Path.GetExtension(filePath))
+			{
+				case IFileSystemEnrtyPicker.JsonExt:
+					break;
+
+				case IFileSystemEnrtyPicker.XmlExt:
+					break;
+
+				case AppUtils.SQLiteExtension:
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			IsActionInProgress = false;
+		}
 	}
 
 	/// <summary>
@@ -839,109 +962,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
-
-	/// <summary>
-	/// Exports data.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
-	private async Task Export()
-	{
-		// TODO: Test
-		FilePickerSaveOptions options = new()
-		{
-			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
-			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
-			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppNameInOneWord,
-			Title = Strings.SaveAs
-		};
-
-		if (await _picker
-			.SaveFileAsync<EditorWindow>(options)
-			.ConfigureAwait(false) is not { } filePath)
-		{
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			switch (Path.GetExtension(filePath))
-			{
-				case IFileSystemEnrtyPicker.JsonExt:
-					break;
-
-				case IFileSystemEnrtyPicker.XmlExt:
-					break;
-
-				case AppUtils.SQLiteExtension:
-					_dbAccess.BackupSqliteDatabase(_dbAccess.GetDbFilePath(), filePath);
-
-					SqliteConnection.ClearAllPools();
-					break;
-
-				default:
-					throw new NotImplementedException();
-			}
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			IsActionInProgress = false;
-		}
-	}
-
-	/// <summary>
-	/// Imports data.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
-	private async Task Import()
-	{
-		// TODO: Test
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
-
-		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(false))
-		{
-			return;
-		}
-
-		FilePickerOpenOptions options = new()
-		{
-			AllowMultiple = false,
-			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
-			Title = Strings.Select
-		};
-
-		string[] filePaths = await _picker
-			.SelectFilesAsync<EditorWindow>(options)
-			.ConfigureAwait(false);
-
-		if (filePaths.Length == 0)
-		{
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			string filePath = filePaths[0];
-
-			;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			IsActionInProgress = false;
-		}
-	}
 
 	/// <summary>
 	/// Opens a file context menu.
