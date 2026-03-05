@@ -623,7 +623,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 							Hierarchy.Clear();
 
-							AddHierarchy(await _appController
+							AddHierarchy(await _entityLoader
 								.LoadAllHierarchyFromDbAsync()
 								.ConfigureAwait(false));
 							break;
@@ -1159,8 +1159,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IAppController" />
-	private readonly IAppController _appController;
+	/// <inheritdoc cref="IEntityLoader" />
+	private readonly IEntityLoader _entityLoader;
 
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
@@ -1183,13 +1183,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#region Constructors
 	public EditorViewModel(
 		Application app,
-		IAppController appController,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
+		IEntityLoader entityLoader,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
@@ -1213,7 +1213,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
-		_appController = appController;
+		_entityLoader = entityLoader;
 
 		_executionEngine = executionEngine;
 
