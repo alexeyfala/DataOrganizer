@@ -13,6 +13,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,7 +66,9 @@ public sealed class EntityLoader : IEntityLoader
 
 			SqliteDbContext context = new(options);
 
-			ExplorerModelBase[] entities = [.. context.Set<ExplorerModelBase>()];
+			ExplorerModelBase[] entities = [.. context
+				.Set<ExplorerModelBase>()
+				.AsNoTracking()];
 
 			using SqliteConnection connection = (SqliteConnection)context
 				.Database
@@ -73,15 +76,28 @@ public sealed class EntityLoader : IEntityLoader
 
 			SqliteConnection.ClearPool(connection);
 
-			return Map(
-				[.. entities.OfType<FolderModel>()],
-				[.. entities.OfType<FileModel>()]);
+			FolderModel[] dbFolders = [.. entities.OfType<FolderModel>()];
+
+			FileModel[] dbFiles = [.. entities.OfType<FileModel>()];
+
+			RegenerateId(dbFolders);
+
+			RegenerateId(dbFiles);
+
+			RegenerateId(dbFiles.SelectMany(x => x.Hotkeys));
+
+			return Map(dbFolders, dbFiles);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
 			return [];
+		}
+
+		static void RegenerateId(IEnumerable<EntityModelBase> entities)
+		{
+			entities.ForEach(x => x.Id = Guid.NewGuid());
 		}
 	}
 

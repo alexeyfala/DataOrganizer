@@ -10,6 +10,6 @@ public abstract class EntityModelBase : IIdentity
 {
 	#region Properties
 	/// <inheritdoc />
-	public Guid Id { get; init; }
+	public Guid Id { get; set; }
 	#endregion
 }
