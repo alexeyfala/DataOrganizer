@@ -530,7 +530,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
+	public async Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
 		try
 		{
@@ -556,10 +556,14 @@ public sealed class DbAccess : IDbAccess
 			};
 
 			BackupSqliteDatabase(parameters);
+
+			return true;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return false;
 		}
 		finally
 		{

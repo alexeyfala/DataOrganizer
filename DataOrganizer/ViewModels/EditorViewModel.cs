@@ -614,11 +614,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					switch (variant)
 					{
 						case ImportListVariant.Replace:
-							await _dbAccess
+							if (!await _dbAccess
 								.RestoreFromBackupAsync(filePath)
-								.ConfigureAwait(false);
+								.ConfigureAwait(false))
+							{
+								return;
+							}
 
-							DeleteFile(backupFilePath);
+							Hierarchy.Clear();
+
+							AddHierarchy(await _appController
+								.LoadAllHierarchyFromDbAsync()
+								.ConfigureAwait(false));
 							break;
 
 						case ImportListVariant.AddToTheEnd:
@@ -644,24 +651,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath)
 				.ConfigureAwait(false);
-
-			DeleteFile(backupFilePath);
 		}
 		finally
 		{
-			IsActionInProgress = false;
-		}
-
-		void DeleteFile(string filePath)
-		{
 			try
 			{
-				_fileSystem.EraseAndDeleteFile(filePath);
+				_fileSystem.EraseAndDeleteFile(backupFilePath);
 			}
 			catch (Exception ex)
 			{
 				_logger.LogException(ex);
 			}
+
+			IsActionInProgress = false;
 		}
 	}
 
@@ -1157,6 +1159,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IAppController" />
+	private readonly IAppController _appController;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
@@ -1178,6 +1183,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#region Constructors
 	public EditorViewModel(
 		Application app,
+		IAppController appController,
 		IAppSettingsManager settingsManager,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -1207,6 +1213,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
+		_appController = appController;
+
 		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
