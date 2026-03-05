@@ -221,6 +221,40 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = parameters.SourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = parameters.DestFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection dest = new(destBuilder.ToString());
+
+		source.Open();
+
+		dest.Open();
+
+		source.BackupDatabase(dest);
+
+		if (parameters.ClearSourcePool)
+		{
+			SqliteConnection.ClearPool(source);
+		}
+
+		if (parameters.ClearDestPool)
+		{
+			SqliteConnection.ClearPool(dest);
+		}
+	}
+
+	/// <inheritdoc />
 	public Task ConnectAsync(
 		bool useMigrations,
 		CancellationToken token = default)

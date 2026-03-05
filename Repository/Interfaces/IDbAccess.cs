@@ -42,6 +42,11 @@ public interface IDbAccess : IDisposable
 	void BackupSqliteDatabase(string sourceFilePath, string destFilePath);
 
 	/// <summary>
+	/// Backups SQLite database.
+	/// </summary>
+	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
+
+	/// <summary>
 	/// Establishes a connection to the database.
 	/// </summary>
 	Task ConnectAsync(
