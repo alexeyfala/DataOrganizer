@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using DataOrganizer.DTO.Entities.Abstract;
+using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -13,5 +15,10 @@ public interface IDataExchangeService
 	/// Exports data.
 	/// </summary>
 	Task ExportDataAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Imports data.
+	/// </summary>
+	Task ImportDataAsync(Collection<ExplorerModelBaseDto> hierarchy, CancellationToken token = default);
 	#endregion
 }

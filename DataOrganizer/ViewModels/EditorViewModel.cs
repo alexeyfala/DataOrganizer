@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,15 +25,12 @@ using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -505,105 +501,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		ImportListVariant variant = ImportListVariant.Replace;
-
-		if (Hierarchy.Count != 0)
-		{
-			ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
-		}
-
-		FilePickerOpenOptions options = new()
-		{
-			AllowMultiple = false,
-			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
-			Title = Strings.Select
-		};
-
-		string[] filePaths = await _picker
-			.SelectFilesAsync<EditorWindow>(options)
+		await _dataExchange
+			.ImportDataAsync(Hierarchy)
 			.ConfigureAwait(false);
-
-		if (filePaths.Length == 0)
-		{
-			return;
-		}
-
-		if (_dbAccess.BackupDatabase() is not { } backupFilePath)
-		{
-			ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
-
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			string filePath = filePaths[0];
-
-			switch (Path.GetExtension(filePath))
-			{
-				case IFileSystemEnrtyPicker.JsonExt:
-					break;
-
-				case IFileSystemEnrtyPicker.XmlExt:
-					break;
-
-				case AppUtils.SQLiteExtension:
-					switch (variant)
-					{
-						case ImportListVariant.Replace:
-							if (!await _dbAccess
-								.RestoreFromBackupAsync(filePath)
-								.ConfigureAwait(false))
-							{
-								return;
-							}
-
-							Hierarchy.Clear();
-
-							AddHierarchy(await _entityLoader
-								.LoadAllHierarchyFromDbAsync()
-								.ConfigureAwait(false));
-							break;
-
-						case ImportListVariant.AddToTheEnd:
-							break;
-
-						default:
-							throw new NotImplementedException();
-					}
-					break;
-
-				default:
-					throw new NotImplementedException();
-			}
-
-			CopyHistorySettings
-				.CopyHistory
-				.Clear();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			await _dbAccess
-				.RestoreFromBackupAsync(backupFilePath)
-				.ConfigureAwait(false);
-		}
-		finally
-		{
-			try
-			{
-				_fileSystem.EraseAndDeleteFile(backupFilePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
-
-			IsActionInProgress = false;
-		}
 	}
 
 	/// <summary>
@@ -1107,22 +1007,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
-	/// <inheritdoc cref="IEntityLoader" />
-	private readonly IEntityLoader _entityLoader;
-
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
-
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
 
 	/// <summary>
 	/// Mapper.
 	/// </summary>
 	private readonly IMapper _mapper;
-
-	/// <inheritdoc cref="IFileSystemEnrtyPicker" />
-	private readonly IFileSystemEnrtyPicker _picker;
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
@@ -1138,11 +1029,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IDispatcher dispatcher,
 		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
-		IEntityLoader entityLoader,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IFileSystem fileSystem,
-		IFileSystemEnrtyPicker picker,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
@@ -1164,15 +1052,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_dataExchange = dataExchange;
 
-		_entityLoader = entityLoader;
-
 		_executionEngine = executionEngine;
 
-		_fileSystem = fileSystem;
-
 		_mapper = mapper;
-
-		_picker = picker;
 
 		_processUtils = processUtils;
 
