@@ -4,6 +4,10 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using Entities.Abstract;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -14,6 +18,7 @@ using Shared.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -135,7 +140,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		CancellationToken token = default)
 	{
 		// TODO: Test
-		ImportListVariant variant = ImportListVariant.Replace;
+		ImportListVariant variant = ImportListVariant.AddToTheEnd;
 
 		if (hierarchy.Count != 0)
 		{
@@ -183,23 +188,32 @@ public sealed class DataExchangeService : IDataExchangeService
 					switch (variant)
 					{
 						case ImportListVariant.Replace:
-							if (!await _dbAccess
-								.RestoreFromBackupAsync(filePath, token)
-								.ConfigureAwait(false))
 							{
-								return;
+								if (!await _dbAccess
+									.RestoreFromBackupAsync(filePath, token)
+									.ConfigureAwait(false))
+								{
+									return;
+								}
+
+								hierarchy.Clear();
+
+								ExplorerModelBaseDto[] objects = await _entityLoader
+									.LoadFromEmbeddedDbAsync(token)
+									.ConfigureAwait(false);
+
+								_viewModel.ExecuteInEditor(x => x.AddHierarchy(objects));
 							}
-
-							hierarchy.Clear();
-
-							ExplorerModelBaseDto[] entities = await _entityLoader
-								.LoadAllHierarchyFromDbAsync(token)
-								.ConfigureAwait(false);
-
-							_viewModel.ExecuteInEditor(x => x.AddHierarchy(entities));
 							break;
 
 						case ImportListVariant.AddToTheEnd:
+							{
+								ExplorerModelBaseDto[] objects = await _entityLoader
+									.LoadFromDbAsync(filePath, token)
+									.ConfigureAwait(false);
+
+								;
+							}
 							break;
 
 						default:

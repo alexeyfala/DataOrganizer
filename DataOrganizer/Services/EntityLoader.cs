@@ -6,6 +6,9 @@ using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Models;
 using MapsterMapper;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Repository.DbContexts;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -46,11 +49,42 @@ public sealed class EntityLoader : IEntityLoader
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Loads all <see cref="FolderModel" /> and all <see cref="FileModel" /> from database<br />
-	/// then maps it to hierarchy of <see cref="ExplorerModelBaseDto" /> and returns.
-	/// </summary>
-	public async Task<ExplorerModelBaseDto[]> LoadAllHierarchyFromDbAsync(CancellationToken token = default)
+	/// <inheritdoc />
+	public async Task<ExplorerModelBaseDto[]> LoadFromDbAsync(
+		string dataSource,
+		CancellationToken token = default)
+	{
+		try
+		{
+			SqliteConnectionStringBuilder connectionBuilder = new()
+			{
+				DataSource = dataSource,
+			};
+
+			DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+				.UseSqlite(connectionBuilder.ToString())
+				.Options;
+
+			SqliteDbContext context = new(options);
+
+			ExplorerModelBase[] entities = [.. context.Set<ExplorerModelBase>()];
+
+			FolderModel[] dbFolders = [.. entities.OfType<FolderModel>()];
+
+			FileModel[] dbFiles = [.. entities.OfType<FileModel>()];
+
+			return [];
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return [];
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<ExplorerModelBaseDto[]> LoadFromEmbeddedDbAsync(CancellationToken token = default)
 	{
 		try
 		{

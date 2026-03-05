@@ -113,7 +113,7 @@ public sealed class AppController : IAppController
 			}
 
 			ExplorerModelBaseDto[] hierarchy = await _entityLoader
-				.LoadAllHierarchyFromDbAsync(token)
+				.LoadFromEmbeddedDbAsync(token)
 				.ConfigureAwait(true);
 
 			// TODO: Close splash screen here.

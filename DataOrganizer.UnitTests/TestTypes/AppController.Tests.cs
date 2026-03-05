@@ -78,7 +78,7 @@ internal class AppControllerTests
 
 		await entityLoader
 			.Received()
-			.LoadAllHierarchyFromDbAsync();
+			.LoadFromEmbeddedDbAsync();
 
 		viewLauncher
 			.Received()

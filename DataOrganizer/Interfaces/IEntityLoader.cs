@@ -1,5 +1,4 @@
 ﻿using DataOrganizer.DTO.Entities.Abstract;
-using Entities.Models;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,9 +11,15 @@ public interface IEntityLoader
 {
 	#region Methods
 	/// <summary>
-	/// Loads all <see cref="FolderModel" /> and all <see cref="FileModel" /> from database<br />
-	/// then maps it to hierarchy of <see cref="ExplorerModelBaseDto" /> and returns.
+	/// Loads all entities from the specified database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
 	/// </summary>
-	Task<ExplorerModelBaseDto[]> LoadAllHierarchyFromDbAsync(CancellationToken token = default);
+	Task<ExplorerModelBaseDto[]> LoadFromDbAsync(
+		string dataSource,
+		CancellationToken token = default);
+
+	/// <summary>
+	/// Loads all entities from the database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
+	/// </summary>
+	Task<ExplorerModelBaseDto[]> LoadFromEmbeddedDbAsync(CancellationToken token = default);
 	#endregion
 }
