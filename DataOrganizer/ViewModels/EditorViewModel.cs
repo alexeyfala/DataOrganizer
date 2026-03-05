@@ -23,7 +23,6 @@ using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Material.Styles.Controls;
-using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -456,9 +455,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					break;
 
 				case AppUtils.SQLiteExtension:
-					_dbAccess.BackupSqliteDatabase(_dbAccess.GetDbFilePath(), filePath);
+					BackupSqliteParameters parameters = new()
+					{
+						ClearDestPool = true,
+						ClearSourcePool = false,
+						DestFilePath = filePath,
+						SourceFilePath = _dbAccess.GetDbFilePath()
+					};
 
-					SqliteConnection.ClearAllPools();
+					_dbAccess.BackupSqliteDatabase(parameters);
 					break;
 
 				default:
