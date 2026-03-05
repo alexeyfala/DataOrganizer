@@ -603,6 +603,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					break;
 
 				case AppUtils.SQLiteExtension:
+					switch (variant)
+					{
+						case ImportListVariant.Replace:
+							await _dbAccess
+								.RestoreFromBackupAsync(filePath)
+								.ConfigureAwait(false);
+							break;
+
+						case ImportListVariant.AddToTheEnd:
+							break;
+
+						default:
+							throw new NotImplementedException();
+					}
 					break;
 
 				default:
