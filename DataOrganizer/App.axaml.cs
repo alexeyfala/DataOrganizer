@@ -317,6 +317,7 @@ public sealed class App : Application
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IViewModelExecutionService, ViewModelExecutionService>();
 		#endregion
 
 		#region Singletons
