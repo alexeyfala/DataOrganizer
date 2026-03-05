@@ -56,8 +56,7 @@ public sealed class EntityLoader : IEntityLoader
 		{
 			SqliteConnectionStringBuilder builder = new()
 			{
-				DataSource = dataSource,
-				Mode = SqliteOpenMode.ReadOnly
+				DataSource = dataSource
 			};
 
 			DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
