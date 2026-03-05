@@ -6,8 +6,6 @@ using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
-using Mapster;
-using MapsterMapper;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Common;
@@ -31,6 +29,8 @@ internal class AppControllerTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
@@ -39,12 +39,6 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IMapper mapper = Substitute.For<IMapper>();
-
-			mapper
-				.Config
-				.Returns(Substitute.For<TypeAdapterConfig>());
-
 			viewLauncher
 				.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
 				.Returns(Substitute.For<Window>());
@@ -55,9 +49,9 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(options);
 
-			builder.RegisterInstance(fileSystem);
+			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance(mapper);
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(viewLauncher);
 
@@ -82,13 +76,9 @@ internal class AppControllerTests
 			.Received()
 			.ConnectAsync(Arg.Any<bool>());
 
-		await dbAccess
+		await entityLoader
 			.Received()
-			.GetAllFoldersAsync();
-
-		await dbAccess
-			.Received()
-			.GetAllFilesAsync(excludedProperties: Arg.Any<string[]>());
+			.LoadAllHierarchyFromDbAsync();
 
 		viewLauncher
 			.Received()
