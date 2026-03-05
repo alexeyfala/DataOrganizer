@@ -177,24 +177,24 @@ public sealed class DbAccess : IDbAccess
 				return null;
 			}
 
-			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+			string backupFilePath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
 
 			BackupSqliteParameters parameters = new()
 			{
 				ClearDestPool = true,
 				ClearSourcePool = false,
-				DestFilePath = backupPath,
+				DestFilePath = backupFilePath,
 				SourceFilePath = dbFilePath
 			};
 
 			BackupSqliteDatabase(parameters);
 
-			if (!_fileSystem.IsFileExists(backupPath))
+			if (!_fileSystem.IsFileExists(backupFilePath))
 			{
 				return null;
 			}
 
-			return backupPath;
+			return backupFilePath;
 		}
 		catch (Exception ex)
 		{

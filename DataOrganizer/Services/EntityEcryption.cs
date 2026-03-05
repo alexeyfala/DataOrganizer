@@ -600,7 +600,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+				DeleteFile(parameters.BackupFilePath);
 
 				return UpdateDatabaseResult.FailedToSaveContentsInDb;
 			}
@@ -622,7 +622,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteDatabaseBackupFile(parameters.BackupFilePath);
+				DeleteFile(parameters.BackupFilePath);
 
 				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
@@ -644,7 +644,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				.Folder
 				.EncryptedDek = parameters.EncryptedDek;
 
-			DeleteDatabaseBackupFile(parameters.BackupFilePath);
+			DeleteFile(parameters.BackupFilePath);
 
 			return UpdateDatabaseResult.Done;
 		}
@@ -677,14 +677,12 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <summary>
-	/// Deletes the database backup file.
+	/// Deletes the file.
 	/// </summary>
-	private void DeleteDatabaseBackupFile(string filePath)
+	private void DeleteFile(string filePath)
 	{
 		try
 		{
-			SqliteConnection.ClearAllPools();
-
 			_fileSystem.EraseAndDeleteFile(filePath);
 		}
 		catch (Exception ex)
