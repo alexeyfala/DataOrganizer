@@ -10,7 +10,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using Entities.Models;
-using Microsoft.Data.Sqlite;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -520,7 +519,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			if (await _dialogService
 				.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
-				.ConfigureAwait(true) is not { } password)
+				.ConfigureAwait(false) is not { } password)
 			{
 				return null;
 			}
