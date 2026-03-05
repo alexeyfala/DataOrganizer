@@ -55,7 +55,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IViewModelExecutionService viewModelExecution)
+		IViewModelExecutionService viewModel)
 	{
 		_dbAccess = dbAccess;
 
@@ -67,7 +67,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		_logger = logger;
 
-		_viewModel = viewModelExecution;
+		_viewModel = viewModel;
 	}
 	#endregion
 

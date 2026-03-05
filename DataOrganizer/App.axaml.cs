@@ -304,6 +304,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IClipboardService, ClipboardService>();
+		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();

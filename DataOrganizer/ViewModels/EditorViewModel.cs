@@ -421,67 +421,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Exports data.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
-	public async Task Export()
-	{
-		// TODO: Test
-		FilePickerSaveOptions options = new()
-		{
-			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
-			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
-			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppNameInOneWord,
-			Title = Strings.SaveAs
-		};
-
-		if (await _picker
-			.SaveFileAsync<EditorWindow>(options)
-			.ConfigureAwait(false) is not { } filePath)
-		{
-			return;
-		}
-
-		try
-		{
-			IsActionInProgress = true;
-
-			switch (Path.GetExtension(filePath))
-			{
-				case IFileSystemEnrtyPicker.JsonExt:
-					break;
-
-				case IFileSystemEnrtyPicker.XmlExt:
-					break;
-
-				case AppUtils.SQLiteExtension:
-					BackupSqliteParameters parameters = new()
-					{
-						ClearDestPool = true,
-						ClearSourcePool = false,
-						DestFilePath = filePath,
-						SourceFilePath = _dbAccess.GetDbFilePath()
-					};
-
-					_dbAccess.BackupSqliteDatabase(parameters);
-					break;
-
-				default:
-					throw new NotImplementedException();
-			}
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-		finally
-		{
-			IsActionInProgress = false;
-		}
-	}
-
-	/// <summary>
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
@@ -1017,6 +956,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
 
 	/// <summary>
+	/// Exports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
+	private Task Export() => _dataExchange.ExportDataAsync();
+
+	/// <summary>
 	/// Opens a file context menu.
 	/// </summary>
 	[RelayCommand]
@@ -1159,6 +1104,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDataExchangeService" />
+	private readonly IDataExchangeService _dataExchange;
+
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
 
@@ -1184,6 +1132,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	public EditorViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
+		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
@@ -1213,6 +1162,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
+		_dataExchange = dataExchange;
+
 		_entityLoader = entityLoader;
 
 		_executionEngine = executionEngine;
