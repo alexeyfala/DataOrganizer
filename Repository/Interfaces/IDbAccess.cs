@@ -39,11 +39,6 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Backups SQLite database.
 	/// </summary>
-	void BackupSqliteDatabase(string sourceFilePath, string destFilePath);
-
-	/// <summary>
-	/// Backups SQLite database.
-	/// </summary>
 	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
 
 	/// <summary>
