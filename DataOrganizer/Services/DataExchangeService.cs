@@ -4,10 +4,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
-using Entities.Abstract;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -18,7 +14,6 @@ using Shared.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -208,9 +203,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 						case ImportListVariant.AddToTheEnd:
 							{
-								ExplorerModelBaseDto[] objects = await _entityLoader
-									.LoadFromDbAsync(filePath, token)
-									.ConfigureAwait(false);
+								ExplorerModelBaseDto[] objects = _entityLoader.LoadFromDb(filePath);
 
 								;
 							}

@@ -50,30 +50,33 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerModelBaseDto[]> LoadFromDbAsync(
-		string dataSource,
-		CancellationToken token = default)
+	public ExplorerModelBaseDto[] LoadFromDb(string dataSource)
 	{
 		try
 		{
-			SqliteConnectionStringBuilder connectionBuilder = new()
+			SqliteConnectionStringBuilder builder = new()
 			{
 				DataSource = dataSource,
+				Mode = SqliteOpenMode.ReadOnly
 			};
 
 			DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-				.UseSqlite(connectionBuilder.ToString())
+				.UseSqlite(builder.ToString())
 				.Options;
 
 			SqliteDbContext context = new(options);
 
 			ExplorerModelBase[] entities = [.. context.Set<ExplorerModelBase>()];
 
-			FolderModel[] dbFolders = [.. entities.OfType<FolderModel>()];
+			using SqliteConnection connection = (SqliteConnection)context
+				.Database
+				.GetDbConnection();
 
-			FileModel[] dbFiles = [.. entities.OfType<FileModel>()];
+			SqliteConnection.ClearPool(connection);
 
-			return [];
+			return Map(
+				[.. entities.OfType<FolderModel>()],
+				[.. entities.OfType<FileModel>()]);
 		}
 		catch (Exception ex)
 		{
@@ -107,40 +110,7 @@ public sealed class EntityLoader : IEntityLoader
 				$"Folders = {dbFolders.Length},{Environment.NewLine}" +
 				$"Files = {dbFiles.Length}");
 
-			FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
-
-			dtoFiles.ForEach(dto =>
-			{
-				if (dto
-					.Hotkeys
-					.Count == 0)
-				{
-					return;
-				}
-
-				dto.SetHotkeysToolTip();
-			});
-
-			ExplorerModelBaseDto[] hierarchy = _mapper
-				.Map<FolderModel[], FolderModelDto[]>(dbFolders)
-				.ToHierarchical(dtoFiles)
-				.ToArray()
-				.SortByIndexRecursively();
-
-			hierarchy
-				.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
-				.ForEach(folder =>
-				{
-					const EncryptionStatus status = EncryptionStatus.Encrypted;
-
-					folder.EncryptionStatus = status;
-
-					folder
-						.GetAllChildren()
-						.ForEach(x => x.EncryptionStatus = status);
-				});
-
-			return hierarchy;
+			return Map(dbFolders, dbFiles);
 		}
 		catch (Exception ex)
 		{
@@ -163,6 +133,47 @@ public sealed class EntityLoader : IEntityLoader
 			.Include<FolderModel, FolderModelDto>();
 
 		return mapper;
+	}
+
+	/// <summary>
+	/// Maps entities from the database to DTO objects.
+	/// </summary>
+	private ExplorerModelBaseDto[] Map(FolderModel[] dbFolders, FileModel[] dbFiles)
+	{
+		FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
+
+		dtoFiles.ForEach(dto =>
+		{
+			if (dto
+				.Hotkeys
+				.Count == 0)
+			{
+				return;
+			}
+
+			dto.SetHotkeysToolTip();
+		});
+
+		ExplorerModelBaseDto[] hierarchy = _mapper
+			.Map<FolderModel[], FolderModelDto[]>(dbFolders)
+			.ToHierarchical(dtoFiles)
+			.ToArray()
+			.SortByIndexRecursively();
+
+		hierarchy
+			.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
+			.ForEach(folder =>
+			{
+				const EncryptionStatus status = EncryptionStatus.Encrypted;
+
+				folder.EncryptionStatus = status;
+
+				folder
+					.GetAllChildren()
+					.ForEach(x => x.EncryptionStatus = status);
+			});
+
+		return hierarchy;
 	}
 	#endregion
 }

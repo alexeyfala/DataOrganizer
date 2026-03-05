@@ -556,7 +556,7 @@ public static class EnumerableExtensions
 	{
 		foreach (ExplorerModelBaseDto item in hierarchy)
 		{
-			if (item.EntityType == EntityType.File)
+			if (item.EntityType == EntityType.File || item.EntityType == EntityType.DataSet)
 			{
 				files++;
 

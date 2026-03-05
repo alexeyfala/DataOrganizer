@@ -13,9 +13,7 @@ public interface IEntityLoader
 	/// <summary>
 	/// Loads all entities from the specified database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
 	/// </summary>
-	Task<ExplorerModelBaseDto[]> LoadFromDbAsync(
-		string dataSource,
-		CancellationToken token = default);
+	ExplorerModelBaseDto[] LoadFromDb(string dataSource);
 
 	/// <summary>
 	/// Loads all entities from the database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
