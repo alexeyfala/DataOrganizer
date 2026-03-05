@@ -28,6 +28,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook;
 using System;
@@ -588,6 +589,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
+		if (_dbAccess.BackupDatabase() is not { } backupFilePath)
+		{
+			ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
+
+			return;
+		}
+
 		try
 		{
 			IsActionInProgress = true;
@@ -609,6 +617,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 							await _dbAccess
 								.RestoreFromBackupAsync(filePath)
 								.ConfigureAwait(false);
+
+							DeleteFile(backupFilePath);
 							break;
 
 						case ImportListVariant.AddToTheEnd:
@@ -626,10 +636,28 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			await _dbAccess
+				.RestoreFromBackupAsync(backupFilePath)
+				.ConfigureAwait(false);
+
+			DeleteFile(backupFilePath);
 		}
 		finally
 		{
 			IsActionInProgress = false;
+		}
+
+		void DeleteFile(string filePath)
+		{
+			try
+			{
+				_fileSystem.EraseAndDeleteFile(filePath);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
 		}
 	}
 
@@ -1128,6 +1156,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -1151,14 +1182,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
+		IFileSystem fileSystem,
 		IFileSystemEnrtyPicker picker,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher
-		) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
 			dbAccess,
@@ -1173,6 +1204,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewLauncher)
 	{
 		_executionEngine = executionEngine;
+
+		_fileSystem = fileSystem;
 
 		_mapper = mapper;
 
