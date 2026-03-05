@@ -632,6 +632,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				default:
 					throw new NotImplementedException();
 			}
+
+			CopyHistorySettings
+				.CopyHistory
+				.Clear();
 		}
 		catch (Exception ex)
 		{
