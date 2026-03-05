@@ -120,6 +120,62 @@ public sealed class AppController : IAppController
 
 			ExplorerModelBaseDto[] hierarchy = await LoadAllHierarchyFromDbAsync(token).ConfigureAwait(true);
 
+			// TODO: Close splash screen here.
+
+			_viewLauncher
+				.ConfigureMainWindow(hierarchy)
+				.Show();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<ExplorerModelBaseDto[]> LoadAllHierarchyFromDbAsync(CancellationToken token = default)
+	{
+		try
+		{
+			FolderModel[] dbFolders = await _dbAccess
+				.GetAllFoldersAsync(token: token)
+				.ConfigureAwait(false);
+
+			string[] excluded =
+			[
+				nameof(FileModel.Contents),
+				nameof(FileModel.Properties)
+			];
+
+			FileModel[] dbFiles = await _dbAccess
+				.GetAllFilesAsync(token: token, excludedProperties: excluded)
+				.ConfigureAwait(false);
+
+			_logger.LogInformation(
+				$"Number of objects loaded from the database:{Environment.NewLine}" +
+				$"Folders = {dbFolders.Length},{Environment.NewLine}" +
+				$"Files = {dbFiles.Length}");
+
+			FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
+
+			dtoFiles.ForEach(dto =>
+			{
+				if (dto
+					.Hotkeys
+					.Count == 0)
+				{
+					return;
+				}
+
+				dto.SetHotkeysToolTip();
+			});
+
+			ExplorerModelBaseDto[] hierarchy = _mapper
+				.Map<FolderModel[], FolderModelDto[]>(dbFolders)
+				.ToHierarchical(dtoFiles)
+				.ToArray()
+				.SortByIndexRecursively();
+
 			hierarchy
 				.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
 				.ForEach(folder =>
@@ -133,15 +189,13 @@ public sealed class AppController : IAppController
 						.ForEach(x => x.EncryptionStatus = status);
 				});
 
-			// TODO: Close splash screen here.
-
-			_viewLauncher
-				.ConfigureMainWindow(hierarchy)
-				.Show();
+			return hierarchy;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return [];
 		}
 	}
 	#endregion
@@ -207,61 +261,6 @@ public sealed class AppController : IAppController
 		_logger.LogInformationWithTemplate(builder.ToString());
 
 		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager.Settings.GetPropertyValues(true)}");
-	}
-
-	/// <summary>
-	/// Loads all <see cref="FolderModel" /> and all <see cref="FileModel" /> from database<br />
-	/// then maps it to hierarchy of <see cref="ExplorerModelBaseDto" /> and returns.
-	/// </summary>
-	private async Task<ExplorerModelBaseDto[]> LoadAllHierarchyFromDbAsync(CancellationToken token)
-	{
-		try
-		{
-			FolderModel[] dbFolders = await _dbAccess
-				.GetAllFoldersAsync(token: token)
-				.ConfigureAwait(false);
-
-			string[] excluded =
-			[
-				nameof(FileModel.Contents),
-				nameof(FileModel.Properties)
-			];
-
-			FileModel[] dbFiles = await _dbAccess
-				.GetAllFilesAsync(token: token, excludedProperties: excluded)
-				.ConfigureAwait(false);
-
-			_logger.LogInformation(
-				$"Number of objects loaded from the database:{Environment.NewLine}" +
-				$"Folders = {dbFolders.Length},{Environment.NewLine}" +
-				$"Files = {dbFiles.Length}");
-
-			FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
-
-			dtoFiles.ForEach(dto =>
-			{
-				if (dto
-					.Hotkeys
-					.Count == 0)
-				{
-					return;
-				}
-
-				dto.SetHotkeysToolTip();
-			});
-
-			return _mapper
-				.Map<FolderModel[], FolderModelDto[]>(dbFolders)
-				.ToHierarchical(dtoFiles)
-				.ToArray()
-				.SortByIndexRecursively();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return [];
-		}
 	}
 
 	/// <summary>
