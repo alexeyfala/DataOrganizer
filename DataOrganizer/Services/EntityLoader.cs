@@ -111,20 +111,22 @@ public sealed class EntityLoader : IEntityLoader
 				});
 			});
 
-			ExplorerModelBase[] entities =
-			[   .. dbFolders.OfType<ExplorerModelBase>(),
-				.. dbFiles
-			];
-
-			entities.ForEach(entity =>
+			dbFolders.ForEach(folder =>
 			{
-				if (entity.ParentId is null)
+				if (folder.ParentId is null)
 				{
+					folder.Id = Guid.NewGuid();
+
 					return;
 				}
 
-
+				;
 			});
+
+			//ExplorerModelBase[] entities =
+			//[   .. dbFolders.OfType<ExplorerModelBase>(),
+			//	.. dbFiles
+			//];
 		}
 	}
 
