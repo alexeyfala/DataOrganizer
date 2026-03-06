@@ -66,8 +66,12 @@ public sealed class EntityLoader : IEntityLoader
 
 			SqliteDbContext context = new(options);
 
-			ExplorerModelBase[] entities = [.. context
-				.Set<ExplorerModelBase>()
+			FolderModel[] dbFolders = [.. context
+				.Set<FolderModel>()
+				.AsNoTracking()];
+
+			FileModel[] dbFiles = [.. context
+				.Set<FileModel>()
 				.AsNoTracking()];
 
 			using SqliteConnection connection = (SqliteConnection)context
@@ -75,10 +79,6 @@ public sealed class EntityLoader : IEntityLoader
 				.GetDbConnection();
 
 			SqliteConnection.ClearPool(connection);
-
-			FolderModel[] dbFolders = [.. entities.OfType<FolderModel>()];
-
-			FileModel[] dbFiles = [.. entities.OfType<FileModel>()];
 
 			RegenerateId(dbFolders);
 
