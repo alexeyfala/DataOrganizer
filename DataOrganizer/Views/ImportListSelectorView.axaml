@@ -33,11 +33,11 @@
 			Spacing="{StaticResource ElementSpacing}">
 			<RadioButton
 				Content="{x:Static prop:Strings.ReplaceTheList}"
-				IsChecked="{Binding IsReplace, Mode=TwoWay}" />
+				IsChecked="{Binding Replace, Mode=TwoWay}" />
 
 			<RadioButton
 				Content="{x:Static prop:Strings.AddToEndOfList}"
-				IsChecked="{Binding AddToEnd, Mode=TwoWay}" />
+				IsChecked="{Binding AddToList, Mode=TwoWay}" />
 		</StackPanel>
 
 		<UniformGrid

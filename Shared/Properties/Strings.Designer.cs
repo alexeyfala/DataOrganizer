@@ -322,6 +322,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data import completed.
+        /// </summary>
+        public static string DataImportCompleted {
+            get {
+                return ResourceManager.GetString("DataImportCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dataset.
         /// </summary>
         public static string Dataset {
@@ -444,6 +453,15 @@ namespace Shared.Properties {
         public static string FailedToDelete {
             get {
                 return ResourceManager.GetString("FailedToDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to import data.
+        /// </summary>
+        public static string FailedToImportData {
+            get {
+                return ResourceManager.GetString("FailedToImportData", resourceCulture);
             }
         }
         

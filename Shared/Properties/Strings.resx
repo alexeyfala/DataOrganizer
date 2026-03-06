@@ -499,4 +499,10 @@
   <data name="AddToEndOfList" xml:space="preserve">
     <value>Add to end of list</value>
   </data>
+  <data name="DataImportCompleted" xml:space="preserve">
+    <value>Data import completed</value>
+  </data>
+  <data name="FailedToImportData" xml:space="preserve">
+    <value>Failed to import data</value>
+  </data>
 </root>

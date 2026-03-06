@@ -16,10 +16,10 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 {
 	#region Auto-Generated Properties
 	/// <summary>
-	/// Add to the end of the list.
+	/// Add to the list.
 	/// </summary>
 	[ObservableProperty]
-	private bool _addToEnd;
+	private bool _addToList;
 
 	/// <summary>
 	/// Header.
@@ -31,7 +31,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	/// Replace the list.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isReplace = true;
+	private bool _replace = true;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -41,14 +41,14 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	[RelayCommand]
 	private Task Apply()
 	{
-		if (IsReplace)
+		if (Replace)
 		{
 			return SetResultAsync(ImportListVariant.Replace);
 		}
 
-		if (AddToEnd)
+		if (AddToList)
 		{
-			return SetResultAsync(ImportListVariant.AddToTheEnd);
+			return SetResultAsync(ImportListVariant.AddToList);
 		}
 
 		return SetResultAsync(ImportListVariant.None);

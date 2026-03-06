@@ -519,4 +519,10 @@
   <data name="AddToEndOfList" xml:space="preserve">
     <value>Добавить в конец списка</value>
   </data>
+  <data name="DataImportCompleted" xml:space="preserve">
+    <value>Импорт данных выполнен</value>
+  </data>
+  <data name="FailedToImportData" xml:space="preserve">
+    <value>Не удалось импортировать данные</value>
+  </data>
 </root>
