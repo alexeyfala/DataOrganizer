@@ -13,7 +13,6 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,11 +75,7 @@ public sealed class EntityLoader : IEntityLoader
 
 			ClearPool(context);
 
-			RegenerateId(dbFolders);
-
-			RegenerateId(dbFiles);
-
-			RegenerateId(dbFiles.SelectMany(x => x.Hotkeys));
+			RegenerateId(dbFolders, dbFiles);
 
 			return Map(dbFolders, dbFiles);
 		}
@@ -91,11 +86,6 @@ public sealed class EntityLoader : IEntityLoader
 			return [];
 		}
 
-		static void RegenerateId(IEnumerable<EntityModelBase> entities)
-		{
-			entities.ForEach(x => x.Id = Guid.NewGuid());
-		}
-
 		static void ClearPool(SqliteDbContext context)
 		{
 			using SqliteConnection connection = (SqliteConnection)context
@@ -103,6 +93,38 @@ public sealed class EntityLoader : IEntityLoader
 				.GetDbConnection();
 
 			SqliteConnection.ClearPool(connection);
+		}
+
+		static void RegenerateId(FolderModel[] dbFolders, FileModel[] dbFiles)
+		{
+			dbFiles.ForEach(file =>
+			{
+				Guid fileId = Guid.NewGuid();
+
+				file.Id = fileId;
+
+				file.Hotkeys.ForEach(hotkey =>
+				{
+					hotkey.Id = Guid.NewGuid();
+
+					hotkey.OwnerId = fileId;
+				});
+			});
+
+			ExplorerModelBase[] entities =
+			[   .. dbFolders.OfType<ExplorerModelBase>(),
+				.. dbFiles
+			];
+
+			entities.ForEach(entity =>
+			{
+				if (entity.ParentId is null)
+				{
+					return;
+				}
+
+
+			});
 		}
 	}
 

@@ -29,6 +29,6 @@ public sealed class HotkeyModel : EntityModelBase
 	/// <summary>
 	/// Identifier of the owner.
 	/// </summary>
-	public required Guid OwnerId { get; init; }
+	public required Guid OwnerId { get; set; }
 	#endregion Properties
 }
