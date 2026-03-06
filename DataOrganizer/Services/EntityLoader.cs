@@ -95,38 +95,36 @@ public sealed class EntityLoader : IEntityLoader
 			SqliteConnection.ClearPool(connection);
 		}
 
-		static void RegenerateId(FolderModel[] dbFolders, FileModel[] dbFiles)
+		static void RegenerateId(FolderModel[] folders, FileModel[] files)
 		{
-			dbFiles.ForEach(file =>
+			files.ForEach(file =>
 			{
-				Guid fileId = Guid.NewGuid();
+				Guid newFileId = Guid.NewGuid();
 
-				file.Id = fileId;
+				file.Id = newFileId;
 
 				file.Hotkeys.ForEach(hotkey =>
 				{
 					hotkey.Id = Guid.NewGuid();
 
-					hotkey.OwnerId = fileId;
+					hotkey.OwnerId = newFileId;
 				});
 			});
 
-			dbFolders.ForEach(folder =>
+			folders.ForEach(folder =>
 			{
-				if (folder.ParentId is null)
-				{
-					folder.Id = Guid.NewGuid();
+				FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
 
-					return;
-				}
+				FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
 
-				;
+				Guid newFolderId = Guid.NewGuid();
+
+				folder.Id = newFolderId;
+
+				childFiles.ForEach(x => x.ParentId = newFolderId);
+
+				childFolders.ForEach(x => x.ParentId = newFolderId);
 			});
-
-			//ExplorerModelBase[] entities =
-			//[   .. dbFolders.OfType<ExplorerModelBase>(),
-			//	.. dbFiles
-			//];
 		}
 	}
 
