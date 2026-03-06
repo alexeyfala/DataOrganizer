@@ -629,9 +629,7 @@ public sealed class DbAccess : IDbAccess
 
 			string connectionString = new SqliteConnectionStringBuilder
 			{
-				DataSource = dataSource,
-				Mode = SqliteOpenMode.ReadOnly,
-				Cache = SqliteCacheMode.Private
+				DataSource = dataSource
 			}.ToString();
 
 			using SqliteConnection connection = new(connectionString);
@@ -647,6 +645,8 @@ public sealed class DbAccess : IDbAccess
 			string? result = cmd
 				.ExecuteScalar()?
 				.ToString();
+
+			SqliteConnection.ClearPool(connection);
 
 			return string.Equals(
 				result,
@@ -678,7 +678,7 @@ public sealed class DbAccess : IDbAccess
 				stream.ReadExactly(header, 0, 16);
 
 				string headerStr = Encoding
-					.ASCII
+					.UTF8
 					.GetString(header);
 
 				return headerStr.StartsWith("SQLite format 3");

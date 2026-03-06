@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -193,7 +194,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			string filePath = filePaths[0];
+			// The path may contain %20 instead of spaces, so it needs to be decoded.
+			string filePath = WebUtility.UrlDecode(filePaths[0]);
 
 			List<ExplorerModelBaseDto> objects = [];
 
@@ -206,13 +208,15 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case AppUtils.SQLiteExtension:
-					if (!await ImportFromSQLiteAsync(
+					if (!_dbAccess.IsValidSQLiteDatabase(filePath) || !await ImportFromSQLiteAsync(
 						filePath,
 						variant,
 						objects,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+
 						return;
 					}
 					break;
