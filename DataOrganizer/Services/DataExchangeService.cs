@@ -1,9 +1,11 @@
 ﻿using Avalonia.Platform.Storage;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using Entities.Models;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -14,6 +16,7 @@ using Shared.Properties;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -201,7 +204,11 @@ public sealed class DataExchangeService : IDataExchangeService
 							break;
 
 						case ImportListVariant.AddToTheEnd:
-							objects = _entityLoader.LoadFromDb(filePath);
+							LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
+
+							RegenerateId(result.Folders, result.Files);
+
+							objects = _entityLoader.Map(result.Folders, result.Files);
 							break;
 
 						default:
@@ -241,6 +248,43 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Regenerates identifiers.
+	/// </summary>
+	private static void RegenerateId(FolderModel[] folders, FileModel[] files)
+	{
+		files.ForEach(file =>
+		{
+			Guid newFileId = Guid.NewGuid();
+
+			file.Id = newFileId;
+
+			file.Hotkeys.ForEach(hotkey =>
+			{
+				hotkey.Id = Guid.NewGuid();
+
+				hotkey.OwnerId = newFileId;
+			});
+		});
+
+		folders.ForEach(folder =>
+		{
+			FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
+
+			FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
+
+			Guid newFolderId = Guid.NewGuid();
+
+			folder.Id = newFolderId;
+
+			childFiles.ForEach(x => x.ParentId = newFolderId);
+
+			childFolders.ForEach(x => x.ParentId = newFolderId);
+		});
 	}
 	#endregion
 }

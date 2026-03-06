@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -50,41 +51,34 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public ExplorerModelBaseDto[] LoadFromDb(string dataSource)
+	public LoadFromDbResult LoadFromDb(string dataSource)
 	{
-		try
+		SqliteConnectionStringBuilder builder = new()
 		{
-			SqliteConnectionStringBuilder builder = new()
-			{
-				DataSource = dataSource
-			};
+			DataSource = dataSource
+		};
 
-			DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-				.UseSqlite(builder.ToString())
-				.Options;
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite(builder.ToString())
+			.Options;
 
-			SqliteDbContext context = new(options);
+		SqliteDbContext context = new(options);
 
-			FolderModel[] dbFolders = [.. context
-				.Set<FolderModel>()
-				.AsNoTracking()];
+		FolderModel[] dbFolders = [.. context
+			.Set<FolderModel>()
+			.AsNoTracking()];
 
-			FileModel[] dbFiles = [.. context
-				.Set<FileModel>()
-				.AsNoTracking()];
+		FileModel[] dbFiles = [.. context
+			.Set<FileModel>()
+			.AsNoTracking()];
 
-			ClearPool(context);
+		ClearPool(context);
 
-			RegenerateId(dbFolders, dbFiles);
-
-			return Map(dbFolders, dbFiles);
-		}
-		catch (Exception ex)
+		return new()
 		{
-			_logger.LogException(ex);
-
-			return [];
-		}
+			Files = dbFiles,
+			Folders = dbFolders
+		};
 
 		static void ClearPool(SqliteDbContext context)
 		{
@@ -93,38 +87,6 @@ public sealed class EntityLoader : IEntityLoader
 				.GetDbConnection();
 
 			SqliteConnection.ClearPool(connection);
-		}
-
-		static void RegenerateId(FolderModel[] folders, FileModel[] files)
-		{
-			files.ForEach(file =>
-			{
-				Guid newFileId = Guid.NewGuid();
-
-				file.Id = newFileId;
-
-				file.Hotkeys.ForEach(hotkey =>
-				{
-					hotkey.Id = Guid.NewGuid();
-
-					hotkey.OwnerId = newFileId;
-				});
-			});
-
-			folders.ForEach(folder =>
-			{
-				FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
-
-				FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
-
-				Guid newFolderId = Guid.NewGuid();
-
-				folder.Id = newFolderId;
-
-				childFiles.ForEach(x => x.ParentId = newFolderId);
-
-				childFolders.ForEach(x => x.ParentId = newFolderId);
-			});
 		}
 	}
 
@@ -161,26 +123,9 @@ public sealed class EntityLoader : IEntityLoader
 			return [];
 		}
 	}
-	#endregion
 
-	#region Service
-	/// <summary>
-	/// Configures the <see cref="IMapper" />.
-	/// </summary>
-	private static IMapper ConfigureMapper(IMapper mapper)
-	{
-		mapper.Config
-			.NewConfig<ExplorerModelBase, ExplorerModelBaseDto>()
-			.Include<FileModel, FileModelDto>()
-			.Include<FolderModel, FolderModelDto>();
-
-		return mapper;
-	}
-
-	/// <summary>
-	/// Maps entities from the database to DTO objects.
-	/// </summary>
-	private ExplorerModelBaseDto[] Map(FolderModel[] dbFolders, FileModel[] dbFiles)
+	/// <inheritdoc />
+	public ExplorerModelBaseDto[] Map(FolderModel[] dbFolders, FileModel[] dbFiles)
 	{
 		FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
 
@@ -216,6 +161,21 @@ public sealed class EntityLoader : IEntityLoader
 			});
 
 		return hierarchy;
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Configures the <see cref="IMapper" />.
+	/// </summary>
+	private static IMapper ConfigureMapper(IMapper mapper)
+	{
+		mapper.Config
+			.NewConfig<ExplorerModelBase, ExplorerModelBaseDto>()
+			.Include<FileModel, FileModelDto>()
+			.Include<FolderModel, FolderModelDto>();
+
+		return mapper;
 	}
 	#endregion
 }
