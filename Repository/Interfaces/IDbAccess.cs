@@ -24,6 +24,16 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Adds a file sequence to the database.
+	/// </summary>
+	Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default);
+
+	/// <summary>
+	/// Adds a folder sequence to the database.
+	/// </summary>
+	Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default);
+
+	/// <summary>
 	/// Adds <see cref="FileModel.Hotkeys" /> to the entity.
 	/// </summary>
 	Task<HotkeyModel[]> AddHotkeysAsync(

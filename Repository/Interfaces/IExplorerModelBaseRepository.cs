@@ -14,7 +14,7 @@ namespace Repository.Interfaces;
 public interface IExplorerModelBaseRepository
 {
 	#region Methods
-	/// <inheritdoc cref="RepositoryBase{T}.CountAsync(Expression{Func{T, bool}}, CancellationToken)" />
+	/// <inheritdoc cref="RepositoryBase{T}.CountAsync" />
 	Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token);

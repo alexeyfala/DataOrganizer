@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace Repository.Services;
 
@@ -112,6 +113,68 @@ public sealed class DbAccess : IDbAccess
 			_logger.LogException(ex);
 
 			return null;
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _filesRepository
+				.AddRangeAsync(files, token)
+				.ConfigureAwait(false);
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _foldersRepository
+				.AddRangeAsync(folders, token)
+				.ConfigureAwait(false);
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
 		}
 		finally
 		{

@@ -27,7 +27,7 @@ public interface IDbContextService
 	/// </summary>
 	void Detach<T>(Guid id) where T : class, IIdentity;
 
-	/// <inheritdoc cref="DatabaseFacade.EnsureCreatedAsync(CancellationToken)" />
+	/// <inheritdoc cref="DatabaseFacade.EnsureCreatedAsync" />
 	Task EnsureCreatedAsync(CancellationToken token = default);
 
 	/// <summary>
@@ -35,7 +35,7 @@ public interface IDbContextService
 	/// </summary>
 	bool HasMigrations(Assembly assembly);
 
-	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.MigrateAsync(DatabaseFacade, CancellationToken)" />
+	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.MigrateAsync" />
 	Task MigrateAsync(CancellationToken token = default);
 	#endregion
 }

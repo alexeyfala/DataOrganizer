@@ -13,7 +13,7 @@ public interface IEntityLoader
 {
 	#region Methods
 	/// <summary>
-	/// Loads all entities from the specified database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
+	/// Loads all entities from the specified database.
 	/// </summary>
 	LoadFromDbResult LoadFromDb(string dataSource);
 

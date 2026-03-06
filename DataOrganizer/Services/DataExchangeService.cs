@@ -208,6 +208,20 @@ public sealed class DataExchangeService : IDataExchangeService
 
 							RegenerateId(result.Folders, result.Files);
 
+							if (result.Folders.Length > 0 && !await _dbAccess
+								.AddFoldersAsync(result.Folders, token)
+								.ConfigureAwait(false))
+							{
+								return;
+							}
+
+							if (result.Files.Length > 0 && !await _dbAccess
+								.AddFilesAsync(result.Files, token)
+								.ConfigureAwait(false))
+							{
+								return;
+							}
+
 							objects = _entityLoader.Map(result.Folders, result.Files);
 							break;
 

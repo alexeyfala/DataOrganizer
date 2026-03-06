@@ -15,8 +15,11 @@ namespace Repository.Interfaces;
 public interface IFilesRepository
 {
 	#region Methods
-	/// <inheritdoc cref="RepositoryBase{T}.AddAsync(T, CancellationToken)" />
+	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
 	ValueTask<EntityEntry<FileModel>> AddAsync(FileModel entity, CancellationToken token = default);
+
+	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
+	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token);
 
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
@@ -54,10 +57,10 @@ public interface IFilesRepository
 		, bool trackChanges = false,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.Remove(T)" />
+	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
 	EntityEntry<FileModel> Remove(FileModel entity);
 
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange(IEnumerable{T})" />
+	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
 	void RemoveRange(IEnumerable<FileModel> entities);
 	#endregion Methods
 }
