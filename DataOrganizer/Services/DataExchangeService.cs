@@ -5,6 +5,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using Entities.Abstract;
 using Entities.Models;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -207,6 +208,21 @@ public sealed class DataExchangeService : IDataExchangeService
 							LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
 
 							RegenerateId(result.Folders, result.Files);
+
+							int index = hierarchy.Count;
+
+							result
+							   .Folders
+							   .OfType<ExplorerModelBase>()
+							   .Concat(result.Files)
+							   .Where(x => x.ParentId is null)
+							   .OrderBy(x => x.Index)
+							   .ForEach(x =>
+							   {
+								   x.Index = index;
+
+								   index++;
+							   });
 
 							if (result.Folders.Length > 0 && !await _dbAccess
 								.AddFoldersAsync(result.Folders, token)
