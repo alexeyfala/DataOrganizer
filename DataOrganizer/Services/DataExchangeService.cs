@@ -252,10 +252,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(x => x
-				.CopyHistorySettings
-				.CopyHistory
-				.Clear());
+			if (variant == ImportListVariant.Replace)
+			{
+				_viewModel.ExecuteInEditor(x => x
+					.CopyHistorySettings
+					.CopyHistory
+					.Clear());
+			}
 		}
 		catch (Exception ex)
 		{
