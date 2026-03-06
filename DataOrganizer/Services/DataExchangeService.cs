@@ -139,7 +139,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		CancellationToken token = default)
 	{
 		// TODO: Test
-		ImportListVariant variant = ImportListVariant.AddToTheEnd;
+		ImportListVariant variant = ImportListVariant.Replace;
 
 		if (hierarchy.Count != 0)
 		{
