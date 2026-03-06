@@ -5,6 +5,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
+using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Models;
 using Repository.DTO;
@@ -144,6 +145,20 @@ public sealed class DataExchangeService : IDataExchangeService
 		if (hierarchy.Count != 0)
 		{
 			ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
+
+			_ = DialogHost.Show(view);
+
+			ImportListVariant result = await view
+				.ViewModel
+				.GetResultAsync(token)
+				.ConfigureAwait(false);
+
+			if (result == ImportListVariant.None)
+			{
+				return;
+			}
+
+			variant = result;
 		}
 
 		FilePickerOpenOptions options = new()

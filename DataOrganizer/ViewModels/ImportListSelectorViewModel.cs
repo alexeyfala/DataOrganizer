@@ -2,6 +2,8 @@
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -13,6 +15,16 @@ internal sealed class ImportListSelectorViewModel : AsyncResultViewModelBase<Imp
 	#region Constructors
 	public ImportListSelectorViewModel(Application app) : base(app)
 	{
+	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
+	public Task<ImportListVariant> GetResultAsync(CancellationToken token = default)
+	{
+		return GetResultAsync(
+			defaultResult: ImportListVariant.None,
+			token: token);
 	}
 	#endregion
 }

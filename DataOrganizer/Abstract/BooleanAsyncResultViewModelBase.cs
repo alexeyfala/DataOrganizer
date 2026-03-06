@@ -16,7 +16,9 @@ public abstract class BooleanAsyncResultViewModelBase : AsyncResultViewModelBase
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
 	public Task<bool> GetResultAsync(in CancellationToken token = default)
 	{
-		return GetResultAsync(defaultResult: false, token: token);
+		return GetResultAsync(
+			defaultResult: false,
+			token: token);
 	}
 	#endregion
 }
