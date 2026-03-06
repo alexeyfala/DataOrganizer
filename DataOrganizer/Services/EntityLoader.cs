@@ -74,11 +74,7 @@ public sealed class EntityLoader : IEntityLoader
 				.Set<FileModel>()
 				.AsNoTracking()];
 
-			using SqliteConnection connection = (SqliteConnection)context
-				.Database
-				.GetDbConnection();
-
-			SqliteConnection.ClearPool(connection);
+			ClearPool(context);
 
 			RegenerateId(dbFolders);
 
@@ -98,6 +94,15 @@ public sealed class EntityLoader : IEntityLoader
 		static void RegenerateId(IEnumerable<EntityModelBase> entities)
 		{
 			entities.ForEach(x => x.Id = Guid.NewGuid());
+		}
+
+		static void ClearPool(SqliteDbContext context)
+		{
+			using SqliteConnection connection = (SqliteConnection)context
+				.Database
+				.GetDbConnection();
+
+			SqliteConnection.ClearPool(connection);
 		}
 	}
 
