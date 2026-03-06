@@ -180,38 +180,35 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case AppUtils.SQLiteExtension:
+
+					ExplorerModelBaseDto[] objects = [];
+
 					switch (variant)
 					{
 						case ImportListVariant.Replace:
+							if (!await _dbAccess
+								.RestoreFromBackupAsync(filePath, token)
+								.ConfigureAwait(false))
 							{
-								if (!await _dbAccess
-									.RestoreFromBackupAsync(filePath, token)
-									.ConfigureAwait(false))
-								{
-									return;
-								}
-
-								hierarchy.Clear();
-
-								ExplorerModelBaseDto[] objects = await _entityLoader
-									.LoadFromEmbeddedDbAsync(token)
-									.ConfigureAwait(false);
-
-								_viewModel.ExecuteInEditor(x => x.AddHierarchy(objects));
+								return;
 							}
+
+							hierarchy.Clear();
+
+							objects = await _entityLoader
+								.LoadFromEmbeddedDbAsync(token)
+								.ConfigureAwait(false);
 							break;
 
 						case ImportListVariant.AddToTheEnd:
-							{
-								ExplorerModelBaseDto[] objects = _entityLoader.LoadFromDb(filePath);
-
-								;
-							}
+							objects = _entityLoader.LoadFromDb(filePath);
 							break;
 
 						default:
 							throw new NotImplementedException();
 					}
+
+					_viewModel.ExecuteInEditor(x => x.AddHierarchy(objects));
 					break;
 
 				default:
