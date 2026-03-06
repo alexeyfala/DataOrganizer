@@ -7,7 +7,6 @@ using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Models;
 using MapsterMapper;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
 using Repository.Interfaces;
@@ -53,16 +52,7 @@ public sealed class EntityLoader : IEntityLoader
 	/// <inheritdoc />
 	public LoadFromDbResult LoadFromDb(string dataSource)
 	{
-		SqliteConnectionStringBuilder builder = new()
-		{
-			DataSource = dataSource
-		};
-
-		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-			.UseSqlite(builder.ToString())
-			.Options;
-
-		SqliteDbContext context = new(options);
+		using SqliteDbContext context = _dbAccess.GetSQliteDbContext(dataSource);
 
 		FolderModel[] dbFolders = [.. context
 			.Set<FolderModel>()
@@ -72,22 +62,13 @@ public sealed class EntityLoader : IEntityLoader
 			.Set<FileModel>()
 			.AsNoTracking()];
 
-		ClearPool(context);
+		_dbAccess.ClearPool(context);
 
 		return new()
 		{
 			Files = dbFiles,
 			Folders = dbFolders
 		};
-
-		static void ClearPool(SqliteDbContext context)
-		{
-			using SqliteConnection connection = (SqliteConnection)context
-				.Database
-				.GetDbConnection();
-
-			SqliteConnection.ClearPool(connection);
-		}
 	}
 
 	/// <inheritdoc />

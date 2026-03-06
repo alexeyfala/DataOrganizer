@@ -20,9 +20,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
 namespace Repository.Services;
 
@@ -299,6 +299,16 @@ public sealed class DbAccess : IDbAccess
 		{
 			SqliteConnection.ClearPool(dest);
 		}
+	}
+
+	/// <inheritdoc />
+	public void ClearPool(SqliteDbContext context)
+	{
+		using SqliteConnection connection = (SqliteConnection)context
+			.Database
+			.GetDbConnection();
+
+		SqliteConnection.ClearPool(connection);
 	}
 
 	/// <inheritdoc />
@@ -589,6 +599,94 @@ public sealed class DbAccess : IDbAccess
 		await foreach (Guid id in identifiers.ToAsyncEnumerable())
 		{
 			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
+		}
+	}
+
+	/// <inheritdoc />
+	public SqliteDbContext GetSQliteDbContext(string dataSource)
+	{
+		SqliteConnectionStringBuilder builder = new()
+		{
+			DataSource = dataSource
+		};
+
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite(builder.ToString())
+			.Options;
+
+		return new(options);
+	}
+
+	/// <inheritdoc />
+	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false)
+	{
+		try
+		{
+			if (!HasValidHeader(dataSource))
+			{
+				return false;
+			}
+
+			string connectionString = new SqliteConnectionStringBuilder
+			{
+				DataSource = dataSource,
+				Mode = SqliteOpenMode.ReadOnly,
+				Cache = SqliteCacheMode.Private
+			}.ToString();
+
+			using SqliteConnection connection = new(connectionString);
+
+			connection.Open();
+
+			using SqliteCommand cmd = connection.CreateCommand();
+
+			cmd.CommandText = deepCheck
+				? "PRAGMA integrity_check;"
+				: "PRAGMA quick_check;";
+
+			string? result = cmd
+				.ExecuteScalar()?
+				.ToString();
+
+			return string.Equals(
+				result,
+				"ok",
+				StringComparison.OrdinalIgnoreCase);
+		}
+		catch
+		{
+			return false;
+		}
+
+		static bool HasValidHeader(string filePath)
+		{
+			try
+			{
+				byte[] header = new byte[16];
+
+				using FileStream stream = new(
+					filePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.ReadWrite);
+
+				if (stream.Length < 16)
+				{
+					return false;
+				}
+
+				stream.ReadExactly(header, 0, 16);
+
+				string headerStr = Encoding
+					.ASCII
+					.GetString(header);
+
+				return headerStr.StartsWith("SQLite format 3");
+			}
+			catch
+			{
+				return false;
+			}
 		}
 	}
 
