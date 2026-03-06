@@ -1,4 +1,6 @@
 ﻿using Avalonia;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Views;
@@ -10,8 +12,55 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="ImportListSelectorView" />.
 /// </summary>
-internal sealed class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportListVariant>
+internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportListVariant>
 {
+	#region Auto-Generated Properties
+	/// <summary>
+	/// Add to the end of the list.
+	/// </summary>
+	[ObservableProperty]
+	private bool _addToEnd;
+
+	/// <summary>
+	/// Header.
+	/// </summary>
+	[ObservableProperty]
+	private string? _header;
+
+	/// <summary>
+	/// Replace the list.
+	/// </summary>
+	[ObservableProperty]
+	private bool _isReplace = true;
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Apply.
+	/// </summary>
+	[RelayCommand]
+	private Task Apply()
+	{
+		if (IsReplace)
+		{
+			return SetResultAsync(ImportListVariant.Replace);
+		}
+
+		if (AddToEnd)
+		{
+			return SetResultAsync(ImportListVariant.AddToTheEnd);
+		}
+
+		return SetResultAsync(ImportListVariant.None);
+	}
+
+	/// <summary>
+	/// Cancel.
+	/// </summary>
+	[RelayCommand]
+	private Task Cancel() => SetResultAsync(ImportListVariant.None);
+	#endregion
+
 	#region Constructors
 	public ImportListSelectorViewModel(Application app) : base(app)
 	{

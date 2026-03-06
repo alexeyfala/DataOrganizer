@@ -146,6 +146,10 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
 
+			view
+				.ViewModel
+				.Header = Strings.ImportingObjects;
+
 			_ = DialogHost.Show(view);
 
 			ImportListVariant result = await view

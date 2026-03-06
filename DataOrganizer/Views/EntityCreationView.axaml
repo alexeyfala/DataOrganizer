@@ -26,7 +26,7 @@
 			Grid.Column="0"
 			Grid.ColumnSpan=""
 			Orientation="Vertical"
-			Spacing="4.0">
+			Spacing="{StaticResource ElementSpacing}">
 
 			<StackPanel.Resources>
 				<Thickness x:Key="FileMargin">12.0,0.0,0.0,0.0</Thickness>

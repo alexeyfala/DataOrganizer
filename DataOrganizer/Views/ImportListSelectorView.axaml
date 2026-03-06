@@ -14,9 +14,54 @@
 		<vm:ImportListSelectorViewModel />
 	</Design.DataContext>
 
-	<StackPanel Orientation="Vertical">
-		<RadioButton Content="{x:Static prop:Strings.ReplaceTheList}" />
-		
-		<RadioButton Content="{x:Static prop:Strings.AddToEndOfList}" />
-	</StackPanel>
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Classes="HeaderTextBlockStyle"
+			Text="{Binding Header, Mode=OneWay}" />
+
+		<StackPanel
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Orientation="Vertical"
+			Spacing="{StaticResource ElementSpacing}">
+			<RadioButton
+				Content="{x:Static prop:Strings.ReplaceTheList}"
+				IsChecked="{Binding IsReplace, Mode=TwoWay}" />
+
+			<RadioButton
+				Content="{x:Static prop:Strings.AddToEndOfList}"
+				IsChecked="{Binding AddToEnd, Mode=TwoWay}" />
+		</StackPanel>
+
+		<UniformGrid
+			Grid.Row="2"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding ApplyCommand}"
+				Content="{x:Static prop:Strings.Apply}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding CancelCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True" />
+		</UniformGrid>
+	</Grid>
 </UserControl>
