@@ -106,5 +106,21 @@ public sealed class DialogService : IDialogService
 
 		return source.Task;
 	}
+
+	/// <inheritdoc />
+	public Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default)
+	{
+		ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
+
+		view
+			.ViewModel
+			.Header = Strings.ImportingObjects;
+
+		_ = DialogHost.Show(view);
+
+		return view
+			.ViewModel
+			.GetResultAsync(token);
+	}
 	#endregion
 }

@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.Enums;
 
-internal enum ImportListVariant : byte
+public enum ImportListVariant : byte
 {
 	None,
 	Replace,

@@ -3,9 +3,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
-using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Models;
 using Repository.DTO;
@@ -32,6 +30,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
 
@@ -54,6 +55,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	#region Constructors
 	public DataExchangeService(
 		IDbAccess dbAccess,
+		IDialogService dialogService,
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
 		IFileSystemEnrtyPicker picker,
@@ -62,6 +64,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		IViewModelExecutionService viewModel)
 	{
 		_dbAccess = dbAccess;
+
+		_dialogService = dialogService;
 
 		_entityLoader = entityLoader;
 
@@ -146,25 +150,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (hierarchy.Count != 0)
 		{
-			ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
-
-			view
-				.ViewModel
-				.Header = Strings.ImportingObjects;
-
-			_ = DialogHost.Show(view);
-
-			ImportListVariant result = await view
-				.ViewModel
-				.GetResultAsync(token)
+			variant = await _dialogService
+				.SelectImportVariantAsync(token)
 				.ConfigureAwait(false);
 
-			if (result == ImportListVariant.None)
+			if (variant == ImportListVariant.None)
 			{
 				return;
 			}
-
-			variant = result;
 		}
 
 		FilePickerOpenOptions options = new()
