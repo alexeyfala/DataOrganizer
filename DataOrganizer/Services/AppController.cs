@@ -98,7 +98,7 @@ public sealed class AppController : IAppController
 			// TODO: Display a splash screen while connecting to database.
 
 			await _dbAccess
-				.ConnectAsync(useMigrations: false, token)
+				.ConnectAsync(token)
 				.ConfigureAwait(true);
 
 			if (_options.FillObjects)

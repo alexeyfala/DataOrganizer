@@ -312,15 +312,13 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public Task ConnectAsync(
-		bool useMigrations,
-		CancellationToken token = default)
+	public Task ConnectAsync(CancellationToken token = default)
 	{
 		try
 		{
 			_logger.LogInformation("Connecting to the database.");
 
-			return useMigrations && _dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
+			return _dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
 				? _dbContextService.MigrateAsync(token)
 				: _dbContextService.EnsureCreatedAsync(token);
 		}

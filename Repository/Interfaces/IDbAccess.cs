@@ -59,9 +59,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Establishes a connection to the database.
 	/// </summary>
-	Task ConnectAsync(
-		bool useMigrations,
-		CancellationToken token = default);
+	Task ConnectAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(

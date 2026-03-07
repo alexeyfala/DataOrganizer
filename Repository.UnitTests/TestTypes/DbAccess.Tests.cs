@@ -130,7 +130,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		await sut.ConnectAsync(useMigrations);
+		await sut.ConnectAsync();
 
 		// Assert
 		if (useMigrations)

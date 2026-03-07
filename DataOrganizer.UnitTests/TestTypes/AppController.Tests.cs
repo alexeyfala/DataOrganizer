@@ -74,7 +74,7 @@ internal class AppControllerTests
 
 		await dbAccess
 			.Received()
-			.ConnectAsync(Arg.Any<bool>());
+			.ConnectAsync();
 
 		await entityLoader
 			.Received()
