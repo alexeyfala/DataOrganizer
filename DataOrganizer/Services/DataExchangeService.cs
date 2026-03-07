@@ -473,7 +473,19 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		FileModel[] files = [.. entities.OfType<FileModel>()];
 
-		// TODO: Add entities to DB
+		if (!await _dbAccess
+			.AddFoldersAsync(folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (!await _dbAccess
+			.AddFilesAsync(files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
 
 		objects.AddRange(_entityLoader.Map(
 			folders,
