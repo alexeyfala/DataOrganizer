@@ -302,6 +302,32 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public bool ClearDatabase()
+	{
+		try
+		{
+			_dbContextService.EnsureDeleted();
+
+			if (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly()))
+			{
+				_dbContextService.Migrate();
+			}
+			else
+			{
+				_dbContextService.EnsureCreated();
+			}
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+	}
+
+	/// <inheritdoc />
 	public void ClearPool(SqliteDbContext context)
 	{
 		using SqliteConnection connection = (SqliteConnection)context

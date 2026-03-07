@@ -53,6 +53,11 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
 
+	/// <summary>
+	/// Completely clears the database.
+	/// </summary>
+	bool ClearDatabase();
+
 	/// <inheritdoc cref="SqliteConnection.ClearPool" />
 	void ClearPool(SqliteDbContext context);
 

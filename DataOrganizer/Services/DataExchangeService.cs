@@ -205,6 +205,10 @@ public sealed class DataExchangeService : IDataExchangeService
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
+						await _dbAccess
+							.RestoreFromBackupAsync(backupFilePath, token)
+							.ConfigureAwait(false);
+
 						return;
 					}
 					break;
@@ -221,6 +225,10 @@ public sealed class DataExchangeService : IDataExchangeService
 						token).ConfigureAwait(false))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+
+						await _dbAccess
+							.RestoreFromBackupAsync(backupFilePath, token)
+							.ConfigureAwait(false);
 
 						return;
 					}
@@ -467,7 +475,10 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		// TODO: Delete all entities in DB
+		if (!_dbAccess.ClearDatabase())
+		{
+			return false;
+		}
 
 		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
 
