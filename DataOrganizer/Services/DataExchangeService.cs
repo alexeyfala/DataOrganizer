@@ -115,15 +115,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case AppUtils.SQLiteExtension:
-					BackupSqliteParameters parameters = new()
-					{
-						ClearDestPool = true,
-						ClearSourcePool = false,
-						DestFilePath = filePath,
-						SourceFilePath = _dbAccess.GetDbFilePath()
-					};
-
-					_dbAccess.BackupSqliteDatabase(parameters);
+					ExportToSQLite(filePath);
 					break;
 
 				default:
@@ -337,6 +329,22 @@ public sealed class DataExchangeService : IDataExchangeService
 		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
 
 		return true;
+	}
+
+	/// <summary>
+	/// Exports data to SQLite database.
+	/// </summary>
+	private void ExportToSQLite(string filePath)
+	{
+		BackupSqliteParameters parameters = new()
+		{
+			ClearDestPool = true,
+			ClearSourcePool = false,
+			DestFilePath = filePath,
+			SourceFilePath = _dbAccess.GetDbFilePath()
+		};
+
+		_dbAccess.BackupSqliteDatabase(parameters);
 	}
 
 	/// <summary>
