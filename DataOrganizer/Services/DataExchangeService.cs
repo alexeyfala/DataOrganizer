@@ -196,6 +196,17 @@ public sealed class DataExchangeService : IDataExchangeService
 			switch (Path.GetExtension(filePath))
 			{
 				case IFileSystemEnrtyPicker.JsonExt:
+					if (!await ImportFromJsonAsync(
+						filePath,
+						variant,
+						objects,
+						hierarchy,
+						token))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+
+						return;
+					}
 					break;
 
 				case IFileSystemEnrtyPicker.XmlExt:
@@ -294,6 +305,18 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Adds a data to the list from JSON.
+	/// </summary>
+	private async Task<bool> AddToListFromJsonAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		return true;
+	}
+
+	/// <summary>
 	/// Adds a data to the list from SQLite database.
 	/// </summary>
 	private async Task<bool> AddToListFromSQLiteAsync(
@@ -377,6 +400,32 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Imports data from JSON.
+	/// </summary>
+	private Task<bool> ImportFromJsonAsync(
+		string filePath,
+		ImportListVariant variant,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		return variant switch
+		{
+			ImportListVariant.Replace => ReplaceFromJsonAsync(
+				filePath,
+				objects,
+				hierarchy,
+				token),
+			ImportListVariant.AddToList => AddToListFromJsonAsync(
+				filePath,
+				objects,
+				hierarchy,
+				token),
+			_ => throw new NotImplementedException()
+		};
+	}
+
+	/// <summary>
 	/// Imports data from SQLite database.
 	/// </summary>
 	private Task<bool> ImportFromSQLiteAsync(
@@ -400,6 +449,18 @@ public sealed class DataExchangeService : IDataExchangeService
 				token),
 			_ => throw new NotImplementedException()
 		};
+	}
+
+	/// <summary>
+	/// Replaces the list with data from json.
+	/// </summary>
+	private async Task<bool> ReplaceFromJsonAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		return true;
 	}
 
 	/// <summary>
