@@ -87,6 +87,9 @@ public interface IFileSystem
 	/// </summary>
 	bool IsFileLocked(string filePath);
 
+	/// <inheritdoc cref="File.ReadAllText(string)" />
+	string ReadAllText(string filePath);
+
 	/// <summary>
 	/// Serializes an object into a Json string, saving it to a file using <see cref="System.Text.Json" />.
 	/// </summary>

@@ -13,6 +13,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,9 +107,9 @@ public sealed class EntityLoader : IEntityLoader
 	}
 
 	/// <inheritdoc />
-	public ExplorerModelBaseDto[] Map(FolderModel[] dbFolders, FileModel[] dbFiles)
+	public ExplorerModelBaseDto[] Map(IEnumerable<FolderModel> dbFolders, IEnumerable<FileModel> dbFiles)
 	{
-		FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
+		FileModelDto[] dtoFiles = _mapper.Map<IEnumerable<FileModel>, FileModelDto[]>(dbFiles);
 
 		dtoFiles.ForEach(dto =>
 		{
@@ -123,7 +124,7 @@ public sealed class EntityLoader : IEntityLoader
 		});
 
 		ExplorerModelBaseDto[] hierarchy = _mapper
-			.Map<FolderModel[], FolderModelDto[]>(dbFolders)
+			.Map<IEnumerable<FolderModel>, FolderModelDto[]>(dbFolders)
 			.ToHierarchical(dtoFiles)
 			.ToArray()
 			.SortByIndexRecursively();

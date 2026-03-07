@@ -196,12 +196,11 @@ public sealed class DataExchangeService : IDataExchangeService
 			switch (Path.GetExtension(filePath))
 			{
 				case IFileSystemEnrtyPicker.JsonExt:
-					if (!await ImportFromJsonAsync(
+					if (!ImportFromJson(
 						filePath,
 						variant,
 						objects,
-						hierarchy,
-						token))
+						hierarchy))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
@@ -307,11 +306,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Adds a data to the list from JSON.
 	/// </summary>
-	private async Task<bool> AddToListFromJsonAsync(
+	private bool AddToListFromJson(
 		string filePath,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
+		Collection<ExplorerModelBaseDto> hierarchy)
 	{
 		return true;
 	}
@@ -402,25 +400,22 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
-	private Task<bool> ImportFromJsonAsync(
+	private bool ImportFromJson(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
+		Collection<ExplorerModelBaseDto> hierarchy)
 	{
 		return variant switch
 		{
-			ImportListVariant.Replace => ReplaceFromJsonAsync(
+			ImportListVariant.Replace => ReplaceFromJson(
 				filePath,
 				objects,
-				hierarchy,
-				token),
-			ImportListVariant.AddToList => AddToListFromJsonAsync(
+				hierarchy),
+			ImportListVariant.AddToList => AddToListFromJson(
 				filePath,
 				objects,
-				hierarchy,
-				token),
+				hierarchy),
 			_ => throw new NotImplementedException()
 		};
 	}
@@ -454,12 +449,24 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Replaces the list with data from json.
 	/// </summary>
-	private async Task<bool> ReplaceFromJsonAsync(
+	private bool ReplaceFromJson(
 		string filePath,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
+		Collection<ExplorerModelBaseDto> hierarchy)
 	{
+		string json = _fileSystem.ReadAllText(filePath);
+
+		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not ExplorerModelBase[] entities)
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(
+			entities.OfType<FolderModel>(),
+			entities.OfType<FileModel>()));
+
+		hierarchy.Clear();
+
 		return true;
 	}
 
@@ -479,13 +486,13 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		hierarchy.Clear();
-
 		ExplorerModelBaseDto[] result = await _entityLoader
 			.LoadFromEmbeddedDbAsync(token)
 			.ConfigureAwait(false);
 
 		objects.AddRange(result);
+
+		hierarchy.Clear();
 
 		return true;
 	}

@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +26,6 @@ public interface IEntityLoader
 	/// <summary>
 	/// Maps entities from the database to DTO objects.
 	/// </summary>
-	ExplorerModelBaseDto[] Map(FolderModel[] dbFolders, FileModel[] dbFiles);
+	ExplorerModelBaseDto[] Map(IEnumerable<FolderModel> dbFolders, IEnumerable<FileModel> dbFiles);
 	#endregion
 }

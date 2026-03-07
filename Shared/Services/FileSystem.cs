@@ -158,6 +158,9 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
+
+	/// <inheritdoc />
 	public void SerializeToJsonFile<T>(
 		T value,
 		string filePath,
