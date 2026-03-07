@@ -63,7 +63,7 @@ public interface IDbAccess : IDisposable
 		bool useMigrations,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync(Expression{Func{ExplorerModelBase, bool}}, CancellationToken)" />
+	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token = default);
@@ -83,14 +83,13 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
-	/// <inheritdoc cref="IFilesRepository.GetAllAsync(bool, bool, CancellationToken, string[])" />
+	/// <inheritdoc cref="IFilesRepository.GetAllAsync" />
 	Task<FileModel[]> GetAllFilesAsync(
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties);
 
-	/// <inheritdoc cref="IFoldersRepository.GetAllAsync(bool, CancellationToken)" />
+	/// <inheritdoc cref="IFoldersRepository.GetAllAsync" />
 	Task<FolderModel[]> GetAllFoldersAsync(
 		bool trackChanges = false,
 		CancellationToken token = default);
@@ -140,7 +139,7 @@ public interface IDbAccess : IDisposable
 		CancellationToken token,
 		params string[] propertyNames) where T : class, IIdentity;
 
-	/// <inheritdoc cref="UpdatePropertiesAsync{T}(T, CancellationToken, string[])" />
+	/// <inheritdoc cref="UpdatePropertiesAsync{T}" />
 	Task<bool> UpdatePropertiesAsync(
 		Guid id,
 		CancellationToken token,

@@ -25,7 +25,6 @@ public interface IFilesRepository
 	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
 	/// </summary>
 	Task<FileModel[]> GetAllAsync(
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties);
@@ -35,7 +34,6 @@ public interface IFilesRepository
 	/// </summary>
 	Task<FileModel> GetAsync(
 		Guid id,
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default);
 
@@ -44,7 +42,6 @@ public interface IFilesRepository
 	/// </summary>
 	Task<FileModel[]> GetAsync(
 		Expression<Func<FileModel, bool>> condition,
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default);
 
@@ -53,8 +50,7 @@ public interface IFilesRepository
 	/// </summary>
 	Task<FileModel[]> GetAsync(
 		IEnumerable<Guid> identifiers,
-		bool includeDependencies = false
-		, bool trackChanges = false,
+		bool trackChanges = false,
 		CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.Remove" />

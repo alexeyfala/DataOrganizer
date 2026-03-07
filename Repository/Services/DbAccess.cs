@@ -369,7 +369,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			DetachAndDelete(await _filesRepository
-				.GetAsync(id, includeDependencies: true, token: token)
+				.GetAsync(id, token: token)
 				.ConfigureAwait(false));
 
 			int count = await _dbContext
@@ -399,7 +399,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DetachAndDelete(await GetChildFilesAsync(id, includeDependencies: true, token)
+			DetachAndDelete(await GetChildFilesAsync(id, token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false));
 
@@ -467,7 +467,6 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<FileModel[]> GetAllFilesAsync(
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties)
@@ -479,7 +478,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _filesRepository.GetAllAsync(
-				includeDependencies,
 				trackChanges,
 				token,
 				excludedProperties).ConfigureAwait(false);
@@ -1045,11 +1043,10 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private async IAsyncEnumerable<FileModel> GetChildFilesAsync(
 		Guid parentId,
-		bool includeDependencies = false,
-		[EnumeratorCancellation] CancellationToken token = default)
+		[EnumeratorCancellation] CancellationToken token)
 	{
 		foreach (FileModel document in await _filesRepository
-			.GetAsync(x => x.ParentId == parentId, includeDependencies, token: token)
+			.GetAsync(x => x.ParentId == parentId, token: token)
 			.ConfigureAwait(false))
 		{
 			yield return document;
@@ -1061,7 +1058,6 @@ public sealed class DbAccess : IDbAccess
 		{
 			await foreach (FileModel child in GetChildFilesAsync(
 				folder.Id,
-				includeDependencies,
 				token).ConfigureAwait(false))
 			{
 				yield return child;

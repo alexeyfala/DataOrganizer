@@ -109,6 +109,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			switch (Path.GetExtension(filePath))
 			{
 				case IFileSystemEnrtyPicker.JsonExt:
+					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				case IFileSystemEnrtyPicker.XmlExt:
@@ -329,6 +330,22 @@ public sealed class DataExchangeService : IDataExchangeService
 		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
 
 		return true;
+	}
+
+	/// <summary>
+	/// Exports data to JSON.
+	/// </summary>
+	private async Task ExportToJsonAsync(string filePath, CancellationToken token = default)
+	{
+		FolderModel[] dbFolders = await _dbAccess
+			.GetAllFoldersAsync(token: token)
+			.ConfigureAwait(false);
+
+		FileModel[] dbFiles = await _dbAccess
+			.GetAllFilesAsync(token: token)
+			.ConfigureAwait(false);
+
+		ExplorerModelBase[] entities = [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
 	}
 
 	/// <summary>
