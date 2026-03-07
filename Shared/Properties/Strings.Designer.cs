@@ -457,6 +457,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to export data.
+        /// </summary>
+        public static string FailedToExportData {
+            get {
+                return ResourceManager.GetString("FailedToExportData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to import data.
         /// </summary>
         public static string FailedToImportData {

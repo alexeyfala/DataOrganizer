@@ -235,6 +235,9 @@ public sealed class FileSystem : IFileSystem
 	{
 		return File.WriteAllBytesAsync(filePath, bytes, token);
 	}
+
+	/// <inheritdoc />
+	public void WriteAllText(string filePath, string? contents) => File.WriteAllText(filePath, contents);
 	#endregion
 
 	#region Service

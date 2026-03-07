@@ -39,6 +39,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="IJsonSerializerWrapper" />
+	private readonly IJsonSerializerWrapper _jsonSerializer;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -59,6 +62,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
 		IFileSystemEnrtyPicker picker,
+		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewFactory viewFactory,
 		IViewModelExecutionService viewModel)
@@ -70,6 +74,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_entityLoader = entityLoader;
 
 		_fileSystem = fileSystem;
+
+		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
 
@@ -126,6 +132,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToExportData));
 		}
 		finally
 		{
@@ -346,6 +354,10 @@ public sealed class DataExchangeService : IDataExchangeService
 			.ConfigureAwait(false);
 
 		ExplorerModelBase[] entities = [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
+
+		_fileSystem.WriteAllText(
+			filePath,
+			_jsonSerializer.Serialize(entities, AppUtils.JsonOptions));
 	}
 
 	/// <summary>

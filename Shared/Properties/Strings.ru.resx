@@ -525,4 +525,7 @@
   <data name="FailedToImportData" xml:space="preserve">
     <value>Не удалось импортировать данные</value>
   </data>
+  <data name="FailedToExportData" xml:space="preserve">
+    <value>Не удалось экспортировать данные</value>
+  </data>
 </root>

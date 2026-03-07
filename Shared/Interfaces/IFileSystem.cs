@@ -115,5 +115,8 @@ public interface IFileSystem
 		string filePath,
 		byte[] bytes,
 		CancellationToken token = default);
+
+	/// <inheritdoc cref="File.WriteAllText(string, string?)" />
+	void WriteAllText(string filePath, string? contents);
 	#endregion
 }
