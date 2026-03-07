@@ -279,17 +279,17 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		folders.ForEach(folder =>
 		{
-			FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
-
 			FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
+
+			FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
 
 			Guid newFolderId = Guid.NewGuid();
 
 			folder.Id = newFolderId;
 
-			childFiles.ForEach(x => x.ParentId = newFolderId);
-
 			childFolders.ForEach(x => x.ParentId = newFolderId);
+
+			childFiles.ForEach(x => x.ParentId = newFolderId);
 		});
 	}
 
