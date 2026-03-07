@@ -2,6 +2,7 @@
 using SharpHook.Data;
 using System;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace Entities.Models;
 
@@ -24,6 +25,7 @@ public sealed class HotkeyModel : EntityModelBase
 	/// <summary>
 	/// Reference to the owner.
 	/// </summary>
+	[JsonIgnore]
 	public FileModel? Owner { get; init; }
 
 	/// <summary>

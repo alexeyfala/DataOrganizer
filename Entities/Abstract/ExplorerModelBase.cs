@@ -2,6 +2,7 @@
 using Entities.Models;
 using System;
 using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace Entities.Abstract;
 
@@ -12,12 +13,15 @@ namespace Entities.Abstract;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
+[JsonDerivedType(typeof(FolderModel), typeDiscriminator: nameof(FolderModel))]
+[JsonDerivedType(typeof(FileModel), typeDiscriminator: nameof(FileModel))]
 public abstract class ExplorerModelBase : EntityModelBase
 {
 	#region Properties
 	/// <summary>
 	/// Date of creation.
 	/// </summary>
+	[JsonIgnore]
 	public DateTime CreatedDate { get; init; }
 
 	/// <inheritdoc cref="Enums.EntityType" />
@@ -31,6 +35,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// <summary>
 	/// Returns <c>True</c> if the object is selected in the list.
 	/// </summary>
+	[JsonIgnore]
 	public bool IsSelected { get; init; }
 
 	/// <summary>
@@ -46,6 +51,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// <summary>
 	/// Reference to the parent object.
 	/// </summary>
+	[JsonIgnore]
 	public FolderModel? Parent { get; set; }
 
 	/// <summary>
@@ -56,6 +62,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// <summary>
 	/// Date of change.
 	/// </summary>
+	[JsonIgnore]
 	public DateTime UpdatedDate { get; init; }
 	#endregion
 }

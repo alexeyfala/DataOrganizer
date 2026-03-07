@@ -1,5 +1,6 @@
 ﻿using Entities.Abstract;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace Entities.Models;
 
@@ -12,6 +13,7 @@ public sealed class FolderModel : ExplorerModelBase
 	/// <summary>
 	/// Child objects.
 	/// </summary>
+	[JsonIgnore]
 	public Collection<ExplorerModelBase> Children { get; } = [];
 
 	/// <summary>
@@ -22,6 +24,7 @@ public sealed class FolderModel : ExplorerModelBase
 	/// <summary>
 	/// Returns <c>True</c> if the folder is expanded.
 	/// </summary>
+	[JsonIgnore]
 	public bool IsExpanded { get; init; }
 
 	/// <summary>
