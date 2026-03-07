@@ -196,11 +196,12 @@ public sealed class DataExchangeService : IDataExchangeService
 			switch (Path.GetExtension(filePath))
 			{
 				case IFileSystemEnrtyPicker.JsonExt:
-					if (!ImportFromJson(
+					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
 						objects,
-						hierarchy))
+						hierarchy,
+						token))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
@@ -306,10 +307,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Adds a data to the list from JSON.
 	/// </summary>
-	private bool AddToListFromJson(
+	private async Task<bool> AddToListFromJsonAsync(
 		string filePath,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy)
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
 	{
 		return true;
 	}
@@ -400,22 +402,25 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
-	private bool ImportFromJson(
+	private Task<bool> ImportFromJsonAsync(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy)
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
 	{
 		return variant switch
 		{
-			ImportListVariant.Replace => ReplaceFromJson(
+			ImportListVariant.Replace => ReplaceFromJsonAsync(
 				filePath,
 				objects,
-				hierarchy),
-			ImportListVariant.AddToList => AddToListFromJson(
+				hierarchy,
+				token),
+			ImportListVariant.AddToList => AddToListFromJsonAsync(
 				filePath,
 				objects,
-				hierarchy),
+				hierarchy,
+				token),
 			_ => throw new NotImplementedException()
 		};
 	}
@@ -449,10 +454,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Replaces the list with data from json.
 	/// </summary>
-	private bool ReplaceFromJson(
+	private async Task<bool> ReplaceFromJsonAsync(
 		string filePath,
 		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy)
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
 	{
 		string json = _fileSystem.ReadAllText(filePath);
 
@@ -461,9 +467,17 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
+		// TODO: Delete all entities in DB
+
+		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+
+		FileModel[] files = [.. entities.OfType<FileModel>()];
+
+		// TODO: Add entities to DB
+
 		objects.AddRange(_entityLoader.Map(
-			entities.OfType<FolderModel>(),
-			entities.OfType<FileModel>()));
+			folders,
+			files));
 
 		hierarchy.Clear();
 
