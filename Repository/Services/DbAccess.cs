@@ -338,21 +338,19 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public Task ConnectAsync(CancellationToken token = default)
+	public async Task ConnectAsync(CancellationToken token = default)
 	{
 		try
 		{
 			_logger.LogInformation("Connecting to the database.");
 
-			return _dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
+			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
 				? _dbContextService.MigrateAsync(token)
-				: _dbContextService.EnsureCreatedAsync(token);
+				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return Task.CompletedTask;
 		}
 	}
 
