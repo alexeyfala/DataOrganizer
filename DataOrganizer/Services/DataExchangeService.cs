@@ -484,6 +484,8 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		FileModel[] files = [.. entities.OfType<FileModel>()];
 
+		RegenerateId(folders, files);
+
 		if (!await _dbAccess
 			.AddFoldersAsync(folders, token)
 			.ConfigureAwait(false))
