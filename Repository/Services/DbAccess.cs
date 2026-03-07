@@ -664,7 +664,7 @@ public sealed class DbAccess : IDbAccess
 			{
 				byte[] header = new byte[16];
 
-				using FileStream stream = new(
+				using FileStream stream = File.Open(
 					filePath,
 					FileMode.Open,
 					FileAccess.Read,
