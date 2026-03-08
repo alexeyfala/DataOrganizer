@@ -212,7 +212,8 @@
 
 							<ToggleButton
 								Classes="primary"
-								Content="{materialIcons:MaterialIconTextExt Kind=PencilOffOutline}"
+								Content="{materialIcons:MaterialIconTextExt Kind=PencilOffOutline,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
 								IsChecked="{Binding IsReadOnly, Mode=TwoWay}"
 								Theme="{StaticResource MaterialFlatToggleButton}"
 								ToolTip.Tip="{x:Static prop:Strings.ReadOnlyMode}" />

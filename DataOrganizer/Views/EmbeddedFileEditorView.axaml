@@ -8,7 +8,6 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EmbeddedFileEditorViewModel"
 	mc:Ignorable="d">
@@ -18,8 +17,10 @@
 	</Design.DataContext>
 
 	<Grid RowDefinitions="Auto,*">
-		<toolBarControls:ToolBar Grid.Row="0">
-			<toolBarControls:ToolBar.Styles>
+		<StackPanel
+			Grid.Row="0"
+			Orientation="Horizontal">
+			<StackPanel.Styles>
 				<Style Selector="ToggleButton">
 					<Setter Property="Margin" Value="6.0,4.0" />
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatToggleButton}" />
@@ -29,13 +30,12 @@
 					<Setter Property="Margin" Value="6.0,4.0" />
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
 				</Style>
-
-				<FluentTheme />
-			</toolBarControls:ToolBar.Styles>
+			</StackPanel.Styles>
 
 			<ToggleButton
 				Classes="primary"
-				Content="{materialIcons:MaterialIconTextExt Kind=Wrap}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
 				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
 
@@ -45,14 +45,16 @@
 				Classes="primary"
 				Command="{Binding ScrollToTopCommand}"
 				CommandParameter="{Binding #Editor}"
-				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
 
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToEndCommand}"
 				CommandParameter="{Binding #Editor}"
-				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -81,9 +83,10 @@
 				Classes="primary"
 				Command="{Binding ShowInListCommand}"
 				CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
-				Content="{materialIcons:MaterialIconTextExt Kind=FileTree}"
+				Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ShowInList}" />
-		</toolBarControls:ToolBar>
+		</StackPanel>
 
 		<!-- https://github.com/AvaloniaUI/AvaloniaEdit -->
 		<AvaloniaEdit:TextEditor

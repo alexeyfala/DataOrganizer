@@ -8,7 +8,6 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:ConsoleViewModel"
 	Icon="/Assets/Logo.ico"
@@ -27,8 +26,10 @@
 			Grid.Row="0"
 			Margin="0.0" />
 
-		<toolBarControls:ToolBar Grid.Row="1">
-			<toolBarControls:ToolBar.Styles>
+		<StackPanel
+			Grid.Row="1"
+			Orientation="Horizontal">
+			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Margin" Value="6.0,4.0" />
 					<Setter Property="Cursor" Value="Hand" />
@@ -38,7 +39,7 @@
 					<Setter Property="Margin" Value="6.0,4.0" />
 					<Setter Property="Cursor" Value="Hand" />
 				</Style>
-			</toolBarControls:ToolBar.Styles>
+			</StackPanel.Styles>
 
 			<ToggleButton
 				Content="{materialIcons:MaterialIconTextExt Kind=DockWindow}"
@@ -112,7 +113,7 @@
 
 				<TextBlock Text="{Binding FontSize, Mode=OneWay}" />
 			</ButtonSpinner>
-		</toolBarControls:ToolBar>
+		</StackPanel>
 
 		<Separator
 			Grid.Row="2"
