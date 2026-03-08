@@ -484,12 +484,6 @@
   <data name="ImportExport" xml:space="preserve">
     <value>Import/Export</value>
   </data>
-  <data name="ImportingObjects" xml:space="preserve">
-    <value>Importing Objects</value>
-  </data>
-  <data name="ExportingObjects" xml:space="preserve">
-    <value>Exporting Objects</value>
-  </data>
   <data name="SaveAs" xml:space="preserve">
     <value>Save as</value>
   </data>
@@ -510,5 +504,11 @@
   </data>
   <data name="DataExportCompleted" xml:space="preserve">
     <value>Data export completed</value>
+  </data>
+  <data name="ImportList" xml:space="preserve">
+    <value>Import List</value>
+  </data>
+  <data name="ExportList" xml:space="preserve">
+    <value>Export List</value>
   </data>
 </root>

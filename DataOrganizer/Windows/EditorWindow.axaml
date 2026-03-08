@@ -247,12 +247,12 @@
 
 											<wrappers:FlyoutButton
 												Command="{Binding ImportCommand}"
-												Header="{x:Static prop:Strings.ImportingObjects}"
+												Header="{x:Static prop:Strings.ImportList}"
 												Icon="Import" />
 
 											<wrappers:FlyoutButton
 												Command="{Binding ExportCommand}"
-												Header="{x:Static prop:Strings.ExportingObjects}"
+												Header="{x:Static prop:Strings.ExportList}"
 												Icon="Export" />
 										</StackPanel>
 									</Flyout>

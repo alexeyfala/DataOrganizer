@@ -439,11 +439,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exporting Objects.
+        ///   Looks up a localized string similar to Export List.
         /// </summary>
-        public static string ExportingObjects {
+        public static string ExportList {
             get {
-                return ResourceManager.GetString("ExportingObjects", resourceCulture);
+                return ResourceManager.GetString("ExportList", resourceCulture);
             }
         }
         
@@ -727,11 +727,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Importing Objects.
+        ///   Looks up a localized string similar to Import List.
         /// </summary>
-        public static string ImportingObjects {
+        public static string ImportList {
             get {
-                return ResourceManager.GetString("ImportingObjects", resourceCulture);
+                return ResourceManager.GetString("ImportList", resourceCulture);
             }
         }
         

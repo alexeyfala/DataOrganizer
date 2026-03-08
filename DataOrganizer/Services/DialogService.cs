@@ -114,7 +114,7 @@ public sealed class DialogService : IDialogService
 
 		view
 			.ViewModel
-			.Header = Strings.ImportingObjects;
+			.Header = Strings.ImportList;
 
 		_ = DialogHost.Show(view);
 

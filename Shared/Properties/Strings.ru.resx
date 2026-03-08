@@ -504,12 +504,6 @@
   <data name="ImportExport" xml:space="preserve">
     <value>Импорт/экспорт</value>
   </data>
-  <data name="ImportingObjects" xml:space="preserve">
-    <value>Импорт объектов</value>
-  </data>
-  <data name="ExportingObjects" xml:space="preserve">
-    <value>Экспорт объектов</value>
-  </data>
   <data name="SaveAs" xml:space="preserve">
     <value>Сохранить как</value>
   </data>
@@ -530,5 +524,11 @@
   </data>
   <data name="DataExportCompleted" xml:space="preserve">
     <value>Экспорт данных выполнен</value>
+  </data>
+  <data name="ImportList" xml:space="preserve">
+    <value>Импорт списка</value>
+  </data>
+  <data name="ExportList" xml:space="preserve">
+    <value>Экспорт списка</value>
   </data>
 </root>
