@@ -523,6 +523,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
+		string xml = _fileSystem.ReadAllText(filePath);
+
 		return true;
 	}
 
