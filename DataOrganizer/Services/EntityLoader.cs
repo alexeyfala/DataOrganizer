@@ -111,9 +111,9 @@ public sealed class EntityLoader : IEntityLoader
 	{
 		FileModelDto[] dtoFiles = _mapper.Map<IEnumerable<FileModel>, FileModelDto[]>(dbFiles);
 
-		dtoFiles.ForEach(dto =>
+		dtoFiles.ForEach(file =>
 		{
-			if (dto
+			if (file
 				.Hotkeys
 				.Count == 0)
 			{
@@ -122,13 +122,15 @@ public sealed class EntityLoader : IEntityLoader
 
 			// After importing from JSON or XML, or adding to the database, the order of hotkeys is broken,
 			// so it needs to be restored.
-			HotkeyModelDto[] orderedHotkeys = [.. dto.Hotkeys.OrderBy(x => x.Index)];
+			HotkeyModelDto[] orderedHotkeys = [.. file
+				.Hotkeys
+				.OrderBy(x => x.Index)];
 
-			dto
+			file
 				.Hotkeys
 				.ClearAddRange(orderedHotkeys);
 
-			dto.SetHotkeysToolTip();
+			file.SetHotkeysToolTip();
 		});
 
 		ExplorerModelBaseDto[] hierarchy = _mapper
