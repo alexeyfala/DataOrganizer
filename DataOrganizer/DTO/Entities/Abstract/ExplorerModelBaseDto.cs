@@ -25,9 +25,6 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	/// <inheritdoc cref="ExplorerModelBase.EntityType" />
 	public required EntityType EntityType { get; init; }
 
-	/// <inheritdoc cref="ExplorerModelBase.Index" />
-	public required int Index { get; set; }
-
 	/// <inheritdoc cref="ExplorerModelBase.IsSelected" />
 	public bool IsSelected { get; set; }
 

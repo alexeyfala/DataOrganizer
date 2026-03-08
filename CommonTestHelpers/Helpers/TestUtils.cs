@@ -96,6 +96,7 @@ public static class TestUtils
 		Children = [],
 		EncryptionStatus = EncryptionStatus.None,
 		Id = Guid.NewGuid(),
+		Index = default,
 		Name = AppUtils.CreateRandomString(10)
 	};
 
@@ -251,6 +252,7 @@ public static class TestUtils
 			{
 				Code = CreateRandomEnumValue<KeyCode>(),
 				Id = Guid.NewGuid(),
+				Index = default,
 				Mask = CreateRandomEnumValue<EventMask>(),
 				OwnerId = Guid.NewGuid()
 			};

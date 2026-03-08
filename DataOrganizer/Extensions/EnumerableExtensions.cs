@@ -513,17 +513,23 @@ public static class EnumerableExtensions
 	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModelDto" />.
 	/// </summary>
 	public static IEnumerable<HotkeyModelDto> ToHotkeyModelsDto(
-		this IEnumerable<CodeMaskPair> sequence,
+		this CodeMaskPair[] sequence,
 		Guid id = default,
 		Guid ownerId = default)
 	{
-		return sequence.Select(x => new HotkeyModelDto
+		for (int i = 0; i < sequence.Length; i++)
 		{
-			Code = x.Code,
-			Id = id,
-			Mask = x.Mask,
-			OwnerId = ownerId
-		});
+			CodeMaskPair x = sequence[i];
+
+			yield return new()
+			{
+				Code = x.Code,
+				Id = id,
+				Index = i,
+				Mask = x.Mask,
+				OwnerId = ownerId
+			};
+		}
 	}
 
 	/// <summary>

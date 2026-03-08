@@ -194,25 +194,18 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			HotkeyModel[] entities = [.. hotkeys.Select(x => new HotkeyModel
-			{
-				Code = x.Code,
-				Id = Guid.NewGuid(),
-				Mask = x.Mask,
-				OwnerId = fileId
-			})];
+			HotkeyModel[] entities = [.. ToHotkeyModels(hotkeys, fileId)];
 
-			// Hot keys must be added sequentially and saved, otherwise their order in the database will be disrupted.
 			foreach (HotkeyModel item in entities)
 			{
 				await _hotkeysRepository
 					.AddAsync(item, token)
 					.ConfigureAwait(false);
-
-				await _dbContext
-					.SaveChangesAsync(token)
-					.ConfigureAwait(false);
 			}
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
 
 			return entities;
 		}
@@ -940,6 +933,26 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModel" />.
+	/// </summary>
+	private static IEnumerable<HotkeyModel> ToHotkeyModels(CodeMaskPair[] sequence, Guid ownerId)
+	{
+		for (int i = 0; i < sequence.Length; i++)
+		{
+			CodeMaskPair x = sequence[i];
+
+			yield return new()
+			{
+				Code = x.Code,
+				Id = Guid.NewGuid(),
+				Index = i,
+				Mask = x.Mask,
+				OwnerId = ownerId
+			};
+		}
+	}
+
 	/// <summary>
 	/// Adds an <see cref="FileModel" /> to the database.
 	/// </summary>

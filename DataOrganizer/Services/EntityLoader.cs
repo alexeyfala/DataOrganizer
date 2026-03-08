@@ -120,6 +120,14 @@ public sealed class EntityLoader : IEntityLoader
 				return;
 			}
 
+			// After importing from JSON or XML, or adding to the database, the order of hotkeys is broken,
+			// so it needs to be restored.
+			HotkeyModelDto[] orderedHotkeys = [.. dto.Hotkeys.OrderBy(x => x.Index)];
+
+			dto
+				.Hotkeys
+				.ClearAddRange(orderedHotkeys);
+
 			dto.SetHotkeysToolTip();
 		});
 

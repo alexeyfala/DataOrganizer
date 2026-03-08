@@ -32,11 +32,6 @@ public abstract class ExplorerModelBase : EntityModelBase
 	public EntityType EntityType { get; init; }
 
 	/// <summary>
-	/// The index of the object in the parent collection (necessary for correct positioning in the collection).
-	/// </summary>
-	public int Index { get; set; }
-
-	/// <summary>
 	/// Returns <c>True</c> if the object is selected in the list.
 	/// </summary>
 	[JsonIgnore]
