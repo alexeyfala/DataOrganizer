@@ -119,6 +119,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case IFileSystemEnrtyPicker.XmlExt:
+					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				case AppUtils.SQLiteExtension:
@@ -140,6 +141,8 @@ public sealed class DataExchangeService : IDataExchangeService
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
+
+
 
 	/// <inheritdoc />
 	public async Task ImportDataAsync(
@@ -362,17 +365,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Exports data to JSON.
 	/// </summary>
-	private async Task ExportToJsonAsync(string filePath, CancellationToken token = default)
+	private async Task ExportToJsonAsync(string filePath, CancellationToken token)
 	{
-		FolderModel[] dbFolders = await _dbAccess
-			.GetAllFoldersAsync(token: token)
-			.ConfigureAwait(false);
-
-		FileModel[] dbFiles = await _dbAccess
-			.GetAllFilesAsync(token: token)
-			.ConfigureAwait(false);
-
-		ExplorerModelBase[] entities = [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
+		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
 		_fileSystem.WriteAllText(
 			filePath,
@@ -393,6 +388,30 @@ public sealed class DataExchangeService : IDataExchangeService
 		};
 
 		_dbAccess.BackupSqliteDatabase(parameters);
+	}
+
+	/// <summary>
+	/// Exports data to XML.
+	/// </summary>
+	private async Task ExportToXmlAsync(string filePath, CancellationToken token)
+	{
+		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Load all entities from database.
+	/// </summary>
+	private async Task<ExplorerModelBase[]> GetEntitiesFromDbAsync(CancellationToken token)
+	{
+		FolderModel[] dbFolders = await _dbAccess
+			.GetAllFoldersAsync(token: token)
+			.ConfigureAwait(false);
+
+		FileModel[] dbFiles = await _dbAccess
+			.GetAllFilesAsync(token: token)
+			.ConfigureAwait(false);
+
+		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
 	}
 
 	/// <summary>
@@ -473,56 +492,6 @@ public sealed class DataExchangeService : IDataExchangeService
 				token),
 			_ => throw new NotImplementedException()
 		};
-	}
-
-	/// <summary>
-	/// Replaces the list with data from json.
-	/// </summary>
-	private async Task<bool> ReplaceFromJsonAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		string json = _fileSystem.ReadAllText(filePath);
-
-		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not ExplorerModelBase[] entities)
-		{
-			return false;
-		}
-
-		if (!_dbAccess.ClearDatabase())
-		{
-			return false;
-		}
-
-		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
-
-		FileModel[] files = [.. entities.OfType<FileModel>()];
-
-		RegenerateId(folders, files);
-
-		if (!await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (!await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(
-			folders,
-			files));
-
-		hierarchy.Clear();
-
-		return true;
 	}
 
 	/// <summary>
