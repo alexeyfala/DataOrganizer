@@ -48,11 +48,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemEnrtyPicker" />
 	private readonly IFileSystemEnrtyPicker _picker;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;
+
+	/// <inheritdoc cref="IXmlSerializerWrapper" />
+	private readonly IXmlSerializerWrapper _xmlSerializer;
 	#endregion
 
 	#region Constructors
@@ -64,8 +64,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		IFileSystemEnrtyPicker picker,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory,
-		IViewModelExecutionService viewModel)
+		IViewModelExecutionService viewModel,
+		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
 
@@ -81,9 +81,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		_picker = picker;
 
-		_viewFactory = viewFactory;
-
 		_viewModel = viewModel;
+
+		_xmlSerializer = xmlSerializer;
 	}
 	#endregion
 
@@ -396,6 +396,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task ExportToXmlAsync(string filePath, CancellationToken token)
 	{
 		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+
+		_fileSystem.WriteAllText(
+			filePath,
+			_xmlSerializer.Serialize(entities));
 	}
 
 	/// <summary>
