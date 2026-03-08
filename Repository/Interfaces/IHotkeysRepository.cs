@@ -15,7 +15,7 @@ namespace Repository.Interfaces;
 public interface IHotkeysRepository
 {
 	#region Methods
-	/// <inheritdoc cref="RepositoryBase{T}.AddAsync(T, CancellationToken)" />
+	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
 	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token);
 
 	/// <summary>
@@ -26,7 +26,7 @@ public interface IHotkeysRepository
 		bool trackChanges = false,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange(IEnumerable{T})" />
+	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
 	void RemoveRange(IEnumerable<HotkeyModel> entities);
 	#endregion
 }

@@ -130,7 +130,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		await sut.ConnectAsync(useMigrations);
+		await sut.ConnectAsync();
 
 		// Assert
 		if (useMigrations)
@@ -165,7 +165,7 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>(), true, Arg.Any<bool>())
+				.GetAsync(Arg.Any<Guid>())
 				.Returns(TestUtils.CreateFile());
 
 			builder.RegisterInstance(repository);

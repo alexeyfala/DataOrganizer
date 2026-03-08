@@ -54,7 +54,6 @@
 		<PackageReference Include="Serilog.Sinks.FileEx" Version="5.1.8" />
 		<PackageReference Include="SharpHook" Version="7.1.1" />
 		<PackageReference Include="System.Reactive" Version="6.1.0" />
-		<PackageReference Include="Tulesha.ToolBarControls.Avalonia" Version="11.3.6" />
 		<PackageReference Include="Xaml.Behaviors" Version="11.3.9.5" />
 	</ItemGroup>
 
@@ -84,6 +83,9 @@
 		</Compile>
 		<Compile Update="Views\EmbeddedFileEditorView.axaml.cs">
 			<DependentUpon>EmbeddedFileEditorView.axaml</DependentUpon>
+		</Compile>
+		<Compile Update="Views\ImportListSelectorView.axaml.cs">
+		  <DependentUpon>ImportListSelectorView.axaml</DependentUpon>
 		</Compile>
 		<Compile Update="Windows\ConsoleWindow.axaml.cs">
 			<DependentUpon>ConsoleWindow.axaml</DependentUpon>

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using DataOrganizer.Enums;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -21,5 +22,10 @@ public interface IDialogService
 		string header,
 		string? label = null,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Selects import variant.
+	/// </summary>
+	Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default);
 	#endregion
 }

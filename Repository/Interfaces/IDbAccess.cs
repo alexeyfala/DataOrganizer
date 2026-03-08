@@ -1,6 +1,8 @@
 ﻿using Entities.Abstract;
 using Entities.Interfaces;
 using Entities.Models;
+using Microsoft.Data.Sqlite;
+using Repository.DbContexts;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
@@ -24,6 +26,16 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Adds a file sequence to the database.
+	/// </summary>
+	Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default);
+
+	/// <summary>
+	/// Adds a folder sequence to the database.
+	/// </summary>
+	Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default);
+
+	/// <summary>
 	/// Adds <see cref="FileModel.Hotkeys" /> to the entity.
 	/// </summary>
 	Task<HotkeyModel[]> AddHotkeysAsync(
@@ -37,13 +49,24 @@ public interface IDbAccess : IDisposable
 	string? BackupDatabase();
 
 	/// <summary>
+	/// Backups SQLite database.
+	/// </summary>
+	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
+
+	/// <summary>
+	/// Completely clears the database.
+	/// </summary>
+	bool ClearDatabase();
+
+	/// <inheritdoc cref="SqliteConnection.ClearPool" />
+	void ClearPool(SqliteDbContext context);
+
+	/// <summary>
 	/// Establishes a connection to the database.
 	/// </summary>
-	Task ConnectAsync(
-		bool useMigrations,
-		CancellationToken token = default);
+	Task ConnectAsync(CancellationToken token = default);
 
-	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync(Expression{Func{ExplorerModelBase, bool}}, CancellationToken)" />
+	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token = default);
@@ -63,17 +86,21 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
-	/// <inheritdoc cref="IFilesRepository.GetAllAsync(bool, bool, CancellationToken, string[])" />
+	/// <inheritdoc cref="IFilesRepository.GetAllAsync" />
 	Task<FileModel[]> GetAllFilesAsync(
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties);
 
-	/// <inheritdoc cref="IFoldersRepository.GetAllAsync(bool, CancellationToken)" />
+	/// <inheritdoc cref="IFoldersRepository.GetAllAsync" />
 	Task<FolderModel[]> GetAllFoldersAsync(
 		bool trackChanges = false,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Gets the database file path.
+	/// </summary>
+	string GetDbFilePath();
 
 	/// <summary>
 	/// Returns <see cref="ContentsIsValidPair" />.
@@ -93,9 +120,19 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Creates and returns <see cref="SqliteDbContext" />.
+	/// </summary>
+	SqliteDbContext GetSQliteDbContext(string dataSource);
+
+	/// <summary>
+	/// Returns <c>True</c> if a SQLite database is valid.
+	/// </summary>
+	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false);
+
+	/// <summary>
 	/// Restores database from backup.
 	/// </summary>
-	Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
+	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the properties of an entity in the database.
@@ -105,7 +142,7 @@ public interface IDbAccess : IDisposable
 		CancellationToken token,
 		params string[] propertyNames) where T : class, IIdentity;
 
-	/// <inheritdoc cref="UpdatePropertiesAsync{T}(T, CancellationToken, string[])" />
+	/// <inheritdoc cref="UpdatePropertiesAsync{T}" />
 	Task<bool> UpdatePropertiesAsync(
 		Guid id,
 		CancellationToken token,

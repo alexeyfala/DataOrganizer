@@ -1,6 +1,7 @@
 ﻿using Entities.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Repository.DbContexts;
 using Repository.Interfaces;
@@ -57,6 +58,14 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public void EnsureCreated()
+	{
+		_dbContext
+			.Database
+			.EnsureCreated();
+	}
+
+	/// <inheritdoc />
 	public Task EnsureCreatedAsync(CancellationToken token = default)
 	{
 		return _dbContext
@@ -65,11 +74,27 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public void EnsureDeleted()
+	{
+		_dbContext
+			.Database
+			.EnsureDeleted();
+	}
+
+	/// <inheritdoc />
 	public bool HasMigrations(Assembly assembly)
 	{
 		return assembly
 			.GetTypes()
 			.Any(x => x.IsSubclassOf(typeof(Migration)));
+	}
+
+	/// <inheritdoc />
+	public void Migrate()
+	{
+		_dbContext
+			.Database
+			.Migrate();
 	}
 
 	/// <inheritdoc />

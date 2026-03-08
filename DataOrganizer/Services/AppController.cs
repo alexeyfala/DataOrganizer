@@ -1,12 +1,8 @@
 ﻿using Cysharp.Text;
 using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
-using Entities.Abstract;
-using Entities.Models;
 using MapsterMapper;
 using OSVersionExtension;
 using Repository.Interfaces;
@@ -15,7 +11,6 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -30,16 +25,14 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="IEntityLoader" />
+	private readonly IEntityLoader _entityLoader;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
-
-	/// <summary>
-	/// Mapper.
-	/// </summary>
-	private readonly IMapper _mapper;
 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
@@ -64,15 +57,16 @@ public sealed class AppController : IAppController
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IViewLauncher viewLauncher)
+		IViewLauncher viewLauncher,
+		IEntityLoader entityLoader)
 	{
 		_dbAccess = dbAccess;
+
+		_entityLoader = entityLoader;
 
 		_fileSystem = fileSystem;
 
 		_logger = logger;
-
-		_mapper = ConfigureMapper(mapper);
 
 		_options = options;
 
@@ -104,7 +98,7 @@ public sealed class AppController : IAppController
 			// TODO: Display a splash screen while connecting to database.
 
 			await _dbAccess
-				.ConnectAsync(useMigrations: false, token)
+				.ConnectAsync(token)
 				.ConfigureAwait(true);
 
 			if (_options.FillObjects)
@@ -118,20 +112,9 @@ public sealed class AppController : IAppController
 					levels: total).ConfigureAwait(true);
 			}
 
-			ExplorerModelBaseDto[] hierarchy = await LoadAllHierarchyFromDbAsync(token).ConfigureAwait(true);
-
-			hierarchy
-				.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
-				.ForEach(folder =>
-				{
-					const EncryptionStatus status = EncryptionStatus.Encrypted;
-
-					folder.EncryptionStatus = status;
-
-					folder
-						.GetAllChildren()
-						.ForEach(x => x.EncryptionStatus = status);
-				});
+			ExplorerModelBaseDto[] hierarchy = await _entityLoader
+				.LoadFromEmbeddedDbAsync(token)
+				.ConfigureAwait(true);
 
 			// TODO: Close splash screen here.
 
@@ -147,19 +130,6 @@ public sealed class AppController : IAppController
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Configures the <see cref="IMapper" />.
-	/// </summary>
-	private static IMapper ConfigureMapper(IMapper mapper)
-	{
-		mapper.Config
-			.NewConfig<ExplorerModelBase, ExplorerModelBaseDto>()
-			.Include<FileModel, FileModelDto>()
-			.Include<FolderModel, FolderModelDto>();
-
-		return mapper;
-	}
-
 	/// <summary>
 	/// Writes initial data to log.
 	/// </summary>
@@ -207,61 +177,6 @@ public sealed class AppController : IAppController
 		_logger.LogInformationWithTemplate(builder.ToString());
 
 		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager.Settings.GetPropertyValues(true)}");
-	}
-
-	/// <summary>
-	/// Loads all <see cref="FolderModel" /> and all <see cref="FileModel" /> from database<br />
-	/// then maps it to hierarchy of <see cref="ExplorerModelBaseDto" /> and returns.
-	/// </summary>
-	private async Task<ExplorerModelBaseDto[]> LoadAllHierarchyFromDbAsync(CancellationToken token)
-	{
-		try
-		{
-			FolderModel[] dbFolders = await _dbAccess
-				.GetAllFoldersAsync(token: token)
-				.ConfigureAwait(false);
-
-			string[] excluded =
-			[
-				nameof(FileModel.Contents),
-				nameof(FileModel.Properties)
-			];
-
-			FileModel[] dbFiles = await _dbAccess
-				.GetAllFilesAsync(token: token, excludedProperties: excluded)
-				.ConfigureAwait(false);
-
-			_logger.LogInformation(
-				$"Number of objects loaded from the database:{Environment.NewLine}" +
-				$"Folders = {dbFolders.Length},{Environment.NewLine}" +
-				$"Files = {dbFiles.Length}");
-
-			FileModelDto[] dtoFiles = _mapper.Map<FileModel[], FileModelDto[]>(dbFiles);
-
-			dtoFiles.ForEach(dto =>
-			{
-				if (dto
-					.Hotkeys
-					.Count == 0)
-				{
-					return;
-				}
-
-				dto.SetHotkeysToolTip();
-			});
-
-			return _mapper
-				.Map<FolderModel[], FolderModelDto[]>(dbFolders)
-				.ToHierarchical(dtoFiles)
-				.ToArray()
-				.SortByIndexRecursively();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return [];
-		}
 	}
 
 	/// <summary>

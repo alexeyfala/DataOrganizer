@@ -15,8 +15,11 @@ namespace Repository.Interfaces;
 public interface IFoldersRepository
 {
 	#region Methods
-	/// <inheritdoc cref="RepositoryBase{T}.AddAsync(T, CancellationToken)" />
+	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
 	ValueTask<EntityEntry<FolderModel>> AddAsync(FolderModel entity, CancellationToken token = default);
+
+	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
+	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token);
 
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FolderModel" /> entities from the database.
@@ -44,10 +47,10 @@ public interface IFoldersRepository
 		bool trackChanges = false,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.Remove(T)" />
+	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
 	EntityEntry<FolderModel> Remove(FolderModel entity);
 
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange(IEnumerable{T})" />
+	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
 	void RemoveRange(IEnumerable<FolderModel> entities);
 	#endregion Methods
 }

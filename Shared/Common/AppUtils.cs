@@ -15,11 +15,6 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// The extension of plain text file with dot.
-	/// </summary>
-	public const string TxtExtension = ".txt";
-
-	/// <summary>
 	/// Path to the directory containing application data.
 	/// </summary>
 	public static string AppDataDirectoryPath { get; } = Path.Combine(
@@ -74,11 +69,6 @@ public static class AppUtils
 	public static bool IsWindows { get; } = CurrentOs == OperateSystem.Windows;
 
 	/// <summary>
-	/// Json file extension with dot.
-	/// </summary>
-	public static string JsonExtension => ".json";
-
-	/// <summary>
 	/// Json serialization options.
 	/// </summary>
 	public static JsonSerializerOptions JsonOptions { get; } = new()
@@ -86,11 +76,6 @@ public static class AppUtils
 		WriteIndented = true,
 		ReferenceHandler = ReferenceHandler.IgnoreCycles
 	};
-
-	/// <summary>
-	/// Application logs directory name.
-	/// </summary>
-	public static string Logs => nameof(Logs);
 
 	/// <summary>
 	/// Time format for logging.
@@ -120,14 +105,16 @@ public static class AppUtils
 	public static string Settings => nameof(Settings);
 
 	/// <summary>
-	/// The extension of SQLite database file with dot.
-	/// </summary>
-	public static string SQLiteExtension { get; } = ".sqlite";
-
-	/// <summary>
 	/// Delay in millideconds for displaying the tip.
 	/// </summary>
 	public static int TipDelay => 400;
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// The extension of SQLite database file with dot.
+	/// </summary>
+	public const string SQLiteExtension = ".sqlite";
 	#endregion
 
 	#region Constructors
@@ -186,7 +173,7 @@ public static class AppUtils
 		return Path.Combine(
 			AppDataDirectoryPath,
 			Settings,
-			fileName + JsonExtension);
+			fileName + ".json");
 	}
 
 	/// <summary>

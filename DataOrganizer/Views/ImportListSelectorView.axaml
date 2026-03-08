@@ -1,0 +1,67 @@
+<UserControl
+	x:Class="DataOrganizer.Views.ImportListSelectorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:ImportListSelectorViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:ImportListSelectorViewModel />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Classes="HeaderTextBlockStyle"
+			Text="{Binding Header, Mode=OneWay}" />
+
+		<StackPanel
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Orientation="Vertical"
+			Spacing="{StaticResource ElementSpacing}">
+			<RadioButton
+				Content="{x:Static prop:Strings.ReplaceTheList}"
+				IsChecked="{Binding Replace, Mode=TwoWay}" />
+
+			<RadioButton
+				Content="{x:Static prop:Strings.AddToEndOfList}"
+				IsChecked="{Binding AddToList, Mode=TwoWay}" />
+		</StackPanel>
+
+		<UniformGrid
+			Grid.Row="2"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding ApplyCommand}"
+				Content="{x:Static prop:Strings.Apply}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding CancelCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True" />
+		</UniformGrid>
+	</Grid>
+</UserControl>

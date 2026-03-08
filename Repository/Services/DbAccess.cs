@@ -20,6 +20,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -120,6 +121,68 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _filesRepository
+				.AddRangeAsync(files, token)
+				.ConfigureAwait(false);
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _foldersRepository
+				.AddRangeAsync(folders, token)
+				.ConfigureAwait(false);
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			_semaphore.Release();
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<HotkeyModel[]> AddHotkeysAsync(
 		Guid fileId,
 		CodeMaskPair[] hotkeys,
@@ -131,25 +194,18 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			HotkeyModel[] entities = [.. hotkeys.Select(x => new HotkeyModel
-			{
-				Code = x.Code,
-				Id = Guid.NewGuid(),
-				Mask = x.Mask,
-				OwnerId = fileId
-			})];
+			HotkeyModel[] entities = [.. ToHotkeyModels(hotkeys, fileId)];
 
-			// Hot keys must be added sequentially and saved, otherwise their order in the database will be disrupted.
 			foreach (HotkeyModel item in entities)
 			{
 				await _hotkeysRepository
 					.AddAsync(item, token)
 					.ConfigureAwait(false);
-
-				await _dbContext
-					.SaveChangesAsync(token)
-					.ConfigureAwait(false);
 			}
+
+			await _dbContext
+				.SaveChangesAsync(token)
+				.ConfigureAwait(false);
 
 			return entities;
 		}
@@ -165,9 +221,7 @@ public sealed class DbAccess : IDbAccess
 		}
 	}
 
-	/// <summary>
-	/// Tries to backup database in file, and returns a path to it.
-	/// </summary>
+	/// <inheritdoc />
 	public string? BackupDatabase()
 	{
 		try
@@ -179,16 +233,24 @@ public sealed class DbAccess : IDbAccess
 				return null;
 			}
 
-			string backupPath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+			string backupFilePath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
 
-			BackupSqliteDatabase(dbFilePath, backupPath);
+			BackupSqliteParameters parameters = new()
+			{
+				ClearDestPool = true,
+				ClearSourcePool = false,
+				DestFilePath = backupFilePath,
+				SourceFilePath = dbFilePath
+			};
 
-			if (!_fileSystem.IsFileExists(backupPath))
+			BackupSqliteDatabase(parameters);
+
+			if (!_fileSystem.IsFileExists(backupFilePath))
 			{
 				return null;
 			}
 
-			return backupPath;
+			return backupFilePath;
 		}
 		catch (Exception ex)
 		{
@@ -199,23 +261,89 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public Task ConnectAsync(
-		bool useMigrations,
-		CancellationToken token = default)
+	public void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = parameters.SourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = parameters.DestFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection dest = new(destBuilder.ToString());
+
+		source.Open();
+
+		dest.Open();
+
+		source.BackupDatabase(dest);
+
+		if (parameters.ClearSourcePool)
+		{
+			SqliteConnection.ClearPool(source);
+		}
+
+		if (parameters.ClearDestPool)
+		{
+			SqliteConnection.ClearPool(dest);
+		}
+	}
+
+	/// <inheritdoc />
+	public bool ClearDatabase()
 	{
 		try
 		{
-			_logger.LogInformation("Connecting to the database.");
+			_dbContextService.EnsureDeleted();
 
-			return useMigrations && _dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
-				? _dbContextService.MigrateAsync(token)
-				: _dbContextService.EnsureCreatedAsync(token);
+			if (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly()))
+			{
+				_dbContextService.Migrate();
+			}
+			else
+			{
+				_dbContextService.EnsureCreated();
+			}
+
+			return true;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return Task.CompletedTask;
+			return false;
+		}
+	}
+
+	/// <inheritdoc />
+	public void ClearPool(SqliteDbContext context)
+	{
+		using SqliteConnection connection = (SqliteConnection)context
+			.Database
+			.GetDbConnection();
+
+		SqliteConnection.ClearPool(connection);
+	}
+
+	/// <inheritdoc />
+	public async Task ConnectAsync(CancellationToken token = default)
+	{
+		try
+		{
+			_logger.LogInformation("Connecting to the database.");
+
+			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
+				? _dbContextService.MigrateAsync(token)
+				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 
@@ -256,7 +384,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			DetachAndDelete(await _filesRepository
-				.GetAsync(id, includeDependencies: true, token: token)
+				.GetAsync(id, token: token)
 				.ConfigureAwait(false));
 
 			int count = await _dbContext
@@ -286,7 +414,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DetachAndDelete(await GetChildFilesAsync(id, includeDependencies: true, token)
+			DetachAndDelete(await GetChildFilesAsync(id, token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false));
 
@@ -354,7 +482,6 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<FileModel[]> GetAllFilesAsync(
-		bool includeDependencies = false,
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties)
@@ -366,7 +493,6 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _filesRepository.GetAllAsync(
-				includeDependencies,
 				trackChanges,
 				token,
 				excludedProperties).ConfigureAwait(false);
@@ -408,6 +534,15 @@ public sealed class DbAccess : IDbAccess
 		{
 			_semaphore.Release();
 		}
+	}
+
+	/// <inheritdoc />
+	public string GetDbFilePath()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
 	}
 
 	/// <inheritdoc />
@@ -481,7 +616,95 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
+	public SqliteDbContext GetSQliteDbContext(string dataSource)
+	{
+		SqliteConnectionStringBuilder builder = new()
+		{
+			DataSource = dataSource
+		};
+
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite(builder.ToString())
+			.Options;
+
+		return new(options);
+	}
+
+	/// <inheritdoc />
+	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false)
+	{
+		try
+		{
+			if (!HasValidHeader(dataSource))
+			{
+				return false;
+			}
+
+			string connectionString = new SqliteConnectionStringBuilder
+			{
+				DataSource = dataSource
+			}.ToString();
+
+			using SqliteConnection connection = new(connectionString);
+
+			connection.Open();
+
+			using SqliteCommand cmd = connection.CreateCommand();
+
+			cmd.CommandText = deepCheck
+				? "PRAGMA integrity_check;"
+				: "PRAGMA quick_check;";
+
+			string? result = cmd
+				.ExecuteScalar()?
+				.ToString();
+
+			SqliteConnection.ClearPool(connection);
+
+			return string.Equals(
+				result,
+				"ok",
+				StringComparison.OrdinalIgnoreCase);
+		}
+		catch
+		{
+			return false;
+		}
+
+		static bool HasValidHeader(string filePath)
+		{
+			try
+			{
+				byte[] header = new byte[16];
+
+				using FileStream stream = File.Open(
+					filePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.ReadWrite);
+
+				if (stream.Length < 16)
+				{
+					return false;
+				}
+
+				stream.ReadExactly(header, 0, 16);
+
+				string headerStr = Encoding
+					.UTF8
+					.GetString(header);
+
+				return headerStr.StartsWith("SQLite format 3");
+			}
+			catch
+			{
+				return false;
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
 		try
 		{
@@ -498,11 +721,23 @@ public sealed class DbAccess : IDbAccess
 				connection.Close();
 			}
 
-			BackupSqliteDatabase(backupFilePath, GetDbFilePath());
+			BackupSqliteParameters parameters = new()
+			{
+				ClearDestPool = false,
+				ClearSourcePool = true,
+				DestFilePath = GetDbFilePath(),
+				SourceFilePath = backupFilePath
+			};
+
+			BackupSqliteDatabase(parameters);
+
+			return true;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return false;
 		}
 		finally
 		{
@@ -699,29 +934,23 @@ public sealed class DbAccess : IDbAccess
 
 	#region Service
 	/// <summary>
-	/// Backups SQLite database.
+	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModel" />.
 	/// </summary>
-	private static void BackupSqliteDatabase(string sourceFilePath, string destFilePath)
+	private static IEnumerable<HotkeyModel> ToHotkeyModels(CodeMaskPair[] sequence, Guid ownerId)
 	{
-		SqliteConnectionStringBuilder sourceBuilder = new()
+		for (int i = 0; i < sequence.Length; i++)
 		{
-			DataSource = sourceFilePath
-		};
+			CodeMaskPair x = sequence[i];
 
-		SqliteConnectionStringBuilder destBuilder = new()
-		{
-			DataSource = destFilePath
-		};
-
-		using SqliteConnection source = new(sourceBuilder.ToString());
-
-		using SqliteConnection destination = new(destBuilder.ToString());
-
-		source.Open();
-
-		destination.Open();
-
-		source.BackupDatabase(destination);
+			yield return new()
+			{
+				Code = x.Code,
+				Id = Guid.NewGuid(),
+				Index = i,
+				Mask = x.Mask,
+				OwnerId = ownerId
+			};
+		}
 	}
 
 	/// <summary>
@@ -849,11 +1078,10 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private async IAsyncEnumerable<FileModel> GetChildFilesAsync(
 		Guid parentId,
-		bool includeDependencies = false,
-		[EnumeratorCancellation] CancellationToken token = default)
+		[EnumeratorCancellation] CancellationToken token)
 	{
 		foreach (FileModel document in await _filesRepository
-			.GetAsync(x => x.ParentId == parentId, includeDependencies, token: token)
+			.GetAsync(x => x.ParentId == parentId, token: token)
 			.ConfigureAwait(false))
 		{
 			yield return document;
@@ -865,7 +1093,6 @@ public sealed class DbAccess : IDbAccess
 		{
 			await foreach (FileModel child in GetChildFilesAsync(
 				folder.Id,
-				includeDependencies,
 				token).ConfigureAwait(false))
 			{
 				yield return child;
@@ -891,17 +1118,6 @@ public sealed class DbAccess : IDbAccess
 				yield return item;
 			}
 		}
-	}
-
-	/// <summary>
-	/// Gets the database file path.
-	/// </summary>
-	private string GetDbFilePath()
-	{
-		return _dbContext
-			.Database
-			.GetDbConnection()
-			.DataSource;
 	}
 	#endregion
 }

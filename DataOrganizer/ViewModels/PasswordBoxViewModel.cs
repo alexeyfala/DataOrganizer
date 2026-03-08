@@ -36,7 +36,7 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModelBa
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Save.
+	/// Apply.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteApply))]
 	private Task Apply() => SetResultAsync(true);

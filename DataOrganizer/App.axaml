@@ -48,9 +48,5 @@
 		<materialIcons:MaterialIconStyles />
 
 		<StyleInclude Source="/Assets/Styles.axaml" />
-
-		<!-- Nuget: Tulesha.ToolBarControls.Avalonia -->
-		<!-- https://github.com/Tulesha/ToolBarControls.Avalonia -->
-		<StyleInclude Source="avares://ToolBarControls.Avalonia/Themes/ToolBarControls.Avalonia.axaml" />
 	</Application.Styles>
 </Application>

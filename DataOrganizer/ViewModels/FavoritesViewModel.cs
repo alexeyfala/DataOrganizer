@@ -585,7 +585,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.
 	/// </summary>
-	private static IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		List<FileModelDto> files = [.. hierarchy
 			.OfType<FileModelDto>()
@@ -600,6 +600,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 				Children = files,
 				EncryptionStatus = parent?.EncryptionStatus ?? EncryptionStatus.None,
 				Id = parent is not null ? parent.Id : Guid.Parse("210B84EF-06EA-4B70-97E8-DC4BE4DD6195"),
+				Index = FavoritesSettings.Categories.Count,
 				Name = parent?.Name ?? "Root"
 			};
 		}

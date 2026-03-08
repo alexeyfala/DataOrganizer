@@ -262,7 +262,7 @@ public sealed class App : Application
 			.WriteTo.Async(configure =>
 			{
 				configure.FileEx(
-					path: Path.Combine(AppUtils.AppDataDirectoryPath, AppUtils.Logs, AppUtils.TxtExtension),
+					path: Path.Combine(AppUtils.AppDataDirectoryPath, "Logs", ".txt"),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
@@ -304,18 +304,22 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IClipboardService, ClipboardService>();
+		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileSystem, FileSystem>();
+		services.AddTransient<IFileSystemEnrtyPicker, FileSystemEnrtyPicker>();
 		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IViewModelExecutionService, ViewModelExecutionService>();
+		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 
 		#region Singletons
@@ -328,6 +332,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEntityEcryption, EntityEcryption>();
+		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
@@ -353,6 +358,7 @@ public sealed class App : Application
 		services.AddTransient<HotkeysEditorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
+		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
@@ -374,6 +380,7 @@ public sealed class App : Application
 		services.AddTransient<HotkeysEditorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
+		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SelectedFavoritesView>();

@@ -158,6 +158,9 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
+
+	/// <inheritdoc />
 	public void SerializeToJsonFile<T>(
 		T value,
 		string filePath,
@@ -235,6 +238,9 @@ public sealed class FileSystem : IFileSystem
 	{
 		return File.WriteAllBytesAsync(filePath, bytes, token);
 	}
+
+	/// <inheritdoc />
+	public void WriteAllText(string filePath, string? contents) => File.WriteAllText(filePath, contents);
 	#endregion
 
 	#region Service

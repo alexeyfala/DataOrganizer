@@ -11,8 +11,8 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:toolBarControls="clr-namespace:ToolBarControls.Avalonia;assembly=ToolBarControls.Avalonia"
 	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
 	x:DataType="vm:EditorViewModel"
 	Icon="/Assets/Logo.ico"
@@ -116,8 +116,11 @@
 				</materialControls:NavigationDrawer.LeftDrawerContent>
 
 				<DockPanel>
-					<toolBarControls:ToolBar DockPanel.Dock="Top">
-						<toolBarControls:ToolBar.Styles>
+					<Grid
+						ColumnDefinitions="Auto,*,Auto"
+						DockPanel.Dock="Top">
+
+						<Grid.Styles>
 							<Style Selector="Button">
 								<Setter Property="Margin" Value="6.0,0.0" />
 								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
@@ -126,122 +129,170 @@
 							<Style Selector="ToggleButton">
 								<Setter Property="Margin" Value="6.0,0.0" />
 							</Style>
+						</Grid.Styles>
 
-							<FluentTheme />
-						</toolBarControls:ToolBar.Styles>
+						<StackPanel
+							Grid.Column="0"
+							Orientation="Horizontal">
+							<ToggleButton
+								Classes="primary"
+								Content="{materialIcons:MaterialIconTextExt Kind=Menu,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
+								Theme="{StaticResource MaterialFlatButton}"
+								ToolTip.Tip="{x:Static prop:Strings.Menu}" />
 
-						<ToggleButton
-							Classes="primary"
-							Content="{materialIcons:MaterialIconTextExt Kind=Menu,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							IsChecked="{Binding IsLeftDrawerOpened, Mode=TwoWay}"
-							Theme="{StaticResource MaterialFlatButton}"
-							ToolTip.Tip="{x:Static prop:Strings.Menu}" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding AddCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=Plus,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.Add}" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding RenameCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.Rename}" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding DeleteCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.Delete}" />
-
-						<Panel Classes="VerticalSeparatorPanelStyle" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding CollapseAllFoldersCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding ExpandAllFoldersCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
-
-						<Panel Classes="VerticalSeparatorPanelStyle" />
-
-						<Button
-							Classes="primary"
-							Command="{Binding HideAllFileContentsCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
-							<Button.Styles>
-								<Style Selector="Button:not(:disabled)">
-									<Setter Property="Background" Value="{StaticResource WarningBrush}" />
-								</Style>
-							</Button.Styles>
-						</Button>
-
-						<Button
-							Classes="primary"
-							Command="{Binding ResetSelectedObjectCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=SelectionEllipseRemove,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							ToolTip.Tip="{x:Static prop:Strings.ResetSelectedObject}" />
-
-						<Panel Classes="VerticalSeparatorPanelStyle" />
-
-						<Grid>
 							<Button
 								Classes="primary"
-								Command="{Binding ShowExecutedFilesCommand}"
-								Theme="{StaticResource MaterialFlatButton}"
-								ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}">
-								<materialIcons:MaterialIcon
-									Width="{StaticResource ToolBarIconSize}"
-									Height="{StaticResource ToolBarIconSize}"
-									Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}" />
+								Command="{Binding AddCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=Plus,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.Add}" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding RenameCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.Rename}" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding DeleteCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.Delete}" />
+
+							<Panel Classes="VerticalSeparatorPanelStyle" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding CollapseAllFoldersCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleUp,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.CollapseAll}" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding ExpandAllFoldersCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleDown,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.ExpandAll}" />
+
+							<Panel Classes="VerticalSeparatorPanelStyle" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding HideAllFileContentsCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
+								<Button.Styles>
+									<Style Selector="Button:not(:disabled)">
+										<Setter Property="Background" Value="{StaticResource WarningBrush}" />
+									</Style>
+								</Button.Styles>
 							</Button>
 
-							<TextBlock
-								Margin="0.0,0.0,8.0,0.0"
-								HorizontalAlignment="Right"
-								VerticalAlignment="Bottom"
-								Classes="HeaderTextBlockStyle"
-								Foreground="LimeGreen"
-								Text="{Binding ExecutedFiles.Count, Mode=OneWay}" />
-						</Grid>
+							<Button
+								Classes="primary"
+								Command="{Binding ResetSelectedObjectCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=SelectionEllipseRemove,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								ToolTip.Tip="{x:Static prop:Strings.ResetSelectedObject}" />
 
-						<Button
-							Classes="primary"
-							Command="{Binding ShowCopyHistoryCommand}"
-							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-							                                            IconSize={StaticResource ToolBarIconSize}}"
-							Theme="{StaticResource MaterialFlatButton}"
-							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+							<Panel Classes="VerticalSeparatorPanelStyle" />
 
-						<Button
-							Classes="primary"
-							Command="{Binding ShowSystemClipboardCommand}"
-							Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
+							<Button
+								Classes="primary"
+								Command="{Binding ShowSystemClipboardCommand}"
+								Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
 
-						<Panel Classes="VerticalSeparatorPanelStyle" />
+							<Panel Classes="VerticalSeparatorPanelStyle" />
 
-						<ToggleButton
-							Classes="primary"
-							Content="{materialIcons:MaterialIconTextExt Kind=PencilOffOutline}"
-							IsChecked="{Binding IsReadOnly, Mode=TwoWay}"
-							Theme="{StaticResource MaterialFlatToggleButton}"
-							ToolTip.Tip="{x:Static prop:Strings.ReadOnlyMode}" />
-					</toolBarControls:ToolBar>
+							<ToggleButton
+								Classes="primary"
+								Content="{materialIcons:MaterialIconTextExt Kind=PencilOffOutline,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								IsChecked="{Binding IsReadOnly, Mode=TwoWay}"
+								Theme="{StaticResource MaterialFlatToggleButton}"
+								ToolTip.Tip="{x:Static prop:Strings.ReadOnlyMode}" />
+
+							<Panel Classes="VerticalSeparatorPanelStyle" />
+
+							<Button
+								Classes="primary"
+								Content="{materialIcons:MaterialIconTextExt Kind=SwapHorizontal,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								Theme="{StaticResource MaterialFlatButton}"
+								ToolTip.Tip="{x:Static prop:Strings.ImportExport}">
+								<Button.Styles>
+									<Style Selector="FlyoutPresenter">
+										<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+										<Setter Property="Cursor" Value="Arrow" />
+										<Setter Property="Theme" Value="{StaticResource MaterialFlyoutPresenter}" />
+									</Style>
+								</Button.Styles>
+
+								<Button.Flyout>
+									<Flyout
+										OverlayDismissEventPassThrough="True"
+										Placement="Bottom">
+										<StackPanel Orientation="Vertical">
+											<StackPanel.Styles>
+												<Style Selector="Button">
+													<Setter Property="Margin" Value="0.0" />
+												</Style>
+											</StackPanel.Styles>
+
+											<wrappers:FlyoutButton
+												Command="{Binding ImportCommand}"
+												Header="{x:Static prop:Strings.ImportList}"
+												Icon="Import" />
+
+											<wrappers:FlyoutButton
+												Command="{Binding ExportCommand}"
+												Header="{x:Static prop:Strings.ExportList}"
+												Icon="Export" />
+										</StackPanel>
+									</Flyout>
+								</Button.Flyout>
+							</Button>
+						</StackPanel>
+
+						<StackPanel
+							Grid.Column="2"
+							Orientation="Horizontal">
+							<Grid>
+								<Button
+									Classes="primary"
+									Command="{Binding ShowExecutedFilesCommand}"
+									Theme="{StaticResource MaterialFlatButton}"
+									ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}">
+									<materialIcons:MaterialIcon
+										Width="{StaticResource ToolBarIconSize}"
+										Height="{StaticResource ToolBarIconSize}"
+										Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}" />
+								</Button>
+
+								<TextBlock
+									Margin="0.0,0.0,8.0,0.0"
+									HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Classes="HeaderTextBlockStyle"
+									Foreground="LimeGreen"
+									Text="{Binding ExecutedFiles.Count, Mode=OneWay}" />
+							</Grid>
+
+							<Button
+								Classes="primary"
+								Command="{Binding ShowCopyHistoryCommand}"
+								Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+								                                            IconSize={StaticResource ToolBarIconSize}}"
+								Theme="{StaticResource MaterialFlatButton}"
+								ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+						</StackPanel>
+					</Grid>
 
 					<Grid RowDefinitions="*,Auto">
 						<Grid.ColumnDefinitions>

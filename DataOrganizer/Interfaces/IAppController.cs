@@ -7,7 +7,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Performs application lifecycle control.
 /// </summary>
-internal interface IAppController
+public interface IAppController
 {
 	#region Methods
 	/// <summary>

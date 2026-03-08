@@ -1,0 +1,66 @@
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.Services;
+
+public sealed class FileSystemEnrtyPicker : IFileSystemEnrtyPicker
+{
+	#region Data
+	/// <inheritdoc cref="Application" />
+	private readonly Application _app;
+	#endregion
+
+	#region Constructors
+	public FileSystemEnrtyPicker(Application app) => _app = app;
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public async Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window
+	{
+		if (FindStorageProvider<T>() is not { } provider || await provider
+			.SaveFilePickerAsync(options)
+			.ConfigureAwait(false) is not { } file)
+		{
+			return null;
+		}
+
+		return file
+			.Path
+			.AbsolutePath;
+	}
+
+	/// <inheritdoc />
+	public async Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window
+	{
+		if (FindStorageProvider<T>() is not { } provider)
+		{
+			return [];
+		}
+
+		IReadOnlyList<IStorageFile> files = await provider
+			.OpenFilePickerAsync(options)
+			.ConfigureAwait(false);
+
+		return [.. files.Select(x => x.Path.AbsolutePath)];
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Tries to get <see cref="IStorageProvider" /> in the application.
+	/// </summary>
+	private IStorageProvider? FindStorageProvider<T>() where T : Window
+	{
+		return _app
+			.FindWindow<T>()?
+			.StorageProvider;
+	}
+	#endregion
+}

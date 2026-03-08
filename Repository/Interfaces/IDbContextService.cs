@@ -27,13 +27,22 @@ public interface IDbContextService
 	/// </summary>
 	void Detach<T>(Guid id) where T : class, IIdentity;
 
-	/// <inheritdoc cref="DatabaseFacade.EnsureCreatedAsync(CancellationToken)" />
+	/// <inheritdoc cref="DatabaseFacade.EnsureCreated" />
+	void EnsureCreated();
+
+	/// <inheritdoc cref="DatabaseFacade.EnsureCreatedAsync" />
 	Task EnsureCreatedAsync(CancellationToken token = default);
+
+	/// <inheritdoc cref="DatabaseFacade.EnsureDeleted" />
+	void EnsureDeleted();
 
 	/// <summary>
 	/// Determines whether the assembly contains migration files.
 	/// </summary>
 	bool HasMigrations(Assembly assembly);
+
+	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.Migrate(DatabaseFacade)" />
+	void Migrate();
 
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.MigrateAsync(DatabaseFacade, CancellationToken)" />
 	Task MigrateAsync(CancellationToken token = default);

@@ -88,6 +88,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add to end of list.
+        /// </summary>
+        public static string AddToEndOfList {
+            get {
+                return ResourceManager.GetString("AddToEndOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add To Folder.
         /// </summary>
         public static string AddToFolder {
@@ -313,6 +322,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data export completed.
+        /// </summary>
+        public static string DataExportCompleted {
+            get {
+                return ResourceManager.GetString("DataExportCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Data import completed.
+        /// </summary>
+        public static string DataImportCompleted {
+            get {
+                return ResourceManager.GetString("DataImportCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dataset.
         /// </summary>
         public static string Dataset {
@@ -412,6 +439,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export List.
+        /// </summary>
+        public static string ExportList {
+            get {
+                return ResourceManager.GetString("ExportList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to add.
         /// </summary>
         public static string FailedToAdd {
@@ -426,6 +462,24 @@ namespace Shared.Properties {
         public static string FailedToDelete {
             get {
                 return ResourceManager.GetString("FailedToDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to export data.
+        /// </summary>
+        public static string FailedToExportData {
+            get {
+                return ResourceManager.GetString("FailedToExportData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to import data.
+        /// </summary>
+        public static string FailedToImportData {
+            get {
+                return ResourceManager.GetString("FailedToImportData", resourceCulture);
             }
         }
         
@@ -660,6 +714,24 @@ namespace Shared.Properties {
         public static string IdenticalNames {
             get {
                 return ResourceManager.GetString("IdenticalNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import/Export.
+        /// </summary>
+        public static string ImportExport {
+            get {
+                return ResourceManager.GetString("ImportExport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import List.
+        /// </summary>
+        public static string ImportList {
+            get {
+                return ResourceManager.GetString("ImportList", resourceCulture);
             }
         }
         
@@ -907,6 +979,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace the list.
+        /// </summary>
+        public static string ReplaceTheList {
+            get {
+                return ResourceManager.GetString("ReplaceTheList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reset Selected Object.
         /// </summary>
         public static string ResetSelectedObject {
@@ -939,6 +1020,15 @@ namespace Shared.Properties {
         public static string SaveAndClose {
             get {
                 return ResourceManager.GetString("SaveAndClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save as.
+        /// </summary>
+        public static string SaveAs {
+            get {
+                return ResourceManager.GetString("SaveAs", resourceCulture);
             }
         }
         

@@ -81,6 +81,7 @@ public interface IEntityEcryption
 	Task<byte[]?> TryToDecryptContentsAsync(
 		FileModelDto file,
 		byte[] contents,
+		string header,
 		CancellationToken token = default);
 
 	/// <summary>

@@ -481,4 +481,34 @@
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="ImportExport" xml:space="preserve">
+    <value>Import/Export</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Save as</value>
+  </data>
+  <data name="ReplaceTheList" xml:space="preserve">
+    <value>Replace the list</value>
+  </data>
+  <data name="AddToEndOfList" xml:space="preserve">
+    <value>Add to end of list</value>
+  </data>
+  <data name="DataImportCompleted" xml:space="preserve">
+    <value>Data import completed</value>
+  </data>
+  <data name="FailedToImportData" xml:space="preserve">
+    <value>Failed to import data</value>
+  </data>
+  <data name="FailedToExportData" xml:space="preserve">
+    <value>Failed to export data</value>
+  </data>
+  <data name="DataExportCompleted" xml:space="preserve">
+    <value>Data export completed</value>
+  </data>
+  <data name="ImportList" xml:space="preserve">
+    <value>Import List</value>
+  </data>
+  <data name="ExportList" xml:space="preserve">
+    <value>Export List</value>
+  </data>
 </root>

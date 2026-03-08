@@ -422,24 +422,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		if (Hierarchy.ContainsBy(x => x.IsEdited || x.IsExecuted) && !await _dialogService
-			.RequestUserCloseFilesAsync()
-			.ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+
+		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
 
 		Hierarchy
 			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
-			.ForEach(dto =>
-			{
-				if (dto is FileModelDto file)
-				{
-					CloseFile(file);
-				}
-
-				dto.EncryptionStatus = EncryptionStatus.Encrypted;
-			});
+			.ForEach(dto => dto.EncryptionStatus = EncryptionStatus.Encrypted);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -493,6 +485,25 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_entityEcryption.HideFolderContents(dto, Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Imports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(IsNotReadOnly))]
+	public async Task Import()
+	{
+		// TODO: Test
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+
+		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		{
+			return;
+		}
+
+		await _dataExchange
+			.ImportDataAsync(Hierarchy)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -775,7 +786,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			_ = clipboard.SetTextAsync(dto.Name);
 
-			if (container.ContainerFromItem(dto) is not TemplatedControl item)
+			FolderModelDto[] parents = [.. dto
+				.GetAllParents()
+				.Reverse()];
+
+			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
 			{
 				return;
 			}
@@ -843,6 +858,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
+
+	/// <summary>
+	/// Exports data.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
+	private Task Export() => _dataExchange.ExportDataAsync();
 
 	/// <summary>
 	/// Opens a file context menu.
@@ -987,6 +1008,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IDataExchangeService" />
+	private readonly IDataExchangeService _dataExchange;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
@@ -1003,6 +1027,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	public EditorViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
+		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
@@ -1029,6 +1054,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewFactory,
 			viewLauncher)
 	{
+		_dataExchange = dataExchange;
+
 		_executionEngine = executionEngine;
 
 		_mapper = mapper;
@@ -1732,6 +1759,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& !dto.AnyParent(x => x.IsPasswordKeeper())
 			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
 	}
+
+	/// <summary>
+	/// Validates <see cref="ExportCommand" />.
+	/// </summary>
+	private bool CanExecuteExport() => Hierarchy.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="HideAllFilesCommand" />.

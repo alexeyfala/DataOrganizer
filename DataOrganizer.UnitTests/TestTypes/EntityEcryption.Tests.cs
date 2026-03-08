@@ -728,7 +728,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents);
+		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
 
 		// Assert
 		result
@@ -789,7 +789,7 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents);
+		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
 
 		// Assert
 		result
@@ -817,7 +817,8 @@ internal class EntityEcryptionTests
 		// Act
 		byte[]? result = await sut.TryToDecryptContentsAsync(
 			TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.None),
-			contents);
+			contents,
+			string.Empty);
 
 		// Assert
 		result
