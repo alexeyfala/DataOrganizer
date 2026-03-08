@@ -322,6 +322,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data export completed.
+        /// </summary>
+        public static string DataExportCompleted {
+            get {
+                return ResourceManager.GetString("DataExportCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data import completed.
         /// </summary>
         public static string DataImportCompleted {

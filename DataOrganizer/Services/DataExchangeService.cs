@@ -129,6 +129,8 @@ public sealed class DataExchangeService : IDataExchangeService
 				default:
 					throw new NotImplementedException();
 			}
+
+			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataExportCompleted));
 		}
 		catch (Exception ex)
 		{

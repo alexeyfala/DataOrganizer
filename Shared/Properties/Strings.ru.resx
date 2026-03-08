@@ -528,4 +528,7 @@
   <data name="FailedToExportData" xml:space="preserve">
     <value>Не удалось экспортировать данные</value>
   </data>
+  <data name="DataExportCompleted" xml:space="preserve">
+    <value>Экспорт данных выполнен</value>
+  </data>
 </root>

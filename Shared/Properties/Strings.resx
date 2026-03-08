@@ -508,4 +508,7 @@
   <data name="FailedToExportData" xml:space="preserve">
     <value>Failed to export data</value>
   </data>
+  <data name="DataExportCompleted" xml:space="preserve">
+    <value>Data export completed</value>
+  </data>
 </root>
