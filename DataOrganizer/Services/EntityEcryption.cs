@@ -503,12 +503,13 @@ public sealed class EntityEcryption : IEntityEcryption
 	public async Task<byte[]?> TryToDecryptContentsAsync(
 		FileModelDto file,
 		byte[] contents,
+		string header,
 		CancellationToken token = default)
 	{
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			if (await _dialogService
-				.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
+				.RequestUserPasswordAsync(header, token: token)
 				.ConfigureAwait(false) is not { } password)
 			{
 				return null;

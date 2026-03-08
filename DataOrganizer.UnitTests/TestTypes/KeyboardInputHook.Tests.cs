@@ -111,7 +111,7 @@ internal class KeyboardInputHookTests
 			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
 			entityEcryption
-				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>())
+				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(entityEcryption);

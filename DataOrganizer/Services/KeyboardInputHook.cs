@@ -191,7 +191,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				}
 
 				if (await _entityEcryption
-					.TryToDecryptContentsAsync(file, result.Contents, token)
+					.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 					.ConfigureAwait(false) is not { } contents)
 				{
 					return;
