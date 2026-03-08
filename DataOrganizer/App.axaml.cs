@@ -319,6 +319,7 @@ public sealed class App : Application
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IViewModelExecutionService, ViewModelExecutionService>();
+		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 
 		#region Singletons

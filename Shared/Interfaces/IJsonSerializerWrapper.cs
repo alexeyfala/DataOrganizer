@@ -21,7 +21,7 @@ public interface IJsonSerializerWrapper
 	T? FromFile<T>(string filePath);
 
 	/// <summary>
-	/// Serializes an object into a Json string.
+	/// Serializes data into a Json string.
 	/// </summary>
 	string Serialize<T>(T value, JsonSerializerOptions? options = null);
 
