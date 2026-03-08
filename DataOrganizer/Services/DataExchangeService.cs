@@ -434,22 +434,15 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Imports data from JSON.
+	/// Imports entities.
 	/// </summary>
-	private async Task<bool> ImportFromJsonAsync(
-		string filePath,
+	private async Task<bool> ImportEntitiesAsync(
+		ExplorerModelBase[] entities,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		string json = _fileSystem.ReadAllText(filePath);
-
-		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not { } entities)
-		{
-			return false;
-		}
-
 		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
 		{
 			return false;
@@ -488,6 +481,31 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Imports data from JSON.
+	/// </summary>
+	private Task<bool> ImportFromJsonAsync(
+		string filePath,
+		ImportListVariant variant,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		string json = _fileSystem.ReadAllText(filePath);
+
+		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not { } entities)
+		{
+			return Task.FromResult(false);
+		}
+
+		return ImportEntitiesAsync(
+			entities,
+			variant,
+			objects,
+			hierarchy,
+			token);
+	}
+
+	/// <summary>
 	/// Imports data from SQLite database.
 	/// </summary>
 	private Task<bool> ImportFromSQLiteAsync(
@@ -516,7 +534,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from XML.
 	/// </summary>
-	private async Task<bool> ImportFromXmlAsync(
+	private Task<bool> ImportFromXmlAsync(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
@@ -525,7 +543,17 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		string xml = _fileSystem.ReadAllText(filePath);
 
-		return true;
+		if (_xmlSerializer.Deserialize<ExplorerModelBase[]>(xml) is not { } entities)
+		{
+			return Task.FromResult(false);
+		}
+
+		return ImportEntitiesAsync(
+			entities,
+			variant,
+			objects,
+			hierarchy,
+			token);
 	}
 
 	/// <summary>
