@@ -786,7 +786,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			_ = clipboard.SetTextAsync(dto.Name);
 
-			if (container.ContainerFromItem(dto) is not TemplatedControl item)
+			FolderModelDto[] parents = [.. dto
+				.GetAllParents()
+				.Reverse()];
+
+			if (FindLastContainer(container, parents)?.ContainerFromItem(dto) is not TemplatedControl item)
 			{
 				return;
 			}
