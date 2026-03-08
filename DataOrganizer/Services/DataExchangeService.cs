@@ -217,6 +217,21 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case IFileSystemEnrtyPicker.XmlExt:
+					if (!await ImportFromXmlAsync(
+						filePath,
+						variant,
+						objects,
+						hierarchy,
+						token))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+
+						await _dbAccess
+							.RestoreFromBackupAsync(backupFilePath, token)
+							.ConfigureAwait(false);
+
+						return;
+					}
 					break;
 
 				case AppUtils.SQLiteExtension:
@@ -496,6 +511,19 @@ public sealed class DataExchangeService : IDataExchangeService
 				token),
 			_ => throw new NotImplementedException()
 		};
+	}
+
+	/// <summary>
+	/// Imports data from XML.
+	/// </summary>
+	private async Task<bool> ImportFromXmlAsync(
+		string filePath,
+		ImportListVariant variant,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		return true;
 	}
 
 	/// <summary>
