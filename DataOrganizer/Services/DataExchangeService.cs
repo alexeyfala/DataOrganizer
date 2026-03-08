@@ -313,18 +313,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Adds a data to the list from JSON.
-	/// </summary>
-	private async Task<bool> AddToListFromJsonAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		return true;
-	}
-
-	/// <summary>
 	/// Adds a data to the list from SQLite database.
 	/// </summary>
 	private async Task<bool> AddToListFromSQLiteAsync(
@@ -410,27 +398,55 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
-	private Task<bool> ImportFromJsonAsync(
+	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		return variant switch
+		string json = _fileSystem.ReadAllText(filePath);
+
+		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not { } entities)
 		{
-			ImportListVariant.Replace => ReplaceFromJsonAsync(
-				filePath,
-				objects,
-				hierarchy,
-				token),
-			ImportListVariant.AddToList => AddToListFromJsonAsync(
-				filePath,
-				objects,
-				hierarchy,
-				token),
-			_ => throw new NotImplementedException()
-		};
+			return false;
+		}
+
+		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
+		{
+			return false;
+		}
+
+		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+
+		FileModel[] files = [.. entities.OfType<FileModel>()];
+
+		RegenerateId(folders, files);
+
+		if (!await _dbAccess
+			.AddFoldersAsync(folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (!await _dbAccess
+			.AddFilesAsync(files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(
+			folders,
+			files));
+
+		if (variant == ImportListVariant.Replace)
+		{
+			hierarchy.Clear();
+		}
+
+		return true;
 	}
 
 	/// <summary>
