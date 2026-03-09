@@ -134,5 +134,21 @@ internal class DataExchangeServiceTests
 			.Received()
 			.Serialize(Arg.Any<ExplorerModelBase[]>());
 	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_Json()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+
+		// Assert
+	}
 	#endregion
 }
