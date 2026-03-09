@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
+using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
@@ -172,9 +173,13 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ImportDataAsync([]);
+		bool result = await sut.ImportDataAsync([]);
 
 		// Assert
+		result
+			.Should()
+			.BeFalse();
+
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
@@ -209,9 +214,13 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ImportDataAsync([]);
+		bool result = await sut.ImportDataAsync([]);
 
 		// Assert
+		result
+			.Should()
+			.BeFalse();
+
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
@@ -254,12 +263,65 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ImportDataAsync([]);
+		bool result = await sut.ImportDataAsync([]);
 
 		// Assert
+		result
+			.Should()
+			.BeFalse();
+
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_From_Json()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.ClearDatabase()
+				.Returns(true);
+
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns([]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
 	}
 	#endregion
 }

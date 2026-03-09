@@ -144,7 +144,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <inheritdoc />
-	public async Task ImportDataAsync(
+	public async Task<bool> ImportDataAsync(
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
@@ -158,7 +158,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			if (variant == ImportListVariant.None)
 			{
-				return;
+				return false;
 			}
 		}
 
@@ -175,14 +175,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (filePaths.Length == 0)
 		{
-			return;
+			return false;
 		}
 
 		if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
 			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
-			return;
+			return false;
 		}
 
 		try
@@ -210,7 +210,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
@@ -228,7 +228,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
@@ -246,7 +246,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
@@ -265,6 +265,8 @@ public sealed class DataExchangeService : IDataExchangeService
 			}
 
 			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataImportCompleted));
+
+			return true;
 		}
 		catch (Exception ex)
 		{
@@ -275,6 +277,8 @@ public sealed class DataExchangeService : IDataExchangeService
 			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath, token)
 				.ConfigureAwait(false);
+
+			return false;
 		}
 		finally
 		{
@@ -452,14 +456,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		RegenerateId(folders, files);
 
-		if (!await _dbAccess
+		if (folders.Length > 0 && !await _dbAccess
 			.AddFoldersAsync(folders, token)
 			.ConfigureAwait(false))
 		{
 			return false;
 		}
 
-		if (!await _dbAccess
+		if (files.Length > 0 && !await _dbAccess
 			.AddFilesAsync(files, token)
 			.ConfigureAwait(false))
 		{

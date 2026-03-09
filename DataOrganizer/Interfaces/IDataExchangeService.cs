@@ -19,6 +19,6 @@ public interface IDataExchangeService
 	/// <summary>
 	/// Imports data.
 	/// </summary>
-	Task ImportDataAsync(Collection<ExplorerModelBaseDto> hierarchy, CancellationToken token = default);
+	Task<bool> ImportDataAsync(Collection<ExplorerModelBaseDto> hierarchy, CancellationToken token = default);
 	#endregion
 }
