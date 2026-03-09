@@ -323,5 +323,54 @@ internal class DataExchangeServiceTests
 			.Should()
 			.BeTrue();
 	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_From_Xml()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.ClearDatabase()
+				.Returns(true);
+
+			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns([]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
 	#endregion
 }
