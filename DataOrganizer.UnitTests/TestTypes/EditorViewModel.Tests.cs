@@ -25,6 +25,7 @@ using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1057,6 +1058,57 @@ internal class EditorViewModelTests
 		entityEcryption
 			.Received()
 			.HideFolderContents(Arg.Any<FolderModelDto>(), Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="EditorViewModel.Import" />.
+	/// </summary>
+	[Test]
+	public async Task Import_Does_Work()
+	{
+		// Arrange
+		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isEdited: true)];
+
+		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+			count: 5,
+			isExecuted: true)];
+
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestUserCloseFilesAsync()
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dataExchange);
+
+			RegisterEditFilesView(builder);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut
+			.Hierarchy
+			.AddRange(editedFiles);
+
+		sut
+			.Hierarchy
+			.AddRange(executedFiles);
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		await dataExchange
+			.Received()
+			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>());
 	}
 
 	/// <summary>

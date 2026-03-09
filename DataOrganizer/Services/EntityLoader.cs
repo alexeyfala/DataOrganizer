@@ -53,6 +53,7 @@ public sealed class EntityLoader : IEntityLoader
 	/// <inheritdoc />
 	public LoadFromDbResult LoadFromDb(string dataSource)
 	{
+		// TODO: Test
 		using SqliteDbContext context = _dbAccess.GetSQliteDbContext(dataSource);
 
 		FolderModel[] dbFolders = [.. context
@@ -75,6 +76,7 @@ public sealed class EntityLoader : IEntityLoader
 	/// <inheritdoc />
 	public async Task<ExplorerModelBaseDto[]> LoadFromEmbeddedDbAsync(CancellationToken token = default)
 	{
+		// TODO: Test
 		try
 		{
 			FolderModel[] dbFolders = await _dbAccess
@@ -109,6 +111,7 @@ public sealed class EntityLoader : IEntityLoader
 	/// <inheritdoc />
 	public ExplorerModelBaseDto[] Map(IEnumerable<FolderModel> dbFolders, IEnumerable<FileModel> dbFiles)
 	{
+		// TODO: Test
 		FileModelDto[] dtoFiles = _mapper.Map<IEnumerable<FileModel>, FileModelDto[]>(dbFiles);
 
 		dtoFiles.ForEach(file =>
