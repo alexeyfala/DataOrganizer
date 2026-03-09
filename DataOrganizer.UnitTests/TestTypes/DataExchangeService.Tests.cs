@@ -3,15 +3,18 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
 using Entities.Abstract;
+using Entities.Models;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Interfaces;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -21,6 +24,54 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class DataExchangeServiceTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.AppendFromSQLiteAsync" />.
+	/// </summary>
+	[Test]
+	public async Task AppendFromSQLiteAsync_Does_Work()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromDb(Arg.Any<string>())
+				.Returns(new LoadFromDbResult
+				{
+					Files = [.. TestUtils.CreateFiles(5)],
+					Folders = [.. TestUtils.CreateFolders(5)]
+				});
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.Returns(true);
+
+			dbAccess
+				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.Returns(true);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.AppendFromSQLiteAsync(
+			string.Empty,
+			[],
+			[]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
 	/// </summary>
