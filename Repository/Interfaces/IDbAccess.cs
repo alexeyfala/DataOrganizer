@@ -1,8 +1,6 @@
 ﻿using Entities.Abstract;
 using Entities.Interfaces;
 using Entities.Models;
-using Microsoft.Data.Sqlite;
-using Repository.DbContexts;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
@@ -57,9 +55,6 @@ public interface IDbAccess : IDisposable
 	/// Completely clears the database.
 	/// </summary>
 	bool ClearDatabase();
-
-	/// <inheritdoc cref="SqliteConnection.ClearPool" />
-	void ClearPool(SqliteDbContext context);
 
 	/// <summary>
 	/// Establishes a connection to the database.
@@ -120,14 +115,14 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Creates and returns <see cref="SqliteDbContext" />.
-	/// </summary>
-	SqliteDbContext GetSQliteDbContext(string dataSource);
-
-	/// <summary>
 	/// Returns <c>True</c> if a SQLite database is valid.
 	/// </summary>
 	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false);
+
+	/// <summary>
+	/// Loads all entities from the specified database.
+	/// </summary>
+	LoadFromDbResult LoadFromDb(string dataSource);
 
 	/// <summary>
 	/// Restores database from backup.

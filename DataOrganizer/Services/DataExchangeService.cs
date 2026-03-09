@@ -1,5 +1,4 @@
 ﻿using Avalonia.Platform.Storage;
-using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -95,7 +94,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
+		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
 
 		RegenerateId(result.Folders, result.Files);
 

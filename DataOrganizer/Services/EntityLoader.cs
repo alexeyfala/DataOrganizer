@@ -1,5 +1,4 @@
-﻿using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -7,8 +6,6 @@ using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Models;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
-using Repository.DbContexts;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -50,29 +47,6 @@ public sealed class EntityLoader : IEntityLoader
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public LoadFromDbResult LoadFromDb(string dataSource)
-	{
-		// TODO: Test
-		using SqliteDbContext context = _dbAccess.GetSQliteDbContext(dataSource);
-
-		FolderModel[] dbFolders = [.. context
-			.Set<FolderModel>()
-			.AsNoTracking()];
-
-		FileModel[] dbFiles = [.. context
-			.Set<FileModel>()
-			.AsNoTracking()];
-
-		_dbAccess.ClearPool(context);
-
-		return new()
-		{
-			Files = dbFiles,
-			Folders = dbFolders
-		};
-	}
-
 	/// <inheritdoc />
 	public async Task<ExplorerModelBaseDto[]> LoadFromEmbeddedDbAsync(CancellationToken token = default)
 	{

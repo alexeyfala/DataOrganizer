@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -39,15 +38,15 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			entityLoader
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
 				.LoadFromDb(Arg.Any<string>())
 				.Returns(new LoadFromDbResult
 				{
 					Files = [.. TestUtils.CreateFiles(5)],
 					Folders = [.. TestUtils.CreateFolders(5)]
 				});
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())

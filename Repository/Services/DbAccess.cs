@@ -321,16 +321,6 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public void ClearPool(SqliteDbContext context)
-	{
-		using SqliteConnection connection = (SqliteConnection)context
-			.Database
-			.GetDbConnection();
-
-		SqliteConnection.ClearPool(connection);
-	}
-
-	/// <inheritdoc />
 	public async Task ConnectAsync(CancellationToken token = default)
 	{
 		try
@@ -616,21 +606,6 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public SqliteDbContext GetSQliteDbContext(string dataSource)
-	{
-		SqliteConnectionStringBuilder builder = new()
-		{
-			DataSource = dataSource
-		};
-
-		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-			.UseSqlite(builder.ToString())
-			.Options;
-
-		return new(options);
-	}
-
-	/// <inheritdoc />
 	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false)
 	{
 		try
@@ -701,6 +676,29 @@ public sealed class DbAccess : IDbAccess
 				return false;
 			}
 		}
+	}
+
+	/// <inheritdoc />
+	public LoadFromDbResult LoadFromDb(string dataSource)
+	{
+		// TODO: Test
+		using SqliteDbContext context = GetSQliteDbContext(dataSource);
+
+		FolderModel[] dbFolders = [.. context
+			.Set<FolderModel>()
+			.AsNoTracking()];
+
+		FileModel[] dbFiles = [.. context
+			.Set<FileModel>()
+			.AsNoTracking()];
+
+		ClearPool(context);
+
+		return new()
+		{
+			Files = dbFiles,
+			Folders = dbFolders
+		};
 	}
 
 	/// <inheritdoc />
@@ -933,6 +931,33 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Service
+	/// <inheritdoc cref="SqliteConnection.ClearPool" />
+	private static void ClearPool(SqliteDbContext context)
+	{
+		using SqliteConnection connection = (SqliteConnection)context
+			.Database
+			.GetDbConnection();
+
+		SqliteConnection.ClearPool(connection);
+	}
+
+	/// <summary>
+	/// Creates and returns <see cref="SqliteDbContext" />.
+	/// </summary>
+	private static SqliteDbContext GetSQliteDbContext(string dataSource)
+	{
+		SqliteConnectionStringBuilder builder = new()
+		{
+			DataSource = dataSource
+		};
+
+		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
+			.UseSqlite(builder.ToString())
+			.Options;
+
+		return new(options);
+	}
+
 	/// <summary>
 	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModel" />.
 	/// </summary>

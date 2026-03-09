@@ -1,5 +1,4 @@
-﻿using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
 using System.Collections.Generic;
 using System.Threading;
@@ -13,11 +12,6 @@ namespace DataOrganizer.Interfaces;
 public interface IEntityLoader
 {
 	#region Methods
-	/// <summary>
-	/// Loads all entities from the specified database.
-	/// </summary>
-	LoadFromDbResult LoadFromDb(string dataSource);
-
 	/// <summary>
 	/// Loads all entities from the database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
 	/// </summary>
