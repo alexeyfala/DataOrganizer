@@ -7,6 +7,9 @@ using DataOrganizer.Services;
 using DataOrganizer.Windows;
 using Entities.Abstract;
 using NSubstitute;
+using Repository.DTO;
+using Repository.Interfaces;
+using Shared.Common;
 using Shared.Interfaces;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -56,6 +59,39 @@ internal class DataExchangeServiceTests
 		jsonSerializer
 			.Received()
 			.Serialize(Arg.Any<ExplorerModelBase[]>(), Arg.Any<JsonSerializerOptions>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Exports_To_Sqlite()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.Returns(TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		dbAccess
+			.Received()
+			.BackupSqliteDatabase(Arg.Any<BackupSqliteParameters>());
 	}
 
 	/// <summary>
