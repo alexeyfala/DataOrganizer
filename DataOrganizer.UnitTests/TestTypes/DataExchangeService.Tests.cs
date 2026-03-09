@@ -57,5 +57,46 @@ internal class DataExchangeServiceTests
 			.Received()
 			.Serialize(Arg.Any<ExplorerModelBase[]>(), Arg.Any<JsonSerializerOptions>());
 	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Exports_To_Xml()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IXmlSerializerWrapper xmlSerializer = Substitute.For<IXmlSerializerWrapper>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.Returns(TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(xmlSerializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		fileSystem
+			.Received()
+			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
+
+		xmlSerializer
+			.Received()
+			.Serialize(Arg.Any<ExplorerModelBase[]>());
+	}
 	#endregion
 }
