@@ -29,7 +29,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+		IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -43,7 +43,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(jsonSerializer);
+			builder.RegisterInstance(serializer);
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -56,7 +56,7 @@ internal class DataExchangeServiceTests
 			.Received()
 			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
 
-		jsonSerializer
+		serializer
 			.Received()
 			.Serialize(Arg.Any<ExplorerModelBase[]>(), Arg.Any<JsonSerializerOptions>());
 	}
@@ -103,7 +103,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IXmlSerializerWrapper xmlSerializer = Substitute.For<IXmlSerializerWrapper>();
+		IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -117,7 +117,7 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(xmlSerializer);
+			builder.RegisterInstance(serializer);
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
@@ -130,7 +130,7 @@ internal class DataExchangeServiceTests
 			.Received()
 			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
 
-		xmlSerializer
+		serializer
 			.Received()
 			.Serialize(Arg.Any<ExplorerModelBase[]>());
 	}
@@ -142,13 +142,42 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Cannot_Import_From_Json()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
+		await sut.ImportDataAsync([]);
 
 		// Assert
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
 	#endregion
 }

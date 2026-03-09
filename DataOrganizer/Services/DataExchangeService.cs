@@ -178,7 +178,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return;
 		}
 
-		if (_dbAccess.BackupDatabase() is not { } backupFilePath)
+		if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
 			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 

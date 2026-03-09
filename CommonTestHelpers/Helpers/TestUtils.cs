@@ -307,7 +307,7 @@ public static class TestUtils
 	/// </summary>
 	public static string CreateRandomFileName(in int length, string extension)
 	{
-		return $"{AppUtils.CreateRandomString(length)}_file.{extension}";
+		return $"{AppUtils.CreateRandomString(length)}_file{extension}";
 	}
 
 	/// <summary>
