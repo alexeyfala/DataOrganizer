@@ -48,7 +48,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 
 		if (AddToList)
 		{
-			return SetResultAsync(ImportListVariant.AddToList);
+			return SetResultAsync(ImportListVariant.Append);
 		}
 
 		return SetResultAsync(ImportListVariant.None);

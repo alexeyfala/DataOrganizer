@@ -1,0 +1,580 @@
+﻿using Autofac;
+using Autofac.Extras.Moq;
+using Avalonia.Platform.Storage;
+using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Services;
+using DataOrganizer.Windows;
+using Entities.Abstract;
+using Entities.Models;
+using NSubstitute;
+using Repository.DTO;
+using Repository.Interfaces;
+using Shared.Common;
+using Shared.Interfaces;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace DataOrganizer.UnitTests.TestTypes;
+
+[TestFixture(Description = $@"Tests of ""{nameof(DataExchangeService)}"" type")]
+internal class DataExchangeServiceTests
+{
+	#region Methods
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.AppendFromSQLiteAsync" />.
+	/// </summary>
+	[Test]
+	public async Task AppendFromSQLiteAsync_Does_Work()
+	{
+		// Arrange
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.LoadFromDb(Arg.Any<string>())
+				.Returns(new LoadFromDbResult
+				{
+					Files = [.. TestUtils.CreateFiles(5)],
+					Folders = [.. TestUtils.CreateFolders(5)]
+				});
+
+			dbAccess
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.Returns(true);
+
+			dbAccess
+				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.Returns(true);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.AppendFromSQLiteAsync(
+			string.Empty,
+			[],
+			[]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		entityLoader
+			.Received()
+			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Exports_To_Json()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.Returns(TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		fileSystem
+			.Received()
+			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
+
+		serializer
+			.Received()
+			.Serialize(Arg.Any<ExplorerModelBase[]>(), Arg.Any<JsonSerializerOptions>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Exports_To_Sqlite()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.Returns(TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		dbAccess
+			.Received()
+			.BackupSqliteDatabase(Arg.Any<BackupSqliteParameters>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ExportDataAsync_Exports_To_Xml()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
+				.Returns(TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ExportDataAsync();
+
+		// Assert
+		fileSystem
+			.Received()
+			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
+
+		serializer
+			.Received()
+			.Serialize(Arg.Any<ExplorerModelBase[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_Json()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_SQLite()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_Xml()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_From_Json()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.ClearDatabase()
+				.Returns(true);
+
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns([]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_From_SQLite()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.Returns(true);
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_From_Xml()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.ClearDatabase()
+				.Returns(true);
+
+			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns([]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportEntitiesAsync" />.
+	/// </summary>
+	[TestCase(ImportListVariant.Append)]
+	[TestCase(ImportListVariant.Replace)]
+	public async Task ImportEntitiesAsync_Does_Work(ImportListVariant variant)
+	{
+		// Arrange
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			if (variant == ImportListVariant.Replace)
+			{
+				dbAccess
+					.ClearDatabase()
+					.Returns(true);
+			}
+
+			dbAccess
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.Returns(true);
+
+			dbAccess
+				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportEntitiesAsync(
+			[.. TestUtils.CreateFolders(5).Concat<ExplorerModelBase>(TestUtils.CreateFiles(5))],
+			variant,
+			[],
+			[]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		entityLoader
+			.Received()
+			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ReplaceFromSQLiteAsync_Does_Work()
+	{
+		// Arrange
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils
+			.CreateFoldersDto(5)
+			.Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
+
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ReplaceFromSQLiteAsync(
+			string.Empty,
+			[],
+			hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		hierarchy
+			.Should()
+			.BeEmpty();
+
+		await entityLoader
+			.Received()
+			.LoadFromEmbeddedDbAsync();
+	}
+	#endregion
+}

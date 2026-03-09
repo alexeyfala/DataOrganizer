@@ -1,6 +1,6 @@
 ﻿using Entities.Models;
 
-namespace DataOrganizer.DTO;
+namespace Repository.DTO;
 
 public sealed class LoadFromDbResult
 {

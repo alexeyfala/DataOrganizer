@@ -1,5 +1,4 @@
 ﻿using Avalonia.Platform.Storage;
-using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -45,8 +44,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IFileSystemEnrtyPicker" />
-	private readonly IFileSystemEnrtyPicker _picker;
+	/// <inheritdoc cref="IFileSystemPicker" />
+	private readonly IFileSystemPicker _picker;
 
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;
@@ -61,7 +60,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IDialogService dialogService,
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
-		IFileSystemEnrtyPicker picker,
+		IFileSystemPicker picker,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewModelExecutionService viewModel,
@@ -89,13 +88,57 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<bool> AppendFromSQLiteAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
+
+		RegenerateId(result.Folders, result.Files);
+
+		int index = hierarchy.Count;
+
+		result
+		   .Folders
+		   .OfType<ExplorerModelBase>()
+		   .Concat(result.Files)
+		   .Where(x => x.ParentId is null)
+		   .OrderBy(x => x.Index)
+		   .ForEach(x =>
+		   {
+			   x.Index = index;
+
+			   index++;
+		   });
+
+		if (result.Folders.Length > 0 && !await _dbAccess
+			.AddFoldersAsync(result.Folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (result.Files.Length > 0 && !await _dbAccess
+			.AddFilesAsync(result.Files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
+
+		return true;
+	}
+
+	/// <inheritdoc />
 	public async Task ExportDataAsync(CancellationToken token = default)
 	{
-		// TODO: Test
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
-			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			DefaultExtension = IFileSystemPicker.JsonExt.TrimStart('.'),
+			FileTypeChoices = IFileSystemPicker.ImportExportFilePickerTypes,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameInOneWord,
 			Title = Strings.SaveAs
@@ -114,11 +157,11 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemEnrtyPicker.JsonExt:
+				case IFileSystemPicker.JsonExt:
 					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case IFileSystemEnrtyPicker.XmlExt:
+				case IFileSystemPicker.XmlExt:
 					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
@@ -145,11 +188,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <inheritdoc />
-	public async Task ImportDataAsync(
+	public async Task<bool> ImportDataAsync(
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		// TODO: Test
 		ImportListVariant variant = ImportListVariant.Replace;
 
 		if (hierarchy.Count != 0)
@@ -160,14 +202,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			if (variant == ImportListVariant.None)
 			{
-				return;
+				return false;
 			}
 		}
 
 		FilePickerOpenOptions options = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			FileTypeFilter = IFileSystemPicker.ImportExportFilePickerTypes,
 			Title = Strings.Select
 		};
 
@@ -177,14 +219,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (filePaths.Length == 0)
 		{
-			return;
+			return false;
 		}
 
-		if (_dbAccess.BackupDatabase() is not { } backupFilePath)
+		if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
 			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
-			return;
+			return false;
 		}
 
 		try
@@ -198,7 +240,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemEnrtyPicker.JsonExt:
+				case IFileSystemPicker.JsonExt:
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
@@ -212,11 +254,11 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
-				case IFileSystemEnrtyPicker.XmlExt:
+				case IFileSystemPicker.XmlExt:
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
@@ -230,7 +272,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
@@ -248,7 +290,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return;
+						return false;
 					}
 					break;
 
@@ -267,6 +309,8 @@ public sealed class DataExchangeService : IDataExchangeService
 			}
 
 			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataImportCompleted));
+
+			return true;
 		}
 		catch (Exception ex)
 		{
@@ -277,6 +321,8 @@ public sealed class DataExchangeService : IDataExchangeService
 			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath, token)
 				.ConfigureAwait(false);
+
+			return false;
 		}
 		finally
 		{
@@ -291,6 +337,76 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> ImportEntitiesAsync(
+		ExplorerModelBase[] entities,
+		ImportListVariant variant,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
+		{
+			return false;
+		}
+
+		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+
+		FileModel[] files = [.. entities.OfType<FileModel>()];
+
+		RegenerateId(folders, files);
+
+		if (folders.Length > 0 && !await _dbAccess
+			.AddFoldersAsync(folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (files.Length > 0 && !await _dbAccess
+			.AddFilesAsync(files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(
+			folders,
+			files));
+
+		if (variant == ImportListVariant.Replace)
+		{
+			hierarchy.Clear();
+		}
+
+		return true;
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> ReplaceFromSQLiteAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		if (!await _dbAccess
+			.RestoreFromBackupAsync(filePath, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		ExplorerModelBaseDto[] result = await _entityLoader
+			.LoadFromEmbeddedDbAsync(token)
+			.ConfigureAwait(false);
+
+		objects.AddRange(result);
+
+		hierarchy.Clear();
+
+		return true;
 	}
 	#endregion
 
@@ -328,53 +444,6 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			childFiles.ForEach(x => x.ParentId = newFolderId);
 		});
-	}
-
-	/// <summary>
-	/// Adds a data to the list from SQLite database.
-	/// </summary>
-	private async Task<bool> AddToListFromSQLiteAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
-
-		RegenerateId(result.Folders, result.Files);
-
-		int index = hierarchy.Count;
-
-		result
-		   .Folders
-		   .OfType<ExplorerModelBase>()
-		   .Concat(result.Files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = index;
-
-			   index++;
-		   });
-
-		if (result.Folders.Length > 0 && !await _dbAccess
-			.AddFoldersAsync(result.Folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (result.Files.Length > 0 && !await _dbAccess
-			.AddFilesAsync(result.Files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
-
-		return true;
 	}
 
 	/// <summary>
@@ -434,53 +503,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Imports entities.
-	/// </summary>
-	private async Task<bool> ImportEntitiesAsync(
-		ExplorerModelBase[] entities,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
-		{
-			return false;
-		}
-
-		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
-
-		FileModel[] files = [.. entities.OfType<FileModel>()];
-
-		RegenerateId(folders, files);
-
-		if (!await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (!await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(
-			folders,
-			files));
-
-		if (variant == ImportListVariant.Replace)
-		{
-			hierarchy.Clear();
-		}
-
-		return true;
-	}
-
-	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
 	private Task<bool> ImportFromJsonAsync(
@@ -522,7 +544,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				objects,
 				hierarchy,
 				token),
-			ImportListVariant.AddToList => AddToListFromSQLiteAsync(
+			ImportListVariant.Append => AppendFromSQLiteAsync(
 				filePath,
 				objects,
 				hierarchy,
@@ -554,33 +576,6 @@ public sealed class DataExchangeService : IDataExchangeService
 			objects,
 			hierarchy,
 			token);
-	}
-
-	/// <summary>
-	/// Replaces the list with data from SQLite database.
-	/// </summary>
-	private async Task<bool> ReplaceFromSQLiteAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		if (!await _dbAccess
-			.RestoreFromBackupAsync(filePath, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		ExplorerModelBaseDto[] result = await _entityLoader
-			.LoadFromEmbeddedDbAsync(token)
-			.ConfigureAwait(false);
-
-		objects.AddRange(result);
-
-		hierarchy.Clear();
-
-		return true;
 	}
 	#endregion
 }

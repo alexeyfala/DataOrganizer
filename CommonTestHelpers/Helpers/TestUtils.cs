@@ -303,6 +303,14 @@ public static class TestUtils
 	}
 
 	/// <summary>
+	/// Generates a random file name.
+	/// </summary>
+	public static string CreateRandomFileName(in int length, string extension)
+	{
+		return $"{AppUtils.CreateRandomString(length)}_file{extension}";
+	}
+
+	/// <summary>
 	/// Generates a random <see cref="int" /> number within a given range.
 	/// </summary>
 	public static int CreateRandomInt(in int minValue, in int maxValue)
