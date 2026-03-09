@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed class FileSystemEnrtyPicker : IFileSystemEnrtyPicker
+public sealed class FileSystemPicker : IFileSystemPicker
 {
 	#region Data
 	/// <inheritdoc cref="Application" />
@@ -17,7 +17,7 @@ public sealed class FileSystemEnrtyPicker : IFileSystemEnrtyPicker
 	#endregion
 
 	#region Constructors
-	public FileSystemEnrtyPicker(Application app) => _app = app;
+	public FileSystemPicker(Application app) => _app = app;
 	#endregion
 
 	#region Methods

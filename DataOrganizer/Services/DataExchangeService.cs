@@ -45,8 +45,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IFileSystemEnrtyPicker" />
-	private readonly IFileSystemEnrtyPicker _picker;
+	/// <inheritdoc cref="IFileSystemPicker" />
+	private readonly IFileSystemPicker _picker;
 
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;
@@ -61,7 +61,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IDialogService dialogService,
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
-		IFileSystemEnrtyPicker picker,
+		IFileSystemPicker picker,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IViewModelExecutionService viewModel,
@@ -94,8 +94,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		// TODO: Test
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = IFileSystemEnrtyPicker.JsonExt.TrimStart('.'),
-			FileTypeChoices = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			DefaultExtension = IFileSystemPicker.JsonExt.TrimStart('.'),
+			FileTypeChoices = IFileSystemPicker.ImportExportFilePickerTypes,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameInOneWord,
 			Title = Strings.SaveAs
@@ -114,11 +114,11 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemEnrtyPicker.JsonExt:
+				case IFileSystemPicker.JsonExt:
 					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case IFileSystemEnrtyPicker.XmlExt:
+				case IFileSystemPicker.XmlExt:
 					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
@@ -167,7 +167,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		FilePickerOpenOptions options = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = IFileSystemEnrtyPicker.ImportExportFilePickerTypes,
+			FileTypeFilter = IFileSystemPicker.ImportExportFilePickerTypes,
 			Title = Strings.Select
 		};
 
@@ -198,7 +198,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemEnrtyPicker.JsonExt:
+				case IFileSystemPicker.JsonExt:
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
@@ -216,7 +216,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case IFileSystemEnrtyPicker.XmlExt:
+				case IFileSystemPicker.XmlExt:
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
