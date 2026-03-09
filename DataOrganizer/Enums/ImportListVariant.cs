@@ -3,6 +3,6 @@
 public enum ImportListVariant : byte
 {
 	None,
-	Replace,
-	Append
+	Append,
+	Replace
 }

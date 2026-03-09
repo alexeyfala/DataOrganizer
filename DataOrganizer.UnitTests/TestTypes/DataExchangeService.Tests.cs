@@ -4,6 +4,7 @@ using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
@@ -15,6 +16,7 @@ using Repository.Interfaces;
 using Shared.Common;
 using Shared.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -31,10 +33,10 @@ internal class DataExchangeServiceTests
 	public async Task AppendFromSQLiteAsync_Does_Work()
 	{
 		// Arrange
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
 			entityLoader
 				.LoadFromDb(Arg.Any<string>())
 				.Returns(new LoadFromDbResult
@@ -70,6 +72,10 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.BeTrue();
+
+		entityLoader
+			.Received()
+			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
 	}
 
 	/// <summary>
@@ -467,6 +473,59 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportEntitiesAsync" />.
+	/// </summary>
+	[TestCase(ImportListVariant.Append)]
+	[TestCase(ImportListVariant.Replace)]
+	public async Task ImportEntitiesAsync_Does_Work(ImportListVariant variant)
+	{
+		// Arrange
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			if (variant == ImportListVariant.Replace)
+			{
+				dbAccess
+					.ClearDatabase()
+					.Returns(true);
+			}
+
+			dbAccess
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.Returns(true);
+
+			dbAccess
+				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ImportEntitiesAsync(
+			[.. TestUtils.CreateFolders(5).Concat<ExplorerModelBase>(TestUtils.CreateFiles(5))],
+			variant,
+			[],
+			[]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		entityLoader
+			.Received()
+			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
 	}
 	#endregion
 }

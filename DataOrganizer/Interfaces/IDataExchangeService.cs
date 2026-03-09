@@ -41,7 +41,7 @@ public interface IDataExchangeService
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token);
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Replaces with data from SQLite database.

@@ -346,7 +346,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
+		CancellationToken token = default)
 	{
 		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
 		{
