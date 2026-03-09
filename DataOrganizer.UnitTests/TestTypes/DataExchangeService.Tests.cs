@@ -4,6 +4,7 @@ using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
@@ -16,6 +17,7 @@ using Repository.Interfaces;
 using Shared.Common;
 using Shared.Interfaces;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -526,6 +528,54 @@ internal class DataExchangeServiceTests
 		entityLoader
 			.Received()
 			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ReplaceFromSQLiteAsync_Does_Work()
+	{
+		// Arrange
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils
+			.CreateFoldersDto(5)
+			.Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
+
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ReplaceFromSQLiteAsync(
+			string.Empty,
+			[],
+			hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		hierarchy
+			.Should()
+			.BeEmpty();
+
+		await entityLoader
+			.Received()
+			.LoadFromEmbeddedDbAsync();
 	}
 	#endregion
 }
