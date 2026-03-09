@@ -89,6 +89,51 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<bool> AppendFromSQLiteAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
+
+		RegenerateId(result.Folders, result.Files);
+
+		int index = hierarchy.Count;
+
+		result
+		   .Folders
+		   .OfType<ExplorerModelBase>()
+		   .Concat(result.Files)
+		   .Where(x => x.ParentId is null)
+		   .OrderBy(x => x.Index)
+		   .ForEach(x =>
+		   {
+			   x.Index = index;
+
+			   index++;
+		   });
+
+		if (result.Folders.Length > 0 && !await _dbAccess
+			.AddFoldersAsync(result.Folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (result.Files.Length > 0 && !await _dbAccess
+			.AddFilesAsync(result.Files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
+
+		return true;
+	}
+
+	/// <inheritdoc />
 	public async Task ExportDataAsync(CancellationToken token = default)
 	{
 		FilePickerSaveOptions options = new()
@@ -294,6 +339,76 @@ public sealed class DataExchangeService : IDataExchangeService
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
+
+	/// <inheritdoc />
+	public async Task<bool> ImportEntitiesAsync(
+		ExplorerModelBase[] entities,
+		ImportListVariant variant,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
+		{
+			return false;
+		}
+
+		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+
+		FileModel[] files = [.. entities.OfType<FileModel>()];
+
+		RegenerateId(folders, files);
+
+		if (folders.Length > 0 && !await _dbAccess
+			.AddFoldersAsync(folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (files.Length > 0 && !await _dbAccess
+			.AddFilesAsync(files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(
+			folders,
+			files));
+
+		if (variant == ImportListVariant.Replace)
+		{
+			hierarchy.Clear();
+		}
+
+		return true;
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> ReplaceFromSQLiteAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		if (!await _dbAccess
+			.RestoreFromBackupAsync(filePath, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		ExplorerModelBaseDto[] result = await _entityLoader
+			.LoadFromEmbeddedDbAsync(token)
+			.ConfigureAwait(false);
+
+		objects.AddRange(result);
+
+		hierarchy.Clear();
+
+		return true;
+	}
 	#endregion
 
 	#region Service
@@ -330,53 +445,6 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			childFiles.ForEach(x => x.ParentId = newFolderId);
 		});
-	}
-
-	/// <summary>
-	/// Adds a data to the list from SQLite database.
-	/// </summary>
-	private async Task<bool> AddToListFromSQLiteAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		LoadFromDbResult result = _entityLoader.LoadFromDb(filePath);
-
-		RegenerateId(result.Folders, result.Files);
-
-		int index = hierarchy.Count;
-
-		result
-		   .Folders
-		   .OfType<ExplorerModelBase>()
-		   .Concat(result.Files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = index;
-
-			   index++;
-		   });
-
-		if (result.Folders.Length > 0 && !await _dbAccess
-			.AddFoldersAsync(result.Folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (result.Files.Length > 0 && !await _dbAccess
-			.AddFilesAsync(result.Files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
-
-		return true;
 	}
 
 	/// <summary>
@@ -436,53 +504,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Imports entities.
-	/// </summary>
-	private async Task<bool> ImportEntitiesAsync(
-		ExplorerModelBase[] entities,
-		ImportListVariant variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
-		{
-			return false;
-		}
-
-		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
-
-		FileModel[] files = [.. entities.OfType<FileModel>()];
-
-		RegenerateId(folders, files);
-
-		if (folders.Length > 0 && !await _dbAccess
-			.AddFoldersAsync(folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (files.Length > 0 && !await _dbAccess
-			.AddFilesAsync(files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(
-			folders,
-			files));
-
-		if (variant == ImportListVariant.Replace)
-		{
-			hierarchy.Clear();
-		}
-
-		return true;
-	}
-
-	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
 	private Task<bool> ImportFromJsonAsync(
@@ -524,7 +545,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				objects,
 				hierarchy,
 				token),
-			ImportListVariant.AddToList => AddToListFromSQLiteAsync(
+			ImportListVariant.Append => AppendFromSQLiteAsync(
 				filePath,
 				objects,
 				hierarchy,
@@ -556,33 +577,6 @@ public sealed class DataExchangeService : IDataExchangeService
 			objects,
 			hierarchy,
 			token);
-	}
-
-	/// <summary>
-	/// Replaces the list with data from SQLite database.
-	/// </summary>
-	private async Task<bool> ReplaceFromSQLiteAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		if (!await _dbAccess
-			.RestoreFromBackupAsync(filePath, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		ExplorerModelBaseDto[] result = await _entityLoader
-			.LoadFromEmbeddedDbAsync(token)
-			.ConfigureAwait(false);
-
-		objects.AddRange(result);
-
-		hierarchy.Clear();
-
-		return true;
 	}
 	#endregion
 }
