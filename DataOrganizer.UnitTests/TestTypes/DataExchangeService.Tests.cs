@@ -179,5 +179,87 @@ internal class DataExchangeServiceTests
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_SQLite()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ImportDataAsync([]);
+
+		// Assert
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Cannot_Import_From_Xml()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+
+			dbAccess
+				.BackupDatabase()
+				.Returns(AppUtils.CreateRandomFileName(10));
+
+			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(picker);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ImportDataAsync([]);
+
+		// Assert
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
 	#endregion
 }
