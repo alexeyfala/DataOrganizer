@@ -18,11 +18,15 @@ public sealed class AppEnvironment : IAppEnvironment
 	#endregion
 
 	#region Constructors
-	public AppEnvironment()
+	public AppEnvironment(IProcessUtils processUtils)
 	{
+		const string directoryName = "Data";
+
+		int appCount = processUtils.GetAppProcessesCount();
+
 		AppDataDirectoryPath = Path.Combine(
 			Environment.CurrentDirectory,
-			"Data");
+			appCount == 1 ? directoryName : $"{directoryName} ({appCount})");
 
 		DatabaseDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,
