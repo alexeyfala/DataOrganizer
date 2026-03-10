@@ -315,8 +315,7 @@ public sealed class App : Application
 
 		services.AddMapster();
 
-		#region Transients
-		services.AddTransient<IAppEnvironment, AppEnvironment>();
+		#region Transients		
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
@@ -340,6 +339,7 @@ public sealed class App : Application
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
+		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
