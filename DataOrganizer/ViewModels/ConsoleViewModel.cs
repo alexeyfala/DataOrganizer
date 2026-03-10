@@ -111,7 +111,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	[RelayCommand]
 	private void OpenDatabaseDirectory()
 	{
-		if (_options?.DatabaseDirectoryPath is not { } path)
+		if (_appEnvironment?.DatabaseDirectoryPath is not { } path)
 		{
 			return;
 		}
@@ -152,13 +152,13 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// </summary>
 	private readonly List<string> _recordsBuffer = [];
 
+	/// <inheritdoc cref="IAppEnvironment" />
+	private IAppEnvironment? _appEnvironment;
+
 	/// <summary>
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
 	private TextEditor? _editor;
-
-	/// <inheritdoc cref="ICommandLineOptions" />
-	private ICommandLineOptions? _options;
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private IProcessUtils? _processUtils;
@@ -180,9 +180,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	public void InjectReference(IProcessUtils target) => _processUtils = target;
 
 	/// <summary>
-	/// Performs dependency injection <see cref="ICommandLineOptions" />.
+	/// Performs dependency injection <see cref="IAppEnvironment" />.
 	/// </summary>
-	public void InjectReference(ICommandLineOptions target) => _options = target;
+	public void InjectReference(IAppEnvironment target) => _appEnvironment = target;
 	#endregion
 
 	#region Service

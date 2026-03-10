@@ -15,6 +15,9 @@ namespace DataOrganizer.Services;
 public class ExecutionEngine : IExecutionEngine
 {
 	#region Data
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
 
@@ -30,9 +33,6 @@ public class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="ICommandLineOptions" />
-	private readonly ICommandLineOptions _options;
-
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
@@ -42,13 +42,15 @@ public class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		ICommandLineOptions options,
+		IAppEnvironment appEnvironment,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils)
 	{
+		_appEnvironment = appEnvironment;
+
 		_changeTracker = changeTracker;
 
 		_fileAssociation = fileAssociation;
@@ -56,8 +58,6 @@ public class ExecutionEngine : IExecutionEngine
 		_fileSystem = fileSystem;
 
 		_logger = logger;
-
-		_options = options;
 
 		_processUtils = processUtils;
 	}
@@ -136,7 +136,7 @@ public class ExecutionEngine : IExecutionEngine
 		try
 		{
 			string directoryPath = Path.Combine(
-				_options.SandboxDirectoryPath,
+				_appEnvironment.SandboxDirectoryPath,
 				parameters.File.Id.ToString());
 
 			_fileSystem.CreateDirectory(directoryPath);

@@ -68,28 +68,28 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
-
-	/// <inheritdoc cref="ICommandLineOptions" />
-	private readonly ICommandLineOptions _options;
 	#endregion
 
 	#region Constructors
 	public EntityCreationViewModel(
 		Application app,
-		ICommandLineOptions options,
+		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer) : base(app)
 	{
+		_appEnvironment = appEnvironment;
+
 		_fileSystem = fileSystem;
 
 		_jsonSerializer = jsonSerializer;
-
-		_options = options;
 
 		InitializeFromFile();
 	}
@@ -111,7 +111,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 		_fileSystem.SerializeToJsonFile(
 			settings,
-			_options.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
+			_appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
 			false);
 	}
 	#endregion
@@ -127,7 +127,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// </summary>
 	private void InitializeFromFile()
 	{
-		string filePath = _options.GetSettingsFilePath(nameof(EntityCreationViewSettings));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings));
 
 		EntityCreationViewSettings settings = _jsonSerializer.FromFile<EntityCreationViewSettings>(filePath);
 

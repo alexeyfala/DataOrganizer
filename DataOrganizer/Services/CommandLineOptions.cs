@@ -4,7 +4,6 @@ using Serilog.Events;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace DataOrganizer.Services;
@@ -13,12 +12,6 @@ namespace DataOrganizer.Services;
 public sealed class CommandLineOptions : ICommandLineOptions
 {
 	#region Properties
-	/// <inheritdoc />
-	public string AppDataDirectoryPath { get; }
-
-	/// <inheritdoc />
-	public string DatabaseDirectoryPath { get; }
-
 	/// <inheritdoc />
 	public bool FillObjects { get; }
 
@@ -30,9 +23,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 	/// <inheritdoc />
 	public bool PrintHelp { get; }
-
-	/// <inheritdoc />
-	public string SandboxDirectoryPath { get; }
 	#endregion
 
 	#region Data
@@ -63,12 +53,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#region Constructors
 	public CommandLineOptions(string[] args)
 	{
-		AppDataDirectoryPath = Environment.CurrentDirectory;
-
-		DatabaseDirectoryPath = Path.Combine(
-			AppDataDirectoryPath,
-			"Database");
-
 		FillObjects = args.Contains(FillObjectsArg);
 
 		IsConsoleNeeded = args.Contains(ConsoleArg);
@@ -78,10 +62,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 			: LogEventLevel.Information;
 
 		PrintHelp = args.Contains(HelpArg);
-
-		SandboxDirectoryPath = Path.Combine(
-			AppDataDirectoryPath,
-			"Sandbox");
 	}
 	#endregion
 
@@ -121,15 +101,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 			});
 
 		return builder.ToString();
-	}
-
-	/// <inheritdoc />
-	public string GetSettingsFilePath(string fileName)
-	{
-		return Path.Combine(
-			AppDataDirectoryPath,
-			"Settings",
-			fileName + ".json");
 	}
 	#endregion
 

@@ -122,8 +122,9 @@ public sealed class App : Application
 	/// </summary>
 	private static ConsoleWindow ConfigureConsoleWindow(
 		Application app,
-		IFileSystem fileSystem,
+		IAppEnvironment appEnvironment,
 		ICommandLineOptions options,
+		IFileSystem fileSystem,
 		IJsonSerializerWrapper serializer,
 		IViewFactory viewFactory,
 		out LogCallbackSink sink)
@@ -138,7 +139,7 @@ public sealed class App : Application
 
 		window.Title = $"{AppUtils.AppName} - {Strings.Console} ({AppUtils.AppVersion})";
 
-		string settingsFilePath = options.GetSettingsFilePath(nameof(ConsoleWindowSettings));
+		string settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
 
 		if (fileSystem.IsFileExists(settingsFilePath)
 			&& serializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
@@ -224,7 +225,7 @@ public sealed class App : Application
 		try
 		{
 			string directoryPath = provider
-				.GetRequiredService<ICommandLineOptions>()
+				.GetRequiredService<IAppEnvironment>()
 				.DatabaseDirectoryPath;
 
 			Directory.CreateDirectory(directoryPath);
@@ -267,8 +268,13 @@ public sealed class App : Application
 			.MinimumLevel.Debug()
 			.WriteTo.Async(configure =>
 			{
+				string path = Path.Combine(
+					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
+					"Logs",
+					".txt");
+
 				configure.FileEx(
-					path: Path.Combine(options.AppDataDirectoryPath, "Logs", ".txt"),
+					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", ".txt"),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
@@ -283,8 +289,9 @@ public sealed class App : Application
 		{
 			_console = ConfigureConsoleWindow(
 				this,
-				provider.GetRequiredService<IFileSystem>(),
+				provider.GetRequiredService<IAppEnvironment>(),
 				options,
+				provider.GetRequiredService<IFileSystem>(),
 				provider.GetRequiredService<IJsonSerializerWrapper>(),
 				provider.GetRequiredService<IViewFactory>(),
 				out LogCallbackSink sink);

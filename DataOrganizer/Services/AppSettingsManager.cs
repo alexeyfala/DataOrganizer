@@ -24,31 +24,31 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
-
-	/// <inheritdoc cref="ICommandLineOptions" />
-	private readonly ICommandLineOptions _options;
 	#endregion
 
 	#region Constructors
 	public AppSettingsManager(
 		Application app,
-		ICommandLineOptions options,
+		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger)
 	{
 		_app = app;
 
+		_appEnvironment = appEnvironment;
+
 		_fileSystem = fileSystem;
 
 		_jsonSerializer = jsonSerializer;
-
-		_options = options;
 
 		Settings = LoadSettingsFromFile();
 
@@ -85,7 +85,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	{
 		_fileSystem.SerializeToJsonFile(
 			Settings,
-			_options.GetSettingsFilePath(nameof(AppSettings)),
+			_appEnvironment.GetSettingsFilePath(nameof(AppSettings)),
 			false);
 	}
 
@@ -134,7 +134,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	/// </summary>
 	private AppSettings LoadSettingsFromFile()
 	{
-		string filePath = _options.GetSettingsFilePath(nameof(AppSettings));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(AppSettings));
 
 		return _jsonSerializer.FromFile<AppSettings>(filePath) is { } settings && settings.IsNotDefault()
 			? settings

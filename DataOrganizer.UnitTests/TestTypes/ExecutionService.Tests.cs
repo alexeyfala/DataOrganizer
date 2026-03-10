@@ -33,9 +33,9 @@ internal class ExecutionServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			options
+			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
@@ -60,7 +60,7 @@ internal class ExecutionServiceTests
 
 			builder.RegisterInstance(processUtils);
 
-			builder.RegisterInstance(options);
+			builder.RegisterInstance(appEnvironment);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -114,13 +114,13 @@ internal class ExecutionServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-			options
+			appEnvironment
 				.SandboxDirectoryPath
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
-			builder.RegisterInstance(options);
+			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileSystem);
 
