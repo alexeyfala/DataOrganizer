@@ -65,7 +65,9 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	{
 		AppDataDirectoryPath = Environment.CurrentDirectory;
 
-		DatabaseDirectoryPath = Path.Combine(AppDataDirectoryPath, "Database");
+		DatabaseDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Database");
 
 		FillObjects = args.Contains(FillObjectsArg);
 
