@@ -10,7 +10,7 @@ using System.Reflection;
 namespace DataOrganizer.Services;
 
 /// <inheritdoc cref="IProcessUtils" />
-internal sealed class ProcessUtils : IProcessUtils
+public sealed class ProcessUtils : IProcessUtils
 {
 	#region Methods
 	/// <inheritdoc />

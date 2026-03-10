@@ -309,6 +309,7 @@ public sealed class App : Application
 		services.AddMapster();
 
 		#region Transients
+		services.AddTransient<IAppEnvironment, AppEnvironment>();
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
