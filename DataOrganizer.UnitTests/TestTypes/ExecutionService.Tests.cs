@@ -33,6 +33,12 @@ internal class ExecutionServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
+
+			options
+				.SandboxDirectoryPath
+				.Returns(TestUtils.CreateRandomDirectoryName());
+
 			fileSystem
 				.IsFileExists(Arg.Any<string>())
 				.Returns(true);
@@ -53,6 +59,8 @@ internal class ExecutionServiceTests
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processUtils);
+
+			builder.RegisterInstance(options);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -104,12 +112,24 @@ internal class ExecutionServiceTests
 
 		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
 
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ICommandLineOptions options = Substitute.For<ICommandLineOptions>();
 
-		ExecutionEngine sut = mock.Create<ExecutionEngine>(
-			TypedParameter.From(fileSystem),
-			TypedParameter.From(processUtils),
-			TypedParameter.From(changeTracker));
+			options
+				.SandboxDirectoryPath
+				.Returns(TestUtils.CreateRandomDirectoryName());
+
+			builder.RegisterInstance(options);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(processUtils);
+
+			builder.RegisterInstance(changeTracker);
+		});
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
 		ExecuteFileParameters parameters = new()
 		{
