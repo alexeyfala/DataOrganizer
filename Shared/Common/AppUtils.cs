@@ -42,16 +42,11 @@ public static class AppUtils
 	public static OperateSystem CurrentOs { get; } = GetCurrentOs();
 
 	/// <summary>
-	/// Application database directory name.
-	/// </summary>
-	public static string Database => nameof(Database);
-
-	/// <summary>
 	/// Application database directory path.
 	/// </summary>
 	public static string DatabaseDirectoryPath { get; } = IsDebugMode()
-		? Path.Combine(AppDataDirectoryPath, Database)
-		: Path.Combine(Environment.CurrentDirectory, Database);
+		? Path.Combine(AppDataDirectoryPath, "Database")
+		: Path.Combine(Environment.CurrentDirectory, "Database");
 
 	/// <summary>
 	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Linux" />.
@@ -88,21 +83,11 @@ public static class AppUtils
 	public static string PlatformSpecificExplorer { get; }
 
 	/// <summary>
-	/// Application sandbox directory name.
-	/// </summary>
-	public static string Sandbox => nameof(Sandbox);
-
-	/// <summary>
 	/// Application sandbox directory path.
 	/// </summary>
 	public static string SandboxDirectoryPath { get; } = Path.Combine(
 		AppDataDirectoryPath,
-		Sandbox);
-
-	/// <summary>
-	/// Application settings directory name.
-	/// </summary>
-	public static string Settings => nameof(Settings);
+		"Sandbox");
 
 	/// <summary>
 	/// Delay in millideconds for displaying the tip.
@@ -172,7 +157,7 @@ public static class AppUtils
 	{
 		return Path.Combine(
 			AppDataDirectoryPath,
-			Settings,
+			"Settings",
 			fileName + ".json");
 	}
 
