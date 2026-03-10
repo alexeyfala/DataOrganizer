@@ -20,7 +20,9 @@ public sealed class AppEnvironment : IAppEnvironment
 	#region Constructors
 	public AppEnvironment()
 	{
-		AppDataDirectoryPath = Environment.CurrentDirectory;
+		AppDataDirectoryPath = Path.Combine(
+			Environment.CurrentDirectory,
+			"Data");
 
 		DatabaseDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,
