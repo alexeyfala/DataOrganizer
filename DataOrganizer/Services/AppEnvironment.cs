@@ -33,7 +33,7 @@ public sealed class AppEnvironment : IAppEnvironment
 		_appCount = processUtils.GetAppProcessesCount();
 
 		AppDataDirectoryPath = Path.Combine(
-			Environment.CurrentDirectory,
+			AppUtils.IsDebugMode() ? GetDebugDirectoryPath() : Environment.CurrentDirectory,
 			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
 
 		DatabaseDirectoryPath = Path.Combine(
@@ -62,6 +62,18 @@ public sealed class AppEnvironment : IAppEnvironment
 			AppDataDirectoryPath,
 			"Settings",
 			fileName + ".json");
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Returns the path to the application directory for debug mode.
+	/// </summary>
+	private static string GetDebugDirectoryPath()
+	{
+		return Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			AppUtils.AppNameInOneWord);
 	}
 	#endregion
 }
