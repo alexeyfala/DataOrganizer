@@ -202,9 +202,6 @@
   <data name="ApplicationFile" xml:space="preserve">
     <value>Application File</value>
   </data>
-  <data name="ApplicationData" xml:space="preserve">
-    <value>Application Data</value>
-  </data>
   <data name="FailedToLoadFileContents" xml:space="preserve">
     <value>Failed to load file contents</value>
   </data>
@@ -510,5 +507,8 @@
   </data>
   <data name="ExportList" xml:space="preserve">
     <value>Export List</value>
+  </data>
+  <data name="Database" xml:space="preserve">
+    <value>Database</value>
   </data>
 </root>

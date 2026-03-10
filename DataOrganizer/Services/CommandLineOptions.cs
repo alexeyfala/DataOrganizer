@@ -53,9 +53,9 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#region Constructors
 	public CommandLineOptions(string[] args)
 	{
-		IsConsoleNeeded = args.Contains(ConsoleArg);
-
 		FillObjects = args.Contains(FillObjectsArg);
+
+		IsConsoleNeeded = args.Contains(ConsoleArg);
 
 		MinimumLogEventLevel = args.Contains(DebugArg)
 			? LogEventLevel.Debug

@@ -88,8 +88,8 @@
 							Header="{x:Static prop:Strings.ApplicationFile}" />
 
 						<MenuItem
-							Command="{Binding OpenAppDataDirectoryCommand}"
-							Header="{x:Static prop:Strings.ApplicationData}" />
+							Command="{Binding OpenDatabaseDirectoryCommand}"
+							Header="{x:Static prop:Strings.Database}" />
 					</MenuFlyout>
 				</Button.Flyout>
 			</Button>

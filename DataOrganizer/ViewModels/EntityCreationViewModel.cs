@@ -3,8 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
-using Shared.Common;
 using Shared.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;
@@ -68,6 +68,9 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -78,9 +81,12 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	#region Constructors
 	public EntityCreationViewModel(
 		Application app,
+		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer) : base(app)
 	{
+		_appEnvironment = appEnvironment;
+
 		_fileSystem = fileSystem;
 
 		_jsonSerializer = jsonSerializer;
@@ -105,7 +111,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 		_fileSystem.SerializeToJsonFile(
 			settings,
-			AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
+			_appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings)),
 			false);
 	}
 	#endregion
@@ -121,7 +127,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// </summary>
 	private void InitializeFromFile()
 	{
-		string filePath = AppUtils.GetSettingsFilePath(nameof(EntityCreationViewSettings));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings));
 
 		EntityCreationViewSettings settings = _jsonSerializer.FromFile<EntityCreationViewSettings>(filePath);
 

@@ -22,6 +22,9 @@ namespace DataOrganizer.Services;
 public sealed class AppController : IAppController
 {
 	#region Data
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -49,17 +52,20 @@ public sealed class AppController : IAppController
 
 	#region Constructors
 	public AppController(
+		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
+		IEntityLoader entityLoader,
 		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IViewLauncher viewLauncher,
-		IEntityLoader entityLoader)
+		IViewLauncher viewLauncher)
 	{
+		_appEnvironment = appEnvironment;
+
 		_dbAccess = dbAccess;
 
 		_entityLoader = entityLoader;
@@ -86,7 +92,7 @@ public sealed class AppController : IAppController
 	{
 		try
 		{
-			_fileSystem.CreateDirectory(AppUtils.AppDataDirectoryPath);
+			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
 			if (console is not null)
 			{
@@ -184,6 +190,10 @@ public sealed class AppController : IAppController
 	/// </summary>
 	private Task ShowConsoleWindowAsync(ConsoleWindow window)
 	{
+		window
+			.ViewModel
+			.InjectReference(_appEnvironment);
+
 		window
 			.ViewModel
 			.InjectReference(_processUtils);

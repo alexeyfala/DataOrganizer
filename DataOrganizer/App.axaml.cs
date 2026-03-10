@@ -122,8 +122,9 @@ public sealed class App : Application
 	/// </summary>
 	private static ConsoleWindow ConfigureConsoleWindow(
 		Application app,
-		IFileSystem fileSystem,
+		IAppEnvironment appEnvironment,
 		ICommandLineOptions options,
+		IFileSystem fileSystem,
 		IJsonSerializerWrapper serializer,
 		IViewFactory viewFactory,
 		out LogCallbackSink sink)
@@ -136,9 +137,9 @@ public sealed class App : Application
 			LogCallback = window.ViewModel.WriteCallback
 		};
 
-		window.Title = $"{AppUtils.AppName} - {Strings.Console} ({AppUtils.AppVersion})";
+		window.Title = $"{appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
 
-		string settingsFilePath = AppUtils.GetSettingsFilePath(nameof(ConsoleWindowSettings));
+		string settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
 
 		if (fileSystem.IsFileExists(settingsFilePath)
 			&& serializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
@@ -217,14 +218,20 @@ public sealed class App : Application
 	/// <summary>
 	/// Configures <see cref="SqliteDbContext" />.
 	/// </summary>
-	private static void ConfigureDbContext(DbContextOptionsBuilder builder)
+	private static void ConfigureDbContext(
+		IServiceProvider provider,
+		DbContextOptionsBuilder builder)
 	{
 		try
 		{
-			Directory.CreateDirectory(AppUtils.DatabaseDirectoryPath);
+			string directoryPath = provider
+				.GetRequiredService<IAppEnvironment>()
+				.DatabaseDirectoryPath;
+
+			Directory.CreateDirectory(directoryPath);
 
 			string dataSource = Path.Combine(
-				AppUtils.DatabaseDirectoryPath,
+				directoryPath,
 				AppUtils.AppNameInOneWord + AppUtils.SQLiteExtension);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
@@ -251,9 +258,9 @@ public sealed class App : Application
 	/// <summary>
 	/// Configures <see cref="Logger" />.
 	/// </summary>
-	private Logger ConfigureLogger(IServiceProvider serviceProvider)
+	private Logger ConfigureLogger(IServiceProvider provider)
 	{
-		ICommandLineOptions options = serviceProvider.GetRequiredService<ICommandLineOptions>();
+		ICommandLineOptions options = provider.GetRequiredService<ICommandLineOptions>();
 
 		LoggerConfiguration configuration = new LoggerConfiguration()
 			.Enrich.WithExceptionDetails()
@@ -261,8 +268,13 @@ public sealed class App : Application
 			.MinimumLevel.Debug()
 			.WriteTo.Async(configure =>
 			{
+				string path = Path.Combine(
+					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
+					"Logs",
+					".txt");
+
 				configure.FileEx(
-					path: Path.Combine(AppUtils.AppDataDirectoryPath, "Logs", ".txt"),
+					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", ".txt"),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
@@ -277,10 +289,11 @@ public sealed class App : Application
 		{
 			_console = ConfigureConsoleWindow(
 				this,
-				serviceProvider.GetRequiredService<IFileSystem>(),
+				provider.GetRequiredService<IAppEnvironment>(),
 				options,
-				serviceProvider.GetRequiredService<IJsonSerializerWrapper>(),
-				serviceProvider.GetRequiredService<IViewFactory>(),
+				provider.GetRequiredService<IFileSystem>(),
+				provider.GetRequiredService<IJsonSerializerWrapper>(),
+				provider.GetRequiredService<IViewFactory>(),
 				out LogCallbackSink sink);
 
 			configuration
@@ -302,7 +315,7 @@ public sealed class App : Application
 
 		services.AddMapster();
 
-		#region Transients
+		#region Transients		
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
@@ -326,6 +339,7 @@ public sealed class App : Application
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
+		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
@@ -389,11 +403,11 @@ public sealed class App : Application
 		services.AddTransient<YesNoCancelBox>();
 		#endregion
 
-		ServiceProvider serviceProvider = services.BuildServiceProvider();
+		ServiceProvider provider = services.BuildServiceProvider();
 
-		Ioc.Default.ConfigureServices(serviceProvider);
+		Ioc.Default.ConfigureServices(provider);
 
-		return serviceProvider;
+		return provider;
 	}
 	#endregion
 }

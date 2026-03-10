@@ -115,15 +115,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Application Data.
-        /// </summary>
-        public static string ApplicationData {
-            get {
-                return ResourceManager.GetString("ApplicationData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Application File.
         /// </summary>
         public static string ApplicationFile {
@@ -318,6 +309,15 @@ namespace Shared.Properties {
         public static string Dark {
             get {
                 return ResourceManager.GetString("Dark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Database.
+        /// </summary>
+        public static string Database {
+            get {
+                return ResourceManager.GetString("Database", resourceCulture);
             }
         }
         

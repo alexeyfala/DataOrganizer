@@ -15,13 +15,6 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// Path to the directory containing application data.
-	/// </summary>
-	public static string AppDataDirectoryPath { get; } = Path.Combine(
-		Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-		AppNameInOneWord);
-
-	/// <summary>
 	/// Application name "Data Organizer".
 	/// </summary>
 	public static string AppName => "Data Organizer";
@@ -40,18 +33,6 @@ public static class AppUtils
 	/// Current operating system.
 	/// </summary>
 	public static OperateSystem CurrentOs { get; } = GetCurrentOs();
-
-	/// <summary>
-	/// Application database directory name.
-	/// </summary>
-	public static string Database => nameof(Database);
-
-	/// <summary>
-	/// Application database directory path.
-	/// </summary>
-	public static string DatabaseDirectoryPath { get; } = IsDebugMode()
-		? Path.Combine(AppDataDirectoryPath, Database)
-		: Path.Combine(Environment.CurrentDirectory, Database);
 
 	/// <summary>
 	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Linux" />.
@@ -86,23 +67,6 @@ public static class AppUtils
 	/// The name of the program for opening files depending on the operating system.
 	/// </summary>
 	public static string PlatformSpecificExplorer { get; }
-
-	/// <summary>
-	/// Application sandbox directory name.
-	/// </summary>
-	public static string Sandbox => nameof(Sandbox);
-
-	/// <summary>
-	/// Application sandbox directory path.
-	/// </summary>
-	public static string SandboxDirectoryPath { get; } = Path.Combine(
-		AppDataDirectoryPath,
-		Sandbox);
-
-	/// <summary>
-	/// Application settings directory name.
-	/// </summary>
-	public static string Settings => nameof(Settings);
 
 	/// <summary>
 	/// Delay in millideconds for displaying the tip.
@@ -163,17 +127,6 @@ public static class AppUtils
 		return !IsLinux
 			? filePath
 			: filePath.Replace('\\', Path.DirectorySeparatorChar);
-	}
-
-	/// <summary>
-	/// Returns path to the file with settings.
-	/// </summary>
-	public static string GetSettingsFilePath(string fileName)
-	{
-		return Path.Combine(
-			AppDataDirectoryPath,
-			Settings,
-			fileName + ".json");
 	}
 
 	/// <summary>

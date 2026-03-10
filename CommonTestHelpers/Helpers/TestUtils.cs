@@ -274,6 +274,14 @@ public static class TestUtils
 	}
 
 	/// <summary>
+	/// Generates a random directory name.
+	/// </summary>
+	public static string CreateRandomDirectoryName()
+	{
+		return $"{AppUtils.CreateRandomString(6)}_directory";
+	}
+
+	/// <summary>
 	/// Generates a random <see cref="double" /> number within a given range.
 	/// </summary>
 	/// <remarks>

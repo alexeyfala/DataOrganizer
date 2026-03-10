@@ -12,7 +12,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
 using Serilog.Events;
-using Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -102,15 +101,23 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 		ReadFromBuffer();
 	}
 
-	/// <summary>
-	/// Opens the application data directory.
-	/// </summary>
-	[RelayCommand]
-	private void OpenAppDataDirectory() => _processUtils?.OpenDirectory(AppUtils.AppDataDirectoryPath);
-
 	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
 	[RelayCommand]
 	private void OpenAppDirectory() => _processUtils?.OpenAppDirectory();
+
+	/// <summary>
+	/// Opens the application database directory.
+	/// </summary>
+	[RelayCommand]
+	private void OpenDatabaseDirectory()
+	{
+		if (_appEnvironment?.DatabaseDirectoryPath is not { } path)
+		{
+			return;
+		}
+
+		_processUtils?.OpenDirectory(path);
+	}
 	#endregion
 
 	#region Partial
@@ -145,6 +152,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// </summary>
 	private readonly List<string> _recordsBuffer = [];
 
+	/// <inheritdoc cref="IAppEnvironment" />
+	private IAppEnvironment? _appEnvironment;
+
 	/// <summary>
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
@@ -168,6 +178,11 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// Performs dependency injection <see cref="IProcessUtils" />.
 	/// </summary>
 	public void InjectReference(IProcessUtils target) => _processUtils = target;
+
+	/// <summary>
+	/// Performs dependency injection <see cref="IAppEnvironment" />.
+	/// </summary>
+	public void InjectReference(IAppEnvironment target) => _appEnvironment = target;
 	#endregion
 
 	#region Service

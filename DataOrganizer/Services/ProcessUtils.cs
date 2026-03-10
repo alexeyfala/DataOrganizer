@@ -4,16 +4,37 @@ using Shared.Enums;
 using Shared.Extensions;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
 namespace DataOrganizer.Services;
 
 /// <inheritdoc cref="IProcessUtils" />
-internal sealed class ProcessUtils : IProcessUtils
+public sealed class ProcessUtils : IProcessUtils
 {
 	#region Methods
+	/// <inheritdoc />
+	public int GetAppProcessesCount()
+	{
+		Process process = Process.GetCurrentProcess();
+
+		string? currentPath = process
+			.MainModule?
+			.FileName;
+
+		return Process.GetProcessesByName(process.ProcessName).Count(x =>
+		{
+			try
+			{
+				return x.MainModule is not null && x.MainModule.FileName == currentPath;
+			}
+			catch
+			{
+				return false;
+			}
+		});
+	}
+
 	/// <inheritdoc />
 	public Process[] GetChildProcesses(int parentProcessId)
 	{
@@ -43,39 +64,6 @@ internal sealed class ProcessUtils : IProcessUtils
 		Process
 			.GetProcessById(processId)
 			.Kill();
-	}
-
-	/// <inheritdoc />
-	public string? LaunchProcess(
-		string fileName,
-		string arguments,
-		string outputSearchValue)
-	{
-		return LaunchProcessGetOutput(fileName, arguments).FirstOrDefault(x => x.Contains(outputSearchValue));
-	}
-
-	/// <inheritdoc />
-	public string[] LaunchProcessGetOutput(string fileName, string arguments)
-	{
-		using Process process = new();
-
-		process.StartInfo = new()
-		{
-			Arguments = arguments,
-			FileName = fileName,
-			RedirectStandardOutput = true,
-			UseShellExecute = false,
-			CreateNoWindow = true
-		};
-
-		process.Start();
-
-		using StreamReader reader = process.StandardOutput;
-
-		return [.. reader
-			.ReadToEnd()
-			.Split(Environment.NewLine)
-			.Where(x => !string.IsNullOrEmpty(x))];
 	}
 
 	/// <inheritdoc />
