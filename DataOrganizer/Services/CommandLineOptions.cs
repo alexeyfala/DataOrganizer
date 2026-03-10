@@ -1,9 +1,11 @@
 ﻿using Cysharp.Text;
 using DataOrganizer.Interfaces;
 using Serilog.Events;
+using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DataOrganizer.Services;
@@ -12,6 +14,12 @@ namespace DataOrganizer.Services;
 public sealed class CommandLineOptions : ICommandLineOptions
 {
 	#region Properties
+	/// <inheritdoc />
+	public string AppDataDirectoryPath { get; }
+
+	/// <inheritdoc />
+	public string DatabaseDirectoryPath { get; }
+
 	/// <inheritdoc />
 	public bool FillObjects { get; }
 
@@ -23,6 +31,9 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 	/// <inheritdoc />
 	public bool PrintHelp { get; }
+
+	/// <inheritdoc />
+	public string SandboxDirectoryPath { get; }
 	#endregion
 
 	#region Data
@@ -53,15 +64,27 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#region Constructors
 	public CommandLineOptions(string[] args)
 	{
-		IsConsoleNeeded = args.Contains(ConsoleArg);
+		AppDataDirectoryPath = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			AppUtils.AppNameInOneWord);
+
+		DatabaseDirectoryPath = AppUtils.IsDebugMode()
+			? Path.Combine(AppDataDirectoryPath, "Database")
+			: Path.Combine(Environment.CurrentDirectory, "Database");
 
 		FillObjects = args.Contains(FillObjectsArg);
+
+		IsConsoleNeeded = args.Contains(ConsoleArg);
 
 		MinimumLogEventLevel = args.Contains(DebugArg)
 			? LogEventLevel.Debug
 			: LogEventLevel.Information;
 
 		PrintHelp = args.Contains(HelpArg);
+
+		SandboxDirectoryPath = Path.Combine(
+			AppDataDirectoryPath,
+			"Sandbox");
 	}
 	#endregion
 
@@ -101,6 +124,15 @@ public sealed class CommandLineOptions : ICommandLineOptions
 			});
 
 		return builder.ToString();
+	}
+
+	/// <inheritdoc />
+	public string GetSettingsFilePath(string fileName)
+	{
+		return Path.Combine(
+			AppDataDirectoryPath,
+			"Settings",
+			fileName + ".json");
 	}
 	#endregion
 

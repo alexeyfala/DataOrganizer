@@ -8,7 +8,6 @@ using DataOrganizer.Services;
 using DataOrganizer.Windows;
 using NSubstitute;
 using Repository.Interfaces;
-using Shared.Common;
 using Shared.Interfaces;
 using System.Collections.Generic;
 using System.Threading;
@@ -66,7 +65,7 @@ internal class AppControllerTests
 		// Assert
 		fileSystem
 			.Received()
-			.CreateDirectory(AppUtils.AppDataDirectoryPath);
+			.CreateDirectory(Arg.Any<string>());
 
 		options
 			.Received()

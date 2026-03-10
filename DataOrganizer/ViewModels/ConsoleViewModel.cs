@@ -12,7 +12,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
 using Serilog.Events;
-using Shared.Common;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -106,7 +105,15 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// Opens the application data directory.
 	/// </summary>
 	[RelayCommand]
-	private void OpenAppDataDirectory() => _processUtils?.OpenDirectory(AppUtils.AppDataDirectoryPath);
+	private void OpenAppDataDirectory()
+	{
+		if (_options?.AppDataDirectoryPath is not { } path)
+		{
+			return;
+		}
+
+		_processUtils?.OpenDirectory(path);
+	}
 
 	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
 	[RelayCommand]
@@ -150,6 +157,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// </summary>
 	private TextEditor? _editor;
 
+	/// <inheritdoc cref="ICommandLineOptions" />
+	private ICommandLineOptions? _options;
+
 	/// <inheritdoc cref="IProcessUtils" />
 	private IProcessUtils? _processUtils;
 	#endregion
@@ -168,6 +178,11 @@ public sealed partial class ConsoleViewModel : ObservableDisposable
 	/// Performs dependency injection <see cref="IProcessUtils" />.
 	/// </summary>
 	public void InjectReference(IProcessUtils target) => _processUtils = target;
+
+	/// <summary>
+	/// Performs dependency injection <see cref="ICommandLineOptions" />.
+	/// </summary>
+	public void InjectReference(ICommandLineOptions target) => _options = target;
 	#endregion
 
 	#region Service

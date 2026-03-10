@@ -86,7 +86,7 @@ public sealed class AppController : IAppController
 	{
 		try
 		{
-			_fileSystem.CreateDirectory(AppUtils.AppDataDirectoryPath);
+			_fileSystem.CreateDirectory(_options.AppDataDirectoryPath);
 
 			if (console is not null)
 			{
@@ -184,6 +184,10 @@ public sealed class AppController : IAppController
 	/// </summary>
 	private Task ShowConsoleWindowAsync(ConsoleWindow window)
 	{
+		window
+			.ViewModel
+			.InjectReference(_options);
+
 		window
 			.ViewModel
 			.InjectReference(_processUtils);

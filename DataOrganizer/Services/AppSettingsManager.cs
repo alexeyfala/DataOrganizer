@@ -6,7 +6,6 @@ using Material.Colors;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -30,11 +29,15 @@ public sealed class AppSettingsManager : IAppSettingsManager
 
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
+
+	/// <inheritdoc cref="ICommandLineOptions" />
+	private readonly ICommandLineOptions _options;
 	#endregion
 
 	#region Constructors
 	public AppSettingsManager(
 		Application app,
+		ICommandLineOptions options,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger)
@@ -44,6 +47,8 @@ public sealed class AppSettingsManager : IAppSettingsManager
 		_fileSystem = fileSystem;
 
 		_jsonSerializer = jsonSerializer;
+
+		_options = options;
 
 		Settings = LoadSettingsFromFile();
 
@@ -80,7 +85,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	{
 		_fileSystem.SerializeToJsonFile(
 			Settings,
-			AppUtils.GetSettingsFilePath(nameof(AppSettings)),
+			_options.GetSettingsFilePath(nameof(AppSettings)),
 			false);
 	}
 
@@ -129,7 +134,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	/// </summary>
 	private AppSettings LoadSettingsFromFile()
 	{
-		string filePath = AppUtils.GetSettingsFilePath(nameof(AppSettings));
+		string filePath = _options.GetSettingsFilePath(nameof(AppSettings));
 
 		return _jsonSerializer.FromFile<AppSettings>(filePath) is { } settings && settings.IsNotDefault()
 			? settings

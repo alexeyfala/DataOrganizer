@@ -43,6 +43,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ICommandLineOptions" />
+	private readonly ICommandLineOptions _options;
+
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 	#endregion
@@ -50,6 +53,7 @@ public class ViewLauncher : IViewLauncher
 	#region Constructors
 	public ViewLauncher(
 		Application app,
+		ICommandLineOptions options,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
@@ -68,6 +72,8 @@ public class ViewLauncher : IViewLauncher
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
+
+		_options = options;
 
 		_viewFactory = viewFactory;
 	}
@@ -221,12 +227,12 @@ public class ViewLauncher : IViewLauncher
 			}
 		}
 
-		string filePath = AppUtils.GetSettingsFilePath(nameof(EditorWindowSettings));
+		string filePath = _options.GetSettingsFilePath(nameof(EditorWindowSettings));
 
 		if (_jsonSerializer.FromFile<EditorWindowSettings>(filePath) is { } windowSettings)
 		{
 			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				AppUtils.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
+				_options.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
 
 			window.ViewModel.Initialize(
 				window,
@@ -275,15 +281,15 @@ public class ViewLauncher : IViewLauncher
 			.ExecutedFiles
 			.AddRange(executedFiles);
 
-		string filePath = AppUtils.GetSettingsFilePath(nameof(FavoritesWindowSettings));
+		string filePath = _options.GetSettingsFilePath(nameof(FavoritesWindowSettings));
 
 		if (_jsonSerializer.FromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
 		{
 			FavoritesViewSettings favoritesSettings = _jsonSerializer.FromFile<FavoritesViewSettings>(
-				AppUtils.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
+				_options.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
 
 			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				AppUtils.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
+				_options.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
 
 			window.ViewModel.Initialize(
 				window,
@@ -308,7 +314,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		string filePath = AppUtils.GetSettingsFilePath(nameof(CurrentWindow));
+		string filePath = _options.GetSettingsFilePath(nameof(CurrentWindow));
 
 		if (_jsonSerializer.FromFile<CurrentWindow>(filePath) is { } settings)
 		{
@@ -351,17 +357,17 @@ public class ViewLauncher : IViewLauncher
 
 			_fileSystem.SerializeToJsonFile(
 				settings,
-				AppUtils.GetSettingsFilePath(nameof(EditorWindowSettings)),
+				_options.GetSettingsFilePath(nameof(EditorWindowSettings)),
 				false);
 
 			_fileSystem.SerializeToJsonFile(
 				window.ViewModel.CopyHistorySettings,
-				AppUtils.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
+				_options.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
 				false);
 
 			_fileSystem.SerializeToJsonFile(
 				CurrentWindow.Editor,
-				AppUtils.GetSettingsFilePath(nameof(CurrentWindow)),
+				_options.GetSettingsFilePath(nameof(CurrentWindow)),
 				false);
 
 			if (!window
@@ -396,22 +402,22 @@ public class ViewLauncher : IViewLauncher
 
 			_fileSystem.SerializeToJsonFile(
 				settings,
-				AppUtils.GetSettingsFilePath(nameof(FavoritesWindowSettings)),
+				_options.GetSettingsFilePath(nameof(FavoritesWindowSettings)),
 				false);
 
 			_fileSystem.SerializeToJsonFile(
 				window.ViewModel.FavoritesSettings,
-				AppUtils.GetSettingsFilePath(nameof(FavoritesViewSettings)),
+				_options.GetSettingsFilePath(nameof(FavoritesViewSettings)),
 				false);
 
 			_fileSystem.SerializeToJsonFile(
 				window.ViewModel.CopyHistorySettings,
-				AppUtils.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
+				_options.GetSettingsFilePath(nameof(CopyHistoryViewSettings)),
 				false);
 
 			_fileSystem.SerializeToJsonFile(
 				CurrentWindow.Favorites,
-				AppUtils.GetSettingsFilePath(nameof(CurrentWindow)),
+				_options.GetSettingsFilePath(nameof(CurrentWindow)),
 				false);
 
 			if (!window
@@ -538,7 +544,7 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		await DeleteDirectoryAsync(
-			directoryPath: AppUtils.SandboxDirectoryPath,
+			directoryPath: _options.SandboxDirectoryPath,
 			maxAttepmts: 10,
 			token: token).ConfigureAwait(false);
 

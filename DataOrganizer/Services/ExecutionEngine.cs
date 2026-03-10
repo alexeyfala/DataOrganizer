@@ -1,7 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -31,6 +30,9 @@ public class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ICommandLineOptions" />
+	private readonly ICommandLineOptions _options;
+
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
@@ -40,6 +42,7 @@ public class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
+		ICommandLineOptions options,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
@@ -53,6 +56,8 @@ public class ExecutionEngine : IExecutionEngine
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_options = options;
 
 		_processUtils = processUtils;
 	}
@@ -131,7 +136,7 @@ public class ExecutionEngine : IExecutionEngine
 		try
 		{
 			string directoryPath = Path.Combine(
-				AppUtils.SandboxDirectoryPath,
+				_options.SandboxDirectoryPath,
 				parameters.File.Id.ToString());
 
 			_fileSystem.CreateDirectory(directoryPath);
