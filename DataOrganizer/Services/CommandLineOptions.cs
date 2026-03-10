@@ -1,7 +1,6 @@
 ﻿using Cysharp.Text;
 using DataOrganizer.Interfaces;
 using Serilog.Events;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -64,13 +63,9 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	#region Constructors
 	public CommandLineOptions(string[] args)
 	{
-		AppDataDirectoryPath = Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			AppUtils.AppNameInOneWord);
+		AppDataDirectoryPath = Environment.CurrentDirectory;
 
-		DatabaseDirectoryPath = AppUtils.IsDebugMode()
-			? Path.Combine(AppDataDirectoryPath, "Database")
-			: Path.Combine(Environment.CurrentDirectory, "Database");
+		DatabaseDirectoryPath = Path.Combine(AppDataDirectoryPath, "Database");
 
 		FillObjects = args.Contains(FillObjectsArg);
 
