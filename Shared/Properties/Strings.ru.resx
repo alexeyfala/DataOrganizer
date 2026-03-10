@@ -222,9 +222,6 @@
   <data name="ApplicationFile" xml:space="preserve">
     <value>Файл приложения</value>
   </data>
-  <data name="ApplicationData" xml:space="preserve">
-    <value>Данные приложения</value>
-  </data>
   <data name="FailedToLoadFileContents" xml:space="preserve">
     <value>Не удалось загрузить содержимое файла</value>
   </data>
@@ -530,5 +527,8 @@
   </data>
   <data name="ExportList" xml:space="preserve">
     <value>Экспорт списка</value>
+  </data>
+  <data name="Database" xml:space="preserve">
+    <value>База данных</value>
   </data>
 </root>
