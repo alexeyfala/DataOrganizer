@@ -16,12 +16,13 @@ internal sealed class ProcessUtils : IProcessUtils
 	/// <inheritdoc />
 	public int GetAppProcessesCount()
 	{
-		string? currentPath = Process
-			.GetCurrentProcess()
+		Process process = Process.GetCurrentProcess();
+
+		string? currentPath = process
 			.MainModule?
 			.FileName;
 
-		return Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Count(x =>
+		return Process.GetProcessesByName(process.ProcessName).Count(x =>
 		{
 			try
 			{
