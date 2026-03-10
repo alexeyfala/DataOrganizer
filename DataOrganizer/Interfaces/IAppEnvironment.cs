@@ -24,6 +24,11 @@ public interface IAppEnvironment
 
 	#region Methods
 	/// <summary>
+	/// Returns the name of the application based on the number of running instances.
+	/// </summary>
+	string GetAppInstanceName();
+
+	/// <summary>
 	/// Returns path to the file with settings.
 	/// </summary>
 	string GetSettingsFilePath(string fileName);

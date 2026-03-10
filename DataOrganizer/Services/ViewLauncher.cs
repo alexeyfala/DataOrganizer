@@ -168,7 +168,7 @@ public class ViewLauncher : IViewLauncher
 
 		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>();
 
-		window.Title = $"{AppUtils.AppName} ({AppUtils.AppVersion})";
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppUtils.AppVersion}";
 
 		window
 			.ViewModel

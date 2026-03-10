@@ -137,7 +137,7 @@ public sealed class App : Application
 			LogCallback = window.ViewModel.WriteCallback
 		};
 
-		window.Title = $"{AppUtils.AppName} - {Strings.Console} ({AppUtils.AppVersion})";
+		window.Title = $"{appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
 
 		string settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
 

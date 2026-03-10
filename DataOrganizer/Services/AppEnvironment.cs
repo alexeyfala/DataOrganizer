@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.Interfaces;
+using Shared.Common;
 using System;
 using System.IO;
 
@@ -17,16 +18,23 @@ public sealed class AppEnvironment : IAppEnvironment
 	public string SandboxDirectoryPath { get; }
 	#endregion
 
+	#region Data
+	/// <summary>
+	/// The number of running application instances.
+	/// </summary>
+	private readonly int _appCount;
+	#endregion
+
 	#region Constructors
 	public AppEnvironment(IProcessUtils processUtils)
 	{
 		const string directoryName = "Data";
 
-		int appCount = processUtils.GetAppProcessesCount();
+		_appCount = processUtils.GetAppProcessesCount();
 
 		AppDataDirectoryPath = Path.Combine(
 			Environment.CurrentDirectory,
-			appCount == 1 ? directoryName : $"{directoryName} ({appCount})");
+			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
 
 		DatabaseDirectoryPath = Path.Combine(
 			AppDataDirectoryPath,
@@ -39,6 +47,14 @@ public sealed class AppEnvironment : IAppEnvironment
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public string GetAppInstanceName()
+	{
+		return _appCount == 1
+			? AppUtils.AppName
+			: $"{AppUtils.AppName} ({_appCount})";
+	}
+
 	/// <inheritdoc />
 	public string GetSettingsFilePath(string fileName)
 	{
