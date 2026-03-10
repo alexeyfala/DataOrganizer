@@ -9,6 +9,11 @@ public interface IProcessUtils
 {
 	#region Methods
 	/// <summary>
+	/// Returns the number of running instances of the application.
+	/// </summary>
+	int GetAppProcessesCount();
+
+	/// <summary>
 	/// Returns a list of child processes.
 	/// </summary>
 	Process[] GetChildProcesses(int parentProcessId);
@@ -20,16 +25,6 @@ public interface IProcessUtils
 
 	/// <inheritdoc cref="Process.Kill()" />
 	void KillProcess(in int processId);
-
-	/// <summary>
-	/// Launches the required utility process and searches the output for the required information.
-	/// </summary>
-	string? LaunchProcess(string fileName, string arguments, string outputSearchValue);
-
-	/// <summary>
-	/// Launches the required utility process and displays the received information.
-	/// </summary>
-	string[] LaunchProcessGetOutput(string fileName, string arguments);
 
 	/// <summary>
 	/// Opens the application directory.
