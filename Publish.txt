@@ -3,6 +3,7 @@ Windows Portable - Release:
 2. Run:
 dotnet publish -c:Release -p:PublishSingleFile=true -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
+
 Windows Portable (Debug):
 1. Open "Terminal" in "DataOrganizer.Desktop" project.
 2. Run:
