@@ -9,6 +9,7 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:sys="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	MinWidth="500.0"
 	Padding="{StaticResource DialogIndent}"
@@ -40,11 +41,11 @@
 				RowDefinitions="*,*,*"
 				RowSpacing="{StaticResource ElementSpacing}">
 
-				<Grid.Styles>
-					<Style Selector="ComboBox">
-						<Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
-					</Style>
+				<Grid.Resources>
+					<sys:Double x:Key="ComboBoxHeight">18.0</sys:Double>
+				</Grid.Resources>
 
+				<Grid.Styles>
 					<Style Selector="Border.HelpIconBorderStyle">
 						<Setter Property="VerticalAlignment" Value="Center" />
 						<Setter Property="Background" Value="Transparent" />
@@ -147,18 +148,21 @@
 					Grid.Row="2"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
-					<ComboBox
+					<HeaderedContentControl
 						Grid.Column="0"
-						assists:ComboBoxAssist.Label="{x:Static prop:Strings.Language}"
-						Classes="dense"
-						ItemsSource="{Binding Languages, Mode=OneTime}"
-						SelectedItem="{Binding Language, Mode=TwoWay}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate x:DataType="globalization:CultureInfo">
-								<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
+						Classes="ClassicGroupBoxStyle"
+						Header="{x:Static prop:Strings.Language}">
+						<ComboBox
+							Height="{StaticResource ComboBoxHeight}"
+							ItemsSource="{Binding Languages, Mode=OneTime}"
+							SelectedItem="{Binding Language, Mode=TwoWay}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="globalization:CultureInfo">
+									<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</HeaderedContentControl>
 
 					<Border
 						Grid.Column="1"
