@@ -198,7 +198,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			variant = await _dialogService
 				.SelectImportVariantAsync(token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 
 			if (variant == ImportListVariant.None)
 			{

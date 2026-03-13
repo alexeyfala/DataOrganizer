@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System.Collections.Generic;
@@ -15,25 +14,17 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
-
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
 	#endregion
 
 	#region Constructors
-	public FileSystemPicker(Application app, IDispatcher dispatcher)
-	{
-		_app = app;
-
-		_dispatcher = dispatcher;
-	}
+	public FileSystemPicker(Application app) => _app = app;
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
 	public async Task<string?> SaveFileAsync<T>(FilePickerSaveOptions options) where T : Window
 	{
-		if (await FindStorageProviderAsync<T>().ConfigureAwait(false) is not { } provider || await provider
+		if (FindStorageProvider<T>() is not { } provider || await provider
 			.SaveFilePickerAsync(options)
 			.ConfigureAwait(false) is not { } file)
 		{
@@ -48,7 +39,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	/// <inheritdoc />
 	public async Task<string[]> SelectFilesAsync<T>(FilePickerOpenOptions options) where T : Window
 	{
-		if (await FindStorageProviderAsync<T>().ConfigureAwait(false) is not { } provider)
+		if (FindStorageProvider<T>() is not { } provider)
 		{
 			return [];
 		}
@@ -65,18 +56,11 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	/// <summary>
 	/// Tries to get <see cref="IStorageProvider" /> in the application.
 	/// </summary>
-	private Task<IStorageProvider?> FindStorageProviderAsync<T>() where T : Window
+	private IStorageProvider? FindStorageProvider<T>() where T : Window
 	{
-		TaskCompletionSource<IStorageProvider?> source = new();
-
-		_dispatcher.Post(() =>
-		{
-			source.TrySetResult(_app
-				.FindWindow<T>()?
-				.StorageProvider);
-		});
-
-		return source.Task;
+		return _app
+			.FindWindow<T>()?
+			.StorageProvider;
 	}
 	#endregion
 }
