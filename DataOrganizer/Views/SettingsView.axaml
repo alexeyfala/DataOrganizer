@@ -5,7 +5,6 @@
 	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
-	xmlns:grp="using:GroupBox.Avalonia.Controls"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -67,8 +66,11 @@
 					<StackPanel
 						Margin="{StaticResource DialogIndent}"
 						Orientation="Vertical"
-						Spacing="{StaticResource ElementSpacing}">						
-						<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
+						Spacing="{StaticResource ElementSpacing}">
+
+						<HeaderedContentControl
+							Classes="GroupBoxStyle"
+							Header="{x:Static prop:Strings.Theme}">
 							<materialControls:Card>
 								<materialControls:Card.Styles>
 									<Style Selector="RadioButton">
@@ -94,9 +96,11 @@
 										IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
 								</UniformGrid>
 							</materialControls:Card>
-						</grp:GroupBox>
+						</HeaderedContentControl>
 
-						<grp:GroupBox Header="{x:Static prop:Strings.Colors}">
+						<HeaderedContentControl
+							Classes="GroupBoxStyle"
+							Header="{x:Static prop:Strings.Colors}">
 							<UniformGrid
 								ColumnSpacing="{StaticResource ElementSpacing}"
 								Columns="2">
@@ -114,7 +118,7 @@
 									ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
 									SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
 							</UniformGrid>
-						</grp:GroupBox>
+						</HeaderedContentControl>
 					</StackPanel>
 				</HeaderedContentControl>
 
@@ -122,15 +126,15 @@
 					Grid.Row="1"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
-					<grp:GroupBox
+					<HeaderedContentControl
 						Grid.Column="0"
-						Header="{x:Static prop:Strings.Hotkeys}"
-						Theme="{StaticResource GroupBoxClassic}">
+						Classes="ClassicGroupBoxStyle"
+						Header="{x:Static prop:Strings.Hotkeys}">
 						<CheckBox
 							Margin="10.0"
 							Content="{x:Static prop:Strings.EnableHotkeyTracking}"
 							IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
-					</grp:GroupBox>
+					</HeaderedContentControl>
 
 					<Border
 						Grid.Column="1"

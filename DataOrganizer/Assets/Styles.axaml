@@ -151,4 +151,29 @@
 			</ControlTemplate>
 		</Setter>
 	</Style>
+
+	<Style Selector="HeaderedContentControl.GroupBoxStyle">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
+					<TextBlock
+						Grid.Row="0"
+						Grid.Column="0"
+						Margin="5.0,0.0,0.0,0.0"
+						FontWeight="Bold"
+						Text="{TemplateBinding Header}" />
+
+					<ContentPresenter
+						Name="PART_ContentPresenter"
+						Grid.RowSpan="2"
+						Grid.ColumnSpan="2"
+						Margin="0.0,16.0,0.0,0.0"
+						Padding="{StaticResource DialogIndent}"
+						Content="{TemplateBinding Content}" />
+				</Grid>
+			</ControlTemplate>
+		</Setter>
+	</Style>
 </Styles>
