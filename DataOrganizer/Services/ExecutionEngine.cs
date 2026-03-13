@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Common;
 
 namespace DataOrganizer.Services;
 
@@ -143,7 +144,7 @@ public class ExecutionEngine : IExecutionEngine
 
 			string filePath = Path.Combine(directoryPath, parameters.File.Name);
 
-			if (_fileAssociation.GetApplicationByExtension(Path.GetExtension(parameters.File.Name)) is { } appPath)
+			if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(parameters.File.Name)) is { } appPath)
 			{
 				_logger.LogDebug($@"Application path to open file ""{parameters.File.Name}"" is: {appPath}");
 			}
