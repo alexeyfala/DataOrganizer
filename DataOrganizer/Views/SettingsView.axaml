@@ -2,7 +2,6 @@
 	x:Class="DataOrganizer.Views.SettingsView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
@@ -99,27 +98,29 @@
 							</materialControls:Card>
 						</HeaderedContentControl>
 
-						<HeaderedContentControl
-							Classes="GroupBoxStyle"
-							Header="{x:Static prop:Strings.Colors}">
-							<UniformGrid
-								ColumnSpacing="{StaticResource ElementSpacing}"
-								Columns="2">
+						<UniformGrid
+							ColumnSpacing="{StaticResource ElementSpacing}"
+							Columns="2">
+							<HeaderedContentControl
+								Classes="ClassicGroupBoxStyle"
+								Header="{x:Static prop:Strings.PrimaryColor}">
 								<ComboBox
-									assists:ComboBoxAssist.Label="{x:Static prop:Strings.PrimaryColor}"
-									Classes="dense"
+									Height="{StaticResource ComboBoxHeight}"
 									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 									ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
 									SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
+							</HeaderedContentControl>
 
+							<HeaderedContentControl
+								Classes="ClassicGroupBoxStyle"
+								Header="{x:Static prop:Strings.SecondaryColor}">
 								<ComboBox
-									assists:ComboBoxAssist.Label="{x:Static prop:Strings.SecondaryColor}"
-									Classes="dense"
+									Height="{StaticResource ComboBoxHeight}"
 									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 									ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
 									SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
-							</UniformGrid>
-						</HeaderedContentControl>
+							</HeaderedContentControl>
+						</UniformGrid>
 					</StackPanel>
 				</HeaderedContentControl>
 

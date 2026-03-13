@@ -357,9 +357,6 @@
   <data name="Theme" xml:space="preserve">
     <value>Тема</value>
   </data>
-  <data name="Colors" xml:space="preserve">
-    <value>Цвета</value>
-  </data>
   <data name="System" xml:space="preserve">
     <value>Системная</value>
   </data>

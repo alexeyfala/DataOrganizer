@@ -205,15 +205,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Colors.
-        /// </summary>
-        public static string Colors {
-            get {
-                return ResourceManager.GetString("Colors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Color Scheme.
         /// </summary>
         public static string ColorScheme {
