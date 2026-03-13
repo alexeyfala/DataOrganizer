@@ -25,7 +25,7 @@
 
 	<Border
 		Background="{StaticResource MaterialBackgroundBrush}"
-		BorderBrush="Gray"
+		BorderBrush="{StaticResource NeutralBrush}"
 		BorderThickness="1.0"
 		CornerRadius="8.0">
 		<Grid

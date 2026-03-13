@@ -60,14 +60,14 @@
 					</Style>
 				</Grid.Styles>
 
-				<grp:GroupBox
+				<HeaderedContentControl
 					Grid.Row="0"
-					Header="{x:Static prop:Strings.ColorScheme}"
-					Theme="{StaticResource GroupBoxClassic}">
+					Classes="ClassicGroupBoxStyle"
+					Header="{x:Static prop:Strings.ColorScheme}">
 					<StackPanel
 						Margin="{StaticResource DialogIndent}"
 						Orientation="Vertical"
-						Spacing="{StaticResource ElementSpacing}">
+						Spacing="{StaticResource ElementSpacing}">						
 						<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
 							<materialControls:Card>
 								<materialControls:Card.Styles>
@@ -116,7 +116,7 @@
 							</UniformGrid>
 						</grp:GroupBox>
 					</StackPanel>
-				</grp:GroupBox>
+				</HeaderedContentControl>
 
 				<Grid
 					Grid.Row="1"

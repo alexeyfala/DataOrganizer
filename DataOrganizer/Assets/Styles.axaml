@@ -13,7 +13,7 @@
 	</Style>
 
 	<Style Selector="Panel.VerticalSeparatorPanelStyle">
-		<Setter Property="Background" Value="Gray" />
+		<Setter Property="Background" Value="{StaticResource NeutralBrush}" />
 		<Setter Property="Margin" Value="0.0,6.0" />
 		<Setter Property="VerticalAlignment" Value="Stretch" />
 		<Setter Property="Width" Value="1.0" />
@@ -60,7 +60,7 @@
 	</Style>
 
 	<Style Selector="GridSplitter.VerticalGridSplitterStyle">
-		<Setter Property="Background" Value="Gray" />
+		<Setter Property="Background" Value="{StaticResource NeutralBrush}" />
 		<Setter Property="BorderThickness" Value="3.0" />
 		<Setter Property="ResizeDirection" Value="Columns" />
 	</Style>
@@ -115,5 +115,40 @@
 	<Style Selector="TextBlock.HeaderTextBlockStyle">
 		<Setter Property="FontSize" Value="16.0" />
 		<Setter Property="FontWeight" Value="Bold" />
+	</Style>
+
+	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
+		<Setter Property="Template">
+			<ControlTemplate>
+				<Grid
+					ColumnDefinitions="Auto,*"
+					RowDefinitions="Auto,*">
+					<Border
+						Grid.Row="0"
+						Grid.Column="0"
+						Margin="5.0,0.0,0.0,0.0"
+						Padding="5.0,0.0"
+						Background="{StaticResource MaterialPaperBrush}"
+						ZIndex="1">
+						<TextBlock
+							FontWeight="Bold"
+							Text="{TemplateBinding Header}" />
+					</Border>
+
+					<Border
+						Grid.RowSpan="2"
+						Grid.ColumnSpan="2"
+						Margin="0.0,10.0,0.0,0.0"
+						BorderBrush="{StaticResource NeutralBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0">
+						<ContentPresenter
+							Name="PART_ContentPresenter"
+							Padding="{StaticResource DialogIndent}"
+							Content="{TemplateBinding Content}" />
+					</Border>
+				</Grid>
+			</ControlTemplate>
+		</Setter>
 	</Style>
 </Styles>
