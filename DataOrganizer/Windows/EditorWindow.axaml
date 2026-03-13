@@ -10,7 +10,6 @@
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers"
@@ -317,6 +316,7 @@
 									x:DataType="abstract:ExplorerModelBaseDto"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									<Setter Property="(Interaction.Behaviors)">
 										<BehaviorCollectionTemplate>
 											<BehaviorCollection>
@@ -324,12 +324,6 @@
 											</BehaviorCollection>
 										</BehaviorCollectionTemplate>
 									</Setter>
-								</Style>
-
-								<Style
-									x:DataType="models:FolderModelDto"
-									Selector="TreeViewItem">
-									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 								</Style>
 							</TreeView.Styles>
 

@@ -4,6 +4,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Enums;
+using Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,6 +44,14 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	[ObservableProperty]
 	private EncryptionStatus _encryptionStatus;
 
+	/// <inheritdoc cref="FolderModel.IsExpanded" />
+	/// <remarks>
+	/// Due to an error when binding a property to a TreeViewItem in XAML,
+	/// I have to place the property in <see cref="ExplorerModelBase" /> instead of <see cref="FolderModelDto" />.
+	/// </remarks>
+	[ObservableProperty]
+	private bool _isExpanded;
+
 	/// <inheritdoc cref="ExplorerModelBase.Name" />
 	[ObservableProperty]
 	private string _name = string.Empty;
@@ -50,6 +59,28 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	/// <inheritdoc cref="ExplorerModelBase.Note" />
 	[ObservableProperty]
 	private string? _note;
+	#endregion
+
+	#region Events
+	/// <summary>
+	/// Occurs when <see cref="IsExpanded" /> changes in <see cref="FolderModelDto" />.
+	/// </summary>
+	public static event EventHandler<FolderModelDto>? FolderExpandedChanged;
+	#endregion
+
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="IsExpanded" /> changes.
+	/// </summary>
+	partial void OnIsExpandedChanged(bool value)
+	{
+		if (this.Id == default || this is not FolderModelDto folder)
+		{
+			return;
+		}
+
+		FolderExpandedChanged?.Invoke(this, folder);
+	}
 	#endregion
 
 	#region Methods

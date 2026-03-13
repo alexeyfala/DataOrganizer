@@ -1063,7 +1063,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		EditFiles = viewFactory.CreateUserControl<EditFilesView>();
 
-		FolderModelDto.IsExpandedChanged += Folder_IsExpandedChanged;
+		ExplorerModelBaseDto.FolderExpandedChanged += Folder_IsExpandedChanged;
 	}
 	#endregion
 
