@@ -36,16 +36,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
 	public FavoritesViewSettings FavoritesSettings { get; } = new();
-
-	/// <summary>
-	/// The window height.
-	/// </summary>
-	public double ViewHeight { get; set; }
-
-	/// <summary>
-	/// The window width.
-	/// </summary>
-	public double ViewWidth { get; set; }
 	#endregion
 
 	#region Auto-Generated Properties
@@ -237,7 +227,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		double width = PopupWidth - e.Vector.X;
 
-		if (width <= CalculateMinimumPopupWidth())
+		if (width <= MinimumPopupSize)
 		{
 			return;
 		}
@@ -258,7 +248,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		double width = PopupWidth + e.Vector.X;
 
-		if (width <= CalculateMinimumPopupWidth())
+		if (width <= MinimumPopupSize)
 		{
 			return;
 		}
@@ -279,7 +269,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		double height = PopupHeight - e.Vector.Y;
 
-		if (height <= ViewHeight)
+		if (height <= MinimumPopupSize)
 		{
 			return;
 		}
@@ -302,7 +292,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		double height = PopupHeight - e.Vector.Y;
 
-		if (width <= CalculateMinimumPopupWidth() || height <= ViewHeight)
+		if (width <= MinimumPopupSize || height <= MinimumPopupSize)
 		{
 			return;
 		}
@@ -327,7 +317,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		double height = PopupHeight - e.Vector.Y;
 
-		if (width <= CalculateMinimumPopupWidth() || height <= ViewHeight)
+		if (width <= MinimumPopupSize || height <= MinimumPopupSize)
 		{
 			return;
 		}
@@ -342,6 +332,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	[RelayCommand]
 	private Task ShowEditor(FavoritesWindow? window) => ShowInEditorAsync(window, default);
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// Minimum size of the popup.
+	/// </summary>
+	private const double MinimumPopupSize = 100.0;
 	#endregion
 
 	#region Constructors
@@ -613,14 +610,5 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			}
 		}
 	}
-
-	/// <summary>
-	/// Calculates the minimum allowed width of the popup panel.
-	/// </summary>
-	/// <remarks>
-	/// The user must be given the option to reduce the width of the panel by a value less than the width of the window.
-	/// There may be a situation when the user drags a window to the top edge of the monitor and the docked panel does not allow itself to be closed, even using the Escape key.
-	/// </remarks>
-	private double CalculateMinimumPopupWidth() => ViewWidth / 2.0;
 	#endregion
 }
