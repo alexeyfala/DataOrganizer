@@ -298,17 +298,25 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(x => x.AddHierarchy(objects));
-
-			if (variant == ImportListVariant.Replace)
+			_viewModel.ExecuteInEditor(viewModel =>
 			{
-				_viewModel.ExecuteInEditor(x => x
-					.CopyHistorySettings
-					.CopyHistory
-					.Clear());
-			}
+				if (variant == ImportListVariant.Replace)
+				{
+					_viewModel.ExecuteInEditor(viewModel =>
+					{
+						viewModel
+							.CopyHistorySettings
+							.CopyHistory
+							.Clear();
 
-			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataImportCompleted));
+						viewModel.IsRightSideSheetOpened = false;
+					});
+				}
+
+				viewModel.AddHierarchy(objects);
+
+				viewModel.ShowInfoSnackbar(Strings.DataImportCompleted);
+			});
 
 			return true;
 		}
