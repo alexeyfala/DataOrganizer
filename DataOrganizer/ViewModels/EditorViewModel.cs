@@ -495,10 +495,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
 	public async Task Import()
 	{
-		IsActionInProgress = true;
-
-		await Task.Delay(100000).ConfigureAwait(true);
-
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
 
 		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))

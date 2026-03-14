@@ -360,6 +360,10 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
+		DateTime now = DateTime.Now;
+
+		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = now);
+
 		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
 
 		FileModel[] files = [.. entities.OfType<FileModel>()];

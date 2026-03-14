@@ -14,6 +14,7 @@ using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
+using Shared.Extensions;
 using Shared.Interfaces;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -484,6 +485,12 @@ internal class DataExchangeServiceTests
 	public async Task ImportEntitiesAsync_Does_Work(ImportListVariant variant)
 	{
 		// Arrange
+		ExplorerModelBase[] entities = [.. TestUtils
+			.CreateFolders(5)
+			.Concat<ExplorerModelBase>(TestUtils.CreateFiles(5))];
+
+		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = default);
+
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -514,7 +521,7 @@ internal class DataExchangeServiceTests
 
 		// Act
 		bool result = await sut.ImportEntitiesAsync(
-			[.. TestUtils.CreateFolders(5).Concat<ExplorerModelBase>(TestUtils.CreateFiles(5))],
+			entities,
 			variant,
 			[],
 			[]);
@@ -523,6 +530,10 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.BeTrue();
+
+		entities
+			.Should()
+			.NotContain(x => x.CreatedDate == default || x.UpdatedDate == default);
 
 		entityLoader
 			.Received()
