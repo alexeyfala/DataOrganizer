@@ -26,7 +26,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public DateTime CreatedDate { get; init; }
+	public DateTime CreatedDate { get; set; }
 
 	/// <inheritdoc cref="Enums.EntityType" />
 	public EntityType EntityType { get; init; }
@@ -65,6 +65,6 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public DateTime UpdatedDate { get; init; }
+	public DateTime UpdatedDate { get; set; }
 	#endregion
 }

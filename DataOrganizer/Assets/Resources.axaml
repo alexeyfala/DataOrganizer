@@ -4,25 +4,27 @@
 	xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
 	xmlns:sys="clr-namespace:System;assembly=netstandard">
 
+	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
+
+	<Brush x:Key="FolderBrush">Peru</Brush>
+
+	<Brush x:Key="LightForeground">#FFFAFAFA</Brush>
+
+	<Brush x:Key="NeutralBrush">Gray</Brush>
+
+	<Brush x:Key="WarningBrush">OrangeRed</Brush>
+
+	<icons:MaterialIconKind x:Key="DatasetIconKind">ViewSplitHorizontal</icons:MaterialIconKind>
+
+	<icons:MaterialIconKind x:Key="FileIconKind">FileOutline</icons:MaterialIconKind>
+
+	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
+
+	<sys:Double x:Key="ElementSpacing">10.0</sys:Double>
+
 	<sys:Double x:Key="EntityTypeIconSize">28.0</sys:Double>
 
 	<sys:Double x:Key="ToolBarIconSize">18.0</sys:Double>
 
-	<sys:Double x:Key="ElementSpacing">10.0</sys:Double>
-	
-	<Brush x:Key="FolderBrush">Peru</Brush>
-
-	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
-
-	<Brush x:Key="WarningBrush">OrangeRed</Brush>
-
-	<Brush x:Key="LightForeground">#FFFAFAFA</Brush>
-
-	<Thickness x:Key="DialogIndent">10.0</Thickness>
-
-	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
-
-	<icons:MaterialIconKind x:Key="FileIconKind">FileOutline</icons:MaterialIconKind>
-
-	<icons:MaterialIconKind x:Key="DatasetIconKind">ViewSplitHorizontal</icons:MaterialIconKind>
+	<Thickness x:Key="DialogIndent">8.0</Thickness>
 </ResourceDictionary>

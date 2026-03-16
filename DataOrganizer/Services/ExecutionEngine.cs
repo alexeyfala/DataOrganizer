@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Common;
 
 namespace DataOrganizer.Services;
 
@@ -141,11 +142,16 @@ public class ExecutionEngine : IExecutionEngine
 
 			_fileSystem.CreateDirectory(directoryPath);
 
-			string filePath = Path.Combine(directoryPath, parameters.File.Name);
+			// To prevent a directory traversal attack, all directory components must be removed from the file name.
+			string fileName = Path.GetFileName(parameters
+				.File
+				.Name);
 
-			if (_fileAssociation.GetApplicationByExtension(Path.GetExtension(parameters.File.Name)) is { } appPath)
+			string filePath = Path.Combine(directoryPath, fileName);
+
+			if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
 			{
-				_logger.LogDebug($@"Application path to open file ""{parameters.File.Name}"" is: {appPath}");
+				_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
 			}
 
 			await _fileSystem

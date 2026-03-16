@@ -337,9 +337,6 @@
   <data name="Theme" xml:space="preserve">
     <value>Theme</value>
   </data>
-  <data name="Colors" xml:space="preserve">
-    <value>Colors</value>
-  </data>
   <data name="System" xml:space="preserve">
     <value>System</value>
   </data>

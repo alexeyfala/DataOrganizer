@@ -2,14 +2,13 @@
 	x:Class="DataOrganizer.Views.SettingsView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
-	xmlns:grp="using:GroupBox.Avalonia.Controls"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:sys="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	MinWidth="500.0"
 	Padding="{StaticResource DialogIndent}"
@@ -41,11 +40,11 @@
 				RowDefinitions="*,*,*"
 				RowSpacing="{StaticResource ElementSpacing}">
 
-				<Grid.Styles>
-					<Style Selector="ComboBox">
-						<Setter Property="Theme" Value="{StaticResource MaterialOutlineComboBox}" />
-					</Style>
+				<Grid.Resources>
+					<sys:Double x:Key="ComboBoxHeight">18.0</sys:Double>
+				</Grid.Resources>
 
+				<Grid.Styles>
 					<Style Selector="Border.HelpIconBorderStyle">
 						<Setter Property="VerticalAlignment" Value="Center" />
 						<Setter Property="Background" Value="Transparent" />
@@ -60,15 +59,18 @@
 					</Style>
 				</Grid.Styles>
 
-				<grp:GroupBox
+				<HeaderedContentControl
 					Grid.Row="0"
-					Header="{x:Static prop:Strings.ColorScheme}"
-					Theme="{StaticResource GroupBoxClassic}">
+					Classes="ClassicGroupBoxStyle"
+					Header="{x:Static prop:Strings.ColorScheme}">
 					<StackPanel
 						Margin="{StaticResource DialogIndent}"
 						Orientation="Vertical"
 						Spacing="{StaticResource ElementSpacing}">
-						<grp:GroupBox Header="{x:Static prop:Strings.Theme}">
+
+						<HeaderedContentControl
+							Classes="GroupBoxStyle"
+							Header="{x:Static prop:Strings.Theme}">
 							<materialControls:Card>
 								<materialControls:Card.Styles>
 									<Style Selector="RadioButton">
@@ -94,43 +96,47 @@
 										IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
 								</UniformGrid>
 							</materialControls:Card>
-						</grp:GroupBox>
+						</HeaderedContentControl>
 
-						<grp:GroupBox Header="{x:Static prop:Strings.Colors}">
-							<UniformGrid
-								ColumnSpacing="{StaticResource ElementSpacing}"
-								Columns="2">
+						<UniformGrid
+							ColumnSpacing="{StaticResource ElementSpacing}"
+							Columns="2">
+							<HeaderedContentControl
+								Classes="ClassicGroupBoxStyle"
+								Header="{x:Static prop:Strings.PrimaryColor}">
 								<ComboBox
-									assists:ComboBoxAssist.Label="{x:Static prop:Strings.PrimaryColor}"
-									Classes="dense"
+									Height="{StaticResource ComboBoxHeight}"
 									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 									ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
 									SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
+							</HeaderedContentControl>
 
+							<HeaderedContentControl
+								Classes="ClassicGroupBoxStyle"
+								Header="{x:Static prop:Strings.SecondaryColor}">
 								<ComboBox
-									assists:ComboBoxAssist.Label="{x:Static prop:Strings.SecondaryColor}"
-									Classes="dense"
+									Height="{StaticResource ComboBoxHeight}"
 									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
 									ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
 									SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
-							</UniformGrid>
-						</grp:GroupBox>
+							</HeaderedContentControl>
+						</UniformGrid>
 					</StackPanel>
-				</grp:GroupBox>
+				</HeaderedContentControl>
 
 				<Grid
 					Grid.Row="1"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
-					<grp:GroupBox
+					<HeaderedContentControl
 						Grid.Column="0"
-						Header="{x:Static prop:Strings.Hotkeys}"
-						Theme="{StaticResource GroupBoxClassic}">
+						Classes="ClassicGroupBoxStyle"
+						Header="{x:Static prop:Strings.Hotkeys}">
 						<CheckBox
 							Margin="10.0"
 							Content="{x:Static prop:Strings.EnableHotkeyTracking}"
 							IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
-					</grp:GroupBox>
+					</HeaderedContentControl>
 
 					<Border
 						Grid.Column="1"
@@ -143,18 +149,21 @@
 					Grid.Row="2"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
-					<ComboBox
+					<HeaderedContentControl
 						Grid.Column="0"
-						assists:ComboBoxAssist.Label="{x:Static prop:Strings.Language}"
-						Classes="dense"
-						ItemsSource="{Binding Languages, Mode=OneTime}"
-						SelectedItem="{Binding Language, Mode=TwoWay}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate x:DataType="globalization:CultureInfo">
-								<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
+						Classes="ClassicGroupBoxStyle"
+						Header="{x:Static prop:Strings.Language}">
+						<ComboBox
+							Height="{StaticResource ComboBoxHeight}"
+							ItemsSource="{Binding Languages, Mode=OneTime}"
+							SelectedItem="{Binding Language, Mode=TwoWay}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="globalization:CultureInfo">
+									<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+					</HeaderedContentControl>
 
 					<Border
 						Grid.Column="1"

@@ -1,5 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
@@ -24,34 +23,6 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// Encrypted within the session DEK.
 	/// </summary>
 	public byte[]? SessionEncryptedDek { get; set; }
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <inheritdoc cref="FolderModel.IsExpanded" />
-	[ObservableProperty]
-	private bool _isExpanded;
-	#endregion
-
-	#region Events
-	/// <summary>
-	/// Occurs when <see cref="IsExpanded" /> changes.
-	/// </summary>
-	public static event EventHandler<FolderModelDto>? IsExpandedChanged;
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="IsExpanded" /> changes.
-	/// </summary>
-	partial void OnIsExpandedChanged(bool value)
-	{
-		if (this.Id == default)
-		{
-			return;
-		}
-
-		IsExpandedChanged?.Invoke(this, this);
-	}
 	#endregion
 
 	#region Methods
