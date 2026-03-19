@@ -19,9 +19,6 @@
 	<?define AppName = "$(var.DataOrganizer.Desktop.TargetName)" ?>
 	<?define Manufacturer = "Alexey Fala" ?>
 
-	<!-- Name of the application folder in which the program is installed -->
-	<?define InstallFolderName = "$(var.AppName)"?>
-
 	<!-- Debug builds get "-Debug" as part of the name -->
 	<?if $(var.Configuration) = Debug?>
 	<?define ProgramConfig = "-Debug"?>

@@ -1,8 +1,15 @@
+<?include Predefines.wxi ?>
+
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Fragment>
 		<StandardDirectory Id="ProgramFiles6432Folder">
 			<Directory Id="INSTALLFOLDER"
-					   Name="!(bind.Property.Manufacturer) !(bind.Property.ProductName)" />
+					   Name="$(var.InstallFolderName)" />
+		</StandardDirectory>
+
+		<StandardDirectory Id="ProgramMenuFolder">
+			<Directory Id="ApplicationProgramsFolder"
+					   Name="$(var.StartupMenuName)" />
 		</StandardDirectory>
 	</Fragment>
 </Wix>
