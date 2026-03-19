@@ -1,0 +1,14 @@
+﻿<?include Predefines.wxi ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Package Name="$(var.PackageName)"
+			 Manufacturer="$(var.Manufacturer)"
+			 Version="$(var.ProductVersion)"
+			 UpgradeCode="$(var.UpgradeCode)">
+		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+
+		<Feature Id="Main">
+			<ComponentGroupRef Id="Components" />
+		</Feature>
+	</Package>
+</Wix>

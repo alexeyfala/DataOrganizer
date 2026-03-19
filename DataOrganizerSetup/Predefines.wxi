@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+	Using Project References and Variables:
+	https://docs.firegiant.com/wix3/votive/votive_project_references
+-->
+
+<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<!--
+		The ProductVersion.wxi file can be machine-generated, which is why it
+		is in a separate file.
+	-->
+	<?include ProductVersion.wxi ?>
+
+	<!--
+		The AppName variable is built from the DataOrganizer's target name property
+		appended by the install type to render a unique name for this installer.
+	-->
+	<?define AppName = "$(var.DataOrganizer.Desktop.TargetName)" ?>
+	<?define Manufacturer = "Alexey Fala" ?>
+
+	<!-- Name of the application folder in which the program is installed -->
+	<?define InstallFolderName = "$(var.AppName)"?>
+
+	<!-- Debug builds get "-Debug" as part of the name -->
+	<?if $(var.Configuration) = Debug?>
+	<?define ProgramConfig = "-Debug"?>
+	<?else?>
+	<?define ProgramConfig = ""?>
+	<?endif?>
+
+	<!-- Application name gets "-64bit" added for 64-bit builds. -->
+	<?if $(var.Platform) = x64 ?>
+	<?define PlatformInName = "-64bit"?>
+	<?define Win64 = "yes" ?>
+	<?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+	<?define ProductComponentGUID = "7B58FDB6-FCD6-4D18-9DEE-BE573A51B510"?>
+	<!-- UpgradeCode must be unique and not changed once the first version of the program is installed. -->
+	<?define UpgradeCode = "C3A26395-83F5-47D2-A5EB-FBEA125E67E6" ?>
+	<?else?>
+	<!-- Application name gets "-32bit" added for 32-bit builds. -->
+	<?define PlatformInName = "-32bit"?>
+	<?define Win64 = "no" ?>
+	<?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+	<?define ProductComponentGUID = "AC7725D5-604A-4CC3-8AAD-B0DCBD67011C"?>
+	<!-- UpgradeCode must be unique and not changed once the first version of the program is installed. -->
+	<?define UpgradeCode = "A6E8AC21-092B-4288-801A-CEA4130D7537" ?>
+	<?endif?>
+
+	<?define AppDocsGUID = "48B800C4-97F3-477E-9705-DCB9E486C03C" ?>
+
+	<!--
+		Complete name of the application that appears everywhere.
+		Guarantees the name is unique across all the setup project.
+	-->
+	<?define Name = "$(var.AppName)$(var.PlatformInName)$(var.ProgramConfig)"?>
+
+	<!-- Name of the folder that appear in the Start Menu -->
+	<?define StartupMenuName = "$(var.AppName)"?>
+
+	<!--
+		Name of the package (used in the installer and in the Apps and Features
+		list.
+
+		Note that the product version is added to the name: This way, the
+		version of the product is visible in the Apps and Features list as well
+		as throughout the installer dialog process.
+	-->
+	<?define PackageName = "$(var.Name) $(var.ProductVersion)"?>
+
+	<!-- Name of the application folder in which the program is installed -->
+	<?define InstallFolderName = "$(var.AppName)"?>
+</Include>
