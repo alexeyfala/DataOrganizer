@@ -12,7 +12,7 @@
 	xmlns:sys="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
-	ExtendClientAreaToDecorationsHint="True"
+	CanResize="False"
 	ShowInTaskbar="False"
 	SizeToContent="WidthAndHeight"
 	SystemDecorations="None"
@@ -35,15 +35,11 @@
 
 		<Interaction.Behaviors>
 			<EventTriggerBehavior EventName="PointerPressed">
-				<InvokeCommandAction
-					Command="{Binding PointerPressedCommand}"
-					PassEventArgsToCommand="True" />
+				<InvokeCommandAction Command="{Binding PointerPressedCommand}" PassEventArgsToCommand="True" />
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
 
-		<Grid
-			Background="{StaticResource MaterialPrimaryMidBrush}"
-			RowDefinitions="Auto,Auto,*">
+		<Grid Background="{StaticResource MaterialPrimaryMidBrush}" RowDefinitions="Auto,Auto,*">
 			<Grid
 				Grid.Row="0"
 				Margin="0.0,0.0,0.0,3.0"
@@ -80,9 +76,7 @@
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="DoubleTapped">
-						<InvokeCommandAction
-							Command="{Binding ShowEditorCommand}"
-							CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+						<InvokeCommandAction Command="{Binding ShowEditorCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 			</Grid>
@@ -98,16 +92,12 @@
 				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 				VerticalOffset="-2.0">
 
-				<Grid
-					ColumnDefinitions="Auto,*,Auto"
-					RowDefinitions="Auto,*">
+				<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,*">
 
 					<Grid.Resources>
 						<sys:Double x:Key="ThumbSize">4.0</sys:Double>
 
-						<ControlTheme
-							x:Key="ThumbTheme"
-							TargetType="Thumb">
+						<ControlTheme x:Key="ThumbTheme" TargetType="Thumb">
 							<Setter Property="Template">
 								<ControlTemplate>
 									<Border
@@ -128,12 +118,8 @@
 						BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
 						BorderThickness="{StaticResource BorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
-						<Border
-							Background="{StaticResource MaterialBackgroundBrush}"
-							CornerRadius="{StaticResource CornerRadius}">
-							<dialogHost:DialogHost
-								dialogHost:DialogHostStyle.CornerRadius="6.0"
-								CloseOnClickAway="True">
+						<Border Background="{StaticResource MaterialBackgroundBrush}" CornerRadius="{StaticResource CornerRadius}">
+							<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
 									Foreground="{Binding SnackbarForeground, Mode=OneWay}"
@@ -141,9 +127,7 @@
 									SnackbarHorizontalAlignment="Center">
 									<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentPresenter.KeyBindings>
-											<KeyBinding
-												Command="{Binding ClosePopupCommand}"
-												Gesture="Escape" />
+											<KeyBinding Command="{Binding ClosePopupCommand}" Gesture="Escape" />
 										</ContentPresenter.KeyBindings>
 									</ContentPresenter>
 								</materialControls:SnackbarHost>
@@ -160,9 +144,7 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<EventTriggerBehavior EventName="DragDelta">
-								<InvokeCommandAction
-									Command="{Binding ResizePopupByLeftCommand}"
-									PassEventArgsToCommand="True" />
+								<InvokeCommandAction Command="{Binding ResizePopupByLeftCommand}" PassEventArgsToCommand="True" />
 							</EventTriggerBehavior>
 						</Interaction.Behaviors>
 					</Thumb>
@@ -177,9 +159,7 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<EventTriggerBehavior EventName="DragDelta">
-								<InvokeCommandAction
-									Command="{Binding ResizePopupByTopLeftCornerCommand}"
-									PassEventArgsToCommand="True" />
+								<InvokeCommandAction Command="{Binding ResizePopupByTopLeftCornerCommand}" PassEventArgsToCommand="True" />
 							</EventTriggerBehavior>
 						</Interaction.Behaviors>
 					</Thumb>
@@ -193,9 +173,7 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<EventTriggerBehavior EventName="DragDelta">
-								<InvokeCommandAction
-									Command="{Binding ResizePopupByTopCommand}"
-									PassEventArgsToCommand="True" />
+								<InvokeCommandAction Command="{Binding ResizePopupByTopCommand}" PassEventArgsToCommand="True" />
 							</EventTriggerBehavior>
 						</Interaction.Behaviors>
 					</Thumb>
@@ -210,9 +188,7 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<EventTriggerBehavior EventName="DragDelta">
-								<InvokeCommandAction
-									Command="{Binding ResizePopupByTopRightCornerCommand}"
-									PassEventArgsToCommand="True" />
+								<InvokeCommandAction Command="{Binding ResizePopupByTopRightCornerCommand}" PassEventArgsToCommand="True" />
 							</EventTriggerBehavior>
 						</Interaction.Behaviors>
 					</Thumb>
@@ -226,9 +202,7 @@
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
 							<EventTriggerBehavior EventName="DragDelta">
-								<InvokeCommandAction
-									Command="{Binding ResizePopupByRightCommand}"
-									PassEventArgsToCommand="True" />
+								<InvokeCommandAction Command="{Binding ResizePopupByRightCommand}" PassEventArgsToCommand="True" />
 							</EventTriggerBehavior>
 						</Interaction.Behaviors>
 					</Thumb>

@@ -27,17 +27,13 @@
 		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 	</Window.Resources>
 
-	<dialogHost:DialogHost
-		dialogHost:DialogHostStyle.CornerRadius="6.0"
-		CloseOnClickAway="True">
+	<dialogHost:DialogHost dialogHost:DialogHostStyle.CornerRadius="6.0" CloseOnClickAway="True">
 		<materialControls:SnackbarHost
 			x:Name="SnackbarHost"
 			Foreground="{Binding SnackbarForeground, Mode=OneWay}"
 			HostName="{Binding $self.Name}"
 			SnackbarHorizontalAlignment="Center">
-			<materialControls:NavigationDrawer
-				LeftDrawerExpandThresholdWidth="{x:Null}"
-				LeftDrawerOpened="{Binding IsLeftDrawerOpened, Mode=TwoWay}">
+			<materialControls:NavigationDrawer LeftDrawerExpandThresholdWidth="{x:Null}" LeftDrawerOpened="{Binding IsLeftDrawerOpened, Mode=TwoWay}">
 
 				<materialControls:NavigationDrawer.LeftDrawerContent>
 					<StackPanel Orientation="Vertical">
@@ -64,9 +60,7 @@
 								</Style>
 							</Menu.Styles>
 
-							<MenuItem
-								Command="{Binding ShowFavoritesCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+							<MenuItem Command="{Binding ShowFavoritesCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -88,9 +82,7 @@
 
 							<Separator Margin="16.0,0.0" />
 
-							<MenuItem
-								Command="{Binding RestartApplicationCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+							<MenuItem Command="{Binding RestartApplicationCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="Restart" />
@@ -100,9 +92,7 @@
 								</MenuItem.Header>
 							</MenuItem>
 
-							<MenuItem
-								Command="{Binding ExitCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+							<MenuItem Command="{Binding ExitCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="LocationExit" />
@@ -116,9 +106,7 @@
 				</materialControls:NavigationDrawer.LeftDrawerContent>
 
 				<DockPanel>
-					<Grid
-						ColumnDefinitions="Auto,*,Auto"
-						DockPanel.Dock="Top">
+					<Grid ColumnDefinitions="Auto,*,Auto" DockPanel.Dock="Top">
 
 						<Grid.Styles>
 							<Style Selector="Button">
@@ -131,9 +119,7 @@
 							</Style>
 						</Grid.Styles>
 
-						<StackPanel
-							Grid.Column="0"
-							Orientation="Horizontal">
+						<StackPanel Grid.Column="0" Orientation="Horizontal">
 							<ToggleButton
 								Classes="primary"
 								Content="{materialIcons:MaterialIconTextExt Kind=Menu,
@@ -235,9 +221,7 @@
 								</Button.Styles>
 
 								<Button.Flyout>
-									<Flyout
-										OverlayDismissEventPassThrough="True"
-										Placement="Bottom">
+									<Flyout OverlayDismissEventPassThrough="True" Placement="Bottom">
 										<StackPanel Orientation="Vertical">
 											<StackPanel.Styles>
 												<Style Selector="Button">
@@ -260,9 +244,7 @@
 							</Button>
 						</StackPanel>
 
-						<StackPanel
-							Grid.Column="2"
-							Orientation="Horizontal">
+						<StackPanel Grid.Column="2" Orientation="Horizontal">
 							<Grid>
 								<Button
 									Classes="primary"
@@ -302,7 +284,7 @@
 							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
 
-						<!-- ScrollViewer.HorizontalScrollBarVisibility="Disabled" -->
+						<!--  ScrollViewer.HorizontalScrollBarVisibility="Disabled"  -->
 						<TreeView
 							Grid.Row="0"
 							Grid.Column="0"
@@ -312,9 +294,7 @@
 							SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
 
 							<TreeView.Styles>
-								<Style
-									x:DataType="abstract:ExplorerModelBaseDto"
-									Selector="TreeViewItem">
+								<Style x:DataType="abstract:ExplorerModelBaseDto" Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
 									<Setter Property="(Interaction.Behaviors)">
@@ -372,9 +352,7 @@
 								IsVisible="{Binding IsReadOnly, Mode=OneWay}"
 								Orientation="Horizontal">
 
-								<TextBlock
-									Foreground="{StaticResource WarningBrush}"
-									Text="{x:Static prop:Strings.ReadOnlyMode}" />
+								<TextBlock Foreground="{StaticResource WarningBrush}" Text="{x:Static prop:Strings.ReadOnlyMode}" />
 
 								<materialIcons:MaterialIcon
 									Margin="3.0,0.0"
