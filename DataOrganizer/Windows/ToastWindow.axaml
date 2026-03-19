@@ -34,10 +34,8 @@
 			<Image
 				Grid.Row="0"
 				Grid.Column="0"
-				Width="16.0"
-				Height="16.0"
 				Margin="10.0"
-				Source="/Assets/Logo.ico" />
+				Classes="AppImageStyle" />
 
 			<TextBlock
 				Grid.Row="0"
