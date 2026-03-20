@@ -36,6 +36,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{10AC88A7-F
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{98B8B320-2FA8-4740-B286-D6E9C8BD1BDA}"
+	ProjectSection(SolutionItems) = preProject
+		VS_Extension.txt = VS_Extension.txt
+	EndProjectSection
 EndProject
 Project("{B7DD6F7E-DEF8-4E67-B5B7-07EF123DB6F0}") = "DataOrganizerSetup", "DataOrganizerSetup\DataOrganizerSetup.wixproj", "{14F27182-FB19-2FE0-1F3C-53933BE93172}"
 EndProject
