@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!--
-	Using Project References and Variables:
-	https://docs.firegiant.com/wix3/votive/votive_project_references
--->
-
 <Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<!--
 		The ProductVersion.wxi file can be machine-generated, which is why it
@@ -15,6 +10,8 @@
 	<!--
 		The AppName variable is built from the DataOrganizer's target name property
 		appended by the install type to render a unique name for this installer.
+		Using Project References and Variables:
+		https://docs.firegiant.com/wix3/votive/votive_project_references
 	-->
 	<?define AppName = "$(var.DataOrganizer.Desktop.TargetName)" ?>
 	<?define Manufacturer = "Alexey Fala" ?>
