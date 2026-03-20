@@ -1,8 +1,17 @@
+<!-- https://docs.firegiant.com/wix/schema/wxs/wix -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+	<!-- https://docs.firegiant.com/wix/schema/wxs/fragment -->
 	<Fragment>
+		
+		<!-- https://docs.firegiant.com/wix/schema/wxs/componentgroup -->
 		<ComponentGroup Id="Components"
 						Directory="INSTALLFOLDER">
+			
+			<!-- https://docs.firegiant.com/wix/schema/wxs/component -->
 			<Component>
+				
+				<!-- https://docs.firegiant.com/wix/schema/wxs/file -->
 				<File Source="Components.wxs" />
 			</Component>
 		</ComponentGroup>

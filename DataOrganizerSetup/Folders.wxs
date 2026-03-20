@@ -1,8 +1,15 @@
 <?include Predefines.wxi ?>
 
+<!-- https://docs.firegiant.com/wix/schema/wxs/wix -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	
+	<!-- https://docs.firegiant.com/wix/schema/wxs/fragment -->
 	<Fragment>
+
+		<!-- https://docs.firegiant.com/wix/schema/wxs/standarddirectory -->
 		<StandardDirectory Id="ProgramFiles6432Folder">
+
+			<!-- https://docs.firegiant.com/wix/schema/wxs/directory -->
 			<Directory Id="INSTALLFOLDER"
 					   Name="$(var.InstallFolderName)" />
 		</StandardDirectory>
