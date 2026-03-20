@@ -13,7 +13,10 @@
 		<ComponentGroup Id="Components"
 						Directory="INSTALLFOLDER">
 			<Component Guid="$(var.ProductComponentGUID)">
-				<File Source="Components.wxs" />
+				<File Id="DataOrganizerAppExe"
+					  Source="$(var.DataOrganizer.Desktop.TargetPath)"
+					  KeyPath="yes"
+					  Checksum="yes" />
 			</Component>
 		</ComponentGroup>
 	</Fragment>
