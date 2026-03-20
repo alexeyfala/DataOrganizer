@@ -1,19 +1,18 @@
+<!--
+	Component - https://docs.firegiant.com/wix/schema/wxs/component
+	ComponentGroup - https://docs.firegiant.com/wix/schema/wxs/componentgroup
+	File - https://docs.firegiant.com/wix/schema/wxs/file
+	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
+	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+-->
+
 <?include Predefines.wxi ?>
 
-<!-- https://docs.firegiant.com/wix/schema/wxs/wix -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-
-	<!-- https://docs.firegiant.com/wix/schema/wxs/fragment -->
 	<Fragment>
-		
-		<!-- https://docs.firegiant.com/wix/schema/wxs/componentgroup -->
 		<ComponentGroup Id="Components"
 						Directory="INSTALLFOLDER">
-			
-			<!-- https://docs.firegiant.com/wix/schema/wxs/component -->
 			<Component Guid="$(var.ProductComponentGUID)">
-				
-				<!-- https://docs.firegiant.com/wix/schema/wxs/file -->
 				<File Source="Components.wxs" />
 			</Component>
 		</ComponentGroup>

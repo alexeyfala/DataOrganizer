@@ -1,4 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Include - https://docs.firegiant.com/wix/schema/wxs/include
+-->
 
 <Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<!--

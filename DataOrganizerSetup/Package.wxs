@@ -1,21 +1,21 @@
-﻿<?include Predefines.wxi ?>
+﻿<!--
+	ComponentGroupRef - https://docs.firegiant.com/wix/schema/wxs/componentgroup
+	Feature - https://docs.firegiant.com/wix/schema/wxs/feature
+	MajorUpgrade - https://docs.firegiant.com/wix/schema/wxs/majorupgrade
+	Package - https://docs.firegiant.com/wix/schema/wxs/package
+	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+-->
 
-<!-- https://docs.firegiant.com/wix/schema/wxs/wix -->
+<?include Predefines.wxi ?>
+
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-	
-	<!-- https://docs.firegiant.com/wix/schema/wxs/package -->
 	<Package Name="$(var.PackageName)"
 			 Manufacturer="$(var.Manufacturer)"
 			 Version="$(var.ProductVersion)"
 			 UpgradeCode="$(var.UpgradeCode)">
-		
-		<!-- https://docs.firegiant.com/wix/schema/wxs/majorupgrade -->
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
-		<!-- https://docs.firegiant.com/wix/schema/wxs/feature -->
 		<Feature Id="Main">
-			
-			<!-- https://docs.firegiant.com/wix/schema/wxs/componentgroup -->
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 	</Package>
