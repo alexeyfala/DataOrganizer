@@ -1,25 +1,48 @@
 ﻿<!--
 	ComponentGroupRef - https://docs.firegiant.com/wix/schema/wxs/componentgroup
 	Feature - https://docs.firegiant.com/wix/schema/wxs/feature
+	Icon - https://docs.firegiant.com/wix/schema/wxs/icon
 	MajorUpgrade - https://docs.firegiant.com/wix/schema/wxs/majorupgrade
+	Media - https://docs.firegiant.com/wix/schema/wxs/media
 	Package - https://docs.firegiant.com/wix/schema/wxs/package
+	Property - https://docs.firegiant.com/wix/schema/wxs/property
+	UIRef - https://docs.firegiant.com/wix/schema/wxs/uiref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+	WixUI - https://docs.firegiant.com/wix/schema/ui/wixui
 -->
 
 <?include Predefines.wxi ?>
 
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 	<Package Name="$(var.PackageName)"
 			 Manufacturer="$(var.Manufacturer)"
 			 Version="$(var.ProductVersion)"
 			 UpgradeCode="$(var.UpgradeCode)">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
-		<Feature Id="Main">
-			<ComponentGroupRef Id="Components" />
-		</Feature>
+		<Media Id="1"
+			   Cabinet="App.cab"
+			   EmbedCab="yes" />
+
+		<ui:WixUI Id="WixUI_Minimal"
+				  InstallDirectory="INSTALLFOLDER" />
+
+		<UIRef Id="WixUI_ErrorProgressText" />
 
 		<Icon Id="AppIcon"
 			  SourceFile="..\DataOrganizer\Assets\Logo.ico" />
+
+		<Property Id="ARPPRODUCTICON"
+				  Value="AppIcon" />
+
+		<Feature Id="Main"
+				 Title="DataOrganizerApp"
+				 AllowAbsent="no"
+				 ConfigurableDirectory="INSTALLFOLDER"
+				 AllowAdvertise="no"
+				 Description="The core elements that must be installed">
+			<ComponentGroupRef Id="Components" />
+		</Feature>
 	</Package>
 </Wix>
