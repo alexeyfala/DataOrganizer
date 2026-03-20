@@ -3,6 +3,9 @@
 	ComponentGroup - https://docs.firegiant.com/wix/schema/wxs/componentgroup
 	File - https://docs.firegiant.com/wix/schema/wxs/file
 	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
+	RegistryValue - https://docs.firegiant.com/wix/schema/wxs/registryvalue
+	RemoveFolder - https://docs.firegiant.com/wix/schema/wxs/removefolder
+	Shortcut - https://docs.firegiant.com/wix/schema/wxs/shortcut
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 -->
 
@@ -17,6 +20,36 @@
 					  Source="$(var.DataOrganizer.Desktop.TargetPath)"
 					  KeyPath="yes"
 					  Checksum="yes" />
+			</Component>
+
+			<Component Id="Shortcuts"
+					   Directory="ApplicationProgramsFolder">
+				<Shortcut Id="ApplicationStartMenuShortcut"
+						  Advertise="no"
+						  Icon="AppIcon"
+						  Name="$(var.Name)"
+						  Description="Launch $(var.Name) application"
+						  Target="[!DataOrganizerAppExe]"
+						  Arguments="--pause"
+						  WorkingDirectory="INSTALLFOLDER" />
+
+				<Shortcut Id="UninstallProduct"
+						  Advertise="no"
+						  Icon="AppIcon"
+						  Name="$(var.Name) uninstall"
+						  Description="Uninstalls $(var.Name)"
+						  Target="[System64Folder]msiexec.exe"
+						  Arguments="/x [ProductCode]" />
+
+				<RegistryValue Root="HKCU"
+							   Key="Software\$(var.Manufacturer)\$(var.Name)"
+							   Name="installed"
+							   Type="integer"
+							   Value="1"
+							   KeyPath="yes" />
+
+				<RemoveFolder Id="ApplicationProgramsFolder"
+							  On="uninstall" />
 			</Component>
 		</ComponentGroup>
 	</Fragment>

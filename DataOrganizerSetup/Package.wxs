@@ -18,5 +18,8 @@
 		<Feature Id="Main">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
+
+		<Icon Id="AppIcon"
+			  SourceFile="..\DataOrganizer\Assets\Logo.ico" />
 	</Package>
 </Wix>
