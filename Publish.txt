@@ -4,7 +4,7 @@ dotnet publish -c:Release -r win-x64 -p:DebugSymbols=false -verbosity:diag -p:Pu
 Remove-Item -Path "Publish\*.pdb"
 2. Set "Release" mode
 4. Build the "DataOrganizerSetup" project
-cd ..\Publish
+start "..\Publish"
 
 Windows MSI - Debug:
 1. Open "Terminal" in "Client.Desktop" project.
@@ -12,19 +12,19 @@ dotnet publish -c:Debug -r win-x64 -p:DebugSymbols=false -verbosity:diag -p:Publ
 Remove-Item -Path "Publish\*.pdb"
 2. Set "Debug" mode
 4. Build the "DataOrganizerSetup" project
-cd ..\Publish
+start "..\Publish"
 
 Windows Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.
 dotnet publish -c:Release -p:PublishSingleFile=true -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
-cd ..\Publish
+start "..\Publish"
 
 Windows Portable - Debug:
 Open "Terminal" in "DataOrganizer.Desktop" project.
 dotnet publish -c:Debug -p:PublishSingleFile=true -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
-cd ..\Publish
+start "..\Publish"
 
 ====================================================================================================
 
@@ -32,13 +32,13 @@ Linux Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.
 dotnet publish -c:Release -p:PublishSingleFile=true -r linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
-cd ..\Publish
+start "..\Publish"
 
 Linux Portable - Debug:
 Open "Terminal" in "DataOrganizer.Desktop" project.
 dotnet publish -c:Debug -p:PublishSingleFile=true -r linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
-cd ..\Publish
+start "..\Publish"
 
 ====================================================================================================
 
