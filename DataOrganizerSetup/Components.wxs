@@ -23,6 +23,10 @@
 					  Checksum="yes" />
 			</Component>
 
+			<Files Include="!(bindpath.DataOrganizer.Desktop)\**">
+				<Exclude Files="!(bindpath.DataOrganizer.Desktop)\DataOrganizer.exe"></Exclude>
+			</Files>
+
 			<Component Id="Shortcuts"
 					   Directory="ApplicationProgramsFolder">
 				<Shortcut Id="ApplicationStartMenuShortcut"
