@@ -18,13 +18,13 @@
 			<Component Guid="$(var.ProductComponentGUID)">
 				<File Id="DataOrganizerAppExe"
 					  Name="DataOrganizer.exe"
-					  Source="$(var.DataOrganizer.Desktop.TargetDir)"
+					  Source="$(var.DataOrganizer.Desktop.TargetDir)\Publish\"
 					  KeyPath="yes"
 					  Checksum="yes" />
 			</Component>
 
-			<Files Include="!(bindpath.DataOrganizer.Desktop)\**">
-				<Exclude Files="!(bindpath.DataOrganizer.Desktop)\DataOrganizer.exe"></Exclude>
+			<Files Include="!(bindpath.DataOrganizer.Desktop)\Publish\**">
+				<Exclude Files="!(bindpath.DataOrganizer.Desktop)\Publish\DataOrganizer.exe"></Exclude>
 			</Files>
 
 			<Component Id="Shortcuts"
