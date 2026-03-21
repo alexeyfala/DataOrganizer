@@ -9,6 +9,8 @@
 	-->
 	<?include ProductVersion.wxi ?>
 
+	<?define SourceProjectName = "$(var.DataOrganizer.Desktop.ProjectName)" ?>
+
 	<!--
 		The AppName variable is built from the DataOrganizer's target name property
 		appended by the install type to render a unique name for this installer.
@@ -49,7 +51,7 @@
 		Complete name of the application that appears everywhere.
 		Guarantees the name is unique across all the setup project.
 	-->
-	<?define Name = "$(var.AppName)$(var.PlatformInName)$(var.ProgramConfig)"?>
+	<?define FullName = "$(var.AppName)$(var.PlatformInName)$(var.ProgramConfig)"?>
 
 	<!-- Name of the folder that appear in the Start Menu -->
 	<?define StartupMenuName = "$(var.AppName)"?>
@@ -62,7 +64,7 @@
 		version of the product is visible in the Apps and Features list as well
 		as throughout the installer dialog process.
 	-->
-	<?define PackageName = "$(var.Name) $(var.ProductVersion)"?>
+	<?define PackageName = "$(var.FullName) $(var.ProductVersion)"?>
 
 	<!-- Name of the application folder in which the program is installed -->
 	<?define InstallFolderName = "$(var.AppName)"?>
