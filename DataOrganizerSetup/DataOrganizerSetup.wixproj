@@ -10,8 +10,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
 	</ItemGroup>
-	<Target Name="CustomBeforeBuild"
-			BeforeTargets="BeforeBuild">
+	<Target Name="PreBuild"
+			BeforeTargets="PreBuildEvent">
 		<Exec Command="dotnet publish ..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
 	</Target>
 </Project>
