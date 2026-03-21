@@ -17,7 +17,8 @@
 						Directory="INSTALLFOLDER">
 			<Component Guid="$(var.ProductComponentGUID)">
 				<File Id="DataOrganizerAppExe"
-					  Source="$(var.DataOrganizer.Desktop.TargetPath)"
+					  Name="DataOrganizer.exe"
+					  Source="$(var.DataOrganizer.Desktop.TargetDir)"
 					  KeyPath="yes"
 					  Checksum="yes" />
 			</Component>

@@ -8,15 +8,16 @@
 						  Version="6.0.2" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj"
-						  Publish="true" />
+		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
+		<!--<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj"
+						  Publish="true" />-->
 	</ItemGroup>
-	<ItemGroup>
+	<!--<ItemGroup>
 		<HarvestDirectory Include="..\DataOrganizer.Desktop\bin\Debug\Publish">
 			<ComponentGroupName>HarvestedComponents</ComponentGroupName>
 			<DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
 			<SuppressRootDirectory>true</SuppressRootDirectory>
 		</HarvestDirectory>
 		<BindPath Include="..\DataOrganizer.Desktop\bin\Debug\Publish" />
-	</ItemGroup>
+	</ItemGroup>-->
 </Project>
