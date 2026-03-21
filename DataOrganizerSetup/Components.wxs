@@ -16,15 +16,15 @@
 		<ComponentGroup Id="Components"
 						Directory="INSTALLFOLDER">
 			<Component Guid="$(var.ProductComponentGUID)">
-				<File Id="DataOrganizerAppExe"
-					  Name="DataOrganizer.exe"
+				<File Id="AppExe"
+					  Name="$(var.AppName).exe"
 					  Source="$(var.DataOrganizer.Desktop.TargetDir)\Publish\"
 					  KeyPath="yes"
 					  Checksum="yes" />
 			</Component>
 
 			<Files Include="!(bindpath.DataOrganizer.Desktop)\Publish\**">
-				<Exclude Files="!(bindpath.DataOrganizer.Desktop)\Publish\DataOrganizer.exe"></Exclude>
+				<Exclude Files="!(bindpath.DataOrganizer.Desktop)\Publish\$(var.AppName).exe"></Exclude>
 			</Files>
 
 			<Component Id="Shortcuts"
@@ -34,7 +34,7 @@
 						  Icon="AppIcon"
 						  Name="$(var.Name)"
 						  Description="Launch $(var.Name) application"
-						  Target="[!DataOrganizerAppExe]"
+						  Target="[!AppExe]"
 						  Arguments="--pause"
 						  WorkingDirectory="INSTALLFOLDER" />
 
