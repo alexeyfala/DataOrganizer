@@ -19,13 +19,13 @@
 			<Component Guid="$(var.ProductComponentGUID)">
 				<File Id="AppExe"
 					  Name="$(var.AppName).exe"
-					  Source="$(var.DataOrganizer.Desktop.TargetDir)\Publish\"
+					  Source="$(var.DotNetPublishPath)\"
 					  KeyPath="yes"
 					  Checksum="yes" />
 			</Component>
 
-			<Files Include="!(bindpath.$(SourceProjectName))\Publish\**">
-				<Exclude Files="!(bindpath.$(SourceProjectName))\Publish\$(var.AppName).exe" />
+			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
 			</Files>
 
 			<Component Id="Shortcuts"

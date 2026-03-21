@@ -10,6 +10,8 @@
 	<?include ProductVersion.wxi ?>
 
 	<?define SourceProjectName = "$(var.DataOrganizer.Desktop.ProjectName)" ?>
+	
+	<?define DotNetPublishPath = "$(var.DataOrganizer.Desktop.TargetDir)\Publish" ?>	
 
 	<!--
 		The AppName variable is built from the DataOrganizer's target name property
