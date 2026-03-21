@@ -1,4 +1,10 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<OutputPath>..\Publish</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<OutputPath>..\Publish</OutputPath>
+	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
 		<Content Include="ProductVersion.wxi" />
