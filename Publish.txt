@@ -1,26 +1,22 @@
 Windows MSI - Release:
-1. Open "Terminal" in "Client.Desktop" project.
-dotnet publish -c:Debug -r win-x64 -p:DebugSymbols=false -verbosity:diag -p:PublishDir="bin\Release\net10.0\Publish"
-2. Set "Release" mode
-4. Build the "DataOrganizerSetup" project
+1. Set "Release" mode
+2. Build the "DataOrganizerSetup" project
 start "..\Publish"
 
 Windows MSI - Debug:
-1. Open "Terminal" in "Client.Desktop" project.
-dotnet publish -c:Debug -r win-x64 -p:DebugSymbols=false -verbosity:diag -p:PublishDir="bin\Debug\net10.0\Publish"
-2. Set "Debug" mode
-4. Build the "DataOrganizerSetup" project
+1. Set "Debug" mode
+2. Build the "DataOrganizerSetup" project
 start "..\Publish"
 
 Windows Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.
-dotnet publish -c:Release -p:PublishSingleFile=true -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Release -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"
 
 Windows Portable - Debug:
 Open "Terminal" in "DataOrganizer.Desktop" project.
-dotnet publish -c:Debug -p:PublishSingleFile=true -r win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Debug -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"
 
@@ -28,13 +24,13 @@ start "..\Publish"
 
 Linux Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.
-dotnet publish -c:Release -p:PublishSingleFile=true -r linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Release -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"
 
 Linux Portable - Debug:
 Open "Terminal" in "DataOrganizer.Desktop" project.
-dotnet publish -c:Debug -p:PublishSingleFile=true -r linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
+dotnet publish -c:Debug -p:PublishSingleFile=true -r:linux-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"
 
@@ -43,11 +39,11 @@ start "..\Publish"
 macOS - Release:
 Open "Terminal" in macOS.
 cd DataOrganizer.MacOS
-dotnet publish -c:Release -r osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
 cd ../Publish
 
 macOS - Debug:
 Open "Terminal" in macOS.
 cd DataOrganizer.MacOS
-dotnet publish -c:Debug -r osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
 cd ../Publish
