@@ -1,6 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
 	<PropertyGroup>
 		<OutputPath>..\Publish</OutputPath>
+		<AppName>DataOrganizer</AppName>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<ProgramConfig>-Debug</ProgramConfig>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+		<ProgramConfig></ProgramConfig>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 		<OutputPath>$(OutputPath)</OutputPath>
@@ -9,6 +16,9 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 		<OutputPath>$(OutputPath)</OutputPath>
 		<Cultures>;</Cultures>
+	</PropertyGroup>
+	<PropertyGroup>
+		<OutputName>$(AppName)-$(Platform)$(ProgramConfig)</OutputName>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
@@ -23,7 +33,7 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command="dotnet publish ..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
+		<Exec Command="dotnet publish ..\$(AppName).Desktop\$(AppName).Desktop.csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
