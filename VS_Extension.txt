@@ -1,2 +1,0 @@
-HeatWave for VS2022
-https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17
