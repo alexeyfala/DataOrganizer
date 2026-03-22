@@ -2,21 +2,17 @@
 	Include - https://docs.firegiant.com/wix/schema/wxs/include
 -->
 
-<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">	
-	<?define SourceProjectName = "$(var.DataOrganizer.Desktop.ProjectName)" ?>
-	
-	<?define DotNetPublishPath = "$(var.DataOrganizer.Desktop.TargetDir)\Publish" ?>	
-
+<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<!--
-		The AppName variable is built from the DataOrganizer's target name property
-		appended by the install type to render a unique name for this installer.
 		Using Project References and Variables:
 		https://docs.firegiant.com/wix3/votive/votive_project_references
 	-->
-	<?define AppName = "$(var.DataOrganizer.Desktop.TargetName)" ?>
-	
+	<?define SourceProjectName = "$(var.DataOrganizer.Desktop.ProjectName)" ?>
+
+	<?define DotNetPublishPath = "$(var.DataOrganizer.Desktop.TargetDir)\Publish" ?>
+
 	<?define IconPath = "..\DataOrganizer\Assets\Logo.ico" ?>
-	
+
 	<?define Manufacturer = "Alexey Fala" ?>
 
 	<!-- Debug builds get "-Debug" as part of the name -->
@@ -50,10 +46,10 @@
 		Complete name of the application that appears everywhere.
 		Guarantees the name is unique across all the setup project.
 	-->
-	<?define FullName = "$(var.AppName)$(var.PlatformInName)$(var.ProgramConfig)"?>
+	<?define FullName = "$(var.ApplicationName)$(var.PlatformInName)$(var.ProgramConfig)"?>
 
 	<!-- Name of the folder that appear in the Start Menu -->
-	<?define StartupMenuName = "$(var.AppName)"?>
+	<?define StartupMenuName = "$(var.ApplicationName)"?>
 
 	<!--
 		Name of the package (used in the installer and in the Apps and Features
@@ -66,5 +62,5 @@
 	<?define PackageName = "$(var.FullName) $(var.ProductVersion)"?>
 
 	<!-- Name of the application folder in which the program is installed -->
-	<?define InstallFolderName = "$(var.AppName)"?>
+	<?define InstallFolderName = "$(var.ApplicationName)"?>
 </Include>

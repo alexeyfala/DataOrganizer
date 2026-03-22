@@ -4,6 +4,7 @@
 		<AppName>DataOrganizer</AppName>
 		<AppVersion>1.0.0</AppVersion>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);ApplicationName=$(AppName)</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<ProgramConfig>-Debug</ProgramConfig>

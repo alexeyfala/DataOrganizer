@@ -18,14 +18,14 @@
 						Directory="INSTALLFOLDER">
 			<Component Guid="$(var.ProductComponentGUID)">
 				<File Id="AppExe"
-					  Name="$(var.AppName).exe"
+					  Name="$(var.ApplicationName).exe"
 					  Source="$(var.DotNetPublishPath)\"
 					  KeyPath="yes"
 					  Checksum="yes" />
 			</Component>
 
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
-				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.ApplicationName).exe" />
 			</Files>
 
 			<Component Id="Shortcuts"
