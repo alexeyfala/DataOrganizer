@@ -2,13 +2,7 @@
 	Include - https://docs.firegiant.com/wix/schema/wxs/include
 -->
 
-<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">
-	<!--
-		The ProductVersion.wxi file can be machine-generated, which is why it
-		is in a separate file.
-	-->
-	<?include ProductVersion.wxi ?>
-
+<Include xmlns="http://wixtoolset.org/schemas/v4/wxs">	
 	<?define SourceProjectName = "$(var.DataOrganizer.Desktop.ProjectName)" ?>
 	
 	<?define DotNetPublishPath = "$(var.DataOrganizer.Desktop.TargetDir)\Publish" ?>	

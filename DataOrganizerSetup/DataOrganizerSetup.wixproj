@@ -2,12 +2,15 @@
 	<PropertyGroup>
 		<OutputPath>..\Publish</OutputPath>
 		<AppName>DataOrganizer</AppName>
+		<AppVersion>1.0.0</AppVersion>
+		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<ProgramConfig>-Debug</ProgramConfig>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<ProgramConfig></ProgramConfig>
+		<ProgramConfig>
+		</ProgramConfig>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
 		<OutputPath>$(OutputPath)</OutputPath>
@@ -18,11 +21,10 @@
 		<Cultures>;</Cultures>
 	</PropertyGroup>
 	<PropertyGroup>
-		<OutputName>$(AppName)-$(Platform)$(ProgramConfig)</OutputName>
+		<OutputName>$(AppName)-$(Platform)-$(AppVersion)$(ProgramConfig)</OutputName>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
-		<Content Include="ProductVersion.wxi" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext"
