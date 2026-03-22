@@ -1,12 +1,10 @@
 Windows MSI - Release:
 1. Set "Release" mode
 2. Build the "DataOrganizerSetup" project
-start "..\Publish"
 
 Windows MSI - Debug:
 1. Set "Debug" mode
 2. Build the "DataOrganizerSetup" project
-start "..\Publish"
 
 Windows Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.

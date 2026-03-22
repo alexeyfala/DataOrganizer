@@ -20,6 +20,9 @@
 		https://docs.firegiant.com/wix3/votive/votive_project_references
 	-->
 	<?define AppName = "$(var.DataOrganizer.Desktop.TargetName)" ?>
+	
+	<?define IconPath = "..\DataOrganizer\Assets\Logo.ico" ?>
+	
 	<?define Manufacturer = "Alexey Fala" ?>
 
 	<!-- Debug builds get "-Debug" as part of the name -->

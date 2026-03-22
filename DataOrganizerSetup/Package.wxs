@@ -31,7 +31,7 @@
 		<UIRef Id="WixUI_ErrorProgressText" />
 
 		<Icon Id="AppIcon"
-			  SourceFile="..\DataOrganizer\Assets\Logo.ico" />
+			  SourceFile="$(var.IconPath)" />
 
 		<Property Id="ARPPRODUCTICON"
 				  Value="AppIcon" />
