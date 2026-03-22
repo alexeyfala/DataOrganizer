@@ -11,12 +11,12 @@
 	<Fragment>
 		<StandardDirectory Id="ProgramFiles6432Folder">
 			<Directory Id="INSTALLFOLDER"
-					   Name="$(var.ApplicationName)" />
+					   Name="$(var.AppName)" />
 		</StandardDirectory>
 
 		<StandardDirectory Id="ProgramMenuFolder">
 			<Directory Id="ApplicationProgramsFolder"
-					   Name="$(var.ApplicationName)" />
+					   Name="$(var.AppName)" />
 		</StandardDirectory>
 	</Fragment>
 </Wix>

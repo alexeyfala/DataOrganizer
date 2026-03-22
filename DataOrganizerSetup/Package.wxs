@@ -37,7 +37,7 @@
 				  Value="AppIcon" />
 
 		<Feature Id="Main"
-				 Title="$(var.ApplicationName) Application"
+				 Title="$(var.AppName) Application"
 				 AllowAbsent="no"
 				 ConfigurableDirectory="INSTALLFOLDER"
 				 AllowAdvertise="no"

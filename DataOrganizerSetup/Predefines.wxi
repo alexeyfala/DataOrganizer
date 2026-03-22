@@ -40,7 +40,7 @@
 		Complete name of the application that appears everywhere.
 		Guarantees the name is unique across all the setup project.
 	-->
-	<?define FullName = "$(var.ApplicationName)$(var.PlatformInName)$(var.ProgramConfig)"?>
+	<?define FullName = "$(var.AppName)$(var.PlatformInName)$(var.ProgramConfig)"?>
 
 	<!--
 		Name of the package (used in the installer and in the Apps and Features
