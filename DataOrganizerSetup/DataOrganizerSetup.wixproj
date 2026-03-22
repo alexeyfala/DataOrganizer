@@ -1,10 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+	<PropertyGroup>
 		<OutputPath>..\Publish</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<OutputPath>$(OutputPath)</OutputPath>
 		<Cultures>;</Cultures>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<OutputPath>..\Publish</OutputPath>
+		<OutputPath>$(OutputPath)</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
@@ -23,7 +26,7 @@
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
-		<Exec Command="del /f ..\Publish\DataOrganizerSetup.wixpdb" />
-		<Exec Command="start ..\Publish" />
+		<Exec Command="del /f $(OutputPath)\DataOrganizerSetup.wixpdb" />
+		<Exec Command="start $(OutputPath)" />
 	</Target>
 </Project>
