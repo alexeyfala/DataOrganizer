@@ -8,6 +8,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 		<OutputPath>$(OutputPath)</OutputPath>
+		<Cultures>;</Cultures>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="Predefines.wxi" />
