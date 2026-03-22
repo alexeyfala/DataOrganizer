@@ -7,8 +7,8 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<RootNamespace>DataOrganizer</RootNamespace>
 		<AssemblyName>DataOrganizerMain</AssemblyName>
-		<FileVersion>2.0.0</FileVersion>
-		<AssemblyVersion>2.0.0</AssemblyVersion>
+		<FileVersion>$(AppVersion)</FileVersion>
+		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
