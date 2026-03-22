@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<OutputPath>..\Publish</OutputPath>
 		<AppName>DataOrganizer</AppName>
+		<ProjectRefName>$(AppName).Desktop</ProjectRefName>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 	</PropertyGroup>
@@ -31,7 +32,7 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command="dotnet publish ..\$(AppName).Desktop\$(AppName).Desktop.csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
+		<Exec Command="dotnet publish ..\$(ProjectRefName)\$(ProjectRefName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
