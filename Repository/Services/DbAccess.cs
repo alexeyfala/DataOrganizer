@@ -1165,20 +1165,22 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="Dispose()" />
 	private void Dispose(bool disposing)
 	{
-		if (!_isDisposed)
+		if (_isDisposed)
 		{
-			if (disposing)
-			{
-				// Dispose managed state (managed objects)
-				_semaphore.Dispose();
-
-				_dbContext.Dispose();
-			}
-
-			// Free unmanaged resources (unmanaged objects) and override finalizer
-			// Set large fields to null
-			_isDisposed = true;
+			return;
 		}
+
+		if (disposing)
+		{
+			// Dispose managed state (managed objects)
+			_semaphore.Dispose();
+
+			_dbContext.Dispose();
+		}
+
+		// Free unmanaged resources (unmanaged objects) and override finalizer
+		// Set large fields to null
+		_isDisposed = true;
 	}
 
 	/// <summary>

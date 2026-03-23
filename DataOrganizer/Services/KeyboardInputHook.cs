@@ -68,6 +68,11 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -117,15 +122,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		_logger.LogInformation("Dispose global keyboard input tracking hook");
+		Dispose(disposing: true);
 
-		_hook.KeyReleased -= Hook_KeyReleased;
-
-		Files.Clear();
-
-		InputStack.Clear();
-
-		_hook.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 	/// <summary>
@@ -237,7 +236,10 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -293,34 +295,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 	#region Service
 	/// <summary>
-	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.
-	/// </summary>
-	private async Task FilterFilesAsync(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token)
-	{
-		while (!token.IsCancellationRequested && IsRunning)
-		{
-			try
-			{
-				await _semaphore
-					.WaitAsync(token)
-					.ConfigureAwait(false);
-
-				Files.ClearAddRange(hierarchy.GetFilesBy(x => x.Hotkeys.Count > 0));
-			}
-			finally
-			{
-				_semaphore.Release();
-			}
-
-			await Task
-				.Delay(TimeSpan.FromSeconds(10), token)
-				.ConfigureAwait(false);
-		}
-	}
-
-	/// <summary>
 	/// Activates the main window.
 	/// </summary>
 	private Task ActivateWindowAsync() => _dispatcher.PostAsync(() =>
@@ -347,5 +321,54 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		faforites.IsPopupOpen = true;
 	});
 
+	/// <inheritdoc cref="Dispose()" />
+	private void Dispose(bool disposing)
+	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		if (disposing)
+		{
+			// Dispose managed state (managed objects)
+			_semaphore.Dispose();
+		}
+
+		// Free unmanaged resources (unmanaged objects) and override finalizer
+		// Set large fields to null
+		_isDisposed = true;
+	}
+
+	/// <summary>
+	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.
+	/// </summary>
+	private async Task FilterFilesAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token)
+	{
+		while (!token.IsCancellationRequested && IsRunning)
+		{
+			try
+			{
+				await _semaphore
+					.WaitAsync(token)
+					.ConfigureAwait(false);
+
+				Files.ClearAddRange(hierarchy.GetFilesBy(x => x.Hotkeys.Count > 0));
+			}
+			finally
+			{
+				if (!_isDisposed)
+				{
+					_semaphore.Release();
+				}
+			}
+
+			await Task
+				.Delay(TimeSpan.FromSeconds(10), token)
+				.ConfigureAwait(false);
+		}
+	}
 	#endregion
 }
