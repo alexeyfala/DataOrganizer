@@ -55,6 +55,11 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -116,7 +121,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -147,7 +155,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -178,7 +189,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -217,7 +231,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -360,7 +377,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -391,7 +411,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -430,7 +453,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -463,12 +489,20 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
 	/// <inheritdoc />
-	public void Dispose() => _dbContext.Dispose();
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+
+		GC.SuppressFinalize(this);
+	}
 
 	/// <inheritdoc />
 	public async Task<FileModel[]> GetAllFilesAsync(
@@ -495,7 +529,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -522,7 +559,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -563,7 +603,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -590,7 +633,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -739,7 +785,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -775,7 +824,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -811,7 +863,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -851,7 +906,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -888,7 +946,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -925,7 +986,10 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 	#endregion
@@ -1096,6 +1160,25 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService.Detach(hotkeys);
 
 		_hotkeysRepository.RemoveRange(hotkeys);
+	}
+
+	/// <inheritdoc cref="Dispose()" />
+	private void Dispose(bool disposing)
+	{
+		if (!_isDisposed)
+		{
+			if (disposing)
+			{
+				// Dispose managed state (managed objects)
+				_semaphore.Dispose();
+
+				_dbContext.Dispose();
+			}
+
+			// Free unmanaged resources (unmanaged objects) and override finalizer
+			// Set large fields to null
+			_isDisposed = true;
+		}
 	}
 
 	/// <summary>
