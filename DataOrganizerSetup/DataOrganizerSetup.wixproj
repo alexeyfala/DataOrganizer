@@ -21,7 +21,11 @@
 		<OutputName>$(AppName)-$(Platform)-$(AppVersion)$(ProgramConfig)</OutputName>
 	</PropertyGroup>
 	<ItemGroup>
+		<Content Include="Notes.txt" />
 		<Content Include="Predefines.wxi" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="LICENSE.rtf" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext"

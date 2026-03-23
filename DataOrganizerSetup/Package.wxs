@@ -30,6 +30,9 @@
 
 		<UIRef Id="WixUI_ErrorProgressText" />
 
+		<WixVariable Id="WixUILicenseRtf"
+					 Value="LICENSE.rtf" />
+
 		<Icon Id="AppIcon"
 			  SourceFile="$(var.IconPath)" />
 
