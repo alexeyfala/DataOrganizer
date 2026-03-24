@@ -11,6 +11,11 @@
 	WixUI - https://docs.firegiant.com/wix/schema/ui/wixui
 -->
 
+<!--
+	Dialogs:
+	https://docs.firegiant.com/wix/tools/wixext/wixui
+-->
+
 <?include Predefines.wxi ?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
@@ -25,7 +30,7 @@
 			   Cabinet="App.cab"
 			   EmbedCab="yes" />
 
-		<ui:WixUI Id="WixUI_Minimal"
+		<ui:WixUI Id="WixUI_InstallDir"
 				  InstallDirectory="INSTALLFOLDER" />
 
 		<UIRef Id="WixUI_ErrorProgressText" />
