@@ -49,6 +49,14 @@
 		<!-- Add a reference to all the messages produced by the installer. -->
 		<UIRef Id="WixUI_ErrorProgressText" />
 
+		<!-- Automatically select acceptance of license -->
+		<Property Id="LicenseAccepted"
+				  Value="1" />
+
+		<!-- Automatically select checkbox to enable creating a desktop shortcut -->
+		<Property Id="ADDDESKTOPSHORTCUT"
+				  Value="1" />
+
 		<!--
 			A license rtf file.
 		-->
