@@ -27,7 +27,7 @@
 				This dictates the name of the folder that appears in the Start
 				Menu.  Since 32-bit and 64-bit versions of this application can
 				be installed at the same time, it seems simpler to gather them
-				under a common folder name so use var.StartupMenuName instead
+				under a common folder name so use var.AppName instead
 				of var.Name.  This assumes the shortcut name of the 32-bit and
 				64-bit versions are unique.
 			-->
