@@ -30,6 +30,8 @@
 
 			<Component Id="Shortcuts"
 					   Directory="ApplicationProgramsFolder">
+
+				<!-- Start Menu shortcut to run the program -->
 				<Shortcut Id="ApplicationStartMenuShortcut"
 						  Advertise="no"
 						  Icon="AppIcon"
@@ -39,6 +41,7 @@
 						  Arguments="--pause"
 						  WorkingDirectory="INSTALLFOLDER" />
 
+				<!-- Start Menu shortcut to uninstall the program -->
 				<Shortcut Id="UninstallProduct"
 						  Advertise="no"
 						  Icon="AppIcon"
@@ -47,6 +50,18 @@
 						  Target="[System64Folder]msiexec.exe"
 						  Arguments="/x [ProductCode]" />
 
+				<!--
+					Define the key path for the parent component.  If the key
+					path is not present, the component is considered as not
+					being installed; otherwise, if the key path is present, the
+					installer performs an upgrade, repair, or remove.
+					
+					Shortcuts require a registry-based key path; the
+					application's own path can be a key path but that key path
+					cannot be used with shortcuts.
+
+					Note: A key path must be unique across all components.
+				-->
 				<RegistryValue Root="HKCU"
 							   Key="Software\$(var.Manufacturer)\$(var.FullName)"
 							   Name="installed"
@@ -54,6 +69,12 @@
 							   Value="1"
 							   KeyPath="yes" />
 
+				<!--
+					Start Menu folder to remove during uninstall.  This removes
+					the shortcuts.  For shortcuts, the remove folder step must
+					be explicitly given, unlike components that contain
+					explicit files.
+				-->
 				<RemoveFolder Id="ApplicationProgramsFolder"
 							  On="uninstall" />
 			</Component>
