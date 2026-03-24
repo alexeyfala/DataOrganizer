@@ -333,6 +333,16 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		{
 			// Dispose managed state (managed objects)
 			_semaphore.Dispose();
+
+			_logger.LogInformation("Dispose global keyboard input tracking hook");
+
+			_hook.KeyReleased -= Hook_KeyReleased;
+
+			Files.Clear();
+
+			InputStack.Clear();
+
+			_hook.Dispose();
 		}
 
 		// Free unmanaged resources (unmanaged objects) and override finalizer
