@@ -1,4 +1,4 @@
-Visual Studio Extension: HeatWave for VS2022:
+Visual Studio Extension: HeatWave for VS2022
 https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17
 
 Examples are taken from here:
