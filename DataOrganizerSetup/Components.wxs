@@ -96,6 +96,39 @@
 				<RemoveFolder Id="ApplicationProgramsFolder"
 							  On="uninstall" />
 			</Component>
+
+			<Component Directory="DesktopFolder"
+					   Condition="ADDDESKTOPSHORTCUT">
+				<!--
+					Desktop shortcut to run the program
+					
+					Note: The target uses [!AppExe] to get around an ICE69
+					warning complaining that [#AppExe] references a file
+					in another component (but both components are in the same
+					feature; if the components were in separate features, the
+					warning would become an error).  Using [!] apparently
+					bypasses the ICE69 check and, in this case, the target is a
+					file not a registry value so [!] is basically treated the
+					same as [#].  Yes, this is a hack.
+				-->
+				<Shortcut Id="ApplicationDesktopShortcut"
+						  Directory="DesktopFolder"
+						  Advertise="no"
+						  Icon="AppIcon"
+						  Name="$(var.FullName)"
+						  Description="Launch $(var.FullName) application"
+						  Target="[!AppExe]"
+						  Arguments="--pause"
+						  WorkingDirectory="INSTALLFOLDER" />
+				
+				<RegistryValue Root="HKCU"
+							   Key="Software\$(var.Manufacturer)\$(var.FullName)"
+							   Name="shortcut_installed"
+							   Type="integer"
+							   Value="1"
+							   KeyPath="yes" />
+
+			</Component>
 		</ComponentGroup>
 	</Fragment>
 </Wix>
