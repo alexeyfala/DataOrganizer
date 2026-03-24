@@ -10,11 +10,27 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Fragment>
 		<StandardDirectory Id="ProgramFiles6432Folder">
+
+			<!--
+				This dictates the name of the folder where the application file
+				is to be installed by default.  32-bit and 64-bit versions end
+				up in different root folders (due to the ProgramFiles6432Folder
+				ID above).
+			-->
 			<Directory Id="INSTALLFOLDER"
 					   Name="$(var.AppName)" />
 		</StandardDirectory>
 
 		<StandardDirectory Id="ProgramMenuFolder">
+
+			<!--
+				This dictates the name of the folder that appears in the Start
+				Menu.  Since 32-bit and 64-bit versions of this application can
+				be installed at the same time, it seems simpler to gather them
+				under a common folder name so use var.StartupMenuName instead
+				of var.Name.  This assumes the shortcut name of the 32-bit and
+				64-bit versions are unique.
+			-->
 			<Directory Id="ApplicationProgramsFolder"
 					   Name="$(var.AppName)" />
 		</StandardDirectory>
