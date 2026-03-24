@@ -17,6 +17,21 @@
 		<ComponentGroup Id="Components"
 						Directory="INSTALLFOLDER">
 			<Component Guid="$(var.ProductComponentGUID)">
+
+				<!--
+					The file represented by this component.
+					
+					The file's location is used as the key path.  If the key
+					path is not present, the component is considered as not
+					being installed; otherwise, if the key path is present, the
+					installer performs an upgrade, repair, or remove.
+					
+					Note: During uninstall, the file is removed by the Windows
+					Installer.  In addition, the file's parent directories are
+					removed so long as the parent directories are empty.  There
+					is no need to explicitly remove the installation directory
+					in this case.
+				-->
 				<File Id="AppExe"
 					  Name="$(var.AppName).exe"
 					  Source="$(var.DotNetPublishPath)\"
@@ -24,6 +39,9 @@
 					  Checksum="yes" />
 			</Component>
 
+			<!--
+				Include all other files and folders.
+			-->
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
 				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
 			</Files>
@@ -31,7 +49,7 @@
 			<Component Id="Shortcuts"
 					   Directory="ApplicationProgramsFolder">
 
-				<!-- Start Menu shortcut to run the program -->
+				<!-- Start Menu shortcut to run the program. -->
 				<Shortcut Id="ApplicationStartMenuShortcut"
 						  Advertise="no"
 						  Icon="AppIcon"
@@ -41,7 +59,7 @@
 						  Arguments="--pause"
 						  WorkingDirectory="INSTALLFOLDER" />
 
-				<!-- Start Menu shortcut to uninstall the program -->
+				<!-- Start Menu shortcut to uninstall the program. -->
 				<Shortcut Id="UninstallProduct"
 						  Advertise="no"
 						  Icon="AppIcon"
