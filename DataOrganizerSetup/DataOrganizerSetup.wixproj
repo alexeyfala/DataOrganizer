@@ -21,7 +21,7 @@
 		<OutputName>$(AppName)-$(Platform)-$(AppVersion)$(ProgramConfig)</OutputName>
 	</PropertyGroup>
 	<ItemGroup>
-		<Content Include="LaunchAppOnExit.wxi" />
+		<Content Include="CustomDialogs\LaunchAppOnExit.wxi" />
 		<Content Include="Predefines.wxi" />
 	</ItemGroup>
 	<ItemGroup>
