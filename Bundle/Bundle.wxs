@@ -3,15 +3,21 @@
 	<Bundle Id="$(AppNameAsOneWord).Bundle"
 			Name="$(AppNameAsOneWord)"
 			Manufacturer="$(Manufacturer)"
-			Version="$(ProductVersion)">
+			UpgradeCode="2FDD5C1E-392E-4B5A-8454-D4D6D35E7B0D"
+			Version="$(AppVersion)">
 		<BootstrapperApplication>
 			<bal:WixStandardBootstrapperApplication LicenseUrl="https://www.example.com/license"
 													Theme="hyperlinkLicense" />
 		</BootstrapperApplication>
 
 		<Chain>
-			<!-- TODO: Define the list of chained packages. -->
-			<!-- <MsiPackage SourceFile="path\to\your.msi" /> -->
+			<MsiPackage
+				bal:DisplayInternalUICondition="1"
+				Compressed="true"
+				Id="AppMsiInstaller"
+				SourceFile="$(OutputPath)\$(MsiOutputName).msi"
+				Visible="true"
+				Vital="true" />
 		</Chain>
 	</Bundle>
 </Wix>

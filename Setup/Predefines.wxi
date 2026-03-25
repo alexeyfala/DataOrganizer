@@ -48,5 +48,5 @@
 		version of the product is visible in the Apps and Features list as well
 		as throughout the installer dialog process.
 	-->
-	<?define PackageName = "$(var.FullName)-$(var.ProductVersion)"?>
+	<?define PackageName = "$(var.FullName)-$(var.AppVersion)"?>
 </Include>

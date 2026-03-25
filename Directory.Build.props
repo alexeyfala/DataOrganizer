@@ -4,5 +4,6 @@
 		<AppNameAsOneWord>DataOrganizer</AppNameAsOneWord>
 		<AppVersion>2.0.0</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
+		<MsiOutputName>$(AppNameAsOneWord)-$(Platform)-$(AppVersion)</MsiOutputName>
 	</PropertyGroup>
 </Project>

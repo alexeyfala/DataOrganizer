@@ -1,8 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
 	<PropertyGroup>
+		<OutputName>$(MsiOutputName)-Bundle</OutputName>
+		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 	</PropertyGroup>
 
