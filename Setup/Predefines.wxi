@@ -13,8 +13,6 @@
 
 	<?define IconPath = "..\DataOrganizer\Assets\Logo.ico" ?>
 
-	<?define Manufacturer = "Alexey Fala" ?>
-
 	<!-- Debug builds get "-Debug" as part of the name -->
 	<?if $(var.Configuration) = Debug?>
 	<?define ProgramConfig = "-Debug"?>
