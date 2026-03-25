@@ -1,7 +1,7 @@
 Windows Installer:
 1. Set "Release or Debug" mode
 2. Build the "Setup" project for *.msi file
-2. Build the "Bundle" project for *.exe file
+3. Build the "Bundle" project for *.exe file
 start "..\Publish"
 
 Windows Portable - Release:
