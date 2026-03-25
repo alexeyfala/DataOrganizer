@@ -140,7 +140,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			DefaultExtension = IFileSystemPicker.JsonExt.TrimStart('.'),
 			FileTypeChoices = IFileSystemPicker.ImportExportFilePickerTypes,
 			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppNameInOneWord,
+			SuggestedFileName = AppUtils.AppNameAsOneWord,
 			Title = Strings.SaveAs
 		};
 

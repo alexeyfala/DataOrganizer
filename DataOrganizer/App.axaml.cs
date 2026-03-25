@@ -232,7 +232,7 @@ public sealed class App : Application
 
 			string dataSource = Path.Combine(
 				directoryPath,
-				AppUtils.AppNameInOneWord + AppUtils.SQLiteExtension);
+				AppUtils.AppNameAsOneWord + AppUtils.SQLiteExtension);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{

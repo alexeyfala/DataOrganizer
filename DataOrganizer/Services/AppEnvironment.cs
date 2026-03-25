@@ -73,7 +73,7 @@ public sealed class AppEnvironment : IAppEnvironment
 	{
 		return Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			AppUtils.AppNameInOneWord);
+			AppUtils.AppNameAsOneWord);
 	}
 	#endregion
 }
