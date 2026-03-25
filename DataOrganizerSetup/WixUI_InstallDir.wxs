@@ -31,16 +31,13 @@ Patch dialog sequence:
 	<?foreach WIXUIARCH in X86;X64;A64 ?>
 	<Fragment>
 		<UI Id="WixUI_InstallDir_CustomVerifyDlg_$(WIXUIARCH)">
-			<!--<Publish Dialog="LicenseAgreementDlg"
-					 Control="Print"
-					 Event="DoAction"
-					 Value="WixUIPrintEula_$(WIXUIARCH)" />-->
 			<Publish Dialog="BrowseDlg"
 					 Control="OK"
 					 Event="DoAction"
 					 Value="WixUIValidatePath_$(WIXUIARCH)"
 					 Order="3"
 					 Condition="NOT WIXUI_DONTVALIDATEPATH" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="Next"
 					 Event="DoAction"
@@ -58,9 +55,11 @@ Patch dialog sequence:
 			<TextStyle Id="WixUI_Font_Normal"
 					   FaceName="Tahoma"
 					   Size="8" />
+			
 			<TextStyle Id="WixUI_Font_Bigger"
 					   FaceName="Tahoma"
 					   Size="12" />
+			
 			<TextStyle Id="WixUI_Font_Title"
 					   FaceName="Tahoma"
 					   Size="9"
@@ -70,15 +69,25 @@ Patch dialog sequence:
 					  Value="WixUI_Font_Normal" />
 
 			<DialogRef Id="BrowseDlg" />
+			
 			<DialogRef Id="DiskCostDlg" />
+			
 			<DialogRef Id="ErrorDlg" />
+			
 			<DialogRef Id="FatalError" />
+			
 			<DialogRef Id="FilesInUse" />
+			
 			<DialogRef Id="MsiRMFilesInUse" />
+			
 			<DialogRef Id="PrepareDlg" />
+			
 			<DialogRef Id="ProgressDlg" />
+			
 			<DialogRef Id="ResumeDlg" />
+			
 			<DialogRef Id="UserExit" />
+			
 			<Publish Dialog="BrowseDlg"
 					 Control="OK"
 					 Event="SpawnDialog"
@@ -97,6 +106,7 @@ Patch dialog sequence:
 					 Event="NewDialog"
 					 Value="LicenseAgreementDlg"
 					 Condition="NOT Installed" />
+			
 			<Publish Dialog="WelcomeDlg"
 					 Control="Next"
 					 Event="NewDialog"
@@ -107,6 +117,7 @@ Patch dialog sequence:
 					 Control="Back"
 					 Event="NewDialog"
 					 Value="WelcomeDlg" />
+			
 			<Publish Dialog="LicenseAgreementDlg"
 					 Control="Next"
 					 Event="NewDialog"
@@ -117,45 +128,53 @@ Patch dialog sequence:
 					 Control="Back"
 					 Event="NewDialog"
 					 Value="LicenseAgreementDlg" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="Next"
 					 Event="SetTargetPath"
 					 Value="[WIXUI_INSTALLDIR]"
 					 Order="1" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="Next"
 					 Event="SpawnDialog"
 					 Value="InvalidDirDlg"
 					 Order="3"
 					 Condition="NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="Next"
 					 Event="NewDialog"
 					 Value="VerifyReadyDlg_WithDesktopShortcut"
 					 Order="4"
 					 Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="ChangeFolder"
 					 Property="_BrowseProperty"
 					 Value="[WIXUI_INSTALLDIR]"
 					 Order="1" />
+			
 			<Publish Dialog="InstallDirDlg"
 					 Control="ChangeFolder"
 					 Event="SpawnDialog"
 					 Value="BrowseDlg"
 					 Order="2" />
+			
 			<Publish Dialog="VerifyReadyDlg_WithDesktopShortcut"
 					 Control="Back"
 					 Event="NewDialog"
 					 Value="InstallDirDlg"
 					 Order="1"
 					 Condition="NOT Installed" />
+			
 			<Publish Dialog="VerifyReadyDlg_WithDesktopShortcut"
 					 Control="Back"
 					 Event="NewDialog"
 					 Value="MaintenanceTypeDlg"
 					 Order="2"
 					 Condition="Installed AND NOT PATCH" />
+			
 			<Publish Dialog="VerifyReadyDlg_WithDesktopShortcut"
 					 Control="Back"
 					 Event="NewDialog"
@@ -172,10 +191,12 @@ Patch dialog sequence:
 					 Control="RepairButton"
 					 Event="NewDialog"
 					 Value="VerifyReadyDlg_WithDesktopShortcut" />
+			
 			<Publish Dialog="MaintenanceTypeDlg"
 					 Control="RemoveButton"
 					 Event="NewDialog"
 					 Value="VerifyReadyDlg_WithDesktopShortcut" />
+			
 			<Publish Dialog="MaintenanceTypeDlg"
 					 Control="Back"
 					 Event="NewDialog"
