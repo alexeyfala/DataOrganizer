@@ -9,8 +9,8 @@
 			Value="Add a shortcut to the desktop"/>
 	
 	<String Id="DowngradeError"
-			Value="A newer version of [$(var.AppName)] is already installed." />
+			Value="A newer version of [$(var.AppNameAsOneWord)] is already installed." />
 	
 	<String Id="LaunchAppOnExitPrompt"
-			Value="Launch $(var.AppName) on exit" />
+			Value="Launch $(var.AppNameAsOneWord) on exit" />
 </WixLocalization>

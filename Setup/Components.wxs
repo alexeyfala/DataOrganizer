@@ -33,7 +33,7 @@
 					in this case.
 				-->
 				<File Id="AppExe"
-					  Name="$(var.AppName).exe"
+					  Name="$(var.AppNameAsOneWord).exe"
 					  Source="$(var.DotNetPublishPath)\"
 					  KeyPath="yes"
 					  Checksum="yes" />
@@ -43,7 +43,7 @@
 				Include all other files and folders.
 			-->
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
-				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppNameAsOneWord).exe" />
 			</Files>
 
 			<Component Id="Shortcuts"
@@ -106,7 +106,7 @@
 						  Directory="DesktopFolder"
 						  Advertise="no"
 						  Icon="AppIcon"
-						  Name="$(var.AppName)"
+						  Name="$(var.AppNameAsOneWord)"
 						  Description="Launch $(var.FullName) application"
 						  Target="[!AppExe]"
 						  Arguments="--pause"

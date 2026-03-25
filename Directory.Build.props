@@ -1,5 +1,6 @@
 <Project>
 	<PropertyGroup>
+	<AppNameAsOneWord>DataOrganizer</AppNameAsOneWord>
 		<AppVersion>2.0.0</AppVersion>
 	</PropertyGroup>
 </Project>
