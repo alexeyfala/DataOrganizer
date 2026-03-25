@@ -1,10 +1,8 @@
-Windows MSI - Release:
-1. Set "Release" mode
-2. Build the "Setup" project
-
-Windows MSI - Debug:
-1. Set "Debug" mode
-2. Build the "Setup" project
+Windows Installer:
+1. Set "Release or Debug" mode
+2. Build the "Setup" project for *.msi file
+2. Build the "Bundle" project for *.exe file
+start "..\Publish"
 
 Windows Portable - Release:
 Open "Terminal" in "DataOrganizer.Desktop" project.

@@ -10,9 +10,13 @@
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 	</PropertyGroup>
-
 	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
 						  Version="6.0.2" />
 	</ItemGroup>
+	<Target Name="PostBuild"
+			AfterTargets="PostBuildEvent">
+		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
+		<Exec Command="start $(OutputPath)" />
+	</Target>
 </Project>

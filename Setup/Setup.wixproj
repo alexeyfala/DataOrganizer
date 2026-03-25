@@ -1,22 +1,13 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
 	<PropertyGroup>
+		<OutputName>$(MsiOutputName)</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<ProjectRefName>$(AppNameAsOneWord).Desktop</ProjectRefName>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<OutputPath>$(OutputPath)</OutputPath>
+		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
 		<Cultures>;</Cultures>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-		<OutputPath>$(OutputPath)</OutputPath>
-		<Cultures>;</Cultures>
-	</PropertyGroup>
-	<PropertyGroup>
-		<OutputName>$(MsiOutputName)</OutputName>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="CustomDialogs\LaunchAppOnExit.wxi" />
@@ -34,7 +25,7 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command="dotnet publish ..\$(ProjectRefName)\$(ProjectRefName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
+		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
