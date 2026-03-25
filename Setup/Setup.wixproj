@@ -3,6 +3,7 @@
 		<OutputPath>..\Publish</OutputPath>
 		<ProjectRefName>$(AppNameAsOneWord).Desktop</ProjectRefName>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">

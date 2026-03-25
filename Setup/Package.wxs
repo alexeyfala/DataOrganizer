@@ -84,7 +84,7 @@
 			The main feature cannot be optional (AllowAbsent="no") and is always installed.
 		-->
 		<Feature Id="Main"
-				 Title="$(var.AppNameAsOneWord) Application"
+				 Title="$(var.AppName) Application"
 				 AllowAbsent="no"
 				 ConfigurableDirectory="INSTALLFOLDER"
 				 AllowAdvertise="no"

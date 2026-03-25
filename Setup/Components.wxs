@@ -106,7 +106,7 @@
 						  Directory="DesktopFolder"
 						  Advertise="no"
 						  Icon="AppIcon"
-						  Name="$(var.AppNameAsOneWord)"
+						  Name="$(var.AppName)"
 						  Description="Launch $(var.FullName) application"
 						  Target="[!AppExe]"
 						  Arguments="--pause"
