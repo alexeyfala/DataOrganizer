@@ -37,11 +37,11 @@
 
 			<MsiPackage
 				bal:DisplayInternalUICondition="1"
-				Compressed="true"
+				Compressed="yes"
 				Id="AppMsiInstaller"
 				SourceFile="$(OutputPath)\$(MsiOutputName).msi"
-				Visible="true"
-				Vital="true" />
+				Visible="yes"
+				Vital="yes" />
 		</Chain>
 	</Bundle>
 
@@ -56,12 +56,12 @@
 			<ExePackage
 				Cache="keep"
 				DetectCondition="NetCoreRuntimeVersion >= v10.0.5"
-				DisplayName=".NET Runtime 10.0.5"
+				DisplayName=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
 				Id="NetRuntimeRedist"
 				InstallArguments="/norestart /quiet"
-				PerMachine="true"
-				Permanent="true"
-				Vital="true">
+				PerMachine="yes"
+				Permanent="yes"
+				Vital="yes">
 
 				<ExePackagePayload
 					Description=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
