@@ -3,14 +3,15 @@
 	WixLocalization - https://docs.firegiant.com/wix/schema/wxl/wixlocalization
 -->
 
-<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl"
-				 Culture="en-US">
+<WixLocalization
+	xmlns="http://wixtoolset.org/schemas/v4/wxl"
+	Culture="en-US">
 	<String Id="AddDesktopShortcut_Text"
 			Value="Add a shortcut to the desktop"/>
-	
+
 	<String Id="DowngradeError"
 			Value="A newer version of &quot;$(var.AppName)&quot; is already installed." />
-	
+
 	<String Id="LaunchAppOnExitPrompt"
 			Value="Launch &quot;$(var.AppName)&quot; on exit" />
 </WixLocalization>

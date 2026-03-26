@@ -17,8 +17,9 @@
 				up in different root folders (due to the ProgramFiles6432Folder
 				ID above).
 			-->
-			<Directory Id="INSTALLFOLDER"
-					   Name="$(var.AppNameAsOneWord)" />
+			<Directory
+				Id="INSTALLFOLDER"
+				Name="$(var.AppNameAsOneWord)" />
 		</StandardDirectory>
 
 		<StandardDirectory Id="ProgramMenuFolder">
@@ -31,8 +32,9 @@
 				of var.Name.  This assumes the shortcut name of the 32-bit and
 				64-bit versions are unique.
 			-->
-			<Directory Id="ApplicationProgramsFolder"
-					   Name="$(var.AppNameAsOneWord)" />
+			<Directory
+				Id="ApplicationProgramsFolder"
+				Name="$(var.AppNameAsOneWord)" />
 		</StandardDirectory>
 	</Fragment>
 </Wix>

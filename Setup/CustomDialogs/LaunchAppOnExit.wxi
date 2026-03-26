@@ -32,7 +32,7 @@
 	-->
 	<Property
 		Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
-		Value="DUMMY TEXT"/>
+		Value="DUMMY TEXT" />
 
 	<!--
 		Use a SetProperty to change the value of the property so we can
@@ -45,7 +45,7 @@
 		After="FindRelatedProducts"
 		Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
 		Sequence="ui"
-		Value ="!(loc.LaunchAppOnExitPrompt)"/>
+		Value ="!(loc.LaunchAppOnExitPrompt)" />
 
 	<!--
 		Define the custom action that launches the program.  Make sure the
@@ -56,12 +56,12 @@
 		exit cleanly).  Run the application as the current user.
 	-->
 	<CustomAction
-		Id="LaunchApplication"
 		Directory="INSTALLFOLDER"
 		ExeCommand="[#AppExe] --pause"
 		Execute="immediate"
-		Return="asyncNoWait"
-		Impersonate="yes" />
+		Id="LaunchApplication"
+		Impersonate="yes"
+		Return="asyncNoWait" />
 
 	<!--
 		Define when the custom action needs to run.
@@ -72,11 +72,10 @@
 	-->
 	<UI>
 		<Publish
-			Dialog="ExitDialog"
+			Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed"
 			Control="Finish"
+			Dialog="ExitDialog"
 			Event="DoAction"
-			Value="LaunchApplication"
-			Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed">
-		</Publish>
+			Value="LaunchApplication" />
 	</UI>
 </Include>

@@ -14,8 +14,9 @@
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Fragment>
-		<ComponentGroup Id="Components"
-						Directory="INSTALLFOLDER">
+		<ComponentGroup
+			Directory="INSTALLFOLDER"
+			Id="Components">
 			<Component Guid="$(var.ProductComponentGUID)">
 
 				<!--
@@ -32,11 +33,12 @@
 					is no need to explicitly remove the installation directory
 					in this case.
 				-->
-				<File Id="AppExe"
-					  Name="$(var.AppNameAsOneWord).exe"
-					  Source="$(var.DotNetPublishPath)\"
-					  KeyPath="yes"
-					  Checksum="yes" />
+				<File
+					Checksum="yes"
+					Id="AppExe"
+					KeyPath="yes"
+					Name="$(var.AppNameAsOneWord).exe"
+					Source="$(var.DotNetPublishPath)\" />
 			</Component>
 
 			<!--
@@ -46,27 +48,30 @@
 				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppNameAsOneWord).exe" />
 			</Files>
 
-			<Component Id="Shortcuts"
-					   Directory="ApplicationProgramsFolder">
+			<Component
+				Directory="ApplicationProgramsFolder"
+				Id="Shortcuts">
 
 				<!-- Start Menu shortcut to run the program. -->
-				<Shortcut Id="ApplicationStartMenuShortcut"
-						  Advertise="no"
-						  Icon="AppIcon"
-						  Name="$(var.FullName)"
-						  Description="Launch $(var.FullName) application"
-						  Target="[!AppExe]"
-						  Arguments="--pause"
-						  WorkingDirectory="INSTALLFOLDER" />
+				<Shortcut
+					Advertise="no"
+					Arguments="--pause"
+					Description="Launch $(var.FullName) application"
+					Icon="AppIcon"
+					Id="ApplicationStartMenuShortcut"
+					Name="$(var.FullName)"
+					Target="[!AppExe]"
+					WorkingDirectory="INSTALLFOLDER" />
 
 				<!-- Start Menu shortcut to uninstall the program. -->
-				<Shortcut Id="UninstallProduct"
-						  Advertise="no"
-						  Icon="AppIcon"
-						  Name="$(var.FullName) uninstall"
-						  Description="Uninstalls $(var.FullName)"
-						  Target="[System64Folder]msiexec.exe"
-						  Arguments="/x [ProductCode]" />
+				<Shortcut
+					Advertise="no"
+					Arguments="/x [ProductCode]"
+					Description="Uninstalls $(var.FullName)"
+					Icon="AppIcon"
+					Id="UninstallProduct"
+					Name="$(var.FullName) uninstall"
+					Target="[System64Folder]msiexec.exe" />
 
 				<!--
 					Define the key path for the parent component.  If the key
@@ -80,12 +85,13 @@
 
 					Note: A key path must be unique across all components.
 				-->
-				<RegistryValue Root="HKCU"
-							   Key="Software\$(var.Manufacturer)\$(var.FullName)"
-							   Name="installed"
-							   Type="integer"
-							   Value="1"
-							   KeyPath="yes" />
+				<RegistryValue
+					Key="Software\$(var.Manufacturer)\$(var.FullName)"
+					KeyPath="yes"
+					Name="installed"
+					Root="HKCU"
+					Type="integer"
+					Value="1" />
 
 				<!--
 					Start Menu folder to remove during uninstall.  This removes
@@ -93,31 +99,35 @@
 					be explicitly given, unlike components that contain
 					explicit files.
 				-->
-				<RemoveFolder Id="ApplicationProgramsFolder"
-							  On="uninstall" />
+				<RemoveFolder
+					Id="ApplicationProgramsFolder"
+					On="uninstall" />
 			</Component>
 
-			<Component Directory="DesktopFolder"
-					   Condition="ADDDESKTOPSHORTCUT">
+			<Component
+				Condition="ADDDESKTOPSHORTCUT"
+				Directory="DesktopFolder">
 				<!--
 					Desktop shortcut to run the program.
 				-->
-				<Shortcut Id="ApplicationDesktopShortcut"
-						  Directory="DesktopFolder"
-						  Advertise="no"
-						  Icon="AppIcon"
-						  Name="$(var.AppName)"
-						  Description="Launch $(var.FullName) application"
-						  Target="[!AppExe]"
-						  Arguments="--pause"
-						  WorkingDirectory="INSTALLFOLDER" />
-				
-				<RegistryValue Root="HKCU"
-							   Key="Software\$(var.Manufacturer)\$(var.FullName)"
-							   Name="shortcut_installed"
-							   Type="integer"
-							   Value="1"
-							   KeyPath="yes" />
+				<Shortcut
+					Advertise="no"
+					Arguments="--pause"
+					Description="Launch $(var.FullName) application"
+					Directory="DesktopFolder"
+					Icon="AppIcon"
+					Id="ApplicationDesktopShortcut"
+					Name="$(var.AppName)"
+					Target="[!AppExe]"
+					WorkingDirectory="INSTALLFOLDER" />
+
+				<RegistryValue
+					Key="Software\$(var.Manufacturer)\$(var.FullName)"
+					KeyPath="yes"
+					Name="shortcut_installed"
+					Root="HKCU"
+					Type="integer"
+					Value="1" />
 			</Component>
 		</ComponentGroup>
 	</Fragment>

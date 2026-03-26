@@ -18,12 +18,14 @@
 
 <?include Predefines.wxi ?>
 
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-	<Package Name="$(var.PackageName)"
-			 Manufacturer="$(var.Manufacturer)"
-			 Version="$(var.AppVersion)"
-			 UpgradeCode="$(var.UpgradeCode)">
+<Wix
+	xmlns="http://wixtoolset.org/schemas/v4/wxs"
+	xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+	<Package
+		Manufacturer="$(var.Manufacturer)"
+		Name="$(var.PackageName)"
+		UpgradeCode="$(var.UpgradeCode)"
+		Version="$(var.AppVersion)">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
 		<!--
@@ -31,48 +33,56 @@
 			otherwise, the .cab file is external and must be moved around with
 			the .msi file.
 		-->
-		<Media Id="1"
-			   Cabinet="App.cab"
-			   EmbedCab="yes" />
+		<Media
+			Cabinet="App.cab"
+			EmbedCab="yes"
+			Id="1" />
 
 		<!--
 			Set the overall type of install dialog that WiX will use as a
 			template.  Requires the WiX.Toolset.ui.wixext package reference to
 			be in place to build successfully.
 		-->
-		<ui:WixUI Id="WixUI_InstallDir_CustomVerifyDlg"
-				  InstallDirectory="INSTALLFOLDER" />
-		
-		<!--<ui:WixUI Id="WixUI_InstallDir"
-				  InstallDirectory="INSTALLFOLDER" />-->
+		<ui:WixUI
+			Id="WixUI_InstallDir_CustomVerifyDlg"
+			InstallDirectory="INSTALLFOLDER" />
+
+		<!--<ui:WixUI
+			Id="WixUI_InstallDir"
+			InstallDirectory="INSTALLFOLDER" />-->
 
 		<!-- Add a reference to all the messages produced by the installer. -->
 		<UIRef Id="WixUI_ErrorProgressText" />
 
 		<!-- Automatically select acceptance of license -->
-		<Property Id="LicenseAccepted"
-				  Value="1" />
+		<Property
+			Id="LicenseAccepted"
+			Value="1" />
 
 		<!-- Automatically select checkbox to enable creating a desktop shortcut -->
-		<Property Id="ADDDESKTOPSHORTCUT"
-				  Value="1" />
+		<Property
+			Id="ADDDESKTOPSHORTCUT"
+			Value="1" />
 
 		<!--
 			A license rtf file.
 		-->
-		<WixVariable Id="WixUILicenseRtf"
-					 Value="LICENSE.rtf" />
+		<WixVariable
+			Id="WixUILicenseRtf"
+			Value="LICENSE.rtf" />
 
 		<!--
 			Add Icon and ARPPRODUCTICON (the installer icon). 
 			Note: ARPPRODUCTICON = Add/Remove Program Product Icon
 			This icon is visible in the Windows Apps and Features list.
 		-->
-		<Icon Id="AppIcon"
-			  SourceFile="$(var.AppIconPath)" />
+		<Icon
+			Id="AppIcon"
+			SourceFile="$(var.AppIconPath)" />
 
-		<Property Id="ARPPRODUCTICON"
-				  Value="AppIcon" />
+		<Property
+			Id="ARPPRODUCTICON"
+			Value="AppIcon" />
 
 		<!--
 			Implement a checkbox that appears on the last page of the installer
@@ -83,12 +93,13 @@
 		<!--
 			The main feature cannot be optional (AllowAbsent="no") and is always installed.
 		-->
-		<Feature Id="Main"
-				 Title="$(var.AppName) Application"
-				 AllowAbsent="no"
-				 ConfigurableDirectory="INSTALLFOLDER"
-				 AllowAdvertise="no"
-				 Description="The core elements that must be installed">
+		<Feature
+			AllowAbsent="no"
+			AllowAdvertise="no"
+			ConfigurableDirectory="INSTALLFOLDER"
+			Description="The core elements that must be installed"
+			Id="Main"
+			Title="$(var.AppName) Application">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 	</Package>
