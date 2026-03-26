@@ -28,7 +28,7 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
+		<Exec Command='dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir="bin\$(Configuration)\net10.0\Publish"' />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
