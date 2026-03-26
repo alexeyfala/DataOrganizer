@@ -1,28 +1,23 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
-	<PropertyGroup>
-		<OutputName>$(MsiOutputName)-Bundle</OutputName>
-		<OutputPath>..\Publish</OutputPath>
-		<OutputType>Bundle</OutputType>
-	</PropertyGroup>
-	<PropertyGroup>
-		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-		<None Include="LICENSE.rtf" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
-						  Version="6.0.2" />
-	</ItemGroup>
-	<Target Name="PostBuild"
-			AfterTargets="PostBuildEvent">
-		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
-		<Exec Command="start $(OutputPath)" />
-	</Target>
+  <PropertyGroup>
+    <OutputName>$(MsiOutputName)-Bundle</OutputName>
+    <OutputPath>..\Publish</OutputPath>
+    <OutputType>Bundle</OutputType>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+    <DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
+    <DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
+    <DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.BootstrapperApplications.wixext" Version="6.0.2" />
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="del /f $(OutputPath)\*.wixpdb" />
+    <Exec Command="start $(OutputPath)" />
+  </Target>
 </Project>

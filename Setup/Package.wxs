@@ -55,9 +55,9 @@
 		<UIRef Id="WixUI_ErrorProgressText" />
 
 		<!-- Automatically select acceptance of license -->
-		<Property
+		<!--<Property
 			Id="LicenseAccepted"
-			Value="1" />
+			Value="1" />-->
 
 		<!-- Automatically select checkbox to enable creating a desktop shortcut -->
 		<Property

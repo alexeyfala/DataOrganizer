@@ -19,7 +19,7 @@
 		Version="$(AppVersion)">
 		<BootstrapperApplication>
 			<bal:WixStandardBootstrapperApplication
-				LicenseFile="LICENSE.rtf"
+				LicenseFile="..\Setup\LICENSE.rtf"
 				LicenseUrl=""
 				LogoFile="$(AppIconPath)"
 				Theme="rtfLicense" />
