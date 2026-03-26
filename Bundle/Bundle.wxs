@@ -1,4 +1,13 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+﻿<!--
+	BootstrapperApplication - https://docs.firegiant.com/wix/schema/wxs/bootstrapperapplication
+	Bundle - https://docs.firegiant.com/wix/schema/wxs/bundle
+	Chain - https://docs.firegiant.com/wix/schema/wxs/chain
+	MsiPackage - https://docs.firegiant.com/wix/schema/wxs/msipackage
+	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+	WixStandardBootstrapperApplication - https://docs.firegiant.com/wix/tools/burn/wixstdba
+-->
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
 	 xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
 	<Bundle Id="$(AppNameAsOneWord).Bundle"
 			Name="$(AppNameAsOneWord)"
