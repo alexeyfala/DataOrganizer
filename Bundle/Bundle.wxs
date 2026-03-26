@@ -29,6 +29,8 @@
 				LicenseFile="..\Setup\LICENSE.rtf"
 				LicenseUrl=""
 				LogoFile="$(AppIconPath)"
+				SuppressOptionsUI="yes"
+				SuppressRepair="yes"
 				Theme="rtfLicense" />
 		</BootstrapperApplication>
 
