@@ -49,7 +49,7 @@
 		<netfx:DotNetCoreSearch
 			MajorVersion="10"
 			Platform="x64"
-			RuntimeType="core"
+			RuntimeType="desktop"
 			Variable="NetCoreRuntimeVersion" />
 
 		<PackageGroup Id="NetRuntimeRedist">
