@@ -14,6 +14,9 @@
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<None Include="LICENSE.rtf" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
 						  Version="6.0.2" />
 	</ItemGroup>

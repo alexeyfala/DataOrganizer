@@ -19,9 +19,10 @@
 		Version="$(AppVersion)">
 		<BootstrapperApplication>
 			<bal:WixStandardBootstrapperApplication
-				LicenseUrl="https://www.example.com/license"
+				LicenseFile="LICENSE.rtf"
+				LicenseUrl=""
 				LogoFile="$(AppIconPath)"
-				Theme="hyperlinkLicense" />
+				Theme="rtfLicense" />
 		</BootstrapperApplication>
 
 		<Chain>
