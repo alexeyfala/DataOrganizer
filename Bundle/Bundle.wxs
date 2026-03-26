@@ -7,17 +7,21 @@
 	WixStandardBootstrapperApplication - https://docs.firegiant.com/wix/tools/burn/wixstdba
 -->
 
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-	 xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
-	<Bundle Id="$(AppNameAsOneWord).Bundle"
-			Name="$(AppNameAsOneWord)"
-			Manufacturer="$(Manufacturer)"
-			IconSourceFile="$(AppIconPath)"
-			UpgradeCode="2FDD5C1E-392E-4B5A-8454-D4D6D35E7B0D"
-			Version="$(AppVersion)">
+<Wix
+	xmlns="http://wixtoolset.org/schemas/v4/wxs"
+	xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+	<Bundle
+		Id="$(AppNameAsOneWord).Bundle"
+		Name="$(AppNameAsOneWord)"
+		Manufacturer="$(Manufacturer)"
+		IconSourceFile="$(AppIconPath)"
+		UpgradeCode="2FDD5C1E-392E-4B5A-8454-D4D6D35E7B0D"
+		Version="$(AppVersion)">
 		<BootstrapperApplication>
-			<bal:WixStandardBootstrapperApplication LicenseUrl="https://www.example.com/license"
-													Theme="hyperlinkLicense" />
+			<bal:WixStandardBootstrapperApplication
+				LogoFile="$(AppIconPath)"
+				LicenseUrl="https://www.example.com/license"
+				Theme="hyperlinkLicense" />
 		</BootstrapperApplication>
 
 		<Chain>
