@@ -59,7 +59,6 @@
 				DisplayName=".NET Runtime 10.0.5"
 				Id="NetRuntimeRedist"
 				InstallArguments="/norestart /quiet"
-				InstallCondition="InstallClient = 1"
 				PerMachine="true"
 				Permanent="true"
 				Vital="true">
