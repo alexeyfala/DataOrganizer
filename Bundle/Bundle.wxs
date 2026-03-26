@@ -18,6 +18,7 @@
 	xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal"
 	xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx">
 	<Bundle
+		DisableModify="yes"
 		IconSourceFile="$(AppIconPath)"
 		Id="$(AppNameAsOneWord).Bundle"
 		Manufacturer="$(Manufacturer)"
