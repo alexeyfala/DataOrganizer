@@ -2,12 +2,15 @@
 	<PropertyGroup>
 		<OutputName>$(MsiOutputName)</OutputName>
 		<OutputPath>..\Publish</OutputPath>
-		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
-		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
 		<Cultures>;</Cultures>
+	</PropertyGroup>
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="CustomDialogs\LaunchAppOnExit.wxi" />

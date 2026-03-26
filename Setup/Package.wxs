@@ -69,7 +69,7 @@
 			This icon is visible in the Windows Apps and Features list.
 		-->
 		<Icon Id="AppIcon"
-			  SourceFile="$(var.IconPath)" />
+			  SourceFile="$(var.AppIconPath)" />
 
 		<Property Id="ARPPRODUCTICON"
 				  Value="AppIcon" />

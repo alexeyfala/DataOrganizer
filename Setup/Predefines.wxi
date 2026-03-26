@@ -11,8 +11,6 @@
 
 	<?define DotNetPublishPath = "$(var.DataOrganizer.Desktop.TargetDir)\Publish" ?>
 
-	<?define IconPath = "..\DataOrganizer\Assets\Logo.ico" ?>
-
 	<!-- Debug builds get "-Debug" as part of the name -->
 	<?if $(var.Configuration) = Debug?>
 	<?define ProgramConfig = "-Debug"?>
