@@ -86,7 +86,7 @@
 					Note: A key path must be unique across all components.
 				-->
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.FullName)"
+					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
 					KeyPath="yes"
 					Name="installed"
 					Root="HKCU"
@@ -120,7 +120,7 @@
 					WorkingDirectory="APPLICATIONFOLDER" />
 
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.FullName)"
+					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
 					KeyPath="yes"
 					Name="shortcut_installed"
 					Root="HKCU"
