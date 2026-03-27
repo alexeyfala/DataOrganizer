@@ -24,9 +24,10 @@
 	<Package
 		Manufacturer="$(var.Manufacturer)"
 		Name="$(var.PackageName)"
-		Scope="perUserOrMachine"
 		UpgradeCode="$(var.UpgradeCode)"
 		Version="$(var.AppVersion)">
+		<!-- Scope="perUserOrMachine" -->
+		
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
 		<!--
