@@ -201,9 +201,6 @@ Patch dialog sequence:
 					 Control="Back"
 					 Event="NewDialog"
 					 Value="MaintenanceWelcomeDlg" />
-
-			<Property Id="ARPNOMODIFY"
-					  Value="1" />
 		</UI>
 
 		<UIRef Id="WixUI_Common" />

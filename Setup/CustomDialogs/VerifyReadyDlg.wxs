@@ -450,23 +450,6 @@
 						 Text="!(loc.VerifyReadyDlgUpdateText)"
 						 ShowCondition="WixUI_InstallMode = &quot;Update&quot;" />
 
-				<!--########################################################-->
-
-				<!-- A new checkbox to enable creating a desktop shortcut -->
-				<Control Id="AddDesktopShortcutCheckBox"
-						 Type="CheckBox"
-						 X="25"
-						 Y="190"
-						 Width="220"
-						 Height="40"
-						 Hidden="yes"
-						 Property="ADDDESKTOPSHORTCUT"
-						 CheckBoxValue="1"
-						 Text="!(loc.AddDesktopShortcut_Text)"
-						 ShowCondition="NOT Installed" />
-
-				<!--########################################################-->
-
 				<Control Id="Cancel"
 						 Type="PushButton"
 						 X="304"

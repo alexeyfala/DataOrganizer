@@ -104,9 +104,7 @@
 					On="uninstall" />
 			</Component>
 
-			<Component
-				Condition="ADDDESKTOPSHORTCUT"
-				Directory="DesktopFolder">
+			<Component Directory="DesktopFolder">
 				<!--
 					Desktop shortcut to run the program.
 				-->
