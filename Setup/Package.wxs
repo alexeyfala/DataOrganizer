@@ -67,11 +67,6 @@
 			Id="ARPNOMODIFY"
 			Value="1" />
 
-		<!-- Automatically select acceptance of license -->
-		<!--<Property
-			Id="LicenseAccepted"
-			Value="1" />-->
-
 		<!--
 			A license rtf file.
 		-->
