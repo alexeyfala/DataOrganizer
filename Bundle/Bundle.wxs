@@ -22,7 +22,7 @@
 		IconSourceFile="$(AppIconPath)"
 		Id="$(AppNameAsOneWord).Bundle"
 		Manufacturer="$(Manufacturer)"
-		Name="$(MsiOutputName)"
+		Name="$(MsiOutputName)-Bundle"
 		UpgradeCode="2FDD5C1E-392E-4B5A-8454-D4D6D35E7B0D"
 		Version="$(AppVersion)">
 		<BootstrapperApplication>
@@ -43,7 +43,7 @@
 				Compressed="yes"
 				Id="AppMsiInstaller"
 				SourceFile="$(OutputPath)\$(MsiOutputName).msi"
-				Visible="no" />
+				Visible="yes" />
 		</Chain>
 	</Bundle>
 
