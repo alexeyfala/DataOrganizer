@@ -28,12 +28,6 @@
 		Version="$(var.AppVersion)">
 		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
-		<Property Id="ARPNOMODIFY"
-				  Value="1" />
-		
-		<Property Id="ARPNOREPAIR"
-				  Value="1" />
-
 		<!--
 			This makes sure the .cab file is embedded in the .msi file;
 			otherwise, the .cab file is external and must be moved around with
@@ -44,21 +38,20 @@
 			EmbedCab="yes"
 			Id="1" />
 
-		<!--
-			Set the overall type of install dialog that WiX will use as a
-			template.  Requires the WiX.Toolset.ui.wixext package reference to
-			be in place to build successfully.
-		-->
 		<ui:WixUI
-			Id="WixUI_InstallDir_CustomVerifyDlg"
-			InstallDirectory="INSTALLFOLDER" />
-
-		<!--<ui:WixUI
 			Id="WixUI_InstallDir"
-			InstallDirectory="INSTALLFOLDER" />-->
+			InstallDirectory="INSTALLFOLDER" />
 
 		<!-- Add a reference to all the messages produced by the installer. -->
 		<UIRef Id="WixUI_ErrorProgressText" />
+
+		<Property
+			Id="ARPNOREPAIR"
+			Value="1" />
+
+		<!--<Property
+			Id="ARPNOMODIFY"
+			Value="1" />-->
 
 		<!-- Automatically select acceptance of license -->
 		<!--<Property
@@ -89,7 +82,7 @@
 			Implement a checkbox that appears on the last page of the installer
 			Wizard that, when checked, launches the newly-installed application.
 		-->
-		<?include CustomDialogs\LaunchAppOnExit.wxi ?>
+		<?include LaunchAppOnExit.wxi ?>
 
 		<!--
 			The main feature cannot be optional (AllowAbsent="no") and is always installed.

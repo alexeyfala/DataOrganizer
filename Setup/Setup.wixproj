@@ -1,38 +1,35 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
-	<PropertyGroup>
-		<OutputName>$(MsiOutputName)</OutputName>
-		<OutputPath>..\Publish</OutputPath>
-		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
-		<Cultures>;</Cultures>
-	</PropertyGroup>
-	<PropertyGroup>
-		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-		<Content Include="CustomDialogs\LaunchAppOnExit.wxi" />
-		<Content Include="Predefines.wxi" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="LICENSE.rtf" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="WixToolset.UI.wixext"
-						  Version="6.0.2" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
-	</ItemGroup>
-	<Target Name="PreBuild"
-			BeforeTargets="PreBuildEvent">
-		<Exec Command='dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir="bin\$(Configuration)\net10.0\Publish"' />
-	</Target>
-	<Target Name="PostBuild"
-			AfterTargets="PostBuildEvent">
-		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
-		<Exec Command="start $(OutputPath)" />
-	</Target>
+  <PropertyGroup>
+    <OutputName>$(MsiOutputName)</OutputName>
+    <OutputPath>..\Publish</OutputPath>
+    <ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
+    <Cultures>;</Cultures>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+    <DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="LaunchAppOnExit.wxi" />
+    <Content Include="Predefines.wxi" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LICENSE.rtf" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
+  </ItemGroup>
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
+  </Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="del /f $(OutputPath)\*.wixpdb" />
+    <Exec Command="start $(OutputPath)" />
+  </Target>
 </Project>
