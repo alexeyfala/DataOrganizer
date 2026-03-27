@@ -9,19 +9,15 @@
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 	<Fragment>
-		<StandardDirectory Id="ProgramFiles6432Folder">
-
-			<!--
-				This dictates the name of the folder where the application file
-				is to be installed by default.  32-bit and 64-bit versions end
-				up in different root folders (due to the ProgramFiles6432Folder
-				ID above).
-			-->
-			<Directory
-				Id="INSTALLFOLDER"
-				Name="$(var.AppNameAsOneWord)" />
-		</StandardDirectory>
-
+		<!--
+			The WixUI_Advanced dialog computes APPLICATIONFOLDER at runtime
+			but we need to define it at compile time so the Components can
+			reference the ID.
+		-->
+		<Directory
+			Id="APPLICATIONFOLDER"
+			Name="Anything" />
+		
 		<StandardDirectory Id="ProgramMenuFolder">
 
 			<!--

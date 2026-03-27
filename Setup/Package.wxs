@@ -38,20 +38,34 @@
 			EmbedCab="yes"
 			Id="1" />
 
-		<ui:WixUI
-			Id="WixUI_InstallDir"
-			InstallDirectory="INSTALLFOLDER" />
+		<!--
+			https://docs.firegiant.com/wix3/wixui/dialog_reference/wixui_advanced
+		-->
+		<ui:WixUI Id="WixUI_Advanced" />
 
 		<!-- Add a reference to all the messages produced by the installer. -->
 		<UIRef Id="WixUI_ErrorProgressText" />
+
+		<!--
+			Advanced dialog requires this to be defined.  It is used as the
+			name of the Program Files folder and LocalAppData folder for the
+			application.
+		-->
+		<Property
+			Id="ApplicationFolderName"
+			Value="$(var.AppNameAsOneWord)" />
+
+		<Property
+			Id="WixAppFolder"
+			Value="WixPerMachineFolder" />
 
 		<Property
 			Id="ARPNOREPAIR"
 			Value="1" />
 
-		<!--<Property
+		<Property
 			Id="ARPNOMODIFY"
-			Value="1" />-->
+			Value="1" />
 
 		<!-- Automatically select acceptance of license -->
 		<!--<Property
@@ -79,22 +93,19 @@
 			Value="AppIcon" />
 
 		<!--
-			Implement a checkbox that appears on the last page of the installer
-			Wizard that, when checked, launches the newly-installed application.
-		-->
-		<?include LaunchAppOnExit.wxi ?>
-
-		<!--
 			The main feature cannot be optional (AllowAbsent="no") and is always installed.
 		-->
 		<Feature
 			AllowAbsent="no"
 			AllowAdvertise="no"
-			ConfigurableDirectory="INSTALLFOLDER"
+			ConfigurableDirectory="APPLICATIONFOLDER"
 			Description="The core elements that must be installed"
 			Id="Main"
 			Title="$(var.AppName) Application">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
+
+		<!-- Fixes default folder used for per-machine installs for 64-bit installs -->
+		<?include IssueWorkaround.wxi ?>
 	</Package>
 </Wix>

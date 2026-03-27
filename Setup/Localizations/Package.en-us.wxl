@@ -7,8 +7,5 @@
 	xmlns="http://wixtoolset.org/schemas/v4/wxl"
 	Culture="en-US">
 	<String Id="DowngradeError"
-			Value="A newer version of &quot;$(var.AppName)&quot; is already installed." />
-
-	<String Id="LaunchAppOnExitPrompt"
-			Value="Launch &quot;$(var.AppName)&quot; on exit" />
+			Value='A newer version of "$(var.AppName)" is already installed.' />
 </WixLocalization>
