@@ -42,6 +42,7 @@
 				bal:DisplayInternalUICondition="1"
 				Compressed="yes"
 				Id="AppMsiInstaller"
+				Permanent="yes"
 				SourceFile="$(OutputPath)\$(MsiOutputName).msi"
 				Visible="yes" />
 		</Chain>
