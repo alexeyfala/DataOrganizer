@@ -27,7 +27,7 @@
 		Version="$(AppVersion)">
 		<BootstrapperApplication>
 			<bal:WixStandardBootstrapperApplication
-				LicenseFile="..\Setup\LICENSE.rtf"
+				LicenseFile="..\Setup\LICENSE.$(SetupCulture).rtf"
 				LicenseUrl=""
 				LogoFile="$(AppIconPath)"
 				SuppressOptionsUI="yes"

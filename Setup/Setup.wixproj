@@ -11,13 +11,15 @@
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Include="IssueWorkaround.wxi" />
 		<Content Include="Predefines.wxi" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="LICENSE.rtf" />
+		<None Include="LICENSE.en-us.rtf" />
+		<None Include="LICENSE.ru-ru.rtf" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext"
@@ -28,7 +30,7 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command='dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir="bin\$(Configuration)\net10.0\Publish"' />
+		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;bin\$(Configuration)\net10.0\Publish&quot;" />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">

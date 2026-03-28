@@ -5,13 +5,14 @@
 		<OutputType>Bundle</OutputType>
 	</PropertyGroup>
 	<PropertyGroup>
-		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
