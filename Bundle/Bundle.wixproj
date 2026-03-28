@@ -4,16 +4,26 @@
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(SetupCulture)'=='en-us'">
+		<LCID>1033</LCID>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(SetupCulture)'=='ru-ru'">
+		<LCID>1049</LCID>
+	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
+	<ItemGroup>
+		<Content Include="Themes\HyperlinkTheme.xml" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
 						  Version="6.0.2" />
