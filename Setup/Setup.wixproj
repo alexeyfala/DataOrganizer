@@ -3,7 +3,7 @@
 		<OutputName>$(MsiOutputName)</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
-		<Cultures>;</Cultures>
+		<Cultures>$(SetupCulture)</Cultures>
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>

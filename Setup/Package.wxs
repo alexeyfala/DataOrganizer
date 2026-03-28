@@ -26,10 +26,7 @@
 		Name="$(var.PackageName)"
 		UpgradeCode="$(var.UpgradeCode)"
 		Version="$(var.AppVersion)">
-		<!-- Scope="perUserOrMachine" -->
 		
-		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
-
 		<!--
 			This makes sure the .cab file is embedded in the .msi file;
 			otherwise, the .cab file is external and must be moved around with
