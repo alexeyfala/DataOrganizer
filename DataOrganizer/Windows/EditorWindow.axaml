@@ -19,6 +19,12 @@
 	ShowActivated="True"
 	mc:Ignorable="d">
 
+	<!--
+		TODO: In Avalonia 12 set Window.ExtendClientAreaToDecorationsHint="True" then add buttons to caption
+		using WindowDecorations.ElementRole="TitleBar" https://docs.avaloniaui.net/docs/platform-specific-guides/windows#custom-title-bars
+		or try to use like in example: https://github.com/FrankenApps/Avalonia-CustomTitleBarTemplate
+	-->
+
 	<Design.DataContext>
 		<vm:EditorViewModel />
 	</Design.DataContext>

@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -8,12 +9,11 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Shared.Common;
 
 namespace DataOrganizer.Services;
 
 /// <inheritdoc cref="IExecutionEngine" />
-public class ExecutionEngine : IExecutionEngine
+public sealed class ExecutionEngine : IExecutionEngine
 {
 	#region Data
 	/// <inheritdoc cref="IAppEnvironment" />
@@ -39,6 +39,11 @@ public class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -125,8 +130,19 @@ public class ExecutionEngine : IExecutionEngine
 		{
 			_executedFiles.TryRemove(id, out var _);
 
-			_semaphore.Release();
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
+	}
+
+	/// <inheritdoc />
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+
+		GC.SuppressFinalize(this);
 	}
 
 	/// <inheritdoc />
@@ -199,5 +215,26 @@ public class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc />
 	public bool IsExecuted(Guid id) => _executedFiles.ContainsKey(id);
+	#endregion
+
+	#region Service
+	/// <inheritdoc cref="Dispose()" />
+	private void Dispose(bool disposing)
+	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		if (disposing)
+		{
+			// Dispose managed state (managed objects)
+			_semaphore.Dispose();
+		}
+
+		// Free unmanaged resources (unmanaged objects) and override finalizer
+		// Set large fields to null
+		_isDisposed = true;
+	}
 	#endregion
 }

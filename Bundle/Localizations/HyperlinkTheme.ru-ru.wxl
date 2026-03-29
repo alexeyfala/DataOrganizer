@@ -1,0 +1,71 @@
+﻿<!-- Copyright (c) .NET Foundation and contributors. All rights reserved. Licensed under the Microsoft Reciprocal License. See LICENSE.TXT file in the project root for full license information. -->
+
+<WixLocalization Culture="ru-ru" Language="1049" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="Caption" Value="Установка [WixBundleName]" />
+  <String Id="Title" Value="[WixBundleName]" />
+  <String Id="CheckingForUpdatesLabel" Value="Проверка обновлений" />
+  <String Id="UpdateButton" Value="&amp;Обновить до версии [WixStdBAUpdateAvailable]" />
+  <String Id="InstallHeader" Value="Добро пожаловать" />
+  <String Id="InstallMessage" Value="Программа установки установит [WixBundleName] на ваш компьютер. Нажмите «Установить», чтобы продолжить, или «Отмена», чтобы выйти." />
+  <String Id="InstallMessageOptions" Value="Программа установки установит [WixBundleName] на ваш компьютер. Нажмите «Установить», чтобы продолжить, «Параметры», чтобы задать параметры установки, или «Отмена», чтобы выйти." />
+  <String Id="InstallVersion" Value="Версия [WixBundleVersion]" />
+  <String Id="ConfirmCancelMessage" Value="Вы уверены, что хотите отменить?" />
+  <String Id="ExecuteUpgradeRelatedBundleMessage" Value="Предыдущая версия" />
+  <String Id="HelpHeader" Value="Справка по установке" />
+  <String Id="HelpText" Value="/install | /repair | /uninstall | /layout [directory] - installs, repairs, uninstalls or&#xA;   creates a complete local copy of the bundle in directory. Install is the default.&#xA;&#xA;/passive | /quiet -  displays minimal UI with no prompts or displays no UI and&#xA;   no prompts. By default UI and all prompts are displayed.&#xA;&#xA;/norestart   - suppress any attempts to restart. By default UI will prompt before restart.&#xA;/log log.txt - logs to a specific file. By default a log file is created in %TEMP%." />
+  <String Id="HelpCloseButton" Value="&amp;Закрыть" />
+  <String Id="InstallLicenseLinkText" Value="[WixBundleName] &lt;a href=&quot;#&quot;&gt;license terms&lt;/a&gt;." />
+  <String Id="InstallAcceptCheckbox" Value="Я &amp;согласны с условиями лицензии" />
+  <String Id="InstallOptionsButton" Value="&amp;Параметры" />
+  <String Id="InstallInstallButton" Value="&amp;Установить" />
+  <String Id="InstallCancelButton" Value="&amp;Отмена" />
+  <String Id="OptionsHeader" Value="Параметры установки" />
+  <String Id="OptionsLocationLabel" Value="Папка:" />
+  <String Id="OptionsPerUserScopeText" Value="Установка [WixBundleName] только для &amp;меня" />
+  <String Id="OptionsPerMachineScopeText" Value="Установка [WixBundleName] для всех &amp;пользователей" />
+  <String Id="OptionsBrowseButton" Value="&amp;Обзор..." />
+  <String Id="OptionsOkButton" Value="&amp;OK" />
+  <String Id="OptionsCancelButton" Value="&amp;Отмена" />
+  <String Id="ProgressHeader" Value="Ход выполнения" />
+  <String Id="ProgressLabel" Value="Обработка:" />
+  <String Id="OverallProgressPackageText" Value="Инициализация..." />
+  <String Id="ProgressCancelButton" Value="&amp;Отмена" />
+  <String Id="ModifyHeader" Value="Изменить" />
+  <String Id="ModifyRepairButton" Value="&amp;Восстановить" />
+  <String Id="ModifyUninstallButton" Value="&amp;Удалить" />
+  <String Id="ModifyCancelButton" Value="&amp;Отмена" />
+  <String Id="SuccessHeader" Value="Установка прошла успешно" />
+  <String Id="SuccessCacheHeader" Value="Кэширование успешно завершено" />
+  <String Id="SuccessInstallHeader" Value="Установка успешно завершена" />
+  <String Id="SuccessLayoutHeader" Value="Макет успешно собран" />
+  <String Id="SuccessModifyHeader" Value="Изменение успешно завершено" />
+  <String Id="SuccessRepairHeader" Value="Восстановление успешно завершено" />
+  <String Id="SuccessUninstallHeader" Value="Удаление успешно завершено" />
+  <String Id="SuccessUnsafeUninstallHeader" Value="Удаление успешно завершено" />
+  <String Id="SuccessLaunchButton" Value="&amp;Запустить" />
+  <String Id="SuccessRestartText" Value="Перед использованием программы необходимо перезагрузить компьютер." />
+  <String Id="SuccessUninstallRestartText" Value="Для завершения удаления ппрограммы необходимо перезагрузить компьютер." />
+  <String Id="SuccessRestartButton" Value="&amp;Перезагрузка" />
+  <String Id="SuccessCloseButton" Value="&amp;Закрыть" />
+  <String Id="FailureHeader" Value="Установка не удалась" />
+  <String Id="FailureCacheHeader" Value="Кэширование не удалось" />
+  <String Id="FailureInstallHeader" Value="Установка не удалась" />
+  <String Id="FailureLayoutHeader" Value="Сборка макета не удалась" />
+  <String Id="FailureModifyHeader" Value="Изменение не удалось" />
+  <String Id="FailureRepairHeader" Value="Восстановление не удалось" />
+  <String Id="FailureUninstallHeader" Value="Удаление не удалось" />
+  <String Id="FailureUnsafeUninstallHeader" Value="Удаление не удалось" />
+  <String Id="FailureHyperlinkLogText" Value="Сбой операции. Пожалуйста, устраните неполадки, а затем повторите попытку. Для получения более подробной информации см. &lt;a href=&quot;#&quot;&gt;лог файл&lt;/a&gt;." />
+  <String Id="FailureRestartText" Value="Для завершения отката программы необходимо перезагрузить компьютер." />
+  <String Id="FailureRestartButton" Value="&amp;Перезагрузка" />
+  <String Id="FailureCloseButton" Value="&amp;Закрыть" />
+  <String Id="FilesInUseTitle" Value="Используемые файлы" />
+  <String Id="FilesInUseLabel" Value="Следующие приложения используют файлы, которые необходимо обновить:" />
+  <String Id="FilesInUseNetfxCloseRadioButton" Value="Закройте &amp;приложения." />
+  <String Id="FilesInUseCloseRadioButton" Value="Закройте &amp;приложения и попробуйте их перезапустить." />
+  <String Id="FilesInUseDontCloseRadioButton" Value="&amp;Не закрывайте приложения. Потребуется перезагрузка." />
+  <String Id="FilesInUseRetryButton" Value="&amp;Повторить" />
+  <String Id="FilesInUseIgnoreButton" Value="&amp;Игнорировать" />
+  <String Id="FilesInUseExitButton" Value="&amp;Выход" />
+  <String Id="RuntimeInstallInfo" Value="При необходимости будет произведена установка [RuntimeDescription]." />
+</WixLocalization>

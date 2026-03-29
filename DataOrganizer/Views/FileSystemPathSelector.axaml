@@ -34,8 +34,8 @@
 			</SelectableTextBlock>
 
 			<TextBlock
-				IsVisible="{Binding Path, Mode=OneWay, Converter={x:Static StringConverters.IsNullOrEmpty}}"
 				VerticalAlignment="Center"
+				IsVisible="{Binding Path, Mode=OneWay, Converter={x:Static StringConverters.IsNullOrEmpty}}"
 				Text="{x:Static prop:Strings.NotSelected}" />
 		</Grid>
 

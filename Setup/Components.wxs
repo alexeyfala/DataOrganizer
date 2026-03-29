@@ -1,0 +1,132 @@
+<!--
+	Component - https://docs.firegiant.com/wix/schema/wxs/component
+	ComponentGroup - https://docs.firegiant.com/wix/schema/wxs/componentgroup
+	File - https://docs.firegiant.com/wix/schema/wxs/file
+	Files - https://docs.firegiant.com/wix/schema/wxs/files
+	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
+	RegistryValue - https://docs.firegiant.com/wix/schema/wxs/registryvalue
+	RemoveFolder - https://docs.firegiant.com/wix/schema/wxs/removefolder
+	Shortcut - https://docs.firegiant.com/wix/schema/wxs/shortcut
+	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+-->
+
+<?include Predefines.wxi ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<ComponentGroup
+			Directory="APPLICATIONFOLDER"
+			Id="Components">
+			<Component Guid="$(var.ProductComponentGUID)">
+
+				<!--
+					The file represented by this component.
+					
+					The file's location is used as the key path.  If the key
+					path is not present, the component is considered as not
+					being installed; otherwise, if the key path is present, the
+					installer performs an upgrade, repair, or remove.
+					
+					Note: During uninstall, the file is removed by the Windows
+					Installer.  In addition, the file's parent directories are
+					removed so long as the parent directories are empty.  There
+					is no need to explicitly remove the installation directory
+					in this case.
+				-->
+				<File
+					Checksum="yes"
+					Id="AppExe"
+					KeyPath="yes"
+					Name="$(var.AppNameAsOneWord).exe"
+					Source="$(var.DotNetPublishPath)\" />
+			</Component>
+
+			<!--
+				Include all other files and folders.
+			-->
+			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppNameAsOneWord).exe" />
+			</Files>
+
+			<Component
+				Directory="ApplicationProgramsFolder"
+				Id="Shortcuts">
+
+				<!-- Start Menu shortcut to run the program. -->
+				<Shortcut
+					Advertise="no"
+					Arguments="--pause"
+					Description="Launch $(var.FullName) application"
+					Icon="AppIcon"
+					Id="ApplicationStartMenuShortcut"
+					Name="$(var.FullName)"
+					Target="[!AppExe]"
+					WorkingDirectory="APPLICATIONFOLDER" />
+
+				<!-- Start Menu shortcut to uninstall the program. -->
+				<Shortcut
+					Advertise="no"
+					Arguments="/x [ProductCode]"
+					Description="Uninstalls $(var.FullName)"
+					Icon="AppIcon"
+					Id="UninstallProduct"
+					Name="$(var.FullName) uninstall"
+					Target="[System64Folder]msiexec.exe" />
+
+				<!--
+					Define the key path for the parent component.  If the key
+					path is not present, the component is considered as not
+					being installed; otherwise, if the key path is present, the
+					installer performs an upgrade, repair, or remove.
+					
+					Shortcuts require a registry-based key path; the
+					application's own path can be a key path but that key path
+					cannot be used with shortcuts.
+
+					Note: A key path must be unique across all components.
+				-->
+				<RegistryValue
+					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
+					KeyPath="yes"
+					Name="installed"
+					Root="HKCU"
+					Type="integer"
+					Value="1" />
+
+				<!--
+					Start Menu folder to remove during uninstall.  This removes
+					the shortcuts.  For shortcuts, the remove folder step must
+					be explicitly given, unlike components that contain
+					explicit files.
+				-->
+				<RemoveFolder
+					Id="ApplicationProgramsFolder"
+					On="uninstall" />
+			</Component>
+
+			<Component Directory="DesktopFolder">
+				<!--
+					Desktop shortcut to run the program.
+				-->
+				<Shortcut
+					Advertise="no"
+					Arguments="--pause"
+					Description="Launch $(var.FullName) application"
+					Directory="DesktopFolder"
+					Icon="AppIcon"
+					Id="ApplicationDesktopShortcut"
+					Name="$(var.AppName)"
+					Target="[!AppExe]"
+					WorkingDirectory="APPLICATIONFOLDER" />
+
+				<RegistryValue
+					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
+					KeyPath="yes"
+					Name="shortcut_installed"
+					Root="HKCU"
+					Type="integer"
+					Value="1" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

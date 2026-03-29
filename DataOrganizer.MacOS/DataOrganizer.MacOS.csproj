@@ -10,9 +10,8 @@
 		<AssemblyName>DataOrganizer</AssemblyName>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
-		<Version>2.0.0-Preview1</Version>
-		<FileVersion>2.0.0</FileVersion>
-		<AssemblyVersion>2.0.0</AssemblyVersion>
+		<FileVersion>$(AppVersion)</FileVersion>
+		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>

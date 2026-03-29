@@ -176,4 +176,10 @@
 			</ControlTemplate>
 		</Setter>
 	</Style>
+
+	<Style Selector="Image.AppImageStyle">
+		<Setter Property="Height" Value="16.0" />
+		<Setter Property="Source" Value="/Assets/Logo.ico" />
+		<Setter Property="Width" Value="16.0" />
+	</Style>
 </Styles>

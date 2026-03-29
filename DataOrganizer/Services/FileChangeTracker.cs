@@ -142,9 +142,16 @@ public class FileChangeTracker : IFileChangeTracker
 				}
 				finally
 				{
-					parameters
-						.Semaphore
-						.Release();
+					try
+					{
+						parameters
+							.Semaphore
+							.Release();
+					}
+					catch (Exception ex)
+					{
+						_logger.LogException(ex);
+					}
 				}
 
 				await Task

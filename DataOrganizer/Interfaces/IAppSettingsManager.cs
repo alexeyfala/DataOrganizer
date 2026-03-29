@@ -17,8 +17,8 @@ public interface IAppSettingsManager
 	/// </summary>
 	public static CultureInfo[] Languages { get; } =
 	[
-		new("en-US"),
-		new("ru-RU")
+		new("en-us"),
+		new("ru-ru")
 	];
 
 	/// <inheritdoc cref="AppSettings" />
@@ -31,7 +31,7 @@ public interface IAppSettingsManager
 	/// </summary>
 	public static AppSettings CreateDefaultSettings() => new()
 	{
-		Language = Languages[0].Name,
+		Language = CultureInfo.InstalledUICulture.LCID == 1049 ? Languages[1].Name : Languages[0].Name,
 		PrimaryColor = PrimaryColor.Teal,
 		SecondaryColor = SecondaryColor.Amber,
 		Theme = BaseThemeMode.Inherit

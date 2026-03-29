@@ -22,7 +22,7 @@ public static class AppUtils
 	/// <summary>
 	/// Application name "DataOrganizer" in one word.
 	/// </summary>
-	public static string AppNameInOneWord => "DataOrganizer";
+	public static string AppNameAsOneWord => "DataOrganizer";
 
 	/// <summary>
 	/// Application version.

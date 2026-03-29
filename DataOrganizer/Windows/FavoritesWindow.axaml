@@ -12,7 +12,8 @@
 	xmlns:sys="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
-	ExtendClientAreaToDecorationsHint="True"
+	Background="Transparent"
+	CanResize="False"
 	ShowInTaskbar="False"
 	SizeToContent="WidthAndHeight"
 	SystemDecorations="None"
@@ -51,13 +52,14 @@
 				ColumnDefinitions="Auto,Auto,*,Auto,Auto">
 				<Image
 					Grid.Column="0"
-					Width="14.0"
-					Height="14.0"
-					Source="avares://DataOrganizerMain/Assets/Logo.ico" />
+					Margin="4.0,0.0"
+					Classes="AppImageStyle" />
 
 				<TextBlock
 					Grid.Column="1"
-					Margin="4.0"
+					Margin="4.0,0.0"
+					VerticalAlignment="Center"
+					FontWeight="SemiBold"
 					Foreground="{StaticResource LightForeground}"
 					Text="{x:Static common:AppUtils.AppName}" />
 
@@ -70,6 +72,7 @@
 
 				<Button
 					Grid.Column="4"
+					Margin="4.0,0.0"
 					Padding="0.0"
 					Command="{Binding CloseCommand}"
 					CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
@@ -129,7 +132,7 @@
 						BorderThickness="{StaticResource BorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
 						<Border
-							Background="{StaticResource MaterialBackgroundBrush}"
+							Background="{StaticResource MaterialPaperBrush}"
 							CornerRadius="{StaticResource CornerRadius}">
 							<dialogHost:DialogHost
 								dialogHost:DialogHostStyle.CornerRadius="6.0"
@@ -237,7 +240,7 @@
 
 			<Border
 				Grid.Row="2"
-				Background="{StaticResource MaterialBackgroundBrush}"
+				Background="{StaticResource MaterialPaperBrush}"
 				CornerRadius="{StaticResource CornerRadius}">
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.Styles>

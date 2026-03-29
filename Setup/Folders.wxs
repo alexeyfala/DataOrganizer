@@ -1,0 +1,36 @@
+<!--
+	Directory - https://docs.firegiant.com/wix/schema/wxs/directory
+	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
+	StandardDirectory - https://docs.firegiant.com/wix/schema/wxs/standarddirectory
+	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
+-->
+
+<?include Predefines.wxi ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<!--
+			The WixUI_Advanced dialog computes APPLICATIONFOLDER at runtime
+			but we need to define it at compile time so the Components can
+			reference the ID.
+		-->
+		<Directory
+			Id="APPLICATIONFOLDER"
+			Name="Anything" />
+		
+		<StandardDirectory Id="ProgramMenuFolder">
+
+			<!--
+				This dictates the name of the folder that appears in the Start
+				Menu.  Since 32-bit and 64-bit versions of this application can
+				be installed at the same time, it seems simpler to gather them
+				under a common folder name so use var.AppNameAsOneWord instead
+				of var.Name.  This assumes the shortcut name of the 32-bit and
+				64-bit versions are unique.
+			-->
+			<Directory
+				Id="ApplicationProgramsFolder"
+				Name="$(var.AppNameAsOneWord)" />
+		</StandardDirectory>
+	</Fragment>
+</Wix>
