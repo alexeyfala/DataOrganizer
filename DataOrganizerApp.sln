@@ -31,6 +31,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonTestHelpers", "Common
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{10AC88A7-F072-42C8-92A0-F0DA5726C20C}"
 	ProjectSection(SolutionItems) = preProject
+		Prerequisites.txt = Prerequisites.txt
 		Publish.txt = Publish.txt
 		TerminalLaunch.txt = TerminalLaunch.txt
 	EndProjectSection
