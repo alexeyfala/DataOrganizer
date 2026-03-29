@@ -113,9 +113,9 @@
 				<ChangePageAction Page="Options" />
 			</Button>
 			<Button Name="InstallButton"
-					X="-91"
+					X="-96"
 					Y="-11"
-					Width="75"
+					Width="100"
 					Height="23"
 					TabStop="yes"
 					FontId="0">#(loc.InstallInstallButton)</Button>

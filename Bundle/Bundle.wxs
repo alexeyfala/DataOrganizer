@@ -63,23 +63,25 @@
 		<PackageGroup Id="NetRuntimeRedist">
 			<ExePackage
 				Cache="keep"
-				DetectCondition="NetCoreRuntimeVersion >= v10.0.5"
-				DisplayName=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
+				Compressed="yes"
+				DetectCondition="NetCoreRuntimeVersion >= v$(DesktopRuntimeVersion)"
+				DisplayName="$(RuntimeDescription)"
 				Id="NetRuntimeRedist"
 				InstallArguments="/norestart /quiet"
 				PerMachine="yes"
 				Permanent="yes"
+				SourceFile="Resources\DesktopRuntime.exe"
 				Vital="yes">
 
 				<!-- https://dotnet.microsoft.com/en-us/download/dotnet/10.0 -->
-				<ExePackagePayload
+				<!--<ExePackagePayload
 					Description=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
 					DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.5/windowsdesktop-runtime-10.0.5-win-x64.exe"
 					Hash="cbb1ad53aecc54264488cc5c0be938991770750209cf4acd383bbe8af57db679f4d5988e6281a6d6a46b4e141db3d3d539ea764250b4ab48871972a610944b40"
 					Name="windowsdesktop-runtime-10.0.5-win-x64.exe"
 					ProductName=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
 					Size="60082160"
-					Version="10.0.5" />
+					Version="10.0.5" />-->
 			</ExePackage>
 		</PackageGroup>
 	</Fragment>

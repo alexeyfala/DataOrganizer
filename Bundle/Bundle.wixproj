@@ -1,5 +1,6 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2">
 	<PropertyGroup>
+		<DesktopRuntimeVersion>10.0.5</DesktopRuntimeVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -14,11 +15,13 @@
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DesktopRuntimeVersion=$(DesktopRuntimeVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Desktop Runtime (v$(DesktopRuntimeVersion)) - Windows x64</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
@@ -29,6 +32,9 @@
 						  Version="6.0.2" />
 		<PackageReference Include="WixToolset.Netfx.wixext"
 						  Version="6.0.2" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="Resources\DesktopRuntime.exe" />
 	</ItemGroup>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
