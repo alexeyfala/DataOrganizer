@@ -1,6 +1,5 @@
 Windows:
-1. Open CLI.
-2. Run:
+1. Open "CLI" and run:
 winget install --id Microsoft.DotNet.DesktopRuntime.10 --silent --accept-source-agreements --accept-package-agreements
-3. Check runtimes installed:
+2. Check runtimes installed:
 dotnet --list-runtimes
