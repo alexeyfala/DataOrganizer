@@ -4,8 +4,6 @@
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(SetupCulture)'=='en-us'">
 		<LCID>1033</LCID>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(SetupCulture)'=='ru-ru'">
