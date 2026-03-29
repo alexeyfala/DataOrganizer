@@ -67,4 +67,5 @@
   <String Id="FilesInUseRetryButton" Value="&amp;Retry" />
   <String Id="FilesInUseIgnoreButton" Value="&amp;Ignore" />
   <String Id="FilesInUseExitButton" Value="E&amp;xit" />
+  <String Id="RuntimeInstallInfo" Value="If necessary, [RuntimeDescription] will be installed." />
 </WixLocalization>
