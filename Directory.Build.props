@@ -6,6 +6,6 @@
 		<AppVersion>2.0.0</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
 		<MsiOutputName>$(AppNameAsOneWord)-$(Platform)-$(AppVersion)</MsiOutputName>
-		<SetupCulture>ru-ru</SetupCulture>
+		<SetupCulture>en-US</SetupCulture>
 	</PropertyGroup>
 </Project>
