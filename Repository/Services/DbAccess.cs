@@ -344,11 +344,9 @@ public sealed class DbAccess : IDbAccess
 		{
 			_logger.LogInformation("Connecting to the database.");
 
-			await _dbContextService.MigrateAsync(token).ConfigureAwait(false);
-
-			//await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
-			//	? _dbContextService.MigrateAsync(token)
-			//	: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
+				? _dbContextService.MigrateAsync(token)
+				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
