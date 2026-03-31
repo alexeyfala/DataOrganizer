@@ -14,9 +14,25 @@ public class SqliteDbContext : DbContext
 	{
 		// When used in DI, a constructor with these arguments is required.
 	}
+
+	public SqliteDbContext()
+	{
+		// To be able to create migrations.
+	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+	{
+		if (EF.IsDesignTime)
+		{
+			optionsBuilder.UseSqlite();
+		}
+
+		base.OnConfiguring(optionsBuilder);
+	}
+
 	/// <inheritdoc />
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{

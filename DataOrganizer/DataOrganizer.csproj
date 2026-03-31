@@ -5,8 +5,8 @@
 		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<LangVersion>latest</LangVersion>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-		<RootNamespace>DataOrganizer</RootNamespace>
-		<AssemblyName>DataOrganizerMain</AssemblyName>
+		<RootNamespace>$(AppNameAsOneWord)</RootNamespace>
+		<AssemblyName>$(AppNameAsOneWord)Main</AssemblyName>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 	</PropertyGroup>
