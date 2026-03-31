@@ -242,8 +242,10 @@ public sealed class App : Application
 				DefaultTimeout = 30,
 				Pooling = true
 			};
-
-			builder.UseSqlite(connectionBuilder.ToString());
+			
+			builder.UseSqlite(
+				connectionBuilder.ToString(),
+				x => x.MigrationsAssembly($"{AppUtils.AppNameAsOneWord}.Migrations"));
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();
 
