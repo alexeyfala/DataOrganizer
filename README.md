@@ -99,8 +99,9 @@ App/
 All application data is stored locally:
 
 ```
-%APPDATA%/DataOrganizer/       (Windows)
-~/.config/DataOrganizer/       (Linux / macOS)
+%LOCALAPPDATA%/DataOrganizer/                                 (Windows)
+/home/{username}/.local/share/DataOrganizer/                  (Linux)
+/Users/{username}/Library/Application Support/DataOrganizer/  (macOS)
 ```
 
 ---
@@ -108,6 +109,7 @@ All application data is stored locally:
 ## TODO:
 - Search by name in the main list
 - Search by file contents
+- Ability to select multiple objects in a list
 - Importing file system objects into an application
 - Exporting objects from an application to the file system
 - And others ...
