@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<ApplicationIcon>..\DataOrganizer\Assets\Logo.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-		<AssemblyName>DataOrganizer</AssemblyName>
+		<AssemblyName>$(AppNameAsOneWord)</AssemblyName>
 		<!-- To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute -->
 		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
