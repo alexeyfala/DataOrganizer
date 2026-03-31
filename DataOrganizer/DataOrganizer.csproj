@@ -56,7 +56,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.Migrations\DataOrganizer.Migrations.csproj" />
 		<ProjectReference Include="..\Repository\Repository.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
