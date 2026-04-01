@@ -1,5 +1,6 @@
 ﻿using Avalonia.Threading;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
@@ -39,6 +40,61 @@ public sealed class DialogService : IDialogService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public Task<char[]> RequestPasswordAsync(
+		string header,
+		string? label = null,
+		CancellationToken token = default)
+	{
+		_logger.LogInformation("Show password box");
+
+		TaskCompletionSource<char[]> source = new();
+
+		_dispatcher.Post(async () =>
+		{
+			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+			view
+				.ViewModel
+				.Header = header;
+
+			view
+				.ViewModel
+				.Label = label ?? Strings.Password;
+
+			_ = DialogHost.Show(view);
+
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token)
+				.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
+			{
+				source.SetResult([]);
+
+				return;
+			}
+
+			try
+			{
+				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
+					.ViewModel
+					.Password);
+
+				source.SetResult(secret
+					.AsReadOnlySpan()
+					.ToArray());
+			}
+			finally
+			{
+				view
+					.ViewModel
+					.Password = null;
+			}
+		});
+
+		return source.Task;
+	}
+
 	/// <inheritdoc />
 	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
 	{
