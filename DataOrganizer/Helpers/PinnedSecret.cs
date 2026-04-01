@@ -1,6 +1,6 @@
-﻿using System;
+﻿using DataOrganizer.Extensions;
+using System;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace DataOrganizer.Helpers;
 
@@ -42,7 +42,9 @@ internal sealed class PinnedSecret : IDisposable
 
 		_isDisposed = true;
 
-		CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(_buffer.AsSpan()));
+		MemoryMarshal
+			.AsBytes(_buffer.AsSpan())
+			.ZeroMemory();
 
 		_handle.Free();
 	}

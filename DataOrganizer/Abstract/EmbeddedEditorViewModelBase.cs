@@ -17,7 +17,6 @@ using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -170,12 +169,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
-		if (SessionEncryptedDek is null)
-		{
-			return;
-		}
-
-		CryptographicOperations.ZeroMemory(SessionEncryptedDek);
+		SessionEncryptedDek?.ZeroMemory();
 
 		SessionEncryptedDek = null;
 	}

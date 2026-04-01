@@ -15,7 +15,6 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -157,7 +156,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			{
 				if (file.EncryptionStatus != EncryptionStatus.None)
 				{
-					CryptographicOperations.ZeroMemory(contents);
+					contents.ZeroMemory();
 				}
 			}
 		}

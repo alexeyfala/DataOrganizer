@@ -145,7 +145,9 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(oldPassword.AsSpan()));
+			MemoryMarshal
+				.AsBytes(oldPassword.AsSpan())
+				.ZeroMemory();
 		}		
 	}
 
@@ -230,7 +232,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(decryptedDek);
+				decryptedDek.ZeroMemory();				
 			}
 		}
 		finally
@@ -255,7 +257,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
+			decryptedDek.ZeroMemory();
 		}
 	}
 
@@ -330,7 +332,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(dek);
+				dek.ZeroMemory();
 			}
 		}
 		finally
@@ -355,7 +357,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
+			decryptedDek.ZeroMemory();
 		}
 	}
 
@@ -377,12 +379,11 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (folder.SessionEncryptedDek is not null)
-		{
-			CryptographicOperations.ZeroMemory(folder.SessionEncryptedDek);
+		folder
+			.SessionEncryptedDek?
+			.ZeroMemory();
 
-			folder.SessionEncryptedDek = null;
-		}
+		folder.SessionEncryptedDek = null;
 
 		folder
 			.ToEnumerable()
@@ -405,7 +406,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		CryptographicOperations.ZeroMemory(_sessionId);
+		_sessionId.ZeroMemory();
 
 		_sessionId = null;
 	}
@@ -460,7 +461,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(dek);
+				dek.ZeroMemory();
 			}
 		}
 		finally
@@ -568,7 +569,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(decryptedDek);
+				decryptedDek.ZeroMemory();
 			}
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
@@ -727,7 +728,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(dek);
+			dek.ZeroMemory();
 		}
 	}
 	#endregion

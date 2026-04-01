@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.DTO;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using Entities.Models;
 using Repository.DTO;
@@ -10,7 +11,6 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -136,7 +136,7 @@ public class FileChangeTracker : IFileChangeTracker
 					{
 						if (parameters.SessionEncryptedDek is not null)
 						{
-							CryptographicOperations.ZeroMemory(bytes);
+							bytes.ZeroMemory();
 						}
 					}
 				}
@@ -167,9 +167,13 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			if (parameters.SessionEncryptedDek is not null)
 			{
-				CryptographicOperations.ZeroMemory(parameters.SessionEncryptedDek);
+				parameters
+					.SessionEncryptedDek
+					.ZeroMemory();
 
-				CryptographicOperations.ZeroMemory(parameters.Contents);
+				parameters
+					.Contents
+					.ZeroMemory();
 			}
 		}
 	}

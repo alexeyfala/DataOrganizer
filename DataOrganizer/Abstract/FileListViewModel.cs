@@ -17,7 +17,6 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
@@ -126,7 +125,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 		{
 			if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 			{
-				CryptographicOperations.ZeroMemory(contents);
+				contents.ZeroMemory();
 			}
 		}
 	}

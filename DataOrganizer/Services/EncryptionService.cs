@@ -1,4 +1,5 @@
-﻿using DataOrganizer.Interfaces;
+﻿using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
 using Serilog;
@@ -168,7 +169,7 @@ public sealed class EncryptionService : IEncryptionService
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(dek);
+			dek.ZeroMemory();
 		}
 	}
 	#endregion
@@ -197,7 +198,7 @@ public sealed class EncryptionService : IEncryptionService
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(blob);
+			blob.ZeroMemory();
 		}
 	}
 
