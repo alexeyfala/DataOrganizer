@@ -15,6 +15,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,56 +81,72 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
-			.ConfigureAwait(true) is not { } oldPassword)
+		char[] oldPassword = await _dialogService
+			.RequestPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
+			.ConfigureAwait(true);
+
+		if (oldPassword.IsEmpty())
 		{
 			return;
 		}
 
-		if (!_encryption.EnhancedVerify(oldPassword, folder.PasswordHash))
+		try
 		{
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+			if (await _dialogService
+				.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
+				.ConfigureAwait(true) is not { } oldPasswordOld)
+			{
+				return;
+			}
 
-			return;
+			if (!_encryption.EnhancedVerify(oldPasswordOld, folder.PasswordHash))
+			{
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+				return;
+			}
+
+			if (await _dialogService
+				.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
+				.ConfigureAwait(false) is not { } newPassword)
+			{
+				return;
+			}
+
+			if (_encryption.RewrapDek(
+				folder.EncryptedDek,
+				TextHelper.Utf8Encoding.GetBytes(oldPasswordOld),
+				TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
+			{
+				return;
+			}
+
+			string passwordHash = _encryption.EnhancedHashPassword(newPassword);
+
+			PropertyNameValuePair[] properties =
+			[
+				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+			];
+
+			if (!await _dbAccess.UpdatePropertiesAsync(
+				id: folder.Id,
+				token: token,
+				properties: properties).ConfigureAwait(false))
+			{
+				return;
+			}
+
+			folder.PasswordHash = passwordHash;
+
+			folder.EncryptedDek = encryptedDek;
+
+			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
 		}
-
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
-			.ConfigureAwait(false) is not { } newPassword)
+		finally
 		{
-			return;
-		}
-
-		if (_encryption.RewrapDek(
-			folder.EncryptedDek,
-			TextHelper.Utf8Encoding.GetBytes(oldPassword),
-			TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
-		{
-			return;
-		}
-
-		string passwordHash = _encryption.EnhancedHashPassword(newPassword);
-
-		PropertyNameValuePair[] properties =
-		[
-			new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-			new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
-		];
-
-		if (!await _dbAccess.UpdatePropertiesAsync(
-			id: folder.Id,
-			token: token,
-			properties: properties).ConfigureAwait(false))
-		{
-			return;
-		}
-
-		folder.PasswordHash = passwordHash;
-
-		folder.EncryptedDek = encryptedDek;
-
-		_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
+			CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(oldPassword.AsSpan()));
+		}		
 	}
 
 	/// <inheritdoc />

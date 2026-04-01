@@ -8,6 +8,7 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using Repository.DTO;
 using Shared.Common;
+using Shared.Extensions;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
@@ -366,7 +367,7 @@ public static class TestUtils
 			.Cast<T>()
 			.Where(value => !EqualityComparer<T>.Default.Equals(value, toExclude))];
 
-		if (filtered.Length == 0)
+		if (filtered.IsEmpty())
 		{
 			throw new InvalidOperationException("No enum values available to select after exclusion.");
 		}

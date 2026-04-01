@@ -254,7 +254,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
@@ -288,7 +288,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
@@ -594,7 +594,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
@@ -1304,7 +1304,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
 
-		if (folders.Length == 0)
+		if (folders.IsEmpty())
 		{
 			return;
 		}
@@ -1462,7 +1462,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.ConfigureAwait(false);
 			}
 
-			if (newHotkeys.Length == 0)
+			if (newHotkeys.IsEmpty())
 			{
 				return OverwriteHotkeysResult.EmptySequence;
 			}

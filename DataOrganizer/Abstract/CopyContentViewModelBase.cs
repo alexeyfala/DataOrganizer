@@ -73,7 +73,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// </summary>
 	protected static ItemsControl? FindLastContainer<T>(ItemsControl container, T[] parents) where T : class
 	{
-		if (parents.Length == 0 || container.ContainerFromItem(parents[0]) is not ItemsControl item)
+		if (parents.IsEmpty() || container.ContainerFromItem(parents[0]) is not ItemsControl item)
 		{
 			return container;
 		}

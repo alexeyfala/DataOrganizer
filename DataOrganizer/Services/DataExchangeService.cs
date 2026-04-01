@@ -217,7 +217,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			.SelectFilesAsync<EditorWindow>(options)
 			.ConfigureAwait(false);
 
-		if (filePaths.Length == 0)
+		if (filePaths.IsEmpty())
 		{
 			return false;
 		}

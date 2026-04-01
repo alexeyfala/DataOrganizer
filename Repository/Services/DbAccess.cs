@@ -1122,7 +1122,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(FolderModel[] folders)
 	{
-		if (folders.Length == 0)
+		if (folders.IsEmpty())
 		{
 			return;
 		}
@@ -1137,7 +1137,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(FileModel[] files)
 	{
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			return;
 		}
@@ -1152,7 +1152,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(HotkeyModel[] hotkeys)
 	{
-		if (hotkeys.Length == 0)
+		if (hotkeys.IsEmpty())
 		{
 			return;
 		}

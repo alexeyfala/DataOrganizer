@@ -75,7 +75,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			if (result
 				.Contents
-				.Length == 0)
+				.IsEmpty())
 			{
 				return;
 			}
@@ -879,7 +879,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.OfType<RecordsGroup>()
 			.Where(x => x.IsExpanded != expand)];
 
-		if (groups.Length == 0)
+		if (groups.IsEmpty())
 		{
 			return Task.CompletedTask;
 		}
@@ -929,7 +929,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.OfType<ValueRecord>()
 			.Where(x => x.IsHidden != hide)];
 
-		if (records.Length == 0)
+		if (records.IsEmpty())
 		{
 			return Task.CompletedTask;
 		}
