@@ -21,13 +21,11 @@ internal static class SecureStringHelper
 
 		return secret;
 	}
-	#endregion
 
-	#region Service
 	/// <summary>
-	/// Tries to wipe a string in memory.
+	/// Wipes a string in memory.
 	/// </summary>
-	private static void WipeString(string value)
+	public static void WipeString(string value)
 	{
 		Span<char> span = MemoryMarshal.CreateSpan(
 			ref MemoryMarshal.GetReference(value.AsSpan()),

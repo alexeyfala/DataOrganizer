@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
@@ -153,6 +154,21 @@ public sealed class EncryptionService : IEncryptionService
 	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
 
 	/// <inheritdoc />
+	public string HashPassword(ReadOnlySpan<char> password)
+	{
+		string temp = new(password);
+
+		try
+		{
+			return BC.EnhancedHashPassword(temp);
+		}
+		finally
+		{
+			SecureStringHelper.WipeString(temp);
+		}
+	}
+
+	/// <inheritdoc />
 	public byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
@@ -170,6 +186,21 @@ public sealed class EncryptionService : IEncryptionService
 		finally
 		{
 			dek.ZeroMemory();
+		}
+	}
+
+	/// <inheritdoc />
+	public bool VerifyPassword(ReadOnlySpan<char> password, string hash)
+	{
+		string temp = new(password);
+
+		try
+		{
+			return BC.EnhancedVerify(temp, hash);
+		}
+		finally
+		{
+			SecureStringHelper.WipeString(temp);
 		}
 	}
 	#endregion

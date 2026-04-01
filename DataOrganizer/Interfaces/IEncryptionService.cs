@@ -1,4 +1,5 @@
 ﻿using Repository.DTO;
+using System;
 using System.Collections.Generic;
 
 namespace DataOrganizer.Interfaces;
@@ -40,6 +41,9 @@ public interface IEncryptionService
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
 	bool EnhancedVerify(string password, string passwordHash);
 
+	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
+	string HashPassword(ReadOnlySpan<char> password);
+
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
 	/// </summary>
@@ -47,5 +51,8 @@ public interface IEncryptionService
 		byte[] wrappedDek,
 		byte[] oldPassword,
 		byte[] newPassword);
+
+	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
+	bool VerifyPassword(ReadOnlySpan<char> password, string hash);
 	#endregion
 }
