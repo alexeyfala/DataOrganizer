@@ -36,12 +36,6 @@ public interface IEncryptionService
 	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
-	string EnhancedHashPassword(string password);
-
-	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
-	bool EnhancedVerify(string password, string passwordHash);
-
-	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
 	string HashPassword(ReadOnlySpan<char> password);
 
 	/// <summary>

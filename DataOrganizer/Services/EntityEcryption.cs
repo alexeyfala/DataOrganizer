@@ -177,7 +177,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
@@ -329,7 +329,7 @@ public sealed class EntityEcryption : IEntityEcryption
 					Files = files,
 					Folder = folder,
 					NewStatus = EncryptionStatus.Encrypted,
-					PasswordHash = _encryption.EnhancedHashPassword(password)
+					PasswordHash = _encryption.HashPassword(password)
 				};
 
 				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
@@ -436,7 +436,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
@@ -493,7 +493,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
@@ -544,7 +544,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				return null;
 			}
 
-			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
 				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 

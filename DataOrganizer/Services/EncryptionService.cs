@@ -148,12 +148,6 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public string EnhancedHashPassword(string password) => BC.EnhancedHashPassword(password);
-
-	/// <inheritdoc />
-	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
-
-	/// <inheritdoc />
 	public string HashPassword(ReadOnlySpan<char> password)
 	{
 		string temp = new(password);
