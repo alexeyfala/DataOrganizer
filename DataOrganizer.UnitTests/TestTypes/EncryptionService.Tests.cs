@@ -104,10 +104,10 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.EnhancedHashPassword" />.
+	/// Test of <see cref="EncryptionService.HashPassword" />.
 	/// </summary>
 	[Test]
-	public void EnhancedHashPassword_Returns_Hash_That_Different_From_Original_Password()
+	public void HashPassword_Returns_Hash_That_Different_From_Original_Password()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -117,7 +117,7 @@ internal class EncryptionServiceTests
 		const string password = "SomePassword";
 
 		// Act
-		string passwordHash = sut.EnhancedHashPassword(password);
+		string passwordHash = sut.HashPassword(password);
 
 		// Assert
 		passwordHash
@@ -128,10 +128,10 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.EnhancedVerify" />.
+	/// Test of <see cref="EncryptionService.VerifyPassword" />.
 	/// </summary>
 	[Test]
-	public void EnhancedVerify_Verified_Same_Passwords_With_Different_Hashes()
+	public void VerifyPassword_Verified_Same_Passwords_With_Different_Hashes()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -141,13 +141,13 @@ internal class EncryptionServiceTests
 		const string password = "SomePassword";
 
 		// Act
-		string hash1 = sut.EnhancedHashPassword(password);
+		string hash1 = sut.HashPassword(password);
 
-		string hash2 = sut.EnhancedHashPassword(password);
+		string hash2 = sut.HashPassword(password);
 
-		bool result1 = sut.EnhancedVerify(password, hash1);
+		bool result1 = sut.VerifyPassword(password, hash1);
 
-		bool result2 = sut.EnhancedVerify(password, hash2);
+		bool result2 = sut.VerifyPassword(password, hash2);
 
 		// Assert
 		hash1
