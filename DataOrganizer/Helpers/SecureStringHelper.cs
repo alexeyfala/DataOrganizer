@@ -9,15 +9,15 @@ internal static class SecureStringHelper
 	/// <summary>
 	/// Copies a string into the pinned array and attempts to zero out the original.
 	/// </summary>
-	public static PinnedSecret CaptureAndWipe(string source)
+	public static PinnedSecret CaptureAndWipe(string value)
 	{
-		PinnedSecret secret = new(source.Length);
+		PinnedSecret secret = new(value.Length);
 
-		source
+		value
 			.AsSpan()
 			.CopyTo(secret.AsSpan());
 
-		WipeString(source);
+		WipeString(value);
 
 		return secret;
 	}
