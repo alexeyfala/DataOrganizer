@@ -360,6 +360,7 @@ public sealed class App : Application
 		#endregion
 
 		#region ViewModels
+		services.AddTransient<BooleanAsyncResultViewModel>();
 		services.AddTransient<ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
@@ -370,10 +371,9 @@ public sealed class App : Application
 		services.AddTransient<ExecutedFilesViewModel>();
 		services.AddTransient<FavoritesViewModel>();
 		services.AddTransient<HotkeysEditorViewModel>();
+		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
-		services.AddTransient<ImportListSelectorViewModel>();
-		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();

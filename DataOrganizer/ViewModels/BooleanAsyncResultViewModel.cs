@@ -1,13 +1,17 @@
 ﻿using Avalonia;
+using DataOrganizer.Abstract;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
-public abstract class BooleanAsyncResultViewModelBase : AsyncResultViewModelBase<bool>
+/// <summary>
+/// Th view model for returning <see cref="bool" /> value.
+/// </summary>
+public class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 {
 	#region Constructors
-	protected BooleanAsyncResultViewModelBase(Application app) : base(app)
+	public BooleanAsyncResultViewModel(Application app) : base(app)
 	{
 	}
 	#endregion

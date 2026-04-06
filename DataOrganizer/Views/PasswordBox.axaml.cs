@@ -65,18 +65,18 @@ public sealed partial class PasswordBox : UserControl
 	/// <inheritdoc cref="CompositeDisposable" />
 	private readonly CompositeDisposable _disposables = [];
 
-	/// <inheritdoc cref="PasswordBoxViewModel" />
-	private readonly PasswordBoxViewModel _viewModel;
+	/// <inheritdoc cref="BooleanAsyncResultViewModel" />
+	private readonly BooleanAsyncResultViewModel _viewModel;
 	#endregion
 
 	#region Constructors
-	public PasswordBox(PasswordBoxViewModel viewModel)
+	public PasswordBox(BooleanAsyncResultViewModel viewModel)
 	{
 		InitializeComponent();
 
 		_viewModel = viewModel;
 
-		TextBox
+		PasswordInput
 			.GetObservable(TextBox.TextProperty)
 			.Subscribe(TextBox_TextPropertyChanged)
 			.DisposeWith(_disposables);
@@ -91,17 +91,15 @@ public sealed partial class PasswordBox : UserControl
 	#endregion
 
 	#region Methods
+	/// <inheritdoc cref="BooleanAsyncResultViewModel.GetResultAsync" />
+	public Task<bool> GetResultAsync(in CancellationToken token = default) => _viewModel.GetResultAsync(token);
+
 	/// <inheritdoc />
 	protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
 	{
 		base.OnDetachedFromLogicalTree(e);
 
 		_disposables.Dispose();
-	}
-
-	public Task<bool> GetResultAsync(in CancellationToken token = default)
-	{
-		return _viewModel.GetResultAsync(token);
 	}
 	#endregion
 
@@ -113,9 +111,9 @@ public sealed partial class PasswordBox : UserControl
 	{
 		const char space = ' ';
 
-		return !string.IsNullOrWhiteSpace(TextBox.Text)
-			&& !TextBox.Text.StartsWith(space)
-			&& !TextBox.Text.EndsWith(space);
+		return !string.IsNullOrWhiteSpace(PasswordInput.Text)
+			&& !PasswordInput.Text.StartsWith(space)
+			&& !PasswordInput.Text.EndsWith(space);
 	}
 	#endregion
 }

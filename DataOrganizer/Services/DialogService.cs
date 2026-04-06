@@ -62,7 +62,7 @@ public sealed class DialogService : IDialogService
 
 			if (!await view
 				.GetResultAsync(token)
-				.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.TextBox.Text))
+				.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
 			{
 				source.SetResult([]);
 
@@ -72,7 +72,7 @@ public sealed class DialogService : IDialogService
 			try
 			{
 				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
-					TextBox
+					PasswordInput
 					.Text);
 
 				source.SetResult(secret
@@ -82,7 +82,7 @@ public sealed class DialogService : IDialogService
 			finally
 			{
 				view
-					.TextBox
+					.PasswordInput
 					.Text = null;
 			}
 		});
