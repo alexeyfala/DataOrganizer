@@ -155,21 +155,21 @@ public sealed class EntityEcryption : IEntityEcryption
 					oldPasswordBytes.ZeroMemory();
 
 					newPasswordBytes.ZeroMemory();
-				}				
+				}
 			}
 			finally
 			{
 				MemoryMarshal
 					.AsBytes(newPassword.AsSpan())
 					.ZeroMemory();
-			}			
+			}
 		}
 		finally
 		{
 			MemoryMarshal
 				.AsBytes(oldPassword.AsSpan())
 				.ZeroMemory();
-		}		
+		}
 	}
 
 	/// <inheritdoc />
@@ -183,9 +183,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
-			.ConfigureAwait(false) is not { } password)
+		char[] password = await _dialogService
+			.RequestPasswordAsync(Strings.DecryptFiles, token: token)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -213,51 +215,66 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (_encryption.Decrypt(
-				folder.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
-			{
-				return;
-			}
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
 
 			try
 			{
-				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
-
-				if (!AreContentsValid(result, contents.Length))
+				if (_encryption.Decrypt(
+					folder.EncryptedDek,
+					passwordBytes) is not { } decryptedDek)
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
-
 					return;
 				}
 
-				if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+				try
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+					ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
-					return;
+					if (!AreContentsValid(result, contents.Length))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+						return;
+					}
+
+					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+
+						return;
+					}
+
+					UpdateDatabaseParameters parameters = new()
+					{
+						BackupFilePath = backupFilePath,
+						Contents = result,
+						EncryptedDek = null,
+						Files = files,
+						Folder = folder,
+						NewStatus = EncryptionStatus.None,
+						PasswordHash = null
+					};
+
+					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 				}
-
-				UpdateDatabaseParameters parameters = new()
+				finally
 				{
-					BackupFilePath = backupFilePath,
-					Contents = result,
-					EncryptedDek = null,
-					Files = files,
-					Folder = folder,
-					NewStatus = EncryptionStatus.None,
-					PasswordHash = null
-				};
-
-				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+					decryptedDek.ZeroMemory();
+				}
 			}
 			finally
 			{
-				decryptedDek.ZeroMemory();				
+				passwordBytes.ZeroMemory();
 			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
