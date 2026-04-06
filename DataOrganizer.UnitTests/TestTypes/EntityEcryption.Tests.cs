@@ -49,7 +49,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -116,7 +116,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -278,7 +278,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			dbAccess
 				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
@@ -539,7 +539,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -598,7 +598,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -769,7 +769,7 @@ internal class EntityEcryptionTests
 
 			dialogService
 				.RequestUserPasswordAsync(string.Empty)
-				.Returns(string.Empty);
+				.Returns([]);
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 

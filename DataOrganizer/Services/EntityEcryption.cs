@@ -82,7 +82,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		char[] oldPassword = await _dialogService
-			.RequestPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
+			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
 			.ConfigureAwait(false);
 
 		if (oldPassword.IsEmpty())
@@ -100,7 +100,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 
 			char[] newPassword = await _dialogService
-				.RequestPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
+				.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
 				.ConfigureAwait(false);
 
 			if (newPassword.IsEmpty())
@@ -184,7 +184,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.DecryptFiles, token: token)
+			.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
 			.ConfigureAwait(false);
 
 		if (password.IsEmpty())
@@ -306,7 +306,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		CancellationToken token = default)
 	{
 		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.EncryptFiles, token: token)
+			.RequestUserPasswordAsync(Strings.EncryptFiles, token: token)
 			.ConfigureAwait(false);
 
 		if (password.IsEmpty())
@@ -477,7 +477,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.ShowContents, token: token)
+			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
 			.ConfigureAwait(false);
 
 		if (password.IsEmpty())
@@ -546,7 +546,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 
 		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.ShowContents, token: token)
+			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
 			.ConfigureAwait(false);
 
 		if (password.IsEmpty())
@@ -611,7 +611,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			char[] password = await _dialogService
-				.RequestPasswordAsync(header, token: token)
+				.RequestUserPasswordAsync(header, token: token)
 				.ConfigureAwait(false);
 
 			if (password.IsEmpty())

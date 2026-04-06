@@ -13,7 +13,7 @@ public interface IDialogService
 	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
-	Task<char[]> RequestPasswordAsync(
+	Task<char[]> RequestUserPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default);
@@ -22,14 +22,6 @@ public interface IDialogService
 	/// Requests the user to close files.
 	/// </summary>
 	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
-
-	/// <summary>
-	/// Requests a password from user.
-	/// </summary>
-	Task<string?> RequestUserPasswordAsync(
-		string header,
-		string? label = null,
-		CancellationToken token = default);
 
 	/// <summary>
 	/// Selects import variant.

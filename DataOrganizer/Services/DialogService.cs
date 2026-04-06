@@ -41,7 +41,7 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<char[]> RequestPasswordAsync(
+	public Task<char[]> RequestUserPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default)
@@ -107,55 +107,6 @@ public sealed class DialogService : IDialogService
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelResult.Yes;
-	}
-
-	/// <inheritdoc />
-	public Task<string?> RequestUserPasswordAsync(
-		string header,
-		string? label = null,
-		CancellationToken token = default)
-	{
-		_logger.LogInformation("Show password box");
-
-		TaskCompletionSource<string?> source = new();
-
-		_dispatcher.Post(async () =>
-		{
-			//PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-			//view
-			//	.ViewModel
-			//	.Header = header;
-
-			//view
-			//	.ViewModel
-			//	.Label = label ?? Strings.Password;
-
-			//_ = DialogHost.Show(view);
-
-			//if (!await view
-			//	.ViewModel
-			//	.GetResultAsync(token)
-			//	.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
-			//{
-			//	source.SetResult(null);
-
-			//	return;
-			//}
-
-			//try
-			//{
-			//	source.SetResult(view.ViewModel.Password);
-			//}
-			//finally
-			//{
-			//	view
-			//		.ViewModel
-			//		.Password = null;
-			//}
-		});
-
-		return source.Task;
 	}
 
 	/// <inheritdoc />
