@@ -305,9 +305,11 @@ public sealed class EntityEcryption : IEntityEcryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.EncryptFiles, token: token)
-			.ConfigureAwait(false) is not { } password)
+		char[] password = await _dialogService
+			.RequestPasswordAsync(Strings.EncryptFiles, token: token)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -341,32 +343,43 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
+				byte[] passwordBytes = TextHelper
+					.Utf8Encoding
+					.GetBytes(password);
+
 				if (_encryption.Encrypt(
 					dek,
-					TextHelper.Utf8Encoding.GetBytes(password)) is not { } encryptedDek)
+					passwordBytes) is not { } encryptedDek)
 				{
 					return;
 				}
 
-				if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+				try
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
-					return;
+						return;
+					}
+
+					UpdateDatabaseParameters parameters = new()
+					{
+						BackupFilePath = backupFilePath,
+						Contents = result,
+						EncryptedDek = encryptedDek,
+						Files = files,
+						Folder = folder,
+						NewStatus = EncryptionStatus.Encrypted,
+						PasswordHash = _encryption.HashPassword(password)
+					};
+
+					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 				}
-
-				UpdateDatabaseParameters parameters = new()
+				finally
 				{
-					BackupFilePath = backupFilePath,
-					Contents = result,
-					EncryptedDek = encryptedDek,
-					Files = files,
-					Folder = folder,
-					NewStatus = EncryptionStatus.Encrypted,
-					PasswordHash = _encryption.HashPassword(password)
-				};
-
-				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+					passwordBytes.ZeroMemory();
+				}
 			}
 			finally
 			{
@@ -375,6 +388,10 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
