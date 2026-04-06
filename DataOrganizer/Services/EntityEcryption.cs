@@ -110,35 +110,52 @@ public sealed class EntityEcryption : IEntityEcryption
 
 			try
 			{
-				if (_encryption.RewrapDek(
-					folder.EncryptedDek,
-					TextHelper.Utf8Encoding.GetBytes(oldPassword),
-					TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
+				byte[] oldPasswordBytes = TextHelper
+					.Utf8Encoding
+					.GetBytes(oldPassword);
+
+				byte[] newPasswordBytes = TextHelper
+					.Utf8Encoding
+					.GetBytes(newPassword);
+
+				try
 				{
-					return;
+					if (_encryption.RewrapDek(
+						folder.EncryptedDek,
+						oldPasswordBytes,
+						newPasswordBytes) is not { } encryptedDek)
+					{
+						return;
+					}
+
+					string passwordHash = _encryption.HashPassword(newPassword);
+
+					PropertyNameValuePair[] properties =
+					[
+						new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+						new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+					];
+
+					if (!await _dbAccess.UpdatePropertiesAsync(
+						id: folder.Id,
+						token: token,
+						properties: properties).ConfigureAwait(false))
+					{
+						return;
+					}
+
+					folder.PasswordHash = passwordHash;
+
+					folder.EncryptedDek = encryptedDek;
+
+					_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
 				}
-
-				string passwordHash = _encryption.HashPassword(newPassword);
-
-				PropertyNameValuePair[] properties =
-				[
-					new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-					new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
-				];
-
-				if (!await _dbAccess.UpdatePropertiesAsync(
-					id: folder.Id,
-					token: token,
-					properties: properties).ConfigureAwait(false))
+				finally
 				{
-					return;
-				}
+					oldPasswordBytes.ZeroMemory();
 
-				folder.PasswordHash = passwordHash;
-
-				folder.EncryptedDek = encryptedDek;
-
-				_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
+					newPasswordBytes.ZeroMemory();
+				}				
 			}
 			finally
 			{
