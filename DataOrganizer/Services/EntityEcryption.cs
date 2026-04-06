@@ -476,9 +476,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
-			.ConfigureAwait(false) is not { } password)
+		char[] password = await _dialogService
+			.RequestPasswordAsync(Strings.ShowContents, token: token)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -494,9 +496,13 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
+
 			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek)
+				passwordBytes) is not { } dek)
 			{
 				return;
 			}
@@ -516,11 +522,17 @@ public sealed class EntityEcryption : IEntityEcryption
 			}
 			finally
 			{
+				passwordBytes.ZeroMemory();
+
 				dek.ZeroMemory();
 			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -533,9 +545,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
-			.ConfigureAwait(false) is not { } password)
+		char[] password = await _dialogService
+			.RequestPasswordAsync(Strings.ShowContents, token: token)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -551,15 +565,30 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (ShowFolderContents(folder, password))
-			{
-				return;
-			}
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+			try
+			{
+				if (ShowFolderContents(folder, passwordBytes))
+				{
+					return;
+				}
+
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+			}
+			finally
+			{
+				passwordBytes.ZeroMemory();
+			}			
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -756,7 +785,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// </summary>
 	private bool ShowFolderContents(
 		FolderModelDto folder,
-		string password)
+		byte[] password)
 	{
 		FolderModelDto? root = folder.IsPasswordKeeper()
 			? folder
@@ -764,7 +793,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (root is null
 			|| root.EncryptedDek is null
-			|| _encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek
+			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek
 			|| _encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
 		{
 			return false;
