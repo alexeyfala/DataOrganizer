@@ -54,20 +54,15 @@ public sealed class DialogService : IDialogService
 		{
 			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
-			view
-				.ViewModel
-				.Header = header;
+			view.Header = header;
 
-			view
-				.ViewModel
-				.Label = label ?? Strings.Password;
+			view.Label = label ?? Strings.Password;
 
 			_ = DialogHost.Show(view);
 
 			if (!await view
-				.ViewModel
 				.GetResultAsync(token)
-				.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
+				.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.TextBox.Text))
 			{
 				source.SetResult([]);
 
@@ -76,9 +71,9 @@ public sealed class DialogService : IDialogService
 
 			try
 			{
-				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
-					.ViewModel
-					.Password);
+				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
+					TextBox
+					.Text);
 
 				source.SetResult(secret
 					.AsReadOnlySpan()
@@ -87,8 +82,8 @@ public sealed class DialogService : IDialogService
 			finally
 			{
 				view
-					.ViewModel
-					.Password = null;
+					.TextBox
+					.Text = null;
 			}
 		});
 
@@ -126,38 +121,38 @@ public sealed class DialogService : IDialogService
 
 		_dispatcher.Post(async () =>
 		{
-			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+			//PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
-			view
-				.ViewModel
-				.Header = header;
+			//view
+			//	.ViewModel
+			//	.Header = header;
 
-			view
-				.ViewModel
-				.Label = label ?? Strings.Password;
+			//view
+			//	.ViewModel
+			//	.Label = label ?? Strings.Password;
 
-			_ = DialogHost.Show(view);
+			//_ = DialogHost.Show(view);
 
-			if (!await view
-				.ViewModel
-				.GetResultAsync(token)
-				.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
-			{
-				source.SetResult(null);
+			//if (!await view
+			//	.ViewModel
+			//	.GetResultAsync(token)
+			//	.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
+			//{
+			//	source.SetResult(null);
 
-				return;
-			}
+			//	return;
+			//}
 
-			try
-			{
-				source.SetResult(view.ViewModel.Password);
-			}
-			finally
-			{
-				view
-					.ViewModel
-					.Password = null;
-			}
+			//try
+			//{
+			//	source.SetResult(view.ViewModel.Password);
+			//}
+			//finally
+			//{
+			//	view
+			//		.ViewModel
+			//		.Password = null;
+			//}
 		});
 
 		return source.Task;
