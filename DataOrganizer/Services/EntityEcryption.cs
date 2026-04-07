@@ -424,9 +424,9 @@ public sealed class EntityEcryption : IEntityEcryption
 			return _sessionId;
 		}
 
-		_sessionId = RandomNumberGenerator.GetBytes(Random
-			.Shared
-			.Next(32, 65));
+		int length = RandomNumberGenerator.GetInt32(32, 65);
+
+		_sessionId = RandomNumberGenerator.GetBytes(length);
 
 		return _sessionId;
 	}
@@ -581,7 +581,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			finally
 			{
 				passwordBinary.ZeroMemory();
-			}			
+			}
 		}
 		finally
 		{
@@ -671,7 +671,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				MemoryMarshal
 					.AsBytes(password.AsSpan())
 					.ZeroMemory();
-			}			
+			}
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
