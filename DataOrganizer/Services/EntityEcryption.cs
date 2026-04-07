@@ -810,14 +810,18 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (root is null
 			|| root.EncryptedDek is null
-			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek
-			|| _encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
+			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek)
 		{
 			return false;
 		}
 
 		try
 		{
+			if (_encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
+			{
+				return false;
+			}
+
 			root.SessionEncryptedDek = sessionEncryptedDek;
 
 			folder
