@@ -1140,6 +1140,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			dto.Parent = parent;
 
+			if (parent is not null)
+			{
+				dto.EncryptionStatus = parent.EncryptionStatus;
+			}
+
 			GetCollectionToAdd(parent, Hierarchy).Add(dto);
 
 			CountHierarchy();
