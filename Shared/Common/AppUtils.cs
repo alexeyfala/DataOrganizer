@@ -34,6 +34,9 @@ public static class AppUtils
 	/// </summary>
 	public static OperateSystem CurrentOs { get; } = GetCurrentOs();
 
+	/// <inheritdoc cref="IsDebugMode" />
+	public static bool IsDebug { get; } = IsDebugMode();
+
 	/// <summary>
 	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Linux" />.
 	/// </summary>
@@ -43,6 +46,9 @@ public static class AppUtils
 	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.MacOs" />.
 	/// </summary>
 	public static bool IsMacOs { get; } = CurrentOs == OperateSystem.MacOs;
+
+	/// <inheritdoc cref="IsReleaseMode" />
+	public static bool IsRelease { get; } = IsReleaseMode();
 
 	/// <summary>
 	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Windows" />.
@@ -128,22 +134,6 @@ public static class AppUtils
 			? filePath
 			: filePath.Replace('\\', Path.DirectorySeparatorChar);
 	}
-
-	/// <summary>
-	/// Allows you to determine whether the application is in debug mode.
-	/// </summary>
-	public static bool IsDebugMode()
-	{
-		bool value = false;
-
-		Determine(ref value);
-
-		return value;
-
-		[Conditional("DEBUG")]
-		// ReSharper disable once RedundantAssignment
-		static void Determine(ref bool value) => value = true;
-	}
 	#endregion
 
 	#region Service
@@ -177,5 +167,35 @@ public static class AppUtils
 		OperateSystem.MacOs => "open",
 		_ => throw new NotImplementedException()
 	};
+
+	/// <summary>
+	/// Allows you to determine whether the application is in debug mode.
+	/// </summary>
+	private static bool IsDebugMode()
+	{
+		bool value = false;
+
+		Determine(ref value);
+
+		return value;
+
+		[Conditional("DEBUG")]
+		static void Determine(ref bool value) => value = true;
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if the application is in release mode.
+	/// </summary>
+	private static bool IsReleaseMode()
+	{
+		bool value = false;
+
+		Determine(ref value);
+
+		return value;
+
+		[Conditional("RELEASE")]
+		static void Determine(ref bool value) => value = true;
+	}
 	#endregion
 }

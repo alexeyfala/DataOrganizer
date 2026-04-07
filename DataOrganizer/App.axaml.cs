@@ -105,7 +105,7 @@ public sealed class App : Application
 	/// </summary>
 	private static string[] AddDebugCommandLineArgs(string[] args)
 	{
-		if (AppUtils.IsDebugMode())
+		if (AppUtils.IsDebug)
 		{
 			return args
 				//.AddHelpArg()
