@@ -180,7 +180,9 @@ public sealed class AppController : IAppController
 
 		_logger.LogInformationWithTemplate(builder.ToString());
 
-		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager.Settings.GetPropertyValues(true)}");
+		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager
+			.Settings
+			.GetPropertyValues(true)}");
 	}
 
 	/// <summary>
