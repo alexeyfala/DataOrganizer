@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
@@ -99,51 +100,60 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				.Utf8Encoding
 				.GetString(output);
 
-			TextEditorHelper.SubscribePointerWheelChanged(
-				editor,
-				() => FontSize,
-				() => FontSize);
+			try
+			{
+				TextEditorHelper.SubscribePointerWheelChanged(
+					editor,
+					() => FontSize,
+					() => FontSize);
 
-			ApplyEditorSettings(editor);
+				ApplyEditorSettings(editor);
 
-			await InitializePropertiesAsync(editor).ConfigureAwait(false);
+				await InitializePropertiesAsync(editor).ConfigureAwait(false);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextChanged += x,
-				x => editor.TextChanged -= x)
-				.Subscribe(Editor_TextChanged)
-				.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextChanged += x,
+					x => editor.TextChanged -= x)
+					.Subscribe(Editor_TextChanged)
+					.DisposeWith(_disposables);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextArea.Caret.PositionChanged += x,
-				x => editor.TextArea.Caret.PositionChanged -= x)
-				.Subscribe(Editor_PropertyChanged)
-				.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.Caret.PositionChanged += x,
+					x => editor.TextArea.Caret.PositionChanged -= x)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextArea.SelectionChanged += x,
-				x => editor.TextArea.SelectionChanged -= x)
-				.Subscribe(Editor_PropertyChanged)
-				.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.SelectionChanged += x,
+					x => editor.TextArea.SelectionChanged -= x)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-			//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
-			//Observable.FromEventPattern<EventHandler, EventArgs>(
-			//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
-			//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
-			//	.Subscribe(Editor_PropertyChanged)
-			//	.DisposeWith(_disposables);
+				//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
+				//Observable.FromEventPattern<EventHandler, EventArgs>(
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
+				//	.Subscribe(Editor_PropertyChanged)
+				//	.DisposeWith(_disposables);
 
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 
-			await Task
-				.Delay(100)
-				.ConfigureAwait(true);
+				await Task
+					.Delay(100)
+					.ConfigureAwait(true);
 
-			editor.Focus();
+				editor.Focus();
+			}
+			finally
+			{
+				output.ZeroMemory();
+			}
 		}
 		finally
 		{
 			IsInitialized = true;
+
+			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 		}
 	}
 
@@ -234,16 +244,25 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				.GetBytes(editor.Text);
 
 			// Encryption slows down the UI, so it is performed in a different thread.
-			_ = Task.Run(() =>
+			_ = Task.Run(async () =>
 			{
 				if (TryToEncrypt(contents) is not { } output)
 				{
 					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
 
-					return Task.CompletedTask;
+					return;
 				}
 
-				return SaveContentsAsync(output);
+				try
+				{
+					await SaveContentsAsync(output).ConfigureAwait(false);
+				}
+				finally
+				{
+					contents.ZeroMemory();
+
+					output.ZeroMemory();
+				}
 			});
 		}
 	}

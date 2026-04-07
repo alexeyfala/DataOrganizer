@@ -226,7 +226,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// </summary>
 	protected byte[]? TryToDecrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null)
+		if (SessionEncryptedDek is null || input.IsEmpty())
 		{
 			return input;
 		}
@@ -241,7 +241,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// </summary>
 	protected byte[]? TryToEncrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null)
+		if (SessionEncryptedDek is null || input.IsEmpty())
 		{
 			return input;
 		}
