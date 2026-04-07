@@ -3,7 +3,6 @@ using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
-using MapsterMapper;
 using OSVersionExtension;
 using Repository.Interfaces;
 using Serilog;
@@ -60,7 +59,6 @@ public sealed class AppController : IAppController
 		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMapper mapper,
 		IProcessUtils processUtils,
 		IViewLauncher viewLauncher)
 	{
