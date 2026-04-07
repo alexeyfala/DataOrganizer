@@ -40,6 +40,9 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;
 
@@ -419,16 +422,19 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public byte[] GetSessionId()
 	{
-		if (_sessionId?.Length > 0)
+		lock (_mutex)
 		{
+			if (_sessionId?.Length > 0)
+			{
+				return _sessionId;
+			}
+
+			int length = RandomNumberGenerator.GetInt32(32, 65);
+
+			_sessionId = RandomNumberGenerator.GetBytes(length);
+
 			return _sessionId;
 		}
-
-		int length = RandomNumberGenerator.GetInt32(32, 65);
-
-		_sessionId = RandomNumberGenerator.GetBytes(length);
-
-		return _sessionId;
 	}
 
 	/// <inheritdoc />
@@ -456,14 +462,17 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void ResetSessionId()
 	{
-		if (_sessionId is null)
+		lock (_mutex)
 		{
-			return;
+			if (_sessionId is null)
+			{
+				return;
+			}
+
+			_sessionId.ZeroMemory();
+
+			_sessionId = null;
 		}
-
-		_sessionId.ZeroMemory();
-
-		_sessionId = null;
 	}
 
 	/// <inheritdoc />
