@@ -725,7 +725,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				item
 					.Children
-					.AddRange(CreateRandomRecords(eachTypes, --levels));
+					.AddRange(CreateRandomRecords(eachTypes, levels - 1));
 			}
 
 			yield return item;
