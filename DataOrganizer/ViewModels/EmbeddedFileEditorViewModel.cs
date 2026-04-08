@@ -80,7 +80,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		try
 		{
@@ -110,7 +110,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				ApplyEditorSettings(editor);
 
-				await InitializePropertiesAsync(editor).ConfigureAwait(false);
+				await InitializePropertiesAsync(editor).ConfigureAwait(true);
 
 				Observable.FromEventPattern<EventHandler, EventArgs>(
 					x => editor.TextChanged += x,

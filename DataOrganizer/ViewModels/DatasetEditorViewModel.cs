@@ -58,7 +58,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		try
 		{
