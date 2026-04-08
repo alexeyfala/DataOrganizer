@@ -117,7 +117,7 @@ internal class EncryptionServiceTests
 		const string password = "SomePassword";
 
 		// Act
-		string passwordHash = sut.HashPassword(password);
+		string passwordHash = sut.HashPassword(password.ToCharArray());
 
 		// Assert
 		passwordHash
@@ -138,7 +138,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		const string password = "SomePassword";
+		char[] password = "SomePassword".ToCharArray();
 
 		// Act
 		string hash1 = sut.HashPassword(password);

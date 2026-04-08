@@ -148,7 +148,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public string HashPassword(ReadOnlySpan<char> password)
+	public string HashPassword(char[] password)
 	{
 		string temp = new(password);
 
@@ -184,7 +184,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public bool VerifyPassword(ReadOnlySpan<char> password, string hash)
+	public bool VerifyPassword(char[] password, string hash)
 	{
 		string temp = new(password);
 

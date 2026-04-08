@@ -54,7 +54,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -62,7 +62,7 @@ internal class EntityEcryptionTests
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.HashPassword(Arg.Any<string>())
+				.HashPassword(Arg.Any<char[]>())
 				.Returns(AppUtils.CreateRandomString(10));
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -121,7 +121,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -544,7 +544,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -603,7 +603,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -774,7 +774,7 @@ internal class EntityEcryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption

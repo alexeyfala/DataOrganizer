@@ -36,7 +36,7 @@ public interface IEncryptionService
 	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
-	string HashPassword(ReadOnlySpan<char> password);
+	string HashPassword(char[] password);
 
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
@@ -47,6 +47,6 @@ public interface IEncryptionService
 		byte[] newPassword);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
-	bool VerifyPassword(ReadOnlySpan<char> password, string hash);
+	bool VerifyPassword(char[] password, string hash);
 	#endregion
 }
