@@ -281,15 +281,29 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	}
 
 	/// <inheritdoc />
-	public void StopTracking()
+	public async Task StopTrackingAsync(CancellationToken token = default)
 	{
-		_logger.LogInformation("Stop global keyboard input tracking");
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
 
-		Files.Clear();
+			_logger.LogInformation("Stop global keyboard input tracking");
 
-		InputStack.Clear();
+			Files.Clear();
 
-		_hook.Stop();
+			InputStack.Clear();
+
+			_hook.Stop();
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
 	}
 	#endregion
 

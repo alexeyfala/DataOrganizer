@@ -147,10 +147,10 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.StopTracking" />.
+	/// Test of <see cref="KeyboardInputHook.StopTrackingAsync" />.
 	/// </summary>
 	[Test]
-	public void StopTracking_Stops_Hook()
+	public async Task StopTrackingAsync_Stops_Hook()
 	{
 		// Arrange
 		TestGlobalHook hook = new();
@@ -174,7 +174,7 @@ internal class KeyboardInputHookTests
 			.BeTrue();
 
 		// Act
-		sut.StopTracking();
+		await sut.StopTrackingAsync();
 
 		// Assert
 		sut.IsRunning

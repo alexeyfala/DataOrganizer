@@ -32,6 +32,6 @@ public interface IKeyboardInputHook : IDisposable
 	/// <summary>
 	/// Stops tracking global keyboard input.
 	/// </summary>
-	void StopTracking();
+	Task StopTrackingAsync(CancellationToken token = default);
 	#endregion
 }

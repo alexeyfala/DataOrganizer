@@ -853,10 +853,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandleChangeSettings" />.
+	/// Test of <see cref="EditorViewModel.HandleChangeSettingsAsync" />.
 	/// </summary>
 	[Test]
-	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
+	public async Task HandleChangeSettingsAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
 		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
@@ -883,7 +883,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.HandleChangeSettings(isSave, settings);
+		await sut.HandleChangeSettingsAsync(isSave, settings);
 
 		// Assert
 		if (isSave)
@@ -904,13 +904,13 @@ internal class EditorViewModelTests
 
 		}
 
-		hook
-			.Received()
-			.StopTracking();
-
 		await hook
 			.Received()
 			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+
+		await hook
+			.Received()
+			.StopTrackingAsync();
 	}
 
 	/// <summary>
@@ -1681,7 +1681,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.ShowHotkeysEditor" />.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowHotkeysEditor_Shows_The_Hotkeys_Editor_View()
+	public async Task ShowHotkeysEditor_Shows_The_Hotkeys_Editor_View()
 	{
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
@@ -1716,11 +1716,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.ShowHotkeysEditor(dto);
-
-		hook
-			.Received()
-			.StopTracking();
+		await sut.ShowHotkeysEditor(dto);
 
 		viewFactory
 			.Received()
@@ -1729,6 +1725,10 @@ internal class EditorViewModelTests
 		view.ViewModel.Buffer
 			.Should()
 			.BeEquivalentTo(dto.Hotkeys.ToCodeMaskPairs());
+
+		await hook
+			.Received()
+			.StopTrackingAsync();
 	}
 
 	/// <summary>

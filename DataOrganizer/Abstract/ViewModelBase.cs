@@ -143,7 +143,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		if (keyboardInputHook.IsRunning)
 		{
-			keyboardInputHook.StopTracking();
+			_ = keyboardInputHook.StopTrackingAsync();
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)

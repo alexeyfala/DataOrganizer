@@ -619,18 +619,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
-	public Task ShowHotkeysEditor(FileModelDto? dto)
+	public async Task ShowHotkeysEditor(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show hotkeys editor");
 
 		if (_keyboardInputHook.IsRunning)
 		{
-			_keyboardInputHook.StopTracking();
+			await _keyboardInputHook
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
 		}
 
 		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
@@ -644,10 +646,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return DialogHost.Show(view, Dialog_Closing);
+		await DialogHost
+			.Show(view, Dialog_Closing)
+			.ConfigureAwait(false);
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
@@ -678,7 +682,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
-			HandleChangeSettings(
+			_ = HandleChangeSettingsAsync(
 				view.ViewModel.IsSaved,
 				view.ViewModel.CurrentSettings);
 		}
@@ -1346,7 +1350,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Handles changing application settings.
 	/// </summary>
-	public void HandleChangeSettings(bool isSave, AppSettings settings)
+	public async Task HandleChangeSettingsAsync(
+		bool isSave,
+		AppSettings settings,
+		CancellationToken token = default)
 	{
 		if (isSave)
 		{
@@ -1361,7 +1368,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (_keyboardInputHook.IsRunning)
 		{
-			_keyboardInputHook.StopTracking();
+			await _keyboardInputHook
+				.StopTrackingAsync(token)
+				.ConfigureAwait(false);
 		}
 
 		if (!settings.TrackHotkeys)
