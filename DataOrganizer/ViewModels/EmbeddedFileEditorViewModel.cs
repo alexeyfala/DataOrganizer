@@ -259,9 +259,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
-		_saveChannel
-			.Writer
-			.Complete();
+		if (!_saveChannel
+			.Reader
+			.Completion
+			.IsCompleted)
+		{
+			_saveChannel
+				.Writer
+				.Complete();
+		}
 
 		base.AfterDispose();
 	}
