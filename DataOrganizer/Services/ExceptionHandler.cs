@@ -30,6 +30,11 @@ internal sealed class ExceptionHandler : IExceptionHandler
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -58,7 +63,17 @@ internal sealed class ExceptionHandler : IExceptionHandler
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose() => _disposables.Dispose();
+	public void Dispose()
+	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		_isDisposed = true;
+
+		_disposables.Dispose();
+	}
 
 	/// <inheritdoc />
 	public void StartMonitoring()
