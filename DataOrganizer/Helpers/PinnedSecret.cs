@@ -15,6 +15,9 @@ internal sealed class PinnedSecret : IDisposable
 
 	private readonly GCHandle _handle;
 
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
 	private bool _isDisposed;
 	#endregion
 
