@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Entities.Abstract;
 using Entities.Enums;
@@ -61,13 +63,6 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	private string? _note;
 	#endregion
 
-	#region Events
-	/// <summary>
-	/// Occurs when <see cref="IsExpanded" /> changes in <see cref="FolderModelDto" />.
-	/// </summary>
-	public static event EventHandler<FolderModelDto>? FolderExpandedChanged;
-	#endregion
-
 	#region Partial
 	/// <summary>
 	/// Called when <see cref="IsExpanded" /> changes.
@@ -79,7 +74,9 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 			return;
 		}
 
-		FolderExpandedChanged?.Invoke(this, folder);
+		WeakReferenceMessenger
+			.Default
+			.Send(new FolderExpandedMessage(folder));
 	}
 	#endregion
 

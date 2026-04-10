@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Comparation;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -13,6 +14,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -569,6 +571,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		window?.Close();
 
+		WeakReferenceMessenger
+			.Default
+			.Unregister<FolderExpandedMessage>(this);
+
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
 			[.. EditFiles.ViewModel.EditFiles],
@@ -1069,26 +1075,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		EditFiles = viewFactory.CreateUserControl<EditFilesView>();
 
-		ExplorerModelBaseDto.FolderExpandedChanged += Folder_IsExpandedChanged;
+		WeakReferenceMessenger
+			.Default
+			.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
 	}
 	#endregion
 
-	#region Event Handlers
+	#region Message handlers
 	/// <summary>
-	/// <see cref="FolderModelDto.IsExpandedChanged" /> event handler of <see cref="FolderModelDto" />.
+	/// <see cref="ExplorerModelBaseDto.IsExpanded" /> changed handler of <see cref="FolderModelDto" />.
 	/// </summary>
 	/// <remarks>
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global event to persist the changes to the database in one place.
+	/// so I had to use a global message to persist the changes to the database in one place.
 	/// </remarks>
-	private void Folder_IsExpandedChanged(object? sender, FolderModelDto e)
+	private void Folder_IsExpandedChanged(
+		object recipient,
+		FolderExpandedMessage message)
 	{
 		if (IsReadOnly || IsActionInProgress)
 		{
 			return;
 		}
 
-		_ = UpdateFolderIsExpandedInDatabaseAsync(e);
+		_ = UpdateFolderIsExpandedInDatabaseAsync(message.Value);
 	}
 	#endregion
 
@@ -1301,8 +1311,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Expands or collapses all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	/// <remarks>
-	/// Changes to the <see cref="FolderModelDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Folder_IsExpandedChanged(object?, FolderModelDto)" /> event handler.
+	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
+	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
 	/// </remarks>
 	public async Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
