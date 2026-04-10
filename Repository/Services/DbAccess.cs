@@ -499,9 +499,16 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_isDisposed = true;
+
+		_semaphore.Dispose();
+
+		_dbContext.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -1160,27 +1167,6 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService.Detach(hotkeys);
 
 		_hotkeysRepository.RemoveRange(hotkeys);
-	}
-
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
-	{
-		if (_isDisposed)
-		{
-			return;
-		}
-
-		if (disposing)
-		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
-
-			_dbContext.Dispose();
-		}
-
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
 	}
 
 	/// <summary>
