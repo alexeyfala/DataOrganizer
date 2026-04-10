@@ -261,6 +261,8 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
 		_categoriesFilter.Dispose();
 
 		_favoritesFilter.Dispose();

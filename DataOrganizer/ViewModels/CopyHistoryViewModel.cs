@@ -129,6 +129,8 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
 		_filter.Clear();
 
 		SelectedItem = null;

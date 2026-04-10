@@ -49,6 +49,9 @@ public sealed class App : Application
 	/// A window designed for displaying logs.
 	/// </summary>
 	private ConsoleWindow? _console;
+
+	/// <inheritdoc cref="ServiceProvider" />
+	private ServiceProvider? _serviceProvider;
 	#endregion
 
 	#region Event Handlers
@@ -57,13 +60,13 @@ public sealed class App : Application
 		object? sender,
 		ControlledApplicationLifetimeExitEventArgs e)
 	{
+		_serviceProvider?.Dispose();
+
 		_timer.Stop();
 
 		Ioc.Default
 			.GetRequiredService<ILogger>()
 			.LogInformationWithTemplate($"App life time: {_timer.GetElapsedTime()}, exit with code: {e.ApplicationExitCode}{Environment.NewLine}{Environment.NewLine}");
-
-		// TODO: Dispose services.
 	}
 	#endregion
 
@@ -93,7 +96,9 @@ public sealed class App : Application
 
 		_timer.Start();
 
-		_ = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()))
+		_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+
+		_ = _serviceProvider
 			.GetRequiredService<IAppController>()
 			.LaunchAppAsync(_console);
 	}
@@ -242,7 +247,7 @@ public sealed class App : Application
 				DefaultTimeout = 30,
 				Pooling = true
 			};
-			
+
 			builder.UseSqlite(connectionBuilder.ToString());
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();

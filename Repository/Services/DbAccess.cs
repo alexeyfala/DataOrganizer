@@ -504,6 +504,8 @@ public sealed class DbAccess : IDbAccess
 			return;
 		}
 
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
 		_isDisposed = true;
 
 		_semaphore.Dispose();
