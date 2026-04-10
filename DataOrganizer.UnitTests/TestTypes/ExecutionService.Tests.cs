@@ -10,6 +10,7 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Interfaces;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -170,7 +171,7 @@ internal class ExecutionServiceTests
 
 		await changeTracker
 			.Received(isReadOnly ? 0 : 1)
-			.TrackChangesAsync(Arg.Any<TrackChangesParameters>());
+			.TrackChangesAsync(Arg.Any<TrackChangesParameters>(), Arg.Any<CancellationToken>());
 	}
 	#endregion
 }

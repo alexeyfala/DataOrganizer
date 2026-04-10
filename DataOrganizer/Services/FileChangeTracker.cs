@@ -58,7 +58,7 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			while (_fileSystem.IsFileExists(parameters.FilePath) && parameters.Condition(parameters.File.Id))
+			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
 				try
 				{
@@ -67,7 +67,7 @@ public class FileChangeTracker : IFileChangeTracker
 						.WaitAsync(token)
 						.ConfigureAwait(false);
 
-					if (!_fileSystem.IsFileExists(parameters.FilePath) || !parameters.Condition(parameters.File.Id))
+					if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
 					{
 						return;
 					}
@@ -142,22 +142,20 @@ public class FileChangeTracker : IFileChangeTracker
 				}
 				finally
 				{
-					try
-					{
-						parameters
-							.Semaphore
-							.Release();
-					}
-					catch (Exception ex)
-					{
-						_logger.LogException(ex);
-					}
+					parameters
+						.Semaphore
+						.Release();
 				}
 
 				await Task
 					.Delay(800, token)
 					.ConfigureAwait(false);
 			}
+		}
+		catch (TaskCanceledException)
+		{
+			_logger.LogDebug(
+				$"File change tracking canceled: {Path.GetFileName(parameters.FilePath)}");
 		}
 		catch (Exception ex)
 		{

@@ -86,6 +86,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
+			info
+				.Cancellation
+				.Cancel();
+
 			if (!_fileSystem.IsFileExists(info.FilePath))
 			{
 				_logger.LogError($@"The file with id ""{id}"" does not exist ""{info.FilePath}""");
@@ -183,15 +187,16 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			_processUtils.StartProcess(filePath, out int processId);
 
+			CancellationTokenSource cancellation = new();
+
 			_executedFiles.TryAdd(
 				parameters.File.Id,
-				new(filePath, directoryPath, processId));
+				new(cancellation, filePath, directoryPath, processId));
 
 			if (!parameters.IsReadOnly)
 			{
 				TrackChangesParameters trackParameters = new()
 				{
-					Condition = _executedFiles.ContainsKey,
 					Contents = parameters.Contents,
 					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
@@ -200,7 +205,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					ViewModel = parameters.ViewModel
 				};
 
-				_ = _changeTracker.TrackChangesAsync(trackParameters, token);
+				_ = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
 			}
 
 			_logger.LogInformation(
