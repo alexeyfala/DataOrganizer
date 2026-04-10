@@ -1378,7 +1378,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
+		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy, token);
 	}
 
 	/// <summary>
