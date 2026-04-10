@@ -122,9 +122,24 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_logger.LogInformation("Dispose global keyboard input tracking hook");
+
+		_isDisposed = true;
+
+		_semaphore.Dispose();
+
+		_hook.KeyReleased -= Hook_KeyReleased;
+
+		_hook.Dispose();
+
+		Files.Clear();
+
+		InputStack.Clear();
 	}
 
 	/// <summary>
@@ -334,35 +349,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		faforites.IsPopupOpen = true;
 	});
-
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
-	{
-		if (_isDisposed)
-		{
-			return;
-		}
-
-		if (disposing)
-		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
-
-			_logger.LogInformation("Dispose global keyboard input tracking hook");
-
-			_hook.KeyReleased -= Hook_KeyReleased;
-
-			Files.Clear();
-
-			InputStack.Clear();
-
-			_hook.Dispose();
-		}
-
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
-	}
 
 	/// <summary>
 	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.
