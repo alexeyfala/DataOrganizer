@@ -90,23 +90,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.Cancellation
 				.Cancel();
 
-			if (!_fileSystem.IsFileExists(info.FilePath))
+			if (!TryKillProcess(
+				id,
+				info.ProcessId,
+				info.FilePath))
 			{
-				_logger.LogError($@"The file with id ""{id}"" does not exist ""{info.FilePath}""");
-
 				return;
-			}
-
-			if (info.ProcessId.IsNotDefault() && _processUtils.IsProcessExists(info.ProcessId))
-			{
-				try
-				{
-					_processUtils.KillProcess(info.ProcessId);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
 			}
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
@@ -120,11 +109,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
 			}
 
-			_fileSystem.SetFileReadOnly(info.FilePath, false);
-
-			_fileSystem.EraseAndDeleteFile(info.FilePath);
-
-			_fileSystem.DeleteDirectory(info.DirectoryPath);
+			TryDeleteFile(info.FilePath, info.DirectoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -150,6 +135,25 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 
 		_isDisposed = true;
+
+		_executedFiles.ForEach(pair =>
+		{
+			if (pair.Value is not { } info)
+			{
+				return;
+			}
+
+			info
+				.Cancellation
+				.Cancel();
+
+			if (!TryKillProcess(pair.Key, info.ProcessId, info.FilePath))
+			{
+				return;
+			}
+
+			TryDeleteFile(info.FilePath, info.DirectoryPath);
+		});
 
 		_semaphore.Dispose();
 	}
@@ -225,5 +229,56 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc />
 	public bool IsExecuted(Guid id) => _executedFiles.ContainsKey(id);
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Tries to delete a file and the folder containing it.
+	/// </summary>
+	private void TryDeleteFile(string filePath, string directoryPath)
+	{
+		try
+		{
+			_fileSystem.SetFileReadOnly(filePath, false);
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+
+			_fileSystem.DeleteDirectory(directoryPath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if the file is exists and tries to kill the process of it.
+	/// </summary>
+	private bool TryKillProcess(
+		in Guid fileId,
+		in int processId,
+		string filePath)
+	{
+		if (!_fileSystem.IsFileExists(filePath))
+		{
+			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""");
+
+			return false;
+		}
+
+		if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
+		{
+			try
+			{
+				_processUtils.KillProcess(processId);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
+		}
+
+		return true;
+	}
 	#endregion
 }
