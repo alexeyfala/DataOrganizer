@@ -140,9 +140,14 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_isDisposed = true;
+
+		_semaphore.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -215,26 +220,5 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc />
 	public bool IsExecuted(Guid id) => _executedFiles.ContainsKey(id);
-	#endregion
-
-	#region Service
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
-	{
-		if (_isDisposed)
-		{
-			return;
-		}
-
-		if (disposing)
-		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
-		}
-
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
-	}
 	#endregion
 }
