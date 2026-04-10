@@ -45,6 +45,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// A backing field for <see cref="Visible" />.
 	/// </summary>
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -81,6 +86,13 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		_isDisposed = true;
+
 		_source.Clear();
 
 		_source.Dispose();
