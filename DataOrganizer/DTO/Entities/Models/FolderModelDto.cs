@@ -83,6 +83,20 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
+	/// Checks self by <see cref="IsPasswordKeeper" /> and returns or tries to find parent
+	/// that returns <c>True</c> on <see cref="IsPasswordKeeper" />.
+	/// </summary>
+	public FolderModelDto? FindPasswordKeeperOrSelf()
+	{
+		if (IsPasswordKeeper())
+		{
+			return this;
+		}
+
+		return FindParent(x => x.IsPasswordKeeper());
+	}
+
+	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()

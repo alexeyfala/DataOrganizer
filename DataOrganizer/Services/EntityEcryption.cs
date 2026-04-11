@@ -549,7 +549,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		if (folder.PasswordHash is null)
+		if (folder.FindPasswordKeeperOrSelf() is not { } root || root.PasswordHash is null)
 		{
 			return;
 		}
@@ -567,7 +567,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
+			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
@@ -813,11 +813,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		FolderModelDto folder,
 		byte[] password)
 	{
-		FolderModelDto? root = folder.IsPasswordKeeper()
-			? folder
-			: folder.FindParent(x => x.IsPasswordKeeper());
-
-		if (root is null
+		if (folder.FindPasswordKeeperOrSelf() is not { } root
 			|| root.EncryptedDek is null
 			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek)
 		{
