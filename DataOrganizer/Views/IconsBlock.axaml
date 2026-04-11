@@ -26,7 +26,7 @@
 	<StackPanel
 		DataContext="{Binding #Root}"
 		Orientation="Horizontal"
-		Spacing="2.0">
+		Spacing="4.0">
 		<StackPanel.Styles>
 			<Style Selector="materialIcons|MaterialIcon">
 				<Setter Property="Background" Value="Transparent" />

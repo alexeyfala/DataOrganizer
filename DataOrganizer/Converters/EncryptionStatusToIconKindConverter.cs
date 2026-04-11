@@ -20,7 +20,7 @@ internal sealed class EncryptionStatusToIconKindConverter : IValueConverter
 		{
 			return status switch
 			{
-				EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariant,
+				EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariantOutline,
 				EncryptionStatus.Encrypted => MaterialIconKind.Lock,
 				_ => default
 			};

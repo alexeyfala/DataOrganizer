@@ -190,7 +190,7 @@
 							<Button
 								Classes="primary"
 								Command="{Binding HideAllFileContentsCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
+								Content="{materialIcons:MaterialIconTextExt Kind=LockOpenVariantOutline,
 								                                            IconSize={StaticResource ToolBarIconSize}}"
 								ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
 								<Button.Styles>

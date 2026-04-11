@@ -17,6 +17,8 @@
 
 	<Thickness x:Key="RecordPadding">4.0</Thickness>
 
+	<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
+
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
@@ -164,7 +166,6 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Grid.Resources>
-				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
 				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
@@ -407,14 +408,23 @@
 	<DataTemplate
 		x:Key="EditedFileTabControlHeaderTemplate"
 		x:DataType="models:FileModelDto">
-		<StackPanel Orientation="Horizontal">
+		<StackPanel
+			Orientation="Horizontal"
+			Spacing="10.0">
 			<TextBlock
-				Margin="10.0,0.0"
+				Margin="10.0,0.0,0.0,0.0"
 				VerticalAlignment="Center"
 				Text="{Binding Name, Mode=OneWay}" />
 
+			<materialIcons:MaterialIcon
+				Background="Transparent"
+				Foreground="{StaticResource WarningBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
+				Kind="LockOpenVariantOutline"
+				ToolTip.Tip="{x:Static prop:Strings.ContentIsDecrypted}" />
+
 			<Button
-				Margin="6.0,0.0"
+				Margin="0.0,0.0,10.0,0.0"
 				Padding="0.0"
 				Classes="primary"
 				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
