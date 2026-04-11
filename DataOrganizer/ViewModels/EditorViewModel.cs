@@ -199,11 +199,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
+		FileModelDto[] openedFiles = [.. dto
 			.Children
-			.GetFiles()];
+			.GetFilesBy(IsOpened)];
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -263,7 +263,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -297,7 +299,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -426,9 +430,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(Condition)];
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => IsOpened(x) && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
-		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -438,14 +442,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ForEach(dto => dto.EncryptionStatus = EncryptionStatus.Encrypted);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
-
-		static bool Condition(FileModelDto file)
-		{
-			const EncryptionStatus decrypted = EncryptionStatus.Decrypted;
-
-			return (file.EncryptionStatus == decrypted && file.IsEdited)
-				|| (file.EncryptionStatus == decrypted && file.IsExecuted);
-		}
 	}
 
 	/// <summary>
@@ -459,7 +455,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (dto.IsEdited || dto.IsExecuted)
+		if (IsOpened(dto))
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync()
@@ -487,7 +483,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync([.. dto.Children.GetFiles()]).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. dto
+			.Children
+			.GetFilesBy(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -505,9 +505,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
 	public async Task Import()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
 
-		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -615,7 +615,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -1725,6 +1727,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> if <see cref="FileModelDto.IsEdited" /> == <c>True</c> or <see cref="FileModelDto.IsExecuted" /> == <c>True</c>.
+	/// </summary>
+	private static bool IsOpened(FileModelDto dto) => dto.IsEdited || dto.IsExecuted;
+
+	/// <summary>
 	/// Returns <c>True</c> if file can be edited or executed.
 	/// </summary>
 	private bool CanBeEditedOrExecuted(FileModelDto? dto)
@@ -1732,8 +1739,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return !IsActionInProgress
 			&& dto is not null
 			&& dto.EncryptionStatus != EncryptionStatus.Encrypted
-			&& !dto.IsEdited
-			&& !dto.IsExecuted;
+			&& !IsOpened(dto);
 	}
 
 	/// <summary>
@@ -1887,11 +1893,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Tries to close edited or executed files if any.
 	/// </summary>
-	private async Task<bool> TryCloseEditedExecutedFilesAsync(
-		FileModelDto[] files,
+	private async Task<bool> TryCloseOpenedFilesAsync(
+		FileModelDto[] openedFiles,
 		CancellationToken token = default)
 	{
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (openedFiles.Length > 0)
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync(token)
@@ -1901,8 +1907,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			}
 
 			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+				openedFiles.Where(x => x.IsEdited),
+				openedFiles.Where(x => x.IsExecuted));
 		}
 
 		return true;
