@@ -112,9 +112,19 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				await InitializePropertiesAsync(editor).ConfigureAwait(true);
 
-				Observable.FromEventPattern<EventHandler, EventArgs>(
+				TimeSpan delay = TimeSpan.FromSeconds(0.8);
+
+				IObservable<EventPattern<EventArgs>> textChanged = Observable.FromEventPattern<EventHandler, EventArgs>(
 					x => editor.TextChanged += x,
 					x => editor.TextChanged -= x)
+					.Throttle(delay);
+
+				if (SynchronizationContext.Current is not null)
+				{
+					textChanged = textChanged.ObserveOn(SynchronizationContext.Current);
+				}
+
+				textChanged
 					.Subscribe(Editor_TextChanged)
 					.DisposeWith(_disposables);
 
