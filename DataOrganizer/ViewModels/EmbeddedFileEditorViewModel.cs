@@ -161,8 +161,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		finally
 		{
 			IsInitialized = true;
-
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 		}
 	}
 
