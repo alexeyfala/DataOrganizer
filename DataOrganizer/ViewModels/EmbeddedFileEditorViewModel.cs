@@ -230,16 +230,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_ = SavePropertiesAsync(json);
+			_ = TrySavePropertiesAsync();
 		}
 	}
 
@@ -295,16 +286,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_ = SavePropertiesAsync(json);
+			_ = TrySavePropertiesAsync();
 		}
 	}
 	#endregion
@@ -450,6 +432,23 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				output.ZeroMemory();
 			}
 		}
+	}
+
+	/// <summary>
+	/// Tries to save properties.
+	/// </summary>
+	private Task TrySavePropertiesAsync(CancellationToken token = default)
+	{
+		string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
+
+		SetPropertiesCallback?.Invoke(json);
+
+		if (IsReadOnly)
+		{
+			return Task.CompletedTask;
+		}
+
+		return SavePropertiesAsync(json, token);
 	}
 	#endregion
 }
