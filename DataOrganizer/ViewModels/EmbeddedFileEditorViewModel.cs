@@ -112,47 +112,38 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				await InitializePropertiesAsync(editor).ConfigureAwait(true);
 
-				if (SynchronizationContext.Current is { } context)
-				{
-					TimeSpan delay = TimeSpan.FromSeconds(0.8);
+				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
-					Observable.FromEventPattern<EventHandler, EventArgs>(
-						x => editor.TextChanged += x,
-						x => editor.TextChanged -= x)
-						.Throttle(delay)
-						.ObserveOn(context)
-						.Subscribe(Editor_TextChanged)
-						.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextChanged += x,
+					x => editor.TextChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_TextChanged)
+					.DisposeWith(_disposables);
 
-					Observable.FromEventPattern<EventHandler, EventArgs>(
-						x => editor.TextArea.Caret.PositionChanged += x,
-						x => editor.TextArea.Caret.PositionChanged -= x)
-						.Throttle(delay)
-						.ObserveOn(context)
-						.Subscribe(Editor_PropertyChanged)
-						.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.Caret.PositionChanged += x,
+					x => editor.TextArea.Caret.PositionChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-					Observable.FromEventPattern<EventHandler, EventArgs>(
-						x => editor.TextArea.SelectionChanged += x,
-						x => editor.TextArea.SelectionChanged -= x)
-						.Throttle(delay)
-						.ObserveOn(context)
-						.Subscribe(Editor_PropertyChanged)
-						.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.SelectionChanged += x,
+					x => editor.TextArea.SelectionChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-					//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
-					//Observable.FromEventPattern<EventHandler, EventArgs>(
-					//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
-					//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
-					//	.Subscribe(Editor_PropertyChanged)
-					//	.DisposeWith(_disposables);
+				//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
+				//Observable.FromEventPattern<EventHandler, EventArgs>(
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
+				//	.SetDelay(delay, false)
+				//	.Subscribe(Editor_PropertyChanged)
+				//	.DisposeWith(_disposables);
 
-					_ = Task.Run(() => ProcessSaveChannelAsync());
-				}
-				else
-				{
-					_logger.LogError($"Current synchronization context is null, cannot track changes of file: {FileId}");
-				}
+				_ = Task.Run(() => ProcessSaveChannelAsync());
 
 				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 
