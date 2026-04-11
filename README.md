@@ -112,6 +112,7 @@ All application data is stored locally:
 - Ability to select multiple objects in a list
 - Importing file system objects into an application
 - Exporting objects from an application to the file system
+- Cloud synchronization
 - And others ...
 
 ---

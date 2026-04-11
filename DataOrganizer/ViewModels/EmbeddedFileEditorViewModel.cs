@@ -76,6 +76,11 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
+		bool initialIsReadOnly = IsReadOnly;
+
+		// At the time of initialization, prohibit making changes.
+		editor.IsReadOnly = true;
+
 		_editor = editor;
 
 		ContentsIsValidPair result = await _dbAccess
@@ -160,6 +165,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		finally
 		{
+			editor.IsReadOnly = initialIsReadOnly;
+
 			IsInitialized = true;
 		}
 	}
