@@ -476,13 +476,13 @@ public sealed class EntityEcryption : IEntityEcryption
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
+	public async Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
 			|| root.EncryptedDek is null
 			|| root.PasswordHash is null)
 		{
-			return;
+			return false;
 		}
 
 		char[] password = await _dialogService
@@ -491,7 +491,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		if (password.IsEmpty())
 		{
-			return;
+			return false;
 		}
 
 		try
@@ -502,7 +502,7 @@ public sealed class EntityEcryption : IEntityEcryption
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
-				return;
+				return false;
 			}
 
 			byte[] passwordBinary = TextHelper
@@ -513,7 +513,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				root.EncryptedDek,
 				passwordBinary) is not { } dek)
 			{
-				return;
+				return false;
 			}
 
 			try
@@ -522,12 +522,14 @@ public sealed class EntityEcryption : IEntityEcryption
 					dek,
 					GetSessionId()) is not { } sessionEncryptedDek)
 				{
-					return;
+					return false;
 				}
 
 				root.SessionEncryptedDek = sessionEncryptedDek;
 
 				file.EncryptionStatus = EncryptionStatus.Decrypted;
+
+				return true;
 			}
 			finally
 			{

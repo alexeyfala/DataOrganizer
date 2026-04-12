@@ -341,6 +341,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
+		{
+			return;
+		}
+
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(dto.Id)
 			.ConfigureAwait(false);
@@ -862,9 +867,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="EditFilesViewModel.OpenInEditor(FileModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	private void EditFile(FileModelDto? dto)
+	private async Task EditFile(FileModelDto? dto)
 	{
 		if (dto is null)
+		{
+			return;
+		}
+
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
 		{
 			return;
 		}
@@ -986,20 +996,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private async Task ShowFileContents(FileModelDto? dto)
+	private Task ShowFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Show file contents");
-
-		await _entityEcryption
-			.ShowFileContentsAsync(dto)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		return ShowFileContentsAsync(dto);
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -1738,7 +1742,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		return !IsActionInProgress
 			&& dto is not null
-			&& dto.EncryptionStatus != EncryptionStatus.Encrypted
 			&& !IsOpened(dto);
 	}
 
@@ -1889,6 +1892,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
+
+	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
+	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
+	{
+		_logger.LogInformation("Show file contents");
+
+		if (!await _entityEcryption
+			.ShowFileContentsAsync(dto)
+			.ConfigureAwait(true))
+		{
+			return false;
+		}
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+
+		return true;
+	}
 
 	/// <summary>
 	/// Tries to close edited or executed files if any.

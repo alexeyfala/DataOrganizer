@@ -563,9 +563,13 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		await sut.ShowFileContentsAsync(file);
+		bool result = await sut.ShowFileContentsAsync(file);
 
 		// Assert
+		result
+			.Should()
+			.BeTrue();
+
 		folder.SessionEncryptedDek
 			.Should()
 			.NotBeEmpty();
