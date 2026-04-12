@@ -54,6 +54,11 @@ public partial class FileModelDto : ExplorerModelBaseDto
 
 	#region Methods
 	/// <summary>
+	/// Returns <c>True</c> if <see cref="IsEdited" /> == <c>True</c> or <see cref="IsExecuted" /> == <c>True</c>.
+	/// </summary>
+	public bool IsOpened() => IsEdited || IsExecuted;
+
+	/// <summary>
 	/// Sets <see cref="HotkeysToolTip" /> according to <see cref="Hotkeys" />.
 	/// </summary>
 	public void SetHotkeysToolTip()

@@ -435,7 +435,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => IsOpened(x) && x.EncryptionStatus == EncryptionStatus.Decrypted)];
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -460,7 +460,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (IsOpened(dto))
+		if (dto.IsOpened())
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync()
@@ -757,6 +757,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
 	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
+
+	/// <inheritdoc cref="CloseFile" />
+	[RelayCommand]
+	private void CloseOpenedFile(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		CloseFile(dto);
+	}
 
 	/// <summary>
 	/// Collapses all folders in <see cref="Hierarchy" />.
@@ -1730,10 +1742,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		yield return new(Strings.Updated, dto.UpdatedDate.ToString(format));
 	}
 
-	/// <summary>
-	/// Returns <c>True</c> if <see cref="FileModelDto.IsEdited" /> == <c>True</c> or <see cref="FileModelDto.IsExecuted" /> == <c>True</c>.
-	/// </summary>
-	private static bool IsOpened(FileModelDto dto) => dto.IsEdited || dto.IsExecuted;
+	/// <inheritdoc cref="FileModelDto.IsOpened" />
+	private static bool IsOpened(FileModelDto dto) => dto.IsOpened();
 
 	/// <summary>
 	/// Returns <c>True</c> if file can be edited or executed.

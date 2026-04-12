@@ -168,6 +168,7 @@
 			<Grid.Resources>
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
+				<converters:FileIsOpenedToTrueConverter x:Key="FileIsOpenedToTrueConverter" />
 				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 			</Grid.Resources>
@@ -228,6 +229,13 @@
 							Header="{x:Static prop:Strings.OpenInOS}"
 							Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseOpenedFileCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Close}"
+							Icon="Close"
+							IsVisible="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToTrueConverter}}" />
 
 						<Separator />
 
