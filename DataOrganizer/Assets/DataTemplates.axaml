@@ -235,6 +235,7 @@
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.Close}"
 							Icon="Close"
+							IconForeground="{StaticResource WarningBrush}"
 							IsVisible="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToTrueConverter}}" />
 
 						<Separator />

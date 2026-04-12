@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
@@ -27,6 +28,11 @@ internal sealed class FlyoutButton : Button
 		get => GetValue(IconProperty);
 		set => SetValue(IconProperty, value);
 	}
+
+	/// <summary>
+	/// A foreground for icon.
+	/// </summary>
+	public IBrush? IconForeground { get; init; }
 
 	/// <inheritdoc />
 	protected override Type StyleKeyOverride { get; } = typeof(Button);
@@ -89,10 +95,17 @@ internal sealed class FlyoutButton : Button
 			Spacing = 10.0
 		};
 
-		stackPanel.Children.Add(new MaterialIcon
+		MaterialIcon icon = new()
 		{
 			Kind = Icon
-		});
+		};
+
+		if (IconForeground is not null)
+		{
+			icon.Foreground = IconForeground;
+		}
+
+		stackPanel.Children.Add(icon);
 
 		stackPanel.Children.Add(new TextBlock
 		{
