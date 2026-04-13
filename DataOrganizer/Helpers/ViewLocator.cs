@@ -103,7 +103,10 @@ internal sealed class ViewLocator : IDataTemplate
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is FileModelDto;
+	public bool Match(object? data)
+	{
+		return data is FileModelDto;
+	}
 
 	/// <summary>
 	/// Returns default control plug.
