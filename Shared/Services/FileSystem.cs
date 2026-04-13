@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -100,7 +101,7 @@ public sealed class FileSystem : IFileSystem
 	[return: NotNullIfNotNull(nameof(directoryPath))]
 	public bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath)
 	{
-		if (!Directory.Exists(directoryPath))
+		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
 		{
 			return false;
 		}
@@ -112,7 +113,16 @@ public sealed class FileSystem : IFileSystem
 
 		try
 		{
-			return Array.Exists(Directory.GetDirectories(parent), x => x == Path.GetFullPath(directoryPath));
+			string name = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+			if (string.IsNullOrEmpty(name))
+			{
+				return true;
+			}
+
+			return Directory
+				.EnumerateDirectories(parent)
+				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
 		}
 		catch (Exception ex)
 		{
@@ -125,14 +135,28 @@ public sealed class FileSystem : IFileSystem
 	/// <inheritdoc />
 	public bool IsFileExists([NotNullWhen(true)] string? filePath)
 	{
-		if (!File.Exists(filePath) || Path.GetDirectoryName(filePath) is not { } parent)
+		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
 		{
 			return false;
 		}
 
+		if (Path.GetDirectoryName(filePath) is not { } parent)
+		{
+			return true;
+		}
+
 		try
 		{
-			return Array.Exists(Directory.GetFiles(parent), x => x == Path.GetFullPath(filePath));
+			string name = Path.GetFileName(filePath);
+
+			if (string.IsNullOrEmpty(name))
+			{
+				return false;
+			}
+
+			return Directory
+				.EnumerateFiles(parent)
+				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
 		}
 		catch (Exception ex)
 		{
