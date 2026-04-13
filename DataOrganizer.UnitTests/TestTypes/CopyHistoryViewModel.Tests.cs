@@ -5,6 +5,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.ViewModels;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -105,6 +106,8 @@ internal class CopyHistoryViewModelTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 

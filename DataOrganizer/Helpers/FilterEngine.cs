@@ -1,5 +1,4 @@
-﻿using Avalonia.Threading;
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using System;
 using System.Collections.Generic;
@@ -123,22 +122,13 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 
 	/// <summary>
-	/// Executes the delegate from <paramref name="action"/>, if possible, in <see cref="SynchronizationContext.Send" />.
+	/// Executes the delegate from <paramref name="action"/>, if possible, in <see cref="SynchronizationContext.Post" />.
 	/// </summary>
 	public void Synchronize(Action action)
 	{
 		if (_context is { } context)
 		{
-			if (Dispatcher
-				.UIThread
-				.CheckAccess())
-			{
-				action();
-			}
-			else
-			{
-				context.Send(_ => action(), null);
-			}
+			context.Post(_ => action(), null);
 		}
 		else
 		{
