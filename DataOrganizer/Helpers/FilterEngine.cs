@@ -100,7 +100,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	}
 
 	/// <inheritdoc cref="Enumerable.ElementAt{TSource}(IEnumerable{TSource}, int)" />
-	public TModel ElementAt(in int index) => _source.Items.ElementAt(index);
+	public TModel ElementAt(in int index) => _source.Items[index];
 
 	/// <inheritdoc cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})" />
 	public TModel? FirstOrDefault(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
