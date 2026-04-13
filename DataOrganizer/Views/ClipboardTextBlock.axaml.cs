@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using AvaloniaEdit;
@@ -249,16 +250,18 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
-	private Task CopyToClipboard()
+	private async Task CopyToClipboard()
 	{
 		if (string.IsNullOrWhiteSpace(Text) || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		try
 		{
-			return clipboard.SetTextAsync(Text);
+			await clipboard
+				.SetTextAsync(Text)
+				.ConfigureAwait(false);
 		}
 		finally
 		{

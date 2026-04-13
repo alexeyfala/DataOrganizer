@@ -97,7 +97,7 @@
 				IsLightDismissEnabled="{Binding !IsPopupFixed, Mode=TwoWay}"
 				IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
 				OverlayDismissEventPassThrough="True"
-				PlacementMode="Top"
+				Placement="Top"
 				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 				VerticalOffset="-2.0">
 

@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
@@ -72,17 +71,17 @@ public sealed class App : Application
 
 	#region Methods
 	/// <inheritdoc />
-	public override void Initialize() => AvaloniaXamlLoader.Load(this);
+	public override void Initialize()
+	{
+		AvaloniaXamlLoader.Load(this);
+
+#if DEBUG
+		this.AttachDeveloperTools(x => x.AutoConnectFromDesignMode = true);
+#endif
+	}
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		// Line below is needed to remove Avalonia data validation.
-		// Without this line you will get duplicate validations from both Avalonia and CT.
-		if (BindingPlugins.DataValidators.Count > 0)
-		{
-			BindingPlugins.DataValidators.RemoveAt(0);
-		}
-
 		base.OnFrameworkInitializationCompleted();
 
 		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -214,8 +213,6 @@ public sealed class App : Application
 				Trace.WriteLine(ex.ToStringDemystified());
 			}
 		};
-
-		ViewLauncher.AttachDevTools(window);
 
 		return window;
 	}

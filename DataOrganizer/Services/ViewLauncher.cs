@@ -252,8 +252,6 @@ public class ViewLauncher : IViewLauncher
 
 		window.PropertyChanged += EditorWindow_PropertyChanged;
 
-		AttachDevTools(window);
-
 		return window;
 	}
 
@@ -441,19 +439,6 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.Dispose();
 		}
-	}
-
-	/// <summary>
-	/// Adds developer tools to the window that can be opened by pressing F12 while in debug mode.
-	/// </summary>
-	/// <remarks>
-	/// Nuget: Avalonia.Diagnostics
-	/// </remarks>
-	internal static void AttachDevTools(Window window)
-	{
-#if DEBUG
-		window.AttachDevTools();
-#endif
 	}
 	#endregion
 
