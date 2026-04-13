@@ -64,6 +64,18 @@ public sealed class FileAssociationService : IFileAssociationService
 
 		return builder.ToString();
 	}
+
+	/// <inheritdoc />
+	public bool HasAssociatedAppByPath(string absoluteFilePath)
+	{
+		return GetApplicationByPath(absoluteFilePath) is not null;
+	}
+
+	/// <inheritdoc />
+	public bool HasAssociatedByExtension(string fileExtension)
+	{
+		return GetApplicationByExtension(fileExtension) is not null;
+	}
 	#endregion
 
 	#region Service
@@ -77,7 +89,7 @@ public sealed class FileAssociationService : IFileAssociationService
 		ref uint pcchOut);
 
 	[DllImport("shell32.dll", EntryPoint = "FindExecutable", CharSet = CharSet.Unicode)]
-	private static extern long FindExecutable(string lpFile, string lpDirectory, StringBuilder lpResult);
+	private static extern long FindExecutable(string lpFile, string lpDirectory, StringBuilder lpResult);	
 	#endregion
 
 	#region Enums
