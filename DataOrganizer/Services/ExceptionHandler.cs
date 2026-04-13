@@ -3,7 +3,6 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -21,9 +20,9 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	private readonly CompositeDisposable _disposables = [];
 
 	/// <summary>
-	/// List of previously handled exceptions.
+	/// Set of previously handled exceptions.
 	/// </summary>
-	private readonly List<string> _handledExceptions = [];
+	private readonly HashSet<string> _handledExceptions = [];
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -73,6 +72,8 @@ internal sealed class ExceptionHandler : IExceptionHandler
 		_isDisposed = true;
 
 		_disposables.Dispose();
+
+		_handledExceptions.Clear();
 	}
 
 	/// <inheritdoc />
@@ -100,16 +101,19 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	{
 		lock (_mutex)
 		{
-			if (_handledExceptions.Any(x => string.Equals(x, exception.Message)))
+			if (!_handledExceptions.Add(exception.Message))
 			{
 				return;
 			}
 
-			_handledExceptions.Add(exception.Message);
+			_logger.LogException("Unhandled Exception", exception);
 
-			const string title = "Unhandled Exception";
+			if (_handledExceptions.Count < 5)
+			{
+				return;
+			}
 
-			_logger.LogException(title, exception);
+			_handledExceptions.Clear();
 		}
 	}
 	#endregion
