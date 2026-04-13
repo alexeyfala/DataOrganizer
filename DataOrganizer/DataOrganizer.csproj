@@ -39,8 +39,8 @@
 		<PackageReference Include="Comparation" Version="0.1.7" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.10.4" />
 		<PackageReference Include="DynamicData" Version="9.4.31" />
-		<PackageReference Include="Mapster" Version="10.0.1" />
-		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.0" />
+		<PackageReference Include="Mapster" Version="10.0.7" />
+		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.7" />
 		<PackageReference Include="Material.Avalonia" Version="3.13.4" />
 		<PackageReference Include="Material.Icons.Avalonia" Version="3.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
