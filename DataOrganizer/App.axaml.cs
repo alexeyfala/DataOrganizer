@@ -71,14 +71,7 @@ public sealed class App : Application
 
 	#region Methods
 	/// <inheritdoc />
-	public override void Initialize()
-	{
-		AvaloniaXamlLoader.Load(this);
-
-#if DEBUG
-		this.AttachDeveloperTools(x => x.AutoConnectFromDesignMode = true);
-#endif
-	}
+	public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
 	public override void OnFrameworkInitializationCompleted()
 	{
