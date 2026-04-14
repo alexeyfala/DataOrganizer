@@ -5,6 +5,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using Entities.Enums;
@@ -61,13 +62,23 @@ internal sealed class ViewLocator : IDataTemplate
 			return control;
 		}
 
+		if (param is EditorContentType content && content == EditorContentType.Text)
+		{
+			return _viewFactory.CreateUserControl<EditFilesView>();
+		}
+
 		return GetPlugControl(param?.GetType().Name);
 	}
 
 	/// <inheritdoc />
 	public bool Match(object? data)
 	{
-		return data is FileModelDto;
+		return data switch
+		{
+			FileModelDto => true,
+			EditorContentType => true,
+			_ => false
+		};
 	}
 
 	/// <summary>

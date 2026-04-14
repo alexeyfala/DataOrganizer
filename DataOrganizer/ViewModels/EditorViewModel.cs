@@ -50,9 +50,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	#region Properties
 	/// <inheritdoc cref="EditFilesView" />
 	public EditorContentType Content { get; } = EditorContentType.Text;
-
-	/// <inheritdoc cref="EditFilesView" />
-	public EditFilesView EditFiles { get; }
 	#endregion
 
 	#region Auto-Generated Properties
@@ -594,12 +591,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
-			[.. EditFiles.ViewModel.EditFiles],
+			_editFilesViewModel?.EditFiles ?? [],
 			ExecutedFiles).Show();
+
+		if (_editFilesViewModel is null)
+		{
+			return;
+		}
 
 		Hierarchy
 			.GetFilesBy(x => x.IsEdited)
-			.ForEach(EditFiles.ViewModel.CloseEditor);
+			.ForEach(_editFilesViewModel.CloseEditor);
 	}
 
 	/// <summary>
@@ -780,6 +782,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
+	/// <summary>
+	/// Handles host loading for rendering the file editor.
+	/// </summary>
+	[RelayCommand]
+	private void ContentHostLoaded(ContentControl? host)
+	{
+		if (host?
+			.Presenter?
+			.Child is not EditFilesView view)
+		{
+			return;
+		}
+
+		_editFilesViewModel = view.ViewModel;
+	}
+
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
 	private async Task CopyContent(FileModelDto? dto)
@@ -895,9 +913,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		EditFiles
-			.ViewModel
-			.OpenInEditor(dto);
+		_editFilesViewModel?.OpenInEditor(dto);
 	}
 
 	/// <summary>
@@ -1062,6 +1078,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
+
+	/// <inheritdoc cref="EditFilesViewModel" />
+	private EditFilesViewModel? _editFilesViewModel;
 	#endregion
 
 	#region Constructors
@@ -1102,8 +1121,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_mapper = mapper;
 
 		_processUtils = processUtils;
-
-		EditFiles = viewFactory.CreateUserControl<EditFilesView>();
 
 		WeakReferenceMessenger
 			.Default
@@ -1214,6 +1231,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 	}
 
+	/// <summary>
+	/// Adds edited files to view.
+	/// </summary>
+	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFilesViewModel?.EditFiles.AddRange(editFiles);
+
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
@@ -1246,9 +1268,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		foreach (FileModelDto file in editedFiles)
 		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
+			_editFilesViewModel?.CloseTab(file);
 		}
 
 		foreach (FileModelDto file in executedFiles)
@@ -1891,9 +1911,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (file.IsEdited)
 		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
+			_editFilesViewModel?.CloseTab(file);
 		}
 
 		if (file.IsExecuted)
