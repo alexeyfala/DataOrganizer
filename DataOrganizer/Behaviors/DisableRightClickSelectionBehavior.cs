@@ -32,7 +32,7 @@ internal sealed class DisableRightClickSelectionBehavior : Behavior<Interactive>
 		AssociatedObject?.AddHandler(
 			InputElement.PointerPressedEvent,
 			AssociatedObject_PointerPressed,
-			RoutingStrategies.Bubble);
+			RoutingStrategies.Tunnel);
 	}
 
 	/// <inheritdoc />

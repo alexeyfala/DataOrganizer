@@ -54,6 +54,8 @@ internal sealed class FlyoutButton : Button
 		HorizontalContentAlignment = HorizontalAlignment.Left;
 
 		Cursor = Cursor.Default;
+
+		FontSize = 15.0;
 	}
 	#endregion
 
@@ -97,7 +99,8 @@ internal sealed class FlyoutButton : Button
 
 		MaterialIcon icon = new()
 		{
-			Kind = Icon
+			Kind = Icon,
+			IconSize = FontSize
 		};
 
 		if (IconForeground is not null)

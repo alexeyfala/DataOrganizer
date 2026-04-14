@@ -438,7 +438,8 @@
 				Classes="primary"
 				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
-				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize=20.0}"
 				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
