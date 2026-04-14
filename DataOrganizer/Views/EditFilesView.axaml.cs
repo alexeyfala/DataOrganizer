@@ -4,7 +4,7 @@ using DataOrganizer.ViewModels;
 namespace DataOrganizer.Views;
 
 /// <summary>
-/// <see cref="UserControl" /> for edited files.
+/// <see cref="UserControl" /> for editing files.
 /// </summary>
 public sealed partial class EditFilesView : UserControl
 {

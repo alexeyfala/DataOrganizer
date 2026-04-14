@@ -49,6 +49,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 {
 	#region Properties
 	/// <inheritdoc cref="EditFilesView" />
+	public EditorContentType Content { get; } = EditorContentType.Text;
+
+	/// <inheritdoc cref="EditFilesView" />
 	public EditFilesView EditFiles { get; }
 	#endregion
 
