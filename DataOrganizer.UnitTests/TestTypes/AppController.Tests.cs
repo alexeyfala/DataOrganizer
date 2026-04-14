@@ -1,7 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Controls;
-using Avalonia.Headless.NUnit;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
@@ -22,7 +20,7 @@ internal class AppControllerTests
 	/// <summary>
 	/// Test of <see cref="AppController.LaunchAppAsync(ConsoleWindow?, CancellationToken)" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
 	{
 		// Arrange
@@ -38,10 +36,6 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			viewLauncher
-				.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>())
-				.Returns(Substitute.For<Window>());
-
 			options
 				.PrintHelp
 				.Returns(true);

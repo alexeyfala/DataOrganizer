@@ -123,7 +123,7 @@ public sealed class AppController : IAppController
 			// TODO: Close splash screen here.
 
 			_viewLauncher
-				.ConfigureMainWindow(hierarchy)
+				.ConfigureMainWindow(hierarchy)?
 				.Show();
 		}
 		catch (Exception ex)
