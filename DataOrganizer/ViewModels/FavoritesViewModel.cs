@@ -345,10 +345,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
@@ -357,10 +357,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
+			clipboard,
 			dbAccess,
 			dialogService,
 			dispatcher,
-			encryption,
 			entityEcryption,
 			eventSimulator,
 			keyboardInputHook,

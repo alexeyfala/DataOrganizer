@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input.Platform;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.DTO.Entities.Models;
@@ -40,26 +39,26 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IClipboardService" />
+	private readonly IClipboardService _clipboard;
 	#endregion
 
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger)
 	{
 		_app = app;
 
+		_clipboard = clipboard;
+
 		_dbAccess = dbAccess;
 
 		_dialogService = dialogService;
-
-		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 
@@ -96,13 +95,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		try
 		{
-			if (TopLevel
-				.GetTopLevel(container)?
-				.Clipboard is not { } clipboard)
-			{
-				return;
-			}
-
 			ContentsIsValidPair result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
@@ -138,7 +130,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				viewModel?.UpdateCopyHistory(file.Id);
 
-				await clipboard
+				await _clipboard
 					.SetTextAsync(text)
 					.ConfigureAwait(true);
 

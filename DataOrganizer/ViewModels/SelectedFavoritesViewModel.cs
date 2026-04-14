@@ -195,15 +195,15 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	#region Constructors
 	public SelectedFavoritesViewModel(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger) : base(
 			app,
+			clipboard,
 			dbAccess,
 			dialogService,
-			encryption,
 			entityEcryption,
 			logger)
 	{

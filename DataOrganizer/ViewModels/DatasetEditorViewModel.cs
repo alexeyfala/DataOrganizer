@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
@@ -252,23 +251,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand]
 	private async Task CopyKeyValueToClipboard(KeyValueRecord? record)
 	{
-		if (record is null || _clipboardService.FindClipboard() is not { } clipboard)
+		if (record is null || !await _clipboard
+			.SetTextAsync($"{record.Key}    {record.Value}")
+			.ConfigureAwait(true))
 		{
 			return;
 		}
 
-		try
-		{
-			await clipboard
-				.SetTextAsync($"{record.Key}    {record.Value}")
-				.ConfigureAwait(true);
-		}
-		finally
-		{
-			record.IsHighlight = true;
+		record.IsHighlight = true;
 
-			record.IsHighlight = false;
-		}
+		record.IsHighlight = false;
 	}
 
 	/// <summary>
@@ -605,7 +597,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Data
 	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboardService;
+	private readonly IClipboardService _clipboard;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -622,7 +614,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
-		_clipboardService = clipboardService;
+		_clipboard = clipboardService;
 
 		_viewFactory = viewFactory;
 	}

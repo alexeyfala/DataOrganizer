@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Input.Platform;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities.Models;
@@ -86,7 +85,7 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(pairs.ToHotkeyModelsDto());
 
-		IClipboard clipboard = Substitute.For<IClipboard>();
+		IClipboardService clipboard = Substitute.For<IClipboardService>();
 
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
@@ -102,12 +101,6 @@ internal class KeyboardInputHookTests
 					IsValid = true
 				});
 
-			IClipboardService clipboardService = Substitute.For<IClipboardService>();
-
-			clipboardService
-				.FindClipboard()
-				.Returns(clipboard);
-
 			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
 			entityEcryption
@@ -118,7 +111,7 @@ internal class KeyboardInputHookTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(clipboardService);
+			builder.RegisterInstance(clipboard);
 
 			builder.RegisterInstance(notificationService);
 		});

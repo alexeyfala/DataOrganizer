@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
@@ -47,7 +46,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	private readonly Application _app;
 
 	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboardService;
+	private readonly IClipboardService _clipboard;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -89,7 +88,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	{
 		_app = app;
 
-		_clipboardService = clipboardService;
+		_clipboard = clipboardService;
 
 		_dbAccess = dbAccess;
 
@@ -223,23 +222,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
-				if (_clipboardService.FindClipboard() is not { } clipboard)
-				{
-					return;
-				}
-
-				if (AppDomain
-					.CurrentDomain
-					.IsRunningFromNUnit())
-				{
-					await clipboard
-						.SetTextAsync(text)
-						.ConfigureAwait(false);
-				}
-				else
-				{
-					_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
-				}
+				await _clipboard
+					.SetTextAsync(text)
+					.ConfigureAwait(false);
 
 				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 

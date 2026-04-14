@@ -112,10 +112,10 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	protected ViewModelBase(
 		Application app,
 		IAppSettingsManager settingsManager,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
@@ -123,9 +123,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IViewFactory viewFactory,
 		IViewLauncher viewLauncher) : base(
 			app,
+			clipboard,
 			dbAccess,
 			dialogService,
-			encryption,
 			entityEcryption,
 			logger)
 	{

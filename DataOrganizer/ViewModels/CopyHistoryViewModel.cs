@@ -87,15 +87,15 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger) : base(
 			app,
+			clipboard,
 			dbAccess,
 			dialogService,
-			encryption,
 			entityEcryption,
 			logger)
 	{
