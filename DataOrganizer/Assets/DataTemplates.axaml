@@ -331,8 +331,8 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- RightSideSheetHeaderTemplate -->
-	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
+	<!-- EditorRightSideSheetHeaderTemplate -->
+	<DataTemplate x:Key="EditorRightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
 			<StackPanel.Resources>
 				<converters:CloseAllExecutedFilesButtonVisibilityConverter x:Key="CloseAllExecutedFilesButtonVisibilityConverter" />
