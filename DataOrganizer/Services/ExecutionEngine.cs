@@ -90,6 +90,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.Cancellation
 				.Cancel();
 
+			info
+				.Cancellation
+				.Dispose();
+
 			if (!TryKillProcess(
 				id,
 				info.ProcessId,
@@ -148,6 +152,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			info
 				.Cancellation
 				.Cancel();
+
+			info
+				.Cancellation
+				.Dispose();
 
 			if (!TryKillProcess(pair.Key, info.ProcessId, info.FilePath))
 			{
