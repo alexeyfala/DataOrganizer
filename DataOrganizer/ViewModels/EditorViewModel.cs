@@ -1513,7 +1513,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return OverwriteHotkeysResult.SameHotkeys;
 		}
 
-		if (temp.Length > 0 && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
+		if (temp.IsNotEmpty() && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
@@ -1949,7 +1949,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		FileModelDto[] openedFiles,
 		CancellationToken token = default)
 	{
-		if (openedFiles.Length > 0)
+		if (openedFiles.IsNotEmpty())
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync(token)

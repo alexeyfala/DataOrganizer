@@ -424,7 +424,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		lock (_mutex)
 		{
-			if (_sessionId?.Length > 0)
+			if (_sessionId?.IsNotEmpty() == true)
 			{
 				return _sessionId;
 			}

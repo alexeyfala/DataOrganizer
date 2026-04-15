@@ -513,7 +513,7 @@ public class ViewLauncher : IViewLauncher
 			.GetFilesBy(x => x.IsExecuted)
 			.Select(x => x.Id)];
 
-		if (executedFiles.Length > 0)
+		if (executedFiles.IsNotEmpty())
 		{
 			await executedFiles
 				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))

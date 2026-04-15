@@ -1,5 +1,6 @@
 ﻿using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -151,7 +152,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	public bool IsPasswordKeeper()
 	{
 		return EncryptedDek is { } dek
-			&& dek.Length > 0
+			&& dek.IsNotEmpty()
 			&& !string.IsNullOrEmpty(PasswordHash);
 	}
 	#endregion
