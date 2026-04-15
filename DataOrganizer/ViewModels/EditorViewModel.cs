@@ -1268,7 +1268,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		foreach (FileModelDto file in editedFiles)
 		{
-			_editFilesViewModel?.CloseTab(file);
+			CloseEditedFile(file);
 		}
 
 		foreach (FileModelDto file in executedFiles)
@@ -1905,13 +1905,28 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
+	/// Closes editing file.
+	/// </summary>
+	private void CloseEditedFile(FileModelDto file)
+	{
+		if (_editFilesViewModel is not null)
+		{
+			_editFilesViewModel.CloseTab(file);
+		}
+		else
+		{
+			file.IsEdited = false;
+		}
+	}
+
+	/// <summary>
 	/// Closes file that is being edited or executed;
 	/// </summary>
 	private void CloseFile(FileModelDto file)
 	{
 		if (file.IsEdited)
 		{
-			_editFilesViewModel?.CloseTab(file);
+			CloseEditedFile(file);
 		}
 
 		if (file.IsExecuted)

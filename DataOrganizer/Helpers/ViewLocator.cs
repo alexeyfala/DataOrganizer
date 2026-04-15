@@ -9,6 +9,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using Entities.Enums;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -73,6 +74,13 @@ internal sealed class ViewLocator : IDataTemplate
 	/// <inheritdoc />
 	public bool Match(object? data)
 	{
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return false;
+		}
+
 		return data switch
 		{
 			FileModelDto => true,
