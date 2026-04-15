@@ -1004,4 +1004,14 @@
 			</Interaction.Behaviors>
 		</views:EditFilesView>
 	</DataTemplate>
+
+	<!-- CopyHistoryTemplate -->
+	<DataTemplate x:Key="CopyHistoryTemplate">
+		<views:CopyHistoryView />
+	</DataTemplate>
+
+	<!-- ExecutedFilesTemplate -->
+	<DataTemplate x:Key="ExecutedFilesTemplate">
+		<views:ExecutedFilesView />
+	</DataTemplate>
 </ResourceDictionary>

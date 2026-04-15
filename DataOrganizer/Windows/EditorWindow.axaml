@@ -7,6 +7,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -354,10 +355,18 @@
 							Grid.Row="0"
 							Grid.Column="3"
 							SideSheetCanClose="False"
-							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
+							SideSheetContent="{Binding RightSideSheetContentType, Mode=OneWay}"
 							SideSheetHeaderTemplate="{StaticResource EditorRightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
-							SideSheetPadding="4.0" />
+							SideSheetPadding="4.0">
+							<materialControls:SideSheet.SideSheetContentTemplate>
+								<helpers:RightSideSheetContentTemplateSelector>
+									<StaticResource ResourceKey="CopyHistoryTemplate" />
+
+									<StaticResource ResourceKey="ExecutedFilesTemplate" />
+								</helpers:RightSideSheetContentTemplateSelector>
+							</materialControls:SideSheet.SideSheetContentTemplate>
+						</materialControls:SideSheet>
 
 						<Grid
 							Grid.Row="1"

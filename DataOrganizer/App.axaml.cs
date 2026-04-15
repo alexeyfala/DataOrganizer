@@ -378,12 +378,10 @@ public sealed class App : Application
 
 		#region Views
 		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
 		services.AddTransient<EntityCreationView>();
-		services.AddTransient<ExecutedFilesView>();
 		services.AddTransient<FavoritesWindow>();
 		services.AddTransient<HotkeysEditorView>();
 		services.AddTransient<KeyValueInputView>();

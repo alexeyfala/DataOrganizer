@@ -1309,13 +1309,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
 
-		CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
+		//CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
 
-		view.ViewModel.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
+		//view.ViewModel.Initialize(
+		//	Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
+		//	CopyHistorySettings.SelectedCopyHistoryItemId);
 
-		RightSideSheetContent = view;
+		//RightSideSheetContent = view;
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
 
@@ -1329,13 +1329,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation($@"Show ""{nameof(ExecutedFilesView)}""");
 
-		ExecutedFilesView view = _viewFactory.CreateUserControl<ExecutedFilesView>();
+		//ExecutedFilesView view = _viewFactory.CreateUserControl<ExecutedFilesView>();
 
-		view
-			.ViewModel
-			.ExecutedFiles = ExecutedFiles;
+		//view
+		//	.ViewModel
+		//	.ExecutedFiles = ExecutedFiles;
 
-		RightSideSheetContent = view;
+		//RightSideSheetContent = view;
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
 
