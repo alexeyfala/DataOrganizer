@@ -47,11 +47,6 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 {
-	#region Properties
-	/// <inheritdoc cref="EditFilesView" />
-	public EditorContentType Content { get; } = EditorContentType.Text;
-	#endregion
-
 	#region Auto-Generated Properties
 	/// <summary>
 	/// Information in the lower left corner.
@@ -782,22 +777,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
-	/// <summary>
-	/// Handles host loading for rendering the file editor.
-	/// </summary>
-	[RelayCommand]
-	private void ContentHostLoaded(ContentControl? host)
-	{
-		if (host?
-			.Presenter?
-			.Child is not EditFilesView view)
-		{
-			return;
-		}
-
-		_editFilesViewModel = view.ViewModel;
-	}
-
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
 	private async Task CopyContent(FileModelDto? dto)
@@ -915,6 +894,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_editFilesViewModel?.OpenInEditor(dto);
 	}
+
+	/// <summary>
+	/// Handles loading event for rendering the file editor.
+	/// </summary>
+	[RelayCommand]
+	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFilesViewModel = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.

@@ -5,11 +5,9 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using Entities.Enums;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -63,31 +61,11 @@ internal sealed class ViewLocator : IDataTemplate
 			return control;
 		}
 
-		if (param is EditorContentType content && content == EditorContentType.Text)
-		{
-			return _viewFactory.CreateUserControl<EditFilesView>();
-		}
-
 		return GetPlugControl(param?.GetType().Name);
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data)
-	{
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return false;
-		}
-
-		return data switch
-		{
-			FileModelDto => true,
-			EditorContentType => true,
-			_ => false
-		};
-	}
+	public bool Match(object? data) => data is FileModelDto;
 
 	/// <summary>
 	/// Returns default control plug.

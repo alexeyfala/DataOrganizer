@@ -380,7 +380,6 @@ public sealed class App : Application
 		services.AddTransient<ConsoleWindow>();
 		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
-		services.AddTransient<EditFilesView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
 		services.AddTransient<EntityCreationView>();

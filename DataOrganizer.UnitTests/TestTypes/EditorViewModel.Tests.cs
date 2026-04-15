@@ -162,8 +162,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -264,7 +262,7 @@ internal class EditorViewModelTests
 
 		executedFiles.ForEach(x => x.IsExecuted = true);
 
-		using AutoMock mock = AutoMock.GetLoose(RegisterEditFilesView);
+		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -337,8 +335,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -624,8 +620,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -939,8 +933,6 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -980,8 +972,6 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1037,8 +1027,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1088,8 +1076,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(dataExchange);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1578,8 +1564,6 @@ internal class EditorViewModelTests
 			.Returns(mock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewLauncher);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1654,8 +1638,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1766,24 +1748,6 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<SettingsView>();
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Registers <see cref="EditFilesView" /> in <see cref="ContainerBuilder" />.
-	/// </summary>
-	private static void RegisterEditFilesView(ContainerBuilder builder)
-	{
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		viewFactory
-			.CreateUserControl<EditFilesView>()
-			.Returns(mock.Create<EditFilesView>());
-
-		builder.RegisterInstance(viewFactory);
 	}
 	#endregion
 }

@@ -346,18 +346,9 @@
 							Classes="VerticalGridSplitterStyle" />
 
 						<ContentControl
-							x:Name="ContentHost"
 							Grid.Row="0"
 							Grid.Column="2"
-							Content="{Binding Content, Mode=OneTime}">
-							<Interaction.Behaviors>
-								<EventTriggerBehavior EventName="Loaded">
-									<InvokeCommandAction
-										Command="{Binding ContentHostLoadedCommand}"
-										CommandParameter="{Binding #ContentHost}" />
-								</EventTriggerBehavior>
-							</Interaction.Behaviors>
-						</ContentControl>
+							ContentTemplate="{StaticResource EditFilesTemplate}" />
 
 						<materialControls:SideSheet
 							Grid.Row="0"
