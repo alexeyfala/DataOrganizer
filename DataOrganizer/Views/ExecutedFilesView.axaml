@@ -15,5 +15,5 @@
 	<!-- TODO: ScrollViewer is not visible in EditorWindow -->
 	<ListBox
 		ItemTemplate="{StaticResource ExecutedFileTemplate}"
-		ItemsSource="{Binding ExecutedFiles, Mode=OneWay}" />
+		ItemsSource="{Binding Items, Mode=OneWay}" />
 </UserControl>

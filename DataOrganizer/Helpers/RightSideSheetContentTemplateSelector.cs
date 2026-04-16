@@ -15,7 +15,7 @@ internal sealed class RightSideSheetContentTemplateSelector : TemplateSelectorBa
 		{
 			EditorRightSideSheetContentType.CopyHistory => DataTemplates[0].Build(param),
 			EditorRightSideSheetContentType.ExecutedFiles => DataTemplates[1].Build(param),
-			_ => ViewLocator.GetPlugControl(param?.GetType().Name)
+			_ => new()
 		};
 	}
 

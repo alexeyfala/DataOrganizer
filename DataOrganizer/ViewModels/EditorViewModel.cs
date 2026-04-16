@@ -82,12 +82,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[ObservableProperty]
 	private GridLength _navigationColumnWidth;
 
-	/// <summary>
-	/// The content of the right side sheet.
-	/// </summary>
-	[ObservableProperty]
-	private object? _rightSideSheetContent;
-
 	/// <inheritdoc cref="EditorRightSideSheetContentType" />
 	[ObservableProperty]
 	private EditorRightSideSheetContentType _rightSideSheetContentType;
@@ -141,11 +135,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.None;
 
-		ClearExecutedFilesView();
+		ClearExecutedFiles();
 
 		SaveCopyHistory();
-
-		RightSideSheetContent = null;
 	}
 
 	/// <summary>
@@ -906,6 +898,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
 
 	/// <summary>
+	/// Handles the display of executed files.
+	/// </summary>
+	[RelayCommand]
+	private void ExecutedFilesDisplayed(ExecutedFilesViewModel? viewModel)
+	{
+		_executedFiles = viewModel;
+
+		viewModel?.Items = ExecutedFiles;
+	}
+
+	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
@@ -987,7 +990,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
 		{
-			ClearExecutedFilesView();
+			ClearExecutedFiles();
 
 			DisplayCopyHistory();
 		}
@@ -1073,6 +1076,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="EditFilesViewModel" />
 	private EditFilesViewModel? _editFiles;
+
+	/// <inheritdoc cref="ExecutedFilesViewModel" />
+	private ExecutedFilesViewModel? _executedFiles;
 	#endregion
 
 	#region Constructors
@@ -1237,19 +1243,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Clears <see cref="ExecutedFilesView" /> in <see cref="RightSideSheetContent" />.
+	/// Clears executed files.
 	/// </summary>
-	public void ClearExecutedFilesView()
-	{
-		if (RightSideSheetContent is not ExecutedFilesView view)
-		{
-			return;
-		}
-
-		view
-			.ViewModel
-			.ExecutedFiles = null;
-	}
+	public void ClearExecutedFiles() => _executedFiles?.Items = null;
 
 	/// <summary>
 	/// Closes edited and executed files.
@@ -1322,19 +1318,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Displays <see cref="ExecutedFilesView" /> in <see cref="RightSideSheetContent" />.
+	/// Displays executed files.
 	/// </summary>
 	public void DisplayExecutedFiles()
 	{
 		_logger.LogInformation($@"Show ""{nameof(ExecutedFilesView)}""");
-
-		//ExecutedFilesView view = _viewFactory.CreateUserControl<ExecutedFilesView>();
-
-		//view
-		//	.ViewModel
-		//	.ExecutedFiles = ExecutedFiles;
-
-		//RightSideSheetContent = view;
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
 

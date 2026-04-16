@@ -14,6 +14,6 @@ public sealed partial class ExecutedFilesViewModel : ObservableObject
 	/// A reference to collection with executed in operating system files.
 	/// </summary>
 	[ObservableProperty]
-	private IEnumerable? _executedFiles;
+	private IEnumerable? _items;
 	#endregion
 }

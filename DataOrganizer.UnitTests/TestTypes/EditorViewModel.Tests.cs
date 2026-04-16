@@ -184,32 +184,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ClearExecutedFilesView" />.
-	/// </summary>
-	[Test]
-	public void ClearExecutedFilesView_Clears_ExecutedFilesView()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsRightSideSheetOpened = true;
-
-		ExecutedFilesView view = mock.Create<ExecutedFilesView>();
-
-		sut.RightSideSheetContent = view;
-
-		// Act
-		sut.ClearExecutedFilesView();
-
-		// Assert
-		view.ViewModel.ExecutedFiles
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// Test of <see cref="EditorViewModel.CloseExecutedFile" />.
 	/// </summary>
 	[Test]
@@ -483,23 +457,11 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.DisplayCopyHistory" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public void DisplayCopyHistory_Displays_CopyHistoryView_In_Right_Side_Sheet()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<CopyHistoryView>()
-				.Returns(mock.Create<CopyHistoryView>());
-
-			builder.RegisterInstance(viewFactory);
-
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -507,10 +469,6 @@ internal class EditorViewModelTests
 		sut.DisplayCopyHistory();
 
 		// Assert
-		sut.RightSideSheetContent
-			.Should()
-			.BeOfType<CopyHistoryView>();
-
 		sut.RightSideSheetContentType
 			.Should()
 			.Be(EditorRightSideSheetContentType.CopyHistory);
@@ -523,23 +481,11 @@ internal class EditorViewModelTests
 	/// <summary>
 	/// Test of <see cref="EditorViewModel.DisplayExecutedFiles" />.
 	/// </summary>
-	[AvaloniaTest]
+	[Test]
 	public void DisplayExecutedFiles_Displays_ExecutedFilesView_In_Right_Side_Sheet()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<ExecutedFilesView>()
-				.Returns(mock.Create<ExecutedFilesView>());
-
-			builder.RegisterInstance(viewFactory);
-
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -547,14 +493,6 @@ internal class EditorViewModelTests
 		sut.DisplayExecutedFiles();
 
 		// Assert
-		sut.RightSideSheetContent
-			.Should()
-			.BeOfType<ExecutedFilesView>();
-
-		((ExecutedFilesView)sut.RightSideSheetContent).ViewModel.ExecutedFiles
-			.Should()
-			.BeSameAs(sut.ExecutedFiles);
-
 		sut.RightSideSheetContentType
 			.Should()
 			.Be(EditorRightSideSheetContentType.ExecutedFiles);
