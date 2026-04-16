@@ -65,7 +65,7 @@ public class FileChangeTracker : IFileChangeTracker
 					await parameters
 						.Semaphore
 						.WaitAsync(token)
-						.ConfigureAwait(false);
+						.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
 					if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
 					{
@@ -149,13 +149,8 @@ public class FileChangeTracker : IFileChangeTracker
 
 				await Task
 					.Delay(800, token)
-					.ConfigureAwait(false);
+					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 			}
-		}
-		catch (TaskCanceledException)
-		{
-			_logger.LogDebug(
-				$"File change tracking canceled: {Path.GetFileName(parameters.FilePath)}");
 		}
 		catch (Exception ex)
 		{
