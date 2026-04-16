@@ -22,7 +22,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 	/// <summary>
 	/// Opened in editor files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> EditFiles { get; } = [];
+	public ObservableCollection<FileModelDto> Items { get; } = [];
 	#endregion
 
 	#region Auto-Generated Properties
@@ -129,7 +129,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 	/// </summary>
 	public void CloseEditor(FileModelDto dto)
 	{
-		EditFiles.Remove(dto);
+		Items.Remove(dto);
 
 		if (AppDomain
 			.CurrentDomain
@@ -169,9 +169,9 @@ public sealed partial class EditFilesViewModel : ObservableObject
 
 		dto.IsEdited = true;
 
-		EditFiles.Add(dto);
+		Items.Add(dto);
 
-		SelectedIndex = EditFiles.Count - 1;
+		SelectedIndex = Items.Count - 1;
 	}
 	#endregion
 }

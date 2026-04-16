@@ -586,17 +586,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
-			_editFilesViewModel?.EditFiles ?? [],
+			_editFiles?.Items ?? [],
 			ExecutedFiles).Show();
 
-		if (_editFilesViewModel is null)
+		if (_editFiles is null)
 		{
 			return;
 		}
 
 		Hierarchy
 			.GetFilesBy(x => x.IsEdited)
-			.ForEach(_editFilesViewModel.CloseEditor);
+			.ForEach(_editFiles.CloseEditor);
 	}
 
 	/// <summary>
@@ -808,6 +808,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// Handles the display of copy history.
+	/// </summary>
+	[RelayCommand]
+	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
+	{
+		viewModel?.Initialize(
+			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
+			CopyHistorySettings.SelectedCopyHistoryItemId);
+
+		_copyHistory = viewModel;
+	}
+
+	/// <summary>
 	/// Copies object's name to clipboard.
 	/// </summary>
 	[RelayCommand]
@@ -892,14 +905,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_editFilesViewModel?.OpenInEditor(dto);
+		_editFiles?.OpenInEditor(dto);
 	}
 
 	/// <summary>
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFilesViewModel = viewModel;
+	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -1064,8 +1077,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
+	/// <inheritdoc cref="CopyHistoryViewModel" />
+	private CopyHistoryViewModel? _copyHistory;
+
 	/// <inheritdoc cref="EditFilesViewModel" />
-	private EditFilesViewModel? _editFilesViewModel;
+	private EditFilesViewModel? _editFiles;
 	#endregion
 
 	#region Constructors
@@ -1219,7 +1235,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Adds edited files to view.
 	/// </summary>
-	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFilesViewModel?.EditFiles.AddRange(editFiles);
+	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFiles?.Items.AddRange(editFiles);
 
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
@@ -1308,14 +1324,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	public override void DisplayCopyHistory()
 	{
 		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
-
-		//CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
-
-		//view.ViewModel.Initialize(
-		//	Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-		//	CopyHistorySettings.SelectedCopyHistoryItemId);
-
-		//RightSideSheetContent = view;
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
 
@@ -1894,9 +1902,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	private void CloseEditedFile(FileModelDto file)
 	{
-		if (_editFilesViewModel is not null)
+		if (_editFiles is not null)
 		{
-			_editFilesViewModel.CloseTab(file);
+			_editFiles.CloseTab(file);
 		}
 		else
 		{

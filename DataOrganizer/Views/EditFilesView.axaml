@@ -16,9 +16,9 @@
 	<TabControl
 		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
 		AutoScrollToSelectedItem="True"
-		IsVisible="{Binding EditFiles.Count, Mode=OneWay}"
+		IsVisible="{Binding Items.Count, Mode=OneWay}"
 		ItemTemplate="{StaticResource EditedFileTabControlHeaderTemplate}"
-		ItemsSource="{Binding EditFiles, Mode=OneTime}"
+		ItemsSource="{Binding Items, Mode=OneTime}"
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
 		Theme="{StaticResource ScrollableTabControl}">
 
