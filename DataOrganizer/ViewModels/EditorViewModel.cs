@@ -788,23 +788,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		await CopyContentAsync(dto, container).ConfigureAwait(true);
+		await CopyContentAsync(dto, container).ConfigureAwait(false);
 
 		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
 		{
 			return;
 		}
 
-		DisplayCopyHistory();
-
-		if (RightSideSheetContent is not CopyHistoryView view)
-		{
-			return;
-		}
-
-		view
-			.ViewModel
-			.SetSelectedItem(dto);
+		_copyHistory?.SetSelectedItem(dto);
 	}
 
 	/// <summary>
@@ -1616,12 +1607,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc />
 	public override void SaveCopyHistory()
 	{
-		if (RightSideSheetContent is not CopyHistoryView view)
+		if (_copyHistory is null)
 		{
 			return;
 		}
 
-		SaveCopyHistory(view.ViewModel);
+		SaveCopyHistory(_copyHistory);
 	}
 
 	/// <summary>
