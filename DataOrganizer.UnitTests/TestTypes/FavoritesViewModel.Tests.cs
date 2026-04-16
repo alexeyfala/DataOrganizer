@@ -74,45 +74,6 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.DisplayCopyHistory" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void DisplayCopyHistory_Displays_CopyHistory_View_In_Popup_Panel()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<CopyHistoryView>()
-				.Returns(mock.Create<CopyHistoryView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		// Act
-		sut.DisplayCopyHistory();
-
-		// Assert
-		sut.ShowFavorites
-			.Should()
-			.BeFalse();
-
-		sut.PopupContent
-			.Should()
-			.BeOfType<CopyHistoryView>();
-
-		sut.IsPopupOpen
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// Test of <see cref="FavoritesViewModel.DisplayFavorites" />.
 	/// </summary>
 	[Test]

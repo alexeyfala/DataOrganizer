@@ -124,21 +124,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Called when <see cref="IsRightSideSheetOpened" /> changes.
-	/// </summary>
-	partial void OnIsRightSideSheetOpenedChanged(bool value)
-	{
-		if (value)
-		{
-			return;
-		}
-
-		RightSideSheetContentType = EditorRightSideSheetContentType.None;
-
-		SaveCopyHistory();
-	}
-
-	/// <summary>
 	/// Called when <see cref="SelectedObject" /> changes.
 	/// </summary>
 	partial void OnSelectedObjectChanging(
@@ -747,12 +732,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
-	private void CloseAllExecutedFiles()
-	{
-		ExecutedFiles
-			.ToArray()
-			.ForEach(CloseExecutedFile);
-	}
+	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -972,40 +952,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			toBeRenamed,
 			newName,
 			DateTime.Now).ConfigureAwait(false);
-	}
-
-	/// <summary>
-	/// Controls the display of the copy history in right side sheet.
-	/// </summary>
-	[RelayCommand]
-	private void ShowCopyHistory()
-	{
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
-		{
-			DisplayCopyHistory();
-		}
-		else
-		{
-			IsRightSideSheetOpened = false;
-		}
-	}
-
-	/// <summary>
-	/// Controls the display of the executed files in right side sheet.
-	/// </summary>
-	[RelayCommand]
-	private void ShowExecutedFiles()
-	{
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.ExecutedFiles)
-		{
-			SaveCopyHistory();
-
-			DisplayExecutedFiles();
-		}
-		else
-		{
-			IsRightSideSheetOpened = false;
-		}
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
@@ -1287,28 +1233,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation(text);
 
 		return true;
-	}
-
-	/// <inheritdoc />
-	public override void DisplayCopyHistory()
-	{
-		_logger.LogInformation("Show editing files");
-
-		RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
-
-		IsRightSideSheetOpened = true;
-	}
-
-	/// <summary>
-	/// Displays executed files.
-	/// </summary>
-	public void DisplayExecutedFiles()
-	{
-		_logger.LogInformation("Show executed files");
-
-		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
-
-		IsRightSideSheetOpened = true;
 	}
 
 	/// <summary>
@@ -2010,4 +1934,61 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			token);
 	}
 	#endregion
+
+	/// <summary>
+	/// Called when <see cref="IsRightSideSheetOpened" /> changes.
+	/// </summary>
+	partial void OnIsRightSideSheetOpenedChanged(bool value)
+	{
+		if (value)
+		{
+			return;
+		}
+
+		RightSideSheetContentType = EditorRightSideSheetContentType.None;
+
+		SaveCopyHistory();
+	}
+
+	/// <summary>
+	/// Controls the display of the copy history in right side sheet.
+	/// </summary>
+	[RelayCommand]
+	private void ShowCopyHistory()
+	{
+		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
+		{
+			_logger.LogInformation("Show editing files");
+
+			RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
+
+			IsRightSideSheetOpened = true;
+		}
+		else
+		{
+			IsRightSideSheetOpened = false;
+		}
+	}
+
+	/// <summary>
+	/// Controls the display of the executed files in right side sheet.
+	/// </summary>
+	[RelayCommand]
+	private void ShowExecutedFiles()
+	{
+		if (RightSideSheetContentType != EditorRightSideSheetContentType.ExecutedFiles)
+		{
+			SaveCopyHistory();
+
+			_logger.LogInformation("Show executed files");
+
+			RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
+
+			IsRightSideSheetOpened = true;
+		}
+		else
+		{
+			IsRightSideSheetOpened = false;
+		}
+	}
 }

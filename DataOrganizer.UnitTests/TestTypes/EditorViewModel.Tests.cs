@@ -455,54 +455,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DisplayCopyHistory" />.
-	/// </summary>
-	[Test]
-	public void DisplayCopyHistory_Displays_CopyHistoryView_In_Right_Side_Sheet()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.DisplayCopyHistory();
-
-		// Assert
-		sut.RightSideSheetContentType
-			.Should()
-			.Be(EditorRightSideSheetContentType.CopyHistory);
-
-		sut.IsRightSideSheetOpened
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.DisplayExecutedFiles" />.
-	/// </summary>
-	[Test]
-	public void DisplayExecutedFiles_Displays_ExecutedFilesView_In_Right_Side_Sheet()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.DisplayExecutedFiles();
-
-		// Assert
-		sut.RightSideSheetContentType
-			.Should()
-			.Be(EditorRightSideSheetContentType.ExecutedFiles);
-
-		sut.IsRightSideSheetOpened
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// Test of <see cref="EditorViewModel.EncryptFolder" />.
 	/// </summary>
 	[Test]

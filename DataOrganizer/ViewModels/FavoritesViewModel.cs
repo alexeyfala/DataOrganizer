@@ -382,28 +382,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.AddRange(GetCategories(hierarchy));
 	}
 
-	/// <inheritdoc />
-	public override void DisplayCopyHistory()
-	{
-		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
-
-		ShowFavorites = false;
-
-		CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
-
-		view.Focusable = true;
-
-		view.ViewModel.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
-
-		PopupContent = view;
-
-		IsPopupOpen = true;
-
-		view.Focus();
-	}
-
 	/// <summary>
 	/// Displays <see cref="SelectedFavoritesView" /> in <see cref="PopupContent" />.
 	/// </summary>
@@ -579,6 +557,30 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Displays "Copy History".
+	/// </summary>
+	private void DisplayCopyHistory()
+	{
+		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
+
+		ShowFavorites = false;
+
+		CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
+
+		view.Focusable = true;
+
+		view.ViewModel.Initialize(
+			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
+			CopyHistorySettings.SelectedCopyHistoryItemId);
+
+		PopupContent = view;
+
+		IsPopupOpen = true;
+
+		view.Focus();
+	}
+
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.
 	/// </summary>

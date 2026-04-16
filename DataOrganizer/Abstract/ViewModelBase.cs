@@ -162,11 +162,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Displays "Copy History".
-	/// </summary>
-	public abstract void DisplayCopyHistory();
-
-	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.
 	/// </summary>
 	public abstract void SaveCopyHistory();
