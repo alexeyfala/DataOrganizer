@@ -1020,14 +1020,6 @@
 
 	<!-- ExecutedFilesTemplate -->
 	<DataTemplate x:Key="ExecutedFilesTemplate">
-		<views:ExecutedFilesView x:Name="View">
-			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="Loaded">
-					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecutedFilesDisplayedCommand}"
-						CommandParameter="{Binding #View.DataContext}" />
-				</EventTriggerBehavior>
-			</Interaction.Behaviors>
-		</views:ExecutedFilesView>
+		<views:ExecutedFilesView />
 	</DataTemplate>
 </ResourceDictionary>

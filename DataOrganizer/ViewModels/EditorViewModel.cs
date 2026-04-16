@@ -135,8 +135,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.None;
 
-		ClearExecutedFiles();
-
 		SaveCopyHistory();
 	}
 
@@ -749,7 +747,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
-	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
+	private void CloseAllExecutedFiles()
+	{
+		ExecutedFiles
+			.ToArray()
+			.ForEach(CloseExecutedFile);
+	}
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -898,17 +901,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
 
 	/// <summary>
-	/// Handles the display of executed files.
-	/// </summary>
-	[RelayCommand]
-	private void ExecutedFilesDisplayed(ExecutedFilesViewModel? viewModel)
-	{
-		_executedFiles = viewModel;
-
-		viewModel?.Items = ExecutedFiles;
-	}
-
-	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
@@ -990,8 +982,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
 		{
-			ClearExecutedFiles();
-
 			DisplayCopyHistory();
 		}
 		else
@@ -1076,9 +1066,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="EditFilesViewModel" />
 	private EditFilesViewModel? _editFiles;
-
-	/// <inheritdoc cref="ExecutedFilesViewModel" />
-	private ExecutedFilesViewModel? _executedFiles;
 	#endregion
 
 	#region Constructors
@@ -1243,11 +1230,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Clears executed files.
-	/// </summary>
-	public void ClearExecutedFiles() => _executedFiles?.Items = null;
-
-	/// <summary>
 	/// Closes edited and executed files.
 	/// </summary>
 	public void CloseFiles(
@@ -1310,7 +1292,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc />
 	public override void DisplayCopyHistory()
 	{
-		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
+		_logger.LogInformation("Show editing files");
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
 
@@ -1322,7 +1304,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	public void DisplayExecutedFiles()
 	{
-		_logger.LogInformation($@"Show ""{nameof(ExecutedFilesView)}""");
+		_logger.LogInformation("Show executed files");
 
 		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
 

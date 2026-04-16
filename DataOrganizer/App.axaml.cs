@@ -363,7 +363,6 @@ public sealed class App : Application
 		services.AddTransient<EditorViewModel>();
 		services.AddTransient<EmbeddedFileEditorViewModel>();
 		services.AddTransient<EntityCreationViewModel>();
-		services.AddTransient<ExecutedFilesViewModel>();
 		services.AddTransient<FavoritesViewModel>();
 		services.AddTransient<HotkeysEditorViewModel>();
 		services.AddTransient<ImportListSelectorViewModel>();
