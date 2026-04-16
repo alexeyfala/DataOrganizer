@@ -377,15 +377,16 @@ public sealed class App : Application
 
 		#region Views
 		services.AddTransient<ConsoleWindow>();
+		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
 		services.AddTransient<EntityCreationView>();
 		services.AddTransient<FavoritesWindow>();
 		services.AddTransient<HotkeysEditorView>();
+		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SelectedFavoritesView>();
