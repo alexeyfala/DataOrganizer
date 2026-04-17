@@ -331,8 +331,8 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- EditorRightSideSheetHeaderTemplate -->
-	<DataTemplate x:Key="EditorRightSideSheetHeaderTemplate">
+	<!-- RightSideSheetHeaderTemplate -->
+	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
 			<StackPanel.Resources>
 				<converters:CloseAllExecutedFilesButtonVisibilityConverter x:Key="CloseAllExecutedFilesButtonVisibilityConverter" />
@@ -351,7 +351,7 @@
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContentType, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
+				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
 		</StackPanel>

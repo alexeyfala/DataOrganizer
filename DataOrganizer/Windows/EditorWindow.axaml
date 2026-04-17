@@ -355,8 +355,8 @@
 							Grid.Row="0"
 							Grid.Column="3"
 							SideSheetCanClose="False"
-							SideSheetContent="{Binding RightSideSheetContentType, Mode=OneWay}"
-							SideSheetHeaderTemplate="{StaticResource EditorRightSideSheetHeaderTemplate}"
+							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
+							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
 							SideSheetPadding="4.0">
 							<materialControls:SideSheet.SideSheetContentTemplate>

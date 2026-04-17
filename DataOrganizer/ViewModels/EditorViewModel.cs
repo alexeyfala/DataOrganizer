@@ -82,9 +82,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[ObservableProperty]
 	private GridLength _navigationColumnWidth;
 
-	/// <inheritdoc cref="EditorRightSideSheetContentType" />
+	/// <inheritdoc cref="RightSideSheetContentType" />
 	[ObservableProperty]
-	private EditorRightSideSheetContentType _rightSideSheetContentType;
+	private RightSideSheetContentType _rightSideSheetContent;
 
 	/// <summary>
 	/// The selected object in <see cref="TreeView" /> from <see cref="Hierarchy" />.
@@ -133,12 +133,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (RightSideSheetContentType == EditorRightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		RightSideSheetContentType = EditorRightSideSheetContentType.None;
+		RightSideSheetContent = RightSideSheetContentType.None;
 	}
 
 	/// <summary>
@@ -783,7 +783,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		await CopyContentAsync(dto, container).ConfigureAwait(false);
 
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent != RightSideSheetContentType.CopyHistory)
 		{
 			return;
 		}
@@ -976,7 +976,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
-	private void ShowCopyHistory() => SwitchRightSideSheetContent(EditorRightSideSheetContentType.CopyHistory);
+	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentType.CopyHistory);
 
 	/// <summary>
 	/// Controls the display of the executed files in right side sheet.
@@ -984,12 +984,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private void ShowExecutedFiles()
 	{
-		if (RightSideSheetContentType == EditorRightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		SwitchRightSideSheetContent(EditorRightSideSheetContentType.ExecutedFiles);
+		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutedFiles);
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
@@ -1876,9 +1876,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Switches the right side sheet content.
 	/// </summary>
-	private void SwitchRightSideSheetContent(in EditorRightSideSheetContentType type)
+	private void SwitchRightSideSheetContent(in RightSideSheetContentType type)
 	{
-		if (RightSideSheetContentType == type)
+		if (RightSideSheetContent == type)
 		{
 			IsRightSideSheetOpened = false;
 
@@ -1887,12 +1887,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation($"Show {type switch
 		{
-			EditorRightSideSheetContentType.CopyHistory => "copy history",
-			EditorRightSideSheetContentType.ExecutedFiles => "executing files",
+			RightSideSheetContentType.CopyHistory => "copy history",
+			RightSideSheetContentType.ExecutedFiles => "executing files",
 			_ => "unknown"
 		}}");
 
-		RightSideSheetContentType = type;
+		RightSideSheetContent = type;
 
 		IsRightSideSheetOpened = true;
 	}

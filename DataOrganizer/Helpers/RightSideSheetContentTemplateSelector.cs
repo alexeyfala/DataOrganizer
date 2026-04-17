@@ -13,13 +13,13 @@ internal sealed class RightSideSheetContentTemplateSelector : TemplateSelectorBa
 	{
 		return param switch
 		{
-			EditorRightSideSheetContentType.CopyHistory => DataTemplates[0].Build(param),
-			EditorRightSideSheetContentType.ExecutedFiles => DataTemplates[1].Build(param),
+			RightSideSheetContentType.CopyHistory => DataTemplates[0].Build(param),
+			RightSideSheetContentType.ExecutedFiles => DataTemplates[1].Build(param),
 			_ => new()
 		};
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is EditorRightSideSheetContentType;
+	public bool Match(object? data) => data is RightSideSheetContentType;
 	#endregion
 }

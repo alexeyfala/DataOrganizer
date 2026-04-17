@@ -115,7 +115,7 @@ public class ViewLauncher : IViewLauncher
 
 		if (window
 			.ViewModel
-			.RightSideSheetContentType == EditorRightSideSheetContentType.CopyHistory)
+			.RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			window
 				.ViewModel
