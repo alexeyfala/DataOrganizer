@@ -92,7 +92,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		// Without delay the window freezes.
 		await Task
 			.Delay(100)
-			.ConfigureAwait(true);
+			.ConfigureAwait(false);
 
 		if (PopupContent == FavoritesPopupContentType.CopyHistory)
 		{
