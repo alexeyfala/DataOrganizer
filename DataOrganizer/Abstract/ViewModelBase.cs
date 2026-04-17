@@ -73,6 +73,19 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Handles the display of copy history.
+	/// </summary>
+	[RelayCommand]
+	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
+	{
+		viewModel?.Initialize(
+			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
+			CopyHistorySettings.SelectedCopyHistoryItemId);
+
+		_copyHistory = viewModel;
+	}
+
+	/// <summary>
 	/// Displays the system clipboard.
 	/// </summary>
 	[RelayCommand]
@@ -103,6 +116,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
+
+	/// <inheritdoc cref="CopyHistoryViewModel" />
+	protected CopyHistoryViewModel? _copyHistory;
 
 	/// <inheritdoc cref="IEventSimulator" />
 	private readonly IEventSimulator _eventSimulator;
@@ -164,7 +180,15 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.
 	/// </summary>
-	public abstract void SaveCopyHistory();
+	public void SaveCopyHistory()
+	{
+		if (_copyHistory is null)
+		{
+			return;
+		}
+
+		SaveCopyHistory(_copyHistory);
+	}
 
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
@@ -209,9 +233,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				.Insert(0, fileId);
 		}
 	}
+	#endregion
 
+	#region Service
 	/// <inheritdoc cref="SaveCopyHistory()" />
-	protected void SaveCopyHistory(CopyHistoryViewModel viewModel)
+	private void SaveCopyHistory(CopyHistoryViewModel viewModel)
 	{
 		if (viewModel.SelectedItem is { } selected)
 		{
@@ -238,9 +264,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		viewModel.Dispose();
 	}
-	#endregion
 
-	#region Service
 	/// <summary>
 	/// Shows the snackbar with default text color.
 	/// </summary>

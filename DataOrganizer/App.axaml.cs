@@ -389,7 +389,6 @@ public sealed class App : Application
 		services.AddTransient<MultilineTextEditView>();
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
-		services.AddTransient<SelectedFavoritesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
 		services.AddTransient<YesNoCancelBox>();

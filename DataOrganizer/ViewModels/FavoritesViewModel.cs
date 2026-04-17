@@ -51,11 +51,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	[ObservableProperty]
 	private bool _isPopupOpen;
 
-	/// <summary>
-	/// The content of the popup panel.
-	/// </summary>
+	/// <inheritdoc cref="FavoritesPopupContentType" />
 	[ObservableProperty]
-	private object? _popupContent;
+	private FavoritesPopupContentType _popupContent;
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupHeight" />
 	[ObservableProperty]
@@ -96,7 +94,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.Delay(100)
 			.ConfigureAwait(true);
 
-		if (PopupContent is CopyHistoryView)
+		if (PopupContent == FavoritesPopupContentType.CopyHistory)
 		{
 			ShowContentCopyHistory = true;
 
@@ -113,13 +111,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		if (value)
 		{
-			if (PopupContent is null)
-			{
-				_logger.LogError(
-					$"{nameof(PopupContent)} should not be null if {nameof(IsPopupOpen)} is True",
-					isAssertDebug: false);
-			}
-
 			return;
 		}
 
@@ -140,13 +131,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	partial void OnShowContentCopyHistoryChanged(bool value)
 	{
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
 		if (value)
 		{
 			DisplayCopyHistory();
@@ -162,13 +146,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	partial void OnShowFavoritesChanged(bool value)
 	{
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
 		if (value)
 		{
 			DisplayFavorites();
@@ -212,6 +189,22 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		visual
 			.FindLogicalParent<Window>()?
 			.BeginMoveDrag(e);
+	}
+
+	/// <summary>
+	/// Handles the display of the favorites.
+	/// </summary>
+	[RelayCommand]
+	private void FavoritesDisplayed(SelectedFavoritesViewModel? viewModel)
+	{
+		_favorites = viewModel;
+
+		viewModel?.Initialize(
+			FavoritesSettings.NavigationColumnWidth,
+			FavoritesSettings.SelectedCategoryId,
+			FavoritesSettings.Categories,
+			FavoritesSettings.OrderedCategories,
+			FavoritesSettings.SelectedPairs);
 	}
 
 	/// <summary>
@@ -339,6 +332,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Minimum size of the popup.
 	/// </summary>
 	private const double MinimumPopupSize = 100.0;
+
+	/// <inheritdoc cref="SelectedFavoritesViewModel" />
+	private SelectedFavoritesViewModel? _favorites;
 	#endregion
 
 	#region Constructors
@@ -382,33 +378,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.AddRange(GetCategories(hierarchy));
 	}
 
-	/// <summary>
-	/// Displays <see cref="SelectedFavoritesView" /> in <see cref="PopupContent" />.
-	/// </summary>
-	public void DisplayFavorites()
-	{
-		_logger.LogInformation($@"Show ""{nameof(SelectedFavoritesView)}""");
-
-		ShowContentCopyHistory = false;
-
-		SelectedFavoritesView view = _viewFactory.CreateUserControl<SelectedFavoritesView>();
-
-		view.Focusable = true;
-
-		view.ViewModel.Initialize(
-			FavoritesSettings.NavigationColumnWidth,
-			FavoritesSettings.SelectedCategoryId,
-			FavoritesSettings.Categories,
-			FavoritesSettings.OrderedCategories,
-			FavoritesSettings.SelectedPairs);
-
-		PopupContent = view;
-
-		IsPopupOpen = true;
-
-		view.Focus();
-	}
-
 	/// <inheritdoc />
 	public void Dispose()
 	{
@@ -432,7 +401,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.CopyHistory
 			.Clear();
 
-		PopupContent = null;
+		PopupContent = FavoritesPopupContentType.None;
+
+		_copyHistory = null;
+
+		_favorites = null;
 	}
 
 	/// <summary>
@@ -486,50 +459,34 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IsInitialized = true;
 	}
 
-	/// <inheritdoc />
-	public override void SaveCopyHistory()
-	{
-		if (PopupContent is not CopyHistoryView view)
-		{
-			return;
-		}
-
-		SaveCopyHistory(view.ViewModel);
-	}
-
 	/// <summary>
-	/// Saves in <see cref="FavoritesSettings" /> values if <see cref="PopupContent" /> is <see cref="SelectedFavoritesView" />.
+	/// Saves in <see cref="FavoritesSettings" /> values.
 	/// </summary>
 	public void SaveFavorites()
 	{
-		if (PopupContent is not SelectedFavoritesView view)
+		if (_favorites is null)
 		{
 			return;
 		}
 
-		FavoritesSettings.NavigationColumnWidth = view
-			.ViewModel
+		FavoritesSettings.NavigationColumnWidth = _favorites
 			.NavigationColumnWidth
 			.Value;
 
-		if (view
-			.ViewModel
-			.SelectedCategory is { } category)
+		if (_favorites.SelectedCategory is { } category)
 		{
 			FavoritesSettings.SelectedCategoryId = category.Id;
 		}
 
 		FavoritesSettings
 			.SelectedPairs
-			.ClearAddRange(view.ViewModel.SelectedPairs);
+			.ClearAddRange(_favorites.SelectedPairs);
 
 		FavoritesSettings
 			.OrderedCategories
-			.ClearAddRange(view.ViewModel.OrderedCategories);
+			.ClearAddRange(_favorites.OrderedCategories);
 
-		view
-			.ViewModel
-			.Dispose();
+		_favorites.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -566,19 +523,23 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		ShowFavorites = false;
 
-		CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
-
-		view.Focusable = true;
-
-		view.ViewModel.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
-
-		PopupContent = view;
+		PopupContent = FavoritesPopupContentType.CopyHistory;
 
 		IsPopupOpen = true;
+	}
 
-		view.Focus();
+	/// <summary>
+	/// Displays favorites.
+	/// </summary>
+	private void DisplayFavorites()
+	{
+		_logger.LogInformation("Show favorites");
+
+		ShowContentCopyHistory = false;
+
+		PopupContent = FavoritesPopupContentType.Favorites;
+
+		IsPopupOpen = true;
 	}
 
 	/// <summary>

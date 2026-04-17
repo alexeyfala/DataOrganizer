@@ -18,7 +18,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Salt size.
 	/// </summary>
-	private const int _saltSize = 16;
+	private const int SaltSize = 16;
 
 	/// <summary>
 	/// The encryption algorithm used.
@@ -42,7 +42,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		try
 		{
-			byte[] salt = new byte[_saltSize];
+			byte[] salt = new byte[SaltSize];
 
 			byte[] nonce = new byte[_algorithm.NonceSize];
 
@@ -96,7 +96,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		try
 		{
-			byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+			byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
 			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
 

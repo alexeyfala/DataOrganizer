@@ -16,7 +16,7 @@ public static partial class SerilogExtensions
 	/// <summary>
 	/// Template for writing a message with a source.
 	/// </summary>
-	private const string MESSAGE_SOURCE_TEMPLATE = "{Message} \u2192 {Source}";
+	private const string MessageSourceTemplate = "{Message} \u2192 {Source}";
 	#endregion
 
 	#region Methods
@@ -31,7 +31,7 @@ public static partial class SerilogExtensions
 		[CallerLineNumber] in int lineNumber = 0)
 	{
 		target.Debug(
-			MESSAGE_SOURCE_TEMPLATE,
+			MessageSourceTemplate,
 			DecodeUnicode(message, target),
 			GetSourceInfo(filePath, callerName, in lineNumber));
 	}
@@ -53,7 +53,7 @@ public static partial class SerilogExtensions
 		[CallerLineNumber] in int lineNumber = 0)
 	{
 		target.Error(
-			MESSAGE_SOURCE_TEMPLATE,
+			MessageSourceTemplate,
 			DecodeUnicode(message, target),
 			GetSourceInfo(filePath, callerName, in lineNumber));
 
@@ -106,7 +106,7 @@ public static partial class SerilogExtensions
 	{
 		target.Error(
 			exception,
-			MESSAGE_SOURCE_TEMPLATE,
+			MessageSourceTemplate,
 			DecodeUnicode(message, target),
 			GetSourceInfo(filePath, callerName, in lineNumber));
 
@@ -131,7 +131,7 @@ public static partial class SerilogExtensions
 		[CallerLineNumber] in int lineNumber = 0)
 	{
 		target.Information(
-			MESSAGE_SOURCE_TEMPLATE,
+			MessageSourceTemplate,
 			DecodeUnicode(message, target),
 			GetSourceInfo(filePath, callerName, in lineNumber));
 	}
@@ -155,7 +155,7 @@ public static partial class SerilogExtensions
 		[CallerLineNumber] in int lineNumber = 0)
 	{
 		target.Warning(
-			MESSAGE_SOURCE_TEMPLATE,
+			MessageSourceTemplate,
 			DecodeUnicode(message, target),
 			GetSourceInfo(filePath, callerName, in lineNumber));
 	}

@@ -792,19 +792,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Handles the display of copy history.
-	/// </summary>
-	[RelayCommand]
-	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
-	{
-		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
-
-		_copyHistory = viewModel;
-	}
-
-	/// <summary>
 	/// Copies object's name to clipboard.
 	/// </summary>
 	[RelayCommand]
@@ -1044,9 +1031,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
-
-	/// <inheritdoc cref="CopyHistoryViewModel" />
-	private CopyHistoryViewModel? _copyHistory;
 
 	/// <inheritdoc cref="EditFilesViewModel" />
 	private EditFilesViewModel? _editFiles;
@@ -1534,17 +1518,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.UpdatedDate = updatedDate;
 
 		return true;
-	}
-
-	/// <inheritdoc />
-	public override void SaveCopyHistory()
-	{
-		if (_copyHistory is null)
-		{
-			return;
-		}
-
-		SaveCopyHistory(_copyHistory);
 	}
 
 	/// <summary>

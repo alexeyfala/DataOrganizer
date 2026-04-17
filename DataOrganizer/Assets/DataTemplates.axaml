@@ -1011,7 +1011,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyHistoryDisplayedCommand}"
+						Command="{Binding $parent[Window].((abstract:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -1021,5 +1021,18 @@
 	<!-- ExecutedFilesTemplate -->
 	<DataTemplate x:Key="ExecutedFilesTemplate">
 		<views:ExecutedFilesView />
+	</DataTemplate>
+
+	<!-- SelectedFavoritesViewTemplate -->
+	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
+		<views:SelectedFavoritesView x:Name="View">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:SelectedFavoritesView>
 	</DataTemplate>
 </ResourceDictionary>

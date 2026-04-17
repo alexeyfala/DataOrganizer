@@ -5,6 +5,7 @@
 	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -142,13 +143,21 @@
 									Foreground="{Binding SnackbarForeground, Mode=OneWay}"
 									HostName="{Binding $self.Name}"
 									SnackbarHorizontalAlignment="Center">
-									<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
-										<ContentPresenter.KeyBindings>
+									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
+										<ContentControl.ContentTemplate>
+											<helpers:FavoritesPopupContentTemplateSelector>
+												<StaticResource ResourceKey="CopyHistoryTemplate" />
+
+												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
+											</helpers:FavoritesPopupContentTemplateSelector>
+										</ContentControl.ContentTemplate>
+
+										<ContentControl.KeyBindings>
 											<KeyBinding
 												Command="{Binding ClosePopupCommand}"
 												Gesture="Escape" />
-										</ContentPresenter.KeyBindings>
-									</ContentPresenter>
+										</ContentControl.KeyBindings>
+									</ContentControl>
 								</materialControls:SnackbarHost>
 							</dialogHost:DialogHost>
 						</Border>
