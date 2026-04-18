@@ -154,7 +154,7 @@
 
 										<ContentControl.KeyBindings>
 											<KeyBinding
-												Command="{Binding ClosePopupCommand}"
+												Command="{Binding ClosePopupByEscCommand}"
 												Gesture="Escape" />
 										</ContentControl.KeyBindings>
 									</ContentControl>
@@ -261,10 +261,9 @@
 
 					<ToggleButton
 						Classes="primary"
+						Command="{Binding ShowFavoritesCommand}"
 						Content="{materialIcons:MaterialIconTextExt Kind=StarOutline,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
-						IsChecked="{Binding ShowFavorites, Mode=TwoWay}"
-						IsEnabled="{Binding !ShowFavorites, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.Favorites}" />
 
 					<Button
@@ -282,10 +281,9 @@
 
 					<ToggleButton
 						Classes="primary"
+						Command="{Binding ShowCopyHistoryCommand}"
 						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
-						IsChecked="{Binding ShowCopyHistory, Mode=TwoWay}"
-						IsEnabled="{Binding !ShowCopyHistory, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 				</StackPanel>
 			</Border>

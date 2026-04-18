@@ -46,10 +46,10 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.ClosePopup" />.
+	/// Test of <see cref="FavoritesViewModel.ClosePopupByEsc" />.
 	/// </summary>
 	[Test]
-	public void ClosePopup_Closes_Popup()
+	public void ClosePopupByEsc_Closes_Popup()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -61,7 +61,7 @@ internal class FavoritesViewModelTests
 		sut.IsPopupOpen = true;
 
 		// Act
-		sut.ClosePopup();
+		sut.ClosePopupByEsc();
 
 		// Assert
 		sut.IsPopupFixed
@@ -307,23 +307,11 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeTrue();
 
-		sut.ShowContentCopyHistory = true;
-
-		sut.ShowFavorites = true;
-
 		// Act
 		await sut.ShowInEditorAsync(null, default);
 
 		// Assert
 		sut.IsShutdown
-			.Should()
-			.BeFalse();
-
-		sut.ShowContentCopyHistory
-			.Should()
-			.BeFalse();
-
-		sut.ShowFavorites
 			.Should()
 			.BeFalse();
 

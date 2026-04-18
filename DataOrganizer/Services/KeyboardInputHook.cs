@@ -331,9 +331,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			return;
 		}
 
-		faforites.ShowFavorites = true;
-
-		faforites.IsPopupOpen = true;
+		faforites.ShowFavorites();
 	});
 
 	/// <summary>
