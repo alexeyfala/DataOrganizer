@@ -67,7 +67,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Controls the display of the content copy history in the popup panel.
 	/// </summary>
 	[ObservableProperty]
-	private bool _showContentCopyHistory;
+	private bool _showCopyHistory;
 
 	/// <summary>
 	/// Controls the display of the favorites in the popup panel.
@@ -96,7 +96,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		if (PopupContent == FavoritesPopupContentType.CopyHistory)
 		{
-			ShowContentCopyHistory = true;
+			ShowCopyHistory = true;
 
 			return;
 		}
@@ -114,7 +114,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			return;
 		}
 
-		ShowContentCopyHistory = false;
+		ShowCopyHistory = false;
 
 		ShowFavorites = false;
 
@@ -127,9 +127,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	}
 
 	/// <summary>
-	/// Called when <see cref="ShowContentCopyHistory" /> changes.
+	/// Called when <see cref="ShowCopyHistory" /> changes.
 	/// </summary>
-	partial void OnShowContentCopyHistoryChanged(bool value)
+	partial void OnShowCopyHistoryChanged(bool value)
 	{
 		if (value)
 		{
@@ -497,7 +497,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		IsShutdown = false;
 
-		ShowContentCopyHistory = false;
+		ShowCopyHistory = false;
 
 		ShowFavorites = false;
 
@@ -535,7 +535,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		_logger.LogInformation("Show favorites");
 
-		ShowContentCopyHistory = false;
+		ShowCopyHistory = false;
 
 		PopupContent = FavoritesPopupContentType.Favorites;
 

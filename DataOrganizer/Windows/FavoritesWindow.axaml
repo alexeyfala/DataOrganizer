@@ -284,8 +284,8 @@
 						Classes="primary"
 						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
-						IsChecked="{Binding ShowContentCopyHistory, Mode=TwoWay}"
-						IsEnabled="{Binding !ShowContentCopyHistory, Mode=OneWay}"
+						IsChecked="{Binding ShowCopyHistory, Mode=TwoWay}"
+						IsEnabled="{Binding !ShowCopyHistory, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 				</StackPanel>
 			</Border>
