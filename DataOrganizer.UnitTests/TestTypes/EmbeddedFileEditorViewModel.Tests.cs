@@ -22,7 +22,7 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EmbeddedFileEditorViewModel.EditorLoaded(TextEditor)" />.
+	/// Test of <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task EditorLoaded_Loads_Text_To_Editor()
@@ -38,7 +38,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			ContentsIsValidPair pair = new()
 			{
-				Contents = contents,
+				Contents = [.. contents],
 				IsValid = true
 			};
 

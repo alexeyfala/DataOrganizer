@@ -35,6 +35,6 @@ public record AppSettings
 	/// <summary>
 	/// Indicates whether hotkey tracking should be enabled.
 	/// </summary>
-	public bool TrackHotkeys { get; set; }	
+	public bool TrackHotkeys { get; set; }
 	#endregion
 }

@@ -5,6 +5,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -76,6 +77,8 @@ internal class SelectedFavoritesViewModelTests
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
+
+		SynchronizationContext.SetSynchronizationContext(null);
 
 		SelectedFavoritesViewModel sut = mock.Create<SelectedFavoritesViewModel>();
 

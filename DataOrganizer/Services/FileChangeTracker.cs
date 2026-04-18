@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.DTO;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using Entities.Models;
 using Repository.DTO;
@@ -10,7 +11,6 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,16 +58,16 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			while (_fileSystem.IsFileExists(parameters.FilePath) && parameters.Condition(parameters.File.Id))
+			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
 				try
 				{
 					await parameters
 						.Semaphore
 						.WaitAsync(token)
-						.ConfigureAwait(false);
+						.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
-					if (!_fileSystem.IsFileExists(parameters.FilePath) || !parameters.Condition(parameters.File.Id))
+					if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
 					{
 						return;
 					}
@@ -136,27 +136,20 @@ public class FileChangeTracker : IFileChangeTracker
 					{
 						if (parameters.SessionEncryptedDek is not null)
 						{
-							CryptographicOperations.ZeroMemory(bytes);
+							bytes.ZeroMemory();
 						}
 					}
 				}
 				finally
 				{
-					try
-					{
-						parameters
-							.Semaphore
-							.Release();
-					}
-					catch (Exception ex)
-					{
-						_logger.LogException(ex);
-					}
+					parameters
+						.Semaphore
+						.Release();
 				}
 
 				await Task
 					.Delay(800, token)
-					.ConfigureAwait(false);
+					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 			}
 		}
 		catch (Exception ex)
@@ -167,9 +160,13 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			if (parameters.SessionEncryptedDek is not null)
 			{
-				CryptographicOperations.ZeroMemory(parameters.SessionEncryptedDek);
+				parameters
+					.SessionEncryptedDek
+					.ZeroMemory();
 
-				CryptographicOperations.ZeroMemory(parameters.Contents);
+				parameters
+					.Contents
+					.ZeroMemory();
 			}
 		}
 	}

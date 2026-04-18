@@ -10,7 +10,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="KeyValueInputView" />.
 /// </summary>
-public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModelBase
+public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 {
 	#region Auto-Generated Properties
 	/// <summary>

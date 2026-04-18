@@ -146,7 +146,7 @@
 					MaxHeight="500.0"
 					IsLightDismissEnabled="True"
 					IsOpen="{Binding ShowNote, Mode=TwoWay}"
-					PlacementMode="Bottom"
+					Placement="Bottom"
 					PlacementTarget="{Binding #Icon}"
 					VerticalOffset="8.0">
 

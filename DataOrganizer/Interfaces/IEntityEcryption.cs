@@ -63,7 +63,7 @@ public interface IEntityEcryption
 	/// <summary>
 	/// Shows file contents.
 	/// </summary>
-	Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default);
+	Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default);
 
 	/// <summary>
 	/// Shows file contents in folder.

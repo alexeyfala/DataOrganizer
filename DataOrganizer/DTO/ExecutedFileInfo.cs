@@ -1,4 +1,6 @@
-﻿namespace DataOrganizer.DTO;
+﻿using System.Threading;
+
+namespace DataOrganizer.DTO;
 
 /// <summary>
 /// The pair of <see cref="FilePath" /> and <see cref="DirectoryPath" /> values.
@@ -6,6 +8,9 @@
 internal sealed class ExecutedFileInfo
 {
 	#region Properties
+	/// <inheritdoc cref="CancellationTokenSource" />
+	public CancellationTokenSource Cancellation { get; }
+
 	/// <summary>
 	/// Directory path.
 	/// </summary>
@@ -24,10 +29,13 @@ internal sealed class ExecutedFileInfo
 
 	#region Constructors
 	public ExecutedFileInfo(
+		CancellationTokenSource cancellation,
 		string filePath,
 		string directoryPath,
 		in int processId)
 	{
+		Cancellation = cancellation;
+
 		FilePath = filePath;
 
 		DirectoryPath = directoryPath;

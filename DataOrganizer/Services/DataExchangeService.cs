@@ -113,14 +113,14 @@ public sealed class DataExchangeService : IDataExchangeService
 			   index++;
 		   });
 
-		if (result.Folders.Length > 0 && !await _dbAccess
+		if (result.Folders.IsNotEmpty() && !await _dbAccess
 			.AddFoldersAsync(result.Folders, token)
 			.ConfigureAwait(false))
 		{
 			return false;
 		}
 
-		if (result.Files.Length > 0 && !await _dbAccess
+		if (result.Files.IsNotEmpty() && !await _dbAccess
 			.AddFilesAsync(result.Files, token)
 			.ConfigureAwait(false))
 		{
@@ -217,7 +217,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			.SelectFilesAsync<EditorWindow>(options)
 			.ConfigureAwait(false);
 
-		if (filePaths.Length == 0)
+		if (filePaths.IsEmpty())
 		{
 			return false;
 		}
@@ -370,14 +370,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		RegenerateId(folders, files);
 
-		if (folders.Length > 0 && !await _dbAccess
+		if (folders.IsNotEmpty() && !await _dbAccess
 			.AddFoldersAsync(folders, token)
 			.ConfigureAwait(false))
 		{
 			return false;
 		}
 
-		if (files.Length > 0 && !await _dbAccess
+		if (files.IsNotEmpty() && !await _dbAccess
 			.AddFilesAsync(files, token)
 			.ConfigureAwait(false))
 		{

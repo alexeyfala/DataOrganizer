@@ -15,7 +15,6 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -40,26 +39,26 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IEncryptionService" />
-	private readonly IEncryptionService _encryption;
+	/// <inheritdoc cref="IClipboardService" />
+	private readonly IClipboardService _clipboard;
 	#endregion
 
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger)
 	{
 		_app = app;
 
+		_clipboard = clipboard;
+
 		_dbAccess = dbAccess;
 
 		_dialogService = dialogService;
-
-		_encryption = encryption;
 
 		_entityEcryption = entityEcryption;
 
@@ -73,7 +72,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// </summary>
 	protected static ItemsControl? FindLastContainer<T>(ItemsControl container, T[] parents) where T : class
 	{
-		if (parents.Length == 0 || container.ContainerFromItem(parents[0]) is not ItemsControl item)
+		if (parents.IsEmpty() || container.ContainerFromItem(parents[0]) is not ItemsControl item)
 		{
 			return container;
 		}
@@ -96,13 +95,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		try
 		{
-			if (TopLevel
-				.GetTopLevel(container)?
-				.Clipboard is not { } clipboard)
-			{
-				return;
-			}
-
 			ContentsIsValidPair result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
@@ -138,7 +130,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				viewModel?.UpdateCopyHistory(file.Id);
 
-				await clipboard
+				await _clipboard
 					.SetTextAsync(text)
 					.ConfigureAwait(true);
 
@@ -157,7 +149,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			{
 				if (file.EncryptionStatus != EncryptionStatus.None)
 				{
-					CryptographicOperations.ZeroMemory(contents);
+					contents.ZeroMemory();
 				}
 			}
 		}

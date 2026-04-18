@@ -1,23 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Templates;
-using Avalonia.Metadata;
 using DataOrganizer.Abstract;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace DataOrganizer.Helpers;
 
-internal sealed class DatasetRecordTemplateSelector : IDataTemplate
+internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
-	#region Properties
-	/// <summary>
-	/// Available data templates.
-	/// </summary>
-	[Content]
-	public ICollection<IDataTemplate> DataTemplates { get; } = [];
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
 	public Control? Build(object? param)

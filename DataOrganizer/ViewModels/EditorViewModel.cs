@@ -1,10 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Comparation;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -13,6 +15,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -44,11 +47,6 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 {
-	#region Properties
-	/// <inheritdoc cref="EditFilesView" />
-	public EditFilesView EditFiles { get; }
-	#endregion
-
 	#region Auto-Generated Properties
 	/// <summary>
 	/// Information in the lower left corner.
@@ -84,15 +82,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[ObservableProperty]
 	private GridLength _navigationColumnWidth;
 
-	/// <summary>
-	/// The content of the right side sheet.
-	/// </summary>
+	/// <inheritdoc cref="RightSideSheetContentType" />
 	[ObservableProperty]
-	private object? _rightSideSheetContent;
-
-	/// <inheritdoc cref="EditorRightSideSheetContentType" />
-	[ObservableProperty]
-	private EditorRightSideSheetContentType _rightSideSheetContentType;
+	private RightSideSheetContentType _rightSideSheetContent;
 
 	/// <summary>
 	/// The selected object in <see cref="TreeView" /> from <see cref="Hierarchy" />.
@@ -141,13 +133,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		RightSideSheetContentType = EditorRightSideSheetContentType.None;
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		{
+			SaveCopyHistory();
+		}
 
-		ClearExecutedFilesView();
-
-		SaveCopyHistory();
-
-		RightSideSheetContent = null;
+		RightSideSheetContent = RightSideSheetContentType.None;
 	}
 
 	/// <summary>
@@ -197,11 +188,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
+		FileModelDto[] openedFiles = [.. dto
 			.Children
-			.GetFiles()];
+			.GetFilesBy(IsOpened)];
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -254,14 +245,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -288,14 +281,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -334,6 +329,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
+
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
+		{
+			return;
+		}
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(dto.Id)
@@ -424,9 +424,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
 	public async Task HideAllFileContents()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
-		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -449,7 +449,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (dto.IsEdited || dto.IsExecuted)
+		if (dto.IsOpened())
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync()
@@ -477,7 +477,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync([.. dto.Children.GetFiles()]).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. dto
+			.Children
+			.GetFilesBy(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -495,9 +499,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
 	public async Task Import()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsEdited || x.IsExecuted)];
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
 
-		if (openedFiles.Length > 0 && !await TryCloseEditedExecutedFilesAsync(openedFiles).ConfigureAwait(true))
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -569,14 +573,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		window?.Close();
 
+		WeakReferenceMessenger
+			.Default
+			.Unregister<FolderExpandedMessage>(this);
+
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
-			[.. EditFiles.ViewModel.EditFiles],
+			_editFiles?.Items ?? [],
 			ExecutedFiles).Show();
+
+		if (_editFiles is null)
+		{
+			return;
+		}
 
 		Hierarchy
 			.GetFilesBy(x => x.IsEdited)
-			.ForEach(EditFiles.ViewModel.CloseEditor);
+			.ForEach(_editFiles.CloseEditor);
 	}
 
 	/// <summary>
@@ -594,14 +607,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Children
 			.GetFiles()];
 
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			ShowInfoSnackbar(Strings.MissingFiles);
 
 			return;
 		}
 
-		if (!await TryCloseEditedExecutedFilesAsync(files).ConfigureAwait(true))
+		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+
+		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
 			return;
 		}
@@ -619,18 +634,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
-	public Task ShowHotkeysEditor(FileModelDto? dto)
+	public async Task ShowHotkeysEditor(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
 		_logger.LogInformation("Show hotkeys editor");
 
 		if (_keyboardInputHook.IsRunning)
 		{
-			_keyboardInputHook.StopTracking();
+			await _keyboardInputHook
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
 		}
 
 		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
@@ -644,10 +661,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return DialogHost.Show(view, Dialog_Closing);
+		await DialogHost
+			.Show(view, Dialog_Closing)
+			.ConfigureAwait(false);
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
@@ -678,7 +697,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
-			HandleChangeSettings(
+			_ = HandleChangeSettingsAsync(
 				view.ViewModel.IsSaved,
 				view.ViewModel.CurrentSettings);
 		}
@@ -733,6 +752,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
 	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
 
+	/// <inheritdoc cref="CloseFile" />
+	[RelayCommand]
+	private void CloseOpenedFile(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		CloseFile(dto);
+	}
+
 	/// <summary>
 	/// Collapses all folders in <see cref="Hierarchy" />.
 	/// </summary>
@@ -750,23 +781,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		await CopyContentAsync(dto, container).ConfigureAwait(true);
+		await CopyContentAsync(dto, container).ConfigureAwait(false);
 
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent != RightSideSheetContentType.CopyHistory)
 		{
 			return;
 		}
 
-		DisplayCopyHistory();
-
-		if (RightSideSheetContent is not CopyHistoryView view)
-		{
-			return;
-		}
-
-		view
-			.ViewModel
-			.SetSelectedItem(dto);
+		_copyHistory?.SetSelectedItem(dto);
 	}
 
 	/// <summary>
@@ -842,17 +864,26 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="EditFilesViewModel.OpenInEditor(FileModelDto)" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	private void EditFile(FileModelDto? dto)
+	private async Task EditFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		EditFiles
-			.ViewModel
-			.OpenInEditor(dto);
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
+		{
+			return;
+		}
+
+		_editFiles?.OpenInEditor(dto);
 	}
+
+	/// <summary>
+	/// Handles loading event for rendering the file editor.
+	/// </summary>
+	[RelayCommand]
+	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -932,19 +963,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
-	private void ShowCopyHistory()
-	{
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.CopyHistory)
-		{
-			ClearExecutedFilesView();
-
-			DisplayCopyHistory();
-		}
-		else
-		{
-			IsRightSideSheetOpened = false;
-		}
-	}
+	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentType.CopyHistory);
 
 	/// <summary>
 	/// Controls the display of the executed files in right side sheet.
@@ -952,34 +971,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private void ShowExecutedFiles()
 	{
-		if (RightSideSheetContentType != EditorRightSideSheetContentType.ExecutedFiles)
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			SaveCopyHistory();
+		}
 
-			DisplayExecutedFiles();
-		}
-		else
-		{
-			IsRightSideSheetOpened = false;
-		}
+		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutedFiles);
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
-	private async Task ShowFileContents(FileModelDto? dto)
+	private Task ShowFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		_logger.LogInformation("Show file contents");
-
-		await _entityEcryption
-			.ShowFileContentsAsync(dto)
-			.ConfigureAwait(true);
-
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		return ShowFileContentsAsync(dto);
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -1022,17 +1031,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
+
+	/// <inheritdoc cref="EditFilesViewModel" />
+	private EditFilesViewModel? _editFiles;
 	#endregion
 
 	#region Constructors
 	public EditorViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
+		IClipboardService clipboard,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
@@ -1044,10 +1056,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
+			clipboard,
 			dbAccess,
 			dialogService,
 			dispatcher,
-			encryption,
 			entityEcryption,
 			eventSimulator,
 			keyboardInputHook,
@@ -1063,28 +1075,30 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		EditFiles = viewFactory.CreateUserControl<EditFilesView>();
-
-		ExplorerModelBaseDto.FolderExpandedChanged += Folder_IsExpandedChanged;
+		WeakReferenceMessenger
+			.Default
+			.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
 	}
 	#endregion
 
-	#region Event Handlers
+	#region Message handlers
 	/// <summary>
-	/// <see cref="FolderModelDto.IsExpandedChanged" /> event handler of <see cref="FolderModelDto" />.
+	/// <see cref="ExplorerModelBaseDto.IsExpanded" /> changed handler of <see cref="FolderModelDto" />.
 	/// </summary>
 	/// <remarks>
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global event to persist the changes to the database in one place.
+	/// so I had to use a global message to persist the changes to the database in one place.
 	/// </remarks>
-	private void Folder_IsExpandedChanged(object? sender, FolderModelDto e)
+	private void Folder_IsExpandedChanged(
+		object recipient,
+		FolderExpandedMessage message)
 	{
 		if (IsReadOnly || IsActionInProgress)
 		{
 			return;
 		}
 
-		_ = UpdateFolderIsExpandedInDatabaseAsync(e);
+		_ = UpdateFolderIsExpandedInDatabaseAsync(message.Value);
 	}
 	#endregion
 
@@ -1140,6 +1154,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			dto.Parent = parent;
 
+			if (parent is not null)
+			{
+				dto.EncryptionStatus = parent.EncryptionStatus;
+			}
+
 			GetCollectionToAdd(parent, Hierarchy).Add(dto);
 
 			CountHierarchy();
@@ -1165,27 +1184,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 	}
 
+	/// <summary>
+	/// Adds edited files to view.
+	/// </summary>
+	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFiles?.Items.AddRange(editFiles);
+
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		Hierarchy.AddRange(hierarchy);
 
 		CountHierarchy();
-	}
-
-	/// <summary>
-	/// Clears <see cref="ExecutedFilesView" /> in <see cref="RightSideSheetContent" />.
-	/// </summary>
-	public void ClearExecutedFilesView()
-	{
-		if (RightSideSheetContent is not ExecutedFilesView view)
-		{
-			return;
-		}
-
-		view
-			.ViewModel
-			.ExecutedFiles = null;
 	}
 
 	/// <summary>
@@ -1197,9 +1206,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		foreach (FileModelDto file in editedFiles)
 		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
+			CloseEditedFile(file);
 		}
 
 		foreach (FileModelDto file in executedFiles)
@@ -1250,50 +1257,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return true;
 	}
 
-	/// <inheritdoc />
-	public override void DisplayCopyHistory()
-	{
-		_logger.LogInformation($@"Show ""{nameof(CopyHistoryView)}""");
-
-		CopyHistoryView view = _viewFactory.CreateUserControl<CopyHistoryView>();
-
-		view.ViewModel.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
-
-		RightSideSheetContent = view;
-
-		RightSideSheetContentType = EditorRightSideSheetContentType.CopyHistory;
-
-		IsRightSideSheetOpened = true;
-	}
-
-	/// <summary>
-	/// Displays <see cref="ExecutedFilesView" /> in <see cref="RightSideSheetContent" />.
-	/// </summary>
-	public void DisplayExecutedFiles()
-	{
-		_logger.LogInformation($@"Show ""{nameof(ExecutedFilesView)}""");
-
-		ExecutedFilesView view = _viewFactory.CreateUserControl<ExecutedFilesView>();
-
-		view
-			.ViewModel
-			.ExecutedFiles = ExecutedFiles;
-
-		RightSideSheetContent = view;
-
-		RightSideSheetContentType = EditorRightSideSheetContentType.ExecutedFiles;
-
-		IsRightSideSheetOpened = true;
-	}
-
 	/// <summary>
 	/// Expands or collapses all folders in <see cref="Hierarchy" />.
 	/// </summary>
 	/// <remarks>
-	/// Changes to the <see cref="FolderModelDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Folder_IsExpandedChanged(object?, FolderModelDto)" /> event handler.
+	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
+	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
 	/// </remarks>
 	public async Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
@@ -1304,7 +1273,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
 
-		if (folders.Length == 0)
+		if (folders.IsEmpty())
 		{
 			return;
 		}
@@ -1341,7 +1310,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Handles changing application settings.
 	/// </summary>
-	public void HandleChangeSettings(bool isSave, AppSettings settings)
+	public async Task HandleChangeSettingsAsync(
+		bool isSave,
+		AppSettings settings,
+		CancellationToken token = default)
 	{
 		if (isSave)
 		{
@@ -1356,7 +1328,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (_keyboardInputHook.IsRunning)
 		{
-			_keyboardInputHook.StopTracking();
+			await _keyboardInputHook
+				.StopTrackingAsync(token)
+				.ConfigureAwait(false);
 		}
 
 		if (!settings.TrackHotkeys)
@@ -1364,7 +1338,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
+		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy, token);
 	}
 
 	/// <summary>
@@ -1439,7 +1413,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return OverwriteHotkeysResult.SameHotkeys;
 		}
 
-		if (temp.Length > 0 && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
+		if (temp.IsNotEmpty() && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
@@ -1462,7 +1436,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 					.ConfigureAwait(false);
 			}
 
-			if (newHotkeys.Length == 0)
+			if (newHotkeys.IsEmpty())
 			{
 				return OverwriteHotkeysResult.EmptySequence;
 			}
@@ -1544,17 +1518,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.UpdatedDate = updatedDate;
 
 		return true;
-	}
-
-	/// <inheritdoc />
-	public override void SaveCopyHistory()
-	{
-		if (RightSideSheetContent is not CopyHistoryView view)
-		{
-			return;
-		}
-
-		SaveCopyHistory(view.ViewModel);
 	}
 
 	/// <summary>
@@ -1692,6 +1655,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		yield return new(Strings.Updated, dto.UpdatedDate.ToString(format));
 	}
 
+	/// <inheritdoc cref="FileModelDto.IsOpened" />
+	private static bool IsOpened(FileModelDto dto) => dto.IsOpened();
+
 	/// <summary>
 	/// Returns <c>True</c> if file can be edited or executed.
 	/// </summary>
@@ -1699,9 +1665,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		return !IsActionInProgress
 			&& dto is not null
-			&& dto.EncryptionStatus != EncryptionStatus.Encrypted
-			&& !dto.IsEdited
-			&& !dto.IsExecuted;
+			&& !IsOpened(dto);
 	}
 
 	/// <summary>
@@ -1830,15 +1794,28 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
+	/// Closes editing file.
+	/// </summary>
+	private void CloseEditedFile(FileModelDto file)
+	{
+		if (_editFiles is not null)
+		{
+			_editFiles.CloseTab(file);
+		}
+		else
+		{
+			file.IsEdited = false;
+		}
+	}
+
+	/// <summary>
 	/// Closes file that is being edited or executed;
 	/// </summary>
 	private void CloseFile(FileModelDto file)
 	{
 		if (file.IsEdited)
 		{
-			EditFiles
-				.ViewModel
-				.CloseTab(file);
+			CloseEditedFile(file);
 		}
 
 		if (file.IsExecuted)
@@ -1852,14 +1829,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
+	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
+	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
+	{
+		_logger.LogInformation("Show file contents");
+
+		if (!await _entityEcryption
+			.ShowFileContentsAsync(dto)
+			.ConfigureAwait(true))
+		{
+			return false;
+		}
+
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+
+		return true;
+	}
+
+	/// <summary>
+	/// Switches the right side sheet content.
+	/// </summary>
+	private void SwitchRightSideSheetContent(in RightSideSheetContentType type)
+	{
+		if (RightSideSheetContent == type)
+		{
+			IsRightSideSheetOpened = false;
+
+			return;
+		}
+
+		_logger.LogInformation($"Show {type switch
+		{
+			RightSideSheetContentType.CopyHistory => "copy history",
+			RightSideSheetContentType.ExecutedFiles => "executing files",
+			_ => "unknown"
+		}}");
+
+		RightSideSheetContent = type;
+
+		IsRightSideSheetOpened = true;
+	}
+
 	/// <summary>
 	/// Tries to close edited or executed files if any.
 	/// </summary>
-	private async Task<bool> TryCloseEditedExecutedFilesAsync(
-		FileModelDto[] files,
+	private async Task<bool> TryCloseOpenedFilesAsync(
+		FileModelDto[] openedFiles,
 		CancellationToken token = default)
 	{
-		if (files.Any(x => x.IsEdited || x.IsExecuted))
+		if (openedFiles.IsNotEmpty())
 		{
 			if (!await _dialogService
 				.RequestUserCloseFilesAsync(token)
@@ -1869,8 +1887,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			}
 
 			CloseFiles(
-				files.Where(x => x.IsEdited),
-				files.Where(x => x.IsExecuted));
+				openedFiles.Where(x => x.IsEdited),
+				openedFiles.Where(x => x.IsExecuted));
 		}
 
 		return true;

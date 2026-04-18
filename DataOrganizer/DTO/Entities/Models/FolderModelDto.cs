@@ -1,5 +1,6 @@
 ﻿using DataOrganizer.DTO.Entities.Abstract;
 using Entities.Models;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -83,6 +84,20 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
+	/// Checks self by <see cref="IsPasswordKeeper" /> and returns or tries to find parent
+	/// that returns <c>True</c> on <see cref="IsPasswordKeeper" />.
+	/// </summary>
+	public FolderModelDto? FindPasswordKeeperOrSelf()
+	{
+		if (IsPasswordKeeper())
+		{
+			return this;
+		}
+
+		return FindParent(x => x.IsPasswordKeeper());
+	}
+
+	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
 	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
@@ -137,7 +152,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	public bool IsPasswordKeeper()
 	{
 		return EncryptedDek is { } dek
-			&& dek.Length > 0
+			&& dek.IsNotEmpty()
 			&& !string.IsNullOrEmpty(PasswordHash);
 	}
 	#endregion

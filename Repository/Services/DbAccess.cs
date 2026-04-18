@@ -499,9 +499,18 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_isDisposed = true;
+
+		_semaphore.Dispose();
+
+		_dbContext.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -1122,7 +1131,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(FolderModel[] folders)
 	{
-		if (folders.Length == 0)
+		if (folders.IsEmpty())
 		{
 			return;
 		}
@@ -1137,7 +1146,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(FileModel[] files)
 	{
-		if (files.Length == 0)
+		if (files.IsEmpty())
 		{
 			return;
 		}
@@ -1152,7 +1161,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private void DetachAndDelete(HotkeyModel[] hotkeys)
 	{
-		if (hotkeys.Length == 0)
+		if (hotkeys.IsEmpty())
 		{
 			return;
 		}
@@ -1160,27 +1169,6 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService.Detach(hotkeys);
 
 		_hotkeysRepository.RemoveRange(hotkeys);
-	}
-
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
-	{
-		if (_isDisposed)
-		{
-			return;
-		}
-
-		if (disposing)
-		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
-
-			_dbContext.Dispose();
-		}
-
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
 	}
 
 	/// <summary>

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Views;
@@ -11,11 +12,13 @@ public sealed partial class CopyHistoryView : UserControl
 	#endregion
 
 	#region Constructors
-	public CopyHistoryView(CopyHistoryViewModel viewModel)
+	public CopyHistoryView()
 	{
 		InitializeComponent();
 
-		DataContext = ViewModel = viewModel;
+		DataContext = ViewModel = Ioc
+			.Default
+			.GetRequiredService<CopyHistoryViewModel>();
 	}
 	#endregion
 }

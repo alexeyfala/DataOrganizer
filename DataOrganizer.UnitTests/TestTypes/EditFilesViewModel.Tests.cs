@@ -32,7 +32,7 @@ internal class EditFilesViewModelTests
 		sut.CloseTab(dto);
 
 		// Assert
-		sut.EditFiles
+		sut.Items
 			.Should()
 			.NotContain(dto);
 
@@ -62,7 +62,7 @@ internal class EditFilesViewModelTests
 		sut.OpenInEditor(dto);
 
 		// Assert
-		sut.EditFiles
+		sut.Items
 			.Should()
 			.NotContain(dto);
 	}
@@ -88,13 +88,13 @@ internal class EditFilesViewModelTests
 			.Should()
 			.BeTrue();
 
-		sut.EditFiles
+		sut.Items
 			.Should()
 			.Contain(dto);
 
 		sut.SelectedIndex
 			.Should()
-			.Be(sut.EditFiles.Count - 1);
+			.Be(sut.Items.Count - 1);
 	}
 	#endregion
 }

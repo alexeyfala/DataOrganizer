@@ -1,4 +1,5 @@
 ﻿using Avalonia.Input.Platform;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
 
@@ -8,9 +9,7 @@ namespace DataOrganizer.Interfaces;
 public interface IClipboardService
 {
 	#region Methods
-	/// <summary>
-	/// Tries to get the system clipboard.
-	/// </summary>
-	IClipboard? FindClipboard();
+	/// <inheritdoc cref="ClipboardExtensions.SetTextAsync" />
+	Task<bool> SetTextAsync(string text);
 	#endregion
 }

@@ -48,13 +48,13 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -62,7 +62,7 @@ internal class EntityEcryptionTests
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.EnhancedHashPassword(Arg.Any<string>())
+				.HashPassword(Arg.Any<char[]>())
 				.Returns(AppUtils.CreateRandomString(10));
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -115,13 +115,13 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -277,8 +277,8 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			dbAccess
 				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
@@ -538,13 +538,13 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -563,9 +563,13 @@ internal class EntityEcryptionTests
 		EntityEcryption sut = mock.Create<EntityEcryption>();
 
 		// Act
-		await sut.ShowFileContentsAsync(file);
+		bool result = await sut.ShowFileContentsAsync(file);
 
 		// Assert
+		result
+			.Should()
+			.BeTrue();
+
 		folder.SessionEncryptedDek
 			.Should()
 			.NotBeEmpty();
@@ -597,13 +601,13 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(AppUtils.CreateRandomString(10));
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption
@@ -768,13 +772,13 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(string.Empty)
-				.Returns(string.Empty);
+				.RequestUserPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EnhancedVerify(Arg.Any<string>(), Arg.Any<string>())
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
 				.Returns(true);
 
 			encryption

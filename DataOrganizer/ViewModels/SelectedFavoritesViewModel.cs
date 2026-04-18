@@ -195,15 +195,15 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	#region Constructors
 	public SelectedFavoritesViewModel(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger) : base(
 			app,
+			clipboard,
 			dbAccess,
 			dialogService,
-			encryption,
 			entityEcryption,
 			logger)
 	{
@@ -261,6 +261,8 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
 		_categoriesFilter.Dispose();
 
 		_favoritesFilter.Dispose();

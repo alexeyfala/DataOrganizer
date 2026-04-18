@@ -162,8 +162,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -183,32 +181,6 @@ internal class EditorViewModelTests
 		await entityEcryption
 			.Received()
 			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.ClearExecutedFilesView" />.
-	/// </summary>
-	[Test]
-	public void ClearExecutedFilesView_Clears_ExecutedFilesView()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsRightSideSheetOpened = true;
-
-		ExecutedFilesView view = mock.Create<ExecutedFilesView>();
-
-		sut.RightSideSheetContent = view;
-
-		// Act
-		sut.ClearExecutedFilesView();
-
-		// Assert
-		view.ViewModel.ExecutedFiles
-			.Should()
-			.BeNull();
 	}
 
 	/// <summary>
@@ -264,7 +236,7 @@ internal class EditorViewModelTests
 
 		executedFiles.ForEach(x => x.IsExecuted = true);
 
-		using AutoMock mock = AutoMock.GetLoose(RegisterEditFilesView);
+		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
@@ -337,8 +309,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -485,90 +455,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DisplayCopyHistory" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void DisplayCopyHistory_Displays_CopyHistoryView_In_Right_Side_Sheet()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<CopyHistoryView>()
-				.Returns(mock.Create<CopyHistoryView>());
-
-			builder.RegisterInstance(viewFactory);
-
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.DisplayCopyHistory();
-
-		// Assert
-		sut.RightSideSheetContent
-			.Should()
-			.BeOfType<CopyHistoryView>();
-
-		sut.RightSideSheetContentType
-			.Should()
-			.Be(EditorRightSideSheetContentType.CopyHistory);
-
-		sut.IsRightSideSheetOpened
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.DisplayExecutedFiles" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void DisplayExecutedFiles_Displays_ExecutedFilesView_In_Right_Side_Sheet()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<ExecutedFilesView>()
-				.Returns(mock.Create<ExecutedFilesView>());
-
-			builder.RegisterInstance(viewFactory);
-
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		sut.DisplayExecutedFiles();
-
-		// Assert
-		sut.RightSideSheetContent
-			.Should()
-			.BeOfType<ExecutedFilesView>();
-
-		((ExecutedFilesView)sut.RightSideSheetContent).ViewModel.ExecutedFiles
-			.Should()
-			.BeSameAs(sut.ExecutedFiles);
-
-		sut.RightSideSheetContentType
-			.Should()
-			.Be(EditorRightSideSheetContentType.ExecutedFiles);
-
-		sut.IsRightSideSheetOpened
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
 	/// Test of <see cref="EditorViewModel.EncryptFolder" />.
 	/// </summary>
 	[Test]
@@ -624,8 +510,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -853,10 +737,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandleChangeSettings" />.
+	/// Test of <see cref="EditorViewModel.HandleChangeSettingsAsync" />.
 	/// </summary>
 	[Test]
-	public async Task HandleChangeSettings_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
+	public async Task HandleChangeSettingsAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
 		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
@@ -883,7 +767,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.HandleChangeSettings(isSave, settings);
+		await sut.HandleChangeSettingsAsync(isSave, settings);
 
 		// Assert
 		if (isSave)
@@ -904,13 +788,13 @@ internal class EditorViewModelTests
 
 		}
 
-		hook
-			.Received()
-			.StopTracking();
-
 		await hook
 			.Received()
 			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+
+		await hook
+			.Received()
+			.StopTrackingAsync();
 	}
 
 	/// <summary>
@@ -939,8 +823,6 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -980,8 +862,6 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1037,8 +917,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1088,8 +966,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(dataExchange);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1578,8 +1454,6 @@ internal class EditorViewModelTests
 			.Returns(mock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewLauncher);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1654,8 +1528,6 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEcryption);
-
-			RegisterEditFilesView(builder);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1681,7 +1553,7 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.ShowHotkeysEditor" />.
 	/// </summary>
 	[AvaloniaTest]
-	public void ShowHotkeysEditor_Shows_The_Hotkeys_Editor_View()
+	public async Task ShowHotkeysEditor_Shows_The_Hotkeys_Editor_View()
 	{
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
@@ -1716,11 +1588,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.ShowHotkeysEditor(dto);
-
-		hook
-			.Received()
-			.StopTracking();
+		await sut.ShowHotkeysEditor(dto);
 
 		viewFactory
 			.Received()
@@ -1729,6 +1597,10 @@ internal class EditorViewModelTests
 		view.ViewModel.Buffer
 			.Should()
 			.BeEquivalentTo(dto.Hotkeys.ToCodeMaskPairs());
+
+		await hook
+			.Received()
+			.StopTrackingAsync();
 	}
 
 	/// <summary>
@@ -1766,24 +1638,6 @@ internal class EditorViewModelTests
 		viewFactory
 			.Received()
 			.CreateUserControl<SettingsView>();
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Registers <see cref="EditFilesView" /> in <see cref="ContainerBuilder" />.
-	/// </summary>
-	private static void RegisterEditFilesView(ContainerBuilder builder)
-	{
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		viewFactory
-			.CreateUserControl<EditFilesView>()
-			.Returns(mock.Create<EditFilesView>());
-
-		builder.RegisterInstance(viewFactory);
 	}
 	#endregion
 }

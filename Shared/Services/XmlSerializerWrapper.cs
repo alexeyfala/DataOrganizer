@@ -1,6 +1,7 @@
 ﻿using Shared.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace Shared.Services;
@@ -13,9 +14,15 @@ public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
 	{
 		XmlSerializer serializer = new(typeof(T));
 
-		using StringReader reader = new(xml);
+		using StringReader stringReader = new(xml);
 
-		return (T)serializer.Deserialize(reader)!;
+		using XmlReader xmlReader = XmlReader.Create(stringReader, new XmlReaderSettings
+		{
+			DtdProcessing = DtdProcessing.Prohibit,
+			XmlResolver = null
+		});
+
+		return (T?)serializer.Deserialize(xmlReader);
 	}
 
 	/// <inheritdoc />

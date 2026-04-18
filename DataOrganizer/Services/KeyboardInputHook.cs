@@ -46,7 +46,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	private readonly Application _app;
 
 	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboardService;
+	private readonly IClipboardService _clipboard;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -88,7 +88,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	{
 		_app = app;
 
-		_clipboardService = clipboardService;
+		_clipboard = clipboardService;
 
 		_dbAccess = dbAccess;
 
@@ -122,9 +122,24 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_isDisposed = true;
+
+		_semaphore.Dispose();
+
+		_hook.KeyReleased -= Hook_KeyReleased;
+
+		_hook.Dispose();
+
+		Files.Clear();
+
+		InputStack.Clear();
 	}
 
 	/// <summary>
@@ -207,23 +222,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
-				if (_clipboardService.FindClipboard() is not { } clipboard)
-				{
-					return;
-				}
-
-				if (AppDomain
-					.CurrentDomain
-					.IsRunningFromNUnit())
-				{
-					await clipboard
-						.SetTextAsync(text)
-						.ConfigureAwait(false);
-				}
-				else
-				{
-					_dispatcher.Post(() => _ = clipboard.SetTextAsync(text));
-				}
+				await _clipboard
+					.SetTextAsync(text)
+					.ConfigureAwait(false);
 
 				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 
@@ -281,15 +282,29 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	}
 
 	/// <inheritdoc />
-	public void StopTracking()
+	public async Task StopTrackingAsync(CancellationToken token = default)
 	{
-		_logger.LogInformation("Stop global keyboard input tracking");
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
 
-		Files.Clear();
+			_logger.LogInformation("Stop global keyboard input tracking");
 
-		InputStack.Clear();
+			Files.Clear();
 
-		_hook.Stop();
+			InputStack.Clear();
+
+			_hook.Stop();
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
 	}
 	#endregion
 
@@ -316,39 +331,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			return;
 		}
 
-		faforites.ShowFavorites = true;
-
-		faforites.IsPopupOpen = true;
+		faforites.ShowFavorites();
 	});
-
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
-	{
-		if (_isDisposed)
-		{
-			return;
-		}
-
-		if (disposing)
-		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
-
-			_logger.LogInformation("Dispose global keyboard input tracking hook");
-
-			_hook.KeyReleased -= Hook_KeyReleased;
-
-			Files.Clear();
-
-			InputStack.Clear();
-
-			_hook.Dispose();
-		}
-
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
-	}
 
 	/// <summary>
 	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.

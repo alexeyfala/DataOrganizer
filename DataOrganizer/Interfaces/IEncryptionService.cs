@@ -1,4 +1,5 @@
 ﻿using Repository.DTO;
+using System;
 using System.Collections.Generic;
 
 namespace DataOrganizer.Interfaces;
@@ -35,10 +36,7 @@ public interface IEncryptionService
 	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
-	string EnhancedHashPassword(string password);
-
-	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
-	bool EnhancedVerify(string password, string passwordHash);
+	string HashPassword(char[] password);
 
 	/// <summary>
 	/// Rewraps the DEK (Data Encryption Key) with new password.
@@ -47,5 +45,8 @@ public interface IEncryptionService
 		byte[] wrappedDek,
 		byte[] oldPassword,
 		byte[] newPassword);
+
+	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
+	bool VerifyPassword(char[] password, string hash);
 	#endregion
 }

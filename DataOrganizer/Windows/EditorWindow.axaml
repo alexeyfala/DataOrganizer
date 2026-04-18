@@ -7,6 +7,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -190,7 +191,7 @@
 							<Button
 								Classes="primary"
 								Command="{Binding HideAllFileContentsCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=LockOutline,
+								Content="{materialIcons:MaterialIconTextExt Kind=LockOpenVariantOutline,
 								                                            IconSize={StaticResource ToolBarIconSize}}"
 								ToolTip.Tip="{x:Static prop:Strings.HideTheContentsOfAllFiles}">
 								<Button.Styles>
@@ -348,7 +349,7 @@
 						<ContentControl
 							Grid.Row="0"
 							Grid.Column="2"
-							Content="{Binding EditFiles, Mode=OneWay}" />
+							ContentTemplate="{StaticResource EditFilesTemplate}" />
 
 						<materialControls:SideSheet
 							Grid.Row="0"
@@ -357,7 +358,15 @@
 							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
 							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
-							SideSheetPadding="4.0" />
+							SideSheetPadding="4.0">
+							<materialControls:SideSheet.SideSheetContentTemplate>
+								<helpers:RightSideSheetContentTemplateSelector>
+									<StaticResource ResourceKey="CopyHistoryTemplate" />
+
+									<StaticResource ResourceKey="ExecutedFilesTemplate" />
+								</helpers:RightSideSheetContentTemplateSelector>
+							</materialControls:SideSheet.SideSheetContentTemplate>
+						</materialControls:SideSheet>
 
 						<Grid
 							Grid.Row="1"

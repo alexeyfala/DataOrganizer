@@ -15,6 +15,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +39,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
 
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;
@@ -80,56 +84,95 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
+		char[] oldPassword = await _dialogService
 			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
-			.ConfigureAwait(true) is not { } oldPassword)
+			.ConfigureAwait(false);
+
+		if (oldPassword.IsEmpty())
 		{
 			return;
 		}
 
-		if (!_encryption.EnhancedVerify(oldPassword, folder.PasswordHash))
+		try
 		{
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+			if (!_encryption.VerifyPassword(oldPassword, folder.PasswordHash))
+			{
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
-			return;
+				return;
+			}
+
+			char[] newPassword = await _dialogService
+				.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
+				.ConfigureAwait(false);
+
+			if (newPassword.IsEmpty())
+			{
+				return;
+			}
+
+			try
+			{
+				byte[] oldPasswordBinary = TextHelper
+					.Utf8Encoding
+					.GetBytes(oldPassword);
+
+				byte[] newPasswordBinary = TextHelper
+					.Utf8Encoding
+					.GetBytes(newPassword);
+
+				try
+				{
+					if (_encryption.RewrapDek(
+						folder.EncryptedDek,
+						oldPasswordBinary,
+						newPasswordBinary) is not { } encryptedDek)
+					{
+						return;
+					}
+
+					string passwordHash = _encryption.HashPassword(newPassword);
+
+					PropertyNameValuePair[] properties =
+					[
+						new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
+						new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
+					];
+
+					if (!await _dbAccess.UpdatePropertiesAsync(
+						id: folder.Id,
+						token: token,
+						properties: properties).ConfigureAwait(false))
+					{
+						return;
+					}
+
+					folder.PasswordHash = passwordHash;
+
+					folder.EncryptedDek = encryptedDek;
+
+					_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
+				}
+				finally
+				{
+					oldPasswordBinary.ZeroMemory();
+
+					newPasswordBinary.ZeroMemory();
+				}
+			}
+			finally
+			{
+				MemoryMarshal
+					.AsBytes(newPassword.AsSpan())
+					.ZeroMemory();
+			}
 		}
-
-		if (await _dialogService
-			.RequestUserPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
-			.ConfigureAwait(false) is not { } newPassword)
+		finally
 		{
-			return;
+			MemoryMarshal
+				.AsBytes(oldPassword.AsSpan())
+				.ZeroMemory();
 		}
-
-		if (_encryption.RewrapDek(
-			folder.EncryptedDek,
-			TextHelper.Utf8Encoding.GetBytes(oldPassword),
-			TextHelper.Utf8Encoding.GetBytes(newPassword)) is not { } encryptedDek)
-		{
-			return;
-		}
-
-		string passwordHash = _encryption.EnhancedHashPassword(newPassword);
-
-		PropertyNameValuePair[] properties =
-		[
-			new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-			new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
-		];
-
-		if (!await _dbAccess.UpdatePropertiesAsync(
-			id: folder.Id,
-			token: token,
-			properties: properties).ConfigureAwait(false))
-		{
-			return;
-		}
-
-		folder.PasswordHash = passwordHash;
-
-		folder.EncryptedDek = encryptedDek;
-
-		_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
 	}
 
 	/// <inheritdoc />
@@ -143,9 +186,11 @@ public sealed class EntityEcryption : IEntityEcryption
 			return;
 		}
 
-		if (await _dialogService
+		char[] password = await _dialogService
 			.RequestUserPasswordAsync(Strings.DecryptFiles, token: token)
-			.ConfigureAwait(false) is not { } password)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -154,7 +199,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
@@ -173,51 +218,66 @@ public sealed class EntityEcryption : IEntityEcryption
 				return;
 			}
 
-			if (_encryption.Decrypt(
-				folder.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
-			{
-				return;
-			}
+			byte[] passwordBinary = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
 
 			try
 			{
-				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
-
-				if (!AreContentsValid(result, contents.Length))
+				if (_encryption.Decrypt(
+					folder.EncryptedDek,
+					passwordBinary) is not { } decryptedDek)
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
-
 					return;
 				}
 
-				if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+				try
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+					ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
-					return;
+					if (!AreContentsValid(result, contents.Length))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+						return;
+					}
+
+					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+
+						return;
+					}
+
+					UpdateDatabaseParameters parameters = new()
+					{
+						BackupFilePath = backupFilePath,
+						Contents = result,
+						EncryptedDek = null,
+						Files = files,
+						Folder = folder,
+						NewStatus = EncryptionStatus.None,
+						PasswordHash = null
+					};
+
+					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 				}
-
-				UpdateDatabaseParameters parameters = new()
+				finally
 				{
-					BackupFilePath = backupFilePath,
-					Contents = result,
-					EncryptedDek = null,
-					Files = files,
-					Folder = folder,
-					NewStatus = EncryptionStatus.None,
-					PasswordHash = null
-				};
-
-				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+					decryptedDek.ZeroMemory();
+				}
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(decryptedDek);
+				passwordBinary.ZeroMemory();
 			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -238,7 +298,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
+			decryptedDek.ZeroMemory();
 		}
 	}
 
@@ -248,9 +308,11 @@ public sealed class EntityEcryption : IEntityEcryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		if (await _dialogService
+		char[] password = await _dialogService
 			.RequestUserPasswordAsync(Strings.EncryptFiles, token: token)
-			.ConfigureAwait(false) is not { } password)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -284,40 +346,55 @@ public sealed class EntityEcryption : IEntityEcryption
 					return;
 				}
 
+				byte[] passwordBinary = TextHelper
+					.Utf8Encoding
+					.GetBytes(password);
+
 				if (_encryption.Encrypt(
 					dek,
-					TextHelper.Utf8Encoding.GetBytes(password)) is not { } encryptedDek)
+					passwordBinary) is not { } encryptedDek)
 				{
 					return;
 				}
 
-				if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+				try
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					{
+						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
-					return;
+						return;
+					}
+
+					UpdateDatabaseParameters parameters = new()
+					{
+						BackupFilePath = backupFilePath,
+						Contents = result,
+						EncryptedDek = encryptedDek,
+						Files = files,
+						Folder = folder,
+						NewStatus = EncryptionStatus.Encrypted,
+						PasswordHash = _encryption.HashPassword(password)
+					};
+
+					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
 				}
-
-				UpdateDatabaseParameters parameters = new()
+				finally
 				{
-					BackupFilePath = backupFilePath,
-					Contents = result,
-					EncryptedDek = encryptedDek,
-					Files = files,
-					Folder = folder,
-					NewStatus = EncryptionStatus.Encrypted,
-					PasswordHash = _encryption.EnhancedHashPassword(password)
-				};
-
-				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+					passwordBinary.ZeroMemory();
+				}
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(dek);
+				dek.ZeroMemory();
 			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -338,34 +415,36 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(decryptedDek);
+			decryptedDek.ZeroMemory();
 		}
 	}
 
 	/// <inheritdoc />
 	public byte[] GetSessionId()
 	{
-		if (_sessionId?.Length > 0)
+		lock (_mutex)
 		{
+			if (_sessionId?.IsNotEmpty() == true)
+			{
+				return _sessionId;
+			}
+
+			int length = RandomNumberGenerator.GetInt32(32, 65);
+
+			_sessionId = RandomNumberGenerator.GetBytes(length);
+
 			return _sessionId;
 		}
-
-		_sessionId = RandomNumberGenerator.GetBytes(Random
-			.Shared
-			.Next(32, 65));
-
-		return _sessionId;
 	}
 
 	/// <inheritdoc />
 	public void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (folder.SessionEncryptedDek is not null)
-		{
-			CryptographicOperations.ZeroMemory(folder.SessionEncryptedDek);
+		folder
+			.SessionEncryptedDek?
+			.ZeroMemory();
 
-			folder.SessionEncryptedDek = null;
-		}
+		folder.SessionEncryptedDek = null;
 
 		folder
 			.ToEnumerable()
@@ -383,49 +462,58 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public void ResetSessionId()
 	{
-		if (_sessionId is null)
+		lock (_mutex)
 		{
-			return;
+			if (_sessionId is null)
+			{
+				return;
+			}
+
+			_sessionId.ZeroMemory();
+
+			_sessionId = null;
 		}
-
-		CryptographicOperations.ZeroMemory(_sessionId);
-
-		_sessionId = null;
 	}
 
 	/// <inheritdoc />
-	public async Task ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
+	public async Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
 			|| root.EncryptedDek is null
 			|| root.PasswordHash is null)
 		{
-			return;
+			return false;
 		}
 
-		if (await _dialogService
+		char[] password = await _dialogService
 			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
-			.ConfigureAwait(false) is not { } password)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
-			return;
+			return false;
 		}
 
 		try
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
+			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
-				return;
+				return false;
 			}
+
+			byte[] passwordBinary = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
 
 			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek)
+				passwordBinary) is not { } dek)
 			{
-				return;
+				return false;
 			}
 
 			try
@@ -434,20 +522,28 @@ public sealed class EntityEcryption : IEntityEcryption
 					dek,
 					GetSessionId()) is not { } sessionEncryptedDek)
 				{
-					return;
+					return false;
 				}
 
 				root.SessionEncryptedDek = sessionEncryptedDek;
 
 				file.EncryptionStatus = EncryptionStatus.Decrypted;
+
+				return true;
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(dek);
+				passwordBinary.ZeroMemory();
+
+				dek.ZeroMemory();
 			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -455,14 +551,16 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// <inheritdoc />
 	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		if (folder.PasswordHash is null)
+		if (folder.FindPasswordKeeperOrSelf() is not { } root || root.PasswordHash is null)
 		{
 			return;
 		}
 
-		if (await _dialogService
+		char[] password = await _dialogService
 			.RequestUserPasswordAsync(Strings.ShowContents, token: token)
-			.ConfigureAwait(false) is not { } password)
+			.ConfigureAwait(false);
+
+		if (password.IsEmpty())
 		{
 			return;
 		}
@@ -471,22 +569,37 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
 
-			if (!_encryption.EnhancedVerify(password, folder.PasswordHash))
+			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
 
 				return;
 			}
 
-			if (ShowFolderContents(folder, password))
-			{
-				return;
-			}
+			byte[] passwordBinary = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+			try
+			{
+				if (ShowFolderContents(folder, passwordBinary))
+				{
+					return;
+				}
+
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+			}
+			finally
+			{
+				passwordBinary.ZeroMemory();
+			}
 		}
 		finally
 		{
+			MemoryMarshal
+				.AsBytes(password.AsSpan())
+				.ZeroMemory();
+
 			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
 		}
 	}
@@ -508,50 +621,67 @@ public sealed class EntityEcryption : IEntityEcryption
 	{
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
-			if (await _dialogService
+			char[] password = await _dialogService
 				.RequestUserPasswordAsync(header, token: token)
-				.ConfigureAwait(false) is not { } password)
+				.ConfigureAwait(false);
+
+			if (password.IsEmpty())
 			{
-				return null;
-			}
-
-			if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-				|| root.EncryptedDek is null
-				|| root.PasswordHash is null)
-			{
-				return null;
-			}
-
-			if (!_encryption.EnhancedVerify(password, root.PasswordHash))
-			{
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
-
-				return null;
-			}
-
-			if (_encryption.Decrypt(
-				root.EncryptedDek,
-				TextHelper.Utf8Encoding.GetBytes(password)) is not { } decryptedDek)
-			{
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
-
 				return null;
 			}
 
 			try
 			{
-				if (_encryption.Decrypt(contents, decryptedDek) is not { } decrypted)
+				if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
+					|| root.EncryptedDek is null
+					|| root.PasswordHash is null)
+				{
+					return null;
+				}
+
+				if (!_encryption.VerifyPassword(password, root.PasswordHash))
+				{
+					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+
+					return null;
+				}
+
+				byte[] passwordBinary = TextHelper
+					.Utf8Encoding
+					.GetBytes(password);
+
+				if (_encryption.Decrypt(
+					root.EncryptedDek,
+					passwordBinary) is not { } decryptedDek)
 				{
 					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 					return null;
 				}
 
-				return decrypted;
+				try
+				{
+					if (_encryption.Decrypt(contents, decryptedDek) is not { } decrypted)
+					{
+						_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+						return null;
+					}
+
+					return decrypted;
+				}
+				finally
+				{
+					passwordBinary.ZeroMemory();
+
+					decryptedDek.ZeroMemory();
+				}
 			}
 			finally
 			{
-				CryptographicOperations.ZeroMemory(decryptedDek);
+				MemoryMarshal
+					.AsBytes(password.AsSpan())
+					.ZeroMemory();
 			}
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
@@ -683,22 +813,22 @@ public sealed class EntityEcryption : IEntityEcryption
 	/// </summary>
 	private bool ShowFolderContents(
 		FolderModelDto folder,
-		string password)
+		byte[] password)
 	{
-		FolderModelDto? root = folder.IsPasswordKeeper()
-			? folder
-			: folder.FindParent(x => x.IsPasswordKeeper());
-
-		if (root is null
+		if (folder.FindPasswordKeeperOrSelf() is not { } root
 			|| root.EncryptedDek is null
-			|| _encryption.Decrypt(root.EncryptedDek, TextHelper.Utf8Encoding.GetBytes(password)) is not { } dek
-			|| _encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
+			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek)
 		{
 			return false;
 		}
 
 		try
 		{
+			if (_encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
+			{
+				return false;
+			}
+
 			root.SessionEncryptedDek = sessionEncryptedDek;
 
 			folder
@@ -710,7 +840,7 @@ public sealed class EntityEcryption : IEntityEcryption
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(dek);
+			dek.ZeroMemory();
 		}
 	}
 	#endregion

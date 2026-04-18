@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
@@ -49,6 +48,9 @@ public sealed class App : Application
 	/// A window designed for displaying logs.
 	/// </summary>
 	private ConsoleWindow? _console;
+
+	/// <inheritdoc cref="ServiceProvider" />
+	private ServiceProvider? _serviceProvider;
 	#endregion
 
 	#region Event Handlers
@@ -57,13 +59,13 @@ public sealed class App : Application
 		object? sender,
 		ControlledApplicationLifetimeExitEventArgs e)
 	{
+		_serviceProvider?.Dispose();
+
 		_timer.Stop();
 
 		Ioc.Default
 			.GetRequiredService<ILogger>()
 			.LogInformationWithTemplate($"App life time: {_timer.GetElapsedTime()}, exit with code: {e.ApplicationExitCode}{Environment.NewLine}{Environment.NewLine}");
-
-		// TODO: Dispose services.
 	}
 	#endregion
 
@@ -73,13 +75,6 @@ public sealed class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		// Line below is needed to remove Avalonia data validation.
-		// Without this line you will get duplicate validations from both Avalonia and CT.
-		if (BindingPlugins.DataValidators.Count > 0)
-		{
-			BindingPlugins.DataValidators.RemoveAt(0);
-		}
-
 		base.OnFrameworkInitializationCompleted();
 
 		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -93,7 +88,9 @@ public sealed class App : Application
 
 		_timer.Start();
 
-		_ = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()))
+		_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+
+		_ = _serviceProvider
 			.GetRequiredService<IAppController>()
 			.LaunchAppAsync(_console);
 	}
@@ -105,7 +102,7 @@ public sealed class App : Application
 	/// </summary>
 	private static string[] AddDebugCommandLineArgs(string[] args)
 	{
-		if (AppUtils.IsDebugMode())
+		if (AppUtils.IsDebug)
 		{
 			return args
 				//.AddHelpArg()
@@ -210,8 +207,6 @@ public sealed class App : Application
 			}
 		};
 
-		ViewLauncher.AttachDevTools(window);
-
 		return window;
 	}
 
@@ -242,7 +237,7 @@ public sealed class App : Application
 				DefaultTimeout = 30,
 				Pooling = true
 			};
-			
+
 			builder.UseSqlite(connectionBuilder.ToString());
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();
@@ -360,6 +355,7 @@ public sealed class App : Application
 		#endregion
 
 		#region ViewModels
+		services.AddTransient<BooleanAsyncResultViewModel>();
 		services.AddTransient<ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
@@ -367,13 +363,11 @@ public sealed class App : Application
 		services.AddTransient<EditorViewModel>();
 		services.AddTransient<EmbeddedFileEditorViewModel>();
 		services.AddTransient<EntityCreationViewModel>();
-		services.AddTransient<ExecutedFilesViewModel>();
 		services.AddTransient<FavoritesViewModel>();
 		services.AddTransient<HotkeysEditorViewModel>();
+		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
-		services.AddTransient<ImportListSelectorViewModel>();
-		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
@@ -385,19 +379,16 @@ public sealed class App : Application
 		services.AddTransient<ConsoleWindow>();
 		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
-		services.AddTransient<EditFilesView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
 		services.AddTransient<EntityCreationView>();
-		services.AddTransient<ExecutedFilesView>();
 		services.AddTransient<FavoritesWindow>();
 		services.AddTransient<HotkeysEditorView>();
+		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
-		services.AddTransient<SelectedFavoritesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
 		services.AddTransient<YesNoCancelBox>();

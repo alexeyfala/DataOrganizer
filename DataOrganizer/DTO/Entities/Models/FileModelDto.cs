@@ -3,6 +3,7 @@ using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Extensions;
 using Entities.Models;
 using Repository.DTO;
+using Shared.Extensions;
 using Shared.Properties;
 using System.Collections.ObjectModel;
 
@@ -54,13 +55,18 @@ public partial class FileModelDto : ExplorerModelBaseDto
 
 	#region Methods
 	/// <summary>
+	/// Returns <c>True</c> if <see cref="IsEdited" /> == <c>True</c> or <see cref="IsExecuted" /> == <c>True</c>.
+	/// </summary>
+	public bool IsOpened() => IsEdited || IsExecuted;
+
+	/// <summary>
 	/// Sets <see cref="HotkeysToolTip" /> according to <see cref="Hotkeys" />.
 	/// </summary>
 	public void SetHotkeysToolTip()
 	{
 		CodeMaskPair[] hotkeys = [.. Hotkeys.ToCodeMaskPairs()];
 
-		HotkeysToolTip = hotkeys.Length > 0
+		HotkeysToolTip = hotkeys.IsNotEmpty()
 			? $"{Strings.Hotkeys}: {hotkeys.GetHotkeysPresentation()}"
 			: null;
 	}

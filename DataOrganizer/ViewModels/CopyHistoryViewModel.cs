@@ -87,15 +87,15 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
+		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEncryptionService encryption,
 		IEntityEcryption entityEcryption,
 		ILogger logger) : base(
 			app,
+			clipboard,
 			dbAccess,
 			dialogService,
-			encryption,
 			entityEcryption,
 			logger)
 	{
@@ -129,7 +129,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		_filter.Clear();
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_filter.Dispose();
 
 		SelectedItem = null;
 	}

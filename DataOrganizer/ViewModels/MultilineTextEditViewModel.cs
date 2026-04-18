@@ -10,7 +10,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="MultilineTextEditView" />.
 /// </summary>
-public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewModelBase
+public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewModel
 {
 	#region Auto-Generated Properties
 	/// <summary>

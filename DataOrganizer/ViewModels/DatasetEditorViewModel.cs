@@ -58,7 +58,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		try
 		{
@@ -75,7 +75,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			if (result
 				.Contents
-				.Length == 0)
+				.IsEmpty())
 			{
 				return;
 			}
@@ -89,36 +89,43 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			string json = TextHelper
-				.Utf8Encoding
-				.GetString(output);
-
-			Records.AddRange(_jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(json)
-				.AsNotNull());
-
-			if (scrollViewer is null)
+			try
 			{
-				return;
+				string json = TextHelper
+					.Utf8Encoding
+					.GetString(output);
+
+				Records.AddRange(_jsonSerializer
+					.Deserialize<DatasetRecordBase[]>(json)
+					.AsNotNull());
+
+				if (scrollViewer is null)
+				{
+					return;
+				}
+
+				// Virtualization is now disabled.
+				await scrollViewer
+					.WaitVirtualizingStackPanelIsLoadedAsync()
+					.ConfigureAwait(true);
+
+				await InitializePropertiesAsync(scrollViewer).ConfigureAwait(true);
+
+				// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
+				await Task
+					.Delay(300)
+					.ConfigureAwait(true);
+
+				Observable.FromEventPattern<ScrollChangedEventArgs>(
+					x => scrollViewer.ScrollChanged += x,
+					x => scrollViewer.ScrollChanged -= x)
+					.Subscribe(ScrollViewer_ScrollChanged)
+					.DisposeWith(_disposables);
 			}
-
-			// Virtualization is now disabled.
-			await scrollViewer
-				.WaitVirtualizingStackPanelIsLoadedAsync()
-				.ConfigureAwait(true);
-
-			await InitializePropertiesAsync(scrollViewer).ConfigureAwait(true);
-
-			// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
-			await Task
-				.Delay(300)
-				.ConfigureAwait(true);
-
-			Observable.FromEventPattern<ScrollChangedEventArgs>(
-				x => scrollViewer.ScrollChanged += x,
-				x => scrollViewer.ScrollChanged -= x)
-				.Subscribe(ScrollViewer_ScrollChanged)
-				.DisposeWith(_disposables);
+			finally
+			{
+				output.ZeroMemory();
+			}
 		}
 		catch (Exception ex)
 		{
@@ -242,23 +249,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Copies <see cref="KeyValueRecord" /> key and value to system clipboard.
 	/// </summary>
 	[RelayCommand]
-	private Task CopyKeyValueToClipboard(KeyValueRecord? record)
+	private async Task CopyKeyValueToClipboard(KeyValueRecord? record)
 	{
-		if (record is null || _clipboardService.FindClipboard() is not { } clipboard)
+		if (record is null || !await _clipboard
+			.SetTextAsync($"{record.Key}    {record.Value}")
+			.ConfigureAwait(true))
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		try
-		{
-			return clipboard.SetTextAsync($"{record.Key}    {record.Value}");
-		}
-		finally
-		{
-			record.IsHighlight = true;
+		record.IsHighlight = true;
 
-			record.IsHighlight = false;
-		}
+		record.IsHighlight = false;
 	}
 
 	/// <summary>
@@ -595,7 +597,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Data
 	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboardService;
+	private readonly IClipboardService _clipboard;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -612,7 +614,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		ILogger logger,
 		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
 	{
-		_clipboardService = clipboardService;
+		_clipboard = clipboardService;
 
 		_viewFactory = viewFactory;
 	}
@@ -716,7 +718,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				item
 					.Children
-					.AddRange(CreateRandomRecords(eachTypes, --levels));
+					.AddRange(CreateRandomRecords(eachTypes, levels - 1));
 			}
 
 			yield return item;
@@ -879,7 +881,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.OfType<RecordsGroup>()
 			.Where(x => x.IsExpanded != expand)];
 
-		if (groups.Length == 0)
+		if (groups.IsEmpty())
 		{
 			return Task.CompletedTask;
 		}
@@ -929,7 +931,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.OfType<ValueRecord>()
 			.Where(x => x.IsHidden != hide)];
 
-		if (records.Length == 0)
+		if (records.IsEmpty())
 		{
 			return Task.CompletedTask;
 		}
@@ -1111,7 +1113,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
-	private Task SaveContentsAsync(CancellationToken token = default)
+	private async Task SaveContentsAsync(CancellationToken token = default)
 	{
 		byte[] contents = TextHelper
 			.Utf8Encoding
@@ -1121,12 +1123,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
 
-			return Task.CompletedTask;
+			return;
 		}
 
-		return SaveContentsAsync(
-			output,
-			token: token);
+		try
+		{
+			await SaveContentsAsync(
+				output,
+				token: token).ConfigureAwait(false);
+		}
+		finally
+		{
+			contents.ZeroMemory();
+
+			output.ZeroMemory();
+		}
 	}
 	#endregion
 }

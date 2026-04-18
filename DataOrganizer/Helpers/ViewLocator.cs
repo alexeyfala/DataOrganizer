@@ -10,6 +10,7 @@ using DataOrganizer.Views;
 using Entities.Enums;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Helpers;
 
@@ -46,57 +47,18 @@ internal sealed class ViewLocator : IDataTemplate
 	/// <inheritdoc />
 	public Control? Build(object? param)
 	{
-		if (param is FileModelDto file && file.IsEdited)
+		if (param is not null && _cache.TryGetValue(param, out Control? value))
 		{
-			if (_cache.TryGetValue(file, out Control? value))
-			{
-				return value;
-			}
+			return value;
+		}
 
-			if (file.EntityType == EntityType.File)
-			{
-				EmbeddedFileEditorView view = _viewFactory.CreateUserControl<EmbeddedFileEditorView>();
+		if (param is FileModelDto file
+			&& file.IsEdited
+			&& CreateEditingFileControl(file, out Control? control))
+		{
+			_cache.Add(param, control);
 
-				Initialize(view.ViewModel);
-
-				_cache.Add(file, view);
-
-				return view;
-			}
-			else if (file.EntityType == EntityType.DataSet)
-			{
-				DatasetEditorView view = _viewFactory.CreateUserControl<DatasetEditorView>();
-
-				Initialize(view.ViewModel);
-
-				_cache.Add(file, view);
-
-				return view;
-			}
-
-			void Initialize(EmbeddedEditorViewModelBase viewModel)
-			{
-				if (file.EncryptionStatus == Enums.EncryptionStatus.Decrypted
-					&& file.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } sessionEncryptedDek)
-				{
-					// It is important not to pass a reference to the array.
-					viewModel.SessionEncryptedDek = [.. sessionEncryptedDek];
-				}
-
-				viewModel.FileId = file.Id;
-
-				viewModel.SetPropertiesCallback = SetProperties;
-
-				viewModel.SetUpdatedDateCallback = SetUpdatedDate;
-
-				viewModel.InitialProperties = file.Properties;
-
-				viewModel.Initialize();
-			}
-
-			void SetProperties(string properties) => file.Properties = properties;
-
-			void SetUpdatedDate(DateTime updatedDate) => file.UpdatedDate = updatedDate;
+			return control;
 		}
 
 		return GetPlugControl(param?.GetType().Name);
@@ -116,5 +78,64 @@ internal sealed class ViewLocator : IDataTemplate
 		Text = "Not found view for: " + typeName,
 		VerticalAlignment = VerticalAlignment.Center
 	};
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Creates a control for editing a file.
+	/// </summary>
+	private static bool CreateEditingFileControl(
+		FileModelDto file,
+		[NotNullWhen(true)] out Control? control)
+	{
+		control = null;
+
+		if (file.EntityType == EntityType.File)
+		{
+			EmbeddedFileEditorView view = _viewFactory.CreateUserControl<EmbeddedFileEditorView>();
+
+			Initialize(view.ViewModel);
+
+			control = view;
+
+			return true;
+		}
+		else if (file.EntityType == EntityType.DataSet)
+		{
+			DatasetEditorView view = _viewFactory.CreateUserControl<DatasetEditorView>();
+
+			Initialize(view.ViewModel);
+
+			control = view;
+
+			return true;
+		}
+
+		return false;
+
+		void Initialize(EmbeddedEditorViewModelBase viewModel)
+		{
+			if (file.EncryptionStatus == Enums.EncryptionStatus.Decrypted
+				&& file.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } sessionEncryptedDek)
+			{
+				// It is important not to pass a reference to the array.
+				viewModel.SessionEncryptedDek = [.. sessionEncryptedDek];
+			}
+
+			viewModel.FileId = file.Id;
+
+			viewModel.SetPropertiesCallback = SetProperties;
+
+			viewModel.SetUpdatedDateCallback = SetUpdatedDate;
+
+			viewModel.InitialProperties = file.Properties;
+
+			viewModel.Initialize();
+		}
+
+		void SetProperties(string properties) => file.Properties = properties;
+
+		void SetUpdatedDate(DateTime updatedDate) => file.UpdatedDate = updatedDate;
+	}
 	#endregion
 }

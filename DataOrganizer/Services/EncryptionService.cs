@@ -1,4 +1,6 @@
-﻿using DataOrganizer.Interfaces;
+﻿using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using NSec.Cryptography;
 using Repository.DTO;
 using Serilog;
@@ -16,7 +18,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Salt size.
 	/// </summary>
-	private const int _saltSize = 16;
+	private const int SaltSize = 16;
 
 	/// <summary>
 	/// The encryption algorithm used.
@@ -40,7 +42,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		try
 		{
-			byte[] salt = new byte[_saltSize];
+			byte[] salt = new byte[SaltSize];
 
 			byte[] nonce = new byte[_algorithm.NonceSize];
 
@@ -94,7 +96,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		try
 		{
-			byte[] salt = RandomNumberGenerator.GetBytes(_saltSize);
+			byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
 			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
 
@@ -146,10 +148,19 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public string EnhancedHashPassword(string password) => BC.EnhancedHashPassword(password);
+	public string HashPassword(char[] password)
+	{
+		string temp = new(password);
 
-	/// <inheritdoc />
-	public bool EnhancedVerify(string password, string passwordHash) => BC.EnhancedVerify(password, passwordHash);
+		try
+		{
+			return BC.EnhancedHashPassword(temp);
+		}
+		finally
+		{
+			SecureStringHelper.WipeString(temp);
+		}
+	}
 
 	/// <inheritdoc />
 	public byte[]? RewrapDek(
@@ -168,7 +179,22 @@ public sealed class EncryptionService : IEncryptionService
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(dek);
+			dek.ZeroMemory();
+		}
+	}
+
+	/// <inheritdoc />
+	public bool VerifyPassword(char[] password, string hash)
+	{
+		string temp = new(password);
+
+		try
+		{
+			return BC.EnhancedVerify(temp, hash);
+		}
+		finally
+		{
+			SecureStringHelper.WipeString(temp);
 		}
 	}
 	#endregion
@@ -197,7 +223,7 @@ public sealed class EncryptionService : IEncryptionService
 		}
 		finally
 		{
-			CryptographicOperations.ZeroMemory(blob);
+			blob.ZeroMemory();
 		}
 	}
 

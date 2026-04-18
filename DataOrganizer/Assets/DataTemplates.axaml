@@ -17,6 +17,8 @@
 
 	<Thickness x:Key="RecordPadding">4.0</Thickness>
 
+	<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
+
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
@@ -164,9 +166,9 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Grid.Resources>
-				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
 				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
 				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
+				<converters:FileIsOpenedToTrueConverter x:Key="FileIsOpenedToTrueConverter" />
 				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 			</Grid.Resources>
@@ -227,6 +229,14 @@
 							Header="{x:Static prop:Strings.OpenInOS}"
 							Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
 							IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseOpenedFileCommand}"
+							CommandParameter="{Binding}"
+							Header="{x:Static prop:Strings.Close}"
+							Icon="Close"
+							IconForeground="{StaticResource WarningBrush}"
+							IsVisible="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToTrueConverter}}" />
 
 						<Separator />
 
@@ -341,7 +351,7 @@
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContentType, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
+				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
 		</StackPanel>
@@ -407,19 +417,29 @@
 	<DataTemplate
 		x:Key="EditedFileTabControlHeaderTemplate"
 		x:DataType="models:FileModelDto">
-		<StackPanel Orientation="Horizontal">
+		<StackPanel
+			Orientation="Horizontal"
+			Spacing="10.0">
 			<TextBlock
-				Margin="10.0,0.0"
+				Margin="10.0,0.0,0.0,0.0"
 				VerticalAlignment="Center"
 				Text="{Binding Name, Mode=OneWay}" />
 
+			<materialIcons:MaterialIcon
+				Background="Transparent"
+				Foreground="{StaticResource WarningBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
+				Kind="LockOpenVariantOutline"
+				ToolTip.Tip="{x:Static prop:Strings.ContentIsDecrypted}" />
+
 			<Button
-				Margin="6.0,0.0"
+				Margin="0.0,0.0,10.0,0.0"
 				Padding="0.0"
 				Classes="primary"
 				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
-				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize=20.0}"
 				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
@@ -970,5 +990,49 @@
 				Grid.Column="2"
 				Text="{Binding Value, Mode=OneTime}" />
 		</Grid>
+	</DataTemplate>
+
+	<!-- EditFilesTemplate -->
+	<DataTemplate x:Key="EditFilesTemplate">
+		<views:EditFilesView x:Name="View">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditFilesViewLoadedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:EditFilesView>
+	</DataTemplate>
+
+	<!-- CopyHistoryTemplate -->
+	<DataTemplate x:Key="CopyHistoryTemplate">
+		<views:CopyHistoryView x:Name="View">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((abstract:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:CopyHistoryView>
+	</DataTemplate>
+
+	<!-- ExecutedFilesTemplate -->
+	<DataTemplate x:Key="ExecutedFilesTemplate">
+		<views:ExecutedFilesView />
+	</DataTemplate>
+
+	<!-- SelectedFavoritesViewTemplate -->
+	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
+		<views:SelectedFavoritesView x:Name="View">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:SelectedFavoritesView>
 	</DataTemplate>
 </ResourceDictionary>

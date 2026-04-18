@@ -86,23 +86,20 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
-			if (!_fileSystem.IsFileExists(info.FilePath))
-			{
-				_logger.LogError($@"The file with id ""{id}"" does not exist ""{info.FilePath}""");
+			info
+				.Cancellation
+				.Cancel();
 
+			info
+				.Cancellation
+				.Dispose();
+
+			if (!TryKillProcess(
+				id,
+				info.ProcessId,
+				info.FilePath))
+			{
 				return;
-			}
-
-			if (info.ProcessId.IsNotDefault() && _processUtils.IsProcessExists(info.ProcessId))
-			{
-				try
-				{
-					_processUtils.KillProcess(info.ProcessId);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
 			}
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
@@ -116,11 +113,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
 			}
 
-			_fileSystem.SetFileReadOnly(info.FilePath, false);
-
-			_fileSystem.EraseAndDeleteFile(info.FilePath);
-
-			_fileSystem.DeleteDirectory(info.DirectoryPath);
+			TryDeleteFile(info.FilePath, info.DirectoryPath);
 		}
 		catch (Exception ex)
 		{
@@ -140,9 +133,39 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		Dispose(disposing: true);
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		GC.SuppressFinalize(this);
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_isDisposed = true;
+
+		_executedFiles.ForEach(pair =>
+		{
+			if (pair.Value is not { } info)
+			{
+				return;
+			}
+
+			info
+				.Cancellation
+				.Cancel();
+
+			info
+				.Cancellation
+				.Dispose();
+
+			if (!TryKillProcess(pair.Key, info.ProcessId, info.FilePath))
+			{
+				return;
+			}
+
+			TryDeleteFile(info.FilePath, info.DirectoryPath);
+		});
+
+		_semaphore.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -178,15 +201,16 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			_processUtils.StartProcess(filePath, out int processId);
 
+			CancellationTokenSource cancellation = new();
+
 			_executedFiles.TryAdd(
 				parameters.File.Id,
-				new(filePath, directoryPath, processId));
+				new(cancellation, filePath, directoryPath, processId));
 
 			if (!parameters.IsReadOnly)
 			{
 				TrackChangesParameters trackParameters = new()
 				{
-					Condition = _executedFiles.ContainsKey,
 					Contents = parameters.Contents,
 					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
@@ -195,7 +219,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					ViewModel = parameters.ViewModel
 				};
 
-				_ = _changeTracker.TrackChangesAsync(trackParameters, token);
+				_ = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
 			}
 
 			_logger.LogInformation(
@@ -218,23 +242,53 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Service
-	/// <inheritdoc cref="Dispose()" />
-	private void Dispose(bool disposing)
+	/// <summary>
+	/// Tries to delete a file and the folder containing it.
+	/// </summary>
+	private void TryDeleteFile(string filePath, string directoryPath)
 	{
-		if (_isDisposed)
+		try
 		{
-			return;
+			_fileSystem.SetFileReadOnly(filePath, false);
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+
+			_fileSystem.DeleteDirectory(directoryPath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> if the file is exists and tries to kill the process of it.
+	/// </summary>
+	private bool TryKillProcess(
+		in Guid fileId,
+		in int processId,
+		string filePath)
+	{
+		if (!_fileSystem.IsFileExists(filePath))
+		{
+			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""");
+
+			return false;
 		}
 
-		if (disposing)
+		if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
 		{
-			// Dispose managed state (managed objects)
-			_semaphore.Dispose();
+			try
+			{
+				_processUtils.KillProcess(processId);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
 		}
 
-		// Free unmanaged resources (unmanaged objects) and override finalizer
-		// Set large fields to null
-		_isDisposed = true;
+		return true;
 	}
 	#endregion
 }

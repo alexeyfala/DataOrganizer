@@ -84,9 +84,6 @@ internal sealed partial class IconsBlock : UserControl
 	#endregion
 
 	#region Constructors
-	public IconsBlock()
-	{
-		InitializeComponent();
-	}
+	public IconsBlock() => InitializeComponent();
 	#endregion
 }

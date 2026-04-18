@@ -15,12 +15,7 @@ internal sealed class CloseAllExecutedFilesButtonVisibilityConverter : IValueCon
 		object? parameter,
 		CultureInfo culture)
 	{
-		if (value is EditorRightSideSheetContentType type && type == EditorRightSideSheetContentType.ExecutedFiles)
-		{
-			return true;
-		}
-
-		return false;
+		return value is RightSideSheetContentType type && type == RightSideSheetContentType.ExecutedFiles;
 	}
 
 	/// <inheritdoc />

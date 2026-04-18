@@ -115,7 +115,7 @@ public class ViewLauncher : IViewLauncher
 
 		if (window
 			.ViewModel
-			.RightSideSheetContentType == EditorRightSideSheetContentType.CopyHistory)
+			.RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			window
 				.ViewModel
@@ -139,17 +139,13 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(FavoritesWindow)}"" and saving ""{nameof(FavoritesWindowSettings)}""");
 
-		if (window
+		if (window.ViewModel.IsShutdown && window
 			.ViewModel
 			.IsPopupFixed)
 		{
 			window
 				.ViewModel
-				.SaveCopyHistory();
-
-			window
-				.ViewModel
-				.SaveFavorites();
+				.SaveContent();
 		}
 
 		_ = SaveFavoritesSettingsAsync(window);
@@ -174,17 +170,9 @@ public class ViewLauncher : IViewLauncher
 			.ViewModel
 			.AddHierarchy(hierarchy);
 
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			window
-				.ViewModel
-				.EditFiles
-				.ViewModel
-				.EditFiles
-				.AddRange(editFiles);
-		}
+		window
+			.ViewModel
+			.AddEditedFiles(editFiles);
 
 		window
 			.ViewModel
@@ -251,8 +239,6 @@ public class ViewLauncher : IViewLauncher
 		window.Closing += EditorWindow_Closing;
 
 		window.PropertyChanged += EditorWindow_PropertyChanged;
-
-		AttachDevTools(window);
 
 		return window;
 	}
@@ -442,19 +428,6 @@ public class ViewLauncher : IViewLauncher
 				.Dispose();
 		}
 	}
-
-	/// <summary>
-	/// Adds developer tools to the window that can be opened by pressing F12 while in debug mode.
-	/// </summary>
-	/// <remarks>
-	/// Nuget: Avalonia.Diagnostics
-	/// </remarks>
-	internal static void AttachDevTools(Window window)
-	{
-#if DEBUG
-		window.AttachDevTools();
-#endif
-	}
 	#endregion
 
 	#region Service
@@ -536,7 +509,7 @@ public class ViewLauncher : IViewLauncher
 			.GetFilesBy(x => x.IsExecuted)
 			.Select(x => x.Id)];
 
-		if (executedFiles.Length > 0)
+		if (executedFiles.IsNotEmpty())
 		{
 			await executedFiles
 				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))

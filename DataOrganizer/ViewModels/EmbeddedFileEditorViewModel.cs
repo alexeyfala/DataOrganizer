@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
@@ -23,6 +24,7 @@ using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -74,11 +76,16 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
+		bool initialIsReadOnly = IsReadOnly;
+
+		// At the time of initialization, prohibit making changes.
+		editor.IsReadOnly = true;
+
 		_editor = editor;
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(FileId)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		try
 		{
@@ -99,50 +106,67 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				.Utf8Encoding
 				.GetString(output);
 
-			TextEditorHelper.SubscribePointerWheelChanged(
-				editor,
-				() => FontSize,
-				() => FontSize);
+			try
+			{
+				TextEditorHelper.SubscribePointerWheelChanged(
+					editor,
+					() => FontSize,
+					() => FontSize);
 
-			ApplyEditorSettings(editor);
+				ApplyEditorSettings(editor);
 
-			await InitializePropertiesAsync(editor).ConfigureAwait(false);
+				await InitializePropertiesAsync(editor).ConfigureAwait(true);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextChanged += x,
-				x => editor.TextChanged -= x)
-				.Subscribe(Editor_TextChanged)
-				.DisposeWith(_disposables);
+				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextArea.Caret.PositionChanged += x,
-				x => editor.TextArea.Caret.PositionChanged -= x)
-				.Subscribe(Editor_PropertyChanged)
-				.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextChanged += x,
+					x => editor.TextChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_TextChanged)
+					.DisposeWith(_disposables);
 
-			Observable.FromEventPattern<EventHandler, EventArgs>(
-				x => editor.TextArea.SelectionChanged += x,
-				x => editor.TextArea.SelectionChanged -= x)
-				.Subscribe(Editor_PropertyChanged)
-				.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.Caret.PositionChanged += x,
+					x => editor.TextArea.Caret.PositionChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-			//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
-			//Observable.FromEventPattern<EventHandler, EventArgs>(
-			//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
-			//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
-			//	.Subscribe(Editor_PropertyChanged)
-			//	.DisposeWith(_disposables);
+				Observable.FromEventPattern<EventHandler, EventArgs>(
+					x => editor.TextArea.SelectionChanged += x,
+					x => editor.TextArea.SelectionChanged -= x)
+					.SetDelay(delay, false)
+					.Subscribe(Editor_PropertyChanged)
+					.DisposeWith(_disposables);
 
-			_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+				//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
+				//Observable.FromEventPattern<EventHandler, EventArgs>(
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged += x,
+				//	x => editor.TextArea.TextView.ScrollOffsetChanged -= x)
+				//	.SetDelay(delay, false)
+				//	.Subscribe(Editor_PropertyChanged)
+				//	.DisposeWith(_disposables);
 
-			await Task
-				.Delay(100)
-				.ConfigureAwait(true);
+				_ = Task.Run(() => ProcessSaveChannelAsync());
 
-			editor.Focus();
+				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
+
+				await Task
+					.Delay(100)
+					.ConfigureAwait(true);
+
+				editor.Focus();
+			}
+			finally
+			{
+				output.ZeroMemory();
+			}
 		}
 		finally
 		{
+			editor.IsReadOnly = initialIsReadOnly;
+
 			IsInitialized = true;
 		}
 	}
@@ -170,6 +194,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Channel for save operations.
+	/// </summary>
+	private readonly Channel<byte[]> _saveChannel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
+	{
+		SingleReader = true,
+		SingleWriter = true
+	});
+
 	/// <summary>
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
@@ -202,16 +235,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_ = SavePropertiesAsync(json);
+			_ = TrySavePropertiesAsync();
 		}
 	}
 
@@ -220,36 +244,36 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void Editor_TextChanged(EventPattern<EventArgs> e)
 	{
-		lock (_mutex)
+		if (IsContentCorrupted
+			|| IsReadOnly
+			|| e.Sender is not TextEditor editor)
 		{
-			if (IsContentCorrupted
-				|| IsReadOnly
-				|| e.Sender is not TextEditor editor)
-			{
-				return;
-			}
-
-			byte[] contents = TextHelper
-				.Utf8Encoding
-				.GetBytes(editor.Text);
-
-			// Encryption slows down the UI, so it is performed in a different thread.
-			_ = Task.Run(() =>
-			{
-				if (TryToEncrypt(contents) is not { } output)
-				{
-					ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
-
-					return Task.CompletedTask;
-				}
-
-				return SaveContentsAsync(output);
-			});
+			return;
 		}
+
+		_saveChannel.Writer.TryWrite(TextHelper
+			.Utf8Encoding
+			.GetBytes(editor.Text));
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		if (!_saveChannel
+			.Reader
+			.Completion
+			.IsCompleted)
+		{
+			_saveChannel
+				.Writer
+				.Complete();
+		}
+
+		base.AfterDispose();
+	}
+
 	/// <inheritdoc />
 	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
 	{
@@ -267,16 +291,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_ = SavePropertiesAsync(json);
+			_ = TrySavePropertiesAsync();
 		}
 	}
 	#endregion
@@ -374,6 +389,71 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					token);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Background consumer that processes the save channel sequentially.
+	/// Drains all queued items and saves only the latest.
+	/// </summary>
+	private async Task ProcessSaveChannelAsync()
+	{
+		ChannelReader<byte[]> reader = _saveChannel.Reader;
+
+		await foreach (byte[] contents in reader
+			.ReadAllAsync()
+			.ConfigureAwait(false))
+		{
+			// Drain the channel — keep only the latest, ZeroMemory the rest.
+			byte[] latest = contents;
+
+			// Insurance in case of:
+			// - slow encryption (large file)
+			// - slow DB (disk under load)
+			// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
+			while (reader.TryRead(out byte[]? newer))
+			{
+				latest.ZeroMemory();
+
+				latest = newer;
+			}
+
+			if (TryToEncrypt(latest) is not { } output)
+			{
+				ShowErrorSnackbar(_editor, Strings.FailedToProcessContents);
+
+				latest.ZeroMemory();
+
+				continue;
+			}
+
+			try
+			{
+				await SaveContentsAsync(output).ConfigureAwait(false);
+			}
+			finally
+			{
+				latest.ZeroMemory();
+
+				output.ZeroMemory();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to save properties.
+	/// </summary>
+	private Task TrySavePropertiesAsync(CancellationToken token = default)
+	{
+		string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
+
+		SetPropertiesCallback?.Invoke(json);
+
+		if (IsReadOnly)
+		{
+			return Task.CompletedTask;
+		}
+
+		return SavePropertiesAsync(json, token);
 	}
 	#endregion
 }

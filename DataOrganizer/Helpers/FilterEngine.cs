@@ -45,6 +45,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// A backing field for <see cref="Visible" />.
 	/// </summary>
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -81,13 +86,20 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		_isDisposed = true;
+
 		_source.Clear();
 
 		_source.Dispose();
 	}
 
 	/// <inheritdoc cref="Enumerable.ElementAt{TSource}(IEnumerable{TSource}, int)" />
-	public TModel ElementAt(in int index) => _source.Items.ElementAt(index);
+	public TModel ElementAt(in int index) => _source.Items[index];
 
 	/// <inheritdoc cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})" />
 	public TModel? FirstOrDefault(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
@@ -110,7 +122,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 
 	/// <summary>
-	/// Executes the delegate from <paramref name="action"/>, if possible, in <see cref="SynchronizationContext.Post(SendOrPostCallback, object?)" />.
+	/// Executes the delegate from <paramref name="action"/>, if possible, in <see cref="SynchronizationContext.Post" />.
 	/// </summary>
 	public void Synchronize(Action action)
 	{

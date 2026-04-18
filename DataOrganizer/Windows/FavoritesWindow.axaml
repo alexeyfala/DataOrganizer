@@ -5,6 +5,7 @@
 	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -97,7 +98,7 @@
 				IsLightDismissEnabled="{Binding !IsPopupFixed, Mode=TwoWay}"
 				IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
 				OverlayDismissEventPassThrough="True"
-				PlacementMode="Top"
+				Placement="Top"
 				PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
 				VerticalOffset="-2.0">
 
@@ -142,13 +143,21 @@
 									Foreground="{Binding SnackbarForeground, Mode=OneWay}"
 									HostName="{Binding $self.Name}"
 									SnackbarHorizontalAlignment="Center">
-									<ContentPresenter Content="{Binding PopupContent, Mode=OneWay}">
-										<ContentPresenter.KeyBindings>
+									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
+										<ContentControl.ContentTemplate>
+											<helpers:FavoritesPopupContentTemplateSelector>
+												<StaticResource ResourceKey="CopyHistoryTemplate" />
+
+												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
+											</helpers:FavoritesPopupContentTemplateSelector>
+										</ContentControl.ContentTemplate>
+
+										<ContentControl.KeyBindings>
 											<KeyBinding
-												Command="{Binding ClosePopupCommand}"
+												Command="{Binding ClosePopupByEscCommand}"
 												Gesture="Escape" />
-										</ContentPresenter.KeyBindings>
-									</ContentPresenter>
+										</ContentControl.KeyBindings>
+									</ContentControl>
 								</materialControls:SnackbarHost>
 							</dialogHost:DialogHost>
 						</Border>
@@ -252,10 +261,9 @@
 
 					<ToggleButton
 						Classes="primary"
+						Command="{Binding ShowFavoritesCommand}"
 						Content="{materialIcons:MaterialIconTextExt Kind=StarOutline,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
-						IsChecked="{Binding ShowFavorites, Mode=TwoWay}"
-						IsEnabled="{Binding !ShowFavorites, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.Favorites}" />
 
 					<Button
@@ -273,10 +281,9 @@
 
 					<ToggleButton
 						Classes="primary"
+						Command="{Binding ShowCopyHistoryCommand}"
 						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
-						IsChecked="{Binding ShowContentCopyHistory, Mode=TwoWay}"
-						IsEnabled="{Binding !ShowContentCopyHistory, Mode=OneWay}"
 						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 				</StackPanel>
 			</Border>

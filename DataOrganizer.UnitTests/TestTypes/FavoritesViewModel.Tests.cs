@@ -46,10 +46,10 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.ClosePopup" />.
+	/// Test of <see cref="FavoritesViewModel.ClosePopupByEsc" />.
 	/// </summary>
 	[Test]
-	public void ClosePopup_Closes_Popup()
+	public void ClosePopupByEsc_Closes_Popup()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -61,7 +61,7 @@ internal class FavoritesViewModelTests
 		sut.IsPopupOpen = true;
 
 		// Act
-		sut.ClosePopup();
+		sut.ClosePopupByEsc();
 
 		// Assert
 		sut.IsPopupFixed
@@ -71,88 +71,6 @@ internal class FavoritesViewModelTests
 		sut.IsPopupOpen
 			.Should()
 			.BeFalse();
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.DisplayCopyHistory" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void DisplayCopyHistory_Displays_CopyHistory_View_In_Popup_Panel()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<CopyHistoryView>()
-				.Returns(mock.Create<CopyHistoryView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		// Act
-		sut.DisplayCopyHistory();
-
-		// Assert
-		sut.ShowFavorites
-			.Should()
-			.BeFalse();
-
-		sut.PopupContent
-			.Should()
-			.BeOfType<CopyHistoryView>();
-
-		sut.IsPopupOpen
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.DisplayFavorites" />.
-	/// </summary>
-	[Test]
-	public void DisplayFavorites_Displays_Favorites_View_In_Popup_Panel()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<SelectedFavoritesView>()
-				.Returns(mock.Create<SelectedFavoritesView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut.ShowContentCopyHistory = true;
-
-		sut.IsPopupOpen = false;
-
-		// Act
-		sut.DisplayFavorites();
-
-		// Assert
-		sut.ShowContentCopyHistory
-			.Should()
-			.BeFalse();
-
-		sut.PopupContent
-			.Should()
-			.BeOfType<SelectedFavoritesView>();
-
-		sut.IsPopupOpen
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>
@@ -194,10 +112,6 @@ internal class FavoritesViewModelTests
 		sut.Dispose();
 
 		// Assert
-		sut.PopupContent
-			.Should()
-			.BeNull();
-
 		sut.FavoritesSettings.Categories
 			.Should()
 			.BeEmpty();
@@ -305,7 +219,7 @@ internal class FavoritesViewModelTests
 	/// Test of <see cref="FavoritesViewModel.SaveCopyHistory" />.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCopyHistory_Saves_Copy_History_View_Properties_In_Settings()
+	public void SaveCopyHistory_Saves_Copy_History_Properties_In_Settings()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -324,8 +238,6 @@ internal class FavoritesViewModelTests
 			.ViewModel
 			.SelectedItem = items[0];
 
-		sut.PopupContent = view;
-
 		// Act
 		sut.SaveCopyHistory();
 
@@ -339,14 +251,12 @@ internal class FavoritesViewModelTests
 	/// Test of <see cref="FavoritesViewModel.SaveFavorites" />.
 	/// </summary>
 	[Test]
-	public void SaveFavorites_Saves_Favorites_View_Properties_In_Settings()
+	public void SaveFavorites_Saves_Favorites_Properties_In_Settings()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut.PopupContent = GetSelectedFavoritesViewMock(mock);
 
 		// Act
 		sut.SaveFavorites();
@@ -397,23 +307,11 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeTrue();
 
-		sut.ShowContentCopyHistory = true;
-
-		sut.ShowFavorites = true;
-
 		// Act
 		await sut.ShowInEditorAsync(null, default);
 
 		// Assert
 		sut.IsShutdown
-			.Should()
-			.BeFalse();
-
-		sut.ShowContentCopyHistory
-			.Should()
-			.BeFalse();
-
-		sut.ShowFavorites
 			.Should()
 			.BeFalse();
 
@@ -478,36 +376,6 @@ internal class FavoritesViewModelTests
 		sut.CopyHistorySettings.CopyHistory[0]
 			.Should()
 			.Be(value);
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Prepares mock of <see cref="SelectedFavoritesView" />.
-	/// </summary>
-	private static SelectedFavoritesView GetSelectedFavoritesViewMock(AutoMock mock)
-	{
-		SelectedFavoritesView view = mock.Create<SelectedFavoritesView>();
-
-		view
-			.ViewModel
-			.NavigationColumnWidth = new(TestUtils.CreateRandomDouble(100.0, 300.0));
-
-		view
-			.ViewModel
-			.SelectedCategory = TestUtils.CreateFavoriteCategory();
-
-		view
-			.ViewModel
-			.SelectedPairs
-			.AddRange(TestUtils.CreateCategoryFavoritePairs(5));
-
-		view
-			.ViewModel
-			.OrderedCategories
-			.AddRange(TestUtils.CreateGuids(5));
-
-		return view;
 	}
 	#endregion
 }

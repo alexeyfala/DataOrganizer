@@ -11,17 +11,17 @@ public interface IDialogService
 {
 	#region Methods
 	/// <summary>
-	/// Requests the user to close files.
-	/// </summary>
-	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
-
-	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
-	Task<string?> RequestUserPasswordAsync(
+	Task<char[]> RequestUserPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Requests the user to close files.
+	/// </summary>
+	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Selects import variant.

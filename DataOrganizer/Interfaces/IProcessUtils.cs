@@ -38,7 +38,8 @@ public interface IProcessUtils
 
 	/// <summary>
 	/// Launches a file process depending on the operating system.<br />
-	/// When running a file without an extension <paramref name="processId"/> will have default value.
+	/// When running a file without an extension or when there is no application
+	/// in system associated with file <paramref name="processId"/> will have default value.
 	/// </summary>
 	/// <returns><see cref="Process.Id" /></returns>
 	bool StartProcess(string filePath, out int processId);

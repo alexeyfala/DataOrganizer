@@ -14,7 +14,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EntityCreationView" />.
 /// </summary>
-public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModelBase
+public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModel
 {
 	#region Auto-Generated Properties
 	/// <inheritdoc cref="EntityCreationViewSettings.IsDatasetSelected" />

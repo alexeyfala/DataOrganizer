@@ -1,5 +1,6 @@
 ﻿using Avalonia.Threading;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
@@ -40,6 +41,56 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
+	public Task<char[]> RequestUserPasswordAsync(
+		string header,
+		string? label = null,
+		CancellationToken token = default)
+	{
+		_logger.LogInformation("Show password box");
+
+		TaskCompletionSource<char[]> source = new();
+
+		_dispatcher.Post(async () =>
+		{
+			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+
+			view.Header = header;
+
+			view.Label = label ?? Strings.Password;
+
+			_ = DialogHost.Show(view);
+
+			if (!await view
+				.GetResultAsync(token)
+				.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
+			{
+				source.SetResult([]);
+
+				return;
+			}
+
+			try
+			{
+				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
+					PasswordInput
+					.Text);
+
+				source.SetResult(secret
+					.AsReadOnlySpan()
+					.ToArray());
+			}
+			finally
+			{
+				view
+					.PasswordInput
+					.Text = null;
+			}
+		});
+
+		return source.Task;
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
@@ -56,55 +107,6 @@ public sealed class DialogService : IDialogService
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelResult.Yes;
-	}
-
-	/// <inheritdoc />
-	public Task<string?> RequestUserPasswordAsync(
-		string header,
-		string? label = null,
-		CancellationToken token = default)
-	{
-		_logger.LogInformation("Show password box");
-
-		TaskCompletionSource<string?> source = new();
-
-		_dispatcher.Post(async () =>
-		{
-			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-			view
-				.ViewModel
-				.Header = header;
-
-			view
-				.ViewModel
-				.Label = label ?? Strings.Password;
-
-			_ = DialogHost.Show(view);
-
-			if (!await view
-				.ViewModel
-				.GetResultAsync(token)
-				.ConfigureAwait(false) || string.IsNullOrWhiteSpace(view.ViewModel.Password))
-			{
-				source.SetResult(null);
-
-				return;
-			}
-
-			try
-			{
-				source.SetResult(view.ViewModel.Password);
-			}
-			finally
-			{
-				view
-					.ViewModel
-					.Password = null;
-			}
-		});
-
-		return source.Task;
 	}
 
 	/// <inheritdoc />

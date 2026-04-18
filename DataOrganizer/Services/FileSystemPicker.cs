@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,9 +32,16 @@ public sealed class FileSystemPicker : IFileSystemPicker
 			return null;
 		}
 
-		return file
-			.Path
-			.AbsolutePath;
+		try
+		{
+			return file
+				.Path
+				.AbsolutePath;
+		}
+		finally
+		{
+			file.Dispose();
+		}
 	}
 
 	/// <inheritdoc />
@@ -48,7 +56,14 @@ public sealed class FileSystemPicker : IFileSystemPicker
 			.OpenFilePickerAsync(options)
 			.ConfigureAwait(false);
 
-		return [.. files.Select(x => x.Path.AbsolutePath)];
+		try
+		{
+			return [.. files.Select(x => x.Path.AbsolutePath)];
+		}
+		finally
+		{
+			files.ForEach(x => x.Dispose());
+		}
 	}
 	#endregion
 
