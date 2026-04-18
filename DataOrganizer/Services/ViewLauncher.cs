@@ -139,17 +139,13 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(FavoritesWindow)}"" and saving ""{nameof(FavoritesWindowSettings)}""");
 
-		if (window
+		if (window.ViewModel.IsShutdown && window
 			.ViewModel
 			.IsPopupFixed)
 		{
 			window
 				.ViewModel
-				.SaveCopyHistory();
-
-			window
-				.ViewModel
-				.SaveFavorites();
+				.SaveContent();
 		}
 
 		_ = SaveFavoritesSettingsAsync(window);

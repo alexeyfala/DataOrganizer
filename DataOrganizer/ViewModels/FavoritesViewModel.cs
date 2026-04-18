@@ -105,23 +105,16 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	partial void OnIsPopupOpenChanged(bool value)
 	{
-		if (value)
+		if (value || IsShutdown)
 		{
 			return;
 		}
 
-		if (PopupContent == FavoritesPopupContentType.Favorites)
-		{
-			SaveFavorites();
+		SaveContent();
 
-			Reset(ShowFavoritesCommand);
-		}
-		else if (PopupContent == FavoritesPopupContentType.CopyHistory)
-		{
-			SaveCopyHistory();
+		PopupContent = FavoritesPopupContentType.None;
 
-			Reset(ShowCopyHistoryCommand);
-		}
+		UpdateCommands();
 
 		if (_app.FindDialogHost() is not { } dialogHost || !dialogHost.IsOpen)
 		{
@@ -129,13 +122,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 
 		dialogHost.IsOpen = false;
-
-		void Reset(IRelayCommand command)
-		{
-			PopupContent = FavoritesPopupContentType.None;
-
-			command.NotifyCanExecuteChanged();
-		}
 	}
 
 	/// <summary>
@@ -166,10 +152,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		_logger.LogInformation("Show favorites");
 
-		if (PopupContent == FavoritesPopupContentType.CopyHistory)
-		{
-			SaveCopyHistory();
-		}
+		SaveContent();
 
 		ShowContentInPopup(FavoritesPopupContentType.Favorites);
 	}
@@ -333,10 +316,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		_logger.LogInformation("Show copy history");
 
-		if (PopupContent == FavoritesPopupContentType.Favorites)
-		{
-			SaveFavorites();
-		}
+		SaveContent();
 
 		ShowContentInPopup(FavoritesPopupContentType.CopyHistory);
 	}
@@ -486,6 +466,26 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	}
 
 	/// <summary>
+	/// Saves current content in popup.
+	/// </summary>
+	public void SaveContent()
+	{
+		if (PopupContent == FavoritesPopupContentType.None)
+		{
+			return;
+		}
+
+		if (PopupContent == FavoritesPopupContentType.Favorites)
+		{
+			SaveFavorites();
+		}
+		else if (PopupContent == FavoritesPopupContentType.CopyHistory)
+		{
+			SaveCopyHistory();
+		}
+	}
+
+	/// <summary>
 	/// Saves in <see cref="FavoritesSettings" /> values.
 	/// </summary>
 	public void SaveFavorites()
@@ -494,6 +494,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		{
 			return;
 		}
+
+		_logger.LogInformation("Save favorites");
 
 		FavoritesSettings.NavigationColumnWidth = _favorites
 			.NavigationColumnWidth
@@ -522,6 +524,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		CancellationToken _ = default)
 	{
 		IsShutdown = false;
+
+		if (IsPopupFixed)
+		{
+			SaveContent();
+		}
 
 		window?.Close();
 
@@ -588,6 +595,14 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		IsPopupOpen = true;
 
+		UpdateCommands();
+	}
+
+	/// <summary>
+	/// Updates commands.
+	/// </summary>
+	private void UpdateCommands()
+	{
 		ShowFavoritesCommand.NotifyCanExecuteChanged();
 
 		ShowCopyHistoryCommand.NotifyCanExecuteChanged();

@@ -187,6 +187,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
+		_logger.LogInformation("Save copy history");
+
 		SaveCopyHistory(_copyHistory);
 	}
 
