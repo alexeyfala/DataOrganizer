@@ -865,6 +865,7 @@
 
 			<Grid.Resources>
 				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
+				<converters:FileIsOpenedToFalseConverter x:Key="FileIsOpenedToFalseConverter" />
 			</Grid.Resources>
 
 			<Grid.Styles>
@@ -919,8 +920,18 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}"
-				Kind="EyeOutline">
+				IsEnabled="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToFalseConverter}}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}">
+				<materialIcons:MaterialIcon.Styles>
+					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
+						<Setter Property="Kind" Value="EyeOutline" />
+					</Style>
+
+					<Style Selector="materialIcons|MaterialIcon:disabled">
+						<Setter Property="Kind" Value="EyeOffOutline" />
+					</Style>
+				</materialIcons:MaterialIcon.Styles>
+
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">
 						<InvokeCommandAction
