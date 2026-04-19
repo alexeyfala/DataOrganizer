@@ -1020,7 +1020,7 @@
 
 	<!-- ExecutingFilesTemplate -->
 	<DataTemplate x:Key="ExecutingFilesTemplate">
-		<views:ExecutedFilesView />
+		<views:ExecutingFilesView />
 	</DataTemplate>
 
 	<!-- SelectedFavoritesViewTemplate -->

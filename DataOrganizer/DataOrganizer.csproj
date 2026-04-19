@@ -76,6 +76,9 @@
 		<Compile Update="Views\EmbeddedFileEditorView.axaml.cs">
 			<DependentUpon>EmbeddedFileEditorView.axaml</DependentUpon>
 		</Compile>
+		<Compile Update="Views\ExecutingFilesView.axaml.cs">
+		  <DependentUpon>ExecutingFilesView.axaml</DependentUpon>
+		</Compile>
 		<Compile Update="Views\ImportListSelectorView.axaml.cs">
 		  <DependentUpon>ImportListSelectorView.axaml</DependentUpon>
 		</Compile>
