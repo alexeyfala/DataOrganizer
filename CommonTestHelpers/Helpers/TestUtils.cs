@@ -119,8 +119,8 @@ public static class TestUtils
 	/// </summary>
 	public static FileModelDto CreateFileDto(
 		in Guid id = default,
-		in bool isEdited = false,
-		in bool isExecuted = false,
+		in bool isEditing = false,
+		in bool isExecuting = false,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
 		{
 			CreatedDate = DateTime.Now,
@@ -128,8 +128,8 @@ public static class TestUtils
 			EntityType = EntityType.File,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
-			IsEdited = isEdited,
-			IsExecuted = isExecuted,
+			IsEditing = isEditing,
+			IsExecuted = isExecuting,
 			Name = AppUtils.CreateRandomString(10),
 			UpdatedDate = DateTime.Now
 		};
@@ -150,15 +150,15 @@ public static class TestUtils
 	/// </summary>
 	public static IEnumerable<FileModelDto> CreateFilesDto(
 		int count,
-		bool isEdited = false,
+		bool isEditing = false,
 		bool isExecuted = false,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None)
 	{
 		for (int i = 0; i < count; i++)
 		{
 			yield return CreateFileDto(
-				isEdited: isEdited,
-				isExecuted: isExecuted,
+				isEditing: isEditing,
+				isExecuting: isExecuted,
 				encryptionStatus: encryptionStatus);
 		}
 	}

@@ -325,7 +325,7 @@
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
-				IsEdited="{Binding IsEdited, Mode=OneWay}"
+				IsEditing="{Binding IsEditing, Mode=OneWay}"
 				IsExecuted="{Binding IsExecuted, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}" />
 		</Grid>
@@ -397,7 +397,7 @@
 			<Button
 				Grid.Column="2"
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutedFileCommand}"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
 				Theme="{StaticResource MaterialFlatButton}"
@@ -413,9 +413,9 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- EditedFileTabControlHeaderTemplate -->
+	<!-- EditingFileTabControlHeaderTemplate -->
 	<DataTemplate
-		x:Key="EditedFileTabControlHeaderTemplate"
+		x:Key="EditingFileTabControlHeaderTemplate"
 		x:DataType="models:FileModelDto">
 		<StackPanel
 			Orientation="Horizontal"
@@ -944,7 +944,7 @@
 				Grid.Column="3"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
-				IsEdited="{Binding IsEdited, Mode=OneWay}"
+				IsEditing="{Binding IsEditing, Mode=OneWay}"
 				IsExecuted="{Binding IsExecuted, Mode=OneWay}" />
 
 			<Interaction.Behaviors>

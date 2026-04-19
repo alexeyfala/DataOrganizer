@@ -37,7 +37,7 @@
 
 		<materialIcons:MaterialIcon
 			Foreground="LimeGreen"
-			IsVisible="{Binding IsEdited, Mode=OneWay}"
+			IsVisible="{Binding IsEditing, Mode=OneWay}"
 			Kind="TextBoxEditOutline"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInEditor}" />
 

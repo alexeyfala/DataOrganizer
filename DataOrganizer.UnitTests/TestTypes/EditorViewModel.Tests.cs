@@ -135,11 +135,11 @@ internal class EditorViewModelTests
 	public async Task ChangePassword_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -147,7 +147,7 @@ internal class EditorViewModelTests
 
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -170,11 +170,11 @@ internal class EditorViewModelTests
 		await sut.ChangePassword(folder);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 
@@ -184,7 +184,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.CloseExecutedFile" />.
+	/// Test of <see cref="EditorViewModel.CloseExecutingFile" />.
 	/// </summary>
 	[Test]
 	public void CloseExecutedFile_Closes_File()
@@ -205,7 +205,7 @@ internal class EditorViewModelTests
 			.Add(dto);
 
 		// Act
-		sut.CloseExecutedFile(dto);
+		sut.CloseExecutingFile(dto);
 
 		// Assert
 		sut.ExecutedFiles
@@ -225,30 +225,30 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.CloseFiles" />.
 	/// </summary>
 	[Test]
-	public void CloseFiles_Closes_Edited_And_Executed_Files()
+	public void CloseFiles_Closes_Editing_And_Executing_Files()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(2)];
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(2)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(2)];
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(2)];
 
-		editedFiles.ForEach(x => x.IsEdited = true);
+		editingFiles.ForEach(x => x.IsEditing = true);
 
-		executedFiles.ForEach(x => x.IsExecuted = true);
+		executingFiles.ForEach(x => x.IsExecuted = true);
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		sut.CloseFiles(editedFiles, executedFiles);
+		sut.CloseFiles(editingFiles, executingFiles);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 	}
@@ -282,11 +282,11 @@ internal class EditorViewModelTests
 	public async Task DecryptFolder_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -294,7 +294,7 @@ internal class EditorViewModelTests
 
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -317,11 +317,11 @@ internal class EditorViewModelTests
 		await sut.DecryptFolder(folder);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 
@@ -341,7 +341,7 @@ internal class EditorViewModelTests
 		ExplorerModelBaseDto toBeDeleted = type switch
 		{
 			EntityType.Folder => TestUtils.CreateFolderDto(),
-			EntityType.File => TestUtils.CreateFileDto(isExecuted: true),
+			EntityType.File => TestUtils.CreateFileDto(isExecuting: true),
 			_ => throw new NotImplementedException()
 		};
 
@@ -483,11 +483,11 @@ internal class EditorViewModelTests
 	public async Task EncryptFolder_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -495,7 +495,7 @@ internal class EditorViewModelTests
 
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -518,11 +518,11 @@ internal class EditorViewModelTests
 		await sut.EncryptFolder(folder);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 
@@ -804,12 +804,12 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true,
+			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
@@ -827,17 +827,17 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		sut.AddHierarchy(editedFiles.Concat(executedFiles));
+		sut.AddHierarchy(editingFiles.Concat(executingFiles));
 
 		// Act
 		await sut.HideAllFileContents();
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsEditing && x.EncryptionStatus == EncryptionStatus.Encrypted);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted && x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
@@ -846,12 +846,12 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.HideFileContents" />.
 	/// </summary>
 	[Test]
-	public async Task HideFileContents_Does_Work([Values] bool isEdited)
+	public async Task HideFileContents_Does_Work([Values] bool isEditing)
 	{
 		// Arrange
-		FileModelDto file = isEdited
-			? TestUtils.CreateFileDto(isEdited: true)
-			: TestUtils.CreateFileDto(isExecuted: true);
+		FileModelDto file = isEditing
+			? TestUtils.CreateFileDto(isEditing: true)
+			: TestUtils.CreateFileDto(isExecuting: true);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -874,7 +874,7 @@ internal class EditorViewModelTests
 			.Should()
 			.Be(EncryptionStatus.Encrypted);
 
-		file.IsEdited
+		file.IsEditing
 			.Should()
 			.BeFalse();
 
@@ -890,11 +890,11 @@ internal class EditorViewModelTests
 	public async Task HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -902,7 +902,7 @@ internal class EditorViewModelTests
 
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -925,11 +925,11 @@ internal class EditorViewModelTests
 		await sut.HideFolderContents(folder);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 
@@ -945,11 +945,11 @@ internal class EditorViewModelTests
 	public async Task Import_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -972,11 +972,11 @@ internal class EditorViewModelTests
 
 		sut
 			.Hierarchy
-			.AddRange(editedFiles);
+			.AddRange(editingFiles);
 
 		sut
 			.Hierarchy
-			.AddRange(executedFiles);
+			.AddRange(executingFiles);
 
 		// Act
 		await sut.Import();
@@ -1501,11 +1501,11 @@ internal class EditorViewModelTests
 	public async Task ShowFolderContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] editingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isEdited: true)];
+			isEditing: true)];
 
-		FileModelDto[] executedFiles = [.. TestUtils.CreateFilesDto(
+		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
 			isExecuted: true)];
 
@@ -1513,7 +1513,7 @@ internal class EditorViewModelTests
 
 		folder
 			.Children
-			.AddRange(editedFiles.Concat(executedFiles));
+			.AddRange(editingFiles.Concat(executingFiles));
 
 		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -1536,11 +1536,11 @@ internal class EditorViewModelTests
 		await sut.ShowFolderContents(folder);
 
 		// Assert
-		editedFiles
+		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEdited);
+			.OnlyContain(x => !x.IsEditing);
 
-		executedFiles
+		executingFiles
 			.Should()
 			.OnlyContain(x => !x.IsExecuted);
 

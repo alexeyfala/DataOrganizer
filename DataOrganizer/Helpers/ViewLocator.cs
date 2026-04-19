@@ -53,7 +53,7 @@ internal sealed class ViewLocator : IDataTemplate
 		}
 
 		if (param is FileModelDto file
-			&& file.IsEdited
+			&& file.IsEditing
 			&& CreateEditingFileControl(file, out Control? control))
 		{
 			_cache.Add(param, control);

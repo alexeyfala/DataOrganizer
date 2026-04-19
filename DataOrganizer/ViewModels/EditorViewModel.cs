@@ -205,10 +205,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes a file executed in the operating system.
+	/// Closes a file executing in the operating system.
 	/// </summary>
 	[RelayCommand]
-	public void CloseExecutedFile(FileModelDto? dto)
+	public void CloseExecutingFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -579,17 +579,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
-			_editFiles?.Items ?? [],
+			_editingFiles?.Items ?? [],
 			ExecutedFiles).Show();
 
-		if (_editFiles is null)
+		if (_editingFiles is null)
 		{
 			return;
 		}
 
 		Hierarchy
-			.GetFilesBy(x => x.IsEdited)
-			.ForEach(_editFiles.CloseEditor);
+			.GetFilesBy(x => x.IsEditing)
+			.ForEach(_editingFiles.CloseEditor);
 	}
 
 	/// <summary>
@@ -750,7 +750,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Closes all files executed in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
-	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
+	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutingFile);
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -876,14 +876,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_editFiles?.OpenInEditor(dto);
+		_editingFiles?.OpenInEditor(dto);
 	}
 
 	/// <summary>
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
+	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editingFiles = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -1033,7 +1033,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private readonly IProcessUtils _processUtils;
 
 	/// <inheritdoc cref="EditFilesViewModel" />
-	private EditFilesViewModel? _editFiles;
+	private EditFilesViewModel? _editingFiles;
 	#endregion
 
 	#region Constructors
@@ -1185,9 +1185,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Adds edited files to view.
+	/// Adds editing files.
 	/// </summary>
-	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFiles?.Items.AddRange(editFiles);
+	public void AddEditingFiles(IEnumerable<FileModelDto> editingFiles) => _editingFiles?.Items.AddRange(editingFiles);
 
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
@@ -1198,20 +1198,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes edited and executed files.
+	/// Closes editing and executing files.
 	/// </summary>
 	public void CloseFiles(
-		IEnumerable<FileModelDto> editedFiles,
-		IEnumerable<FileModelDto> executedFiles)
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
 	{
-		foreach (FileModelDto file in editedFiles)
+		foreach (FileModelDto file in editingFiles)
 		{
-			CloseEditedFile(file);
+			CloseEditingFile(file);
 		}
 
-		foreach (FileModelDto file in executedFiles)
+		foreach (FileModelDto file in executingFiles)
 		{
-			CloseExecutedFile(file);
+			CloseExecutingFile(file);
 		}
 	}
 
@@ -1796,15 +1796,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Closes editing file.
 	/// </summary>
-	private void CloseEditedFile(FileModelDto file)
+	private void CloseEditingFile(FileModelDto file)
 	{
-		if (_editFiles is not null)
+		if (_editingFiles is not null)
 		{
-			_editFiles.CloseTab(file);
+			_editingFiles.CloseTab(file);
 		}
 		else
 		{
-			file.IsEdited = false;
+			file.IsEditing = false;
 		}
 	}
 
@@ -1813,14 +1813,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	private void CloseFile(FileModelDto file)
 	{
-		if (file.IsEdited)
+		if (file.IsEditing)
 		{
-			CloseEditedFile(file);
+			CloseEditingFile(file);
 		}
 
 		if (file.IsExecuted)
 		{
-			CloseExecutedFile(file);
+			CloseExecutingFile(file);
 		}
 	}
 
@@ -1871,7 +1871,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Tries to close edited or executed files if any.
+	/// Tries to close editing or executing files if any.
 	/// </summary>
 	private async Task<bool> TryCloseOpenedFilesAsync(
 		FileModelDto[] openedFiles,
@@ -1887,7 +1887,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			}
 
 			CloseFiles(
-				openedFiles.Where(x => x.IsEdited),
+				openedFiles.Where(x => x.IsEditing),
 				openedFiles.Where(x => x.IsExecuted));
 		}
 

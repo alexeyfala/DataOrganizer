@@ -24,16 +24,16 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is opened in editor.
+	/// Returns <c>True</c> if the file is opened in the built-in editor.
 	/// </summary>
-	public bool IsEdited
+	public bool IsEditing
 	{
-		get => GetValue(IsEditedProperty);
-		set => SetValue(IsEditedProperty, value);
+		get => GetValue(IsEditingProperty);
+		set => SetValue(IsEditingProperty, value);
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is executed in the operating system.
+	/// Returns <c>True</c> if the file is executing in the operating system.
 	/// </summary>
 	public bool IsExecuted
 	{
@@ -65,10 +65,10 @@ internal sealed partial class IconsBlock : UserControl
 		.Register<IconsBlock, string?>(name: nameof(HotkeysToolTip));
 
 	/// <summary>
-	/// Identifies the <see cref="IsEdited" /> avalonia property.
+	/// Identifies the <see cref="IsEditing" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<bool> IsEditedProperty = AvaloniaProperty
-		.Register<IconsBlock, bool>(name: nameof(IsEdited));
+	public static readonly StyledProperty<bool> IsEditingProperty = AvaloniaProperty
+		.Register<IconsBlock, bool>(name: nameof(IsEditing));
 
 	/// <summary>
 	/// Identifies the <see cref="IsExecuted" /> avalonia property.

@@ -172,7 +172,7 @@ public class ViewLauncher : IViewLauncher
 
 		window
 			.ViewModel
-			.AddEditedFiles(editFiles);
+			.AddEditingFiles(editFiles);
 
 		window
 			.ViewModel

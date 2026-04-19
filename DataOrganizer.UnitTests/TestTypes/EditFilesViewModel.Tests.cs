@@ -22,7 +22,7 @@ internal class EditFilesViewModelTests
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
 
-		dto.IsEdited = true;
+		dto.IsEditing = true;
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -36,7 +36,7 @@ internal class EditFilesViewModelTests
 			.Should()
 			.NotContain(dto);
 
-		dto.IsEdited
+		dto.IsEditing
 			.Should()
 			.BeFalse();
 	}
@@ -50,7 +50,7 @@ internal class EditFilesViewModelTests
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
 
-		dto.IsEdited = true;
+		dto.IsEditing = true;
 
 		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
 
@@ -84,7 +84,7 @@ internal class EditFilesViewModelTests
 		sut.OpenInEditor(dto);
 
 		// Assert
-		dto.IsEdited
+		dto.IsEditing
 			.Should()
 			.BeTrue();
 

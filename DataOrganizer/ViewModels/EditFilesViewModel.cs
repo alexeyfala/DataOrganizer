@@ -51,7 +51,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		dto.IsEdited = false;
+		dto.IsEditing = false;
 
 		CloseEditor(dto);
 	}
@@ -151,7 +151,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			return;
 		}
 
-		if (dto.IsEdited)
+		if (dto.IsEditing)
 		{
 			_logger.LogWarning($"The file is already opened in the built-in editor:{dto.GetPropertyValues(
 				true,
@@ -167,7 +167,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name))}");
 
-		dto.IsEdited = true;
+		dto.IsEditing = true;
 
 		Items.Add(dto);
 
