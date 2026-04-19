@@ -377,7 +377,6 @@ public sealed class App : Application
 
 		#region Views
 		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();

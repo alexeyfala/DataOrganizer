@@ -485,38 +485,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	/// <summary>
-	/// Saves in <see cref="FavoritesSettings" /> values.
-	/// </summary>
-	public void SaveFavorites()
-	{
-		if (_favorites is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Save favorites");
-
-		FavoritesSettings.NavigationColumnWidth = _favorites
-			.NavigationColumnWidth
-			.Value;
-
-		if (_favorites.SelectedCategory is { } category)
-		{
-			FavoritesSettings.SelectedCategoryId = category.Id;
-		}
-
-		FavoritesSettings
-			.SelectedPairs
-			.ClearAddRange(_favorites.SelectedPairs);
-
-		FavoritesSettings
-			.OrderedCategories
-			.ClearAddRange(_favorites.OrderedCategories);
-
-		_favorites.Dispose();
-	}
-
 	/// <inheritdoc />
 	public override Task ShowInEditorAsync(
 		Window? window,
@@ -583,6 +551,38 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 				yield return category;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Saves in <see cref="FavoritesSettings" /> values.
+	/// </summary>
+	private void SaveFavorites()
+	{
+		if (_favorites is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Save favorites");
+
+		FavoritesSettings.NavigationColumnWidth = _favorites
+			.NavigationColumnWidth
+			.Value;
+
+		if (_favorites.SelectedCategory is { } category)
+		{
+			FavoritesSettings.SelectedCategoryId = category.Id;
+		}
+
+		FavoritesSettings
+			.SelectedPairs
+			.ClearAddRange(_favorites.SelectedPairs);
+
+		FavoritesSettings
+			.OrderedCategories
+			.ClearAddRange(_favorites.OrderedCategories);
+
+		_favorites.Dispose();
 	}
 
 	/// <summary>

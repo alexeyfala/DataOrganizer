@@ -4,7 +4,7 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Views;
 
-public sealed partial class CopyHistoryView : UserControl
+internal sealed partial class CopyHistoryView : UserControl
 {
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewModel" />

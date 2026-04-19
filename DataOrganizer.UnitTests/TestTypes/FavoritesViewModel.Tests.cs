@@ -9,7 +9,6 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using NSubstitute;
 using System;
@@ -213,70 +212,6 @@ internal class FavoritesViewModelTests
 		sut.CopyHistorySettings.CopyHistory
 			.Should()
 			.Contain(copyHistorySettings.CopyHistory);
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.SaveCopyHistory" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void SaveCopyHistory_Saves_Copy_History_Properties_In_Settings()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		CopyHistoryView view = mock.Create<CopyHistoryView>();
-
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(5)];
-
-		view
-			.ViewModel
-			.AddTestCopyHistory(items);
-
-		view
-			.ViewModel
-			.SelectedItem = items[0];
-
-		// Act
-		sut.SaveCopyHistory();
-
-		// Assert
-		sut.CopyHistorySettings.SelectedCopyHistoryItemId
-			.Should()
-			.Be(items[0].Id);
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.SaveFavorites" />.
-	/// </summary>
-	[Test]
-	public void SaveFavorites_Saves_Favorites_Properties_In_Settings()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		// Act
-		sut.SaveFavorites();
-
-		// Assert
-		sut.FavoritesSettings.NavigationColumnWidth
-			.Should()
-			.NotBe(default);
-
-		sut.FavoritesSettings.SelectedCategoryId
-			.Should()
-			.NotBeEmpty();
-
-		sut.FavoritesSettings.SelectedPairs
-			.Should()
-			.NotBeEmpty();
-
-		sut.FavoritesSettings.OrderedCategories
-			.Should()
-			.NotBeEmpty();
 	}
 
 	/// <summary>
