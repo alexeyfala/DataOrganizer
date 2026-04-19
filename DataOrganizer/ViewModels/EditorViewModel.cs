@@ -1691,7 +1691,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
-	private bool CanExecuteCopyContent() => !IsActionInProgress;
+	private bool CanExecuteCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
