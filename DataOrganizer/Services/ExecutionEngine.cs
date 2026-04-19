@@ -23,7 +23,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	private readonly IFileChangeTracker _changeTracker;
 
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
-	private readonly ConcurrentDictionary<Guid, ExecutedFileInfo> _executingFiles = [];
+	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
 
 	/// <inheritdoc cref="IFileAssociationService" />
 	private readonly IFileAssociationService _fileAssociation;
@@ -79,7 +79,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (!_executingFiles.TryGetValue(id, out ExecutedFileInfo? info))
+			if (!_executingFiles.TryGetValue(id, out ExecutingFileInfo? info))
 			{
 				_logger.LogError($@"Cannot find file information for id ""{id}""");
 
