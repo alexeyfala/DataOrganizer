@@ -149,6 +149,8 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 		_filter.AddRange(items);
 
 		_filter.Synchronize(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
+
+		RefreshFilter();
 	}
 
 	/// <summary>
