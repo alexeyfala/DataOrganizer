@@ -862,7 +862,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
-	/// <inheritdoc cref="EditFilesViewModel.OpenInEditor(FileModelDto)" />
+	/// <inheritdoc cref="EditingFilesViewModel.OpenInEditor" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
 	private async Task EditFile(FileModelDto? dto)
 	{
@@ -883,7 +883,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editingFiles = viewModel;
+	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel) => _editingFiles = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -1032,8 +1032,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
-	/// <inheritdoc cref="EditFilesViewModel" />
-	private EditFilesViewModel? _editingFiles;
+	/// <inheritdoc cref="EditingFilesViewModel" />
+	private EditingFilesViewModel? _editingFiles;
 	#endregion
 
 	#region Constructors

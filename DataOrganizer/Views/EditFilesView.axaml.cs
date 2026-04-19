@@ -25,7 +25,7 @@ internal sealed partial class EditingFilesView : UserControl
 
 		DataContext = Ioc
 			.Default
-			.GetRequiredService<EditFilesViewModel>();
+			.GetRequiredService<EditingFilesViewModel>();
 	}
 	#endregion
 }

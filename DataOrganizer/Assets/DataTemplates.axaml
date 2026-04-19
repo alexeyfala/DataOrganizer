@@ -436,7 +436,7 @@
 				Margin="0.0,0.0,10.0,0.0"
 				Padding="0.0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize=20.0}"
@@ -992,13 +992,13 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- EditFilesTemplate -->
-	<DataTemplate x:Key="EditFilesTemplate">
+	<!-- EditingFilesTemplate -->
+	<DataTemplate x:Key="EditingFilesTemplate">
 		<views:EditingFilesView x:Name="View">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditFilesViewLoadedCommand}"
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

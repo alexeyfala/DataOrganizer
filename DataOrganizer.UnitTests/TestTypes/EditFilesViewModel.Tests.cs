@@ -9,12 +9,12 @@ using NSubstitute;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EditFilesViewModel)}"" type")]
-internal class EditFilesViewModelTests
+[TestFixture(Description = $@"Tests of ""{nameof(EditingFilesViewModel)}"" type")]
+internal class EditingFilesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EditFilesViewModel.CloseTab" />.
+	/// Test of <see cref="EditingFilesViewModel.CloseTab" />.
 	/// </summary>
 	[Test]
 	public void CloseTab_Removes_Tab_From_TabControl()
@@ -26,7 +26,7 @@ internal class EditFilesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditFilesViewModel sut = mock.Create<EditFilesViewModel>();
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
 		// Act
 		sut.CloseTab(dto);
@@ -42,7 +42,7 @@ internal class EditFilesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditFilesViewModel.OpenInEditor" />.
+	/// Test of <see cref="EditingFilesViewModel.OpenInEditor" />.
 	/// </summary>
 	[Test]
 	public void OpenInEditor_Cannot_Open_File_Twice()
@@ -56,7 +56,7 @@ internal class EditFilesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditFilesViewModel sut = mock.Create<EditFilesViewModel>(TypedParameter.From(viewLauncher));
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>(TypedParameter.From(viewLauncher));
 
 		// Act
 		sut.OpenInEditor(dto);
@@ -68,7 +68,7 @@ internal class EditFilesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditFilesViewModel.OpenInEditor" />.
+	/// Test of <see cref="EditingFilesViewModel.OpenInEditor" />.
 	/// </summary>
 	[Test]
 	public void OpenInEditor_Opens_File_In_Built_In_Editor()
@@ -78,7 +78,7 @@ internal class EditFilesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditFilesViewModel sut = mock.Create<EditFilesViewModel>();
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
 		// Act
 		sut.OpenInEditor(dto);

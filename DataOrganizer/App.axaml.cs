@@ -359,7 +359,7 @@ public sealed class App : Application
 		services.AddTransient<ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
-		services.AddTransient<EditFilesViewModel>();
+		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
 		services.AddTransient<EmbeddedFileEditorViewModel>();
 		services.AddTransient<EntityCreationViewModel>();

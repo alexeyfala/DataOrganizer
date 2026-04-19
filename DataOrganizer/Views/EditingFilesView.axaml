@@ -6,11 +6,11 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:EditFilesViewModel"
+	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
 	<Design.DataContext>
-		<vm:EditFilesViewModel />
+		<vm:EditingFilesViewModel />
 	</Design.DataContext>
 
 	<TabControl

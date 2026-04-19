@@ -349,7 +349,7 @@
 						<ContentControl
 							Grid.Row="0"
 							Grid.Column="2"
-							ContentTemplate="{StaticResource EditFilesTemplate}" />
+							ContentTemplate="{StaticResource EditingFilesTemplate}" />
 
 						<materialControls:SideSheet
 							Grid.Row="0"

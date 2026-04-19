@@ -16,7 +16,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EditingFilesView" />.
 /// </summary>
-public sealed partial class EditFilesViewModel : ObservableObject
+public sealed partial class EditingFilesViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
@@ -120,7 +120,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
-	public EditFilesViewModel(ILogger logger) => _logger = logger;
+	public EditingFilesViewModel(ILogger logger) => _logger = logger;
 	#endregion
 
 	#region Methods
