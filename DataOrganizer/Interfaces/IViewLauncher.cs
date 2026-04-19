@@ -30,8 +30,8 @@ public interface IViewLauncher
 	/// </summary>
 	EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles,
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles,
 		in Guid showObjectId = default);
 
 	/// <summary>
@@ -39,8 +39,8 @@ public interface IViewLauncher
 	/// </summary>
 	FavoritesWindow ConfigureFavoritesWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles);
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles);
 
 	/// <summary>
 	/// Configures the main application window.

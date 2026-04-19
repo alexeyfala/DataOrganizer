@@ -70,8 +70,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Views\EditFilesView.axaml.cs">
-			<DependentUpon>EditFilesView.axaml</DependentUpon>
+		<Compile Update="Views\EditingFilesView.axaml.cs">
+			<DependentUpon>EditingFilesView.axaml</DependentUpon>
 		</Compile>
 		<Compile Update="Views\EmbeddedFileEditorView.axaml.cs">
 			<DependentUpon>EmbeddedFileEditorView.axaml</DependentUpon>

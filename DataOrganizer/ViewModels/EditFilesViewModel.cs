@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EditFilesView" />.
+/// View model for <see cref="EditingFilesView" />.
 /// </summary>
 public sealed partial class EditFilesViewModel : ObservableObject
 {

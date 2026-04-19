@@ -156,8 +156,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles,
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles,
 		in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
@@ -172,12 +172,12 @@ public class ViewLauncher : IViewLauncher
 
 		window
 			.ViewModel
-			.AddEditingFiles(editFiles);
+			.AddEditingFiles(editingFiles);
 
 		window
 			.ViewModel
 			.ExecutedFiles
-			.AddRange(executedFiles);
+			.AddRange(executingFiles);
 
 		window
 			.ViewModel
@@ -246,8 +246,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public FavoritesWindow ConfigureFavoritesWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles)
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
@@ -260,12 +260,12 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.OpenedInEditorFiles
-			.AddRange(editFiles);
+			.AddRange(editingFiles);
 
 		window
 			.ViewModel
 			.ExecutedFiles
-			.AddRange(executedFiles);
+			.AddRange(executingFiles);
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
 
@@ -505,13 +505,13 @@ public class ViewLauncher : IViewLauncher
 			}
 		}
 
-		Guid[] executedFiles = [.. hierarchy
+		Guid[] executingFiles = [.. hierarchy
 			.GetFilesBy(x => x.IsExecuted)
 			.Select(x => x.Id)];
 
-		if (executedFiles.IsNotEmpty())
+		if (executingFiles.IsNotEmpty())
 		{
-			await executedFiles
+			await executingFiles
 				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))
 				.ConfigureAwait(false);
 		}

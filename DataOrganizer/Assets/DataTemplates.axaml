@@ -994,7 +994,7 @@
 
 	<!-- EditFilesTemplate -->
 	<DataTemplate x:Key="EditFilesTemplate">
-		<views:EditFilesView x:Name="View">
+		<views:EditingFilesView x:Name="View">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
@@ -1002,7 +1002,7 @@
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
-		</views:EditFilesView>
+		</views:EditingFilesView>
 	</DataTemplate>
 
 	<!-- CopyHistoryTemplate -->
