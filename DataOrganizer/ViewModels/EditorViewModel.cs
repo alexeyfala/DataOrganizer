@@ -223,8 +223,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		ExecutingFiles.Remove(dto);
 
-		CloseAllExecutingFilesCommand.NotifyCanExecuteChanged();
-
 		dto.IsExecuting = false;
 
 		_ = _executionEngine.CloseAsync(dto.Id);
@@ -403,8 +401,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		dto.IsExecuting = true;
 
 		ExecutingFiles.Add(dto);
-
-		_dispatcher.Post(CloseAllExecutingFilesCommand.NotifyCanExecuteChanged);
 	}
 
 	/// <summary>
@@ -747,10 +743,29 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes all executing files running in the operating system.
+	/// Clears current right side sheet content.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutingFiles))]
-	private void CloseAllExecutingFiles() => ExecutingFiles.ToArray().ForEach(CloseExecutingFile);
+	[RelayCommand]
+	private void ClearRightSideSheet()
+	{
+		if (RightSideSheetContent == RightSideSheetContentType.None)
+		{
+			return;
+		}
+
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		{
+			_copyHistory?.Clear();
+
+			SaveCopyHistory();
+		}
+		else if (RightSideSheetContent == RightSideSheetContentType.ExecutingFiles)
+		{
+			ExecutingFiles
+				.ToArray()
+				.ForEach(CloseExecutingFile);
+		}
+	}
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -1682,11 +1697,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& !IsActionInProgress
 			&& dto?.IsPasswordKeeper() == true;
 	}
-
-	/// <summary>
-	/// Validates <see cref="CloseAllExecutingFilesCommand" />.
-	/// </summary>
-	private bool CanExecuteCloseAllExecutingFiles() => ExecutingFiles.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.

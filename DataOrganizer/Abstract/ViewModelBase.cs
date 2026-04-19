@@ -102,9 +102,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDispatcher" />
-	protected readonly IDispatcher _dispatcher;
-
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
@@ -119,6 +116,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	/// <inheritdoc cref="CopyHistoryViewModel" />
 	protected CopyHistoryViewModel? _copyHistory;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEventSimulator" />
 	private readonly IEventSimulator _eventSimulator;
@@ -263,8 +263,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 					.Remove(item);
 			}
 		}
-
-		viewModel.Dispose();
 	}
 
 	/// <summary>

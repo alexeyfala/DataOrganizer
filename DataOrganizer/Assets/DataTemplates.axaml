@@ -334,10 +334,6 @@
 	<!-- RightSideSheetHeaderTemplate -->
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
-			<StackPanel.Resources>
-				<converters:CloseAllExecutingFilesButtonVisibilityConverter x:Key="CloseAllExecutingFilesButtonVisibilityConverter" />
-			</StackPanel.Resources>
-
 			<ToggleButton
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
@@ -348,13 +344,12 @@
 
 			<Button
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutingFilesCommand}"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ClearRightSideSheetCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				Foreground="{StaticResource WarningBrush}"
-				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutingFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
+				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 		</StackPanel>
 	</DataTemplate>
 
