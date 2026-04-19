@@ -141,7 +141,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
@@ -176,7 +176,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 
 		await entityEcryption
 			.Received()
@@ -187,12 +187,12 @@ internal class EditorViewModelTests
 	/// Test of <see cref="EditorViewModel.CloseExecutingFile" />.
 	/// </summary>
 	[Test]
-	public void CloseExecutedFile_Closes_File()
+	public void CloseExecutingFile_Closes_File()
 	{
 		// Arrange
 		FileModelDto dto = TestUtils.CreateFileDto();
 
-		dto.IsExecuted = true;
+		dto.IsExecuting = true;
 
 		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
@@ -201,18 +201,18 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(engine));
 
 		sut
-			.ExecutedFiles
+			.ExecutingFiles
 			.Add(dto);
 
 		// Act
 		sut.CloseExecutingFile(dto);
 
 		// Assert
-		sut.ExecutedFiles
+		sut.ExecutingFiles
 			.Should()
 			.NotContain(dto);
 
-		dto.IsExecuted
+		dto.IsExecuting
 			.Should()
 			.BeFalse();
 
@@ -234,7 +234,7 @@ internal class EditorViewModelTests
 
 		editingFiles.ForEach(x => x.IsEditing = true);
 
-		executingFiles.ForEach(x => x.IsExecuted = true);
+		executingFiles.ForEach(x => x.IsExecuting = true);
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -250,7 +250,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 	}
 
 	/// <summary>
@@ -288,7 +288,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
@@ -323,7 +323,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 
 		await entityEcryption
 			.Received()
@@ -374,7 +374,7 @@ internal class EditorViewModelTests
 		if (type != EntityType.Folder)
 		{
 			sut
-				.ExecutedFiles
+				.ExecutingFiles
 				.Add((FileModelDto)toBeDeleted);
 		}
 
@@ -395,7 +395,7 @@ internal class EditorViewModelTests
 			return;
 		}
 
-		sut.ExecutedFiles
+		sut.ExecutingFiles
 			.Should()
 			.NotContain(file);
 	}
@@ -489,7 +489,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
@@ -524,7 +524,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 
 		await entityEcryption
 			.Received()
@@ -545,7 +545,7 @@ internal class EditorViewModelTests
 			IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
 			engine
-				.IsExecuted(Arg.Any<Guid>())
+				.IsExecuting(Arg.Any<Guid>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -604,11 +604,11 @@ internal class EditorViewModelTests
 		await sut.ExecuteFile(dto);
 
 		// Assert
-		dto.IsExecuted
+		dto.IsExecuting
 			.Should()
 			.BeTrue();
 
-		sut.ExecutedFiles
+		sut.ExecutingFiles
 			.Should()
 			.Contain(dto);
 
@@ -811,7 +811,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true,
+			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -839,7 +839,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsExecuting && x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
 
 	/// <summary>
@@ -878,7 +878,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		file.IsExecuted
+		file.IsExecuting
 			.Should()
 			.BeFalse();
 	}
@@ -896,7 +896,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
@@ -931,7 +931,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 
 		entityEcryption
 			.Received()
@@ -951,7 +951,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
 
@@ -1507,7 +1507,7 @@ internal class EditorViewModelTests
 
 		FileModelDto[] executingFiles = [.. TestUtils.CreateFilesDto(
 			count: 5,
-			isExecuted: true)];
+			isExecuting: true)];
 
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
@@ -1542,7 +1542,7 @@ internal class EditorViewModelTests
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuted);
+			.OnlyContain(x => !x.IsExecuting);
 
 		await entityEcryption
 			.Received()

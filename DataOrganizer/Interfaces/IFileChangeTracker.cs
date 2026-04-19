@@ -11,7 +11,7 @@ public interface IFileChangeTracker
 {
 	#region Methods
 	/// <summary>
-	/// Tracks changes of the executed file.
+	/// Tracks changes of the executing file.
 	/// </summary>
 	Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default);
 	#endregion

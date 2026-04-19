@@ -40,7 +40,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> ExecutedFiles { get; } = [];
+	public ObservableCollection<FileModelDto> ExecutingFiles { get; } = [];
 
 	/// <summary>
 	/// Hierarchical sequence of objects.

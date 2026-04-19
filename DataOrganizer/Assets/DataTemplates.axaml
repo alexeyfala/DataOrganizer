@@ -326,7 +326,7 @@
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
-				IsExecuted="{Binding IsExecuted, Mode=OneWay}"
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}" />
 		</Grid>
 	</DataTemplate>
@@ -335,7 +335,7 @@
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
 			<StackPanel.Resources>
-				<converters:CloseAllExecutedFilesButtonVisibilityConverter x:Key="CloseAllExecutedFilesButtonVisibilityConverter" />
+				<converters:CloseAllExecutingFilesButtonVisibilityConverter x:Key="CloseAllExecutingFilesButtonVisibilityConverter" />
 			</StackPanel.Resources>
 
 			<ToggleButton
@@ -348,18 +348,18 @@
 
 			<Button
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutingFilesCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
+				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutingFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- ExecutedFileTemplate -->
+	<!-- ExecutingFileTemplate -->
 	<DataTemplate
-		x:Key="ExecutedFileTemplate"
+		x:Key="ExecutingFileTemplate"
 		x:DataType="models:FileModelDto">
 		<Grid
 			Background="Transparent"
@@ -945,7 +945,7 @@
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
-				IsExecuted="{Binding IsExecuted, Mode=OneWay}" />
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
@@ -1018,8 +1018,8 @@
 		</views:CopyHistoryView>
 	</DataTemplate>
 
-	<!-- ExecutedFilesTemplate -->
-	<DataTemplate x:Key="ExecutedFilesTemplate">
+	<!-- ExecutingFilesTemplate -->
+	<DataTemplate x:Key="ExecutingFilesTemplate">
 		<views:ExecutedFilesView />
 	</DataTemplate>
 

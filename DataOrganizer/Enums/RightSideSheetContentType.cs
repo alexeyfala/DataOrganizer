@@ -7,5 +7,5 @@ public enum RightSideSheetContentType : byte
 {
 	None,
 	CopyHistory,
-	ExecutedFiles
+	ExecutingFiles
 }

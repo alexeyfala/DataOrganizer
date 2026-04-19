@@ -129,7 +129,7 @@ public static class TestUtils
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
 			IsEditing = isEditing,
-			IsExecuted = isExecuting,
+			IsExecuting = isExecuting,
 			Name = AppUtils.CreateRandomString(10),
 			UpdatedDate = DateTime.Now
 		};
@@ -151,14 +151,14 @@ public static class TestUtils
 	public static IEnumerable<FileModelDto> CreateFilesDto(
 		int count,
 		bool isEditing = false,
-		bool isExecuted = false,
+		bool isExecuting = false,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None)
 	{
 		for (int i = 0; i < count; i++)
 		{
 			yield return CreateFileDto(
 				isEditing: isEditing,
-				isExecuting: isExecuted,
+				isExecuting: isExecuting,
 				encryptionStatus: encryptionStatus);
 		}
 	}

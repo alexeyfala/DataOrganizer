@@ -215,17 +215,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_logger.LogInformation($"Closing an executed file in operating system:{dto.GetPropertyValues(
+		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
 			true,
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		ExecutedFiles.Remove(dto);
+		ExecutingFiles.Remove(dto);
 
-		CloseAllExecutedFilesCommand.NotifyCanExecuteChanged();
+		CloseAllExecutingFilesCommand.NotifyCanExecuteChanged();
 
-		dto.IsExecuted = false;
+		dto.IsExecuting = false;
 
 		_ = _executionEngine.CloseAsync(dto.Id);
 	}
@@ -313,9 +313,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		if (_executionEngine.IsExecuted(dto.Id))
+		if (_executionEngine.IsExecuting(dto.Id))
 		{
-			_logger.LogWarning($"The file is already executed in the operating system:{dto.GetPropertyValues(
+			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
 				true,
 				nameof(FileModelDto.Id),
 				nameof(FileModelDto.Name),
@@ -400,11 +400,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		dto.IsExecuted = true;
+		dto.IsExecuting = true;
 
-		ExecutedFiles.Add(dto);
+		ExecutingFiles.Add(dto);
 
-		_dispatcher.Post(CloseAllExecutedFilesCommand.NotifyCanExecuteChanged);
+		_dispatcher.Post(CloseAllExecutingFilesCommand.NotifyCanExecuteChanged);
 	}
 
 	/// <summary>
@@ -580,7 +580,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
 			_editingFiles?.Items ?? [],
-			ExecutedFiles).Show();
+			ExecutingFiles).Show();
 
 		if (_editingFiles is null)
 		{
@@ -747,10 +747,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes all files executed in the operating system.
+	/// Closes all executing files running in the operating system.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
-	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutingFile);
+	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutingFiles))]
+	private void CloseAllExecutingFiles() => ExecutingFiles.ToArray().ForEach(CloseExecutingFile);
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -966,17 +966,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentType.CopyHistory);
 
 	/// <summary>
-	/// Controls the display of the executed files in right side sheet.
+	/// Controls the display of the executing files in right side sheet.
 	/// </summary>
 	[RelayCommand]
-	private void ShowExecutedFiles()
+	private void ShowExecutingFiles()
 	{
 		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutedFiles);
+		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutingFiles);
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
@@ -1684,9 +1684,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Validates <see cref="CloseAllExecutedFilesCommand" />.
+	/// Validates <see cref="CloseAllExecutingFilesCommand" />.
 	/// </summary>
-	private bool CanExecuteCloseAllExecutedFiles() => ExecutedFiles.Count > 0;
+	private bool CanExecuteCloseAllExecutingFiles() => ExecutingFiles.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
@@ -1818,7 +1818,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			CloseEditingFile(file);
 		}
 
-		if (file.IsExecuted)
+		if (file.IsExecuting)
 		{
 			CloseExecutingFile(file);
 		}
@@ -1861,7 +1861,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation($"Show {type switch
 		{
 			RightSideSheetContentType.CopyHistory => "copy history",
-			RightSideSheetContentType.ExecutedFiles => "executing files",
+			RightSideSheetContentType.ExecutingFiles => "executing files",
 			_ => "unknown"
 		}}");
 
@@ -1888,7 +1888,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 			CloseFiles(
 				openedFiles.Where(x => x.IsEditing),
-				openedFiles.Where(x => x.IsExecuted));
+				openedFiles.Where(x => x.IsExecuting));
 		}
 
 		return true;

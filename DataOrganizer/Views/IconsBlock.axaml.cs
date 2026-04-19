@@ -35,10 +35,10 @@ internal sealed partial class IconsBlock : UserControl
 	/// <summary>
 	/// Returns <c>True</c> if the file is executing in the operating system.
 	/// </summary>
-	public bool IsExecuted
+	public bool IsExecuting
 	{
-		get => GetValue(IsExecutedProperty);
-		set => SetValue(IsExecutedProperty, value);
+		get => GetValue(IsExecutingProperty);
+		set => SetValue(IsExecutingProperty, value);
 	}
 
 	/// <summary>
@@ -71,10 +71,10 @@ internal sealed partial class IconsBlock : UserControl
 		.Register<IconsBlock, bool>(name: nameof(IsEditing));
 
 	/// <summary>
-	/// Identifies the <see cref="IsExecuted" /> avalonia property.
+	/// Identifies the <see cref="IsExecuting" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<bool> IsExecutedProperty = AvaloniaProperty
-		.Register<IconsBlock, bool>(name: nameof(IsExecuted));
+	public static readonly StyledProperty<bool> IsExecutingProperty = AvaloniaProperty
+		.Register<IconsBlock, bool>(name: nameof(IsExecuting));
 
 	/// <summary>
 	/// Identifies the <see cref="IsFavorite" /> avalonia property.

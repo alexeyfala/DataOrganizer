@@ -14,7 +14,7 @@ internal sealed class RightSideSheetContentTemplateSelector : TemplateSelectorBa
 		return param switch
 		{
 			RightSideSheetContentType.CopyHistory => DataTemplates[0].Build(param),
-			RightSideSheetContentType.ExecutedFiles => DataTemplates[1].Build(param),
+			RightSideSheetContentType.ExecutingFiles => DataTemplates[1].Build(param),
 			_ => new()
 		};
 	}

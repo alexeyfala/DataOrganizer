@@ -176,7 +176,7 @@ public class ViewLauncher : IViewLauncher
 
 		window
 			.ViewModel
-			.ExecutedFiles
+			.ExecutingFiles
 			.AddRange(executingFiles);
 
 		window
@@ -264,7 +264,7 @@ public class ViewLauncher : IViewLauncher
 
 		window
 			.ViewModel
-			.ExecutedFiles
+			.ExecutingFiles
 			.AddRange(executingFiles);
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
@@ -506,7 +506,7 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		Guid[] executingFiles = [.. hierarchy
-			.GetFilesBy(x => x.IsExecuted)
+			.GetFilesBy(x => x.IsExecuting)
 			.Select(x => x.Id)];
 
 		if (executingFiles.IsNotEmpty())
