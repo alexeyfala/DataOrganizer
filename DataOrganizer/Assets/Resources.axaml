@@ -25,6 +25,8 @@
 	<sys:Double x:Key="EntityTypeIconSize">28.0</sys:Double>
 
 	<sys:Double x:Key="ToolBarIconSize">24.0</sys:Double>
+	
+	<sys:Double x:Key="SmallButtonIconSize">20.0</sys:Double>
 
 	<Thickness x:Key="DialogIndent">8.0</Thickness>
 </ResourceDictionary>

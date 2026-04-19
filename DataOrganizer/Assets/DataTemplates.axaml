@@ -351,6 +351,7 @@
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutingFilesCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
+				Foreground="{StaticResource WarningBrush}"
 				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutingFilesButtonVisibilityConverter}}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
@@ -396,10 +397,13 @@
 
 			<Button
 				Grid.Column="2"
+				Padding="0.0"
 				Classes="primary"
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
 				CommandParameter="{Binding}"
-				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
+				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
 
@@ -439,7 +443,7 @@
 				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
-				                                            IconSize=20.0}"
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
 				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
@@ -586,7 +590,6 @@
 	<DataTemplate
 		x:Key="RecordsGroupTemplate"
 		x:DataType="localModels:RecordsGroup">
-
 		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
 		<Border
 			Padding="4.0"
@@ -796,7 +799,6 @@
 	<DataTemplate
 		x:Key="FavoriteCategoryTemplate"
 		x:DataType="localDto:FavoriteCategory">
-
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -857,7 +859,6 @@
 	<DataTemplate
 		x:Key="FileInListTemplate"
 		x:DataType="models:FileModelDto">
-
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">
