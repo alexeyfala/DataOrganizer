@@ -150,13 +150,27 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 
 		_filter.Synchronize(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
 
-		RefreshFilter();
+		_filter.Refresh();
 	}
 
 	/// <summary>
-	/// Sets <see cref="SelectedItem" /> from <paramref name="item"/> using <see cref="FilterEngine{FileModelDto}.Synchronize" />.
+	/// Inserts or moves to top value in <see cref="Items" />.
 	/// </summary>
-	public void SetSelectedItem(FileModelDto item) => _filter.Synchronize(() => SelectedItem = item);
+	public void InsertOrMoveToTop(FileModelDto file)
+	{
+		int index = _filter.IndexOf(file);
+
+		if (index >= 0)
+		{
+			_filter.Move(index, 0);
+		}
+		else
+		{
+			_filter.Insert(0, file);
+		}
+
+		_filter.Refresh();
+	}
 	#endregion
 
 	#region Service
@@ -165,14 +179,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	/// </summary>
 	private void HistorySearchEmptyStringAction()
 	{
-		RefreshFilter();
+		_filter.Refresh();
 
 		SelectedItem ??= _previousSelectedItem;
 	}
-
-	/// <summary>
-	/// Refreshes filter for <see cref="Items" />.
-	/// </summary>
-	private void RefreshFilter() => _filter.IterateSource((x, i) => x.Order = i);
 	#endregion
 }

@@ -136,14 +136,12 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
 
-				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is not TemplatedControl item)
+				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					return;
+					await BrushExtensions
+						.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
+						.ConfigureAwait(false);
 				}
-
-				await BrushExtensions
-					.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
-					.ConfigureAwait(false);
 			}
 			finally
 			{

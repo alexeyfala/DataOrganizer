@@ -805,7 +805,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_copyHistory?.SetSelectedItem(dto);
+		_copyHistory?.InsertOrMoveToTop(dto);
 	}
 
 	/// <summary>

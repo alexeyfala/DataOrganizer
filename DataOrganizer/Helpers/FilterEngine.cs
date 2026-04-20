@@ -104,6 +104,12 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})" />
 	public TModel? FirstOrDefault(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
 
+	/// <inheritdoc cref="ListEx.IndexOf{T}(IEnumerable{T}, T)" />
+	public int IndexOf(TModel item) => _source.Items.IndexOf(item);
+
+	/// <inheritdoc cref="SourceListEditConvenienceEx.Insert" />
+	public void Insert(in int index, TModel item) => _source.Insert(index, item);
+
 	/// <summary>
 	/// Iterates the source and passes to <paramref name="action"/> item and index.
 	/// </summary>
@@ -115,10 +121,10 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		}
 	}
 
-	/// <inheritdoc cref="SourceListEditConvenienceEx.Move{T}(ISourceList{T}, int, int)" />
+	/// <inheritdoc cref="SourceListEditConvenienceEx.Move" />
 	public void Move(in int original, int destination) => _source.Move(original, destination);
 
-	/// <inheritdoc cref="Enumerable.Select{TSource, TResult}(IEnumerable{TSource}, Func{TSource, TResult})" />
+	/// <inheritdoc cref="Enumerable.Select" />
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 
 	/// <summary>

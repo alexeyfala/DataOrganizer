@@ -142,7 +142,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 
 		_categoriesFilter.Move(pair.DraggedIndex, pair.TargetIndex);
 
-		RefreshCategoriesFilter();
+		_categoriesFilter.Refresh();
 
 		SelectedCategory = selected;
 
@@ -350,7 +350,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// </summary>
 	private void CategorySearchEmptyStringAction()
 	{
-		RefreshCategoriesFilter();
+		_categoriesFilter.Refresh();
 
 		SelectedCategory ??= _previousSelectedCategory;
 	}
@@ -360,19 +360,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// </summary>
 	private void FavoriteSearchEmptyStringAction()
 	{
-		RefreshFavoritesFilter();
+		_favoritesFilter.Refresh();
 
 		SelectedFavorite ??= _previousSelectedFavorite;
 	}
-
-	/// <summary>
-	/// Refreshes filter for <see cref="Categories" />.
-	/// </summary>
-	private void RefreshCategoriesFilter() => _categoriesFilter.IterateSource((x, i) => x.Order = i);
-
-	/// <summary>
-	/// Refreshes filter for <see cref="Favorites" />.
-	/// </summary>
-	private void RefreshFavoritesFilter() => _favoritesFilter.IterateSource((x, i) => x.Order = i);
 	#endregion
 }
