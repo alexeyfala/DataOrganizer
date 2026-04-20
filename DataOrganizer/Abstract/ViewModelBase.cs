@@ -178,6 +178,27 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
+	/// Inserts or moves to top value in <see cref="CopyHistoryViewSettings.CopyHistory" />.
+	/// </summary>
+	public void InsertOrMoveToTop(in Guid fileId)
+	{
+		if (CopyHistorySettings
+			.CopyHistory
+			.Contains(fileId))
+		{
+			CopyHistorySettings
+				.CopyHistory
+				.MoveToTop(CopyHistorySettings.CopyHistory.IndexOf(fileId));
+		}
+		else
+		{
+			CopyHistorySettings
+				.CopyHistory
+				.Insert(0, fileId);
+		}
+	}
+
+	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
 	/// </summary>
 	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Error);
@@ -199,27 +220,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
 	/// </summary>
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
-
-	/// <summary>
-	/// Adds or moves to top value in <see cref="CopyHistoryViewSettings.CopyHistory" />.
-	/// </summary>
-	public void UpdateCopyHistory(in Guid fileId)
-	{
-		if (CopyHistorySettings
-			.CopyHistory
-			.Contains(fileId))
-		{
-			CopyHistorySettings
-				.CopyHistory
-				.MoveToTop(CopyHistorySettings.CopyHistory.IndexOf(fileId));
-		}
-		else
-		{
-			CopyHistorySettings
-				.CopyHistory
-				.Insert(0, fileId);
-		}
-	}
 
 	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.

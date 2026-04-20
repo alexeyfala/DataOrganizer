@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -215,6 +216,63 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ViewModelBase.InsertOrMoveToTop" />.
+	/// </summary>
+	[Test]
+	public void InsertOrMoveToTop_Inserts_New_Value_To_Top()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.CopyHistorySettings
+			.CopyHistory
+			.AddRange(TestUtils.CreateGuids(5));
+
+		Guid value = Guid.NewGuid();
+
+		// Act
+		sut.InsertOrMoveToTop(value);
+
+		// Assert
+		sut.CopyHistorySettings.CopyHistory[0]
+			.Should()
+			.Be(value);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ViewModelBase.InsertOrMoveToTop" />.
+	/// </summary>
+	[Test]
+	public void InsertOrMoveToTop_Moves_Existing_Value_To_Top()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut
+			.CopyHistorySettings
+			.CopyHistory
+			.AddRange(TestUtils.CreateGuids(5));
+
+		Guid value = sut
+			.CopyHistorySettings
+			.CopyHistory
+			.Last();
+
+		// Act
+		sut.InsertOrMoveToTop(value);
+
+		// Assert
+		sut.CopyHistorySettings.CopyHistory[0]
+			.Should()
+			.Be(value);
+	}
+
+	/// <summary>
 	/// Test of <see cref="FavoritesViewModel.ShowInEditorAsync" />.
 	/// </summary>
 	[AvaloniaTest]
@@ -254,63 +312,6 @@ internal class FavoritesViewModelTests
 			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.UpdateCopyHistory" />.
-	/// </summary>
-	[Test]
-	public void UpdateCopyHistory_Inserts_New_Value_To_Top()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut
-			.CopyHistorySettings
-			.CopyHistory
-			.AddRange(TestUtils.CreateGuids(5));
-
-		Guid value = Guid.NewGuid();
-
-		// Act
-		sut.UpdateCopyHistory(value);
-
-		// Assert
-		sut.CopyHistorySettings.CopyHistory[0]
-			.Should()
-			.Be(value);
-	}
-
-	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.UpdateCopyHistory" />.
-	/// </summary>
-	[Test]
-	public void UpdateCopyHistory_Moves_Existing_Value_To_Top()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut
-			.CopyHistorySettings
-			.CopyHistory
-			.AddRange(TestUtils.CreateGuids(5));
-
-		Guid value = sut
-			.CopyHistorySettings
-			.CopyHistory
-			.Last();
-
-		// Act
-		sut.UpdateCopyHistory(value);
-
-		// Assert
-		sut.CopyHistorySettings.CopyHistory[0]
-			.Should()
-			.Be(value);
 	}
 	#endregion
 }
