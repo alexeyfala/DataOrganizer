@@ -409,9 +409,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		PopupContent = FavoritesPopupContentType.None;
 
-		_copyHistory = null;
+		_copyHistory?.Dispose();
 
-		_favorites = null;
+		_favorites?.Dispose();
 	}
 
 	/// <summary>

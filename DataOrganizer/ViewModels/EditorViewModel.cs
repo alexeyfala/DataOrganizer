@@ -569,6 +569,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		window?.Close();
 
+		_copyHistory?.Dispose();
+
 		WeakReferenceMessenger
 			.Default
 			.Unregister<FolderExpandedMessage>(this);
