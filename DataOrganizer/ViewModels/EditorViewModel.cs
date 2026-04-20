@@ -798,7 +798,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		await CopyContentAsync(dto, container).ConfigureAwait(false);
+		if (!await CopyContentAsync(dto, container).ConfigureAwait(false))
+		{
+			return;
+		}
 
 		if (RightSideSheetContent != RightSideSheetContentType.CopyHistory)
 		{

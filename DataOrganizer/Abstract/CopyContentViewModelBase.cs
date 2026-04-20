@@ -88,7 +88,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <summary>
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
-	protected async Task CopyContentAsync(
+	protected async Task<bool> CopyContentAsync(
 		FileModelDto file,
 		ItemsControl container,
 		CancellationToken token = default)
@@ -103,14 +103,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			{
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
 
-				return;
+				return false;
 			}
 
 			if (await _entityEcryption
 				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{
-				return;
+				return false;
 			}
 
 			try
@@ -125,7 +125,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				{
 					viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
-					return;
+					return false;
 				}
 
 				viewModel?.InsertOrMoveToTop(file.Id);
@@ -138,10 +138,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					await BrushExtensions
-						.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
-						.ConfigureAwait(false);
+					_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token);
 				}
+
+				return true;
 			}
 			finally
 			{
@@ -154,6 +154,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			return false;
 		}
 	}
 	#endregion
