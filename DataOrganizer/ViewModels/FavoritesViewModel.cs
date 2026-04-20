@@ -105,7 +105,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	partial void OnIsPopupOpenChanged(bool value)
 	{
-		if (value || IsShutdown)
+		if (value)
 		{
 			return;
 		}
