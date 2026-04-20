@@ -21,6 +21,14 @@ public static partial class SerilogExtensions
 
 	#region Methods
 	/// <summary>
+	/// Returns a message containing information about the event source.
+	/// </summary>
+	public static string GetSourceInfo(
+		[CallerFilePath] string filePath = "",
+		[CallerMemberName] string callerName = "",
+		[CallerLineNumber] in int lineNumber = 0) => CreateSourceInfo(filePath, callerName, in lineNumber);
+
+	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Debug" /> level entry.
 	/// </summary>
 	public static void LogDebug(

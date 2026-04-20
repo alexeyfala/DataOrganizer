@@ -88,7 +88,35 @@ public sealed class App : Application
 
 		_timer.Start();
 
-		_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+		try
+		{
+			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+		}
+		catch (Exception ex)
+		{
+			string appDirectory = IAppEnvironment.GetAppDataDirectoryPath();
+
+			Directory.CreateDirectory(appDirectory);
+
+			string filePath = Path.Combine(
+				appDirectory,
+				$"{AppUtils.AppNameAsOneWord}_Critical_Errors{AppUtils.TxtExtension}");
+
+			File.AppendAllText(
+				filePath,
+				$"[{DateTime.Now}] {ex.Message} → {SerilogExtensions.GetSourceInfo()}" + Environment.NewLine);
+
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = filePath,
+				UseShellExecute = true
+			});
+		}
+
+		if (_serviceProvider is null)
+		{
+			return;
+		}
 
 		_ = _serviceProvider
 			.GetRequiredService<IAppController>()
@@ -266,10 +294,10 @@ public sealed class App : Application
 				string path = Path.Combine(
 					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
 					"Logs",
-					".txt");
+					AppUtils.TxtExtension);
 
 				configure.FileEx(
-					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", ".txt"),
+					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", AppUtils.TxtExtension),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
