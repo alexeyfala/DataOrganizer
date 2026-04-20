@@ -93,7 +93,7 @@
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="Padding" Value="0.0" />
 		<Setter Property="Theme" Value="{StaticResource SoloTextBox}" />
-		<Setter Property="Watermark" Value="{x:Static prop:Strings.Search}" />
+		<Setter Property="PlaceholderText" Value="{x:Static prop:Strings.Search}" />
 	</Style>
 
 	<Style Selector="Rectangle.ColorSampleStyle">
