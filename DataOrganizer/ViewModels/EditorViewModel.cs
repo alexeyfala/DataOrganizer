@@ -1073,7 +1073,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IMapper mapper,
 		IProcessUtils processUtils,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1085,7 +1086,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			keyboardInputHook,
 			logger,
 			viewFactory,
-			viewLauncher)
+			viewLauncher,
+			viewModel)
 	{
 		_dataExchange = dataExchange;
 

@@ -137,13 +137,15 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEcryption,
-			logger)
+			logger,
+			viewModel)
 	{
 		_dispatcher = dispatcher;
 

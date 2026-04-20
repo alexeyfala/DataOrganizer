@@ -41,6 +41,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboard;
+
+	/// <inheritdoc cref="IViewModelExecutionService" />
+	private readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -50,7 +53,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
-		ILogger logger)
+		ILogger logger,
+		IViewModelExecutionService viewModel)
 	{
 		_app = app;
 
@@ -63,6 +67,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		_entityEcryption = entityEcryption;
 
 		_logger = logger;
+
+		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -119,16 +125,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					.Utf8Encoding
 					.GetString(contents);
 
-				ViewModelBase? viewModel = _app.FindBaseDataContext();
-
 				if (string.IsNullOrEmpty(text))
 				{
-					viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+					_viewModel.ExecuteInBaseViewModel(x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
 
 					return false;
 				}
 
-				viewModel?.InsertOrMoveToTop(file.Id);
+				_viewModel.ExecuteInBaseViewModel(x => x.InsertOrMoveToTop(file.Id));
 
 				await _clipboard
 					.SetTextAsync(text)

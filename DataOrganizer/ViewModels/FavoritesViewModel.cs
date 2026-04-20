@@ -356,7 +356,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -368,7 +369,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			keyboardInputHook,
 			logger,
 			viewFactory,
-			viewLauncher)
+			viewLauncher,
+			viewModel)
 	{
 	}
 	#endregion
