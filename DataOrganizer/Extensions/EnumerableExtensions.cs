@@ -170,7 +170,7 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static IEnumerable<FileModelDto> FilterFilesById(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		List<Guid> identifiers)
+		IEnumerable<Guid> identifiers)
 	{
 		foreach (Guid id in identifiers)
 		{

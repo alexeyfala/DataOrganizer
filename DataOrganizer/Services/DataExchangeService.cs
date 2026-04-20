@@ -306,7 +306,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					{
 						viewModel
 							.CopyHistorySettings
-							.CopyHistory
+							.Items
 							.Clear();
 
 						viewModel.IsRightSideSheetOpened = false;

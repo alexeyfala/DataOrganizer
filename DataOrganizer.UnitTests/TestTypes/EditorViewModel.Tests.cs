@@ -1008,8 +1008,8 @@ internal class EditorViewModelTests
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			CopyHistory = [.. TestUtils.CreateGuids(5)],
-			SelectedCopyHistoryItemId = Guid.NewGuid()
+			Items = [.. TestUtils.CreateGuids(5)],
+			SelectedItemId = Guid.NewGuid()
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -1053,13 +1053,13 @@ internal class EditorViewModelTests
 			.Should()
 			.Be(windowSettings.IsReadOnly);
 
-		sut.CopyHistorySettings.SelectedCopyHistoryItemId
+		sut.CopyHistorySettings.SelectedItemId
 			.Should()
-			.Be(copyHistorySettings.SelectedCopyHistoryItemId);
+			.Be(copyHistorySettings.SelectedItemId);
 
-		sut.CopyHistorySettings.CopyHistory
+		sut.CopyHistorySettings.Items
 			.Should()
-			.Contain(copyHistorySettings.CopyHistory);
+			.Contain(copyHistorySettings.Items);
 	}
 
 	/// <summary>

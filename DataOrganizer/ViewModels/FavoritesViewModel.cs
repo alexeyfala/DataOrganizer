@@ -406,7 +406,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.Clear();
 
 		CopyHistorySettings
-			.CopyHistory
+			.Items
 			.Clear();
 
 		PopupContent = FavoritesPopupContentType.None;
@@ -460,9 +460,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		FavoritesSettings.OrderedCategories = favoritesSettings.OrderedCategories;
 
-		CopyHistorySettings.CopyHistory = copyHistorySettings.CopyHistory;
+		CopyHistorySettings.Items = copyHistorySettings.Items;
 
-		CopyHistorySettings.SelectedCopyHistoryItemId = copyHistorySettings.SelectedCopyHistoryItemId;
+		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 
 		IsInitialized = true;
 	}

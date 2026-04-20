@@ -29,7 +29,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	/// </summary>
 	public bool IsEmpty => _filter.IsEmpty;
 
-	/// <inheritdoc cref="CopyHistoryViewSettings.CopyHistory" />
+	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
 	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
 	#endregion
 
@@ -40,7 +40,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	[ObservableProperty]
 	private string? _historySearch;
 
-	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedCopyHistoryItemId" />
+	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />
 	[ObservableProperty]
 	private FileModelDto? _selectedItem;
 	#endregion

@@ -1407,9 +1407,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings.CopyHistory = copyHistorySettings.CopyHistory;
+		CopyHistorySettings.Items = copyHistorySettings.Items;
 
-		CopyHistorySettings.SelectedCopyHistoryItemId = copyHistorySettings.SelectedCopyHistoryItemId;
+		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 
 		IsInitialized = true;
 	}

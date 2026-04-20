@@ -291,13 +291,23 @@
 									Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
 							</Grid>
 
-							<Button
-								Classes="primary"
-								Command="{Binding ShowCopyHistoryCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-								                                            IconSize={StaticResource ToolBarIconSize}}"
-								Theme="{StaticResource MaterialFlatButton}"
-								ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+							<Grid>
+								<Button
+									Classes="primary"
+									Command="{Binding ShowCopyHistoryCommand}"
+									Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+									                                            IconSize={StaticResource ToolBarIconSize}}"
+									Theme="{StaticResource MaterialFlatButton}"
+									ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+
+								<!--<TextBlock
+									Margin="0.0,0.0,8.0,0.0"
+									HorizontalAlignment="Right"
+									VerticalAlignment="Bottom"
+									Classes="HeaderTextBlockStyle"
+									Foreground="LimeGreen"
+									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />-->
+							</Grid>
 						</StackPanel>
 					</Grid>
 
@@ -410,4 +420,3 @@
 		</materialControls:SnackbarHost>
 	</dialogHost:DialogHost>
 </Window>
-

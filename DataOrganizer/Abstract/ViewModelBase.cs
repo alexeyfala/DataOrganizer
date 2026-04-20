@@ -79,8 +79,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
 	{
 		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
+			Hierarchy.FilterFilesById(CopyHistorySettings.Items),
+			CopyHistorySettings.SelectedItemId);
 
 		_copyHistory = viewModel;
 	}
@@ -180,22 +180,22 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Inserts or moves to top value in <see cref="CopyHistoryViewSettings.CopyHistory" />.
+	/// Inserts or moves to top value in <see cref="CopyHistoryViewSettings.Items" />.
 	/// </summary>
 	public void InsertOrMoveToTop(in Guid fileId)
 	{
 		if (CopyHistorySettings
-			.CopyHistory
+			.Items
 			.Contains(fileId))
 		{
 			CopyHistorySettings
-				.CopyHistory
-				.MoveToTop(CopyHistorySettings.CopyHistory.IndexOf(fileId));
+				.Items
+				.MoveToTop(CopyHistorySettings.Items.IndexOf(fileId));
 		}
 		else
 		{
 			CopyHistorySettings
-				.CopyHistory
+				.Items
 				.Insert(0, fileId);
 		}
 	}
@@ -245,23 +245,23 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	{
 		if (viewModel.SelectedItem is { } selected)
 		{
-			CopyHistorySettings.SelectedCopyHistoryItemId = selected.Id;
+			CopyHistorySettings.SelectedItemId = selected.Id;
 		}
 		else
 		{
-			CopyHistorySettings.SelectedCopyHistoryItemId = default;
+			CopyHistorySettings.SelectedItemId = default;
 		}
 
 		Guid[] identifiers = [.. viewModel.GetIdentifiers()];
 
 		foreach (Guid item in CopyHistorySettings
-			.CopyHistory
+			.Items
 			.ToArray())
 		{
 			if (!identifiers.Contains(item))
 			{
 				CopyHistorySettings
-					.CopyHistory
+					.Items
 					.Remove(item);
 			}
 		}

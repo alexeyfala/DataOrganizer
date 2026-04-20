@@ -105,7 +105,7 @@ internal class FavoritesViewModelTests
 
 		sut
 			.CopyHistorySettings
-			.CopyHistory
+			.Items
 			.AddRange(TestUtils.CreateGuids(count));
 
 		// Act
@@ -124,7 +124,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeEmpty();
 
-		sut.CopyHistorySettings.CopyHistory
+		sut.CopyHistorySettings.Items
 			.Should()
 			.BeEmpty();
 	}
@@ -156,8 +156,8 @@ internal class FavoritesViewModelTests
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			CopyHistory = [.. TestUtils.CreateGuids(5)],
-			SelectedCopyHistoryItemId = Guid.NewGuid()
+			Items = [.. TestUtils.CreateGuids(5)],
+			SelectedItemId = Guid.NewGuid()
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -206,13 +206,13 @@ internal class FavoritesViewModelTests
 			.Should()
 			.Contain(favoritesSettings.OrderedCategories);
 
-		sut.CopyHistorySettings.SelectedCopyHistoryItemId
+		sut.CopyHistorySettings.SelectedItemId
 			.Should()
-			.Be(copyHistorySettings.SelectedCopyHistoryItemId);
+			.Be(copyHistorySettings.SelectedItemId);
 
-		sut.CopyHistorySettings.CopyHistory
+		sut.CopyHistorySettings.Items
 			.Should()
-			.Contain(copyHistorySettings.CopyHistory);
+			.Contain(copyHistorySettings.Items);
 	}
 
 	/// <summary>
@@ -228,7 +228,7 @@ internal class FavoritesViewModelTests
 
 		sut
 			.CopyHistorySettings
-			.CopyHistory
+			.Items
 			.AddRange(TestUtils.CreateGuids(5));
 
 		Guid value = Guid.NewGuid();
@@ -237,7 +237,7 @@ internal class FavoritesViewModelTests
 		sut.InsertOrMoveToTop(value);
 
 		// Assert
-		sut.CopyHistorySettings.CopyHistory[0]
+		sut.CopyHistorySettings.Items[0]
 			.Should()
 			.Be(value);
 	}
@@ -255,19 +255,19 @@ internal class FavoritesViewModelTests
 
 		sut
 			.CopyHistorySettings
-			.CopyHistory
+			.Items
 			.AddRange(TestUtils.CreateGuids(5));
 
 		Guid value = sut
 			.CopyHistorySettings
-			.CopyHistory
+			.Items
 			.Last();
 
 		// Act
 		sut.InsertOrMoveToTop(value);
 
 		// Assert
-		sut.CopyHistorySettings.CopyHistory[0]
+		sut.CopyHistorySettings.Items[0]
 			.Should()
 			.Be(value);
 	}
