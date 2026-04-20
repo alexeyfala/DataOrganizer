@@ -178,21 +178,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Saves data in <see cref="CopyHistorySettings" />.
-	/// </summary>
-	public void SaveCopyHistory()
-	{
-		if (_copyHistory is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Save copy history");
-
-		SaveCopyHistory(_copyHistory);
-	}
-
-	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
 	/// </summary>
 	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Error);
@@ -234,6 +219,21 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				.CopyHistory
 				.Insert(0, fileId);
 		}
+	}
+
+	/// <summary>
+	/// Saves data in <see cref="CopyHistorySettings" />.
+	/// </summary>
+	protected void SaveCopyHistory()
+	{
+		if (_copyHistory is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Save copy history");
+
+		SaveCopyHistory(_copyHistory);
 	}
 	#endregion
 

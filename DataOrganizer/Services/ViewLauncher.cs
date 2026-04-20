@@ -113,15 +113,6 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
-		if (window
-			.ViewModel
-			.RightSideSheetContent == RightSideSheetContentType.CopyHistory)
-		{
-			window
-				.ViewModel
-				.SaveCopyHistory();
-		}
-
 		_ = SaveEditorSettingsAsync(window);
 	}
 
