@@ -39,7 +39,7 @@
 			Grid.Column="0"
 			Grid.ColumnSpan="2"
 			ItemTemplate="{StaticResource FileInListTemplate}"
-			ItemsSource="{Binding CopyHistory, Mode=OneTime}"
+			ItemsSource="{Binding Items, Mode=OneTime}"
 			SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
 	</Grid>
 </UserControl>

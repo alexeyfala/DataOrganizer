@@ -34,7 +34,7 @@ internal class CopyHistoryViewModelTests
 		sut.Clear();
 
 		// Assert
-		sut.IsCopyHistoryEmpty
+		sut.IsEmpty
 			.Should()
 			.BeTrue();
 
@@ -66,7 +66,7 @@ internal class CopyHistoryViewModelTests
 		sut.Dispose();
 
 		// Assert
-		sut.IsCopyHistoryEmpty
+		sut.IsEmpty
 			.Should()
 			.BeTrue();
 
@@ -117,7 +117,7 @@ internal class CopyHistoryViewModelTests
 		sut.Initialize(items, items[0].Id);
 
 		// Assert
-		sut.IsCopyHistoryEmpty
+		sut.IsEmpty
 			.Should()
 			.BeFalse();
 
