@@ -94,6 +94,8 @@ public sealed class App : Application
 		}
 		catch (Exception ex)
 		{
+			Debug.Fail(ex.Message);
+
 			string appDirectory = IAppEnvironment.GetAppDataDirectoryPath();
 
 			Directory.CreateDirectory(appDirectory);
