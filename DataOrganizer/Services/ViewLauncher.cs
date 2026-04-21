@@ -210,13 +210,10 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<EditorWindowSettings>(filePath) is { } windowSettings)
 		{
-			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
-
 			window.ViewModel.Initialize(
 				window,
 				windowSettings,
-				copyHistorySettings);
+				GetHistorySettingsFromFile());
 		}
 		else
 		{
@@ -262,17 +259,11 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
 		{
-			FavoritesViewSettings favoritesSettings = _jsonSerializer.FromFile<FavoritesViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
-
-			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
-
 			window.ViewModel.Initialize(
 				window,
 				windowSettings,
-				favoritesSettings,
-				copyHistorySettings);
+				GetFavoritesSettingsFromFile(),
+				GetHistorySettingsFromFile());
 		}
 		else
 		{
@@ -464,6 +455,24 @@ public class ViewLauncher : IViewLauncher
 				currentAttepmt,
 				token).ConfigureAwait(false);
 		}
+	}
+
+	/// <summary>
+	/// Returns <see cref="FavoritesViewSettings" /> settings from file.
+	/// </summary>
+	private FavoritesViewSettings GetFavoritesSettingsFromFile()
+	{
+		return _jsonSerializer.FromFile<FavoritesViewSettings>(
+			_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
+	}
+
+	/// <summary>
+	/// Returns <see cref="CopyHistoryViewSettings" /> settings from file.
+	/// </summary>
+	private CopyHistoryViewSettings GetHistorySettingsFromFile()
+	{
+		return _jsonSerializer.FromFile<CopyHistoryViewSettings>(
+				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
 	}
 
 	/// <summary>

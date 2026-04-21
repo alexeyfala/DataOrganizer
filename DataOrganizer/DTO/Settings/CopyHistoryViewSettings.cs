@@ -12,7 +12,10 @@ public sealed class CopyHistoryViewSettings
 	/// <summary>
 	/// Copy content history.
 	/// </summary>
-	public ObservableCollection<Guid> Items { get; } = [];
+	/// <remarks>
+	/// Don't remove the "set;" accessor, it's required for deserialization.
+	/// </remarks>
+	public ObservableCollection<Guid> Items { get; set; } = [];
 
 	/// <summary>
 	/// The selected item identifier in <see cref="Items" />.
