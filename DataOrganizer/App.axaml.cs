@@ -59,13 +59,13 @@ public sealed class App : Application
 		object? sender,
 		ControlledApplicationLifetimeExitEventArgs e)
 	{
-		_serviceProvider?.Dispose();
-
 		_timer.Stop();
 
-		Ioc.Default
+		_serviceProvider?
 			.GetRequiredService<ILogger>()
 			.LogInformationWithTemplate($"App life time: {_timer.GetElapsedTime()}, exit with code: {e.ApplicationExitCode}{Environment.NewLine}{Environment.NewLine}");
+
+		_serviceProvider?.Dispose();
 	}
 	#endregion
 
