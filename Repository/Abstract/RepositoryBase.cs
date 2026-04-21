@@ -57,7 +57,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}" />
-	protected Task<bool> IsExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	public Task<bool> IsExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context
 			.Set<T>()

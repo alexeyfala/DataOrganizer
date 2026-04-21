@@ -101,13 +101,22 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	{
 		try
 		{
+			if (!await _dbAccess
+				.IsExistsAsync(file.Id, token)
+				.ConfigureAwait(true))
+			{
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}"));
+
+				return false;
+			}
+
 			ContentsIsValidPair result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
 
 			if (!result.IsValid)
 			{
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}"""));
 
 				return false;
 			}

@@ -661,6 +661,34 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> IsExistsAsync(Guid id, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			return await _baseRepository
+				.IsExistsAsync(x => x.Id == id, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false)
 	{
 		try

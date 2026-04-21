@@ -525,4 +525,7 @@
   <data name="Database" xml:space="preserve">
     <value>База данных</value>
   </data>
+  <data name="DoesNotExist" xml:space="preserve">
+    <value>не существует</value>
+  </data>
 </root>

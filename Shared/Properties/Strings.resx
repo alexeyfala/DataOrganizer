@@ -505,4 +505,7 @@
   <data name="Database" xml:space="preserve">
     <value>Database</value>
   </data>
+  <data name="DoesNotExist" xml:space="preserve">
+    <value>does not exist</value>
+  </data>
 </root>
