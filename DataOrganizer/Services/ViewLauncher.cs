@@ -307,7 +307,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
+	public async Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -351,21 +351,19 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.IsShutdown)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
+			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return Task.CompletedTask;
 		}
 	}
 
 	/// <inheritdoc />
-	public Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
+	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -401,16 +399,14 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.IsShutdown)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
+			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return Task.CompletedTask;
 		}
 		finally
 		{
