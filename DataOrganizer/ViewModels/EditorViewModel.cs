@@ -757,9 +757,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
-			_copyHistory?.Clear();
-
-			SaveCopyHistory();
+			ClearCopyHistory();
 		}
 		else if (RightSideSheetContent == RightSideSheetContentType.ExecutingFiles)
 		{
