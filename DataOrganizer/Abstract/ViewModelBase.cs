@@ -182,22 +182,24 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Inserts or moves to top value in <see cref="CopyHistoryViewSettings.Items" />.
 	/// </summary>
-	public void InsertOrMoveToTop(in Guid fileId)
+	public void InsertOrMoveToTop(FileModelDto file)
 	{
 		if (CopyHistorySettings
 			.Items
-			.Contains(fileId))
+			.Contains(file.Id))
 		{
 			CopyHistorySettings
 				.Items
-				.MoveToTop(CopyHistorySettings.Items.IndexOf(fileId));
+				.MoveToTop(CopyHistorySettings.Items.IndexOf(file.Id));
 		}
 		else
 		{
 			CopyHistorySettings
 				.Items
-				.Insert(0, fileId);
+				.Insert(0, file.Id);
 		}
+
+		_copyHistory?.InsertOrMoveToTop(file);
 	}
 
 	/// <summary>

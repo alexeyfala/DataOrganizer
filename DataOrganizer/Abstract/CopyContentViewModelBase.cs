@@ -94,7 +94,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <summary>
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
-	protected async Task<bool> CopyContentAsync(
+	protected async Task CopyContentAsync(
 		FileModelDto file,
 		ItemsControl container,
 		CancellationToken token = default)
@@ -107,7 +107,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			{
 				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}"));
 
-				return false;
+				return;
 			}
 
 			ContentsIsValidPair result = await _dbAccess
@@ -118,14 +118,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 			{
 				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}"""));
 
-				return false;
+				return;
 			}
 
 			if (await _entityEcryption
 				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{
-				return false;
+				return;
 			}
 
 			try
@@ -138,10 +138,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				{
 					_viewModel.ExecuteInBaseViewModel(x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
 
-					return false;
+					return;
 				}
 
-				_viewModel.ExecuteInBaseViewModel(x => x.InsertOrMoveToTop(file.Id));
+				_viewModel.ExecuteInBaseViewModel(x => x.InsertOrMoveToTop(file));
 
 				await _clipboard
 					.SetTextAsync(text)
@@ -153,8 +153,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 				{
 					_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token);
 				}
-
-				return true;
 			}
 			finally
 			{
@@ -167,8 +165,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return false;
 		}
 	}
 	#endregion

@@ -222,6 +222,8 @@ internal class FavoritesViewModelTests
 	public void InsertOrMoveToTop_Inserts_New_Value_To_Top()
 	{
 		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
 		using AutoMock mock = AutoMock.GetLoose();
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
@@ -231,45 +233,13 @@ internal class FavoritesViewModelTests
 			.Items
 			.AddRange(TestUtils.CreateGuids(5));
 
-		Guid value = Guid.NewGuid();
-
 		// Act
-		sut.InsertOrMoveToTop(value);
+		sut.InsertOrMoveToTop(file);
 
 		// Assert
 		sut.CopyHistorySettings.Items[0]
 			.Should()
-			.Be(value);
-	}
-
-	/// <summary>
-	/// Test of <see cref="ViewModelBase.InsertOrMoveToTop" />.
-	/// </summary>
-	[Test]
-	public void InsertOrMoveToTop_Moves_Existing_Value_To_Top()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut
-			.CopyHistorySettings
-			.Items
-			.AddRange(TestUtils.CreateGuids(5));
-
-		Guid value = sut
-			.CopyHistorySettings
-			.Items
-			.Last();
-
-		// Act
-		sut.InsertOrMoveToTop(value);
-
-		// Assert
-		sut.CopyHistorySettings.Items[0]
-			.Should()
-			.Be(value);
+			.Be(file.Id);
 	}
 
 	/// <summary>

@@ -789,26 +789,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
-	private async Task CopyContent(FileModelDto? dto)
+	private Task CopyContent(FileModelDto? dto)
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
 			|| window.FindLogicalChild<TreeView>() is not { } container)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		if (!await CopyContentAsync(dto, container).ConfigureAwait(false))
-		{
-			return;
-		}
-
-		if (RightSideSheetContent != RightSideSheetContentType.CopyHistory)
-		{
-			return;
-		}
-
-		_copyHistory?.InsertOrMoveToTop(dto);
+		return CopyContentAsync(dto, container);
 	}
 
 	/// <summary>
