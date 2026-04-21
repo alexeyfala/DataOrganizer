@@ -117,6 +117,16 @@
 		<Setter Property="FontWeight" Value="Bold" />
 	</Style>
 
+	<Style Selector="TextBlock.CountTextBlockStyle">
+		<Setter Property="FontSize" Value="16.0" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="Foreground" Value="LimeGreen" />
+		<Setter Property="HorizontalAlignment" Value="Right" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+		<Setter Property="Margin" Value="0.0,0.0,8.0,0.0" />
+		<Setter Property="VerticalAlignment" Value="Bottom" />
+	</Style>
+
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace DataOrganizer.DTO.Settings;
 
@@ -12,7 +12,7 @@ public sealed class CopyHistoryViewSettings
 	/// <summary>
 	/// Copy content history.
 	/// </summary>
-	public List<Guid> Items { get; set; } = [];
+	public ObservableCollection<Guid> Items { get; } = [];
 
 	/// <summary>
 	/// The selected item identifier in <see cref="Items" />.

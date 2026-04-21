@@ -279,12 +279,18 @@
 						Command="{Binding ShowSystemClipboardCommand}"
 						Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
 
-					<ToggleButton
-						Classes="primary"
-						Command="{Binding ShowCopyHistoryCommand}"
-						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-						                                            IconSize={StaticResource ToolBarIconSize}}"
-						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+					<Grid>
+						<ToggleButton
+							Classes="primary"
+							Command="{Binding ShowCopyHistoryCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+							                                            IconSize={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+
+						<TextBlock
+							Classes="CountTextBlockStyle"
+							Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+					</Grid>
 				</StackPanel>
 			</Border>
 		</Grid>

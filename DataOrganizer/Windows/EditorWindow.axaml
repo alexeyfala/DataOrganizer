@@ -283,11 +283,7 @@
 								</Button>
 
 								<TextBlock
-									Margin="0.0,0.0,8.0,0.0"
-									HorizontalAlignment="Right"
-									VerticalAlignment="Bottom"
-									Classes="HeaderTextBlockStyle"
-									Foreground="LimeGreen"
+									Classes="CountTextBlockStyle"
 									Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
 							</Grid>
 
@@ -300,13 +296,9 @@
 									Theme="{StaticResource MaterialFlatButton}"
 									ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
 
-								<!--<TextBlock
-									Margin="0.0,0.0,8.0,0.0"
-									HorizontalAlignment="Right"
-									VerticalAlignment="Bottom"
-									Classes="HeaderTextBlockStyle"
-									Foreground="LimeGreen"
-									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />-->
+								<TextBlock
+									Classes="CountTextBlockStyle"
+									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
 							</Grid>
 						</StackPanel>
 					</Grid>
