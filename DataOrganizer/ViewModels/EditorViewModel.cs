@@ -857,10 +857,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_ = DialogHost.Show(view);
 
+		// Since the editor may have a tab open with the file being deleted,
+		// the operation must be performed in the main thread (ConfigureAwait(true)).
 		YesNoCancelResult result = await view
 			.ViewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		if (result != YesNoCancelResult.Yes)
 		{
