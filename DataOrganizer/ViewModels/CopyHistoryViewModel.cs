@@ -173,6 +173,11 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 
 		_filter.Refresh();
 	}
+
+	/// <summary>
+	/// Tries to remove value from <see cref="Items" />.
+	/// </summary>
+	public bool Remove(FileModelDto file) => _filter.Remove(file);
 	#endregion
 
 	#region Service

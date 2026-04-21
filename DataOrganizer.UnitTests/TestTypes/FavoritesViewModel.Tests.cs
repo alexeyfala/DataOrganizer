@@ -216,10 +216,10 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewModelBase.InsertOrMoveToTop" />.
+	/// Test of <see cref="ViewModelBase.InsertToCopyHistory" />.
 	/// </summary>
 	[Test]
-	public void InsertOrMoveToTop_Inserts_New_Value_To_Top()
+	public void InsertToCopyHistory_Inserts_New_Value_To_Top()
 	{
 		// Arrange
 		FileModelDto file = TestUtils.CreateFileDto();
@@ -234,7 +234,7 @@ internal class FavoritesViewModelTests
 			.AddRange(TestUtils.CreateGuids(5));
 
 		// Act
-		sut.InsertOrMoveToTop(file);
+		sut.InsertToCopyHistory(file);
 
 		// Assert
 		sut.CopyHistorySettings.Items[0]

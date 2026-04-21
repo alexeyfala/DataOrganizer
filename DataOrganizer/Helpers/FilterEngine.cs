@@ -124,6 +124,9 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Move" />
 	public void Move(in int original, int destination) => _source.Move(original, destination);
 
+	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />
+	public bool Remove(TModel item) => _source.Remove(item);
+
 	/// <inheritdoc cref="Enumerable.Select" />
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 

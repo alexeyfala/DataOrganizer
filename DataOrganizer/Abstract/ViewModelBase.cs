@@ -180,9 +180,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Inserts or moves to top value in <see cref="CopyHistoryViewSettings.Items" />.
+	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void InsertOrMoveToTop(FileModelDto file)
+	public void InsertToCopyHistory(FileModelDto file)
 	{
 		if (CopyHistorySettings
 			.Items
@@ -233,6 +233,18 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_copyHistory?.Clear();
 
 		SaveCopyHistory();
+	}
+
+	/// <summary>
+	/// Tries to remove value from copy history.
+	/// </summary>
+	protected void RemoveFromCopyHistory(FileModelDto file)
+	{
+		CopyHistorySettings
+			.Items
+			.Remove(file.Id);
+
+		_copyHistory?.Remove(file);
 	}
 
 	/// <summary>

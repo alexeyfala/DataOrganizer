@@ -141,7 +141,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					return;
 				}
 
-				_viewModel.ExecuteInBaseViewModel(x => x.InsertOrMoveToTop(file));
+				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file));
 
 				await _clipboard
 					.SetTextAsync(text)

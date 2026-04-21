@@ -1256,6 +1256,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (dto is FileModelDto file)
 		{
 			CloseFile(file);
+
+			RemoveFromCopyHistory(file);
 		}
 
 		CountHierarchy();
