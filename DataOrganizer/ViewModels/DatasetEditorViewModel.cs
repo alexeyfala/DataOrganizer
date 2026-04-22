@@ -5,7 +5,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -512,20 +511,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortAscending(RecordsGroup? group)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = Strings.SortAscending + "?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(Strings.SortAscending + "?")
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -546,20 +534,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = text;
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(text)
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -573,20 +550,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortDescending(RecordsGroup? group)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = Strings.SortDescending + "?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(Strings.SortDescending + "?")
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -599,6 +565,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboard;
 
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
+
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 	#endregion
@@ -606,15 +575,24 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
-		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
+		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
+		IViewFactory viewFactory) : base(
+			app,
+			dbAccess,
+			dispatcher,
+			entityEcryption,
+			jsonSerializer,
+			logger)
 	{
 		_clipboard = clipboardService;
+
+		_dialogService = dialogService;
 
 		_viewFactory = viewFactory;
 	}
@@ -1055,20 +1033,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string? questionText,
 		CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $@"{Strings.Delete} ""{questionText}""?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo, token)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{questionText}""?", token)
+			.ConfigureAwait(false))
 		{
 			return;
 		}
