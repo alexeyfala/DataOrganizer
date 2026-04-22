@@ -33,7 +33,6 @@
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding HistorySearch, Mode=TwoWay}" />
 
-		<!-- TODO: ScrollViewer is not visible in EditorWindow -->
 		<ListBox
 			Grid.Row="1"
 			Grid.Column="0"

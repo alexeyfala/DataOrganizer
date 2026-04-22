@@ -2,7 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
-	xmlns:sys="clr-namespace:System;assembly=netstandard">
+	xmlns:system="clr-namespace:System;assembly=netstandard">
 
 	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
 
@@ -20,13 +20,13 @@
 
 	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
 
-	<sys:Double x:Key="ElementSpacing">10.0</sys:Double>
+	<system:Double x:Key="ElementSpacing">10.0</system:Double>
 
-	<sys:Double x:Key="EntityTypeIconSize">28.0</sys:Double>
+	<system:Double x:Key="EntityTypeIconSize">28.0</system:Double>
 
-	<sys:Double x:Key="ToolBarIconSize">24.0</sys:Double>
-	
-	<sys:Double x:Key="SmallButtonIconSize">20.0</sys:Double>
+	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
+
+	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
 
 	<Thickness x:Key="DialogIndent">8.0</Thickness>
 </ResourceDictionary>

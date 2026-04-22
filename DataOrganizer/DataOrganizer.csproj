@@ -17,6 +17,7 @@
 	<ItemGroup>
 		<AvaloniaXaml Remove="Assets\DataTemplates.axaml" />
 		<AvaloniaXaml Remove="Assets\Resources.axaml" />
+		<AvaloniaXaml Remove="Assets\SideSheetControlTheme.axaml" />
 		<AvaloniaXaml Remove="Assets\Styles.axaml" />
 		<AvaloniaXaml Remove="Assets\Themes.axaml" />
 	</ItemGroup>
@@ -60,6 +61,9 @@
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Resources.axaml">
 			<SubType>Designer</SubType>
+		</AvaloniaResource>
+		<AvaloniaResource Update="Assets\SideSheetControlTheme.axaml">
+		  <SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Styles.axaml">
 			<SubType>Designer</SubType>

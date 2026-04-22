@@ -7,7 +7,6 @@
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	mc:Ignorable="d">
 
-	<!-- TODO: ScrollViewer is not visible in EditorWindow -->
 	<ListBox
 		ItemTemplate="{StaticResource ExecutingFileTemplate}"
 		ItemsSource="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecutingFiles, Mode=OneTime}" />

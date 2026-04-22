@@ -31,7 +31,13 @@
 	</Design.DataContext>
 
 	<Window.Resources>
-		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="/Assets/SideSheetControlTheme.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+		</ResourceDictionary>
 	</Window.Resources>
 
 	<dialogHost:DialogHost
@@ -360,7 +366,8 @@
 							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
 							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
-							SideSheetPadding="4.0">
+							SideSheetPadding="4.0"
+							Theme="{StaticResource ScrollableSideSheet}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
 								<helpers:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
