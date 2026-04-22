@@ -367,6 +367,10 @@
 				</Style>
 			</Grid.Styles>
 
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
+
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
 					<StackPanel Orientation="Vertical">
@@ -804,6 +808,10 @@
 				</Style>
 			</Grid.Styles>
 
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
+
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
 					<StackPanel Orientation="Vertical">
@@ -868,6 +876,10 @@
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 				</Style>
 			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
