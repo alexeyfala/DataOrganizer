@@ -27,6 +27,12 @@ public interface IDialogService
 	/// Asks a question with options <see cref="YesNoCancelVariant.YesCancel" />,
 	/// returns <c>True</c> if the answer was <see cref="YesNoCancelResult.Yes" />.
 	/// </summary>
+	Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default);
+
+	/// <summary>
+	/// Asks a question with options <see cref="YesNoCancelVariant.YesNo" />,
+	/// returns <c>True</c> if the answer was <see cref="YesNoCancelResult.Yes" />.
+	/// </summary>
 	Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default);
 
 	/// <summary>

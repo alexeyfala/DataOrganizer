@@ -748,7 +748,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Clears current right side sheet content.
 	/// </summary>
 	[RelayCommand]
-	private void ClearRightSideSheet()
+	private async Task ClearRightSideSheet()
 	{
 		if (RightSideSheetContent == RightSideSheetContentType.None)
 		{
@@ -757,10 +757,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
+			if (CopyHistorySettings.Items.Count == 0 || !await _dialogService
+				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
 			ClearCopyHistory();
 		}
 		else if (RightSideSheetContent == RightSideSheetContentType.ExecutingFiles)
 		{
+			if (ExecutingFiles.Count == 0 || !await _dialogService
+				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
 			ExecutingFiles
 				.ToArray()
 				.ForEach(CloseExecutingFile);

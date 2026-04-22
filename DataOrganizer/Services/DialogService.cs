@@ -110,6 +110,25 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = text;
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
