@@ -247,7 +247,7 @@
 							Icon="ContentCopy" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentCommand}"
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentByContextMenuCommand}"
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.CopyContent}"
 							Icon="ContentCopy"

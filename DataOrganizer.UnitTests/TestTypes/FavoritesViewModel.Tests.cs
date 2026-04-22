@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using NSubstitute;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -234,7 +235,7 @@ internal class FavoritesViewModelTests
 			.AddRange(TestUtils.CreateGuids(5));
 
 		// Act
-		sut.InsertToCopyHistory(file);
+		sut.InsertToCopyHistory(file, false);
 
 		// Assert
 		sut.CopyHistorySettings.Items[0]

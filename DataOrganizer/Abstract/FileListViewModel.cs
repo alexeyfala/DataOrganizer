@@ -62,7 +62,10 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 
 		container.SelectedItem = file;
 
-		_ = CopyContentAsync(file, container);
+		_ = CopyContentAsync(
+			file: file,
+			container: container,
+			updateView: false);
 
 	}
 

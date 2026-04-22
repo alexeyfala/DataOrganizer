@@ -787,7 +787,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
-	private Task CopyContent(FileModelDto? dto)
+	private Task CopyContentByContextMenu(FileModelDto? dto)
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
@@ -796,7 +796,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return Task.CompletedTask;
 		}
 
-		return CopyContentAsync(dto, container);
+		return CopyContentAsync(
+			file: dto,
+			container: container,
+			updateView: true);
 	}
 
 	/// <summary>

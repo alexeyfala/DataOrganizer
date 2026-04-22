@@ -97,6 +97,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected async Task CopyContentAsync(
 		FileModelDto file,
 		ItemsControl container,
+		bool updateView,
 		CancellationToken token = default)
 	{
 		try
@@ -141,7 +142,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					return;
 				}
 
-				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file));
+				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file, updateView));
 
 				await _clipboard
 					.SetTextAsync(text)

@@ -182,7 +182,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void InsertToCopyHistory(FileModelDto file)
+	public void InsertToCopyHistory(FileModelDto file, in bool updateView)
 	{
 		if (CopyHistorySettings
 			.Items
@@ -197,6 +197,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			CopyHistorySettings
 				.Items
 				.Insert(0, file.Id);
+		}
+
+		if (!updateView)
+		{
+			return;
 		}
 
 		_copyHistory?.InsertOrMoveToTop(file);
