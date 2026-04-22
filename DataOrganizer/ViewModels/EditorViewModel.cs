@@ -852,22 +852,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
-
-		_ = DialogHost.Show(view);
-
 		// Since the editor may have a tab open with the file being deleted,
 		// the operation must be performed in the main thread (ConfigureAwait(true)).
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(true);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{toBeDeleted.Name}""?")
+			.ConfigureAwait(true))
 		{
 			return;
 		}

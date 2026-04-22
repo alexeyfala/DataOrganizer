@@ -11,6 +11,11 @@ public interface IDialogService
 {
 	#region Methods
 	/// <summary>
+	/// Requests the user to close files.
+	/// </summary>
+	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
+
+	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
 	Task<char[]> RequestUserPasswordAsync(
@@ -19,9 +24,10 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Requests the user to close files.
+	/// Asks a question with options <see cref="YesNoCancelVariant.YesCancel" />,
+	/// returns <c>True</c> if the answer was <see cref="YesNoCancelResult.Yes" />.
 	/// </summary>
-	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
+	Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default);
 
 	/// <summary>
 	/// Selects import variant.

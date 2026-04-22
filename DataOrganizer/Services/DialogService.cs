@@ -41,6 +41,25 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
+	/// <inheritdoc />
 	public Task<char[]> RequestUserPasswordAsync(
 		string header,
 		string? label = null,
@@ -91,19 +110,19 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	public async Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
+			.Text = text;
 
 		_ = DialogHost.Show(view);
 
 		YesNoCancelResult result = await view
 			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.GetResultAsync(YesNoCancelVariant.YesNo, token)
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelResult.Yes;
