@@ -666,9 +666,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.Show(view, Dialog_Closing)
 			.ConfigureAwait(false);
 
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
+		async void Dialog_Closing(object sender, DialogClosingEventArgs e)
 		{
-			_ = HandleChangeHotkeysAsync(view.ViewModel, dto);
+			await HandleChangeHotkeysAsync(
+				view.ViewModel.IsSaved,
+				[.. view.ViewModel.Buffer],
+				dto).ConfigureAwait(false);
+
+			view
+				.ViewModel
+				.Dispose();
 		}
 	}
 
@@ -1302,14 +1309,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Handles changing object hotkeys.
 	/// </summary>
-	public async Task HandleChangeHotkeysAsync(HotkeysEditorViewModel viewModel, FileModelDto dto)
+	public async Task HandleChangeHotkeysAsync(bool isSaved, CodeMaskPair[] buffer, FileModelDto dto)
 	{
-		if (viewModel.IsSaved)
+		if (isSaved)
 		{
-			await OverwriteFileHotkeysAsync(dto, [.. viewModel.Buffer]).ConfigureAwait(false);
+			await OverwriteFileHotkeysAsync(dto, buffer).ConfigureAwait(false);
 		}
-
-		viewModel.Dispose();
 
 		if (!_settingsManager
 			.Settings

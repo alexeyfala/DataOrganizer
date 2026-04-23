@@ -719,18 +719,12 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(hook);
 		});
 
-		HotkeysEditorViewModel viewModel = mock.Create<HotkeysEditorViewModel>();
-
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut.HandleChangeHotkeysAsync(viewModel, TestUtils.CreateFileDto());
+		await sut.HandleChangeHotkeysAsync(false, [], TestUtils.CreateFileDto());
 
 		// Assert
-		viewModel.IsDisposed
-			.Should()
-			.BeTrue();
-
 		await hook
 			.Received()
 			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
