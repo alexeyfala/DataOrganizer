@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 
 namespace DataOrganizer.Abstract;
 
-public abstract class ObservableDisposable : ObservableObject, IDisposable
+public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 {
 	#region Properties
 	/// <summary>

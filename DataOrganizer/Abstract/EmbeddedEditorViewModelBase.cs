@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
+public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposableBase
 {
 	#region Properties
 	/// <summary>

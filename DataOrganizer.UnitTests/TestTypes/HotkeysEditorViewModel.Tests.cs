@@ -45,7 +45,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ObservableDisposable.Dispose" />.
+	/// Test of <see cref="ObservableDisposableBase.Dispose" />.
 	/// </summary>
 	[Test]
 	public void Dispose_Disposes_Hook()

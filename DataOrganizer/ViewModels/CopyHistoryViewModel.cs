@@ -21,7 +21,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="CopyHistoryView" />.
 /// </summary>
-public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposable
+public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDisposable
 {
 	#region Properties
 	/// <summary>

@@ -12,7 +12,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using Entities.Abstract;
 using Entities.Enums;
@@ -1508,43 +1507,6 @@ internal class EditorViewModelTests
 		await entityEcryption
 			.Received()
 			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowSettings" />.
-	/// </summary>
-	[AvaloniaTest]
-	public void ShowSettings_Shows_The_Settings_View()
-	{
-		// Arrange
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			using AutoMock mock = AutoMock.GetLoose();
-
-			viewFactory
-				.CreateUserControl<SettingsView>()
-				.Returns(mock.Create<SettingsView>());
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		sut.IsLeftDrawerOpened = true;
-
-		// Act
-		sut.ShowSettings();
-
-		// Assert
-		sut.IsLeftDrawerOpened
-			.Should()
-			.BeFalse();
-
-		viewFactory
-			.Received()
-			.CreateUserControl<SettingsView>();
 	}
 	#endregion
 }

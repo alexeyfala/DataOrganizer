@@ -25,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="SelectedFavoritesView" />.
 /// </summary>
-public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INavigationColumnViewModel, IDisposable
+public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel, IDisposable
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings.Categories" />

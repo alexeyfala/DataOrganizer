@@ -25,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="HotkeysEditorView" />.
 /// </summary>
-public sealed partial class HotkeysEditorViewModel : ObservableDisposable
+public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 {
 	#region Properties
 	/// <summary>

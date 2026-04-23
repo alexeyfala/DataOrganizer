@@ -629,35 +629,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Shows application settings.
-	/// </summary>
-	[RelayCommand]
-	public Task ShowSettings()
-	{
-		IsLeftDrawerOpened = false;
-
-		_logger.LogInformation("Show settings");
-
-		SettingsView view = _viewFactory.CreateUserControl<SettingsView>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return Task.CompletedTask;
-		}
-
-		return DialogHost.Show(view, Dialog_Closing);
-
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
-		{
-			_ = HandleChangeSettingsAsync(
-				view.ViewModel.IsSaved,
-				view.ViewModel.CurrentSettings);
-		}
-	}
-
-	/// <summary>
 	/// Displays the add object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteAdd))]
@@ -1015,6 +986,25 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		_dialogService.ShowProperties(GetPropertyDescriptions(dto));
+	}
+
+	/// <summary>
+	/// Shows application settings.
+	/// </summary>
+	[RelayCommand]
+	private async Task ShowSettings()
+	{
+		IsLeftDrawerOpened = false;
+
+		_logger.LogInformation("Show settings");
+
+		ShowSettingsResult result = await _dialogService
+			.ShowSettingsAsync()
+			.ConfigureAwait(true);
+
+		await HandleChangeSettingsAsync(
+			result.IsSaved,
+			result.Settings).ConfigureAwait(false);
 	}
 	#endregion
 

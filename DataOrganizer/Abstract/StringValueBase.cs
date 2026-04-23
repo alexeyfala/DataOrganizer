@@ -3,7 +3,7 @@
 /// <summary>
 /// The string <see cref="Value" />.
 /// </summary>
-public abstract class StringValue
+public abstract class StringValueBase
 {
 	#region Properties
 	/// <summary>

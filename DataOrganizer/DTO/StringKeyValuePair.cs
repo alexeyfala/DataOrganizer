@@ -3,9 +3,9 @@
 namespace DataOrganizer.DTO;
 
 /// <summary>
-/// The pair of string <see cref="Key" /> and <see cref="StringValue.Value" />.
+/// The pair of string <see cref="Key" /> and <see cref="StringValueBase.Value" />.
 /// </summary>
-public sealed class StringKeyValuePair : StringValue
+public sealed class StringKeyValuePair : StringValueBase
 {
 	#region Properties
 	/// <summary>

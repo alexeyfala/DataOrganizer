@@ -64,5 +64,10 @@ public interface IDialogService
 	/// Shows a properties dialog.
 	/// </summary>
 	void ShowProperties(IEnumerable<PropertyNameValuePair> properties);
+
+	/// <summary>
+	/// Shows application settings.
+	/// </summary>
+	Task<ShowSettingsResult> ShowSettingsAsync();
 	#endregion
 }

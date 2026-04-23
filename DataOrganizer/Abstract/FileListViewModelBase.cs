@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class FileListViewModel : CopyContentViewModelBase
+public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 {
 	#region Auto-Generated Commands
 	/// <summary>
@@ -158,7 +158,7 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	#endregion
 
 	#region Constructors
-	protected FileListViewModel(
+	protected FileListViewModelBase(
 		Application app,
 		IClipboardService clipboard,
 		IDbAccess dbAccess,

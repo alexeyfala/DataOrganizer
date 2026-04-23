@@ -262,5 +262,21 @@ public sealed class DialogService : IDialogService
 
 		DialogHost.Show(view);
 	}
+
+	/// <inheritdoc />
+	public async Task<ShowSettingsResult> ShowSettingsAsync()
+	{
+		SettingsView view = _viewFactory.CreateUserControl<SettingsView>();
+
+		await DialogHost
+			.Show(view)
+			.ConfigureAwait(false);
+
+		return new()
+		{
+			IsSaved = view.ViewModel.IsSaved,
+			Settings = view.ViewModel.CurrentSettings
+		};
+	}
 	#endregion
 }

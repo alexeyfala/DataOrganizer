@@ -827,7 +827,7 @@
 							Text="{Binding Name, Mode=OneTime}" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -851,7 +851,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -896,7 +896,7 @@
 							Text="{Binding Name, Mode=OneTime}" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -907,7 +907,7 @@
 			<Button
 				Grid.Column="0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).CopyContentCommand}"
+				Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).CopyContentCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
@@ -942,13 +942,13 @@
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerEnteredCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 
 					<EventTriggerBehavior EventName="PointerExited">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerExitedCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
@@ -969,7 +969,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
