@@ -5,10 +5,12 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
+using Entities.Enums;
 using Repository.DTO;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -248,6 +250,45 @@ public sealed class DialogService : IDialogService
 		return view
 			.ViewModel
 			.GetResultAsync(token);
+	}
+
+	/// <inheritdoc />
+	public async Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default)
+	{
+		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
+
+		_ = DialogHost.Show(view);
+
+		try
+		{
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token)
+				.ConfigureAwait(false))
+			{
+				return null;
+			}
+
+			EntityType entityType = view.ViewModel switch
+			{
+				{ IsFolderSelected: true } => EntityType.Folder,
+				{ IsFileSelected: true } => EntityType.File,
+				{ IsDatasetSelected: true } => EntityType.DataSet,
+				_ => throw new NotImplementedException()
+			};
+
+			return new()
+			{
+				Name = view.ViewModel.Name,
+				Type = entityType
+			};
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.SaveSettingsInFile();
+		}
 	}
 
 	/// <inheritdoc />

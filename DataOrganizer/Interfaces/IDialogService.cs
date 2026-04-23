@@ -61,6 +61,11 @@ public interface IDialogService
 	Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default);
 
 	/// <summary>
+	/// Displays the entity creation dialog.
+	/// </summary>
+	Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default);
+
+	/// <summary>
 	/// Shows a properties dialog.
 	/// </summary>
 	void ShowProperties(IEnumerable<PropertyNameValuePair> properties);

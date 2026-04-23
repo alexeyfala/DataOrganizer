@@ -17,9 +17,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
-using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
@@ -636,39 +634,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
-		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
-
-		_ = DialogHost.Show(view);
-
-		try
+		if (await _dialogService
+			.ShowEntityCreationAsync()
+			.ConfigureAwait(false) is not { } result)
 		{
-			if (!await view
-				.ViewModel
-				.GetResultAsync()
-				.ConfigureAwait(false))
-			{
-				return;
-			}
-
-			EntityType entityType = view.ViewModel switch
-			{
-				{ IsFolderSelected: true } => EntityType.Folder,
-				{ IsFileSelected: true } => EntityType.File,
-				{ IsDatasetSelected: true } => EntityType.DataSet,
-				_ => throw new NotImplementedException()
-			};
-
-			await AddAsync(
-				view.ViewModel.Name,
-				entityType,
-				parent).ConfigureAwait(false);
+			return;
 		}
-		finally
-		{
-			view
-				.ViewModel
-				.SaveSettingsInFile();
-		}
+
+		await AddAsync(
+			result.Name,
+			result.Type,
+			parent).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -1023,9 +999,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
 	#endregion
@@ -1046,7 +1019,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IViewFactory viewFactory,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -1069,8 +1041,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_mapper = mapper;
 
 		_processUtils = processUtils;
-
-		_viewFactory = viewFactory;
 
 		WeakReferenceMessenger
 			.Default
