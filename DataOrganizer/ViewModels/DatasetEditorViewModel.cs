@@ -10,7 +10,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Models;
 using DataOrganizer.Views;
-using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -173,12 +172,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await AddGroupAsync(pair.Key, group).ConfigureAwait(false);
+		await AddGroupAsync(result.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -196,14 +195,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
 		await AddKeyValueAsync(
-			pair.Key,
-			pair.Value,
+			result.Key,
+			result.Value,
 			group).ConfigureAwait(false);
 	}
 
@@ -221,12 +220,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await AddValueAsync(pair.Key, group).ConfigureAwait(false);
+		await AddValueAsync(result.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -317,15 +316,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
 		await EditKeyValueAsync(
 			record,
-			pair.Key,
-			pair.Value).ConfigureAwait(false);
+			result.Key,
+			result.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -339,23 +338,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+		ValueIsValidPair result = await _dialogService
+			.RequestMultilineTextAsync(record.Note)
+			.ConfigureAwait(false);
 
-		view
-			.ViewModel
-			.Text = record.Note;
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false))
+		if (!result.IsValid)
 		{
 			return;
 		}
 
-		await EditNoteAsync(record, view.ViewModel.Text).ConfigureAwait(false);
+		await EditNoteAsync(record, result.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -378,12 +370,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await EditValueAsync(record, pair.Key).ConfigureAwait(false);
+		await EditValueAsync(record, result.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -441,12 +433,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
-			.ConfigureAwait(false) is not { } pair)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await RenameGroupAsync(group, pair.Key).ConfigureAwait(false);
+		await RenameGroupAsync(group, result.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -549,9 +541,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
-
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
 	#endregion
 
 	#region Constructors
@@ -563,8 +552,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger,
-		IViewFactory viewFactory) : base(
+		ILogger logger) : base(
 			app,
 			dbAccess,
 			dispatcher,
@@ -575,8 +563,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_clipboard = clipboardService;
 
 		_dialogService = dialogService;
-
-		_viewFactory = viewFactory;
 	}
 	#endregion
 

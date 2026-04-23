@@ -1,19 +1,16 @@
-﻿namespace DataOrganizer.DTO;
+﻿using DataOrganizer.Abstract;
+
+namespace DataOrganizer.DTO;
 
 /// <summary>
-/// The pair of string <see cref="Key" /> and <see cref="Value" />.
+/// The pair of string <see cref="Key" /> and <see cref="StringValue.Value" />.
 /// </summary>
-public sealed class KeyValuePair
+public sealed class KeyValuePair : StringValue
 {
 	#region Properties
 	/// <summary>
 	/// Key.
 	/// </summary>
 	public required string Key { get; init; }
-
-	/// <summary>
-	/// Value.
-	/// </summary>
-	public string? Value { get; init; }
 	#endregion
 }

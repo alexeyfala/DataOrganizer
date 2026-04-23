@@ -42,6 +42,25 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		_ = DialogHost.Show(view);
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
+	/// <inheritdoc />
 	public async Task<KeyValuePair?> RequestKeyValueInputAsync(
 		KeyValueInputParameters parameters,
 		CancellationToken token = default)
@@ -70,22 +89,29 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
+	public async Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
 
 		view
 			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
+			.Text = text;
 
 		_ = DialogHost.Show(view);
 
-		YesNoCancelResult result = await view
+		if (!await view
 			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
-			.ConfigureAwait(false);
+			.GetResultAsync(token)
+			.ConfigureAwait(false))
+		{
+			return new();
+		}
 
-		return result == YesNoCancelResult.Yes;
+		return new()
+		{
+			IsValid = true,
+			Value = view.ViewModel.Text
+		};
 	}
 
 	/// <inheritdoc />

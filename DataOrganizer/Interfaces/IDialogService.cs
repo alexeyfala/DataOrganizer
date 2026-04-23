@@ -24,6 +24,11 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Requests the user to enter a multiline text.
+	/// </summary>
+	Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default);
+
+	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
 	Task<char[]> RequestPasswordAsync(
