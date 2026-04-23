@@ -1019,14 +1019,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
-
-		view
-			.ViewModel
-			.Properties
-			.AddRange(GetPropertyDescriptions(dto));
-
-		DialogHost.Show(view);
+		_dialogService.ShowProperties(GetPropertyDescriptions(dto));
 	}
 	#endregion
 

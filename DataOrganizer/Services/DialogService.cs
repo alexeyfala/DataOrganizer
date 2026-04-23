@@ -5,9 +5,11 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
+using Repository.DTO;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +63,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<KeyValuePair?> RequestKeyValueInputAsync(
+	public async Task<StringKeyValuePair?> RequestKeyValueInputAsync(
 		KeyValueInputParameters parameters,
 		CancellationToken token = default)
 	{
@@ -216,6 +218,19 @@ public sealed class DialogService : IDialogService
 		return view
 			.ViewModel
 			.GetResultAsync(token);
+	}
+
+	/// <inheritdoc />
+	public void ShowProperties(IEnumerable<PropertyNameValuePair> properties)
+	{
+		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
+
+		view
+			.ViewModel
+			.Properties
+			.AddRange(properties);
+
+		DialogHost.Show(view);
 	}
 	#endregion
 }

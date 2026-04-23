@@ -1,5 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Enums;
+using Repository.DTO;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +21,7 @@ public interface IDialogService
 	/// <summary>
 	/// Requests the user to enter a string key and optionally a value.
 	/// </summary>
-	Task<KeyValuePair?> RequestKeyValueInputAsync(
+	Task<StringKeyValuePair?> RequestKeyValueInputAsync(
 		KeyValueInputParameters parameters,
 		CancellationToken token = default);
 
@@ -52,5 +54,10 @@ public interface IDialogService
 	/// Selects import variant.
 	/// </summary>
 	Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Shows a properties dialog.
+	/// </summary>
+	void ShowProperties(IEnumerable<PropertyNameValuePair> properties);
 	#endregion
 }
