@@ -167,9 +167,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddGroup,
-			keyHint: Strings.Name);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.AddGroup,
+			KeyHint = Strings.Name
+		});
 
 		_ = DialogHost.Show(view);
 
@@ -192,10 +194,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddKeyAndValue,
-			keyHint: Strings.Key,
-			valueHint: Strings.Value);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.AddKeyAndValue,
+			KeyHint = Strings.Key,
+			ValueHint = Strings.Value
+		});
 
 		_ = DialogHost.Show(view);
 
@@ -221,9 +225,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddValue,
-			keyHint: Strings.Name);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.AddValue,
+			KeyHint = Strings.Name
+		});
 
 		_ = DialogHost.Show(view);
 
@@ -317,12 +323,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: record.Key,
-			keyHint: Strings.Key,
-			value: record.Value,
-			valueHint: Strings.Value);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Key,
+			KeyHint = Strings.Key,
+			Value = record.Value,
+			ValueHint = Strings.Value
+		});
 
 		_ = DialogHost.Show(view);
 
@@ -383,10 +391,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: record.Value,
-			keyHint: Strings.Edit);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Value,
+			KeyHint = Strings.Edit
+		});
 
 		_ = DialogHost.Show(view);
 
@@ -449,10 +459,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: group.Name,
-			keyHint: Strings.Rename);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = group.Name,
+			KeyHint = Strings.Rename
+		});
 
 		_ = DialogHost.Show(view);
 

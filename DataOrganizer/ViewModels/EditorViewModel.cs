@@ -954,10 +954,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Rename,
-			key: toBeRenamed.Name,
-			keyHint: Strings.Name);
+		view.ViewModel.Initialize(new()
+		{
+			DefaultButtonText = Strings.Rename,
+			Key = toBeRenamed.Name,
+			KeyHint = Strings.Name
+		});
 
 		_ = DialogHost.Show(view);
 

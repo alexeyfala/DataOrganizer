@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -162,5 +163,10 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.GetResultAsync(token);
 	}
+
+	//public async Task<KeyValuePair?> RequestKeyValueInputAsync()
+	//{
+
+	//}
 	#endregion
 }
