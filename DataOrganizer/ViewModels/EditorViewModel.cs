@@ -448,7 +448,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (dto.IsOpened())
 		{
 			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.ConfigureAwait(true))
 			{
 				return;
@@ -952,28 +952,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Renaming an object using dialog");
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Rename,
 			Key = toBeRenamed.Name,
 			KeyHint = Strings.Name
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } newName)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
 		await RenameAsync(
 			toBeRenamed,
-			newName,
+			pair.Key,
 			DateTime.Now).ConfigureAwait(false);
 	}
 
@@ -1899,7 +1894,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (openedFiles.IsNotEmpty())
 		{
 			if (!await _dialogService
-				.RequestUserCloseFilesAsync(token)
+				.RequestCloseFilesAsync(token)
 				.ConfigureAwait(true))
 			{
 				return false;

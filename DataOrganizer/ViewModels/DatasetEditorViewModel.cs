@@ -165,25 +165,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddGroup,
 			KeyHint = Strings.Name
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
-		await AddGroupAsync(name, group).ConfigureAwait(false);
+		await AddGroupAsync(pair.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -192,28 +187,23 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddKeyAndValue,
 			KeyHint = Strings.Key,
 			ValueHint = Strings.Value
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
 		await AddKeyValueAsync(
-			key,
-			view.ViewModel.Value,
+			pair.Key,
+			pair.Value,
 			group).ConfigureAwait(false);
 	}
 
@@ -223,25 +213,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddValue,
 			KeyHint = Strings.Name
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
-		await AddValueAsync(value, group).ConfigureAwait(false);
+		await AddValueAsync(pair.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -321,31 +306,26 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
 			Key = record.Key,
 			KeyHint = Strings.Key,
 			Value = record.Value,
 			ValueHint = Strings.Value
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
 		await EditKeyValueAsync(
 			record,
-			key,
-			view.ViewModel.Value).ConfigureAwait(false);
+			pair.Key,
+			pair.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -389,26 +369,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
 			Key = record.Value,
 			KeyHint = Strings.Edit
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
-		await EditValueAsync(record, value).ConfigureAwait(false);
+		await EditValueAsync(record, pair.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -457,26 +432,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
-
-		view.ViewModel.Initialize(new()
+		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
 			Key = group.Name,
 			KeyHint = Strings.Rename
-		});
+		};
 
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
-		await RenameGroupAsync(group, name).ConfigureAwait(false);
+		await RenameGroupAsync(group, pair.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>

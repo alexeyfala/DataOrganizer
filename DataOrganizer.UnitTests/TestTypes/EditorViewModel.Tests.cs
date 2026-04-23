@@ -156,7 +156,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -272,7 +272,7 @@ internal class EditorViewModelTests
 		// Assert
 		await dialogService
 			.Received(0)
-			.RequestUserCloseFilesAsync();
+			.RequestCloseFilesAsync();
 	}
 
 	/// <summary>
@@ -303,7 +303,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -473,7 +473,7 @@ internal class EditorViewModelTests
 		// Assert
 		await dialogService
 			.Received(0)
-			.RequestUserCloseFilesAsync();
+			.RequestCloseFilesAsync();
 	}
 
 	/// <summary>
@@ -504,7 +504,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -819,7 +819,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -858,7 +858,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -911,7 +911,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -960,7 +960,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -1491,7 +1491,7 @@ internal class EditorViewModelTests
 		// Assert
 		await dialogService
 			.Received(0)
-			.RequestUserCloseFilesAsync();
+			.RequestCloseFilesAsync();
 	}
 
 	/// <summary>
@@ -1522,7 +1522,7 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);

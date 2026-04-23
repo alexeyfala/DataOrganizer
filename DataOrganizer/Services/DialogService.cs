@@ -42,7 +42,35 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	public async Task<KeyValuePair?> RequestKeyValueInputAsync(
+		KeyValueInputParameters parameters,
+		CancellationToken token = default)
+	{
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view
+			.ViewModel
+			.Initialize(parameters);
+
+		_ = DialogHost.Show(view);
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		{
+			return null;
+		}
+
+		return new()
+		{
+			Key = key,
+			Value = view.ViewModel.Value
+		};
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
@@ -61,7 +89,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public Task<char[]> RequestUserPasswordAsync(
+	public Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default)
@@ -163,10 +191,5 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.GetResultAsync(token);
 	}
-
-	//public async Task<KeyValuePair?> RequestKeyValueInputAsync()
-	//{
-
-	//}
 	#endregion
 }

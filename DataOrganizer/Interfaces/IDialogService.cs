@@ -1,4 +1,5 @@
-﻿using DataOrganizer.Enums;
+﻿using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,12 +14,19 @@ public interface IDialogService
 	/// <summary>
 	/// Requests the user to close files.
 	/// </summary>
-	Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default);
+	Task<bool> RequestCloseFilesAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Requests the user to enter a string key and optionally a value.
+	/// </summary>
+	Task<KeyValuePair?> RequestKeyValueInputAsync(
+		KeyValueInputParameters parameters,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Requests a password from user.
 	/// </summary>
-	Task<char[]> RequestUserPasswordAsync(
+	Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default);

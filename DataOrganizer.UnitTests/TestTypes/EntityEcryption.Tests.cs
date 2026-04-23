@@ -48,7 +48,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -115,7 +115,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -277,7 +277,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			dbAccess
@@ -538,7 +538,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -601,7 +601,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -772,7 +772,7 @@ internal class EntityEcryptionTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestUserPasswordAsync(Arg.Any<string>())
+				.RequestPasswordAsync(Arg.Any<string>())
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
