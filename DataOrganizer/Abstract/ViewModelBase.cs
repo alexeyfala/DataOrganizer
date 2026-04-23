@@ -108,9 +108,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
 
@@ -136,7 +133,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IViewFactory viewFactory,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -154,8 +150,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_keyboardInputHook = keyboardInputHook;
 
 		_settingsManager = settingsManager;
-
-		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 

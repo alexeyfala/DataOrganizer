@@ -1045,6 +1045,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
+	/// <inheritdoc cref="IViewFactory" />
+	private readonly IViewFactory _viewFactory;
+
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
 	#endregion
@@ -1078,7 +1081,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			eventSimulator,
 			keyboardInputHook,
 			logger,
-			viewFactory,
 			viewLauncher,
 			viewModel)
 	{
@@ -1089,6 +1091,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_mapper = mapper;
 
 		_processUtils = processUtils;
+
+		_viewFactory = viewFactory;
 
 		WeakReferenceMessenger
 			.Default
