@@ -44,6 +44,36 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys)
+	{
+		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
+
+		view
+			.ViewModel
+			.Buffer
+			.AddRange(initialHotkeys);
+
+		await DialogHost
+			.Show(view)
+			.ConfigureAwait(false);
+
+		try
+		{
+			return new()
+			{
+				IsSaved = view.ViewModel.IsSaved,
+				NewHotkeys = [.. view.ViewModel.Buffer]
+			};
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();

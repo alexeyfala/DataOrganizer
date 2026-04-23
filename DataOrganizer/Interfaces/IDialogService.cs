@@ -14,6 +14,11 @@ public interface IDialogService
 {
 	#region Methods
 	/// <summary>
+	/// Displays the hotkey editor.
+	/// </summary>
+	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys);
+
+	/// <summary>
 	/// Requests the user to close files.
 	/// </summary>
 	Task<bool> RequestCloseFilesAsync(CancellationToken token = default);

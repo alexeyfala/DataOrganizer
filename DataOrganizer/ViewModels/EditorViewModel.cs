@@ -629,57 +629,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Displays the hotkey editor.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
-	public async Task ShowHotkeysEditor(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show hotkeys editor");
-
-		if (_keyboardInputHook.IsRunning)
-		{
-			await _keyboardInputHook
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
-
-		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
-
-		view
-			.ViewModel
-			.Buffer
-			.AddRange(dto.Hotkeys.ToCodeMaskPairs());
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		await DialogHost
-			.Show(view, Dialog_Closing)
-			.ConfigureAwait(false);
-
-		async void Dialog_Closing(object sender, DialogClosingEventArgs e)
-		{
-			await HandleChangeHotkeysAsync(
-				view.ViewModel.IsSaved,
-				[.. view.ViewModel.Buffer],
-				dto).ConfigureAwait(false);
-
-			view
-				.ViewModel
-				.Dispose();
-		}
-	}
-
-	/// <summary>
 	/// Shows application settings.
 	/// </summary>
 	[RelayCommand]
@@ -1011,6 +960,45 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return ShowFileContentsAsync(dto);
 	}
 
+	/// <summary>
+	/// Displays the hotkey editor.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
+	private async Task ShowHotkeysEditor(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Show hotkeys editor");
+
+		if (_keyboardInputHook.IsRunning)
+		{
+			await _keyboardInputHook
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
+		}
+
+		EditingHotkeysResult result = await _dialogService
+			.EditHotkeysAsync(dto.Hotkeys.ToCodeMaskPairs())
+			.ConfigureAwait(false);
+
+		if (result.IsSaved)
+		{
+			await OverwriteFileHotkeysAsync(dto, result.NewHotkeys).ConfigureAwait(false);
+		}
+
+		if (!_settingsManager
+			.Settings
+			.TrackHotkeys)
+		{
+			return;
+		}
+
+		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
+	}
+
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
 	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
@@ -1304,26 +1292,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			.ConfigureAwait(false);
 
 		_logger.LogDebug($"{folders.Length} folders are {(isExpanded ? "expanded" : "collapsed")}");
-	}
-
-	/// <summary>
-	/// Handles changing object hotkeys.
-	/// </summary>
-	public async Task HandleChangeHotkeysAsync(bool isSaved, CodeMaskPair[] buffer, FileModelDto dto)
-	{
-		if (isSaved)
-		{
-			await OverwriteFileHotkeysAsync(dto, buffer).ConfigureAwait(false);
-		}
-
-		if (!_settingsManager
-			.Settings
-			.TrackHotkeys)
-		{
-			return;
-		}
-
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
 	}
 
 	/// <summary>

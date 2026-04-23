@@ -698,39 +698,6 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandleChangeHotkeysAsync" />.
-	/// </summary>
-	[Test]
-	public async Task HandleChangeHotkeysAsync_Handles_Bussiness_Logic_After_Hotkeys_Editing()
-	{
-		// Arrange
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
-
-			settingsManager
-				.Settings
-				.Returns(TestUtils.CreateRandomSettings(trackHotkeys: true));
-
-			builder.RegisterInstance(settingsManager);
-
-			builder.RegisterInstance(hook);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.HandleChangeHotkeysAsync(false, [], TestUtils.CreateFileDto());
-
-		// Assert
-		await hook
-			.Received()
-			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
-	}
-
-	/// <summary>
 	/// Test of <see cref="EditorViewModel.HandleChangeSettingsAsync" />.
 	/// </summary>
 	[Test]
@@ -1541,60 +1508,6 @@ internal class EditorViewModelTests
 		await entityEcryption
 			.Received()
 			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowHotkeysEditor" />.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowHotkeysEditor_Shows_The_Hotkeys_Editor_View()
-	{
-		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
-
-		dto
-			.Hotkeys
-			.AddRange(TestUtils.CreateHotkeysDto(5));
-
-		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock temp = AutoMock.GetLoose();
-
-		HotkeysEditorView view = temp.Create<HotkeysEditorView>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			viewFactory
-				.CreateUserControl<HotkeysEditorView>()
-				.Returns(view);
-
-			hook
-				.IsRunning
-				.Returns(true);
-
-			builder.RegisterInstance(hook);
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		await sut.ShowHotkeysEditor(dto);
-
-		viewFactory
-			.Received()
-			.CreateUserControl<HotkeysEditorView>();
-
-		view.ViewModel.Buffer
-			.Should()
-			.BeEquivalentTo(dto.Hotkeys.ToCodeMaskPairs());
-
-		await hook
-			.Received()
-			.StopTrackingAsync();
 	}
 
 	/// <summary>
