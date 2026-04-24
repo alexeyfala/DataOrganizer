@@ -399,7 +399,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetCount(IEnumerable{ExplorerModelBaseDto})" /> (internal).
+	/// Test of <see cref="EnumerableExtensions.GetCount(IEnumerable{ExplorerModelBaseDto})" />.
 	/// </summary>
 	[Test]
 	public void GetCount_For_Hierarchy_Counts_Files_And_Folders()
