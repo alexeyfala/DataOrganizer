@@ -75,7 +75,7 @@ internal static class DbAccessExtensions
 			{
 				EntityType = EntityType.Folder,
 				Index = startIndex++,
-				Name = AppUtils.CreateRandomString(6),
+				Name = $"{i + 1}_Folder_{AppUtils.CreateRandomString(6)}",
 				ParentId = parentId
 			};
 
@@ -103,7 +103,7 @@ internal static class DbAccessExtensions
 				EntityType = EntityType.File,
 				FileContents = fileContents,
 				Index = startIndex++,
-				Name = AppUtils.CreateRandomFileName(6),
+				Name = $"{i + 1}_File_{AppUtils.CreateRandomString(6)}.{AppUtils.CreateRandomString(3).ToLower()}",
 				ParentId = parentId
 			};
 
@@ -119,7 +119,7 @@ internal static class DbAccessExtensions
 				EntityType = EntityType.DataSet,
 				FileContents = datasetContents,
 				Index = startIndex++,
-				Name = AppUtils.CreateRandomString(6),
+				Name = $"{i + 1}_Dataset_{AppUtils.CreateRandomString(6)}",
 				ParentId = parentId
 			};
 

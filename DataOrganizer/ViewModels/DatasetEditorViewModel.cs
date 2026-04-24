@@ -612,7 +612,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new RecordsGroup()
 			{
-				Name = AppUtils.CreateRandomString(10),
+				Name = $"Group_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
@@ -631,8 +631,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new KeyValueRecord()
 			{
-				Key = AppUtils.CreateRandomString(10),
-				Value = AppUtils.CreateRandomString(10),
+				Key = $"Key_{AppUtils.CreateRandomString(10)}",
+				Value = $"Value_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
@@ -684,7 +684,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new ValueRecord()
 			{
-				Value = AppUtils.CreateRandomString(10),
+				Value = $"Value_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
