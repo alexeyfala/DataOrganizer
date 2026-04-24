@@ -1405,13 +1405,13 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			viewLauncher.ConfigureFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
 				Arg.Any<IEnumerable<FileModelDto>>(),
 				Arg.Any<IEnumerable<FileModelDto>>())
-			.Returns(mock.Create<FavoritesWindow>());
+			.Returns(windowMock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewLauncher);
 		});

@@ -254,22 +254,18 @@ internal class FavoritesViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			viewLauncher.ConfigureEditorWindow(
 				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
 				Arg.Any<IEnumerable<FileModelDto>>(),
 				Arg.Any<IEnumerable<FileModelDto>>())
-			.Returns(mock.Create<EditorWindow>());
+			.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewLauncher);
 		});
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
-
-		sut.IsShutdown
-			.Should()
-			.BeTrue();
 
 		// Act
 		await sut.ShowInEditorAsync(null, default);

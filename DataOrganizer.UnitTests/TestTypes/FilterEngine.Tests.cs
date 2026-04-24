@@ -1,0 +1,344 @@
+using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Helpers;
+using DynamicData.Binding;
+using System;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
+
+namespace DataOrganizer.UnitTests.TestTypes;
+
+[TestFixture(Description = $@"Tests of ""{nameof(FilterEngine<>)}"" type")]
+internal class FilterEngineTests
+{
+	#region Methods
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsEmpty" />.
+	/// </summary>
+	[Test]
+	public void AddRange_Populates_Source_And_Visible_Sequence()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(5)];
+
+		// Act
+		sut.AddRange(items);
+
+		// Assert
+		sut.IsEmpty
+			.Should()
+			.BeFalse();
+
+		sut.Visible
+			.Should()
+			.HaveCount(5);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Clear" />.
+	/// </summary>
+	[Test]
+	public void Clear_Empties_The_Source()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		sut.AddRange(TestUtils.CreateFilesDto(3));
+
+		// Act
+		sut.Clear();
+
+		// Assert
+		sut.IsEmpty
+			.Should()
+			.BeTrue();
+
+		sut.Visible
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Dispose" />.
+	/// </summary>
+	[Test]
+	public void Dispose_Is_Idempotent_And_Clears_Source()
+	{
+		// Arrange
+		FilterEngine<FileModelDto> sut = CreateSut();
+
+		sut.AddRange(TestUtils.CreateFilesDto(3));
+
+		// Act
+		Action act = () =>
+		{
+			sut.Dispose();
+
+			sut.Dispose();
+		};
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.ElementAt" />.
+	/// </summary>
+	[Test]
+	public void ElementAt_Returns_Item_From_Source_By_Index()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		FileModelDto result = sut.ElementAt(1);
+
+		// Assert
+		result
+			.Should()
+			.Be(items[1]);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefault" />.
+	/// </summary>
+	[Test]
+	public void FirstOrDefault_Returns_Matching_Item()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		FileModelDto target = items[1];
+
+		// Act
+		FileModelDto? result = sut.FirstOrDefault(x => x.Id == target.Id);
+
+		// Assert
+		result
+			.Should()
+			.Be(target);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefault" />.
+	/// </summary>
+	[Test]
+	public void FirstOrDefault_Returns_Null_If_No_Item_Matches()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		sut.AddRange(TestUtils.CreateFilesDto(3));
+
+		// Act
+		FileModelDto? result = sut.FirstOrDefault(x => x.Id == Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.IndexOf" />.
+	/// </summary>
+	[Test]
+	public void IndexOf_Returns_Source_Index_Of_Item()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		int result = sut.IndexOf(items[2]);
+
+		// Assert
+		result
+			.Should()
+			.Be(2);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Insert" />.
+	/// </summary>
+	[Test]
+	public void Insert_Places_Item_At_Specified_Index()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		sut.AddRange(TestUtils.CreateFilesDto(3));
+
+		FileModelDto inserted = TestUtils.CreateFileDto();
+
+		// Act
+		sut.Insert(0, inserted);
+
+		// Assert
+		sut.ElementAt(0)
+			.Should()
+			.Be(inserted);
+
+		sut.IndexOf(inserted)
+			.Should()
+			.Be(0);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.IterateSource" />.
+	/// </summary>
+	[Test]
+	public void IterateSource_Invokes_Action_For_Each_Item_With_Index()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		int callCount = 0;
+
+		// Act
+		sut.IterateSource((item, index) =>
+		{
+			callCount++;
+
+			item
+				.Should()
+				.Be(items[index]);
+		});
+
+		// Assert
+		callCount
+			.Should()
+			.Be(3);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Move" />.
+	/// </summary>
+	[Test]
+	public void Move_Reorders_Items_Within_Source()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		sut.Move(0, 2);
+
+		// Assert
+		sut.ElementAt(2)
+			.Should()
+			.Be(items[0]);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Remove" />.
+	/// </summary>
+	[Test]
+	public void Remove_Removes_Item_From_Source()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		bool result = sut.Remove(items[1]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		sut.FirstOrDefault(x => x.Id == items[1].Id)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Select" />.
+	/// </summary>
+	[Test]
+	public void Select_Projects_Source_Items()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		Guid[] result = [.. sut.Select(x => x.Id)];
+
+		// Assert
+		result
+			.Should()
+			.BeEquivalentTo(items.Select(x => x.Id));
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Synchronize" />.
+	/// </summary>
+	[Test]
+	public void Synchronize_Executes_Action_Inline_When_No_Context()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		bool executed = false;
+
+		// Act
+		sut.Synchronize(() => executed = true);
+
+		// Assert
+		executed
+			.Should()
+			.BeTrue();
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Creates a fresh <see cref="FilterEngine{T}" /> over <see cref="FileModelDto" /> with no filter and Index ordering.
+	/// </summary>
+	private static FilterEngine<FileModelDto> CreateSut()
+	{
+		// Reset synchronization context so DynamicData applies changes inline.
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		IObservable<Func<FileModelDto, bool>> filter = Observable.Return<Func<FileModelDto, bool>>(_ => true);
+
+		SortExpressionComparer<FileModelDto> sort = SortExpressionComparer<FileModelDto>.Ascending(x => x.Index);
+
+		return new FilterEngine<FileModelDto>(filter, sort);
+	}
+	#endregion
+}

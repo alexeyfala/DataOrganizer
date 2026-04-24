@@ -56,6 +56,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<AvaloniaResource Update="Assets\DataTemplates.axaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>

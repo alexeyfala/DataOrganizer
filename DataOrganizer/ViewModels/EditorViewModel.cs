@@ -179,7 +179,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Changes password for folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
-	public async Task ChangePassword(FolderModelDto? dto)
+	internal async Task ChangePassword(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -206,7 +206,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Closes a file executing in the operating system.
 	/// </summary>
 	[RelayCommand]
-	public void CloseExecutingFile(FileModelDto? dto)
+	internal void CloseExecutingFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -230,7 +230,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Decrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
-	public async Task DecryptFolder(FolderModelDto? dto)
+	internal async Task DecryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -266,7 +266,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Encrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
-	public async Task EncryptFolder(FolderModelDto? dto)
+	internal async Task EncryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -302,7 +302,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	public async Task ExecuteFile(FileModelDto? dto)
+	internal async Task ExecuteFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -405,7 +405,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Exits the application.
 	/// </summary>
 	[RelayCommand]
-	public void Exit(Window? window)
+	internal void Exit(Window? window)
 	{
 		IsShutdown = true;
 
@@ -416,7 +416,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
-	public async Task HideAllFileContents()
+	internal async Task HideAllFileContents()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
@@ -436,7 +436,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Hides file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	public async Task HideFileContents(FileModelDto? dto)
+	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -464,7 +464,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	public async Task HideFolderContents(FolderModelDto? dto)
+	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -491,7 +491,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Imports data.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
-	public async Task Import()
+	internal async Task Import()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
 
@@ -513,7 +513,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// using the <see cref="OnSelectedObjectChanging(ExplorerModelBaseDto?, ExplorerModelBaseDto?)" /> method.
 	/// </remarks>
 	[RelayCommand(CanExecute = nameof(CanExecuteResetSelectedObject))]
-	public void ResetSelectedObject()
+	internal void ResetSelectedObject()
 	{
 		if (SelectedObject is null)
 		{
@@ -529,7 +529,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Restarts the application.
 	/// </summary>
 	[RelayCommand]
-	public void RestartApplication(Window? window)
+	internal void RestartApplication(Window? window)
 	{
 		Exit(window);
 
@@ -545,7 +545,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Sets <see cref="FileModelDto.IsFavorite" /> value.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteSetFavorite))]
-	public Task SetFavorite(FileModelDto? dto)
+	internal Task SetFavorite(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -561,7 +561,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the "Favorites" window.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]
-	public void ShowFavorites(EditorWindow? window)
+	internal void ShowFavorites(EditorWindow? window)
 	{
 		IsShutdown = false;
 
@@ -592,7 +592,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
-	public async Task ShowFolderContents(FolderModelDto? dto)
+	internal async Task ShowFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{

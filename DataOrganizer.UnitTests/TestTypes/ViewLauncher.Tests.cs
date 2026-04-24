@@ -29,13 +29,13 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateWindow<EditorWindow>()
-				.Returns(mock.Create<EditorWindow>());
+				.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -84,7 +84,7 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -96,7 +96,7 @@ internal class ViewLauncherTests
 
 			viewFactory
 				.CreateWindow<EditorWindow>()
-				.Returns(mock.Create<EditorWindow>());
+				.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewFactory);
 
@@ -123,13 +123,13 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateWindow<FavoritesWindow>()
-				.Returns(mock.Create<FavoritesWindow>());
+				.Returns(windowMock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -180,7 +180,7 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -192,7 +192,7 @@ internal class ViewLauncherTests
 
 			viewFactory
 				.CreateWindow<FavoritesWindow>()
-				.Returns(mock.Create<FavoritesWindow>());
+				.Returns(windowMock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewFactory);
 
@@ -219,7 +219,7 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -231,7 +231,7 @@ internal class ViewLauncherTests
 
 			viewFactory
 				.CreateWindow<EditorWindow>()
-				.Returns(mock.Create<EditorWindow>());
+				.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -256,13 +256,13 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
 				.CreateWindow<EditorWindow>()
-				.Returns(mock.Create<EditorWindow>());
+				.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -287,7 +287,7 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			using AutoMock mock = AutoMock.GetLoose();
+			using AutoMock windowMock = AutoMock.GetLoose();
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -299,7 +299,7 @@ internal class ViewLauncherTests
 
 			viewFactory
 				.CreateWindow<FavoritesWindow>()
-				.Returns(mock.Create<FavoritesWindow>());
+				.Returns(windowMock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewFactory);
 

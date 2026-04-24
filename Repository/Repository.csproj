@@ -27,4 +27,8 @@
 		<ProjectReference Include="..\Shared\Shared.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Repository.UnitTests" />
+	</ItemGroup>
+
 </Project>
