@@ -200,6 +200,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
 			clipboard,
@@ -207,6 +208,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			dialogService,
 			entityEcryption,
 			logger,
+			handler,
 			viewModel)
 	{
 		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(

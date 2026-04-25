@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using System;
 using System.Threading;
@@ -107,7 +108,9 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	#endregion
 
 	#region Constructors
-	public YesNoCancelBoxViewModel(Application app) : base(app)
+	public YesNoCancelBoxViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion

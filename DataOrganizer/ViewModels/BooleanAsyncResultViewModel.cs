@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using DataOrganizer.Abstract;
+using DataOrganizer.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,9 @@ namespace DataOrganizer.ViewModels;
 public class BooleanAsyncResultViewModel : AsyncResultViewModelBase<bool>
 {
 	#region Constructors
-	public BooleanAsyncResultViewModel(Application app) : base(app)
+	public BooleanAsyncResultViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using System.Threading.Tasks;
 
@@ -66,7 +67,9 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	#endregion
 
 	#region Constructors
-	public KeyValueInputViewModel(Application app) : base(app)
+	public KeyValueInputViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion

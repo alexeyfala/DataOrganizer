@@ -31,6 +31,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -48,12 +51,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IAppEnvironment appEnvironment,
-		IFileAssociationService fileAssociation,
-		IFileChangeTracker changeTracker,
-		IFileSystem fileSystem,
+		ITaskExceptionHandler handler,
+		IProcessUtils processUtils,
 		ILogger logger,
-		IProcessUtils processUtils)
+		IFileSystem fileSystem,
+		IFileChangeTracker changeTracker,
+		IFileAssociationService fileAssociation,
+		IAppEnvironment appEnvironment)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -62,6 +66,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_fileAssociation = fileAssociation;
 
 		_fileSystem = fileSystem;
+
+		_handler = handler;
 
 		_logger = logger;
 
@@ -219,7 +225,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					ViewModel = parameters.ViewModel
 				};
 
-				_ = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
 			}
 
 			_logger.LogInformation(

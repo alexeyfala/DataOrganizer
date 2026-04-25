@@ -355,6 +355,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -367,6 +368,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			eventSimulator,
 			keyboardInputHook,
 			logger,
+			handler,
 			viewLauncher,
 			viewModel)
 	{

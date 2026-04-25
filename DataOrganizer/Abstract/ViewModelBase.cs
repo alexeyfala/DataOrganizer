@@ -133,6 +133,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -141,6 +142,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			dialogService,
 			entityEcryption,
 			logger,
+			handler,
 			viewModel)
 	{
 		_dispatcher = dispatcher;

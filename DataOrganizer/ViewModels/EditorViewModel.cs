@@ -1019,6 +1019,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
+		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -1031,6 +1032,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			eventSimulator,
 			keyboardInputHook,
 			logger,
+			handler,
 			viewLauncher,
 			viewModel)
 	{

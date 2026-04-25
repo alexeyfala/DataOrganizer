@@ -36,6 +36,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="IEntityEcryption" />
 	protected readonly IEntityEcryption _entityEcryption;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	protected readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
@@ -54,6 +57,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel)
 	{
 		_app = app;
@@ -65,6 +69,8 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		_dialogService = dialogService;
 
 		_entityEcryption = entityEcryption;
+
+		_handler = handler;
 
 		_logger = logger;
 
@@ -152,7 +158,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token);
+					_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
 				}
 			}
 			finally
