@@ -21,6 +21,14 @@ public static partial class SerilogExtensions
 
 	#region Methods
 	/// <summary>
+	/// Returns a message containing information about the event source.
+	/// </summary>
+	public static string GetSourceInfo(
+		[CallerFilePath] string filePath = "",
+		[CallerMemberName] string callerName = "",
+		[CallerLineNumber] in int lineNumber = 0) => CreateSourceInfo(filePath, callerName, in lineNumber);
+
+	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Debug" /> level entry.
 	/// </summary>
 	public static void LogDebug(
@@ -33,7 +41,7 @@ public static partial class SerilogExtensions
 		target.Debug(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 	}
 
 	/// <summary>
@@ -55,7 +63,7 @@ public static partial class SerilogExtensions
 		target.Error(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 
 		if (!isAssertDebug || AppDomain
 			.CurrentDomain
@@ -81,7 +89,7 @@ public static partial class SerilogExtensions
 		target.Error(
 			exception,
 			"{Source}",
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 
 		if (!isAssertDebug || AppDomain
 			.CurrentDomain
@@ -108,7 +116,7 @@ public static partial class SerilogExtensions
 			exception,
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 
 		if (AppDomain
 			.CurrentDomain
@@ -133,7 +141,7 @@ public static partial class SerilogExtensions
 		target.Information(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 	}
 
 	/// <summary>
@@ -157,7 +165,7 @@ public static partial class SerilogExtensions
 		target.Warning(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			GetSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, in lineNumber));
 	}
 	#endregion
 
@@ -193,14 +201,6 @@ public static partial class SerilogExtensions
 
 		return value;
 	}
-
-	/// <summary>
-	/// Returns a message with information about the event source.
-	/// </summary>
-	private static string GetSourceInfo(
-		string filePath,
-		string callerName,
-		in int lineNumber) => CreateSourceInfo(filePath, callerName, in lineNumber);
 
 	[GeneratedRegex(@"\\u(?<Value>[a-zA-Z0-9]{4})", RegexOptions.Compiled)]
 	private static partial Regex UnicodeCharRegex();

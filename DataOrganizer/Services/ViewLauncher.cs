@@ -37,6 +37,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -59,6 +62,7 @@ public class ViewLauncher : IViewLauncher
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewFactory viewFactory)
 	{
 		_app = app;
@@ -68,6 +72,8 @@ public class ViewLauncher : IViewLauncher
 		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
+
+		_handler = handler;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -113,16 +119,7 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
-		if (window
-			.ViewModel
-			.RightSideSheetContent == RightSideSheetContentType.CopyHistory)
-		{
-			window
-				.ViewModel
-				.SaveCopyHistory();
-		}
-
-		_ = SaveEditorSettingsAsync(window);
+		_handler.Watch(SaveEditorSettingsAsync(window));
 	}
 
 	/// <summary>
@@ -148,7 +145,7 @@ public class ViewLauncher : IViewLauncher
 				.SaveContent();
 		}
 
-		_ = SaveFavoritesSettingsAsync(window);
+		_handler.Watch(SaveFavoritesSettingsAsync(window));
 	}
 	#endregion
 
@@ -156,8 +153,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles,
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles,
 		in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
@@ -172,12 +169,12 @@ public class ViewLauncher : IViewLauncher
 
 		window
 			.ViewModel
-			.AddEditedFiles(editFiles);
+			.AddEditingFiles(editingFiles);
 
 		window
 			.ViewModel
-			.ExecutedFiles
-			.AddRange(executedFiles);
+			.ExecutingFiles
+			.AddRange(executingFiles);
 
 		window
 			.ViewModel
@@ -186,9 +183,9 @@ public class ViewLauncher : IViewLauncher
 
 		if (showObjectId.IsNotDefault())
 		{
-			_ = window
+			_handler.Watch(window
 				.ViewModel
-				.ShowInEditorAsync(window, showObjectId);
+				.ShowInEditorAsync(window, showObjectId));
 		}
 		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{
@@ -219,13 +216,10 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<EditorWindowSettings>(filePath) is { } windowSettings)
 		{
-			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
-
 			window.ViewModel.Initialize(
 				window,
 				windowSettings,
-				copyHistorySettings);
+				GetHistorySettingsFromFile());
 		}
 		else
 		{
@@ -246,8 +240,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public FavoritesWindow ConfigureFavoritesWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editFiles,
-		IEnumerable<FileModelDto> executedFiles)
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
@@ -260,28 +254,22 @@ public class ViewLauncher : IViewLauncher
 		window
 			.ViewModel
 			.OpenedInEditorFiles
-			.AddRange(editFiles);
+			.AddRange(editingFiles);
 
 		window
 			.ViewModel
-			.ExecutedFiles
-			.AddRange(executedFiles);
+			.ExecutingFiles
+			.AddRange(executingFiles);
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
 
 		if (_jsonSerializer.FromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
 		{
-			FavoritesViewSettings favoritesSettings = _jsonSerializer.FromFile<FavoritesViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
-
-			CopyHistoryViewSettings copyHistorySettings = _jsonSerializer.FromFile<CopyHistoryViewSettings>(
-				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
-
 			window.ViewModel.Initialize(
 				window,
 				windowSettings,
-				favoritesSettings,
-				copyHistorySettings);
+				GetFavoritesSettingsFromFile(),
+				GetHistorySettingsFromFile());
 		}
 		else
 		{
@@ -316,7 +304,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
+	public async Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -360,21 +348,19 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.IsShutdown)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
+			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return Task.CompletedTask;
 		}
 	}
 
 	/// <inheritdoc />
-	public Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
+	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
 	{
 		try
 		{
@@ -410,16 +396,14 @@ public class ViewLauncher : IViewLauncher
 				.ViewModel
 				.IsShutdown)
 			{
-				return Task.CompletedTask;
+				return;
 			}
 
-			return TryShutdownAppAsync(window.ViewModel.Hierarchy, token);
+			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return Task.CompletedTask;
 		}
 		finally
 		{
@@ -480,6 +464,24 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
+	/// Returns <see cref="FavoritesViewSettings" /> settings from file.
+	/// </summary>
+	private FavoritesViewSettings GetFavoritesSettingsFromFile()
+	{
+		return _jsonSerializer.FromFile<FavoritesViewSettings>(
+			_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
+	}
+
+	/// <summary>
+	/// Returns <see cref="CopyHistoryViewSettings" /> settings from file.
+	/// </summary>
+	private CopyHistoryViewSettings GetHistorySettingsFromFile()
+	{
+		return _jsonSerializer.FromFile<CopyHistoryViewSettings>(
+				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
+	}
+
+	/// <summary>
 	/// Tries to shutdown the application.
 	/// </summary>
 	private async Task TryShutdownAppAsync(
@@ -505,13 +507,13 @@ public class ViewLauncher : IViewLauncher
 			}
 		}
 
-		Guid[] executedFiles = [.. hierarchy
-			.GetFilesBy(x => x.IsExecuted)
+		Guid[] executingFiles = [.. hierarchy
+			.GetFilesBy(x => x.IsExecuting)
 			.Select(x => x.Id)];
 
-		if (executedFiles.IsNotEmpty())
+		if (executingFiles.IsNotEmpty())
 		{
-			await executedFiles
+			await executingFiles
 				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))
 				.ConfigureAwait(false);
 		}

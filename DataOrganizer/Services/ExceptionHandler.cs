@@ -91,13 +91,11 @@ internal sealed class ExceptionHandler : IExceptionHandler
 			.Subscribe(TaskScheduler_UnobservedTaskException)
 			.DisposeWith(_disposables);
 	}
-	#endregion
 
-	#region Service
 	/// <summary>
 	/// Handles the exception.
 	/// </summary>
-	private void HandleException(Exception exception)
+	internal void HandleException(Exception exception)
 	{
 		lock (_mutex)
 		{

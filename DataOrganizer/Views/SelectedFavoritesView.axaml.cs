@@ -4,7 +4,7 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Views;
 
-public sealed partial class SelectedFavoritesView : UserControl
+internal sealed partial class SelectedFavoritesView : UserControl
 {
 	#region Properties
 	/// <inheritdoc cref="SelectedFavoritesViewModel" />

@@ -78,6 +78,11 @@ public static class AppUtils
 	/// Delay in millideconds for displaying the tip.
 	/// </summary>
 	public static int TipDelay => 400;
+
+	/// <summary>
+	/// File extension ".txt".
+	/// </summary>
+	public static string TxtExtension => ".txt";
 	#endregion
 
 	#region Data

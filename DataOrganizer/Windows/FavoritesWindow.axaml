@@ -10,7 +10,7 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:sys="clr-namespace:System;assembly=netstandard"
+	xmlns:system="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
 	Background="Transparent"
@@ -107,7 +107,7 @@
 					RowDefinitions="Auto,*">
 
 					<Grid.Resources>
-						<sys:Double x:Key="ThumbSize">4.0</sys:Double>
+						<system:Double x:Key="ThumbSize">4.0</system:Double>
 
 						<ControlTheme
 							x:Key="ThumbTheme"
@@ -279,12 +279,18 @@
 						Command="{Binding ShowSystemClipboardCommand}"
 						Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
 
-					<ToggleButton
-						Classes="primary"
-						Command="{Binding ShowCopyHistoryCommand}"
-						Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-						                                            IconSize={StaticResource ToolBarIconSize}}"
-						ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+					<Grid>
+						<ToggleButton
+							Classes="primary"
+							Command="{Binding ShowCopyHistoryCommand}"
+							Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+							                                            IconSize={StaticResource ToolBarIconSize}}"
+							ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+
+						<TextBlock
+							Classes="CountTextBlockStyle"
+							Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+					</Grid>
 				</StackPanel>
 			</Border>
 		</Grid>

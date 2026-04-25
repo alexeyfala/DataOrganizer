@@ -25,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="SelectedFavoritesView" />.
 /// </summary>
-public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INavigationColumnViewModel, IDisposable
+public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel, IDisposable
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings.Categories" />
@@ -142,7 +142,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 
 		_categoriesFilter.Move(pair.DraggedIndex, pair.TargetIndex);
 
-		RefreshCategoriesFilter();
+		_categoriesFilter.Refresh();
 
 		SelectedCategory = selected;
 
@@ -199,13 +199,17 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(
+		ILogger logger,
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEcryption,
-			logger)
+			logger,
+			handler,
+			viewModel)
 	{
 		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(
 			x => x.CategorySearch,
@@ -350,7 +354,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// </summary>
 	private void CategorySearchEmptyStringAction()
 	{
-		RefreshCategoriesFilter();
+		_categoriesFilter.Refresh();
 
 		SelectedCategory ??= _previousSelectedCategory;
 	}
@@ -360,19 +364,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModel, INav
 	/// </summary>
 	private void FavoriteSearchEmptyStringAction()
 	{
-		RefreshFavoritesFilter();
+		_favoritesFilter.Refresh();
 
 		SelectedFavorite ??= _previousSelectedFavorite;
 	}
-
-	/// <summary>
-	/// Refreshes filter for <see cref="Categories" />.
-	/// </summary>
-	private void RefreshCategoriesFilter() => _categoriesFilter.IterateSource((x, i) => x.Order = i);
-
-	/// <summary>
-	/// Refreshes filter for <see cref="Favorites" />.
-	/// </summary>
-	private void RefreshFavoritesFilter() => _favoritesFilter.IterateSource((x, i) => x.Order = i);
 	#endregion
 }

@@ -40,7 +40,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> ExecutedFiles { get; } = [];
+	public ObservableCollection<FileModelDto> ExecutingFiles { get; } = [];
 
 	/// <summary>
 	/// Hierarchical sequence of objects.
@@ -79,8 +79,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
 	{
 		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.CopyHistory),
-			CopyHistorySettings.SelectedCopyHistoryItemId);
+			Hierarchy.FilterFilesById(CopyHistorySettings.Items),
+			CopyHistorySettings.SelectedItemId);
 
 		_copyHistory = viewModel;
 	}
@@ -102,23 +102,20 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDispatcher" />
-	protected readonly IDispatcher _dispatcher;
-
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
-	/// <inheritdoc cref="IViewFactory" />
-	protected readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
 
 	/// <inheritdoc cref="CopyHistoryViewModel" />
 	protected CopyHistoryViewModel? _copyHistory;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEventSimulator" />
 	private readonly IEventSimulator _eventSimulator;
@@ -136,14 +133,17 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		ITaskExceptionHandler handler,
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEcryption,
-			logger)
+			logger,
+			handler,
+			viewModel)
 	{
 		_dispatcher = dispatcher;
 
@@ -153,13 +153,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_settingsManager = settingsManager;
 
-		_viewFactory = viewFactory;
-
 		_viewLauncher = viewLauncher;
 
 		if (keyboardInputHook.IsRunning)
 		{
-			_ = keyboardInputHook.StopTrackingAsync();
+			_handler.Watch(keyboardInputHook.StopTrackingAsync());
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
@@ -167,7 +165,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_ = keyboardInputHook.StartTrackingAsync(Hierarchy);
+		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 
@@ -178,18 +176,31 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Saves data in <see cref="CopyHistorySettings" />.
+	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void SaveCopyHistory()
+	public void InsertToCopyHistory(FileModelDto file, in bool updateView)
 	{
-		if (_copyHistory is null)
+		if (CopyHistorySettings
+			.Items
+			.Contains(file.Id))
+		{
+			CopyHistorySettings
+				.Items
+				.MoveToTop(CopyHistorySettings.Items.IndexOf(file.Id));
+		}
+		else
+		{
+			CopyHistorySettings
+				.Items
+				.Insert(0, file.Id);
+		}
+
+		if (!updateView)
 		{
 			return;
 		}
 
-		_logger.LogInformation("Save copy history");
-
-		SaveCopyHistory(_copyHistory);
+		_copyHistory?.InsertOrMoveToTop(file);
 	}
 
 	/// <summary>
@@ -216,24 +227,40 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
 
 	/// <summary>
-	/// Adds or moves to top value in <see cref="CopyHistoryViewSettings.CopyHistory" />.
+	/// Clears copy history.
 	/// </summary>
-	public void UpdateCopyHistory(in Guid fileId)
+	protected void ClearCopyHistory()
 	{
-		if (CopyHistorySettings
-			.CopyHistory
-			.Contains(fileId))
+		_copyHistory?.Clear();
+
+		SaveCopyHistory();
+	}
+
+	/// <summary>
+	/// Tries to remove value from copy history.
+	/// </summary>
+	protected void RemoveFromCopyHistory(FileModelDto file)
+	{
+		CopyHistorySettings
+			.Items
+			.Remove(file.Id);
+
+		_copyHistory?.Remove(file);
+	}
+
+	/// <summary>
+	/// Saves data in <see cref="CopyHistorySettings" />.
+	/// </summary>
+	protected void SaveCopyHistory()
+	{
+		if (_copyHistory is null)
 		{
-			CopyHistorySettings
-				.CopyHistory
-				.MoveToTop(CopyHistorySettings.CopyHistory.IndexOf(fileId));
+			return;
 		}
-		else
-		{
-			CopyHistorySettings
-				.CopyHistory
-				.Insert(0, fileId);
-		}
+
+		_logger.LogInformation("Save copy history");
+
+		SaveCopyHistory(_copyHistory);
 	}
 	#endregion
 
@@ -243,28 +270,26 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	{
 		if (viewModel.SelectedItem is { } selected)
 		{
-			CopyHistorySettings.SelectedCopyHistoryItemId = selected.Id;
+			CopyHistorySettings.SelectedItemId = selected.Id;
 		}
 		else
 		{
-			CopyHistorySettings.SelectedCopyHistoryItemId = default;
+			CopyHistorySettings.SelectedItemId = default;
 		}
 
 		Guid[] identifiers = [.. viewModel.GetIdentifiers()];
 
 		foreach (Guid item in CopyHistorySettings
-			.CopyHistory
+			.Items
 			.ToArray())
 		{
 			if (!identifiers.Contains(item))
 			{
 				CopyHistorySettings
-					.CopyHistory
+					.Items
 					.Remove(item);
 			}
 		}
-
-		viewModel.Dispose();
 	}
 
 	/// <summary>

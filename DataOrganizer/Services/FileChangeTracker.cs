@@ -51,9 +51,7 @@ public class FileChangeTracker : IFileChangeTracker
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Tracks changes of the executed file.
-	/// </summary>
+	/// <inheritdoc />
 	public async Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default)
 	{
 		try

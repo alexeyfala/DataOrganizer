@@ -3,9 +3,9 @@
 namespace DataOrganizer.DTO;
 
 /// <summary>
-/// The pair of <see cref="FilePath" /> and <see cref="DirectoryPath" /> values.
+/// Information about an executing file.
 /// </summary>
-internal sealed class ExecutedFileInfo
+internal sealed class ExecutingFileInfo
 {
 	#region Properties
 	/// <inheritdoc cref="CancellationTokenSource" />
@@ -28,7 +28,7 @@ internal sealed class ExecutedFileInfo
 	#endregion
 
 	#region Constructors
-	public ExecutedFileInfo(
+	public ExecutingFileInfo(
 		CancellationTokenSource cancellation,
 		string filePath,
 		string directoryPath,

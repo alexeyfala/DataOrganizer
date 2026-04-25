@@ -1,6 +1,5 @@
 ﻿using DataOrganizer.Interfaces;
 using Shared.Common;
-using System;
 using System.IO;
 
 namespace DataOrganizer.Services;
@@ -33,7 +32,7 @@ public sealed class AppEnvironment : IAppEnvironment
 		_appCount = processUtils.GetAppProcessesCount();
 
 		AppDataDirectoryPath = Path.Combine(
-			GetAppDataDirectoryPath(),
+			IAppEnvironment.GetAppDataDirectoryPath(),
 			_appCount == 1 ? directoryName : $"{directoryName} ({_appCount})");
 
 		DatabaseDirectoryPath = Path.Combine(
@@ -62,18 +61,6 @@ public sealed class AppEnvironment : IAppEnvironment
 			AppDataDirectoryPath,
 			"Settings",
 			fileName + ".json");
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Returns the path to the application directory.
-	/// </summary>
-	private static string GetAppDataDirectoryPath()
-	{
-		return Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			AppUtils.AppNameAsOneWord);
 	}
 	#endregion
 }

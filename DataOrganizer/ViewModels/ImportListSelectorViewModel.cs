@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +63,9 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	#endregion
 
 	#region Constructors
-	public ImportListSelectorViewModel(Application app) : base(app)
+	public ImportListSelectorViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion

@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace DataOrganizer.DTO.Settings;
 
 /// <summary>
-/// The settings for "Copy History" view.
+/// The settings for "Copy History".
 /// </summary>
 public sealed class CopyHistoryViewSettings
 {
@@ -12,11 +12,14 @@ public sealed class CopyHistoryViewSettings
 	/// <summary>
 	/// Copy content history.
 	/// </summary>
-	public List<Guid> CopyHistory { get; set; } = [];
+	/// <remarks>
+	/// Don't remove the "set;" accessor, it's required for deserialization.
+	/// </remarks>
+	public ObservableCollection<Guid> Items { get; set; } = [];
 
 	/// <summary>
-	/// The selected item identifier in <see cref="CopyHistory" />.
+	/// The selected item identifier in <see cref="Items" />.
 	/// </summary>
-	public Guid SelectedCopyHistoryItemId { get; set; }
+	public Guid SelectedItemId { get; set; }
 	#endregion
 }

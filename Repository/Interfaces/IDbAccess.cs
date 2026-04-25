@@ -115,6 +115,11 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Returns <c>True</c> if an object with the specified ID exists in the database.
+	/// </summary>
+	Task<bool> IsExistsAsync(Guid id, CancellationToken token = default);
+
+	/// <summary>
 	/// Returns <c>True</c> if a SQLite database is valid.
 	/// </summary>
 	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false);

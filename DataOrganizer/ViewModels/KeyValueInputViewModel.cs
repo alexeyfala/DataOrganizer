@@ -1,7 +1,8 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Abstract;
+using DataOrganizer.DTO;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using System.Threading.Tasks;
 
@@ -66,7 +67,9 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	#endregion
 
 	#region Constructors
-	public KeyValueInputViewModel(Application app) : base(app)
+	public KeyValueInputViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion
@@ -75,24 +78,19 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// <summary>
 	/// Performs initialization.
 	/// </summary>
-	public void Initialize(
-		string defaultButtonText,
-		string? key = null,
-		string? keyHint = null,
-		string? value = null,
-		string? valueHint = null)
+	public void Initialize(KeyValueInputParameters parameters)
 	{
-		DefaultButtonText = defaultButtonText;
+		DefaultButtonText = parameters.DefaultButtonText;
 
-		Key = key;
+		Key = parameters.Key;
 
-		KeyHint = keyHint;
+		KeyHint = parameters.KeyHint;
 
-		Value = value;
+		Value = parameters.Value;
 
-		ValueHint = valueHint;
+		ValueHint = parameters.ValueHint;
 
-		IsValueInputVisible = !string.IsNullOrEmpty(valueHint);
+		IsValueInputVisible = !string.IsNullOrEmpty(parameters.ValueHint);
 	}
 	#endregion
 

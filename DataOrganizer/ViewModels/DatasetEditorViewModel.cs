@@ -5,13 +5,11 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Models;
 using DataOrganizer.Views;
-using DialogHostAvalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -166,23 +164,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddGroup,
+			KeyHint = Strings.Name
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddGroup,
-			keyHint: Strings.Name);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await AddGroupAsync(name, group).ConfigureAwait(false);
+		await AddGroupAsync(result.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -191,26 +186,23 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddKeyAndValue,
+			KeyHint = Strings.Key,
+			ValueHint = Strings.Value
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddKeyAndValue,
-			keyHint: Strings.Key,
-			valueHint: Strings.Value);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
 		await AddKeyValueAsync(
-			key,
-			view.ViewModel.Value,
+			result.Key,
+			result.Value,
 			group).ConfigureAwait(false);
 	}
 
@@ -220,23 +212,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddValue,
+			KeyHint = Strings.Name
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.AddValue,
-			keyHint: Strings.Name);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await AddValueAsync(value, group).ConfigureAwait(false);
+		await AddValueAsync(result.Key, group).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -316,29 +305,26 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Key,
+			KeyHint = Strings.Key,
+			Value = record.Value,
+			ValueHint = Strings.Value
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: record.Key,
-			keyHint: Strings.Key,
-			value: record.Value,
-			valueHint: Strings.Value);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
 		await EditKeyValueAsync(
 			record,
-			key,
-			view.ViewModel.Value).ConfigureAwait(false);
+			result.Key,
+			result.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -352,23 +338,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+		ValueIsValidPair result = await _dialogService
+			.RequestMultilineTextAsync(record.Note)
+			.ConfigureAwait(false);
 
-		view
-			.ViewModel
-			.Text = record.Note;
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false))
+		if (!result.IsValid)
 		{
 			return;
 		}
 
-		await EditNoteAsync(record, view.ViewModel.Text).ConfigureAwait(false);
+		await EditNoteAsync(record, result.Value).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -382,24 +361,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Value,
+			KeyHint = Strings.Edit
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: record.Value,
-			keyHint: Strings.Edit);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } value)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await EditValueAsync(record, value).ConfigureAwait(false);
+		await EditValueAsync(record, result.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -448,24 +424,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = group.Name,
+			KeyHint = Strings.Rename
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Save,
-			key: group.Name,
-			keyHint: Strings.Rename);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } name)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } result)
 		{
 			return;
 		}
 
-		await RenameGroupAsync(group, name).ConfigureAwait(false);
+		await RenameGroupAsync(group, result.Key).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -504,7 +477,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
-	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
+	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
@@ -512,20 +485,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortAscending(RecordsGroup? group)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = Strings.SortAscending + "?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(Strings.SortAscending + "?")
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -546,20 +508,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => throw new NotImplementedException()
 		}, "?");
 
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = text;
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(text)
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -573,20 +524,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(HasChildren))]
 	private async Task SortDescending(RecordsGroup? group)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = Strings.SortDescending + "?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync(Strings.SortDescending + "?")
+			.ConfigureAwait(false))
 		{
 			return;
 		}
@@ -599,24 +539,32 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IClipboardService" />
 	private readonly IClipboardService _clipboard;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
 	#endregion
 
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
-		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
+		IDialogService dialogService,
+		IDispatcher dispatcher,
+		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory) : base(app, dbAccess, dispatcher, entityEcryption, jsonSerializer, logger)
+		ITaskExceptionHandler handler) : base(
+			app,
+			dbAccess,
+			dispatcher,
+			entityEcryption,
+			jsonSerializer,
+			logger,
+			handler)
 	{
 		_clipboard = clipboardService;
 
-		_viewFactory = viewFactory;
+		_dialogService = dialogService;
 	}
 	#endregion
 
@@ -647,7 +595,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			_ = SavePropertiesAsync(json);
+			_handler.Watch(SavePropertiesAsync(json));
 		}
 	}
 	#endregion
@@ -666,7 +614,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new RecordsGroup()
 			{
-				Name = AppUtils.CreateRandomString(10),
+				Name = $"Group_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
@@ -685,8 +633,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new KeyValueRecord()
 			{
-				Key = AppUtils.CreateRandomString(10),
-				Value = AppUtils.CreateRandomString(10),
+				Key = $"Key_{AppUtils.CreateRandomString(10)}",
+				Value = $"Value_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
@@ -738,7 +686,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			yield return new ValueRecord()
 			{
-				Value = AppUtils.CreateRandomString(10),
+				Value = $"Value_{AppUtils.CreateRandomString(10)}",
 				Note = note
 			};
 		}
@@ -1055,20 +1003,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		string? questionText,
 		CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $@"{Strings.Delete} ""{questionText}""?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo, token)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		if (!await _dialogService
+			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{questionText}""?", token)
+			.ConfigureAwait(false))
 		{
 			return;
 		}

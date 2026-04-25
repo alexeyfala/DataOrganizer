@@ -25,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="HotkeysEditorView" />.
 /// </summary>
-public sealed partial class HotkeysEditorViewModel : ObservableDisposable
+public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 {
 	#region Properties
 	/// <summary>
@@ -105,10 +105,8 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposable
 	#endregion
 
 	#region Constructors
-	public HotkeysEditorViewModel(IGlobalHook hook)
+	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler handler)
 	{
-		_hook = hook;
-
 		Observable.FromEventPattern<KeyboardHookEventArgs>(
 			x => hook.KeyReleased += x,
 			x => hook.KeyReleased -= x)
@@ -121,7 +119,9 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposable
 			.Subscribe(Buffer_CollectionChanged)
 			.DisposeWith(_disposables);
 
-		_ = hook.RunAsync();
+		_hook = hook;
+
+		handler.Watch(hook.RunAsync());
 	}
 	#endregion
 

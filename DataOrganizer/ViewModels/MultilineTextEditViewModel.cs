@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Abstract;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using System.Threading.Tasks;
 
@@ -21,7 +21,9 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	#endregion
 
 	#region Constructors
-	public MultilineTextEditViewModel(Application app) : base(app)
+	public MultilineTextEditViewModel(
+		Application app,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
 	}
 	#endregion

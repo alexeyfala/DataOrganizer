@@ -143,6 +143,39 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="SettingsViewModel.TrackHotkeys" />.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_TrackHotkeys()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.TrackHotkeys = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsManager);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.TrackHotkeys = true;
+
+		// Assert
+		sut.CurrentSettings.TrackHotkeys
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// Test of <see cref="SettingsViewModel.CurrentSettings" />.
 	/// </summary>
 	[Test]
@@ -200,6 +233,18 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="SettingsViewModel.PrimaryColors" />.
+	/// </summary>
+	[Test]
+	public void PrimaryColors_Have_Certain_Values()
+	{
+		// Assert
+		SettingsViewModel.PrimaryColors
+			.Should()
+			.Contain(Enum.GetValues<PrimaryColor>());
+	}
+
+	/// <summary>
 	/// Test of <see cref="SettingsViewModel.SaveAndClose" />.
 	/// </summary>
 	[Test]
@@ -220,15 +265,69 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.PrimaryColors" />.
+	/// Test of <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
 	/// </summary>
 	[Test]
-	public void PrimaryColors_Have_Certain_Values()
+	public void SaveAndCloseCommand_CanExecute_Returns_False_When_Settings_Not_Changed()
 	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsManager);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+
 		// Assert
-		SettingsViewModel.PrimaryColors
+		canExecute
 			.Should()
-			.Contain(Enum.GetValues<PrimaryColor>());
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void SaveAndCloseCommand_CanExecute_Returns_True_After_Settings_Are_Changed()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.TrackHotkeys = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsManager);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.TrackHotkeys = true;
+
+		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

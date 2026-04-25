@@ -8,7 +8,6 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:sys="clr-namespace:System;assembly=mscorlib"
 	xmlns:views="using:DataOrganizer.Views"
 	x:Name="Root"
 	mc:Ignorable="d">

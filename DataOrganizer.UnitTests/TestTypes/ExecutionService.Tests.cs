@@ -149,7 +149,7 @@ internal class ExecutionServiceTests
 			.Should()
 			.BeTrue();
 
-		sut.IsExecuted(dto.Id)
+		sut.IsExecuting(dto.Id)
 			.Should()
 			.BeTrue();
 

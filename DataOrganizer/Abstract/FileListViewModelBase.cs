@@ -17,11 +17,13 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class FileListViewModel : CopyContentViewModelBase
+public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 {
 	#region Auto-Generated Commands
 	/// <summary>
@@ -39,21 +41,31 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 	}
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
-	[RelayCommand]
+	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
 	private void CopyContent(IEnumerable<object>? multiBindings)
 	{
 		object[] values = [.. multiBindings.AsNotNull()];
 
-		if (values.Length < 2
-			|| values[0] is not FileModelDto dto
-			|| values[1] is not SelectingItemsControl container)
+		if (!GetFile(
+			values,
+			out FileModelDto? file))
 		{
 			return;
 		}
 
-		container.SelectedItem = dto;
+		if (!GetContainer(
+			values,
+			out SelectingItemsControl? container))
+		{
+			return;
+		}
 
-		_ = CopyContentAsync(dto, container);
+		container.SelectedItem = file;
+
+		_handler.Watch(CopyContentAsync(
+			file: file,
+			container: container,
+			updateView: false));
 
 	}
 
@@ -141,19 +153,84 @@ public abstract partial class FileListViewModel : CopyContentViewModelBase
 			return;
 		}
 
-		_ = viewModel.ShowInEditorAsync(window, id);
+		_handler.Watch(viewModel.ShowInEditorAsync(window, id));
 	}
 	#endregion
 
 	#region Constructors
-	protected FileListViewModel(
+	protected FileListViewModelBase(
 		Application app,
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(app, clipboard, dbAccess, dialogService, entityEcryption, logger)
+		ILogger logger,
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel) : base(
+			app,
+			clipboard,
+			dbAccess,
+			dialogService,
+			entityEcryption,
+			logger,
+			handler,
+			viewModel)
 	{
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Validates <see cref="CopyContentCommand" />.
+	/// </summary>
+	private static bool CanExecuteCopyContent(IEnumerable<object>? multiBindings)
+	{
+		if (GetFile(
+			multiBindings?.ToArray() ?? [],
+			out FileModelDto? file))
+		{
+			return !file.IsOpened();
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Tries to get reference to container from multi bindings.
+	/// </summary>
+	private static bool GetContainer(
+		object[] values,
+		[NotNullWhen(true)] out SelectingItemsControl? container)
+	{
+		container = null;
+
+		if (values.Length < 2 || values[1] is not SelectingItemsControl control)
+		{
+			return false;
+		}
+
+		container = control;
+
+		return true;
+	}
+
+	/// <summary>
+	/// Tries to get reference to file from multi bindings.
+	/// </summary>
+	private static bool GetFile(
+		object[] values,
+		[NotNullWhen(true)] out FileModelDto? file)
+	{
+		file = null;
+
+		if (values.Length < 2 || values[0] is not FileModelDto dto)
+		{
+			return false;
+		}
+
+		file = dto;
+
+		return true;
 	}
 	#endregion
 }

@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EditFilesView" />.
+/// View model for <see cref="EditingFilesView" />.
 /// </summary>
-public sealed partial class EditFilesViewModel : ObservableObject
+public sealed partial class EditingFilesViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
@@ -51,7 +51,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		dto.IsEdited = false;
+		dto.IsEditing = false;
 
 		CloseEditor(dto);
 	}
@@ -120,7 +120,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
-	public EditFilesViewModel(ILogger logger) => _logger = logger;
+	public EditingFilesViewModel(ILogger logger) => _logger = logger;
 	#endregion
 
 	#region Methods
@@ -151,7 +151,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			return;
 		}
 
-		if (dto.IsEdited)
+		if (dto.IsEditing)
 		{
 			_logger.LogWarning($"The file is already opened in the built-in editor:{dto.GetPropertyValues(
 				true,
@@ -167,7 +167,7 @@ public sealed partial class EditFilesViewModel : ObservableObject
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name))}");
 
-		dto.IsEdited = true;
+		dto.IsEditing = true;
 
 		Items.Add(dto);
 

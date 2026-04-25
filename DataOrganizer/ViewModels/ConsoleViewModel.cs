@@ -21,7 +21,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="ConsoleWindow" />.
 /// </summary>
-public sealed partial class ConsoleViewModel : ObservableDisposable
+public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {
 	#region Properties
 	/// <summary>

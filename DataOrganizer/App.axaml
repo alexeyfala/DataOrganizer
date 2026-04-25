@@ -7,7 +7,7 @@
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-	xmlns:sys="clr-namespace:System;assembly=mscorlib"
+	xmlns:system="clr-namespace:System;assembly=mscorlib"
 	xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
 	Name="{x:Static common:AppUtils.AppName}">
 	<!-- RequestedThemeVariant="Default" - ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -24,7 +24,7 @@
 		</ResourceDictionary>
 
 		<!--#region Necessary for DataOrganizer.Behaviors.StyledElementAddFluentThemeBehavior-->
-		<sys:Double x:Key="ControlContentThemeFontSize">14</sys:Double>
+		<system:Double x:Key="ControlContentThemeFontSize">14</system:Double>
 
 		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>
 		<!--#endregion-->

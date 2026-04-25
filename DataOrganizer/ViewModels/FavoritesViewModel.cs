@@ -105,7 +105,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// </summary>
 	partial void OnIsPopupOpenChanged(bool value)
 	{
-		if (value || IsShutdown)
+		if (value)
 		{
 			return;
 		}
@@ -355,8 +355,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		ITaskExceptionHandler handler,
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -367,8 +368,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			eventSimulator,
 			keyboardInputHook,
 			logger,
-			viewFactory,
-			viewLauncher)
+			handler,
+			viewLauncher,
+			viewModel)
 	{
 	}
 	#endregion
@@ -404,14 +406,14 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.Clear();
 
 		CopyHistorySettings
-			.CopyHistory
+			.Items
 			.Clear();
 
 		PopupContent = FavoritesPopupContentType.None;
 
-		_copyHistory = null;
+		_copyHistory?.Dispose();
 
-		_favorites = null;
+		_favorites?.Dispose();
 	}
 
 	/// <summary>
@@ -458,9 +460,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		FavoritesSettings.OrderedCategories = favoritesSettings.OrderedCategories;
 
-		CopyHistorySettings.CopyHistory = copyHistorySettings.CopyHistory;
+		CopyHistorySettings
+			.Items
+			.AddRange(copyHistorySettings.Items);
 
-		CopyHistorySettings.SelectedCopyHistoryItemId = copyHistorySettings.SelectedCopyHistoryItemId;
+		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 
 		IsInitialized = true;
 	}
@@ -485,38 +489,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 	}
 
-	/// <summary>
-	/// Saves in <see cref="FavoritesSettings" /> values.
-	/// </summary>
-	public void SaveFavorites()
-	{
-		if (_favorites is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Save favorites");
-
-		FavoritesSettings.NavigationColumnWidth = _favorites
-			.NavigationColumnWidth
-			.Value;
-
-		if (_favorites.SelectedCategory is { } category)
-		{
-			FavoritesSettings.SelectedCategoryId = category.Id;
-		}
-
-		FavoritesSettings
-			.SelectedPairs
-			.ClearAddRange(_favorites.SelectedPairs);
-
-		FavoritesSettings
-			.OrderedCategories
-			.ClearAddRange(_favorites.OrderedCategories);
-
-		_favorites.Dispose();
-	}
-
 	/// <inheritdoc />
 	public override Task ShowInEditorAsync(
 		Window? window,
@@ -535,7 +507,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		_viewLauncher.ConfigureEditorWindow(
 			Hierarchy,
 			OpenedInEditorFiles,
-			ExecutedFiles,
+			ExecutingFiles,
 			id).Show();
 
 		return Task.CompletedTask;
@@ -583,6 +555,38 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 				yield return category;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Saves in <see cref="FavoritesSettings" /> values.
+	/// </summary>
+	private void SaveFavorites()
+	{
+		if (_favorites is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Save favorites");
+
+		FavoritesSettings.NavigationColumnWidth = _favorites
+			.NavigationColumnWidth
+			.Value;
+
+		if (_favorites.SelectedCategory is { } category)
+		{
+			FavoritesSettings.SelectedCategoryId = category.Id;
+		}
+
+		FavoritesSettings
+			.SelectedPairs
+			.ClearAddRange(_favorites.SelectedPairs);
+
+		FavoritesSettings
+			.OrderedCategories
+			.ClearAddRange(_favorites.OrderedCategories);
+
+		_favorites.Dispose();
 	}
 
 	/// <summary>

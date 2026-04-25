@@ -22,8 +22,8 @@ public interface IExecutionEngine : IDisposable
 	Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is already executed in the operating system.
+	/// Returns <c>True</c> if the file is already executed by the operating system.
 	/// </summary>
-	bool IsExecuted(Guid id);
+	bool IsExecuting(Guid id);
 	#endregion
 }

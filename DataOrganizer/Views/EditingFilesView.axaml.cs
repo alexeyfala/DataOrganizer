@@ -9,10 +9,10 @@ namespace DataOrganizer.Views;
 /// <summary>
 /// <see cref="UserControl" /> for editing files.
 /// </summary>
-public sealed partial class EditFilesView : UserControl
+internal sealed partial class EditingFilesView : UserControl
 {
 	#region Constructors
-	public EditFilesView()
+	public EditingFilesView()
 	{
 		InitializeComponent();
 
@@ -25,7 +25,7 @@ public sealed partial class EditFilesView : UserControl
 
 		DataContext = Ioc
 			.Default
-			.GetRequiredService<EditFilesViewModel>();
+			.GetRequiredService<EditingFilesViewModel>();
 	}
 	#endregion
 }

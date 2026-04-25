@@ -31,7 +31,13 @@
 	</Design.DataContext>
 
 	<Window.Resources>
-		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="/Assets/SideSheetControlTheme.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+
+			<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+		</ResourceDictionary>
 	</Window.Resources>
 
 	<dialogHost:DialogHost
@@ -273,7 +279,7 @@
 							<Grid>
 								<Button
 									Classes="primary"
-									Command="{Binding ShowExecutedFilesCommand}"
+									Command="{Binding ShowExecutingFilesCommand}"
 									Theme="{StaticResource MaterialFlatButton}"
 									ToolTip.Tip="{x:Static prop:Strings.FilesOpenedInTheOperatingSystem}">
 									<materialIcons:MaterialIcon
@@ -283,21 +289,23 @@
 								</Button>
 
 								<TextBlock
-									Margin="0.0,0.0,8.0,0.0"
-									HorizontalAlignment="Right"
-									VerticalAlignment="Bottom"
-									Classes="HeaderTextBlockStyle"
-									Foreground="LimeGreen"
-									Text="{Binding ExecutedFiles.Count, Mode=OneWay}" />
+									Classes="CountTextBlockStyle"
+									Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
 							</Grid>
 
-							<Button
-								Classes="primary"
-								Command="{Binding ShowCopyHistoryCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
-								                                            IconSize={StaticResource ToolBarIconSize}}"
-								Theme="{StaticResource MaterialFlatButton}"
-								ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+							<Grid>
+								<Button
+									Classes="primary"
+									Command="{Binding ShowCopyHistoryCommand}"
+									Content="{materialIcons:MaterialIconTextExt Kind=ClipboardTextClockOutline,
+									                                            IconSize={StaticResource ToolBarIconSize}}"
+									Theme="{StaticResource MaterialFlatButton}"
+									ToolTip.Tip="{x:Static prop:Strings.ContentCopyHistory}" />
+
+								<TextBlock
+									Classes="CountTextBlockStyle"
+									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+							</Grid>
 						</StackPanel>
 					</Grid>
 
@@ -349,7 +357,7 @@
 						<ContentControl
 							Grid.Row="0"
 							Grid.Column="2"
-							ContentTemplate="{StaticResource EditFilesTemplate}" />
+							ContentTemplate="{StaticResource EditingFilesTemplate}" />
 
 						<materialControls:SideSheet
 							Grid.Row="0"
@@ -358,12 +366,13 @@
 							SideSheetContent="{Binding RightSideSheetContent, Mode=OneWay}"
 							SideSheetHeaderTemplate="{StaticResource RightSideSheetHeaderTemplate}"
 							SideSheetOpened="{Binding IsRightSideSheetOpened, Mode=TwoWay}"
-							SideSheetPadding="4.0">
+							SideSheetPadding="4.0"
+							Theme="{StaticResource ScrollableSideSheet}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
 								<helpers:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
 
-									<StaticResource ResourceKey="ExecutedFilesTemplate" />
+									<StaticResource ResourceKey="ExecutingFilesTemplate" />
 								</helpers:RightSideSheetContentTemplateSelector>
 							</materialControls:SideSheet.SideSheetContentTemplate>
 						</materialControls:SideSheet>
@@ -410,4 +419,3 @@
 		</materialControls:SnackbarHost>
 	</dialogHost:DialogHost>
 </Window>
-

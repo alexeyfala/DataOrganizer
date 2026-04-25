@@ -21,26 +21,26 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="CopyHistoryView" />.
 /// </summary>
-public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposable
+public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDisposable
 {
 	#region Properties
-	/// <inheritdoc cref="CopyHistoryViewSettings.CopyHistory" />
-	public ReadOnlyObservableCollection<FileModelDto> CopyHistory => _filter.Visible;
-
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="CopyHistory" /> is empty.
+	/// Returns <c>True</c> if <see cref="Items" /> is empty.
 	/// </summary>
-	public bool IsCopyHistoryEmpty => _filter.IsEmpty;
+	public bool IsEmpty => _filter.IsEmpty;
+
+	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
+	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
 	#endregion
 
 	#region Auto-Generated Properties
 	/// <summary>
-	/// Search value within <see cref="CopyHistory" />.
+	/// Search value within <see cref="Items" />.
 	/// </summary>
 	[ObservableProperty]
 	private string? _historySearch;
 
-	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedCopyHistoryItemId" />
+	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />
 	[ObservableProperty]
 	private FileModelDto? _selectedItem;
 	#endregion
@@ -59,7 +59,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Clears <see cref="CopyHistory" />.
+	/// Clears <see cref="Items" />.
 	/// </summary>
 	[RelayCommand]
 	public void Clear()
@@ -74,7 +74,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="CopyHistory" />.
+	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Items" />.
 	/// </summary>
 	private readonly FilterEngine<FileModelDto> _filter;
 
@@ -91,13 +91,17 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
-		ILogger logger) : base(
+		ILogger logger,
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEcryption,
-			logger)
+			logger,
+			handler,
+			viewModel)
 	{
 		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(
 			x => x.HistorySearch,
@@ -137,7 +141,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	}
 
 	/// <summary>
-	/// Returns a sequence of identifiers from <see cref="CopyHistory" />.
+	/// Returns a sequence of identifiers from <see cref="Items" />.
 	/// </summary>
 	public IEnumerable<Guid> GetIdentifiers() => _filter.Select(x => x.Id);
 
@@ -149,12 +153,33 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 		_filter.AddRange(items);
 
 		_filter.Synchronize(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
+
+		_filter.Refresh();
 	}
 
 	/// <summary>
-	/// Sets <see cref="SelectedItem" /> from <paramref name="item"/> using <see cref="FilterEngine{FileModelDto}.Synchronize" />.
+	/// Inserts or moves to top value in <see cref="Items" />.
 	/// </summary>
-	public void SetSelectedItem(FileModelDto item) => _filter.Synchronize(() => SelectedItem = item);
+	public void InsertOrMoveToTop(FileModelDto file)
+	{
+		int index = _filter.IndexOf(file);
+
+		if (index >= 0)
+		{
+			_filter.Move(index, 0);
+		}
+		else
+		{
+			_filter.Insert(0, file);
+		}
+
+		_filter.Refresh();
+	}
+
+	/// <summary>
+	/// Tries to remove value from <see cref="Items" />.
+	/// </summary>
+	public bool Remove(FileModelDto file) => _filter.Remove(file);
 	#endregion
 
 	#region Service
@@ -163,14 +188,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModel, IDisposabl
 	/// </summary>
 	private void HistorySearchEmptyStringAction()
 	{
-		RefreshFilter();
+		_filter.Refresh();
 
 		SelectedItem ??= _previousSelectedItem;
 	}
-
-	/// <summary>
-	/// Refreshes filter for <see cref="CopyHistory" />.
-	/// </summary>
-	private void RefreshFilter() => _filter.IterateSource((x, i) => x.Order = i);
 	#endregion
 }

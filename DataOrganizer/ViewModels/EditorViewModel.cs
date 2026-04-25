@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,9 +16,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
-using DialogHostAvalonia;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
@@ -159,7 +156,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
 		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
-			_ = UpdateIsSelectedInDatabaseAsync(oldValue);
+			_handler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
 		}
 
 		if (newValue is null)
@@ -167,7 +164,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = UpdateIsSelectedInDatabaseAsync(newValue);
+		_handler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
 	}
 
 	/// <summary>
@@ -181,7 +178,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Changes password for folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
-	public async Task ChangePassword(FolderModelDto? dto)
+	internal async Task ChangePassword(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -205,36 +202,34 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes a file executed in the operating system.
+	/// Closes a file executing in the operating system.
 	/// </summary>
 	[RelayCommand]
-	public void CloseExecutedFile(FileModelDto? dto)
+	internal void CloseExecutingFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		_logger.LogInformation($"Closing an executed file in operating system:{dto.GetPropertyValues(
+		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
 			true,
 			nameof(FileModelDto.Id),
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		ExecutedFiles.Remove(dto);
+		ExecutingFiles.Remove(dto);
 
-		CloseAllExecutedFilesCommand.NotifyCanExecuteChanged();
+		dto.IsExecuting = false;
 
-		dto.IsExecuted = false;
-
-		_ = _executionEngine.CloseAsync(dto.Id);
+		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
 	}
 
 	/// <summary>
 	/// Decrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
-	public async Task DecryptFolder(FolderModelDto? dto)
+	internal async Task DecryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -270,7 +265,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Encrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
-	public async Task EncryptFolder(FolderModelDto? dto)
+	internal async Task EncryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -306,16 +301,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	public async Task ExecuteFile(FileModelDto? dto)
+	internal async Task ExecuteFile(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		if (_executionEngine.IsExecuted(dto.Id))
+		if (_executionEngine.IsExecuting(dto.Id))
 		{
-			_logger.LogWarning($"The file is already executed in the operating system:{dto.GetPropertyValues(
+			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
 				true,
 				nameof(FileModelDto.Id),
 				nameof(FileModelDto.Name),
@@ -400,18 +395,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		dto.IsExecuted = true;
+		dto.IsExecuting = true;
 
-		ExecutedFiles.Add(dto);
-
-		_dispatcher.Post(CloseAllExecutedFilesCommand.NotifyCanExecuteChanged);
+		ExecutingFiles.Add(dto);
 	}
 
 	/// <summary>
 	/// Exits the application.
 	/// </summary>
 	[RelayCommand]
-	public void Exit(Window? window)
+	internal void Exit(Window? window)
 	{
 		IsShutdown = true;
 
@@ -422,7 +415,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Hides all file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
-	public async Task HideAllFileContents()
+	internal async Task HideAllFileContents()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
@@ -442,7 +435,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Hides file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
-	public async Task HideFileContents(FileModelDto? dto)
+	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -452,7 +445,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (dto.IsOpened())
 		{
 			if (!await _dialogService
-				.RequestUserCloseFilesAsync()
+				.RequestCloseFilesAsync()
 				.ConfigureAwait(true))
 			{
 				return;
@@ -470,7 +463,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
-	public async Task HideFolderContents(FolderModelDto? dto)
+	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -497,7 +490,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Imports data.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
-	public async Task Import()
+	internal async Task Import()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
 
@@ -519,7 +512,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// using the <see cref="OnSelectedObjectChanging(ExplorerModelBaseDto?, ExplorerModelBaseDto?)" /> method.
 	/// </remarks>
 	[RelayCommand(CanExecute = nameof(CanExecuteResetSelectedObject))]
-	public void ResetSelectedObject()
+	internal void ResetSelectedObject()
 	{
 		if (SelectedObject is null)
 		{
@@ -535,7 +528,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Restarts the application.
 	/// </summary>
 	[RelayCommand]
-	public void RestartApplication(Window? window)
+	internal void RestartApplication(Window? window)
 	{
 		Exit(window);
 
@@ -551,7 +544,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Sets <see cref="FileModelDto.IsFavorite" /> value.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteSetFavorite))]
-	public Task SetFavorite(FileModelDto? dto)
+	internal Task SetFavorite(FileModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -567,11 +560,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Displays the "Favorites" window.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]
-	public void ShowFavorites(EditorWindow? window)
+	internal void ShowFavorites(EditorWindow? window)
 	{
 		IsShutdown = false;
 
 		window?.Close();
+
+		_copyHistory?.Dispose();
 
 		WeakReferenceMessenger
 			.Default
@@ -579,24 +574,24 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
-			_editFiles?.Items ?? [],
-			ExecutedFiles).Show();
+			_editingFiles?.Items ?? [],
+			ExecutingFiles).Show();
 
-		if (_editFiles is null)
+		if (_editingFiles is null)
 		{
 			return;
 		}
 
 		Hierarchy
-			.GetFilesBy(x => x.IsEdited)
-			.ForEach(_editFiles.CloseEditor);
+			.GetFilesBy(x => x.IsEditing)
+			.ForEach(_editingFiles.CloseEditor);
 	}
 
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
-	public async Task ShowFolderContents(FolderModelDto? dto)
+	internal async Task ShowFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
 		{
@@ -631,79 +626,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Displays the hotkey editor.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
-	public async Task ShowHotkeysEditor(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation("Show hotkeys editor");
-
-		if (_keyboardInputHook.IsRunning)
-		{
-			await _keyboardInputHook
-				.StopTrackingAsync()
-				.ConfigureAwait(true);
-		}
-
-		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
-
-		view
-			.ViewModel
-			.Buffer
-			.AddRange(dto.Hotkeys.ToCodeMaskPairs());
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		await DialogHost
-			.Show(view, Dialog_Closing)
-			.ConfigureAwait(false);
-
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
-		{
-			_ = HandleChangeHotkeysAsync(view.ViewModel, dto);
-		}
-	}
-
-	/// <summary>
-	/// Shows application settings.
-	/// </summary>
-	[RelayCommand]
-	public Task ShowSettings()
-	{
-		IsLeftDrawerOpened = false;
-
-		_logger.LogInformation("Show settings");
-
-		SettingsView view = _viewFactory.CreateUserControl<SettingsView>();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return Task.CompletedTask;
-		}
-
-		return DialogHost.Show(view, Dialog_Closing);
-
-		void Dialog_Closing(object sender, DialogClosingEventArgs e)
-		{
-			_ = HandleChangeSettingsAsync(
-				view.ViewModel.IsSaved,
-				view.ViewModel.CurrentSettings);
-		}
-	}
-
-	/// <summary>
 	/// Displays the add object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanExecuteAdd))]
@@ -711,46 +633,55 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
-		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
-
-		_ = DialogHost.Show(view);
-
-		try
+		if (await _dialogService
+			.ShowEntityCreationAsync()
+			.ConfigureAwait(false) is not { } result)
 		{
-			if (!await view
-				.ViewModel
-				.GetResultAsync()
+			return;
+		}
+
+		await AddAsync(
+			result.Name,
+			result.Type,
+			parent).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Clears current right side sheet content.
+	/// </summary>
+	[RelayCommand]
+	private async Task ClearRightSideSheet()
+	{
+		if (RightSideSheetContent == RightSideSheetContentType.None)
+		{
+			return;
+		}
+
+		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		{
+			if (CopyHistorySettings.Items.Count == 0 || !await _dialogService
+				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
 				return;
 			}
 
-			EntityType entityType = view.ViewModel switch
-			{
-				{ IsFolderSelected: true } => EntityType.Folder,
-				{ IsFileSelected: true } => EntityType.File,
-				{ IsDatasetSelected: true } => EntityType.DataSet,
-				_ => throw new NotImplementedException()
-			};
-
-			await AddAsync(
-				view.ViewModel.Name,
-				entityType,
-				parent).ConfigureAwait(false);
+			ClearCopyHistory();
 		}
-		finally
+		else if (RightSideSheetContent == RightSideSheetContentType.ExecutingFiles)
 		{
-			view
-				.ViewModel
-				.SaveSettingsInFile();
+			if (ExecutingFiles.Count == 0 || !await _dialogService
+				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
+			ExecutingFiles
+				.ToArray()
+				.ForEach(CloseExecutingFile);
 		}
 	}
-
-	/// <summary>
-	/// Closes all files executed in the operating system.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteCloseAllExecutedFiles))]
-	private void CloseAllExecutedFiles() => ExecutedFiles.ToArray().ForEach(CloseExecutedFile);
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
@@ -772,23 +703,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
-	private async Task CopyContent(FileModelDto? dto)
+	private Task CopyContentByContextMenu(FileModelDto? dto)
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
 			|| window.FindLogicalChild<TreeView>() is not { } container)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		await CopyContentAsync(dto, container).ConfigureAwait(false);
-
-		if (RightSideSheetContent != RightSideSheetContentType.CopyHistory)
-		{
-			return;
-		}
-
-		_copyHistory?.SetSelectedItem(dto);
+		return CopyContentAsync(
+			file: dto,
+			container: container,
+			updateView: true);
 	}
 
 	/// <summary>
@@ -801,13 +728,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.Clipboard is not { } clipboard
 				|| window.FindLogicalChild<TreeView>() is not { } container)
 			{
 				return;
 			}
 
-			_ = clipboard.SetTextAsync(dto.Name);
+			_handler.Watch(_clipboard.SetTextAsync(dto.Name));
 
 			FolderModelDto[] parents = [.. dto
 				.GetAllParents()
@@ -818,7 +744,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return;
 			}
 
-			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush);
+			_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush));
 		}
 		catch (Exception ex)
 		{
@@ -841,20 +767,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
-
-		view
-			.ViewModel
-			.Text = $@"{Strings.Delete} ""{toBeDeleted.Name}""?";
-
-		_ = DialogHost.Show(view);
-
-		YesNoCancelResult result = await view
-			.ViewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo)
-			.ConfigureAwait(false);
-
-		if (result != YesNoCancelResult.Yes)
+		// Since the editor may have a tab open with the file being deleted,
+		// the operation must be performed in the main thread (ConfigureAwait(true)).
+		if (!await _dialogService
+			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{toBeDeleted.Name}""?")
+			.ConfigureAwait(true))
 		{
 			return;
 		}
@@ -862,7 +779,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
-	/// <inheritdoc cref="EditFilesViewModel.OpenInEditor(FileModelDto)" />
+	/// <inheritdoc cref="EditingFilesViewModel.OpenInEditor" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
 	private async Task EditFile(FileModelDto? dto)
 	{
@@ -876,14 +793,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_editFiles?.OpenInEditor(dto);
+		_editingFiles?.OpenInEditor(dto);
 	}
 
 	/// <summary>
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditFilesViewLoaded(EditFilesViewModel? viewModel) => _editFiles = viewModel;
+	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel) => _editingFiles = viewModel;
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -936,26 +853,23 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Renaming an object using dialog");
 
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Rename,
+			Key = toBeRenamed.Name,
+			KeyHint = Strings.Name
+		};
 
-		view.ViewModel.Initialize(
-			defaultButtonText: Strings.Rename,
-			key: toBeRenamed.Name,
-			keyHint: Strings.Name);
-
-		_ = DialogHost.Show(view);
-
-		if (!await view
-			.ViewModel
-			.GetResultAsync()
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } newName)
+		if (await _dialogService
+			.RequestKeyValueInputAsync(parameters)
+			.ConfigureAwait(false) is not { } pair)
 		{
 			return;
 		}
 
 		await RenameAsync(
 			toBeRenamed,
-			newName,
+			pair.Key,
 			DateTime.Now).ConfigureAwait(false);
 	}
 
@@ -966,17 +880,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentType.CopyHistory);
 
 	/// <summary>
-	/// Controls the display of the executed files in right side sheet.
+	/// Controls the display of the executing files in right side sheet.
 	/// </summary>
 	[RelayCommand]
-	private void ShowExecutedFiles()
+	private void ShowExecutingFiles()
 	{
 		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutedFiles);
+		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutingFiles);
 	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
@@ -991,9 +905,48 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		return ShowFileContentsAsync(dto);
 	}
 
+	/// <summary>
+	/// Displays the hotkey editor.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
+	private async Task ShowHotkeysEditor(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Show hotkeys editor");
+
+		if (_keyboardInputHook.IsRunning)
+		{
+			await _keyboardInputHook
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
+		}
+
+		EditingHotkeysResult result = await _dialogService
+			.EditHotkeysAsync(dto.Hotkeys.ToCodeMaskPairs())
+			.ConfigureAwait(false);
+
+		if (result.IsSaved)
+		{
+			await OverwriteFileHotkeysAsync(dto, result.NewHotkeys).ConfigureAwait(false);
+		}
+
+		if (!_settingsManager
+			.Settings
+			.TrackHotkeys)
+		{
+			return;
+		}
+
+		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy));
+	}
+
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
-	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
+	private void ShowInList(Guid id) => _handler.Watch(ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id));
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1006,14 +959,26 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
+		_dialogService.ShowProperties(GetPropertyDescriptions(dto));
+	}
 
-		view
-			.ViewModel
-			.Properties
-			.AddRange(GetPropertyDescriptions(dto));
+	/// <summary>
+	/// Shows application settings.
+	/// </summary>
+	[RelayCommand]
+	private async Task ShowSettings()
+	{
+		IsLeftDrawerOpened = false;
 
-		DialogHost.Show(view);
+		_logger.LogInformation("Show settings");
+
+		ShowSettingsResult result = await _dialogService
+			.ShowSettingsAsync()
+			.ConfigureAwait(true);
+
+		await HandleChangeSettingsAsync(
+			result.IsSaved,
+			result.Settings).ConfigureAwait(false);
 	}
 	#endregion
 
@@ -1032,8 +997,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
-	/// <inheritdoc cref="EditFilesViewModel" />
-	private EditFilesViewModel? _editFiles;
+	/// <inheritdoc cref="EditingFilesViewModel" />
+	private EditingFilesViewModel? _editingFiles;
 	#endregion
 
 	#region Constructors
@@ -1052,8 +1017,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		ILogger logger,
 		IMapper mapper,
 		IProcessUtils processUtils,
-		IViewFactory viewFactory,
-		IViewLauncher viewLauncher) : base(
+		ITaskExceptionHandler handler,
+		IViewLauncher viewLauncher,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1064,8 +1030,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			eventSimulator,
 			keyboardInputHook,
 			logger,
-			viewFactory,
-			viewLauncher)
+			handler,
+			viewLauncher,
+			viewModel)
 	{
 		_dataExchange = dataExchange;
 
@@ -1098,7 +1065,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = UpdateFolderIsExpandedInDatabaseAsync(message.Value);
+		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
 	}
 	#endregion
 
@@ -1185,9 +1152,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Adds edited files to view.
+	/// Adds editing files.
 	/// </summary>
-	public void AddEditedFiles(IEnumerable<FileModelDto> editFiles) => _editFiles?.Items.AddRange(editFiles);
+	public void AddEditingFiles(IEnumerable<FileModelDto> editingFiles) => _editingFiles?.Items.AddRange(editingFiles);
 
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
@@ -1198,20 +1165,20 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes edited and executed files.
+	/// Closes editing and executing files.
 	/// </summary>
 	public void CloseFiles(
-		IEnumerable<FileModelDto> editedFiles,
-		IEnumerable<FileModelDto> executedFiles)
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
 	{
-		foreach (FileModelDto file in editedFiles)
+		foreach (FileModelDto file in editingFiles)
 		{
-			CloseEditedFile(file);
+			CloseEditingFile(file);
 		}
 
-		foreach (FileModelDto file in executedFiles)
+		foreach (FileModelDto file in executingFiles)
 		{
-			CloseExecutedFile(file);
+			CloseExecutingFile(file);
 		}
 	}
 
@@ -1244,6 +1211,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (dto is FileModelDto file)
 		{
 			CloseFile(file);
+
+			RemoveFromCopyHistory(file);
 		}
 
 		CountHierarchy();
@@ -1286,28 +1255,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Handles changing object hotkeys.
-	/// </summary>
-	public async Task HandleChangeHotkeysAsync(HotkeysEditorViewModel viewModel, FileModelDto dto)
-	{
-		if (viewModel.IsSaved)
-		{
-			await OverwriteFileHotkeysAsync(dto, [.. viewModel.Buffer]).ConfigureAwait(false);
-		}
-
-		viewModel.Dispose();
-
-		if (!_settingsManager
-			.Settings
-			.TrackHotkeys)
-		{
-			return;
-		}
-
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
-	}
-
-	/// <summary>
 	/// Handles changing application settings.
 	/// </summary>
 	public async Task HandleChangeSettingsAsync(
@@ -1338,7 +1285,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy, token);
+		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>
@@ -1385,9 +1332,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings.CopyHistory = copyHistorySettings.CopyHistory;
+		CopyHistorySettings
+			.Items
+			.AddRange(copyHistorySettings.Items);
 
-		CopyHistorySettings.SelectedCopyHistoryItemId = copyHistorySettings.SelectedCopyHistoryItemId;
+		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 
 		IsInitialized = true;
 	}
@@ -1684,14 +1633,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Validates <see cref="CloseAllExecutedFilesCommand" />.
-	/// </summary>
-	private bool CanExecuteCloseAllExecutedFiles() => ExecutedFiles.Count > 0;
-
-	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
-	private bool CanExecuteCopyContent() => !IsActionInProgress;
+	private bool CanExecuteCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
@@ -1796,15 +1740,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Closes editing file.
 	/// </summary>
-	private void CloseEditedFile(FileModelDto file)
+	private void CloseEditingFile(FileModelDto file)
 	{
-		if (_editFiles is not null)
+		if (_editingFiles is not null)
 		{
-			_editFiles.CloseTab(file);
+			_editingFiles.CloseTab(file);
 		}
 		else
 		{
-			file.IsEdited = false;
+			file.IsEditing = false;
 		}
 	}
 
@@ -1813,14 +1757,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	private void CloseFile(FileModelDto file)
 	{
-		if (file.IsEdited)
+		if (file.IsEditing)
 		{
-			CloseEditedFile(file);
+			CloseEditingFile(file);
 		}
 
-		if (file.IsExecuted)
+		if (file.IsExecuting)
 		{
-			CloseExecutedFile(file);
+			CloseExecutingFile(file);
 		}
 	}
 
@@ -1861,7 +1805,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_logger.LogInformation($"Show {type switch
 		{
 			RightSideSheetContentType.CopyHistory => "copy history",
-			RightSideSheetContentType.ExecutedFiles => "executing files",
+			RightSideSheetContentType.ExecutingFiles => "executing files",
 			_ => "unknown"
 		}}");
 
@@ -1871,7 +1815,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Tries to close edited or executed files if any.
+	/// Tries to close editing or executing files if any.
 	/// </summary>
 	private async Task<bool> TryCloseOpenedFilesAsync(
 		FileModelDto[] openedFiles,
@@ -1880,15 +1824,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		if (openedFiles.IsNotEmpty())
 		{
 			if (!await _dialogService
-				.RequestUserCloseFilesAsync(token)
+				.RequestCloseFilesAsync(token)
 				.ConfigureAwait(true))
 			{
 				return false;
 			}
 
 			CloseFiles(
-				openedFiles.Where(x => x.IsEdited),
-				openedFiles.Where(x => x.IsExecuted));
+				openedFiles.Where(x => x.IsEditing),
+				openedFiles.Where(x => x.IsExecuting));
 		}
 
 		return true;

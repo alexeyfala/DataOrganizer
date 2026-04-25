@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using DialogHostAvalonia;
 using Shared.Extensions;
 using System;
@@ -15,6 +16,9 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="TaskCompletionSource" />
 	private readonly TaskCompletionSource<TResult> _source = new();
 
@@ -25,7 +29,14 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	#endregion
 
 	#region Constructors
-	protected AsyncResultViewModelBase(Application app) => _app = app;
+	protected AsyncResultViewModelBase(
+		Application app,
+		ITaskExceptionHandler handler)
+	{
+		_app = app;
+
+		_handler = handler;
+	}
 	#endregion
 
 	#region Methods
@@ -64,7 +75,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		if (_app.IsDialogHostOpened())
 		{
-			_ = WaitDialogCloseAsync(defaultResult, token);
+			_handler.Watch(WaitDialogCloseAsync(defaultResult, token));
 		}
 
 		return _source.Task;

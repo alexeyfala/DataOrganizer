@@ -23,13 +23,16 @@ public sealed class ExecutionEngine : IExecutionEngine
 	private readonly IFileChangeTracker _changeTracker;
 
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
-	private readonly ConcurrentDictionary<Guid, ExecutedFileInfo> _executedFiles = [];
+	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
 
 	/// <inheritdoc cref="IFileAssociationService" />
 	private readonly IFileAssociationService _fileAssociation;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -48,12 +51,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IAppEnvironment appEnvironment,
-		IFileAssociationService fileAssociation,
-		IFileChangeTracker changeTracker,
-		IFileSystem fileSystem,
+		ITaskExceptionHandler handler,
+		IProcessUtils processUtils,
 		ILogger logger,
-		IProcessUtils processUtils)
+		IFileSystem fileSystem,
+		IFileChangeTracker changeTracker,
+		IFileAssociationService fileAssociation,
+		IAppEnvironment appEnvironment)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -62,6 +66,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_fileAssociation = fileAssociation;
 
 		_fileSystem = fileSystem;
+
+		_handler = handler;
 
 		_logger = logger;
 
@@ -79,7 +85,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (!_executedFiles.TryGetValue(id, out ExecutedFileInfo? info))
+			if (!_executingFiles.TryGetValue(id, out ExecutingFileInfo? info))
 			{
 				_logger.LogError($@"Cannot find file information for id ""{id}""");
 
@@ -121,7 +127,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 		finally
 		{
-			_executedFiles.TryRemove(id, out var _);
+			_executingFiles.TryRemove(id, out var _);
 
 			if (!_isDisposed)
 			{
@@ -142,7 +148,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		_isDisposed = true;
 
-		_executedFiles.ForEach(pair =>
+		_executingFiles.ForEach(pair =>
 		{
 			if (pair.Value is not { } info)
 			{
@@ -203,7 +209,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			CancellationTokenSource cancellation = new();
 
-			_executedFiles.TryAdd(
+			_executingFiles.TryAdd(
 				parameters.File.Id,
 				new(cancellation, filePath, directoryPath, processId));
 
@@ -219,7 +225,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					ViewModel = parameters.ViewModel
 				};
 
-				_ = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
 			}
 
 			_logger.LogInformation(
@@ -231,14 +237,14 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 
-			_executedFiles.TryRemove(parameters.File.Id, out var _);
+			_executingFiles.TryRemove(parameters.File.Id, out var _);
 
 			return false;
 		}
 	}
 
 	/// <inheritdoc />
-	public bool IsExecuted(Guid id) => _executedFiles.ContainsKey(id);
+	public bool IsExecuting(Guid id) => _executingFiles.ContainsKey(id);
 	#endregion
 
 	#region Service

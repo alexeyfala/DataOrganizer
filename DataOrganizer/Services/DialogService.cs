@@ -1,12 +1,17 @@
 ﻿using Avalonia.Threading;
+using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
+using Entities.Enums;
+using Repository.DTO;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +22,9 @@ public sealed class DialogService : IDialogService
 	#region Data
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -29,9 +37,12 @@ public sealed class DialogService : IDialogService
 	public DialogService(
 		IDispatcher dispatcher,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewFactory viewFactory)
 	{
 		_dispatcher = dispatcher;
+
+		_handler = handler;
 
 		_logger = logger;
 
@@ -41,7 +52,110 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<char[]> RequestUserPasswordAsync(
+	public async Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys)
+	{
+		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
+
+		view
+			.ViewModel
+			.Buffer
+			.AddRange(initialHotkeys);
+
+		await DialogHost
+			.Show(view)
+			.ConfigureAwait(false);
+
+		try
+		{
+			return new()
+			{
+				IsSaved = view.ViewModel.IsSaved,
+				NewHotkeys = [.. view.ViewModel.Buffer]
+			};
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.Dispose();
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = $"{Strings.CloseFilesBeingEdited}?";
+
+		_handler.Watch(DialogHost.Show(view));
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
+	/// <inheritdoc />
+	public async Task<StringKeyValuePair?> RequestKeyValueInputAsync(
+		KeyValueInputParameters parameters,
+		CancellationToken token = default)
+	{
+		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+
+		view
+			.ViewModel
+			.Initialize(parameters);
+
+		_handler.Watch(DialogHost.Show(view));
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+		{
+			return null;
+		}
+
+		return new()
+		{
+			Key = key,
+			Value = view.ViewModel.Value
+		};
+	}
+
+	/// <inheritdoc />
+	public async Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default)
+	{
+		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+
+		view
+			.ViewModel
+			.Text = text;
+
+		_handler.Watch(DialogHost.Show(view));
+
+		if (!await view
+			.ViewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false))
+		{
+			return new();
+		}
+
+		return new()
+		{
+			IsValid = true,
+			Value = view.ViewModel.Text
+		};
+	}
+
+	/// <inheritdoc />
+	public Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
 		CancellationToken token = default)
@@ -58,7 +172,7 @@ public sealed class DialogService : IDialogService
 
 			view.Label = label ?? Strings.Password;
 
-			_ = DialogHost.Show(view);
+			_handler.Watch(DialogHost.Show(view));
 
 			if (!await view
 				.GetResultAsync(token)
@@ -91,19 +205,38 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestUserCloseFilesAsync(CancellationToken token = default)
+	public async Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default)
 	{
 		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
 
 		view
 			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
+			.Text = text;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		YesNoCancelResult result = await view
 			.ViewModel
 			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+			.ConfigureAwait(false);
+
+		return result == YesNoCancelResult.Yes;
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default)
+	{
+		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+
+		view
+			.ViewModel
+			.Text = text;
+
+		_handler.Watch(DialogHost.Show(view));
+
+		YesNoCancelResult result = await view
+			.ViewModel
+			.GetResultAsync(YesNoCancelVariant.YesNo, token)
 			.ConfigureAwait(false);
 
 		return result == YesNoCancelResult.Yes;
@@ -118,11 +251,79 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Header = Strings.ImportList;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		return view
 			.ViewModel
 			.GetResultAsync(token);
+	}
+
+	/// <inheritdoc />
+	public async Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default)
+	{
+		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
+
+		_handler.Watch(DialogHost.Show(view));
+
+		try
+		{
+			if (!await view
+				.ViewModel
+				.GetResultAsync(token)
+				.ConfigureAwait(false))
+			{
+				return null;
+			}
+
+			EntityType entityType = view.ViewModel switch
+			{
+				{ IsFolderSelected: true } => EntityType.Folder,
+				{ IsFileSelected: true } => EntityType.File,
+				{ IsDatasetSelected: true } => EntityType.DataSet,
+				_ => throw new NotImplementedException()
+			};
+
+			return new()
+			{
+				Name = view.ViewModel.Name,
+				Type = entityType
+			};
+		}
+		finally
+		{
+			view
+				.ViewModel
+				.SaveSettingsInFile();
+		}
+	}
+
+	/// <inheritdoc />
+	public void ShowProperties(IEnumerable<PropertyNameValuePair> properties)
+	{
+		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
+
+		view
+			.ViewModel
+			.Properties
+			.AddRange(properties);
+
+		DialogHost.Show(view);
+	}
+
+	/// <inheritdoc />
+	public async Task<ShowSettingsResult> ShowSettingsAsync()
+	{
+		SettingsView view = _viewFactory.CreateUserControl<SettingsView>();
+
+		await DialogHost
+			.Show(view)
+			.ConfigureAwait(false);
+
+		return new()
+		{
+			IsSaved = view.ViewModel.IsSaved,
+			Settings = view.ViewModel.CurrentSettings
+		};
 	}
 	#endregion
 }

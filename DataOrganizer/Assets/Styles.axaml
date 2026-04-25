@@ -93,7 +93,7 @@
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="Padding" Value="0.0" />
 		<Setter Property="Theme" Value="{StaticResource SoloTextBox}" />
-		<Setter Property="Watermark" Value="{x:Static prop:Strings.Search}" />
+		<Setter Property="PlaceholderText" Value="{x:Static prop:Strings.Search}" />
 	</Style>
 
 	<Style Selector="Rectangle.ColorSampleStyle">
@@ -115,6 +115,16 @@
 	<Style Selector="TextBlock.HeaderTextBlockStyle">
 		<Setter Property="FontSize" Value="16.0" />
 		<Setter Property="FontWeight" Value="Bold" />
+	</Style>
+
+	<Style Selector="TextBlock.CountTextBlockStyle">
+		<Setter Property="FontSize" Value="16.0" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="Foreground" Value="LimeGreen" />
+		<Setter Property="HorizontalAlignment" Value="Right" />
+		<Setter Property="IsHitTestVisible" Value="False" />
+		<Setter Property="Margin" Value="0.0,0.0,8.0,0.0" />
+		<Setter Property="VerticalAlignment" Value="Bottom" />
 	</Style>
 
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">

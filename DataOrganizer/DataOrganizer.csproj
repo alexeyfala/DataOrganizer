@@ -17,6 +17,7 @@
 	<ItemGroup>
 		<AvaloniaXaml Remove="Assets\DataTemplates.axaml" />
 		<AvaloniaXaml Remove="Assets\Resources.axaml" />
+		<AvaloniaXaml Remove="Assets\SideSheetControlTheme.axaml" />
 		<AvaloniaXaml Remove="Assets\Styles.axaml" />
 		<AvaloniaXaml Remove="Assets\Themes.axaml" />
 	</ItemGroup>
@@ -55,11 +56,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<AvaloniaResource Update="Assets\DataTemplates.axaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Resources.axaml">
 			<SubType>Designer</SubType>
+		</AvaloniaResource>
+		<AvaloniaResource Update="Assets\SideSheetControlTheme.axaml">
+		  <SubType>Designer</SubType>
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Styles.axaml">
 			<SubType>Designer</SubType>
@@ -70,11 +78,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Views\EditFilesView.axaml.cs">
-			<DependentUpon>EditFilesView.axaml</DependentUpon>
+		<Compile Update="Views\EditingFilesView.axaml.cs">
+			<DependentUpon>EditingFilesView.axaml</DependentUpon>
 		</Compile>
 		<Compile Update="Views\EmbeddedFileEditorView.axaml.cs">
 			<DependentUpon>EmbeddedFileEditorView.axaml</DependentUpon>
+		</Compile>
+		<Compile Update="Views\ExecutingFilesView.axaml.cs">
+		  <DependentUpon>ExecutingFilesView.axaml</DependentUpon>
 		</Compile>
 		<Compile Update="Views\ImportListSelectorView.axaml.cs">
 		  <DependentUpon>ImportListSelectorView.axaml</DependentUpon>

@@ -59,13 +59,13 @@ public sealed class App : Application
 		object? sender,
 		ControlledApplicationLifetimeExitEventArgs e)
 	{
-		_serviceProvider?.Dispose();
-
 		_timer.Stop();
 
-		Ioc.Default
+		_serviceProvider?
 			.GetRequiredService<ILogger>()
 			.LogInformationWithTemplate($"App life time: {_timer.GetElapsedTime()}, exit with code: {e.ApplicationExitCode}{Environment.NewLine}{Environment.NewLine}");
+
+		_serviceProvider?.Dispose();
 	}
 	#endregion
 
@@ -88,7 +88,37 @@ public sealed class App : Application
 
 		_timer.Start();
 
-		_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+		try
+		{
+			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+		}
+		catch (Exception ex)
+		{
+			Debug.Fail(ex.Message);
+
+			string appDirectory = IAppEnvironment.GetAppDataDirectoryPath();
+
+			Directory.CreateDirectory(appDirectory);
+
+			string filePath = Path.Combine(
+				appDirectory,
+				$"{AppUtils.AppNameAsOneWord}_Critical_Errors{AppUtils.TxtExtension}");
+
+			File.AppendAllText(
+				filePath,
+				$"[{DateTime.Now}] {ex.Message} → {SerilogExtensions.GetSourceInfo()}" + Environment.NewLine);
+
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = filePath,
+				UseShellExecute = true
+			});
+		}
+
+		if (_serviceProvider is null)
+		{
+			return;
+		}
 
 		_ = _serviceProvider
 			.GetRequiredService<IAppController>()
@@ -266,10 +296,10 @@ public sealed class App : Application
 				string path = Path.Combine(
 					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
 					"Logs",
-					".txt");
+					AppUtils.TxtExtension);
 
 				configure.FileEx(
-					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", ".txt"),
+					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", AppUtils.TxtExtension),
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
@@ -324,6 +354,7 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
+		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IViewModelExecutionService, ViewModelExecutionService>();
@@ -359,7 +390,7 @@ public sealed class App : Application
 		services.AddTransient<ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
-		services.AddTransient<EditFilesViewModel>();
+		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
 		services.AddTransient<EmbeddedFileEditorViewModel>();
 		services.AddTransient<EntityCreationViewModel>();
@@ -377,7 +408,6 @@ public sealed class App : Application
 
 		#region Views
 		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<CopyHistoryView>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();

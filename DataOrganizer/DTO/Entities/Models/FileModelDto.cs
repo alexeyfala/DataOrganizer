@@ -28,16 +28,16 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	private string? _hotkeysToolTip;
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is opened in editor.
+	/// Returns <c>True</c> if the file is opened in the built-in editor.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isEdited;
+	private bool _isEditing;
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is executed in the operating system.
+	/// Returns <c>True</c> if the file is executing in the operating system.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isExecuted;
+	private bool _isExecuting;
 
 	/// <inheritdoc cref="FileModel.IsFavorite" />
 	[ObservableProperty]
@@ -55,9 +55,9 @@ public partial class FileModelDto : ExplorerModelBaseDto
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="IsEdited" /> == <c>True</c> or <see cref="IsExecuted" /> == <c>True</c>.
+	/// Returns <c>True</c> if <see cref="IsEditing" /> == <c>True</c> or <see cref="IsExecuting" /> == <c>True</c>.
 	/// </summary>
-	public bool IsOpened() => IsEdited || IsExecuted;
+	public bool IsOpened() => IsEditing || IsExecuting;
 
 	/// <summary>
 	/// Sets <see cref="HotkeysToolTip" /> according to <see cref="Hotkeys" />.

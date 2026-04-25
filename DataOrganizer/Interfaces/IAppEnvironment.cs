@@ -1,4 +1,8 @@
-﻿namespace DataOrganizer.Interfaces;
+﻿using Shared.Common;
+using System;
+using System.IO;
+
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Provides tools for working with the application environment.
@@ -23,6 +27,16 @@ public interface IAppEnvironment
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Returns the path to the application directory.
+	/// </summary>
+	static string GetAppDataDirectoryPath()
+	{
+		return Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			AppUtils.AppNameAsOneWord);
+	}
+
 	/// <summary>
 	/// Returns the name of the application based on the number of running instances.
 	/// </summary>

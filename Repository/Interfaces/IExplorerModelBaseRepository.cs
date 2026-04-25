@@ -34,5 +34,8 @@ public interface IExplorerModelBaseRepository
 		IEnumerable<Guid> identifiers,
 		bool trackChanges = false,
 		CancellationToken token = default);
+
+	/// <inheritdoc cref="RepositoryBase{T}.IsExistsAsync" />
+	Task<bool> IsExistsAsync(Expression<Func<ExplorerModelBase, bool>> condition, CancellationToken token = default);
 	#endregion
 }

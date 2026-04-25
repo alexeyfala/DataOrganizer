@@ -1,11 +1,11 @@
 ﻿using Avalonia.Data.Converters;
-using DataOrganizer.Enums;
+using DataOrganizer.DTO.Entities.Models;
 using System;
 using System.Globalization;
 
 namespace DataOrganizer.Converters;
 
-internal sealed class CloseAllExecutedFilesButtonVisibilityConverter : IValueConverter
+internal sealed class FileIsOpenedToFalseConverter : IValueConverter
 {
 	#region Methods
 	/// <inheritdoc />
@@ -15,7 +15,12 @@ internal sealed class CloseAllExecutedFilesButtonVisibilityConverter : IValueCon
 		object? parameter,
 		CultureInfo culture)
 	{
-		return value is RightSideSheetContentType type && type == RightSideSheetContentType.ExecutedFiles;
+		if (value is not FileModelDto file)
+		{
+			return false;
+		}
+
+		return !file.IsOpened();
 	}
 
 	/// <inheritdoc />

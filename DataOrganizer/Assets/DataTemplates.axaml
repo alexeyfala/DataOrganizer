@@ -247,7 +247,7 @@
 							Icon="ContentCopy" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentCommand}"
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CopyContentByContextMenuCommand}"
 							CommandParameter="{Binding}"
 							Header="{x:Static prop:Strings.CopyContent}"
 							Icon="ContentCopy"
@@ -325,8 +325,8 @@
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
-				IsEdited="{Binding IsEdited, Mode=OneWay}"
-				IsExecuted="{Binding IsExecuted, Mode=OneWay}"
+				IsEditing="{Binding IsEditing, Mode=OneWay}"
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}" />
 		</Grid>
 	</DataTemplate>
@@ -334,10 +334,6 @@
 	<!-- RightSideSheetHeaderTemplate -->
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
 		<StackPanel Orientation="Horizontal">
-			<StackPanel.Resources>
-				<converters:CloseAllExecutedFilesButtonVisibilityConverter x:Key="CloseAllExecutedFilesButtonVisibilityConverter" />
-			</StackPanel.Resources>
-
 			<ToggleButton
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
@@ -348,18 +344,18 @@
 
 			<Button
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseAllExecutedFilesCommand}"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ClearRightSideSheetCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsVisible="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RightSideSheetContent, Converter={StaticResource CloseAllExecutedFilesButtonVisibilityConverter}}"
+				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.CloseAll}" />
+				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
 		</StackPanel>
 	</DataTemplate>
 
-	<!-- ExecutedFileTemplate -->
+	<!-- ExecutingFileTemplate -->
 	<DataTemplate
-		x:Key="ExecutedFileTemplate"
+		x:Key="ExecutingFileTemplate"
 		x:DataType="models:FileModelDto">
 		<Grid
 			Background="Transparent"
@@ -370,6 +366,10 @@
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 				</Style>
 			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
@@ -396,10 +396,13 @@
 
 			<Button
 				Grid.Column="2"
+				Padding="0.0"
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutedFileCommand}"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
 				CommandParameter="{Binding}"
-				Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
+				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
 
@@ -413,9 +416,9 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- EditedFileTabControlHeaderTemplate -->
+	<!-- EditingFileTabControlHeaderTemplate -->
 	<DataTemplate
-		x:Key="EditedFileTabControlHeaderTemplate"
+		x:Key="EditingFileTabControlHeaderTemplate"
 		x:DataType="models:FileModelDto">
 		<StackPanel
 			Orientation="Horizontal"
@@ -436,10 +439,10 @@
 				Margin="0.0,0.0,10.0,0.0"
 				Padding="0.0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((vm:EditFilesViewModel)DataContext).CloseTabCommand}"
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
-				                                            IconSize=20.0}"
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
 				Foreground="{StaticResource WarningBrush}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
@@ -586,7 +589,6 @@
 	<DataTemplate
 		x:Key="RecordsGroupTemplate"
 		x:DataType="localModels:RecordsGroup">
-
 		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
 		<Border
 			Padding="4.0"
@@ -796,7 +798,6 @@
 	<DataTemplate
 		x:Key="FavoriteCategoryTemplate"
 		x:DataType="localDto:FavoriteCategory">
-
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -806,6 +807,10 @@
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 				</Style>
 			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
@@ -822,7 +827,7 @@
 							Text="{Binding Name, Mode=OneTime}" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -846,7 +851,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -857,13 +862,13 @@
 	<DataTemplate
 		x:Key="FileInListTemplate"
 		x:DataType="models:FileModelDto">
-
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">
 
 			<Grid.Resources>
 				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
+				<converters:FileIsOpenedToFalseConverter x:Key="FileIsOpenedToFalseConverter" />
 			</Grid.Resources>
 
 			<Grid.Styles>
@@ -871,6 +876,10 @@
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
 				</Style>
 			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
 				<Flyout OverlayDismissEventPassThrough="True">
@@ -887,7 +896,7 @@
 							Text="{Binding Name, Mode=OneTime}" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -898,7 +907,7 @@
 			<Button
 				Grid.Column="0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).CopyContentCommand}"
+				Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).CopyContentCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
@@ -918,18 +927,28 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}"
-				Kind="EyeOutline">
+				IsEnabled="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToFalseConverter}}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}">
+				<materialIcons:MaterialIcon.Styles>
+					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
+						<Setter Property="Kind" Value="EyeOutline" />
+					</Style>
+
+					<Style Selector="materialIcons|MaterialIcon:disabled">
+						<Setter Property="Kind" Value="EyeOffOutline" />
+					</Style>
+				</materialIcons:MaterialIcon.Styles>
+
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerEnteredCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 
 					<EventTriggerBehavior EventName="PointerExited">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).PreviewPointerExitedCommand}"
+							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
@@ -944,13 +963,13 @@
 				Grid.Column="3"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
-				IsEdited="{Binding IsEdited, Mode=OneWay}"
-				IsExecuted="{Binding IsExecuted, Mode=OneWay}" />
+				IsEditing="{Binding IsEditing, Mode=OneWay}"
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModel)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -992,17 +1011,17 @@
 		</Grid>
 	</DataTemplate>
 
-	<!-- EditFilesTemplate -->
-	<DataTemplate x:Key="EditFilesTemplate">
-		<views:EditFilesView x:Name="View">
+	<!-- EditingFilesTemplate -->
+	<DataTemplate x:Key="EditingFilesTemplate">
+		<views:EditingFilesView x:Name="View">
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditFilesViewLoadedCommand}"
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
-		</views:EditFilesView>
+		</views:EditingFilesView>
 	</DataTemplate>
 
 	<!-- CopyHistoryTemplate -->
@@ -1018,9 +1037,9 @@
 		</views:CopyHistoryView>
 	</DataTemplate>
 
-	<!-- ExecutedFilesTemplate -->
-	<DataTemplate x:Key="ExecutedFilesTemplate">
-		<views:ExecutedFilesView />
+	<!-- ExecutingFilesTemplate -->
+	<DataTemplate x:Key="ExecutingFilesTemplate">
+		<views:ExecutingFilesView />
 	</DataTemplate>
 
 	<!-- SelectedFavoritesViewTemplate -->

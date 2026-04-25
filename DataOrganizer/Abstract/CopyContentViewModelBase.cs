@@ -27,6 +27,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
+	/// <inheritdoc cref="IClipboardService" />
+	protected readonly IClipboardService _clipboard;
+
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
@@ -36,11 +39,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="IEntityEcryption" />
 	protected readonly IEntityEcryption _entityEcryption;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	protected readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboard;
+	/// <inheritdoc cref="IViewModelExecutionService" />
+	private readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -50,7 +56,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEcryption entityEcryption,
-		ILogger logger)
+		ILogger logger,
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel)
 	{
 		_app = app;
 
@@ -62,7 +70,11 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 		_entityEcryption = entityEcryption;
 
+		_handler = handler;
+
 		_logger = logger;
+
+		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -91,17 +103,27 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected async Task CopyContentAsync(
 		FileModelDto file,
 		ItemsControl container,
+		bool updateView,
 		CancellationToken token = default)
 	{
 		try
 		{
+			if (!await _dbAccess
+				.IsExistsAsync(file.Id, token)
+				.ConfigureAwait(true))
+			{
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}"));
+
+				return;
+			}
+
 			ContentsIsValidPair result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
 
 			if (!result.IsValid)
 			{
-				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{file.Id}""");
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}"""));
 
 				return;
 			}
@@ -119,16 +141,14 @@ public abstract class CopyContentViewModelBase : ObservableObject
 					.Utf8Encoding
 					.GetString(contents);
 
-				ViewModelBase? viewModel = _app.FindBaseDataContext();
-
 				if (string.IsNullOrEmpty(text))
 				{
-					viewModel?.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+					_viewModel.ExecuteInBaseViewModel(x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
 
 					return;
 				}
 
-				viewModel?.UpdateCopyHistory(file.Id);
+				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file, updateView));
 
 				await _clipboard
 					.SetTextAsync(text)
@@ -136,14 +156,10 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
 
-				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is not TemplatedControl item)
+				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					return;
+					_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
 				}
-
-				await BrushExtensions
-					.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token)
-					.ConfigureAwait(false);
 			}
 			finally
 			{

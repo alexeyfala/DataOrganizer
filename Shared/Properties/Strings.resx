@@ -217,9 +217,6 @@
   <data name="Hide" xml:space="preserve">
     <value>Hide</value>
   </data>
-  <data name="CloseAll" xml:space="preserve">
-    <value>Close All</value>
-  </data>
   <data name="File" xml:space="preserve">
     <value>File</value>
   </data>
@@ -507,5 +504,8 @@
   </data>
   <data name="Database" xml:space="preserve">
     <value>Database</value>
+  </data>
+  <data name="DoesNotExist" xml:space="preserve">
+    <value>does not exist</value>
   </data>
 </root>
