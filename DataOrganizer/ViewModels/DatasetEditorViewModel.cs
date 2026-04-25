@@ -477,7 +477,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
-	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
+	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
@@ -552,13 +552,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger) : base(
+		ILogger logger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			dbAccess,
 			dispatcher,
 			entityEcryption,
 			jsonSerializer,
-			logger)
+			logger,
+			handler)
 	{
 		_clipboard = clipboardService;
 
@@ -593,7 +595,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			_ = SavePropertiesAsync(json);
+			_handler.Watch(SavePropertiesAsync(json));
 		}
 	}
 	#endregion

@@ -157,7 +157,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		if (keyboardInputHook.IsRunning)
 		{
-			_ = keyboardInputHook.StopTrackingAsync();
+			_handler.Watch(keyboardInputHook.StopTrackingAsync());
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
@@ -165,7 +165,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_ = keyboardInputHook.StartTrackingAsync(Hierarchy);
+		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 

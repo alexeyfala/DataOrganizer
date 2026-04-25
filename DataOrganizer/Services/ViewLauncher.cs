@@ -37,6 +37,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -59,6 +62,7 @@ public class ViewLauncher : IViewLauncher
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewFactory viewFactory)
 	{
 		_app = app;
@@ -68,6 +72,8 @@ public class ViewLauncher : IViewLauncher
 		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
+
+		_handler = handler;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -113,7 +119,7 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
-		_ = SaveEditorSettingsAsync(window);
+		_handler.Watch(SaveEditorSettingsAsync(window));
 	}
 
 	/// <summary>
@@ -139,7 +145,7 @@ public class ViewLauncher : IViewLauncher
 				.SaveContent();
 		}
 
-		_ = SaveFavoritesSettingsAsync(window);
+		_handler.Watch(SaveFavoritesSettingsAsync(window));
 	}
 	#endregion
 
@@ -177,9 +183,9 @@ public class ViewLauncher : IViewLauncher
 
 		if (showObjectId.IsNotDefault())
 		{
-			_ = window
+			_handler.Watch(window
 				.ViewModel
-				.ShowInEditorAsync(window, showObjectId);
+				.ShowInEditorAsync(window, showObjectId));
 		}
 		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{

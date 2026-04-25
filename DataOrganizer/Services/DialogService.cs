@@ -23,6 +23,9 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -34,9 +37,12 @@ public sealed class DialogService : IDialogService
 	public DialogService(
 		IDispatcher dispatcher,
 		ILogger logger,
+		ITaskExceptionHandler handler,
 		IViewFactory viewFactory)
 	{
 		_dispatcher = dispatcher;
+
+		_handler = handler;
 
 		_logger = logger;
 
@@ -84,7 +90,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		YesNoCancelResult result = await view
 			.ViewModel
@@ -105,7 +111,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Initialize(parameters);
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		if (!await view
 			.ViewModel
@@ -131,7 +137,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Text = text;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		if (!await view
 			.ViewModel
@@ -166,7 +172,7 @@ public sealed class DialogService : IDialogService
 
 			view.Label = label ?? Strings.Password;
 
-			_ = DialogHost.Show(view);
+			_handler.Watch(DialogHost.Show(view));
 
 			if (!await view
 				.GetResultAsync(token)
@@ -207,7 +213,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Text = text;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		YesNoCancelResult result = await view
 			.ViewModel
@@ -226,7 +232,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Text = text;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		YesNoCancelResult result = await view
 			.ViewModel
@@ -245,7 +251,7 @@ public sealed class DialogService : IDialogService
 			.ViewModel
 			.Header = Strings.ImportList;
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		return view
 			.ViewModel
@@ -257,7 +263,7 @@ public sealed class DialogService : IDialogService
 	{
 		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
 
-		_ = DialogHost.Show(view);
+		_handler.Watch(DialogHost.Show(view));
 
 		try
 		{

@@ -105,10 +105,8 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
-	public HotkeysEditorViewModel(IGlobalHook hook)
+	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler handler)
 	{
-		_hook = hook;
-
 		Observable.FromEventPattern<KeyboardHookEventArgs>(
 			x => hook.KeyReleased += x,
 			x => hook.KeyReleased -= x)
@@ -121,7 +119,9 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 			.Subscribe(Buffer_CollectionChanged)
 			.DisposeWith(_disposables);
 
-		_ = hook.RunAsync();
+		_hook = hook;
+
+		handler.Watch(hook.RunAsync());
 	}
 	#endregion
 

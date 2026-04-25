@@ -148,7 +148,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				//	.Subscribe(Editor_PropertyChanged)
 				//	.DisposeWith(_disposables);
 
-				_ = Task.Run(() => ProcessSaveChannelAsync());
+				_handler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
 
 				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 
@@ -190,7 +190,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
 	[RelayCommand]
-	private void ShowInList(Window? window) => _ = ShowInListAsync(window, FileId);
+	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
 	#endregion
 
 	#region Data
@@ -216,13 +216,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger) : base(
+		ILogger logger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			dbAccess,
 			dispatcher,
 			entityEcryption,
 			jsonSerializer,
-			logger)
+			logger,
+			handler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
@@ -241,7 +243,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_ = TrySavePropertiesAsync();
+			_handler.Watch(TrySavePropertiesAsync());
 		}
 	}
 
@@ -297,7 +299,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_ = TrySavePropertiesAsync();
+			_handler.Watch(TrySavePropertiesAsync());
 		}
 	}
 	#endregion

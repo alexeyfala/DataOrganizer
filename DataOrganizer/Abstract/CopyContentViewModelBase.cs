@@ -27,6 +27,9 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
+	/// <inheritdoc cref="IClipboardService" />
+	protected readonly IClipboardService _clipboard;
+
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
@@ -41,9 +44,6 @@ public abstract class CopyContentViewModelBase : ObservableObject
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
-
-	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboard;
 
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	private readonly IViewModelExecutionService _viewModel;

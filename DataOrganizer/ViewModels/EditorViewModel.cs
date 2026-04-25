@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -157,7 +156,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
 		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
-			_ = UpdateIsSelectedInDatabaseAsync(oldValue);
+			_handler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
 		}
 
 		if (newValue is null)
@@ -165,7 +164,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = UpdateIsSelectedInDatabaseAsync(newValue);
+		_handler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
 	}
 
 	/// <summary>
@@ -223,7 +222,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		dto.IsExecuting = false;
 
-		_ = _executionEngine.CloseAsync(dto.Id);
+		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
 	}
 
 	/// <summary>
@@ -729,13 +728,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.Clipboard is not { } clipboard
 				|| window.FindLogicalChild<TreeView>() is not { } container)
 			{
 				return;
 			}
 
-			_ = clipboard.SetTextAsync(dto.Name);
+			_handler.Watch(_clipboard.SetTextAsync(dto.Name));
 
 			FolderModelDto[] parents = [.. dto
 				.GetAllParents()
@@ -746,7 +744,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				return;
 			}
 
-			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush);
+			_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush));
 		}
 		catch (Exception ex)
 		{
@@ -943,12 +941,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy);
+		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy));
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
-	private void ShowInList(Guid id) => _ = ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id);
+	private void ShowInList(Guid id) => _handler.Watch(ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id));
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1067,7 +1065,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = UpdateFolderIsExpandedInDatabaseAsync(message.Value);
+		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
 	}
 	#endregion
 
@@ -1287,7 +1285,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_ = _keyboardInputHook.StartTrackingAsync(Hierarchy, token);
+		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>

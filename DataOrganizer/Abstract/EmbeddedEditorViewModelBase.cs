@@ -73,6 +73,9 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	protected readonly ITaskExceptionHandler _handler;
+
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	protected readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -99,7 +102,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
-		ILogger logger)
+		ILogger logger,
+		ITaskExceptionHandler handler)
 	{
 		_app = app;
 
@@ -108,6 +112,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_dispatcher = dispatcher;
 
 		_entityEcryption = entityEcryption;
+
+		_handler = handler;
 
 		_jsonSerializer = jsonSerializer;
 
