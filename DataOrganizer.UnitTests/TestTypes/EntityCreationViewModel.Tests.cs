@@ -6,6 +6,7 @@ using DataOrganizer.ViewModels;
 using NSubstitute;
 using Shared.Common;
 using Shared.Interfaces;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -13,6 +14,28 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class EntityCreationViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="EntityCreationViewModel.CancelCommand" />.
+	/// </summary>
+	[Test]
+	public async Task CancelCommand_Sets_False_Result()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>();
+
+		// Act
+		_ = Task.Run(() => sut.CancelCommand.Execute(null));
+
+		bool result = await sut.GetResultAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
 	/// <summary>
 	/// Test of <see cref="EntityCreationViewModel" />.
 	/// </summary>

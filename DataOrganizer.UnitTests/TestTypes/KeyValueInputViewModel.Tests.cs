@@ -2,6 +2,7 @@
 using AwesomeAssertions;
 using DataOrganizer.ViewModels;
 using Shared.Common;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -9,6 +10,52 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class KeyValueInputViewModelTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="KeyValueInputViewModel.CancelCommand" />.
+	/// </summary>
+	[Test]
+	public async Task CancelCommand_Sets_False_Result()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		_ = Task.Run(() => sut.CancelCommand.Execute(null));
+
+		bool result = await sut.GetResultAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="KeyValueInputViewModel.DefaultPressedCommand" />.
+	/// </summary>
+	[Test]
+	public async Task DefaultPressedCommand_Sets_True_Result_When_Key_Is_Provided()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		sut.Key = "some-key";
+
+		// Act
+		_ = Task.Run(() => sut.DefaultPressedCommand.Execute(null));
+
+		bool result = await sut.GetResultAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
 	/// <summary>
 	/// Test of <see cref="KeyValueInputViewModel.Initialize" />.
 	/// </summary>
