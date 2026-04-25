@@ -13,11 +13,8 @@ internal class MaterialDesignExtensionsTests
 	/// Test of <see cref="MaterialDesignExtensions.GetBrush(PrimaryColor)" />.
 	/// </summary>
 	[Test]
-	public void GetBrush_For_PrimaryColor_Returns_SolidColorBrush_With_Mapped_Color()
+	public void GetBrush_For_PrimaryColor_Returns_SolidColorBrush_With_Mapped_Color([Values] PrimaryColor primary)
 	{
-		// Arrange
-		const PrimaryColor primary = PrimaryColor.Indigo;
-
 		// Act
 		SolidColorBrush result = primary.GetBrush();
 
@@ -35,11 +32,8 @@ internal class MaterialDesignExtensionsTests
 	/// Test of <see cref="MaterialDesignExtensions.GetBrush(SecondaryColor)" />.
 	/// </summary>
 	[Test]
-	public void GetBrush_For_SecondaryColor_Returns_SolidColorBrush_With_Mapped_Color()
+	public void GetBrush_For_SecondaryColor_Returns_SolidColorBrush_With_Mapped_Color([Values] SecondaryColor secondary)
 	{
-		// Arrange
-		const SecondaryColor secondary = SecondaryColor.Cyan;
-
 		// Act
 		SolidColorBrush result = secondary.GetBrush();
 

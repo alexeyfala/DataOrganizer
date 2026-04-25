@@ -23,7 +23,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		Action emptyStringAction = Substitute.For<Action>();
 
 		// Act
-		using var subscription = source
+		using IDisposable subscription = source
 			.FilterPredicate(x => x.Search, null, emptyStringAction)
 			.Subscribe(predicate =>
 			{
@@ -50,7 +50,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		Action emptyStringAction = Substitute.For<Action>();
 
 		// Act
-		using var subscription = source
+		using IDisposable subscription = source
 			.FilterPredicate(x => x.Search, string.Empty, emptyStringAction)
 			.Subscribe(_ => { });
 
@@ -72,7 +72,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		Action emptyStringAction = Substitute.For<Action>();
 
 		// Act
-		using var subscription = source
+		using IDisposable subscription = source
 			.FilterPredicate(x => x.Search, "hello", emptyStringAction)
 			.Subscribe(predicate =>
 			{

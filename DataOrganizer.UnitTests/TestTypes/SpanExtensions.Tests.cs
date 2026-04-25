@@ -18,7 +18,9 @@ internal class SpanExtensionsTests
 		byte[] buffer = [];
 
 		// Act
-		Action act = () => buffer.AsSpan().ZeroMemory();
+		Action act = () => buffer
+			.AsSpan()
+			.ZeroMemory();
 
 		// Assert
 		act
@@ -36,7 +38,9 @@ internal class SpanExtensionsTests
 		byte[] buffer = [1, 2, 3, 4, 5];
 
 		// Act
-		buffer.AsSpan().ZeroMemory();
+		buffer
+			.AsSpan()
+			.ZeroMemory();
 
 		// Assert
 		buffer

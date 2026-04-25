@@ -42,6 +42,13 @@ internal class DialogServiceTests
 	/// <summary>
 	/// Test of <see cref="DialogService.RequestPasswordAsync" />.
 	/// </summary>
+	/// <remarks>
+	/// Guards against a regression where the underlying <see cref="TaskCompletionSource{TResult}" />
+	/// is hoisted from a local variable to a shared field. In that case every caller would await the
+	/// same <see cref="Task{TResult}" /> instance, and the second invocation in a session would throw
+	/// <see cref="InvalidOperationException" /> on <c>SetResult</c> (a <see cref="TaskCompletionSource{TResult}" />
+	/// can transition to a final state only once). Each call must produce an independent task.
+	/// </remarks>
 	[Test]
 	public void RequestPasswordAsync_Returns_Different_Task_Per_Call()
 	{

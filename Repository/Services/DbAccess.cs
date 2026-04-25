@@ -764,7 +764,6 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public LoadFromDbResult LoadFromDb(string dataSource)
 	{
-		// TODO: Test
 		using SqliteDbContext context = GetSQliteDbContext(dataSource);
 
 		FolderModel[] dbFolders = [.. context
