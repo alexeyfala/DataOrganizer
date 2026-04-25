@@ -5,8 +5,11 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
+using Material.Colors;
+using Material.Styles.Themes.Base;
 using NSubstitute;
 using Shared.Interfaces;
+using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -14,6 +17,26 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class AppSettingsManagerTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="AppSettingsManager.ApplyMeterialTheme" />.
+	/// </summary>
+	[Test]
+	public void ApplyMeterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		AppSettingsManager sut = mock.Create<AppSettingsManager>();
+
+		// Act
+		Action act = sut.ApplyMeterialTheme;
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
 	/// <summary>
 	/// Test of <see cref="AppSettingsManager" />.
 	/// </summary>
@@ -84,6 +107,64 @@ internal class AppSettingsManagerTests
 			Arg.Any<AppSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="AppSettingsManager.SaveSettingsInFile" />.
+	/// </summary>
+	[Test]
+	public void SaveSettingsInFile_Uses_Path_From_AppEnvironment()
+	{
+		// Arrange
+		const string expectedPath = @"C:\fake\AppSettings.json";
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+
+		appEnvironment
+			.GetSettingsFilePath(Arg.Any<string>())
+			.Returns(expectedPath);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(appEnvironment);
+		});
+
+		AppSettingsManager sut = mock.Create<AppSettingsManager>();
+
+		// Act
+		sut.SaveSettingsInFile();
+
+		// Assert
+		fileSystem
+			.Received()
+			.SerializeToJsonFile(Arg.Any<AppSettings>(), expectedPath, false);
+	}
+
+	/// <summary>
+	/// Test of <see cref="AppSettingsManager.SetAppMaterialTheme" />.
+	/// </summary>
+	[Test]
+	public void SetAppMaterialTheme_Is_NoOp_When_Running_Under_NUnit()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		AppSettingsManager sut = mock.Create<AppSettingsManager>();
+
+		// Act
+		Action act = () => sut.SetAppMaterialTheme(
+			BaseThemeMode.Dark,
+			PrimaryColor.Indigo,
+			SecondaryColor.Cyan);
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
 	}
 
 	/// <summary>

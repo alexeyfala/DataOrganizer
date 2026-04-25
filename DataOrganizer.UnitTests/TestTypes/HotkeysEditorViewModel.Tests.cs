@@ -79,6 +79,34 @@ internal class HotkeysEditorViewModelTests
 	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
 	/// </summary>
 	[Test]
+	public void HandleKeyReleased_Adds_Pair_To_Buffer_When_Mask_Is_Active()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.HaveCount(1);
+
+		sut.Buffer[0].Code
+			.Should()
+			.Be(KeyCode.VcA);
+
+		sut.Buffer[0].Mask
+			.Should()
+			.Be(EventMask.LeftCtrl);
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// </summary>
+	[Test]
 	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
 	{
 		// Arrange
@@ -99,6 +127,138 @@ internal class HotkeysEditorViewModelTests
 		sut.Buffer.Count
 			.Should()
 			.Be(HotkeysEditorViewModel.MaxHotkeys);
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Does_Nothing_When_Mask_Is_Empty()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.None, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Ignores_Modifier_Keys()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl, KeyCode.VcLeftShift);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// </summary>
+	[Test]
+	public void HandleKeyReleased_Strips_NumLock_From_Mask()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.HandleKeyReleased(EventMask.LeftCtrl | EventMask.NumLock, KeyCode.VcA);
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.HaveCount(1);
+
+		sut.Buffer[0].Mask
+			.Should()
+			.Be(EventMask.LeftCtrl);
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// </summary>
+	[Test]
+	public void KeyUp_Does_Nothing_When_Args_Is_Null()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.KeyUp(null);
+
+		// Assert
+		sut.IsSaved
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// </summary>
+	[Test]
+	public void KeyUp_Does_Nothing_When_Key_Is_Not_Enter()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.KeyUp(new()
+		{
+			Key = Key.A,
+			KeyModifiers = KeyModifiers.None
+		});
+
+		// Assert
+		sut.IsSaved
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// </summary>
+	[Test]
+	public void KeyUp_Does_Nothing_When_Modifier_Is_Set()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.KeyUp(new()
+		{
+			Key = Key.Enter,
+			KeyModifiers = KeyModifiers.Control
+		});
+
+		// Assert
+		sut.IsSaved
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>

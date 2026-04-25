@@ -48,6 +48,36 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="CopyHistoryViewModel" /> constructor.
+	/// </summary>
+	[Test]
+	public void Constructor_Initializes_Empty_History()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		// Act
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Assert
+		sut.IsEmpty
+			.Should()
+			.BeTrue();
+
+		sut.Items
+			.Should()
+			.BeEmpty();
+
+		sut.SelectedItem
+			.Should()
+			.BeNull();
+
+		sut.HistorySearch
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// Test of <see cref="CopyHistoryViewModel.Dispose" />.
 	/// </summary>
 	[Test]
@@ -124,6 +154,116 @@ internal class CopyHistoryViewModelTests
 		sut.SelectedItem
 			.Should()
 			.NotBeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />.
+	/// </summary>
+	[Test]
+	public void InsertOrMoveToTop_Inserts_New_Item_At_Top()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		FileModelDto[] existing = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddTestCopyHistory(existing);
+
+		FileModelDto newItem = TestUtils.CreateFileDto();
+
+		// Act
+		sut.InsertOrMoveToTop(newItem);
+
+		// Assert
+		sut.Items
+			.Should()
+			.Contain(newItem);
+	}
+
+	/// <summary>
+	/// Test of <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />.
+	/// </summary>
+	[Test]
+	public void InsertOrMoveToTop_Moves_Existing_Item_Without_Duplication()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		FileModelDto[] existing = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddTestCopyHistory(existing);
+
+		int initialCount = sut.Items.Count;
+
+		// Act
+		sut.InsertOrMoveToTop(existing[2]);
+
+		// Assert
+		sut.Items.Count
+			.Should()
+			.Be(initialCount);
+
+		sut.Items
+			.Should()
+			.Contain(existing[2]);
+	}
+
+	/// <summary>
+	/// Test of <see cref="CopyHistoryViewModel.Remove" />.
+	/// </summary>
+	[Test]
+	public void Remove_Returns_False_When_Item_Is_Not_Present()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		// Act
+		bool result = sut.Remove(TestUtils.CreateFileDto());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="CopyHistoryViewModel.Remove" />.
+	/// </summary>
+	[Test]
+	public void Remove_Returns_True_And_Removes_Item_From_History()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
+
+		FileModelDto[] existing = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddTestCopyHistory(existing);
+
+		// Act
+		bool result = sut.Remove(existing[1]);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		sut.Items
+			.Should()
+			.NotContain(existing[1]);
 	}
 	#endregion
 }
