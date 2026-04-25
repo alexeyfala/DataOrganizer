@@ -1,5 +1,7 @@
 using AwesomeAssertions;
+using CommonTestHelpers.Attributes;
 using Shared.Services;
+using System;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -47,6 +49,7 @@ internal class XmlSerializerWrapperTests
 	/// Test of <see cref="XmlSerializerWrapper.Deserialize{T}" />.
 	/// </summary>
 	[Test]
+	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
 	public void Deserialize_Throws_When_Xml_Contains_DTD_Declaration()
 	{
 		// Arrange

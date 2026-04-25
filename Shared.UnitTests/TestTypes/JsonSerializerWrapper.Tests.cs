@@ -1,5 +1,7 @@
 ﻿using AwesomeAssertions;
 using Shared.Services;
+using System;
+using System.IO;
 
 namespace Shared.UnitTests.TestTypes;
 
