@@ -186,7 +186,7 @@
 					<EventTriggerBehavior EventName="Loaded">
 						<InvokeCommandAction
 							Command="{Binding ContainerLoadedCommand}"
-							CommandParameter="{Binding #ScrollViewer}" />
+							CommandParameter="{Binding #RecordsItemsControl}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 

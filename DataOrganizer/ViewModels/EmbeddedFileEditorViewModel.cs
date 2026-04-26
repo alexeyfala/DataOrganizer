@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -93,7 +92,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				IsContentCorrupted = true;
 
-				ShowErrorSnackbar(editor, Strings.FailedToProcessContents);
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
@@ -213,18 +212,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public EmbeddedFileEditorViewModel(
 		Application app,
 		IDbAccess dbAccess,
-		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			dbAccess,
-			dispatcher,
 			entityEcryption,
 			jsonSerializer,
 			logger,
-			handler)
+			handler,
+			viewModel)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
@@ -427,7 +426,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			if (TryToEncrypt(latest) is not { } output)
 			{
-				ShowErrorSnackbar(_editor, Strings.FailedToProcessContents);
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				latest.ZeroMemory();
 

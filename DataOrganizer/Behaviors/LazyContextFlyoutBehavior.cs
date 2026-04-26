@@ -16,7 +16,10 @@ namespace DataOrganizer.Behaviors;
 internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 {
 	#region Properties
-	/// <inheritdoc cref="ContentTemplateProperty" />
+	/// <summary>
+	/// Template that produces the flyout's content (typically a <see cref="StackPanel" />
+	/// with command buttons).
+	/// </summary>
 	public IDataTemplate? ContentTemplate
 	{
 		get => GetValue(ContentTemplateProperty);
@@ -25,10 +28,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 	#endregion
 
 	#region Styled Properties
-	/// <summary>
-	/// Template that produces the flyout's content (typically a <see cref="StackPanel" />
-	/// with command buttons).
-	/// </summary>
+	/// <inheritdoc cref="ContentTemplate" />
 	public static readonly StyledProperty<IDataTemplate?> ContentTemplateProperty = AvaloniaProperty
 		.Register<LazyContextFlyoutBehavior, IDataTemplate?>(nameof(ContentTemplate));
 	#endregion

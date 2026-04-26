@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -85,11 +84,11 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="Lock" />
 	protected readonly Lock _mutex = new();
 
+	/// <inheritdoc cref="IViewModelExecutionService" />
+	protected readonly IViewModelExecutionService _viewModel;
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
-
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="IEntityEcryption" />
 	private readonly IEntityEcryption _entityEcryption;
@@ -99,17 +98,15 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	protected EmbeddedEditorViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
-		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
-
-		_dispatcher = dispatcher;
 
 		_entityEcryption = entityEcryption;
 
@@ -118,6 +115,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -209,22 +208,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			value: json,
 			isUpdatedDate: false,
 			token: token);
-	}
-
-	/// <inheritdoc cref="ViewModelBase.ShowErrorSnackbar" />
-	protected void ShowErrorSnackbar(StyledElement? element, string text)
-	{
-		_dispatcher.Post(() =>
-		{
-			if (element
-				.FindLogicalParent<Window>()?
-				.DataContext is not ViewModelBase viewModel)
-			{
-				return;
-			}
-
-			viewModel.ShowErrorSnackbar(text);
-		});
 	}
 
 	/// <summary>
