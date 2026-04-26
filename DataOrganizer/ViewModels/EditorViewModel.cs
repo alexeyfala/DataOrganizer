@@ -3,11 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Comparation;
 using DataOrganizer.Abstract;
+using DataOrganizer.Behaviors;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -820,12 +822,26 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private void OpenFileContextMenu(Control? container)
 	{
-		if (container?.ContextFlyout is not { } flyout)
+		if (container is null)
 		{
 			return;
 		}
 
-		flyout.ShowAt(container);
+		if (Interaction
+			.GetBehaviors(container)
+			.OfType<LazyContextFlyoutBehavior>()
+			.FirstOrDefault() is { } behavior)
+		{
+			behavior.Show();
+		}
+		else if (container.ContextFlyout is { } flyout)
+		{
+			flyout.ShowAt(container);
+		}
+		else
+		{
+			return;
+		}
 
 		if (SelectedObject is null)
 		{

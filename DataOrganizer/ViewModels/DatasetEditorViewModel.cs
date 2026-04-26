@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -445,22 +446,37 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Scrolls the list to the end.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToEnd(ScrollViewer? container)
+	private void ScrollToEnd(ItemsControl? container)
 	{
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		{
+			return;
+		}
+
 		_logger.LogInformation("Scroll records to the end");
 
-		container?.ScrollToEnd();
+		// Step 1: realize the last root item so VirtualizingStackPanel can update
+		// its Extent based on the real measured size (including any expanded content).
+		container.ScrollIntoView(container.ItemCount - 1);
+
+		// Step 2: now Extent reflects the actual content height — go to the very bottom.
+		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
 	}
 
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToTop(ScrollViewer? container)
+	private void ScrollToTop(ItemsControl? container)
 	{
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		{
+			return;
+		}
+
 		_logger.LogInformation("Scroll records to the top");
 
-		container?.ScrollToHome();
+		scrollViewer.Offset = default;
 	}
 
 	/// <summary>

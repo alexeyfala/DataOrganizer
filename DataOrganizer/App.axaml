@@ -20,6 +20,8 @@
 				<ResourceInclude Source="/Assets/Themes.axaml" />
 
 				<ResourceInclude Source="/Assets/DataTemplates.axaml" />
+
+				<ResourceInclude Source="/Assets/ContextMenuTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 

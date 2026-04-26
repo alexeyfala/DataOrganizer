@@ -15,6 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AvaloniaXaml Remove="Assets\ContextMenuTemplates.axaml" />
 		<AvaloniaXaml Remove="Assets\DataTemplates.axaml" />
 		<AvaloniaXaml Remove="Assets\Resources.axaml" />
 		<AvaloniaXaml Remove="Assets\SideSheetControlTheme.axaml" />
@@ -60,6 +61,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AvaloniaResource Update="Assets\ContextMenuTemplates.axaml">
+			<SubType>Designer</SubType>
+		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\DataTemplates.axaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
