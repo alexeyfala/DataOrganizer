@@ -186,10 +186,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			() => FontSize,
 			() => FontSize);
 	}
-
-	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
-	[RelayCommand]
-	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
 	#endregion
 
 	#region Data

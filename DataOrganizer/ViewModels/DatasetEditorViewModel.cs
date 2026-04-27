@@ -491,10 +491,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
 
-	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
-	[RelayCommand]
-	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
-
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
 	/// </summary>

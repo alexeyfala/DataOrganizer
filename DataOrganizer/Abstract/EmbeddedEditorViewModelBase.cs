@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -66,6 +67,17 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// </summary>
 	[ObservableProperty]
 	private bool _isReadOnly;
+	#endregion
+
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Displays object in the list.
+	/// </summary>
+	[RelayCommand]
+	private void ShowInList(Window? window)
+	{
+		_viewModel.ExecuteInBaseViewModel(x => _handler.Watch(x.ShowInEditorAsync(window, FileId)));
+	}
 	#endregion
 
 	#region Data
@@ -156,19 +168,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			x => window.ViewModel.PropertyChanged -= x)
 			.Subscribe(EditorViewModel_PropertyChanged)
 			.DisposeWith(_disposables);
-	}
-
-	/// <summary>
-	/// Displays object in the list.
-	/// </summary>
-	protected static Task ShowInListAsync(Window? window, Guid fileId)
-	{
-		if (window?.DataContext is not ViewModelBase viewModel)
-		{
-			return Task.CompletedTask;
-		}
-
-		return viewModel.ShowInEditorAsync(window, fileId);
 	}
 
 	/// <inheritdoc />
