@@ -1,8 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -708,7 +710,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalChild<TreeView>() is not { } container)
+			|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
 		{
 			return Task.CompletedTask;
 		}
@@ -729,7 +731,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalChild<TreeView>() is not { } container)
+				|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
 			{
 				return;
 			}
@@ -1514,7 +1516,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		Func<bool> condition = () =>
 		{
-			treeView = window.FindVisualChild<TreeView>();
+			treeView = window.FindDescendantOfType<TreeView>(includeSelf: false);
 
 			return treeView is not null;
 		};
@@ -1530,7 +1532,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		treeView.ScrollIntoView(found);
 
-		if (treeView.FindVisualChild<ScrollViewer>() is { } scrollViewer)
+		if (treeView.FindDescendantOfType<ScrollViewer>(includeSelf: false) is { } scrollViewer)
 		{
 			scrollViewer.Offset = new(
 				int.MaxValue,

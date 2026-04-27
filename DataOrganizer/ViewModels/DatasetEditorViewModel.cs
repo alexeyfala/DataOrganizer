@@ -104,9 +104,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					return;
 				}
 
-				await scrollViewer
-					.WaitVirtualizingStackPanelIsLoadedAsync()
-					.ConfigureAwait(true);
+				await WaitVirtualizingStackPanelIsLoadedAsync(scrollViewer).ConfigureAwait(true);
 
 				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
 
@@ -998,6 +996,27 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Children
 			.OfType<RecordsGroup>()
 			.Any() == true;
+	}
+
+	/// <summary>
+	/// Finds the <see cref="" /> within the visual tree and waits until it is loaded.
+	/// </summary>
+	private static async Task<bool> WaitVirtualizingStackPanelIsLoadedAsync(
+		Visual element,
+		CancellationToken token = default)
+	{
+		if (element.FindDescendantOfType<VirtualizingStackPanel>(includeSelf: false) is not { } panel)
+		{
+			return false;
+		}
+
+		Func<bool> condition = () => panel.IsLoaded;
+
+		await condition
+			.WaitAsync(300, 10, token)
+			.ConfigureAwait(true);
+
+		return panel.IsLoaded;
 	}
 
 	/// <summary>

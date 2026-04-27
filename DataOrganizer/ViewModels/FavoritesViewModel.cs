@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -175,7 +176,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 
 		visual
-			.FindLogicalParent<Window>()?
+			.FindLogicalAncestorOfType<Window>(includeSelf: false)?
 			.BeginMoveDrag(e);
 	}
 

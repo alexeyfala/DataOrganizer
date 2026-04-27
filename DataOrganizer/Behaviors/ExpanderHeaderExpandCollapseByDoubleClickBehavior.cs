@@ -2,8 +2,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.Extensions;
+using System.Linq;
 
 namespace DataOrganizer.Behaviors;
 
@@ -19,7 +20,7 @@ internal sealed class ExpanderHeaderExpandCollapseByDoubleClickBehavior : Behavi
 	{
 		if (e.ClickCount == 2
 			|| e.Source is not Visual visual
-			|| visual.HasLogicalParent<Button>(x => !string.Equals(x.Name, "PART_toggle")))
+			|| visual.GetLogicalAncestors().OfType<Button>().Any(x => !string.Equals(x.Name, "PART_toggle")))
 		{
 			return;
 		}

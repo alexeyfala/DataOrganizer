@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using Avalonia.LogicalTree;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using DataOrganizer.Abstract;
@@ -82,7 +83,8 @@ internal static class ApplicationExtensions
 	/// </summary>
 	public static DialogHost? FindDialogHost(this Application target)
 	{
-		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase).FindLogicalChild<DialogHost>();
+		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase)
+			.FindLogicalDescendantOfType<DialogHost>(includeSelf: false);
 	}
 
 	/// <summary>
