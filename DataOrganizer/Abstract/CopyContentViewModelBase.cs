@@ -46,7 +46,7 @@ public abstract class CopyContentViewModelBase : ObservableObject
 	protected readonly ILogger _logger;
 
 	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
+	protected readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors

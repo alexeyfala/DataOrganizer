@@ -1753,6 +1753,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private bool CanExecuteShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
+	/// Clears copy history.
+	/// </summary>
+	private void ClearCopyHistory()
+	{
+		_copyHistory?.Clear();
+
+		SaveCopyHistory();
+	}
+
+	/// <summary>
 	/// Closes editing file.
 	/// </summary>
 	private void CloseEditingFile(FileModelDto file)
@@ -1787,6 +1797,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
+
+	/// <summary>
+	/// Tries to remove value from copy history.
+	/// </summary>
+	private void RemoveFromCopyHistory(FileModelDto file)
+	{
+		CopyHistorySettings
+			.Items
+			.Remove(file.Id);
+
+		_copyHistory?.Remove(file);
+	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
