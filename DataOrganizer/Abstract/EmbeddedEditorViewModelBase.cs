@@ -14,7 +14,7 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.ComponentModel;
-using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
@@ -136,10 +136,10 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <summary>
 	/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler of <see cref="EditorViewModel" />.
 	/// </summary>
-	private void EditorViewModel_PropertyChanged(EventPattern<PropertyChangedEventArgs> e)
+	private void EditorViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
-		if (!string.Equals(e.EventArgs.PropertyName, nameof(EditorViewModel.IsReadOnly))
-			|| e.Sender is not EditorViewModel editor)
+		if (!string.Equals(e.PropertyName, nameof(EditorViewModel.IsReadOnly))
+			|| sender is not EditorViewModel editor)
 		{
 			return;
 		}
@@ -163,10 +163,10 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			.ViewModel
 			.IsReadOnly;
 
-		Observable.FromEventPattern<PropertyChangedEventHandler, PropertyChangedEventArgs>(
-			x => window.ViewModel.PropertyChanged += x,
-			x => window.ViewModel.PropertyChanged -= x)
-			.Subscribe(EditorViewModel_PropertyChanged)
+		window.ViewModel.PropertyChanged += EditorViewModel_PropertyChanged;
+
+		Disposable
+			.Create(() => window.ViewModel.PropertyChanged -= EditorViewModel_PropertyChanged)
 			.DisposeWith(_disposables);
 	}
 

@@ -16,7 +16,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
@@ -107,17 +107,15 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#region Constructors
 	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler handler)
 	{
-		Observable.FromEventPattern<KeyboardHookEventArgs>(
-			x => hook.KeyReleased += x,
-			x => hook.KeyReleased -= x)
-			.Subscribe(Hook_KeyReleased)
-			.DisposeWith(_disposables);
+		hook.KeyReleased += Hook_KeyReleased;
 
-		Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
-			x => Buffer.CollectionChanged += x,
-			x => Buffer.CollectionChanged -= x)
-			.Subscribe(Buffer_CollectionChanged)
-			.DisposeWith(_disposables);
+		Buffer.CollectionChanged += Buffer_CollectionChanged;
+
+		Disposable.Create(() =>
+		{
+			hook.KeyReleased -= Hook_KeyReleased;
+			Buffer.CollectionChanged -= Buffer_CollectionChanged;
+		}).DisposeWith(_disposables);
 
 		_hook = hook;
 
@@ -129,7 +127,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// <see cref="ObservableCollection{T}.CollectionChanged" /> event handler of <see cref="Buffer" />.
 	/// </summary>
-	private void Buffer_CollectionChanged(EventPattern<NotifyCollectionChangedEventArgs> e)
+	private void Buffer_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
 	{
 		MakePreview();
 	}
@@ -137,11 +135,11 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
 	/// </summary>
-	private void Hook_KeyReleased(EventPattern<KeyboardHookEventArgs> e)
+	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
 	{
 		HandleKeyReleased(
-			e.EventArgs.RawEvent.Mask,
-			e.EventArgs.Data.KeyCode);
+			e.RawEvent.Mask,
+			e.Data.KeyCode);
 	}
 	#endregion
 

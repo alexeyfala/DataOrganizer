@@ -4,7 +4,6 @@ using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using System;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -41,7 +40,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	/// <summary>
 	/// <see cref="Control.SizeChanged" /> handler of <see cref="TextBlock" />.
 	/// </summary>
-	private void AssociatedObject_SizeChanged(EventPattern<SizeChangedEventArgs> e) => SetOrRemoveToolTip();
+	private void AssociatedObject_SizeChanged(object? sender, SizeChangedEventArgs e) => SetOrRemoveToolTip();
 
 	/// <summary>
 	/// <see cref="TextBlock.TextProperty" /> changed handler of <see cref="AssociatedObject" />.
@@ -77,9 +76,10 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 			.Subscribe(AssociatedObject_TextProperty_Changed)
 			.DisposeWith(_disposables);
 
-		Observable
-			.FromEventPattern<SizeChangedEventArgs>(x => AssociatedObject.SizeChanged += x, RemoveHandler)
-			.Subscribe(AssociatedObject_SizeChanged)
+		AssociatedObject.SizeChanged += AssociatedObject_SizeChanged;
+
+		Disposable
+			.Create(() => AssociatedObject.SizeChanged -= AssociatedObject_SizeChanged)
 			.DisposeWith(_disposables);
 	}
 
@@ -93,19 +93,6 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Removes <see cref="Control.SizeChanged" /> handler of <see cref="TextBlock" />.
-	/// </summary>
-	private void RemoveHandler(EventHandler<SizeChangedEventArgs> handler)
-	{
-		if (AssociatedObject is null)
-		{
-			return;
-		}
-
-		AssociatedObject.SizeChanged -= handler;
-	}
-
 	/// <summary>
 	/// Sets or removes a <see cref="ToolTip" /> of <see cref="TextBlock" />.
 	/// </summary>
