@@ -92,7 +92,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
@@ -426,7 +426,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			if (TryToEncrypt(latest) is not { } output)
 			{
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				latest.ZeroMemory();
 

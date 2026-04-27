@@ -387,7 +387,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			File = dto,
 			IsReadOnly = IsReadOnly,
 			SessionEncryptedDek = sessionEncryptedDek,
-			ViewModel = this
 		};
 
 		if (!await _executionEngine

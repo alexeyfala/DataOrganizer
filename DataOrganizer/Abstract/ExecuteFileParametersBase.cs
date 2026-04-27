@@ -17,8 +17,5 @@ public abstract class ExecuteFileParametersBase
 	/// Encrypted within the session DEK.
 	/// </summary>
 	public required byte[]? SessionEncryptedDek { get; set; }
-
-	/// <inheritdoc cref="ViewModelBase" />
-	public required ViewModelBase? ViewModel { get; init; }
 	#endregion
 }

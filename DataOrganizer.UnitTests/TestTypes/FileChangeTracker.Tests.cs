@@ -237,8 +237,7 @@ internal class FileChangeTrackerTests
 		File = TestUtils.CreateFileDto(),
 		FilePath = filePath,
 		Semaphore = new SemaphoreSlim(1, 1),
-		SessionEncryptedDek = null,
-		ViewModel = null
+		SessionEncryptedDek = null
 	};
 	#endregion
 }

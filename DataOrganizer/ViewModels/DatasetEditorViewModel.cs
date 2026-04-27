@@ -64,7 +64,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
@@ -84,7 +84,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				return;
 			}
@@ -132,7 +132,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, isAssertDebug: false);
 
-			_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 		}
 		finally
 		{

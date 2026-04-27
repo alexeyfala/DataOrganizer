@@ -71,8 +71,7 @@ internal class ExecutionServiceTests
 			Contents = [],
 			File = dto,
 			IsReadOnly = default,
-			SessionEncryptedDek = null,
-			ViewModel = null
+			SessionEncryptedDek = null
 		};
 
 		await sut.ExecuteAsync(parameters);
@@ -137,8 +136,7 @@ internal class ExecutionServiceTests
 			Contents = [],
 			File = dto,
 			IsReadOnly = isReadOnly,
-			SessionEncryptedDek = null,
-			ViewModel = null
+			SessionEncryptedDek = null
 		};
 
 		// Act

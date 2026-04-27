@@ -31,6 +31,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IViewModelExecutionService" />
+	private readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -38,7 +41,8 @@ public class FileChangeTracker : IFileChangeTracker
 		IDbAccess dbAccess,
 		IEntityEcryption entityEcryption,
 		IFileSystem fileSystem,
-		ILogger logger)
+		ILogger logger,
+		IViewModelExecutionService viewModel)
 	{
 		_dbAccess = dbAccess;
 
@@ -47,6 +51,8 @@ public class FileChangeTracker : IFileChangeTracker
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -92,9 +98,7 @@ public class FileChangeTracker : IFileChangeTracker
 							{
 								if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
 								{
-									parameters
-									.ViewModel?
-									.ShowErrorSnackbar(Strings.FailedToProcessContents);
+									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 									return;
 								}
