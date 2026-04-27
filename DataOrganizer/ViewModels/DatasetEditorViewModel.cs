@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -22,7 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
@@ -108,16 +109,52 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
 
-				// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
-				await Task
-					.Delay(300)
-					.ConfigureAwait(true);
+				SerialDisposable scrollSubscription = new();
 
-				Observable.FromEventPattern<ScrollChangedEventArgs>(
-					x => scrollViewer.ScrollChanged += x,
-					x => scrollViewer.ScrollChanged -= x)
-					.Subscribe(ScrollViewer_ScrollChanged)
-					.DisposeWith(_disposables);
+				scrollSubscription.DisposeWith(_disposables);
+
+				bool isAttached = true;
+
+				scrollViewer.DetachedFromVisualTree += ScrollViewer_DetachedFromVisualTree;
+
+				scrollViewer.AttachedToVisualTree += ScrollViewer_AttachedToVisualTree;
+
+				Disposable.Create(() =>
+				{
+					scrollViewer.DetachedFromVisualTree -= ScrollViewer_DetachedFromVisualTree;
+					scrollViewer.AttachedToVisualTree -= ScrollViewer_AttachedToVisualTree;
+				}).DisposeWith(_disposables);
+
+				SubscribeToScrollChanged();
+
+				void ScrollViewer_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+				{
+					isAttached = false;
+
+					scrollSubscription.Disposable = null;
+				}
+
+				void ScrollViewer_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+				{
+					isAttached = true;
+
+					SubscribeToScrollChanged();
+				}
+
+				void SubscribeToScrollChanged()
+				{
+					if (!isAttached)
+					{
+						return;
+					}
+
+					_dispatcher.Post(() =>
+					{
+						scrollViewer.ScrollChanged += ScrollViewer_ScrollChanged;
+
+						scrollSubscription.Disposable = Disposable.Create(() => scrollViewer.ScrollChanged -= ScrollViewer_ScrollChanged);
+					}, DispatcherPriority.Loaded);
+				}
 			}
 			finally
 			{
@@ -552,6 +589,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
+
 	/// <summary>
 	/// Cached reference to the records <see cref="ItemsControl" /> set in
 	/// <see cref="ContainerLoaded(ItemsControl?)" />. Used by the scroll handlers
@@ -567,6 +607,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
@@ -583,6 +624,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_clipboard = clipboardService;
 
 		_dialogService = dialogService;
+
+		_dispatcher = dispatcher;
 	}
 	#endregion
 
@@ -590,11 +633,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <see cref="ScrollViewer.ScrollChanged" /> event handler.
 	/// </summary>
-	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
+	private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || sender is not ScrollViewer scrollViewer)
+			{
+				return;
+			}
+
+			// Skip layout-driven events from virtualization (Extent/Viewport changed but not Offset).
+			// We only want to react to actual user-initiated scroll changes.
+			if (e.OffsetDelta == default)
 			{
 				return;
 			}
