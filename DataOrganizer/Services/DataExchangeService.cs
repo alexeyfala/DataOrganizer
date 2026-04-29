@@ -302,15 +302,12 @@ public sealed class DataExchangeService : IDataExchangeService
 			{
 				if (variant == ImportListVariant.Replace)
 				{
-					_viewModel.ExecuteInEditor(viewModel =>
-					{
-						viewModel
-							.CopyHistorySettings
-							.Items
-							.Clear();
+					viewModel
+						.CopyHistorySettings
+						.Items
+						.Clear();
 
-						viewModel.IsRightSideSheetOpened = false;
-					});
+					viewModel.IsRightSideSheetOpened = false;
 				}
 
 				viewModel.AddHierarchy(objects);
