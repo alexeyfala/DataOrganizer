@@ -1349,11 +1349,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings
-			.Items
-			.AddRange(copyHistorySettings.Items);
+		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
 
-		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		if (CopyHistorySettings.Items.Count > 0)
+		{
+			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		}
 
 		IsInitialized = true;
 	}
@@ -1726,7 +1727,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => !IsActionInProgress && Hierarchy.ContainsBy(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => !IsActionInProgress && Hierarchy.ContainsFileBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.

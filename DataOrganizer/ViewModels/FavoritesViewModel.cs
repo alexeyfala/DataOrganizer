@@ -461,11 +461,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		FavoritesSettings.OrderedCategories = favoritesSettings.OrderedCategories;
 
-		CopyHistorySettings
-			.Items
-			.AddRange(copyHistorySettings.Items);
+		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
 
-		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		if (CopyHistorySettings.Items.Count > 0)
+		{
+			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		}
 
 		IsInitialized = true;
 	}
