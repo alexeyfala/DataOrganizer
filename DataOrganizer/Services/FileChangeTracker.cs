@@ -64,89 +64,75 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
+				if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
+				{
+					return;
+				}
+
+				await using FileStream fileStream = File.Open(
+					parameters.FilePath,
+					FileMode.Open,
+					FileAccess.Read,
+					FileShare.ReadWrite);
+
+				await using MemoryStream memoryStream = new();
+
+				fileStream.CopyTo(memoryStream);
+
+				byte[] bytes = memoryStream.ToArray();
+
 				try
 				{
-					await parameters
-						.Semaphore
-						.WaitAsync(token)
-						.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-
-					if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
+					if (!bytes.SequenceEqual(parameters.Contents))
 					{
-						return;
-					}
+						byte[] contents = bytes;
 
-					await using FileStream fileStream = File.Open(
-						parameters.FilePath,
-						FileMode.Open,
-						FileAccess.Read,
-						FileShare.ReadWrite);
-
-					await using MemoryStream memoryStream = new();
-
-					fileStream.CopyTo(memoryStream);
-
-					byte[] bytes = memoryStream.ToArray();
-
-					try
-					{
-						if (!bytes.SequenceEqual(parameters.Contents))
-						{
-							byte[] contents = bytes;
-
-							if (parameters.SessionEncryptedDek is not null)
-							{
-								if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
-								{
-									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
-
-									return;
-								}
-
-								contents = encrypted;
-							}
-
-							DateTime updatedDate = DateTime.Now;
-
-							PropertyNameValuePair[] properties =
-							[
-								new PropertyNameValuePair(nameof(FileModel.Contents), contents),
-								new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-							];
-
-							if (await _dbAccess.UpdatePropertiesAsync(
-								id: parameters.File.Id,
-								token: token,
-								properties).ConfigureAwait(false))
-							{
-								_logger.LogDebug(
-									"Contents of file is updated in database:" + Environment.NewLine +
-									$"File Id = {parameters.File.Id}," + Environment.NewLine +
-									$"File path = {parameters.FilePath}," + Environment.NewLine +
-									$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
-									$"New bytes length = {bytes.Length}.");
-
-								parameters.Contents = [.. bytes];
-
-								parameters
-									.File
-									.UpdatedDate = updatedDate;
-							}
-						}
-					}
-					finally
-					{
 						if (parameters.SessionEncryptedDek is not null)
 						{
-							bytes.ZeroMemory();
+							if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+							{
+								_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+								return;
+							}
+
+							contents = encrypted;
+						}
+
+						DateTime updatedDate = DateTime.Now;
+
+						PropertyNameValuePair[] properties =
+						[
+							new PropertyNameValuePair(nameof(FileModel.Contents), contents),
+							new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
+						];
+
+						if (await _dbAccess.UpdatePropertiesAsync(
+							id: parameters.File.Id,
+							token: token,
+							properties).ConfigureAwait(false))
+						{
+							_logger.LogDebug(
+								"Contents of file is updated in database:" + Environment.NewLine +
+								$"File Id = {parameters.File.Id}," + Environment.NewLine +
+								$"File path = {parameters.FilePath}," + Environment.NewLine +
+								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
+								$"New bytes length = {bytes.Length}.");
+
+							parameters.Contents = [.. bytes];
+
+							parameters
+								.File
+								.UpdatedDate = updatedDate;
 						}
 					}
 				}
 				finally
 				{
-					parameters
-						.Semaphore
-						.Release();
+					if (parameters.SessionEncryptedDek is not null)
+					{
+						bytes.ZeroMemory();
+					}
 				}
 
 				await Task
