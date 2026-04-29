@@ -10,7 +10,7 @@
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 
-	<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="ExecuteFileVisibilityConverter" />
+	<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="EntityTypeToExecuteFileMenuItemVisibilityConverter" />
 	<converters:FileIsOpenedToTrueConverter x:Key="FileIsOpenedToTrueConverter" />
 	<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 	<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
@@ -373,7 +373,7 @@
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.OpenInOS}"
 				Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource ExecuteFileVisibilityConverter}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource EntityTypeToExecuteFileMenuItemVisibilityConverter}}" />
 
 			<wrappers:FlyoutButton
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseOpenedFileCommand}"
