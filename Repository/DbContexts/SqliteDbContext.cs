@@ -15,7 +15,6 @@ public class SqliteDbContext : DbContext
 		// When used in DI, a constructor with these arguments is required.
 	}
 
-
 	public SqliteDbContext()
 	{
 		// To be able to create migrations.
