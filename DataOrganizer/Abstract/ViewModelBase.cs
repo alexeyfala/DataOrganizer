@@ -227,28 +227,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
 
 	/// <summary>
-	/// Clears copy history.
-	/// </summary>
-	protected void ClearCopyHistory()
-	{
-		_copyHistory?.Clear();
-
-		SaveCopyHistory();
-	}
-
-	/// <summary>
-	/// Tries to remove value from copy history.
-	/// </summary>
-	protected void RemoveFromCopyHistory(FileModelDto file)
-	{
-		CopyHistorySettings
-			.Items
-			.Remove(file.Id);
-
-		_copyHistory?.Remove(file);
-	}
-
-	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.
 	/// </summary>
 	protected void SaveCopyHistory()

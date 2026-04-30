@@ -3,11 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
-using DataOrganizer.Extensions;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
+using System.Linq;
 using FontWeight = Avalonia.Media.FontWeight;
 
 namespace DataOrganizer.Wrappers;
@@ -71,12 +72,16 @@ internal sealed class FlyoutButton : Button
 		}
 
 		this
-			.FindLogicalParent<Control>(x => x.ContextFlyout is not null)?
+			.GetLogicalAncestors()
+			.OfType<Control>()
+			.FirstOrDefault(x => x.ContextFlyout is not null)?
 			.ContextFlyout?
 			.Hide();
 
 		this
-			.FindLogicalParent<Button>(x => x.Flyout is not null)?
+			.GetLogicalAncestors()
+			.OfType<Button>()
+			.FirstOrDefault(x => x.Flyout is not null)?
 			.Flyout?
 			.Hide();
 	}

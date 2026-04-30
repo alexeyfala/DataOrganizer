@@ -220,9 +220,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					Contents = parameters.Contents,
 					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
-					FilePath = filePath,
-					Semaphore = _semaphore,
-					ViewModel = parameters.ViewModel
+					FilePath = filePath
 				};
 
 				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));

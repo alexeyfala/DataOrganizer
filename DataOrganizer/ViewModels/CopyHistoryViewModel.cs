@@ -57,21 +57,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	}
 	#endregion
 
-	#region Auto-Generated Commands
-	/// <summary>
-	/// Clears <see cref="Items" />.
-	/// </summary>
-	[RelayCommand]
-	public void Clear()
-	{
-		HistorySearch = null;
-
-		SelectedItem = null;
-
-		_filter.Clear();
-	}
-	#endregion
-
 	#region Data
 	/// <summary>
 	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Items" />.
@@ -128,6 +113,18 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 		}
 
 		_filter.AddRange(items);
+	}
+
+	/// <summary>
+	/// Clears <see cref="Items" />.
+	/// </summary>
+	public void Clear()
+	{
+		HistorySearch = null;
+
+		SelectedItem = null;
+
+		_filter.Clear();
 	}
 
 	/// <inheritdoc />

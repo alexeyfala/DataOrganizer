@@ -3,10 +3,8 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,19 +42,19 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	/// <summary>
 	/// Handles <see cref="AppDomain.UnhandledException" />.
 	/// </summary>
-	private void CurrentDomain_UnhandledException(EventPattern<UnhandledExceptionEventArgs> e)
+	private void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
 	{
-		HandleException((Exception)e.EventArgs.ExceptionObject);
+		HandleException((Exception)e.ExceptionObject);
 	}
 
 	/// <summary>
 	/// Handles <see cref="TaskScheduler.UnobservedTaskException" />.
 	/// </summary>
-	private void TaskScheduler_UnobservedTaskException(EventPattern<UnobservedTaskExceptionEventArgs> e)
+	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
 	{
-		e.EventArgs.SetObserved();
+		e.SetObserved();
 
-		HandleException(e.EventArgs.Exception);
+		HandleException(e.Exception);
 	}
 	#endregion
 
@@ -79,17 +77,15 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	/// <inheritdoc />
 	public void StartMonitoring()
 	{
-		Observable.FromEventPattern<UnhandledExceptionEventHandler, UnhandledExceptionEventArgs>(
-			x => AppDomain.CurrentDomain.UnhandledException += x,
-			x => AppDomain.CurrentDomain.UnhandledException -= x)
-			.Subscribe(CurrentDomain_UnhandledException)
-			.DisposeWith(_disposables);
+		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-		Observable.FromEventPattern<UnobservedTaskExceptionEventArgs>(
-			x => TaskScheduler.UnobservedTaskException += x,
-			x => TaskScheduler.UnobservedTaskException -= x)
-			.Subscribe(TaskScheduler_UnobservedTaskException)
-			.DisposeWith(_disposables);
+		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+		Disposable.Create(() =>
+		{
+			AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+			TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+		}).DisposeWith(_disposables);
 	}
 
 	/// <summary>

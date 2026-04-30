@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
@@ -22,7 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
@@ -47,7 +48,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task ContainerLoaded(ScrollViewer? scrollViewer)
+	public async Task ContainerLoaded(ItemsControl? container)
 	{
 		if (IsInitialized)
 		{
@@ -64,12 +65,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
 				return;
 			}
+
+			_itemsControl = container;
 
 			if (result
 				.Contents
@@ -82,7 +85,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
 				return;
 			}
@@ -97,28 +100,61 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					.Deserialize<DatasetRecordBase[]>(json)
 					.AsNotNull());
 
-				if (scrollViewer is null)
+				if (container is null || container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
 				{
 					return;
 				}
 
-				// Virtualization is now disabled.
-				await scrollViewer
-					.WaitVirtualizingStackPanelIsLoadedAsync()
-					.ConfigureAwait(true);
+				await WaitVirtualizingStackPanelIsLoadedAsync(scrollViewer).ConfigureAwait(true);
 
-				await InitializePropertiesAsync(scrollViewer).ConfigureAwait(true);
+				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
 
-				// The delay is necessary to avoid reacting to ScrollViewer events during initialization.
-				await Task
-					.Delay(300)
-					.ConfigureAwait(true);
+				SerialDisposable scrollSubscription = new();
 
-				Observable.FromEventPattern<ScrollChangedEventArgs>(
-					x => scrollViewer.ScrollChanged += x,
-					x => scrollViewer.ScrollChanged -= x)
-					.Subscribe(ScrollViewer_ScrollChanged)
-					.DisposeWith(_disposables);
+				scrollSubscription.DisposeWith(_disposables);
+
+				bool isAttached = true;
+
+				scrollViewer.DetachedFromVisualTree += ScrollViewer_DetachedFromVisualTree;
+
+				scrollViewer.AttachedToVisualTree += ScrollViewer_AttachedToVisualTree;
+
+				Disposable.Create(() =>
+				{
+					scrollViewer.DetachedFromVisualTree -= ScrollViewer_DetachedFromVisualTree;
+					scrollViewer.AttachedToVisualTree -= ScrollViewer_AttachedToVisualTree;
+				}).DisposeWith(_disposables);
+
+				SubscribeToScrollChanged();
+
+				void ScrollViewer_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+				{
+					isAttached = false;
+
+					scrollSubscription.Disposable = null;
+				}
+
+				void ScrollViewer_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+				{
+					isAttached = true;
+
+					SubscribeToScrollChanged();
+				}
+
+				void SubscribeToScrollChanged()
+				{
+					if (!isAttached)
+					{
+						return;
+					}
+
+					_dispatcher.Post(() =>
+					{
+						scrollViewer.ScrollChanged += ScrollViewer_ScrollChanged;
+
+						scrollSubscription.Disposable = Disposable.Create(() => scrollViewer.ScrollChanged -= ScrollViewer_ScrollChanged);
+					}, DispatcherPriority.Loaded);
+				}
 			}
 			finally
 			{
@@ -131,7 +167,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, isAssertDebug: false);
 
-			ShowErrorSnackbar(scrollViewer, Strings.FailedToProcessContents);
+			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 		}
 		finally
 		{
@@ -445,22 +481,37 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Scrolls the list to the end.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToEnd(ScrollViewer? container)
+	private void ScrollToEnd(ItemsControl? container)
 	{
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		{
+			return;
+		}
+
 		_logger.LogInformation("Scroll records to the end");
 
-		container?.ScrollToEnd();
+		// Step 1: realize the last root item so VirtualizingStackPanel can update
+		// its Extent based on the real measured size (including any expanded content).
+		container.ScrollIntoView(container.ItemCount - 1);
+
+		// Step 2: now Extent reflects the actual content height — go to the very bottom.
+		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
 	}
 
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToTop(ScrollViewer? container)
+	private void ScrollToTop(ItemsControl? container)
 	{
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		{
+			return;
+		}
+
 		_logger.LogInformation("Scroll records to the top");
 
-		container?.ScrollToHome();
+		scrollViewer.Offset = default;
 	}
 
 	/// <summary>
@@ -474,10 +525,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	[RelayCommand]
 	private Task ShowHide(bool hide) => ShowHideAsync(null, hide);
-
-	/// <inheritdoc cref="EmbeddedEditorViewModelBase.ShowInListAsync" />
-	[RelayCommand]
-	private void ShowInList(Window? window) => _handler.Watch(ShowInListAsync(window, FileId));
 
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> child objects in <see cref="ListSortDirection.Ascending" /> order.
@@ -541,6 +588,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
+
+	/// <inheritdoc cref="IDispatcher" />
+	private readonly IDispatcher _dispatcher;
+
+	/// <summary>
+	/// Cached reference to the records <see cref="ItemsControl" /> set in
+	/// <see cref="ContainerLoaded(ItemsControl?)" />. Used by the scroll handlers
+	/// to translate between the visible viewport offset and a stable logical
+	/// position (top record index + within-record offset).
+	/// </summary>
+	private ItemsControl? _itemsControl;
 	#endregion
 
 	#region Constructors
@@ -553,18 +611,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IEntityEcryption entityEcryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler handler,
+		IViewModelExecutionService viewModel) : base(
 			app,
 			dbAccess,
-			dispatcher,
 			entityEcryption,
 			jsonSerializer,
 			logger,
-			handler)
+			handler,
+			viewModel)
 	{
 		_clipboard = clipboardService;
 
 		_dialogService = dialogService;
+
+		_dispatcher = dispatcher;
 	}
 	#endregion
 
@@ -572,18 +633,28 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <see cref="ScrollViewer.ScrollChanged" /> event handler.
 	/// </summary>
-	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
+	private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || sender is not ScrollViewer scrollViewer)
 			{
 				return;
 			}
 
+			// Skip layout-driven events from virtualization (Extent/Viewport changed but not Offset).
+			// We only want to react to actual user-initiated scroll changes.
+			if (e.OffsetDelta == default)
+			{
+				return;
+			}
+
+			(int topIndex, double withinOffset) = ComputeLogicalScrollPosition(scrollViewer);
+
 			DatasetProperties properties = new()
 			{
-				VerticalScrollOffset = scrollViewer.Offset.Y
+				TopRecordIndex = topIndex,
+				WithinRecordOffset = withinOffset
 			};
 
 			string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
@@ -978,6 +1049,27 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
+	/// Finds the <see cref="" /> within the visual tree and waits until it is loaded.
+	/// </summary>
+	private static async Task<bool> WaitVirtualizingStackPanelIsLoadedAsync(
+		Visual element,
+		CancellationToken token = default)
+	{
+		if (element.FindDescendantOfType<VirtualizingStackPanel>(includeSelf: false) is not { } panel)
+		{
+			return false;
+		}
+
+		Func<bool> condition = () => panel.IsLoaded;
+
+		await condition
+			.WaitAsync(300, 10, token)
+			.ConfigureAwait(true);
+
+		return panel.IsLoaded;
+	}
+
+	/// <summary>
 	/// Adds <see cref="DatasetRecordBase" /> in <see cref="RecordsGroup" /> or in <see cref="Records" />
 	/// if  <see cref="RecordsGroup" /> is null.
 	/// </summary>
@@ -995,6 +1087,55 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			Records.Add(record);
 		}
+	}
+
+	/// <summary>
+	/// Computes the logical scroll position (top record index + within-record
+	/// pixel offset) by walking the realized containers of the
+	/// <see cref="VirtualizingStackPanel" /> hosting the records.
+	/// Returns <c>(-1, 0)</c> when no realized container intersects the viewport top.
+	/// </summary>
+	private (int topIndex, double withinOffset) ComputeLogicalScrollPosition(ScrollViewer scrollViewer)
+	{
+		if (_itemsControl is null || _itemsControl.ItemsPanelRoot is not VirtualizingStackPanel panel)
+		{
+			return (-1, 0.0);
+		}
+
+		double offsetY = scrollViewer.Offset.Y;
+
+		Control? topContainer = null;
+
+		double topPosition = double.NegativeInfinity;
+
+		// Find the realized container with the largest Bounds.Top still at or
+		// above the viewport top. That container is the one currently showing
+		// at the top of the visible area.
+		foreach (Control container in panel.Children)
+		{
+			double top = container.Bounds.Top;
+
+			if (top <= offsetY && top > topPosition)
+			{
+				topContainer = container;
+
+				topPosition = top;
+			}
+		}
+
+		if (topContainer is null)
+		{
+			return (-1, 0.0);
+		}
+
+		int index = _itemsControl.IndexFromContainer(topContainer);
+
+		if (index < 0)
+		{
+			return (-1, 0.0);
+		}
+
+		return (index, offsetY - topPosition);
 	}
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
@@ -1016,7 +1157,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Initializes <see cref="DatasetEditorViewModel" /> properties from database.
 	/// </summary>
-	private async Task InitializePropertiesAsync(ScrollViewer scrollViewer, CancellationToken token = default)
+	private async Task InitializePropertiesAsync(
+		ScrollViewer scrollViewer,
+		ItemsControl itemsControl,
+		CancellationToken token = default)
 	{
 		string? value = InitialProperties ?? await _dbAccess
 			.GetFilePropertiesAsync(FileId, token)
@@ -1031,7 +1175,25 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
 
-			scrollViewer.Offset = new(default, properties.VerticalScrollOffset);
+			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= itemsControl.ItemCount)
+			{
+				return;
+			}
+
+			// Step 1: ensure the saved record is realized; this also gives the
+			// VirtualizingStackPanel a chance to refine its Extent estimate.
+			itemsControl.ScrollIntoView(properties.TopRecordIndex);
+
+			if (itemsControl.ContainerFromIndex(properties.TopRecordIndex) is not { } container)
+			{
+				return;
+			}
+
+			// Step 2: nudge the offset so the within-record pixel position
+			// matches what was saved.
+			scrollViewer.Offset = new Vector(
+				scrollViewer.Offset.X,
+				container.Bounds.Top + properties.WithinRecordOffset);
 		}
 		catch (Exception ex)
 		{

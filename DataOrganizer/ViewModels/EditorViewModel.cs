@@ -1,13 +1,17 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Comparation;
 using DataOrganizer.Abstract;
+using DataOrganizer.Behaviors;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -385,7 +389,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			File = dto,
 			IsReadOnly = IsReadOnly,
 			SessionEncryptedDek = sessionEncryptedDek,
-			ViewModel = this
 		};
 
 		if (!await _executionEngine
@@ -707,7 +710,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalChild<TreeView>() is not { } container)
+			|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
 		{
 			return Task.CompletedTask;
 		}
@@ -728,7 +731,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalChild<TreeView>() is not { } container)
+				|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
 			{
 				return;
 			}
@@ -820,12 +823,26 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[RelayCommand]
 	private void OpenFileContextMenu(Control? container)
 	{
-		if (container?.ContextFlyout is not { } flyout)
+		if (container is null)
 		{
 			return;
 		}
 
-		flyout.ShowAt(container);
+		if (Interaction
+			.GetBehaviors(container)
+			.OfType<LazyContextFlyoutBehavior>()
+			.FirstOrDefault() is { } behavior)
+		{
+			behavior.Show();
+		}
+		else if (container.ContextFlyout is { } flyout)
+		{
+			flyout.ShowAt(container);
+		}
+		else
+		{
+			return;
+		}
 
 		if (SelectedObject is null)
 		{
@@ -1332,11 +1349,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings
-			.Items
-			.AddRange(copyHistorySettings.Items);
+		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
 
-		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		if (CopyHistorySettings.Items.Count > 0)
+		{
+			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		}
 
 		IsInitialized = true;
 	}
@@ -1499,7 +1517,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		Func<bool> condition = () =>
 		{
-			treeView = window.FindVisualChild<TreeView>();
+			treeView = window.FindDescendantOfType<TreeView>(includeSelf: false);
 
 			return treeView is not null;
 		};
@@ -1515,7 +1533,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		treeView.ScrollIntoView(found);
 
-		if (treeView.FindVisualChild<ScrollViewer>() is { } scrollViewer)
+		if (treeView.FindDescendantOfType<ScrollViewer>(includeSelf: false) is { } scrollViewer)
 		{
 			scrollViewer.Offset = new(
 				int.MaxValue,
@@ -1709,7 +1727,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => !IsActionInProgress && Hierarchy.ContainsBy(x => x.IsFavorite);
+	private bool CanExecuteShowFavorites() => !IsActionInProgress && Hierarchy.ContainsFileBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
@@ -1736,6 +1754,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Validates <see cref="ShowHotkeysEditorCommand" />.
 	/// </summary>
 	private bool CanExecuteShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
+
+	/// <summary>
+	/// Clears copy history.
+	/// </summary>
+	private void ClearCopyHistory()
+	{
+		_copyHistory?.Clear();
+
+		SaveCopyHistory();
+	}
 
 	/// <summary>
 	/// Closes editing file.
@@ -1772,6 +1800,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Counts the number of objects in <see cref="Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
+
+	/// <summary>
+	/// Tries to remove value from copy history.
+	/// </summary>
+	private void RemoveFromCopyHistory(FileModelDto file)
+	{
+		CopyHistorySettings
+			.Items
+			.Remove(file.Id);
+
+		_copyHistory?.Remove(file);
+	}
 
 	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)

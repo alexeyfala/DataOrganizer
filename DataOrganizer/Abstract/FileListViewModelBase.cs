@@ -120,9 +120,8 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_app
-					.FindBaseDataContext()?
-					.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+				_viewModel.ExecuteInBaseViewModel(
+					x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
 
 				return;
 			}

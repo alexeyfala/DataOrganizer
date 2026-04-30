@@ -3,9 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:CopyHistoryViewModel"
 	mc:Ignorable="d">
@@ -14,29 +12,14 @@
 		<vm:CopyHistoryViewModel />
 	</Design.DataContext>
 
-	<Grid
-		ColumnDefinitions="Auto,*"
-		RowDefinitions="Auto,*">
-		<Button
-			Grid.Row="0"
-			Grid.Column="0"
-			Classes="primary"
-			Command="{Binding Clear}"
-			Content="{materialIcons:MaterialIconTextExt Kind=EraserVariant,
-			                                            IconSize={StaticResource ToolBarIconSize}}"
-			Theme="{StaticResource MaterialFlatButton}"
-			ToolTip.Tip="{x:Static prop:Strings.Clear}" />
-
+	<Grid RowDefinitions="Auto,*">
 		<TextBox
 			Grid.Row="0"
-			Grid.Column="1"
 			Classes="clearButton SearchTextBoxStyle"
 			Text="{Binding HistorySearch, Mode=TwoWay}" />
 
 		<ListBox
 			Grid.Row="1"
-			Grid.Column="0"
-			Grid.ColumnSpan="2"
 			ItemTemplate="{StaticResource FileInListTemplate}"
 			ItemsSource="{Binding Items, Mode=OneTime}"
 			SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />

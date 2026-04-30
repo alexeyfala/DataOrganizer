@@ -332,15 +332,12 @@
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-									<Setter Property="(Interaction.Behaviors)">
-										<BehaviorCollectionTemplate>
-											<BehaviorCollection>
-												<behaviors:DisableRightClickSelectionBehavior />
-											</BehaviorCollection>
-										</BehaviorCollectionTemplate>
-									</Setter>
 								</Style>
 							</TreeView.Styles>
+
+							<Interaction.Behaviors>
+								<behaviors:DisableRightClickSelectionBehavior />
+							</Interaction.Behaviors>
 
 							<TreeView.DataTemplates>
 								<StaticResource ResourceKey="FolderInTreeViewTemplate" />

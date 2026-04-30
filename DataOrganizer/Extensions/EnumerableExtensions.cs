@@ -48,11 +48,11 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
+	/// Returns <c>True</c> if the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FileModelDto> condition)
+		Predicate<ExplorerModelBaseDto> condition)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
@@ -60,7 +60,7 @@ public static class EnumerableExtensions
 		{
 			ExplorerModelBaseDto item = stack.Pop();
 
-			if (item is FileModelDto file && condition(file))
+			if (condition(item))
 			{
 				return true;
 			}
@@ -78,11 +78,11 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
+	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
-	public static bool ContainsBy(
+	public static bool ContainsFileBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
+		Predicate<FileModelDto> condition)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
@@ -90,7 +90,7 @@ public static class EnumerableExtensions
 		{
 			ExplorerModelBaseDto item = stack.Pop();
 
-			if (condition(item))
+			if (item is FileModelDto file && condition(file))
 			{
 				return true;
 			}

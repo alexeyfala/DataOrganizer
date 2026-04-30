@@ -44,9 +44,17 @@ public class SqliteDbContext : DbContext
 		modelBuilder
 			.Entity<ExplorerModelBase>()
 			.UseTpcMappingStrategy();
+
+		modelBuilder
+			.Entity<ExplorerModelBase>()
+			.HasIndex(x => x.Id);
 		#endregion
 
 		#region Folder
+		modelBuilder
+			.Entity<FolderModel>()
+			.HasIndex(x => x.ParentId);
+
 		modelBuilder
 			.Entity<FolderModel>()
 			.HasMany(x => x.Children)
@@ -59,6 +67,10 @@ public class SqliteDbContext : DbContext
 		#endregion
 
 		#region File
+		modelBuilder
+			.Entity<FileModel>()
+			.HasIndex(x => x.ParentId);
+
 		modelBuilder
 			.Entity<FileModel>()
 			.HasMany(x => x.Hotkeys)
@@ -77,6 +89,10 @@ public class SqliteDbContext : DbContext
 		#endregion
 
 		#region Hotkey
+		modelBuilder
+			.Entity<HotkeyModel>()
+			.HasIndex(x => x.OwnerId);
+
 		modelBuilder
 			.Entity<HotkeyModel>()
 			.ToTable("Hotkeys");

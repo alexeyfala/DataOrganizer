@@ -69,10 +69,28 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsBy(IEnumerable{ExplorerModelBaseDto}, Predicate{FileModelDto})" />.
+	/// Test of <see cref="EnumerableExtensions.ContainsBy" />.
 	/// </summary>
 	[Test]
-	public void ContainsBy_File_Predicate_Returns_True_When_Matching_File_Exists_Deep()
+	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
+	{
+		// Arrange
+		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(3)];
+
+		// Act
+		bool result = hierarchy.ContainsBy(x => x.Id == Guid.NewGuid());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EnumerableExtensions.ContainsFileBy" />.
+	/// </summary>
+	[Test]
+	public void ContainsFileBy_File_Predicate_Returns_True_When_Matching_File_Exists_Deep()
 	{
 		// Arrange
 		FolderModelDto root = TestUtils.CreateFolderDto();
@@ -88,30 +106,12 @@ internal class EnumerableExtensionsTests
 		ExplorerModelBaseDto[] hierarchy = [root];
 
 		// Act
-		bool result = hierarchy.ContainsBy((Predicate<FileModelDto>)(x => x.Id == target.Id));
+		bool result = hierarchy.ContainsFileBy(x => x.Id == target.Id);
 
 		// Assert
 		result
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsBy(IEnumerable{ExplorerModelBaseDto}, Predicate{ExplorerModelBaseDto})" />.
-	/// </summary>
-	[Test]
-	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
-	{
-		// Arrange
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(3)];
-
-		// Act
-		bool result = hierarchy.ContainsBy((Predicate<ExplorerModelBaseDto>)(x => x.Id == Guid.NewGuid()));
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
 	}
 
 	/// <summary>

@@ -966,15 +966,19 @@ internal class EditorViewModelTests
 			Y = positiveValue
 		};
 
+		FileModelDto[] historyFiles = [.. TestUtils.CreateFilesDto(5)];
+
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			Items = [.. TestUtils.CreateGuids(5)],
+			Items = [.. historyFiles.Select(x => x.Id)],
 			SelectedItemId = Guid.NewGuid()
 		};
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy(historyFiles);
 
 		Window window = new();
 

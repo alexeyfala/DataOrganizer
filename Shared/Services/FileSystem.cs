@@ -250,7 +250,9 @@ public sealed class FileSystem : IFileSystem
 		{
 			logger?.LogWarning($@"File ""{filePath}"" is locked by another process, waiting it to be released.");
 
-			await Task.Delay(500, token).ConfigureAwait(false);
+			await Task
+				.Delay(500, token)
+				.ConfigureAwait(false);
 		}
 	}
 

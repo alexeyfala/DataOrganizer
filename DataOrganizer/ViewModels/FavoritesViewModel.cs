@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -67,7 +68,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Called when <see cref="IsPopupFixed" /> changes.
 	/// </summary>
-	async partial void OnIsPopupFixedChanged(bool value)
+	partial void OnIsPopupFixedChanged(bool value)
 	{
 		if (!value)
 		{
@@ -76,28 +77,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			return;
 		}
 
-		// Without delay the window freezes.
-		await Task
-			.Delay(100)
-			.ConfigureAwait(true);
-
-		if (_previousPopupContent != FavoritesPopupContentType.None)
-		{
-			switch (_previousPopupContent)
-			{
-				case FavoritesPopupContentType.CopyHistory:
-					ShowCopyHistory();
-					break;
-
-				case FavoritesPopupContentType.Favorites:
-					ShowFavorites();
-					break;
-			}
-		}
-		else
-		{
-			ShowFavorites();
-		}
+		_handler.Watch(RestorePopupContentAsync());
 	}
 
 	/// <summary>
@@ -175,7 +155,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 
 		visual
-			.FindLogicalParent<Window>()?
+			.FindLogicalAncestorOfType<Window>(includeSelf: false)?
 			.BeginMoveDrag(e);
 	}
 
@@ -460,11 +440,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		FavoritesSettings.OrderedCategories = favoritesSettings.OrderedCategories;
 
-		CopyHistorySettings
-			.Items
-			.AddRange(copyHistorySettings.Items);
+		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
 
-		CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		if (CopyHistorySettings.Items.Count > 0)
+		{
+			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
+		}
 
 		IsInitialized = true;
 	}
@@ -554,6 +535,35 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			{
 				yield return category;
 			}
+		}
+	}
+
+	/// <summary>
+	/// Restores the content for popup.
+	/// </summary>
+	private async Task RestorePopupContentAsync(CancellationToken token = default)
+	{
+		// Without delay the window freezes.
+		await Task
+			.Delay(100, token)
+			.ConfigureAwait(true);
+
+		if (_previousPopupContent != FavoritesPopupContentType.None)
+		{
+			switch (_previousPopupContent)
+			{
+				case FavoritesPopupContentType.CopyHistory:
+					ShowCopyHistory();
+					break;
+
+				case FavoritesPopupContentType.Favorites:
+					ShowFavorites();
+					break;
+			}
+		}
+		else
+		{
+			ShowFavorites();
 		}
 	}
 
