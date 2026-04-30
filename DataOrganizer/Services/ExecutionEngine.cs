@@ -108,16 +108,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
-			if (_fileSystem.IsFileLocked(info.FilePath))
-			{
-				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
-
-				await _fileSystem
-					.WaitWhileFileIsLockedAsync(info.FilePath, token: token)
-					.ConfigureAwait(false);
-
-				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
-			}
+			await _fileSystem
+				.WaitWhileFileIsLockedAsync(info.FilePath, token: token)
+				.ConfigureAwait(false);
 
 			TryDeleteFile(info.FilePath, info.DirectoryPath);
 		}
