@@ -254,62 +254,6 @@ public sealed class FileSystem : IFileSystem
 				.Delay(500, token)
 				.ConfigureAwait(false);
 		}
-
-		const int requiredStableSamples = 2;
-
-		const int sampleIntervalMs = 250;
-
-		long previousLength = -1L;
-
-		DateTime previousLastWriteTimeUtc = DateTime.MinValue;
-
-		int stableSamples = 0;
-
-		while (stableSamples < requiredStableSamples)
-		{
-			if (!IsFileExists(filePath))
-			{
-				return;
-			}
-
-			FileInfo info = new(filePath);
-
-			if (!info.Exists)
-			{
-				return;
-			}
-
-			long currentLength = info.Length;
-
-			DateTime currentLastWriteTimeUtc = info.LastWriteTime.ToUniversalTime();
-
-			if (currentLength == previousLength && currentLastWriteTimeUtc == previousLastWriteTimeUtc)
-			{
-				stableSamples++;
-			}
-			else
-			{
-				if (previousLength >= 0L)
-				{
-					logger?.LogDebug(
-						$@"File ""{filePath}"" is still being written (length {previousLength}→{currentLength}, " +
-						$"lastWrite {previousLastWriteTimeUtc:O}→{currentLastWriteTimeUtc:O}), waiting for stabilization.");
-				}
-
-				stableSamples = 0;
-
-				previousLength = currentLength;
-
-				previousLastWriteTimeUtc = currentLastWriteTimeUtc;
-			}
-
-			if (stableSamples < requiredStableSamples)
-			{
-				await Task
-					.Delay(sampleIntervalMs, token)
-					.ConfigureAwait(false);
-			}
-		}
 	}
 
 	/// <inheritdoc />
