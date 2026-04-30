@@ -11,7 +11,6 @@
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 
 	<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="EntityTypeToExecuteFileMenuItemVisibilityConverter" />
-	<converters:FileIsOpenedToTrueConverter x:Key="FileIsOpenedToTrueConverter" />
 	<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 	<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 
@@ -380,8 +379,14 @@
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Close}"
 				Icon="Close"
-				IconForeground="{StaticResource WarningBrush}"
-				IsVisible="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToTrueConverter}}" />
+				IconForeground="{StaticResource WarningBrush}">
+				<wrappers:FlyoutButton.IsVisible>
+					<MultiBinding Converter="{x:Static BoolConverters.Or}">
+						<Binding Path="IsExecuting" />
+						<Binding Path="IsEditing" />
+					</MultiBinding>
+				</wrappers:FlyoutButton.IsVisible>
+			</wrappers:FlyoutButton>
 
 			<Separator />
 
