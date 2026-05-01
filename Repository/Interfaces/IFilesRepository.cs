@@ -1,8 +1,10 @@
 ﻿using Entities.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Repository.Abstract;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +23,12 @@ public interface IFilesRepository
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
 	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token);
 
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)" />
+	Task<FileModel?> FirstOrDefaultAsync(
+		Guid id,
+		bool trackChanges = false,
+		CancellationToken token = default);
+
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
 	/// </summary>
@@ -28,14 +36,6 @@ public interface IFilesRepository
 		bool trackChanges = false,
 		CancellationToken token = default,
 		params string[] excludedProperties);
-
-	/// <summary>
-	/// Makes a request <see cref="FileModel" /> from the database by identifier.
-	/// </summary>
-	Task<FileModel> GetAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default);
 
 	/// <summary>
 	/// Returns a flat list of <see cref="FileModel" /> entities according to a condition from the database.

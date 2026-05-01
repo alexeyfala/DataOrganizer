@@ -23,6 +23,15 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 
 	#region Methods
 	/// <inheritdoc />
+	public Task<FileModel?> FirstOrDefaultAsync(
+		Guid id,
+		bool trackChanges = false,
+		CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id, trackChanges).FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
 	public Task<FileModel[]> GetAllAsync(
 		bool trackChanges = false,
 		CancellationToken token = default,
@@ -33,15 +42,6 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 			: FindAll(trackChanges);
 
 		return query.ToArrayAsync(token);
-	}
-
-	/// <inheritdoc />
-	public Task<FileModel> GetAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => x.Id == id, trackChanges).FirstAsync(token);
 	}
 
 	/// <inheritdoc />

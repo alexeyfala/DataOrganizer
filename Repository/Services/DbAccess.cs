@@ -393,9 +393,14 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DetachAndDelete(await _filesRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false));
+			if (await _filesRepository
+				.FirstOrDefaultAsync(id, token: token)
+				.ConfigureAwait(false) is not { } file)
+			{
+				return false;
+			}
+
+			DetachAndDelete(file);
 
 			int count = await _dbContext
 				.SaveChangesAsync(token)
@@ -593,13 +598,16 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			FileModel entity = await _filesRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false);
+			if (await _filesRepository
+				.FirstOrDefaultAsync(id, token: token)
+				.ConfigureAwait(false) is not { } file)
+			{
+				return new();
+			}
 
 			return new()
 			{
-				Contents = entity.Contents,
+				Contents = file.Contents,
 				Id = id,
 				IsValid = true
 			};
@@ -628,11 +636,14 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			FileModel entity = await _filesRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false);
+			if (await _filesRepository
+				.FirstOrDefaultAsync(id, token: token)
+				.ConfigureAwait(false) is not { } file)
+			{
+				return null;
+			}
 
-			return entity.Properties;
+			return file.Properties;
 		}
 		catch (Exception ex)
 		{

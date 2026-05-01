@@ -372,7 +372,7 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>())
 				.Returns(TestUtils.CreateFile());
 
 			builder.RegisterInstance(repository);
@@ -590,7 +590,7 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>())
 				.Returns(file);
 
 			builder.RegisterInstance(repository);
@@ -631,7 +631,7 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>())
 				.Returns(file);
 
 			builder.RegisterInstance(repository);
@@ -666,7 +666,7 @@ internal class DbAccessTests
 			foreach (FileModel file in files)
 			{
 				repository
-					.GetAsync(file.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+					.FirstOrDefaultAsync(file.Id)
 					.Returns(file);
 			}
 
