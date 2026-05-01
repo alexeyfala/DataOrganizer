@@ -432,6 +432,13 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
+			if (await _foldersRepository
+				.FirstOrDefaultAsync(id, token: token)
+				.ConfigureAwait(false) is not { } folder)
+			{
+				return false;
+			}
+
 			DetachAndDelete(await GetChildFilesAsync(id, token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false));
@@ -440,9 +447,7 @@ public sealed class DbAccess : IDbAccess
 				.ToArrayAsync(token)
 				.ConfigureAwait(false));
 
-			DetachAndDelete(await _foldersRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false));
+			DetachAndDelete(folder);
 
 			int count = await _dbContext
 				.SaveChangesAsync(token)
