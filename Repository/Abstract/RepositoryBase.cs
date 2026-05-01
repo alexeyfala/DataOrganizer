@@ -40,6 +40,15 @@ public abstract class RepositoryBase<T> where T : class
 			.AddRangeAsync(entities, token);
 	}
 
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}" />
+	public Task<bool> IsExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.AsNoTracking()
+			.AnyAsync(condition, token);
+	}
+
 	/// <inheritdoc cref="DbSet{T}.Remove(T)" />
 	public EntityEntry<T> Remove(T entity)
 	{
@@ -56,13 +65,15 @@ public abstract class RepositoryBase<T> where T : class
 			.RemoveRange(entities);
 	}
 
-	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}" />
-	public Task<bool> IsExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	/// <summary>
+	/// Removes entities from the database that meet the condition.
+	/// </summary>
+	public Task<int> RemoveRangeByAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context
 			.Set<T>()
-			.AsNoTracking()
-			.AnyAsync(condition, token);
+			.Where(condition)
+			.ExecuteDeleteAsync(token);
 	}
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}" />

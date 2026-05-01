@@ -61,5 +61,8 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	{
 		return FindBy(x => identifiers.Contains(x.Id), trackChanges).ToArrayAsync(token);
 	}
+
+	/// <inheritdoc />
+	public Task<int> RemoveAsync(Guid id, CancellationToken token = default) => RemoveRangeByAsync(x => x.Id == id, token);
 	#endregion Methods
 }
