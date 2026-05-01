@@ -856,9 +856,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(dtoSource.Id, trackChanges: true, token)
-				.ConfigureAwait(false);
+			if (await _baseRepository
+				.FirstOrDefaultAsync(dtoSource.Id, trackChanges: true, token)
+				.ConfigureAwait(false) is not { } entity)
+			{
+				return false;
+			}
 
 			dtoSource.CopyPropertiesTo(entity, propertyNames);
 
@@ -895,9 +898,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(id, trackChanges: true, token)
-				.ConfigureAwait(false);
+			if (await _baseRepository
+				.FirstOrDefaultAsync(id, trackChanges: true, token)
+				.ConfigureAwait(false) is not { } entity)
+			{
+				return false;
+			}
 
 			properties.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
 
@@ -935,13 +941,14 @@ public sealed class DbAccess : IDbAccess
 
 			foreach (KeyValuePair<Guid, PropertyNameValuePair[]> relation in relations)
 			{
-				ExplorerModelBase entity = await _baseRepository
-					.GetAsync(relation.Key, trackChanges: true, token)
-					.ConfigureAwait(false);
-
-				relation
-					.Value
-					.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
+				if (await _baseRepository
+					.FirstOrDefaultAsync(relation.Key, trackChanges: true, token)
+					.ConfigureAwait(false) is { } entity)
+				{
+					relation
+						.Value
+						.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
+				}
 			}
 
 			int count = await _dbContext
@@ -978,9 +985,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(id, trackChanges: true, token)
-				.ConfigureAwait(false);
+			if (await _baseRepository
+				.FirstOrDefaultAsync(id, trackChanges: true, token)
+				.ConfigureAwait(false) is not { } entity)
+			{
+				return false;
+			}
 
 			entity.SetPropertyValue(propertyName, value);
 

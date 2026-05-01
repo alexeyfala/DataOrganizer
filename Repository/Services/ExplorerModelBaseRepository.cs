@@ -21,7 +21,7 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 	#endregion
 
 	#region Methods
-	/// <inheritdoc cref="RepositoryBase{T}.CountAsync(Expression{Func{T, bool}}, CancellationToken)" />
+	/// <inheritdoc />
 	public Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token)
@@ -30,12 +30,12 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 	}
 
 	/// <inheritdoc />
-	public Task<ExplorerModelBase> GetAsync(
+	public Task<ExplorerModelBase?> FirstOrDefaultAsync(
 		Guid id,
 		bool trackChanges = false,
 		CancellationToken token = default)
 	{
-		return FindBy(x => x.Id == id, trackChanges).FirstAsync(token);
+		return FindBy(x => x.Id == id, trackChanges).FirstOrDefaultAsync(token);
 	}
 
 	/// <inheritdoc />

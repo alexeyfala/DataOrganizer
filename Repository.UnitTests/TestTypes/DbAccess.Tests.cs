@@ -748,7 +748,7 @@ internal class DbAccessTests
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
 				.Returns(entity);
 
 			dbContext
@@ -813,11 +813,11 @@ internal class DbAccessTests
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.GetAsync(firstEntity.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.FirstOrDefaultAsync(firstEntity.Id, Arg.Any<bool>())
 				.Returns(firstEntity);
 
 			repository
-				.GetAsync(secondEntity.Id, Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.FirstOrDefaultAsync(secondEntity.Id, Arg.Any<bool>())
 				.Returns(secondEntity);
 
 			dbContext
@@ -868,7 +868,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			repository
-				.GetAsync(Arg.Any<Guid>(), Arg.Any<bool>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
 				.Returns(entity);
 
 			builder.RegisterInstance(repository);
@@ -930,7 +930,7 @@ internal class DbAccessTests
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.GetAsync(Arg.Any<Guid>(), Arg.Any<bool>())
+				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
 				.Returns(entity);
 
 			SqliteDbContext dbContext = GetSqliteDbContextMock();

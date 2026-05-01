@@ -1,7 +1,9 @@
 ﻿using Entities.Abstract;
+using Microsoft.EntityFrameworkCore;
 using Repository.Abstract;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,10 +21,8 @@ public interface IExplorerModelBaseRepository
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token);
 
-	/// <summary>
-	/// Makes a request <see cref="ExplorerModelBase" /> from the database by identifier.
-	/// </summary>
-	Task<ExplorerModelBase> GetAsync(
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)" />
+	Task<ExplorerModelBase?> FirstOrDefaultAsync(
 		Guid id,
 		bool trackChanges = false,
 		CancellationToken token = default);
