@@ -361,23 +361,19 @@ internal class DbAccessTests
 	public async Task DeleteFileAsync_Deletes_File_From_Database()
 	{
 		// Arrange
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
+
+		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbContext
-				.SaveChangesAsync()
+			filesRepository
+				.RemoveAsync(Arg.Any<Guid>())
 				.Returns(1);
 
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			builder.RegisterInstance(filesRepository);
 
-			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>())
-				.Returns(TestUtils.CreateFile());
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(hotkeysRepository);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -390,9 +386,13 @@ internal class DbAccessTests
 			.Should()
 			.BeTrue();
 
-		await dbContext
+		await hotkeysRepository
 			.Received()
-			.SaveChangesAsync();
+			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
+
+		await filesRepository
+			.Received()
+			.RemoveAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>
@@ -443,46 +443,30 @@ internal class DbAccessTests
 	public async Task DeleteHotkeysAsync_Deletes_Hotkeys_From_Database()
 	{
 		// Arrange
-		Guid fileId = Guid.NewGuid();
-
-		HotkeyModel[] hotkeys = [.. TestUtils.CreateHotkeys(3)];
-
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
-
 		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbContext
-				.SaveChangesAsync()
-				.Returns(hotkeys.Length);
-
 			repository
-				.GetAsync(Arg.Any<Expression<Func<HotkeyModel, bool>>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
-				.Returns(hotkeys);
+				.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>())
+				.Returns(3);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbContext);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.DeleteHotkeysAsync(fileId);
+		bool result = await sut.DeleteHotkeysAsync(Guid.NewGuid());
 
 		// Assert
 		result
 			.Should()
 			.BeTrue();
 
-		repository
+		await repository
 			.Received()
-			.RemoveRange(Arg.Any<IEnumerable<HotkeyModel>>());
-
-		await dbContext
-			.Received()
-			.SaveChangesAsync();
+			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
 	}
 
 	/// <summary>

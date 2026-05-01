@@ -474,14 +474,8 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			HotkeyModel[] hotkeys = await _hotkeysRepository
-				.GetAsync(x => x.OwnerId == fileId, token: token)
-				.ConfigureAwait(false);
-
-			DetachAndDelete(hotkeys);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _hotkeysRepository
+				.RemoveRangeByOwnerIdAsync(fileId, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -1192,21 +1186,6 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService.Detach(files);
 
 		_filesRepository.RemoveRange(files);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(HotkeyModel[] hotkeys)
-	{
-		if (hotkeys.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(hotkeys);
-
-		_hotkeysRepository.RemoveRange(hotkeys);
 	}
 
 	/// <summary>

@@ -45,14 +45,6 @@ public interface IFilesRepository
 		bool trackChanges = false,
 		CancellationToken token = default);
 
-	/// <summary>
-	/// Returns a flat list of <see cref="FileModel" /> entities according to a list of IDs.
-	/// </summary>
-	Task<FileModel[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default);
-
 	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
 	EntityEntry<FileModel> Remove(FileModel entity);
 

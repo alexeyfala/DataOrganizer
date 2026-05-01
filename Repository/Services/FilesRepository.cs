@@ -5,7 +5,6 @@ using Repository.DbContexts;
 using Repository.Interfaces;
 using Shared.Extensions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -51,15 +50,6 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 		CancellationToken token = default)
 	{
 		return FindBy(condition, trackChanges).ToArrayAsync(token);
-	}
-
-	/// <inheritdoc />
-	public Task<FileModel[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => identifiers.Contains(x.Id), trackChanges).ToArrayAsync(token);
 	}
 
 	/// <inheritdoc />
