@@ -27,5 +27,8 @@ public sealed class HotkeysRepository : RepositoryBase<HotkeyModel>, IHotkeysRep
 	{
 		return FindBy(condition, trackChanges).ToArrayAsync(token);
 	}
+
+	/// <inheritdoc />
+	public Task<int> RemoveRangeByOwnerIdAsync(Guid ownerId, CancellationToken token = default) => RemoveRangeByAsync(x => x.OwnerId == ownerId, token);
 	#endregion
 }

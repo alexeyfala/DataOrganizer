@@ -393,17 +393,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (await _filesRepository
-				.FirstOrDefaultAsync(id, token: token)
-				.ConfigureAwait(false) is not { } file)
-			{
-				return false;
-			}
+			await _hotkeysRepository
+				.RemoveRangeByOwnerIdAsync(id, token)
+				.ConfigureAwait(false);
 
-			DetachAndDelete(file);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _filesRepository
+				.RemoveAsync(id, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -1167,16 +1162,6 @@ public sealed class DbAccess : IDbAccess
 		_dbContextService.Detach<FolderModel>(entity.Id);
 
 		_foldersRepository.Remove(entity);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(FileModel file)
-	{
-		_dbContextService.Detach<FileModel>(file.Id);
-
-		_filesRepository.Remove(file);
 	}
 
 	/// <summary>
