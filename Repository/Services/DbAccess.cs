@@ -32,9 +32,6 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="IExplorerModelBaseRepository" />
 	private readonly IExplorerModelBaseRepository _baseRepository;
 
-	/// <inheritdoc cref="SqliteDbContext" />
-	private readonly SqliteDbContext _dbContext;
-
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
@@ -70,12 +67,9 @@ public sealed class DbAccess : IDbAccess
 		IFileSystem fileSystem,
 		IFoldersRepository foldersRepository,
 		IHotkeysRepository hotkeysRepository,
-		ILogger logger,
-		SqliteDbContext dbContext)
+		ILogger logger)
 	{
 		_baseRepository = baseRepository;
-
-		_dbContext = dbContext;
 
 		_dbContextService = dbContextService;
 
@@ -107,7 +101,7 @@ public sealed class DbAccess : IDbAccess
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -141,7 +135,7 @@ public sealed class DbAccess : IDbAccess
 				.AddRangeAsync(files, token)
 				.ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -175,7 +169,7 @@ public sealed class DbAccess : IDbAccess
 				.AddRangeAsync(folders, token)
 				.ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -217,7 +211,7 @@ public sealed class DbAccess : IDbAccess
 					.ConfigureAwait(false);
 			}
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -511,8 +505,6 @@ public sealed class DbAccess : IDbAccess
 		_isDisposed = true;
 
 		_semaphore.Dispose();
-
-		_dbContext.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -578,13 +570,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public string GetDbFilePath()
-	{
-		return _dbContext
-			.Database
-			.GetDbConnection()
-			.DataSource;
-	}
+	public string GetDbFilePath() => _dbContextService.GetDbFilePath();
 
 	/// <inheritdoc />
 	public async Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default)
@@ -800,9 +786,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DbConnection connection = _dbContext
-				.Database
-				.GetDbConnection();
+			DbConnection connection = _dbContextService.GetDbConnection();
 
 			if (connection.State != ConnectionState.Closed)
 			{
@@ -857,7 +841,7 @@ public sealed class DbAccess : IDbAccess
 
 			dtoSource.CopyPropertiesTo(entity, propertyNames);
 
-			int count = await _dbContext
+			int count = await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -899,7 +883,7 @@ public sealed class DbAccess : IDbAccess
 
 			properties.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
 
-			int count = await _dbContext
+			int count = await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -943,7 +927,7 @@ public sealed class DbAccess : IDbAccess
 				}
 			}
 
-			int count = await _dbContext
+			int count = await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -986,7 +970,7 @@ public sealed class DbAccess : IDbAccess
 
 			entity.SetPropertyValue(propertyName, value);
 
-			int count = await _dbContext
+			int count = await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -1026,7 +1010,7 @@ public sealed class DbAccess : IDbAccess
 
 			sequence.ForEach(x => x.SetPropertyValue(propertyName, value));
 
-			int count = await _dbContext
+			int count = await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 

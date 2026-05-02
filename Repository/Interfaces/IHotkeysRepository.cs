@@ -14,7 +14,7 @@ public interface IHotkeysRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
-	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token);
+	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entities from the database by owner ID.

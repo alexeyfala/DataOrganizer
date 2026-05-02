@@ -7,9 +7,7 @@ using DataOrganizer.DTO.Entities.Models;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.EntityFrameworkCore;
 using NSubstitute;
-using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
 using Repository.Services;
@@ -35,7 +33,7 @@ internal class DbAccessTests
 	public async Task AddEntityAsync_Returns_Entity([Values] EntityType type)
 	{
 		// Arrange
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
 		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
 
@@ -52,7 +50,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContext),
+			TypedParameter.From(dbConnection),
 			TypedParameter.From(foldersRepository),
 			TypedParameter.From(filesRepository));
 
@@ -84,7 +82,7 @@ internal class DbAccessTests
 			.Should()
 			.Be(parameters.ParentId);
 
-		await dbContext
+		await dbConnection
 			.Received()
 			.SaveChangesAsync();
 
@@ -119,18 +117,15 @@ internal class DbAccessTests
 		// Arrange
 		FileModel[] files = [.. TestUtils.CreateFiles(5)];
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
 		IFilesRepository repository = Substitute.For<IFilesRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(repository);
+		using AutoMock mock = AutoMock.GetLoose();
 
-			builder.RegisterInstance(dbContext);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From(repository));
 
 		// Act
 		bool result = await sut.AddFilesAsync(files);
@@ -142,9 +137,9 @@ internal class DbAccessTests
 
 		await repository
 			.Received()
-			.AddRangeAsync(Arg.Any<IEnumerable<FileModel>>(), Arg.Any<CancellationToken>());
+			.AddRangeAsync(Arg.Any<IEnumerable<FileModel>>());
 
-		await dbContext
+		await dbConnection
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -158,18 +153,15 @@ internal class DbAccessTests
 		// Arrange
 		FolderModel[] folders = [.. TestUtils.CreateFolders(5)];
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
 		IFoldersRepository repository = Substitute.For<IFoldersRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(repository);
+		using AutoMock mock = AutoMock.GetLoose();
 
-			builder.RegisterInstance(dbContext);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(repository),
+			TypedParameter.From(dbConnection));
 
 		// Act
 		bool result = await sut.AddFoldersAsync(folders);
@@ -181,9 +173,9 @@ internal class DbAccessTests
 
 		await repository
 			.Received()
-			.AddRangeAsync(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<CancellationToken>());
+			.AddRangeAsync(Arg.Any<IEnumerable<FolderModel>>());
 
-		await dbContext
+		await dbConnection
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -199,18 +191,15 @@ internal class DbAccessTests
 
 		CodeMaskPair[] pairs = [.. TestUtils.CreateCodeMaskPairs(5)];
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
 		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(repository);
+		using AutoMock mock = AutoMock.GetLoose();
 
-			builder.RegisterInstance(dbContext);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From(repository));
 
 		// Act
 		HotkeyModel[] result = await sut.AddHotkeysAsync(fileId, pairs);
@@ -226,9 +215,9 @@ internal class DbAccessTests
 
 		await repository
 			.Received(pairs.Length)
-			.AddAsync(Arg.Any<HotkeyModel>(), Arg.Any<CancellationToken>());
+			.AddAsync(Arg.Any<HotkeyModel>());
 
-		await dbContext
+		await dbConnection
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -249,8 +238,6 @@ internal class DbAccessTests
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbConnection);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -297,8 +284,6 @@ internal class DbAccessTests
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbConnection);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -335,12 +320,10 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			repository
-				.CountOfAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>(), Arg.Any<CancellationToken>())
+				.CountOfAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
 				.Returns(expectedCount);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -609,7 +592,7 @@ internal class DbAccessTests
 	public void Dispose_Is_Idempotent()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(GetSqliteDbContextMock()));
+		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>();
 
@@ -645,8 +628,6 @@ internal class DbAccessTests
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -678,8 +659,6 @@ internal class DbAccessTests
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -711,8 +690,6 @@ internal class DbAccessTests
 				.Returns(file);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -752,8 +729,6 @@ internal class DbAccessTests
 				.Returns(file);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -788,8 +763,6 @@ internal class DbAccessTests
 			}
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -826,12 +799,10 @@ internal class DbAccessTests
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.IsExistsAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>(), Arg.Any<CancellationToken>())
+				.IsExistsAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
 				.Returns(true);
 
 			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(GetSqliteDbContextMock());
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -858,8 +829,6 @@ internal class DbAccessTests
 
 		int newIndex = TestUtils.CreateRandomInt(1, 100);
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
@@ -868,13 +837,15 @@ internal class DbAccessTests
 				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
 				.Returns(entity);
 
-			dbContext
+			IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+			dbConnection
 				.SaveChangesAsync()
 				.Returns(1);
 
 			builder.RegisterInstance(repository);
 
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(dbConnection);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -923,8 +894,6 @@ internal class DbAccessTests
 			[secondEntity.Id] = [new(nameof(ExplorerModelBase.Name), secondName)]
 		};
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
@@ -937,13 +906,15 @@ internal class DbAccessTests
 				.FirstOrDefaultAsync(secondEntity.Id, Arg.Any<bool>())
 				.Returns(secondEntity);
 
-			dbContext
+			IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+			dbConnection
 				.SaveChangesAsync()
 				.Returns(2);
 
 			builder.RegisterInstance(repository);
 
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(dbConnection);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -976,7 +947,7 @@ internal class DbAccessTests
 
 		IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
 		FileModelDto dto = TestUtils.CreateFileDto();
 
@@ -990,7 +961,7 @@ internal class DbAccessTests
 
 			builder.RegisterInstance(repository);
 
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(dbConnection);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1026,7 +997,7 @@ internal class DbAccessTests
 			.Should()
 			.Be(dto.UpdatedDate);
 
-		await dbContext
+		await dbConnection
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -1050,15 +1021,15 @@ internal class DbAccessTests
 				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
 				.Returns(entity);
 
-			SqliteDbContext dbContext = GetSqliteDbContextMock();
+			IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
-			dbContext
+			dbConnection
 				.SaveChangesAsync()
 				.Returns(1);
 
 			builder.RegisterInstance(repository);
 
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(dbConnection);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1090,23 +1061,23 @@ internal class DbAccessTests
 
 		string newName = AppUtils.CreateRandomString(10);
 
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.GetAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<bool>(), Arg.Any<CancellationToken>())
+				.GetAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<bool>())
 				.Returns([.. entities]);
 
-			dbContext
+			IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+			dbConnection
 				.SaveChangesAsync()
 				.Returns(entities.Length);
 
 			builder.RegisterInstance(repository);
 
-			builder.RegisterInstance(dbContext);
+			builder.RegisterInstance(dbConnection);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -1129,18 +1100,6 @@ internal class DbAccessTests
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Creates mock for <see cref="SqliteDbContext" />.
-	/// </summary>
-	private static SqliteDbContext GetSqliteDbContextMock()
-	{
-		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-			.UseInMemoryDatabase(Guid.NewGuid().ToString())
-			.Options;
-
-		return Substitute.For<SqliteDbContext>(options);
-	}
-
 	/// <summary>
 	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
 	/// </summary>

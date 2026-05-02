@@ -24,7 +24,7 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 	/// <inheritdoc />
 	public Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
-		CancellationToken token)
+		CancellationToken token = default)
 	{
 		return CountAsync(condition, token);
 	}

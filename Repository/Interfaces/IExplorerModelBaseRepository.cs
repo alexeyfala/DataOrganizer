@@ -19,7 +19,7 @@ public interface IExplorerModelBaseRepository
 	/// <inheritdoc cref="RepositoryBase{T}.CountAsync" />
 	Task<int> CountOfAsync(
 		Expression<Func<ExplorerModelBase, bool>> condition,
-		CancellationToken token);
+		CancellationToken token = default);
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)" />
 	Task<ExplorerModelBase?> FirstOrDefaultAsync(

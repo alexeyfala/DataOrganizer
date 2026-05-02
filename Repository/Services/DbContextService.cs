@@ -7,6 +7,7 @@ using Repository.Interfaces;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -19,6 +20,11 @@ public sealed class DbContextService : IDbContextService
 	#region Data
 	/// <inheritdoc cref="SqliteDbContext" />
 	private readonly SqliteDbContext _dbContext;
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -57,6 +63,19 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public void Dispose()
+	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		_isDisposed = true;
+
+		_dbContext.Dispose();
+	}
+
+	/// <inheritdoc />
 	public void EnsureCreated()
 	{
 		_dbContext
@@ -78,6 +97,23 @@ public sealed class DbContextService : IDbContextService
 		_dbContext
 			.Database
 			.EnsureDeleted();
+	}
+
+	/// <inheritdoc />
+	public DbConnection GetDbConnection()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection();
+	}
+
+	/// <inheritdoc />
+	public string GetDbFilePath()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
 	}
 
 	/// <inheritdoc />
@@ -103,6 +139,9 @@ public sealed class DbContextService : IDbContextService
 			.Database
 			.MigrateAsync(token);
 	}
+
+	/// <inheritdoc />
+	public Task<int> SaveChangesAsync(CancellationToken token = default) => _dbContext.SaveChangesAsync(token);
 	#endregion
 
 	#region Service

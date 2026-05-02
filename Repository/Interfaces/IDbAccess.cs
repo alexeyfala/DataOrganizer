@@ -92,9 +92,7 @@ public interface IDbAccess : IDisposable
 		bool trackChanges = false,
 		CancellationToken token = default);
 
-	/// <summary>
-	/// Gets the database file path.
-	/// </summary>
+	/// <inheritdoc cref="IDbContextService.GetDbFilePath" />
 	string GetDbFilePath();
 
 	/// <summary>

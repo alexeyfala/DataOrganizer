@@ -18,7 +18,7 @@ public interface IFoldersRepository
 	ValueTask<EntityEntry<FolderModel>> AddAsync(FolderModel entity, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
-	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token);
+	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FolderModel" /> entities from the database.

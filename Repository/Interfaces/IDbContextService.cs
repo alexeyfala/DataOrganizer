@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Repository.DbContexts;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Repository.Interfaces;
 /// <summary>
 /// Contains helper methods for <see cref="SqliteDbContext" />.
 /// </summary>
-public interface IDbContextService
+public interface IDbContextService : IDisposable
 {
 	#region Methods
 	/// <summary>
@@ -36,6 +37,14 @@ public interface IDbContextService
 	/// <inheritdoc cref="DatabaseFacade.EnsureDeleted" />
 	void EnsureDeleted();
 
+	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.GetDbConnection" />
+	DbConnection GetDbConnection();
+
+	/// <summary>
+	/// Gets the database file path.
+	/// </summary>
+	string GetDbFilePath();
+
 	/// <summary>
 	/// Determines whether the assembly contains migration files.
 	/// </summary>
@@ -46,5 +55,8 @@ public interface IDbContextService
 
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.MigrateAsync(DatabaseFacade, CancellationToken)" />
 	Task MigrateAsync(CancellationToken token = default);
+
+	/// <inheritdoc cref="DbContext.SaveChangesAsync(CancellationToken)" />
+	Task<int> SaveChangesAsync(CancellationToken token = default);
 	#endregion
 }

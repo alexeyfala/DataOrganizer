@@ -20,7 +20,7 @@ public interface IFilesRepository
 	ValueTask<EntityEntry<FileModel>> AddAsync(FileModel entity, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
-	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token);
+	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token = default);
 
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)" />
 	Task<FileModel?> FirstOrDefaultAsync(
