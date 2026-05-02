@@ -6,7 +6,6 @@ using Repository.Interfaces;
 using Shared.Extensions;
 using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,15 +43,23 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	}
 
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAsync(
-		Expression<Func<FileModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
 	{
-		return FindBy(condition, trackChanges).ToArrayAsync(token);
+		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
+			.Select(x => x.Id)
+			.ToArrayAsync(token);
 	}
 
 	/// <inheritdoc />
-	public Task<int> RemoveAsync(Guid id, CancellationToken token = default) => RemoveRangeByAsync(x => x.Id == id, token);
+	public Task<int> RemoveAsync(Guid id, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => x.Id == id, token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);
+	}
 	#endregion Methods
 }

@@ -427,25 +427,28 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (await _foldersRepository
-				.FirstOrDefaultAsync(id, token: token)
-				.ConfigureAwait(false) is not { } folder)
+			Guid[] folderIds = await _foldersRepository
+				.GetFolderSubtreeIdsAsync(id, token)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			Guid[] fileIds = await _filesRepository
+				.GetFileIdsAsync(folderIds, token)
+				.ConfigureAwait(false);
+
+			if (fileIds.Length > 0)
 			{
-				return false;
+				await _hotkeysRepository
+					.RemoveRangeByOwnerIdsAsync(fileIds, token)
+					.ConfigureAwait(false);
+
+				await _filesRepository
+					.RemoveRangeByIdsAsync(fileIds, token)
+					.ConfigureAwait(false);
 			}
 
-			DetachAndDelete(await GetChildFilesAsync(id, token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false));
-
-			DetachAndDelete(await GetChildFoldersAsync(id, token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false));
-
-			DetachAndDelete(folder);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _foldersRepository
+				.RemoveRangeByIdsAsync(folderIds, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -1146,93 +1149,6 @@ public sealed class DbAccess : IDbAccess
 			.ConfigureAwait(false);
 
 		return folder;
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes <see cref="FolderModel" />.
-	/// </summary>
-	private void DetachAndDelete(FolderModel entity)
-	{
-		_dbContextService.Detach<FolderModel>(entity.Id);
-
-		_foldersRepository.Remove(entity);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FolderModel" />.
-	/// </summary>
-	private void DetachAndDelete(FolderModel[] folders)
-	{
-		if (folders.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(folders);
-
-		_foldersRepository.RemoveRange(folders);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(FileModel[] files)
-	{
-		if (files.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(files);
-
-		_filesRepository.RemoveRange(files);
-	}
-
-	/// <summary>
-	/// Returns a flat list of child <see cref="FileModel" /> objects according to parent ID, recursively.
-	/// </summary>
-	private async IAsyncEnumerable<FileModel> GetChildFilesAsync(
-		Guid parentId,
-		[EnumeratorCancellation] CancellationToken token)
-	{
-		foreach (FileModel document in await _filesRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			yield return document;
-		}
-
-		foreach (FolderModel folder in await _foldersRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			await foreach (FileModel child in GetChildFilesAsync(
-				folder.Id,
-				token).ConfigureAwait(false))
-			{
-				yield return child;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Returns a flat list of child <see cref="FolderModel" /> entities according to parent ID, recursively.
-	/// </summary>
-	private async IAsyncEnumerable<FolderModel> GetChildFoldersAsync(
-		Guid parentId,
-		[EnumeratorCancellation] CancellationToken token)
-	{
-		foreach (FolderModel child in await _foldersRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			yield return child;
-
-			await foreach (FolderModel item in GetChildFoldersAsync(child.Id, token).ConfigureAwait(false))
-			{
-				yield return item;
-			}
-		}
 	}
 	#endregion
 }

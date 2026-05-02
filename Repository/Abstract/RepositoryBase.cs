@@ -65,17 +65,6 @@ public abstract class RepositoryBase<T> where T : class
 			.RemoveRange(entities);
 	}
 
-	/// <summary>
-	/// Removes entities from the database that meet the condition.
-	/// </summary>
-	public Task<int> RemoveRangeByAsync(Expression<Func<T, bool>> condition, CancellationToken token)
-	{
-		return _context
-			.Set<T>()
-			.Where(condition)
-			.ExecuteDeleteAsync(token);
-	}
-
 	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}" />
 	protected Task<int> CountAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
@@ -103,6 +92,17 @@ public abstract class RepositoryBase<T> where T : class
 		return trackChanges
 			? _context.Set<T>().Where(condition)
 			: _context.Set<T>().Where(condition).AsNoTracking();
+	}
+
+	/// <summary>
+	/// Removes entities from the database that meet the condition.
+	/// </summary>
+	protected Task<int> RemoveRangeByAsync(Expression<Func<T, bool>> condition, CancellationToken token)
+	{
+		return _context
+			.Set<T>()
+			.Where(condition)
+			.ExecuteDeleteAsync(token);
 	}
 	#endregion
 }

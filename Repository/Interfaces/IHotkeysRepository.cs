@@ -21,8 +21,13 @@ public interface IHotkeysRepository
 	void RemoveRange(IEnumerable<HotkeyModel> entities);
 
 	/// <summary>
-	/// Removes entities from the database by owner identifier.
+	/// Removes entities from the database by owner ID.
 	/// </summary>
 	Task<int> RemoveRangeByOwnerIdAsync(Guid ownerId, CancellationToken token = default);
+
+	/// <summary>
+	/// Removes entities from the database by owner IDs.
+	/// </summary>
+	Task<int> RemoveRangeByOwnerIdsAsync(Guid[] ownerIds, CancellationToken token = default);
 	#endregion
 }

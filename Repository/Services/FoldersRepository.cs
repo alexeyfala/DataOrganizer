@@ -6,7 +6,7 @@ using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,21 +37,34 @@ public sealed class FoldersRepository : RepositoryBase<FolderModel>, IFoldersRep
 	}
 
 	/// <inheritdoc />
-	public Task<FolderModel[]> GetAsync(
-		Expression<Func<FolderModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public async IAsyncEnumerable<Guid> GetFolderSubtreeIdsAsync(
+		Guid rootId,
+		[EnumeratorCancellation] CancellationToken token = default)
 	{
-		return FindBy(condition, trackChanges).ToArrayAsync(token);
+		Queue<Guid> queue = new();
+
+		queue.Enqueue(rootId);
+
+		while (queue.TryDequeue(out Guid parentId))
+		{
+			yield return parentId;
+
+			Guid[] childIds = await FindBy(x => x.ParentId == parentId)
+				.Select(x => x.Id)
+				.ToArrayAsync(token)
+				.ConfigureAwait(false);
+
+			foreach (Guid childId in childIds)
+			{
+				queue.Enqueue(childId);
+			}
+		}
 	}
 
 	/// <inheritdoc />
-	public Task<FolderModel[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
 	{
-		return FindBy(x => identifiers.Contains(x.Id), trackChanges).ToArrayAsync(token);
+		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);
 	}
 	#endregion Methods
 }

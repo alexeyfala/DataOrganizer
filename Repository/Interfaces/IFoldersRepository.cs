@@ -35,25 +35,19 @@ public interface IFoldersRepository
 	Task<FolderModel[]> GetAllAsync(bool trackChanges = false, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a flat list of <see cref="FolderModel" /> entities according to a condition from the database.
+	/// Returns IDs of the folder and all its nested folders (with BFS algorithm).
 	/// </summary>
-	Task<FolderModel[]> GetAsync(
-		Expression<Func<FolderModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Returns a flat list of <see cref="FolderModel" /> entities according to a list of IDs.
-	/// </summary>
-	Task<FolderModel[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default);
+	IAsyncEnumerable<Guid> GetFolderSubtreeIdsAsync(Guid rootId, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
 	EntityEntry<FolderModel> Remove(FolderModel entity);
 
 	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
 	void RemoveRange(IEnumerable<FolderModel> entities);
+
+	/// <summary>
+	/// Removes entities from the database by IDs.
+	/// </summary>
+	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);
 	#endregion Methods
 }

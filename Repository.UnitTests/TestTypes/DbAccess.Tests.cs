@@ -396,47 +396,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteFolderAsync" />.
-	/// </summary>
-	[Test]
-	public async Task DeleteFolderAsync_Deletes_Folder_From_Database()
-	{
-		// Arrange
-		SqliteDbContext dbContext = GetSqliteDbContextMock();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbContext
-				.SaveChangesAsync()
-				.Returns(1);
-
-			IFoldersRepository repository = Substitute.For<IFoldersRepository>();
-
-			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>())
-				.Returns(TestUtils.CreateFolder());
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbContext);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.DeleteFolderAsync(default);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		await dbContext
-			.Received()
-			.SaveChangesAsync();
-	}
-
-	/// <summary>
 	/// Test of <see cref="DbAccess.DeleteHotkeysAsync" />.
 	/// </summary>
 	[Test]

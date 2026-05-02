@@ -22,5 +22,11 @@ public sealed class HotkeysRepository : RepositoryBase<HotkeyModel>, IHotkeysRep
 	{
 		return RemoveRangeByAsync(x => x.OwnerId == ownerId, token);
 	}
+
+	/// <inheritdoc />
+	public Task<int> RemoveRangeByOwnerIdsAsync(Guid[] ownerIds, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => ownerIds.Contains(x.OwnerId), token);
+	}
 	#endregion
 }

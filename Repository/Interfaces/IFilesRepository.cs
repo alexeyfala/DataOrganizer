@@ -5,7 +5,6 @@ using Repository.Abstract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,22 +37,24 @@ public interface IFilesRepository
 		params string[] excludedProperties);
 
 	/// <summary>
-	/// Returns a flat list of <see cref="FileModel" /> entities according to a condition from the database.
+	/// Returns file IDs by parent IDs.
 	/// </summary>
-	Task<FileModel[]> GetAsync(
-		Expression<Func<FileModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default);
+	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
 	EntityEntry<FileModel> Remove(FileModel entity);
 
 	/// <summary>
-	/// Removes entity from the database by identifier.
+	/// Removes entity from the database by Id.
 	/// </summary>
 	Task<int> RemoveAsync(Guid id, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
 	void RemoveRange(IEnumerable<FileModel> entities);
+
+	/// <summary>
+	/// Removes entities from the database by IDs.
+	/// </summary>
+	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);
 	#endregion Methods
 }
