@@ -306,10 +306,14 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public bool ClearDatabase()
+	public async Task<bool> ClearDatabaseAsync(CancellationToken token = default)
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			_dbContextService.EnsureDeleted();
 
 			if (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly()))
@@ -329,6 +333,13 @@ public sealed class DbAccess : IDbAccess
 
 			return false;
 		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
 	}
 
 	/// <inheritdoc />
@@ -336,6 +347,10 @@ public sealed class DbAccess : IDbAccess
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			_logger.LogInformation("Connecting to the database.");
 
 			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
@@ -345,6 +360,13 @@ public sealed class DbAccess : IDbAccess
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 

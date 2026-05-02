@@ -54,7 +54,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Completely clears the database.
 	/// </summary>
-	bool ClearDatabase();
+	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Establishes a connection to the database.

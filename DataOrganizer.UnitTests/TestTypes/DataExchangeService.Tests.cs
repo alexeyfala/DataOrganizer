@@ -356,7 +356,7 @@ internal class DataExchangeServiceTests
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			dbAccess
-				.ClearDatabase()
+				.ClearDatabaseAsync()
 				.Returns(true);
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
@@ -450,7 +450,7 @@ internal class DataExchangeServiceTests
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			dbAccess
-				.ClearDatabase()
+				.ClearDatabaseAsync()
 				.Returns(true);
 
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
@@ -500,7 +500,7 @@ internal class DataExchangeServiceTests
 			if (variant == ImportListVariant.Replace)
 			{
 				dbAccess
-					.ClearDatabase()
+					.ClearDatabaseAsync()
 					.Returns(true);
 			}
 

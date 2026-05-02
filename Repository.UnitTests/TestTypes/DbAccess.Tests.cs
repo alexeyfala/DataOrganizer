@@ -223,10 +223,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.ClearDatabase" />.
+	/// Test of <see cref="DbAccess.ClearDatabaseAsync" />.
 	/// </summary>
 	[Test]
-	public void ClearDatabase_Recreates_Database([Values] bool useMigrations)
+	public async Task ClearDatabaseAsync_Recreates_Database([Values] bool useMigrations)
 	{
 		// Arrange
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
@@ -243,7 +243,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = sut.ClearDatabase();
+		bool result = await sut.ClearDatabaseAsync();
 
 		// Assert
 		result

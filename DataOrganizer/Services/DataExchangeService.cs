@@ -352,7 +352,9 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
+		if (variant == ImportListVariant.Replace && !await _dbAccess
+			.ClearDatabaseAsync(token)
+			.ConfigureAwait(false))
 		{
 			return false;
 		}
