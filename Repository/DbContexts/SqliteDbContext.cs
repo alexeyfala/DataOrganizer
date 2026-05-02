@@ -75,8 +75,7 @@ public class SqliteDbContext : DbContext
 			.Entity<FileModel>()
 			.HasMany(x => x.Hotkeys)
 			.WithOne(x => x.Owner)
-			.HasForeignKey(x => x.OwnerId)
-			.OnDelete(DeleteBehavior.ClientCascade);
+			.HasForeignKey(x => x.OwnerId);
 
 		modelBuilder
 			.Entity<FileModel>()
