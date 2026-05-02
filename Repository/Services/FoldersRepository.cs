@@ -22,15 +22,6 @@ public sealed class FoldersRepository : RepositoryBase<FolderModel>, IFoldersRep
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FolderModel?> FirstOrDefaultAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => x.Id == id, trackChanges).FirstOrDefaultAsync(token);
-	}
-
-	/// <inheritdoc />
 	public Task<FolderModel[]> GetAllAsync(bool trackChanges = false, CancellationToken token = default)
 	{
 		return FindAll(trackChanges).ToArrayAsync(token);

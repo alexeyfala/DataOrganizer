@@ -41,16 +41,10 @@ public interface IFilesRepository
 	/// </summary>
 	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
-	EntityEntry<FileModel> Remove(FileModel entity);
-
 	/// <summary>
 	/// Removes entity from the database by Id.
 	/// </summary>
 	Task<int> RemoveAsync(Guid id, CancellationToken token = default);
-
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
-	void RemoveRange(IEnumerable<FileModel> entities);
 
 	/// <summary>
 	/// Removes entities from the database by IDs.

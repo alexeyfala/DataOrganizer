@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Repository.Abstract;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,9 +15,6 @@ public interface IHotkeysRepository
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
 	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token);
-
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
-	void RemoveRange(IEnumerable<HotkeyModel> entities);
 
 	/// <summary>
 	/// Removes entities from the database by owner ID.

@@ -396,6 +396,180 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="DbAccess.DeleteFolderAsync" />.
+	/// </summary>
+	[Test]
+	public async Task DeleteFolderAsync_Deletes_Folder_From_Database()
+	{
+		// Arrange
+		Guid folderId = Guid.NewGuid();
+
+		Guid[] subtreeIds = [folderId];
+
+		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+
+		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+
+		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			foldersRepository
+				.GetFolderSubtreeIdsAsync(folderId)
+				.Returns(ToAsyncEnumerable(subtreeIds));
+
+			filesRepository
+				.GetFileIdsAsync(Arg.Any<Guid[]>())
+				.Returns([]);
+
+			foldersRepository
+				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
+				.Returns(subtreeIds.Length);
+
+			builder.RegisterInstance(foldersRepository);
+
+			builder.RegisterInstance(filesRepository);
+
+			builder.RegisterInstance(hotkeysRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteFolderAsync(folderId);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await foldersRepository
+			.Received()
+			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
+
+		await hotkeysRepository
+			.DidNotReceive()
+			.RemoveRangeByOwnerIdsAsync(Arg.Any<Guid[]>());
+
+		await filesRepository
+			.DidNotReceive()
+			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.DeleteFolderAsync" />.
+	/// </summary>
+	[Test]
+	public async Task DeleteFolderAsync_Removes_Folder_With_Nested_Folders_And_Files()
+	{
+		// Arrange
+		Guid rootId = Guid.NewGuid();
+
+		Guid[] subtreeIds = [rootId, Guid.NewGuid(), Guid.NewGuid()];
+
+		Guid[] fileIds = [.. TestUtils.CreateGuids(4)];
+
+		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+
+		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+
+		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			foldersRepository
+				.GetFolderSubtreeIdsAsync(rootId)
+				.Returns(ToAsyncEnumerable(subtreeIds));
+
+			filesRepository
+				.GetFileIdsAsync(Arg.Any<Guid[]>())
+				.Returns(fileIds);
+
+			hotkeysRepository
+				.RemoveRangeByOwnerIdsAsync(Arg.Any<Guid[]>())
+				.Returns(fileIds.Length);
+
+			filesRepository
+				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
+				.Returns(fileIds.Length);
+
+			foldersRepository
+				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
+				.Returns(subtreeIds.Length);
+
+			builder.RegisterInstance(foldersRepository);
+
+			builder.RegisterInstance(filesRepository);
+
+			builder.RegisterInstance(hotkeysRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteFolderAsync(rootId);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await hotkeysRepository
+			.Received()
+			.RemoveRangeByOwnerIdsAsync(fileIds);
+
+		await filesRepository
+			.Received()
+			.RemoveRangeByIdsAsync(fileIds);
+
+		await foldersRepository
+			.Received()
+			.RemoveRangeByIdsAsync(Arg.Is<Guid[]>(x => x.SequenceEqual(subtreeIds)));
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.DeleteFolderAsync" />.
+	/// </summary>
+	[Test]
+	public async Task DeleteFolderAsync_Returns_False_When_Folder_Does_Not_Exist()
+	{
+		// Arrange
+		Guid folderId = Guid.NewGuid();
+
+		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+
+		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			foldersRepository
+				.GetFolderSubtreeIdsAsync(folderId)
+				.Returns(ToAsyncEnumerable<Guid>([]));
+
+			filesRepository
+				.GetFileIdsAsync(Arg.Any<Guid[]>())
+				.Returns([]);
+
+			foldersRepository
+				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
+				.Returns(0);
+
+			builder.RegisterInstance(foldersRepository);
+
+			builder.RegisterInstance(filesRepository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.DeleteFolderAsync(folderId);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+	/// <summary>
 	/// Test of <see cref="DbAccess.DeleteHotkeysAsync" />.
 	/// </summary>
 	[Test]
@@ -965,6 +1139,19 @@ internal class DbAccessTests
 			.Options;
 
 		return Substitute.For<SqliteDbContext>(options);
+	}
+
+	/// <summary>
+	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
+	/// </summary>
+	private static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(IEnumerable<T> items)
+	{
+		await Task.CompletedTask;
+
+		foreach (T item in items)
+		{
+			yield return item;
+		}
 	}
 	#endregion
 }
