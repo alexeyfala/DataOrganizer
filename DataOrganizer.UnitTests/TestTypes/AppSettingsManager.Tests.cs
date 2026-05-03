@@ -44,16 +44,7 @@ internal class AppSettingsManagerTests
 	public void Obtained_Default_Settings()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
-
-			serializer
-				.FromFile<AppSettings>(Arg.Any<string>())
-				.Returns(default(AppSettings));
-
-			builder.RegisterInstance(serializer);
-		});
+		using AutoMock mock = AutoMock.GetLoose();
 
 		// Act
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();

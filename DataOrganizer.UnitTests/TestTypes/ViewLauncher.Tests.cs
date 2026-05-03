@@ -223,12 +223,6 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
-
-			serializer
-				.FromFile<CurrentWindow>(Arg.Any<string>())
-				.Returns(CurrentWindow.Editor);
-
 			viewFactory
 				.CreateWindow<EditorWindow>()
 				.Returns(windowMock.Create<EditorWindow>());
