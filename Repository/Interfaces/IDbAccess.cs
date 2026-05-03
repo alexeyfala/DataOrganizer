@@ -82,15 +82,10 @@ public interface IDbAccess : IDisposable
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
 	/// <inheritdoc cref="IFilesRepository.GetAllAsync" />
-	Task<FileModel[]> GetAllFilesAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties);
+	Task<FileModel[]> GetAllFilesAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IFoldersRepository.GetAllAsync" />
-	Task<FolderModel[]> GetAllFoldersAsync(
-		bool trackChanges = false,
-		CancellationToken token = default);
+	Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IDbContextService.GetDbFilePath" />
 	string GetDbFilePath();

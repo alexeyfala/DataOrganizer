@@ -22,10 +22,7 @@ public sealed class FoldersRepository : RepositoryBase<FolderModel>, IFoldersRep
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FolderModel[]> GetAllAsync(bool trackChanges = false, CancellationToken token = default)
-	{
-		return FindAll(trackChanges).ToArrayAsync(token);
-	}
+	public Task<FolderModel[]> GetAllAsync(CancellationToken token = default) => FindAll().ToArrayAsync(token);
 
 	/// <inheritdoc />
 	public async IAsyncEnumerable<Guid> GetFolderSubtreeIdsAsync(

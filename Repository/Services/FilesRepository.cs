@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
-using Shared.Extensions;
 using System;
 using System.Linq;
 using System.Threading;
@@ -30,16 +29,22 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	}
 
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAllAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties)
+	public Task<FileModel[]> GetAllAsync(CancellationToken token = default)
 	{
-		IQueryable<FileModel> query = excludedProperties.Length > 0
-			? FindAll().Include(x => x.Hotkeys).Select(x => x.CopyPropertiesTo(excludedProperties))
-			: FindAll(trackChanges);
-
-		return query.ToArrayAsync(token);
+		return FindAll().Select(x => new FileModel
+		{
+			CreatedDate = x.CreatedDate,
+			EntityType = x.EntityType,
+			Hotkeys = x.Hotkeys,
+			Id = x.Id,
+			Index = x.Index,
+			IsFavorite = x.IsFavorite,
+			IsSelected = x.IsSelected,
+			Name = x.Name,
+			Note = x.Note,
+			ParentId = x.ParentId,
+			UpdatedDate = x.UpdatedDate
+		}).ToArrayAsync(token);
 	}
 
 	/// <inheritdoc />

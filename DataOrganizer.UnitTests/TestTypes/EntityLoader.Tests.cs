@@ -39,7 +39,7 @@ internal class EntityLoaderTests
 				.Returns([.. TestUtils.CreateFolders(folderCount)]);
 
 			dbAccess
-				.GetAllFilesAsync(excludedProperties: Arg.Any<string[]>())
+				.GetAllFilesAsync()
 				.Returns([.. TestUtils.CreateFiles(fileCount)]);
 
 			IMapper mapper = Substitute.For<IMapper>();

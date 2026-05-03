@@ -56,17 +56,11 @@ public sealed class EntityLoader : IEntityLoader
 		try
 		{
 			FolderModel[] dbFolders = await _dbAccess
-				.GetAllFoldersAsync(token: token)
+				.GetAllFoldersAsync(token)
 				.ConfigureAwait(false);
 
-			string[] excluded =
-			[
-				nameof(FileModel.Contents),
-				nameof(FileModel.Properties)
-			];
-
 			FileModel[] dbFiles = await _dbAccess
-				.GetAllFilesAsync(token: token, excludedProperties: excluded)
+				.GetAllFilesAsync(token)
 				.ConfigureAwait(false);
 
 			_logger.LogInformation(

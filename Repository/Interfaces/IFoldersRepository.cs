@@ -23,7 +23,7 @@ public interface IFoldersRepository
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FolderModel" /> entities from the database.
 	/// </summary>
-	Task<FolderModel[]> GetAllAsync(bool trackChanges = false, CancellationToken token = default);
+	Task<FolderModel[]> GetAllAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Returns IDs of the folder and all its nested folders (with BFS algorithm).

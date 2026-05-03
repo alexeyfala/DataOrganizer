@@ -31,10 +31,7 @@ public interface IFilesRepository
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
 	/// </summary>
-	Task<FileModel[]> GetAllAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties);
+	Task<FileModel[]> GetAllAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Returns file IDs by parent IDs.

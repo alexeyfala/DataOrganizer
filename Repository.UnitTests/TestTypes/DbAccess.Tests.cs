@@ -655,7 +655,7 @@ internal class DbAccessTests
 			IFoldersRepository repository = Substitute.For<IFoldersRepository>();
 
 			repository
-				.GetAllAsync(Arg.Any<bool>())
+				.GetAllAsync()
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);

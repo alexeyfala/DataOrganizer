@@ -530,10 +530,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FileModel[]> GetAllFilesAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties)
+	public async Task<FileModel[]> GetAllFilesAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -541,10 +538,9 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _filesRepository.GetAllAsync(
-				trackChanges,
-				token,
-				excludedProperties).ConfigureAwait(false);
+			return await _filesRepository
+				.GetAllAsync(token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -562,9 +558,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FolderModel[]> GetAllFoldersAsync(
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public async Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -573,7 +567,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _foldersRepository
-				.GetAllAsync(trackChanges, token)
+				.GetAllAsync(token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
