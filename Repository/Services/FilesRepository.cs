@@ -1,5 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
@@ -72,6 +73,15 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	public Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default)
 	{
 		return RemoveRangeByAsync(x => ids.Contains(x.Id), token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> UpdatePropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		CancellationToken token = default)
+	{
+		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
 	}
 	#endregion Methods
 }

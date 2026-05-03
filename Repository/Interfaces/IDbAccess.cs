@@ -129,6 +129,14 @@ public interface IDbAccess : IDisposable
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
+	/// Updates properties of <see cref="FileModel" />.
+	/// </summary>
+	Task<bool> UpdateFilePropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates properties of <see cref="FolderModel" />.
 	/// </summary>
 	Task<bool> UpdateFolderPropertiesAsync(

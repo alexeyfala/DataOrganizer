@@ -1,5 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,18 @@ public interface IFilesRepository
 	/// <summary>
 	/// Removes entities from the database by IDs.
 	/// </summary>
-	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);	
+	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);
+
+	/// <summary>
+	/// Updates the specified properties of the entity with the given <paramref name="id" />.
+	/// </summary>
+	/// <param name="id">Identifier of the entity to update.</param>
+	/// <param name="setters">Property setters, e.g. <c>b =&gt; b.SetProperty(x =&gt; x.Name, "value")</c>.</param>
+	/// <param name="token">Cancellation token.</param>
+	/// <returns>The number of rows affected (0 if the entity does not exist, otherwise 1).</returns>
+	Task<int> UpdatePropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		CancellationToken token = default);
 	#endregion Methods
 }
