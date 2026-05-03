@@ -1003,54 +1003,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdatePropertyAsync{T}(Guid, string, T, CancellationToken)" />.
-	/// </summary>
-	[Test]
-	public async Task UpdatePropertyAsync_Updates_Property_Of_Entity_In_Database()
-	{
-		// Arrange
-		FileModel entity = TestUtils.CreateFile();
-
-		string newName = AppUtils.CreateRandomString(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
-
-			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
-				.Returns(entity);
-
-			IDbContextService dbConnection = Substitute.For<IDbContextService>();
-
-			dbConnection
-				.SaveChangesAsync()
-				.Returns(1);
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbConnection);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdatePropertyAsync(
-			default(Guid),
-			nameof(ExplorerModelBase.Name),
-			newName);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		entity.Name
-			.Should()
-			.Be(newName);
-	}
-
-	/// <summary>
 	/// Test of <see cref="DbAccess.UpdatePropertyAsync{T}(IEnumerable{Guid}, string, T, CancellationToken)" />.
 	/// </summary>
 	[Test]

@@ -166,15 +166,6 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the property of an entity in the database.
-	/// </summary>
-	Task<bool> UpdatePropertyAsync<T>(
-		Guid id,
-		string propertyName,
-		T value,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Updates property of entities in the database by identifiers.
 	/// </summary>
 	Task<bool> UpdatePropertyAsync<T>(
