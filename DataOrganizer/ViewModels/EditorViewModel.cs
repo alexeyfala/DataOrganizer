@@ -1944,11 +1944,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsSelected,
-			token);
+		return dto.EntityType switch
+		{
+			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
+			], token),
+			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
+			], token),
+			_ => throw new NotImplementedException()
+		};
 	}
 	#endregion
 }

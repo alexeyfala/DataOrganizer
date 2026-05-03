@@ -129,14 +129,6 @@ public interface IDbAccess : IDisposable
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of <see cref="ExplorerModelBase" />.
-	/// </summary>
-	Task<bool> UpdateBasePropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<ExplorerModelBase>>[] setters,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Updates properties of <see cref="FileModel" />.
 	/// </summary>
 	Task<bool> UpdateFilePropertiesAsync(

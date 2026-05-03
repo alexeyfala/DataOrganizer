@@ -1,6 +1,5 @@
 ﻿using Entities.Abstract;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
@@ -46,15 +45,6 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 		CancellationToken token = default)
 	{
 		return FindBy(x => identifiers.Contains(x.Id), trackChanges).ToArrayAsync(token);
-	}
-
-	/// <inheritdoc />
-	public Task<int> UpdatePropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<ExplorerModelBase>>[] setters,
-		CancellationToken token = default)
-	{
-		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
 	}
 	#endregion
 }

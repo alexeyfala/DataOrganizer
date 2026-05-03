@@ -833,39 +833,6 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> UpdateBasePropertiesAsync(
-		Guid id,
-		Action<UpdateSettersBuilder<ExplorerModelBase>>[] setters,
-		CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			int count = await _baseRepository
-				.UpdatePropertiesAsync(id, setters, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
 		Action<UpdateSettersBuilder<FileModel>>[] setters,
