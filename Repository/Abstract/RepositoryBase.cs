@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,35 @@ public abstract class RepositoryBase<T> where T : class
 			.Set<T>()
 			.AsNoTracking()
 			.CountAsync(condition, token);
+	}
+
+	/// <summary>
+	/// Updates the specified properties of entities matching <paramref name="condition" />.
+	/// </summary>
+	/// <param name="condition">Filter for affected rows.</param>
+	/// <param name="setters">Property setters, e.g. <c>b =&gt; b.SetProperty(x =&gt; x.Foo, value)</c>.</param>
+	/// <param name="token">Cancellation token.</param>
+	/// <returns>The number of rows affected.</returns>
+	protected Task<int> ExecuteUpdateAsync(
+		Expression<Func<T, bool>> condition,
+		Action<UpdateSettersBuilder<T>>[] setters,
+		CancellationToken token)
+	{
+		if (setters.Length == 0)
+		{
+			return Task.FromResult(0);
+		}
+
+		return _context
+			.Set<T>()
+			.Where(condition)
+			.ExecuteUpdateAsync(builder =>
+			{
+				foreach (Action<UpdateSettersBuilder<T>> setter in setters)
+				{
+					setter(builder);
+				}
+			}, token);
 	}
 
 	/// <summary>
