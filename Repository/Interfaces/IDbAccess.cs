@@ -1,6 +1,7 @@
 ﻿using Entities.Abstract;
 using Entities.Interfaces;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
@@ -126,6 +127,14 @@ public interface IDbAccess : IDisposable
 	/// Restores database from backup.
 	/// </summary>
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
+
+	/// <summary>
+	/// Updates properties of <see cref="FolderModel" />.
+	/// </summary>
+	Task<bool> UpdateFolderPropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Updates the properties of an entity in the database.

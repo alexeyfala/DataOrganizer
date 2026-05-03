@@ -4,6 +4,7 @@ using Entities.Interfaces;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -815,6 +816,39 @@ public sealed class DbAccess : IDbAccess
 			BackupSqliteDatabase(parameters);
 
 			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateFolderPropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			int count = await _foldersRepository
+				.UpdatePropertiesAsync(id, setters, token)
+				.ConfigureAwait(false);
+
+			return count > 0;
 		}
 		catch (Exception ex)
 		{

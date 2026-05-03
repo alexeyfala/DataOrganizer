@@ -48,6 +48,6 @@ public interface IFilesRepository
 	/// <summary>
 	/// Removes entities from the database by IDs.
 	/// </summary>
-	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);
+	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);	
 	#endregion Methods
 }

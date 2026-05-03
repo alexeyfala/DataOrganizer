@@ -1921,11 +1921,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsExpanded,
-			token);
+		return _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+		[
+			x => x.SetProperty(x => x.IsExpanded, dto.IsExpanded)
+		], token);
 	}
 
 	/// <summary>
