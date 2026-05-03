@@ -36,7 +36,7 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 		params string[] excludedProperties)
 	{
 		IQueryable<FileModel> query = excludedProperties.Length > 0
-			? FindAll().Select(x => x.CopyPropertiesTo(excludedProperties))
+			? FindAll().Include(x => x.Hotkeys).Select(x => x.CopyPropertiesTo(excludedProperties))
 			: FindAll(trackChanges);
 
 		return query.ToArrayAsync(token);

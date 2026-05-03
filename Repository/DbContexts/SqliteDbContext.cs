@@ -79,11 +79,6 @@ public class SqliteDbContext : DbContext
 
 		modelBuilder
 			.Entity<FileModel>()
-			.Navigation(x => x.Hotkeys)
-			.AutoInclude();
-
-		modelBuilder
-			.Entity<FileModel>()
 			.ToTable("Files");
 		#endregion
 
