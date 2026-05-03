@@ -686,8 +686,8 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>())
-				.Returns(file);
+				.GetContentsAsync(Arg.Any<Guid>())
+				.Returns(file.Contents);
 
 			builder.RegisterInstance(repository);
 		});
@@ -725,8 +725,8 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>())
-				.Returns(file);
+				.GetPropertiesAsync(Arg.Any<Guid>())
+				.Returns(file.Properties);
 
 			builder.RegisterInstance(repository);
 		});
@@ -758,8 +758,8 @@ internal class DbAccessTests
 			foreach (FileModel file in files)
 			{
 				repository
-					.FirstOrDefaultAsync(file.Id)
-					.Returns(file);
+					.GetContentsAsync(file.Id)
+					.Returns(file.Contents);
 			}
 
 			builder.RegisterInstance(repository);

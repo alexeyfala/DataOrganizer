@@ -20,15 +20,6 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FileModel?> FirstOrDefaultAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => x.Id == id, trackChanges).FirstOrDefaultAsync(token);
-	}
-
-	/// <inheritdoc />
 	public Task<FileModel[]> GetAllAsync(CancellationToken token = default)
 	{
 		return FindAll().Select(x => new FileModel
@@ -48,11 +39,27 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	}
 
 	/// <inheritdoc />
+	public Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id)
+			.Select(x => x.Contents)
+			.FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
 	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
 	{
 		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
 			.Select(x => x.Id)
 			.ToArrayAsync(token);
+	}
+
+	/// <inheritdoc />
+	public Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default)
+	{
+		return FindBy(x => x.Id == id)
+			.Select(x => x.Properties)
+			.FirstOrDefaultAsync(token);
 	}
 
 	/// <inheritdoc />

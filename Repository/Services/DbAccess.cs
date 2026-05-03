@@ -598,15 +598,15 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			if (await _filesRepository
-				.FirstOrDefaultAsync(id, token: token)
-				.ConfigureAwait(false) is not { } file)
+				.GetContentsAsync(id, token)
+				.ConfigureAwait(false) is not { } contents)
 			{
 				return new();
 			}
 
 			return new()
 			{
-				Contents = file.Contents,
+				Contents = contents,
 				Id = id,
 				IsValid = true
 			};
@@ -635,14 +635,9 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (await _filesRepository
-				.FirstOrDefaultAsync(id, token: token)
-				.ConfigureAwait(false) is not { } file)
-			{
-				return null;
-			}
-
-			return file.Properties;
+			return await _filesRepository
+				.GetPropertiesAsync(id, token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

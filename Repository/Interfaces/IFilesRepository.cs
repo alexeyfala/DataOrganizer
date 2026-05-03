@@ -1,10 +1,8 @@
 ﻿using Entities.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Repository.Abstract;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,21 +20,25 @@ public interface IFilesRepository
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
 	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token = default);
 
-	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.FirstOrDefaultAsync{TSource}(IQueryable{TSource}, CancellationToken)" />
-	Task<FileModel?> FirstOrDefaultAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default);
-
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
 	/// </summary>
 	Task<FileModel[]> GetAllAsync(CancellationToken token = default);
 
 	/// <summary>
+	/// Returns value from <see cref="FileModel.Contents" />.
+	/// </summary>
+	Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default);
+
+	/// <summary>
 	/// Returns file IDs by parent IDs.
 	/// </summary>
 	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
+
+	/// <summary>
+	/// Returns value from <see cref="FileModel.Properties" />.
+	/// </summary>
+	Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entity from the database by Id.
