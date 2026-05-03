@@ -1896,11 +1896,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsFavorite,
-			token);
+		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+		[
+			x => x.SetProperty(x => x.IsFavorite, dto.IsFavorite)
+		], token);
 	}
 
 	/// <summary>
