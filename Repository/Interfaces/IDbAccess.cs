@@ -143,12 +143,6 @@ public interface IDbAccess : IDisposable
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="UpdatePropertiesAsync{T}" />
-	Task<bool> UpdatePropertiesAsync(
-		Guid id,
-		CancellationToken token,
-		params PropertyNameValuePair[] properties);
-
 	/// <summary>
 	/// Updates the properties of entities in the database.
 	/// </summary>

@@ -7,6 +7,8 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
+using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
@@ -17,7 +19,6 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -68,7 +69,7 @@ internal class EntityEcryptionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -962,7 +963,7 @@ internal class EntityEcryptionTests
 				.Returns(true);
 
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);

@@ -1205,8 +1205,6 @@ internal class EditorViewModelTests
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		ExplorerModelBaseDto dto = Substitute.For<ExplorerModelBaseDto>();
 
 		string newName = AppUtils.CreateRandomString(10);
@@ -1217,10 +1215,11 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess.UpdatePropertiesAsync(
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<PropertyNameValuePair[]>())
+				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 			.Returns(true);
 
 			builder.RegisterInstance(dbAccess);

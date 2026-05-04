@@ -899,48 +899,6 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<bool> UpdatePropertiesAsync(
-		Guid id,
-		CancellationToken token,
-		params PropertyNameValuePair[] properties)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			if (await _baseRepository
-				.FirstOrDefaultAsync(id, trackChanges: true, token)
-				.ConfigureAwait(false) is not { } entity)
-			{
-				return false;
-			}
-
-			properties.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
-
-			int count = await _dbContextService
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync(
 		IDictionary<Guid, PropertyNameValuePair[]> relations,
 		CancellationToken token = default)
 	{

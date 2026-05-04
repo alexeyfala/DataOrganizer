@@ -815,63 +815,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdatePropertiesAsync(Guid, CancellationToken, PropertyNameValuePair[])" />.
-	/// </summary>
-	[Test]
-	public async Task UpdatePropertiesAsync_By_Id_Updates_Properties_Of_Entity_In_Database()
-	{
-		// Arrange
-		FileModel entity = TestUtils.CreateFile();
-
-		string newName = AppUtils.CreateRandomString(10);
-
-		int newIndex = TestUtils.CreateRandomInt(1, 100);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
-
-			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
-				.Returns(entity);
-
-			IDbContextService dbConnection = Substitute.For<IDbContextService>();
-
-			dbConnection
-				.SaveChangesAsync()
-				.Returns(1);
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbConnection);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		PropertyNameValuePair[] properties =
-		[
-			new(nameof(ExplorerModelBase.Name), newName),
-			new(nameof(ExplorerModelBase.Index), newIndex)
-		];
-
-		// Act
-		bool result = await sut.UpdatePropertiesAsync(entity.Id, default, properties);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		entity.Name
-			.Should()
-			.Be(newName);
-
-		entity.Index
-			.Should()
-			.Be(newIndex);
-	}
-
-	/// <summary>
 	/// Test of <see cref="DbAccess.UpdatePropertiesAsync(IDictionary{Guid, PropertyNameValuePair[]}, CancellationToken)" />.
 	/// </summary>
 	[Test]
