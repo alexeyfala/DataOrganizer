@@ -133,16 +133,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 					string passwordHash = _encryption.HashPassword(newPassword);
 
-					PropertyNameValuePair[] properties =
-					[
-						new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-						new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
-					];
-
-					if (!await _dbAccess.UpdatePropertiesAsync(
-						id: folder.Id,
-						token: token,
-						properties: properties).ConfigureAwait(false))
+					if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
+						[
+							x => x.SetProperty(x => x.PasswordHash, passwordHash),
+							x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
+						], token))
 					{
 						return;
 					}
@@ -725,16 +720,11 @@ public sealed class EntityEcryption : IEntityEcryption
 				return UpdateDatabaseResult.FailedToSaveContentsInDb;
 			}
 
-			PropertyNameValuePair[] properties =
-			[
-				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
-				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
-			];
-
-			if (!await _dbAccess.UpdatePropertiesAsync(
-				id: parameters.Folder.Id,
-				token: token,
-				properties: properties).ConfigureAwait(false))
+			if (!await _dbAccess.UpdateFolderPropertiesAsync(parameters.Folder.Id,
+				[
+					x => x.SetProperty(x => x.PasswordHash, parameters.PasswordHash),
+					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
+				], token))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
