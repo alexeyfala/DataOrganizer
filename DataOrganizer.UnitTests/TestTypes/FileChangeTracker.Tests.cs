@@ -4,8 +4,9 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
 using DataOrganizer.Services;
+using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System;
@@ -61,12 +62,9 @@ internal class FileChangeTrackerTests
 			await sut.TrackChangesAsync(parameters, cts.Token);
 
 			// Assert
-			await dbAccess
-				.Received(0)
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<CancellationToken>(),
-					Arg.Any<PropertyNameValuePair[]>());
+			await dbAccess.Received(0).UpdateFilePropertiesAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 		}
 		finally
 		{
@@ -104,12 +102,9 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters);
 
 		// Assert
-		await dbAccess
-			.Received(0)
-			.UpdatePropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<PropertyNameValuePair[]>());
+		await dbAccess.Received(0).UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -146,12 +141,9 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cts.Token);
 
 		// Assert
-		await dbAccess
-			.Received(0)
-			.UpdatePropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<PropertyNameValuePair[]>());
+		await dbAccess.Received(0).UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -182,17 +174,14 @@ internal class FileChangeTrackerTests
 			using CancellationTokenSource cts = new();
 
 			dbAccess
-				.UpdatePropertiesAsync(
-					Arg.Any<Guid>(),
-					Arg.Any<CancellationToken>(),
-					Arg.Any<PropertyNameValuePair[]>())
+				.UpdateFilePropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(), Arg.Any<CancellationToken>())
 				.Returns(_ =>
-				{
-					// Cancel the token after the very first DB update so the loop does not sleep its full delay.
-					cts.Cancel();
+			{
+				// Cancel the token after the very first DB update so the loop does not sleep its full delay.
+				cts.Cancel();
 
-					return Task.FromResult(true);
-				});
+				return Task.FromResult(true);
+			});
 
 			using AutoMock mock = AutoMock.GetLoose(builder =>
 			{
@@ -209,12 +198,10 @@ internal class FileChangeTrackerTests
 			await sut.TrackChangesAsync(parameters, cts.Token);
 
 			// Assert
-			await dbAccess
-				.Received()
-				.UpdatePropertiesAsync(
-					parameters.File.Id,
-					Arg.Any<CancellationToken>(),
-					Arg.Any<PropertyNameValuePair[]>());
+			await dbAccess.Received().UpdateFilePropertiesAsync(
+				parameters.File.Id,
+				Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+				Arg.Any<CancellationToken>());
 
 			parameters.Contents
 				.Should()
