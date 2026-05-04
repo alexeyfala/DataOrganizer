@@ -1,8 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using Entities.Models;
-using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -101,16 +99,11 @@ public class FileChangeTracker : IFileChangeTracker
 
 						DateTime updatedDate = DateTime.Now;
 
-						PropertyNameValuePair[] properties =
-						[
-							new PropertyNameValuePair(nameof(FileModel.Contents), contents),
-							new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-						];
-
-						if (await _dbAccess.UpdatePropertiesAsync(
-							id: parameters.File.Id,
-							token: token,
-							properties).ConfigureAwait(false))
+						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
+							[
+								x => x.SetProperty(x => x.Contents, contents),
+								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+							], token))
 						{
 							_logger.LogDebug(
 								"Contents of file is updated in database:" + Environment.NewLine +
