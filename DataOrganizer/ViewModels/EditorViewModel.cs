@@ -1455,15 +1455,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return false;
 		}
 
-		PropertyNameValuePair[] properties =
-		[
-			new PropertyNameValuePair(nameof(ExplorerModelBaseDto.Name), newName),
-			new PropertyNameValuePair(nameof(ExplorerModelBaseDto.UpdatedDate), updatedDate)
-		];
+		Task<bool> task = dto.EntityType switch
+		{
+			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.Name, newName),
+				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+			], token),
+			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.Name, newName),
+				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+			], token),
+			_ => throw new NotImplementedException()
+		};
 
-		if (!await _dbAccess
-			.UpdatePropertiesAsync(dto.Id, token, properties)
-			.ConfigureAwait(false))
+		if (!await task.ConfigureAwait(false))
 		{
 			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
