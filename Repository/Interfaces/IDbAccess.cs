@@ -136,27 +136,18 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
+	/// Updates properties of multiple <see cref="FileModel" /> entities in a single transaction.
+	/// </summary>
+	Task<bool> UpdateFilePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates properties of <see cref="FolderModel" />.
 	/// </summary>
 	Task<bool> UpdateFolderPropertiesAsync(
 		Guid id,
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates the properties of entities in the database.
-	/// </summary>
-	Task<bool> UpdatePropertiesAsync(
-		IDictionary<Guid, PropertyNameValuePair[]> relations,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates property of entities in the database by identifiers.
-	/// </summary>
-	Task<bool> UpdatePropertyAsync<T>(
-		IEnumerable<Guid> identifiers,
-		string propertyName,
-		T value,
 		CancellationToken token = default);
 	#endregion
 }

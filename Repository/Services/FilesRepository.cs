@@ -5,7 +5,9 @@ using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -82,6 +84,20 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> UpdatePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		CancellationToken token = default)
+	{
+		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
+
+		static KeyValuePair<Expression<Func<FileModel, bool>>, Action<UpdateSettersBuilder<FileModel>>[]> ToFilter(
+			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> entry)
+		{
+			return new(x => x.Id == entry.Key, entry.Value);
+		}
 	}
 	#endregion Methods
 }

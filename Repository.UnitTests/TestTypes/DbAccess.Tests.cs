@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repository.UnitTests.TestTypes;
@@ -812,117 +811,6 @@ internal class DbAccessTests
 		result
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// Test of <see cref="DbAccess.UpdatePropertiesAsync(IDictionary{Guid, PropertyNameValuePair[]}, CancellationToken)" />.
-	/// </summary>
-	[Test]
-	public async Task UpdatePropertiesAsync_By_Relations_Updates_Properties_Of_Multiple_Entities()
-	{
-		// Arrange
-		FileModel firstEntity = TestUtils.CreateFile();
-
-		FileModel secondEntity = TestUtils.CreateFile();
-
-		string firstName = AppUtils.CreateRandomString(10);
-
-		string secondName = AppUtils.CreateRandomString(10);
-
-		Dictionary<Guid, PropertyNameValuePair[]> relations = new()
-		{
-			[firstEntity.Id] = [new(nameof(ExplorerModelBase.Name), firstName)],
-			[secondEntity.Id] = [new(nameof(ExplorerModelBase.Name), secondName)]
-		};
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
-
-			repository
-				.FirstOrDefaultAsync(firstEntity.Id, Arg.Any<bool>())
-				.Returns(firstEntity);
-
-			repository
-				.FirstOrDefaultAsync(secondEntity.Id, Arg.Any<bool>())
-				.Returns(secondEntity);
-
-			IDbContextService dbConnection = Substitute.For<IDbContextService>();
-
-			dbConnection
-				.SaveChangesAsync()
-				.Returns(2);
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbConnection);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdatePropertiesAsync(relations);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		firstEntity.Name
-			.Should()
-			.Be(firstName);
-
-		secondEntity.Name
-			.Should()
-			.Be(secondName);
-	}
-
-	/// <summary>
-	/// Test of <see cref="DbAccess.UpdatePropertyAsync{T}(IEnumerable{Guid}, string, T, CancellationToken)" />.
-	/// </summary>
-	[Test]
-	public async Task UpdatePropertyAsync_Updates_Property_Of_Multiple_Entities_In_Database()
-	{
-		// Arrange
-		FileModel[] entities = [.. TestUtils.CreateFiles(3)];
-
-		string newName = AppUtils.CreateRandomString(10);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
-
-			repository
-				.GetAsync(Arg.Any<IEnumerable<Guid>>(), Arg.Any<bool>())
-				.Returns([.. entities]);
-
-			IDbContextService dbConnection = Substitute.For<IDbContextService>();
-
-			dbConnection
-				.SaveChangesAsync()
-				.Returns(entities.Length);
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbConnection);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		bool result = await sut.UpdatePropertyAsync(
-			entities.Select(x => x.Id),
-			nameof(ExplorerModelBase.Name),
-			newName);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		entities
-			.Should()
-			.OnlyContain(x => x.Name == newName);
 	}
 	#endregion
 

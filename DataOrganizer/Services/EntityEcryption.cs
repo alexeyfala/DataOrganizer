@@ -6,6 +6,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -696,17 +697,19 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
+			Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = parameters
+				.Contents
+				.ToDictionary(x => x.Id, pair =>
 			{
-				return new PropertyNameValuePair[]
+				return new Action<UpdateSettersBuilder<FileModel>>[]
 				{
-					new(nameof(FileModel.Contents), x.Contents),
-					new(nameof(FileModel.UpdatedDate), updatedDate)
+					builder => builder.SetProperty(x => x.Contents, pair.Contents),
+					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
 				};
 			});
 
 			if (!await _dbAccess
-				.UpdatePropertiesAsync(relations, token)
+				.UpdateFilePropertiesAsync(updates, token)
 				.ConfigureAwait(false))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));

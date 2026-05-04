@@ -865,6 +865,38 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> UpdateFilePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			int count = await _filesRepository
+				.UpdatePropertiesAsync(updates, token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> UpdateFolderPropertiesAsync(
 		Guid id,
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
@@ -878,90 +910,6 @@ public sealed class DbAccess : IDbAccess
 
 			int count = await _foldersRepository
 				.UpdatePropertiesAsync(id, setters, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync(
-		IDictionary<Guid, PropertyNameValuePair[]> relations,
-		CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			foreach (KeyValuePair<Guid, PropertyNameValuePair[]> relation in relations)
-			{
-				if (await _baseRepository
-					.FirstOrDefaultAsync(relation.Key, trackChanges: true, token)
-					.ConfigureAwait(false) is { } entity)
-				{
-					relation
-						.Value
-						.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
-				}
-			}
-
-			int count = await _dbContextService
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertyAsync<T>(
-		IEnumerable<Guid> identifiers,
-		string propertyName,
-		T value,
-		CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			ExplorerModelBase[] sequence = await _baseRepository
-				.GetAsync(identifiers, trackChanges: true, token)
-				.ConfigureAwait(false);
-
-			sequence.ForEach(x => x.SetPropertyValue(propertyName, value));
-
-			int count = await _dbContextService
-				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
 			return count > 0;

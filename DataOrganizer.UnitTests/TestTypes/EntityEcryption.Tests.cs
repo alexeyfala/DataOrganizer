@@ -156,7 +156,7 @@ internal class EntityEcryptionTests
 		// Assert
 		await dbAccess
 			.Received()
-			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
 	}
 
 	/// <summary>
@@ -314,7 +314,7 @@ internal class EntityEcryptionTests
 		// Assert
 		await dbAccess
 			.Received()
-			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
 	}
 
 	/// <summary>
@@ -901,7 +901,7 @@ internal class EntityEcryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -952,14 +952,14 @@ internal class EntityEcryptionTests
 			PasswordHash = AppUtils.CreateRandomString(10)
 		};
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
 				.Returns(true);
 
 			dbAccess

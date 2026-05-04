@@ -1,11 +1,8 @@
 ﻿using Entities.Abstract;
-using Microsoft.EntityFrameworkCore;
 using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,24 +24,6 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 		CancellationToken token = default)
 	{
 		return CountAsync(condition, token);
-	}
-
-	/// <inheritdoc />
-	public Task<ExplorerModelBase?> FirstOrDefaultAsync(
-		Guid id,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => x.Id == id, trackChanges).FirstOrDefaultAsync(token);
-	}
-
-	/// <inheritdoc />
-	public Task<ExplorerModelBase[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default)
-	{
-		return FindBy(x => identifiers.Contains(x.Id), trackChanges).ToArrayAsync(token);
 	}
 	#endregion
 }

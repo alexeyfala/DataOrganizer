@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,6 +103,39 @@ public abstract class RepositoryBase<T> where T : class
 					setter(builder);
 				}
 			}, token);
+	}
+
+	/// <summary>
+	/// Issues an <c>UPDATE</c> per <paramref name="updates" /> entry inside a single transaction.
+	/// Each entry pairs a row filter with the setters to apply to those rows.
+	/// </summary>
+	/// <param name="updates">Pairs of (filter, setters). Entries with empty setter arrays are skipped.</param>
+	/// <param name="token">Cancellation token.</param>
+	/// <returns>The total number of rows affected across all updates.</returns>
+	protected async Task<int> ExecuteUpdateRangeAsync(
+		IEnumerable<KeyValuePair<Expression<Func<T, bool>>, Action<UpdateSettersBuilder<T>>[]>> updates,
+		CancellationToken token)
+	{
+		await using IDbContextTransaction transaction = await _context
+			.Database
+			.BeginTransactionAsync(token)
+			.ConfigureAwait(false);
+
+		int total = 0;
+
+		foreach (KeyValuePair<Expression<Func<T, bool>>, Action<UpdateSettersBuilder<T>>[]> update in updates)
+		{
+			total += await ExecuteUpdateAsync(
+				update.Key,
+				update.Value,
+				token).ConfigureAwait(false);
+		}
+
+		await transaction
+			.CommitAsync(token)
+			.ConfigureAwait(false);
+
+		return total;
 	}
 
 	/// <summary>
