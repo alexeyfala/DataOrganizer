@@ -1,5 +1,4 @@
 ﻿using Entities.Abstract;
-using Entities.Interfaces;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
@@ -143,14 +142,6 @@ public interface IDbAccess : IDisposable
 		Guid id,
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Updates the properties of an entity in the database.
-	/// </summary>
-	Task<bool> UpdatePropertiesAsync<T>(
-		T dtoSource,
-		CancellationToken token,
-		params string[] propertyNames) where T : class, IIdentity;
 
 	/// <inheritdoc cref="UpdatePropertiesAsync{T}" />
 	Task<bool> UpdatePropertiesAsync(

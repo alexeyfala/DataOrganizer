@@ -2,8 +2,6 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
@@ -934,72 +932,6 @@ internal class DbAccessTests
 		secondEntity.Name
 			.Should()
 			.Be(secondName);
-	}
-
-	/// <summary>
-	/// Test of <see cref="DbAccess.UpdatePropertiesAsync{T}(T, CancellationToken, string[])" />.
-	/// </summary>
-	[Test]
-	public async Task UpdatePropertiesAsync_Updates_Properties_Of_Entity_In_Database()
-	{
-		// Arrange
-		FileModel entity = TestUtils.CreateFile();
-
-		IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
-
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
-
-		FileModelDto dto = TestUtils.CreateFileDto();
-
-		dto.IsSelected = true;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			repository
-				.FirstOrDefaultAsync(Arg.Any<Guid>(), Arg.Any<bool>())
-				.Returns(entity);
-
-			builder.RegisterInstance(repository);
-
-			builder.RegisterInstance(dbConnection);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		await sut.UpdatePropertiesAsync(
-			dto,
-			default,
-			nameof(ExplorerModelBaseDto.CreatedDate),
-			nameof(ExplorerModelBaseDto.Index),
-			nameof(ExplorerModelBaseDto.IsSelected),
-			nameof(ExplorerModelBaseDto.Name),
-			nameof(ExplorerModelBaseDto.UpdatedDate));
-
-		// Assert
-		entity.CreatedDate
-			.Should()
-			.Be(dto.CreatedDate);
-
-		entity.Index
-			.Should()
-			.Be(dto.Index);
-
-		entity.IsSelected
-			.Should()
-			.Be(dto.IsSelected);
-
-		entity.Name
-			.Should()
-			.Be(dto.Name);
-
-		entity.UpdatedDate
-			.Should()
-			.Be(dto.UpdatedDate);
-
-		await dbConnection
-			.Received()
-			.SaveChangesAsync();
 	}
 
 	/// <summary>

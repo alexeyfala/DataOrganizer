@@ -1,6 +1,5 @@
 ﻿using Entities.Abstract;
 using Entities.Enums;
-using Entities.Interfaces;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -879,48 +878,6 @@ public sealed class DbAccess : IDbAccess
 
 			int count = await _foldersRepository
 				.UpdatePropertiesAsync(id, setters, token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync<T>(
-		T dtoSource,
-		CancellationToken token,
-		params string[] propertyNames) where T : class, IIdentity
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			if (await _baseRepository
-				.FirstOrDefaultAsync(dtoSource.Id, trackChanges: true, token)
-				.ConfigureAwait(false) is not { } entity)
-			{
-				return false;
-			}
-
-			dtoSource.CopyPropertiesTo(entity, propertyNames);
-
-			int count = await _dbContextService
-				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
 			return count > 0;

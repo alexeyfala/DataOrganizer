@@ -1,12 +1,11 @@
-﻿using Entities.Interfaces;
-using System;
+﻿using System;
 
 namespace Entities.Abstract;
 
 /// <summary>
 /// The base model for all entities.
 /// </summary>
-public abstract class EntityModelBase : IIdentity
+public abstract class EntityModelBase
 {
 	#region Properties
 	/// <inheritdoc />

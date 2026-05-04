@@ -1,12 +1,8 @@
-﻿using Entities.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Repository.DbContexts;
 using Repository.Interfaces;
-using Shared.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
@@ -32,36 +28,6 @@ public sealed class DbContextService : IDbContextService
 	#endregion
 
 	#region Methods
-	/// <inheritdoc />
-	public void Detach<T>(IEnumerable<T> entities) where T : class, IIdentity
-	{
-		LocalView<T> localView = GetLocalView<T>();
-
-		if (localView.Count == 0)
-		{
-			return;
-		}
-
-		IEnumerable<Guid> identifiers = entities.Select(x => x.Id);
-
-		localView
-			.Where(x => identifiers.Contains(x.Id))
-			.ForEach(x => SetEntryState(x, EntityState.Detached));
-	}
-
-	/// <inheritdoc />
-	public void Detach<T>(Guid id) where T : class, IIdentity
-	{
-		LocalView<T> localView = GetLocalView<T>();
-
-		if (localView.Count == 0 || localView.FirstOrDefault(x => x.Id == id) is not { } local)
-		{
-			return;
-		}
-
-		SetEntryState(local, EntityState.Detached);
-	}
-
 	/// <inheritdoc />
 	public void Dispose()
 	{
