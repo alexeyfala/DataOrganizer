@@ -103,7 +103,7 @@ public class FileChangeTracker : IFileChangeTracker
 							[
 								x => x.SetProperty(x => x.Contents, contents),
 								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
-							], token))
+							], token).ConfigureAwait(false))
 						{
 							_logger.LogDebug(
 								"Contents of file is updated in database:" + Environment.NewLine +

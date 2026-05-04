@@ -137,7 +137,7 @@ public sealed class EntityEcryption : IEntityEcryption
 						[
 							x => x.SetProperty(x => x.PasswordHash, passwordHash),
 							x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
-						], token))
+						], token).ConfigureAwait(false))
 					{
 						return;
 					}
@@ -724,7 +724,7 @@ public sealed class EntityEcryption : IEntityEcryption
 				[
 					x => x.SetProperty(x => x.PasswordHash, parameters.PasswordHash),
 					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
-				], token))
+				], token).ConfigureAwait(false))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
