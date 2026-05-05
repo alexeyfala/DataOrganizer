@@ -34,7 +34,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 			});
 
 		emptyStringAction
-			.Received(0)
+			.DidNotReceive()
 			.Invoke();
 	}
 

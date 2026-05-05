@@ -182,6 +182,13 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public Stream OpenRead(string filePath) => File.Open(
+		filePath,
+		FileMode.Open,
+		FileAccess.Read,
+		FileShare.ReadWrite);
+
+	/// <inheritdoc />
 	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
 
 	/// <inheritdoc />

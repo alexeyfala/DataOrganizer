@@ -87,6 +87,11 @@ public interface IFileSystem
 	/// </summary>
 	bool IsFileLocked(string filePath);
 
+	/// <summary>
+	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent writers (e.g. the user's editor) to modify the file while it is being observed.
+	/// </summary>
+	Stream OpenRead(string filePath);
+
 	/// <inheritdoc cref="File.ReadAllText(string)" />
 	string ReadAllText(string filePath);
 

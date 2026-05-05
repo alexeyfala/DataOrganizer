@@ -271,7 +271,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 
@@ -472,7 +472,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 
@@ -560,7 +560,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dbAccess
-			.Received(0)
+			.DidNotReceive()
 			.GetFileContentsAsync(Arg.Any<Guid>());
 	}
 
@@ -1446,7 +1446,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 

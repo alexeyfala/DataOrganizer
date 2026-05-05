@@ -304,7 +304,7 @@ internal class DatasetEditorViewModelTests
 			.BeTrue();
 
 		jsonSerializer
-			.Received(0)
+			.DidNotReceive()
 			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
 	}
 

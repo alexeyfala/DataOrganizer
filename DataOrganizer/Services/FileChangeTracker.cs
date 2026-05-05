@@ -61,7 +61,7 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			await using FileStream initial = CreateFileStream(parameters.FilePath);
+			await using Stream initial = _fileSystem.OpenRead(parameters.FilePath);
 
 			byte[] previousHash = await ComputeSha256HashAsync(initial, token).ConfigureAwait(false);
 
@@ -72,7 +72,7 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				await using FileStream currentStream = CreateFileStream(parameters.FilePath);
+				await using Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
 
 				byte[] currentHash = await ComputeSha256HashAsync(currentStream, token).ConfigureAwait(false);
 
@@ -167,18 +167,6 @@ public class FileChangeTracker : IFileChangeTracker
 			HashAlgorithmName.SHA256,
 			stream,
 			token);
-	}
-
-	/// <summary>
-	/// Creates a <see cref="FileStream" /> with certain settings.
-	/// </summary>
-	private static FileStream CreateFileStream(string filePath)
-	{
-		return File.Open(
-			filePath,
-			FileMode.Open,
-			FileAccess.Read,
-			FileShare.ReadWrite);
 	}
 	#endregion
 }

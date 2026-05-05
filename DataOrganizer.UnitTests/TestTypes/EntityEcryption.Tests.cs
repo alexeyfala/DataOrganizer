@@ -348,7 +348,7 @@ internal class EntityEcryptionTests
 			.BeNull();
 
 		encryption
-			.Received(0)
+			.DidNotReceive()
 			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
