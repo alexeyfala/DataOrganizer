@@ -149,9 +149,9 @@ internal class DataExchangeServiceTests
 		await sut.ExportDataAsync();
 
 		// Assert
-		dbAccess
+		await dbAccess
 			.Received()
-			.BackupSqliteDatabase(Arg.Any<BackupSqliteParameters>());
+			.BackupSqliteDatabaseAsync(Arg.Any<BackupSqliteParameters>());
 	}
 
 	/// <summary>

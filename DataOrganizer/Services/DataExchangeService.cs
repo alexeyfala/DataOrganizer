@@ -166,7 +166,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case AppUtils.SQLiteExtension:
-					ExportToSQLite(filePath);
+					await ExportToSQLiteAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				default:
@@ -472,7 +472,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Exports data to SQLite database.
 	/// </summary>
-	private void ExportToSQLite(string filePath)
+	private Task ExportToSQLiteAsync(string filePath, CancellationToken token)
 	{
 		BackupSqliteParameters parameters = new()
 		{
@@ -482,7 +482,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			SourceFilePath = _dbAccess.GetDbFilePath()
 		};
 
-		_dbAccess.BackupSqliteDatabase(parameters);
+		return _dbAccess.BackupSqliteDatabaseAsync(parameters, token);
 	}
 
 	/// <summary>

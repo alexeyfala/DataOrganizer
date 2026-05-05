@@ -49,7 +49,9 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Backups SQLite database.
 	/// </summary>
-	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
+	Task BackupSqliteDatabaseAsync(
+		BackupSqliteParameters parameters,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Completely clears the database.

@@ -272,36 +272,24 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	public async Task BackupSqliteDatabaseAsync(
+		BackupSqliteParameters parameters,
+		CancellationToken token = default)
 	{
-		SqliteConnectionStringBuilder sourceBuilder = new()
+		try
 		{
-			DataSource = parameters.SourceFilePath
-		};
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
 
-		SqliteConnectionStringBuilder destBuilder = new()
-		{
-			DataSource = parameters.DestFilePath
-		};
-
-		using SqliteConnection source = new(sourceBuilder.ToString());
-
-		using SqliteConnection dest = new(destBuilder.ToString());
-
-		source.Open();
-
-		dest.Open();
-
-		source.BackupDatabase(dest);
-
-		if (parameters.ClearSourcePool)
-		{
-			SqliteConnection.ClearPool(source);
+			BackupSqliteDatabase(parameters);
 		}
-
-		if (parameters.ClearDestPool)
+		finally
 		{
-			SqliteConnection.ClearPool(dest);
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -931,6 +919,40 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Service
+	/// <inheritdoc cref="BackupSqliteDatabaseAsync" />
+	private static void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = parameters.SourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = parameters.DestFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection dest = new(destBuilder.ToString());
+
+		source.Open();
+
+		dest.Open();
+
+		source.BackupDatabase(dest);
+
+		if (parameters.ClearSourcePool)
+		{
+			SqliteConnection.ClearPool(source);
+		}
+
+		if (parameters.ClearDestPool)
+		{
+			SqliteConnection.ClearPool(dest);
+		}
+	}
+
 	/// <inheritdoc cref="SqliteConnection.ClearPool" />
 	private static void ClearPool(SqliteDbContext context)
 	{
