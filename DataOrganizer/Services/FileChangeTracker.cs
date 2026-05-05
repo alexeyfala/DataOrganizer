@@ -9,6 +9,7 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -60,6 +61,10 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
+			await using FileStream initial = CreateFileStream(parameters.FilePath);
+
+			byte[] previousHash = await ComputeSha256HashAsync(initial, token).ConfigureAwait(false);
+
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
 				if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
@@ -67,26 +72,24 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				await using FileStream fileStream = File.Open(
-					parameters.FilePath,
-					FileMode.Open,
-					FileAccess.Read,
-					FileShare.ReadWrite);
+				await using FileStream currentStream = CreateFileStream(parameters.FilePath);
 
-				await using MemoryStream memoryStream = new();
+				byte[] currentHash = await ComputeSha256HashAsync(currentStream, token).ConfigureAwait(false);
 
-				await fileStream
-					.CopyToAsync(memoryStream, token)
-					.ConfigureAwait(false);
-
-				byte[] bytes = memoryStream.ToArray();
-
-				try
+				if (!currentHash.SequenceEqual(previousHash))
 				{
-					if (!bytes.SequenceEqual(parameters.Contents))
-					{
-						byte[] contents = bytes;
+					currentStream.Position = 0;
 
+					await using MemoryStream memoryStream = new();
+
+					await currentStream
+						.CopyToAsync(memoryStream, token)
+						.ConfigureAwait(false);
+
+					byte[] bytes = memoryStream.ToArray();
+
+					try
+					{
 						if (parameters.SessionEncryptedDek is not null)
 						{
 							if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
@@ -96,14 +99,14 @@ public class FileChangeTracker : IFileChangeTracker
 								return;
 							}
 
-							contents = encrypted;
+							bytes = encrypted;
 						}
 
 						DateTime updatedDate = DateTime.Now;
 
 						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
 							[
-								x => x.SetProperty(x => x.Contents, contents),
+								x => x.SetProperty(x => x.Contents, bytes),
 								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
 							], token).ConfigureAwait(false))
 						{
@@ -111,24 +114,23 @@ public class FileChangeTracker : IFileChangeTracker
 								"Contents of file is updated in database:" + Environment.NewLine +
 								$"File Id = {parameters.File.Id}," + Environment.NewLine +
 								$"File path = {parameters.FilePath}," + Environment.NewLine +
-								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
 								$"New bytes length = {bytes.Length}.");
-
-							parameters.Contents = [.. bytes];
 
 							parameters
 								.File
 								.UpdatedDate = updatedDate;
 						}
 					}
-				}
-				finally
-				{
-					if (parameters.SessionEncryptedDek is not null)
+					finally
 					{
-						bytes.ZeroMemory();
+						if (parameters.SessionEncryptedDek is not null)
+						{
+							bytes.ZeroMemory();
+						}
 					}
 				}
+
+				previousHash = currentHash;
 
 				await Task
 					.Delay(800, token)
@@ -152,6 +154,30 @@ public class FileChangeTracker : IFileChangeTracker
 					.ZeroMemory();
 			}
 		}
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of <see cref="Stream" /> content.
+	/// </summary>
+	private static async ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
+	{
+		return await CryptographicOperations
+			.HashDataAsync(HashAlgorithmName.SHA256, stream, token)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Creates a <see cref="FileStream" /> with certain settings.
+	/// </summary>
+	private static FileStream CreateFileStream(string filePath)
+	{
+		return File.Open(
+			filePath,
+			FileMode.Open,
+			FileAccess.Read,
+			FileShare.ReadWrite);
 	}
 	#endregion
 }
