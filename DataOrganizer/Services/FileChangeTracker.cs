@@ -83,63 +83,68 @@ public class FileChangeTracker : IFileChangeTracker
 					.ComputeSha256HashAsync(currentStream, token)
 					.ConfigureAwait(false);
 
-				if (!currentHash.SequenceEqual(previousHash))
+				try
 				{
-					currentStream.Position = 0;
-
-					await using MemoryStream memoryStream = new();
-
-					await currentStream
-						.CopyToAsync(memoryStream, token)
-						.ConfigureAwait(false);
-
-					byte[] bytes = memoryStream.ToArray();
-
-					try
+					if (!currentHash.SequenceEqual(previousHash))
 					{
-						if (parameters.SessionEncryptedDek is not null)
-						{
-							if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
-							{
-								_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+						currentStream.Position = 0;
 
-								return;
+						await using MemoryStream memoryStream = new();
+
+						await currentStream
+							.CopyToAsync(memoryStream, token)
+							.ConfigureAwait(false);
+
+						byte[] bytes = memoryStream.ToArray();
+
+						try
+						{
+							if (parameters.SessionEncryptedDek is not null)
+							{
+								if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+								{
+									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+
+									return;
+								}
+
+								bytes = encrypted;
 							}
 
-							bytes = encrypted;
+							DateTime updatedDate = DateTime.Now;
+
+							if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
+								[
+									x => x.SetProperty(x => x.Contents, bytes),
+									x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+								], token).ConfigureAwait(false))
+							{
+								_logger.LogDebug(
+									"Contents of file is updated in database:" + Environment.NewLine +
+									$"File Id = {parameters.File.Id}," + Environment.NewLine +
+									$"File path = {parameters.FilePath}," + Environment.NewLine +
+									$"New bytes length = {bytes.Length}.");
+
+								parameters
+									.File
+									.UpdatedDate = updatedDate;
+							}
 						}
-
-						DateTime updatedDate = DateTime.Now;
-
-						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
-							[
-								x => x.SetProperty(x => x.Contents, bytes),
-								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
-							], token).ConfigureAwait(false))
+						finally
 						{
-							_logger.LogDebug(
-								"Contents of file is updated in database:" + Environment.NewLine +
-								$"File Id = {parameters.File.Id}," + Environment.NewLine +
-								$"File path = {parameters.FilePath}," + Environment.NewLine +
-								$"New bytes length = {bytes.Length}.");
-
-							parameters
-								.File
-								.UpdatedDate = updatedDate;
-						}
-					}
-					finally
-					{
-						if (parameters.SessionEncryptedDek is not null)
-						{
-							bytes.ZeroMemory();
+							if (parameters.SessionEncryptedDek is not null)
+							{
+								bytes.ZeroMemory();
+							}
 						}
 					}
 				}
+				finally
+				{
+					previousHash = currentHash;
 
-				previousHash = currentHash;
-
-				currentStream.Dispose();
+					currentStream.Dispose();
+				}
 
 				await Task
 					.Delay(800, token)
