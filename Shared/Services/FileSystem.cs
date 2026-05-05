@@ -26,14 +26,6 @@ public sealed class FileSystem : IFileSystem
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] ComputeSha256Hash(string filePath)
-	{
-		using FileStream stream = File.OpenRead(filePath);
-
-		return CryptographicOperations.HashData(HashAlgorithmName.SHA256, stream);
-	}
-
-	/// <inheritdoc />
 	public void CreateDirectory(string directoryPath) => Directory.CreateDirectory(directoryPath);
 
 	/// <inheritdoc />
