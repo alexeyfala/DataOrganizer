@@ -213,7 +213,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
@@ -262,7 +262,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(picker);
@@ -303,7 +303,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
@@ -352,7 +352,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			dbAccess
@@ -401,7 +401,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			dbAccess
@@ -446,7 +446,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			dbAccess

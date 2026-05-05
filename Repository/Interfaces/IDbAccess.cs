@@ -44,7 +44,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Tries to backup database in file, and returns a path to it.
 	/// </summary>
-	string? BackupDatabase();
+	Task<string?> BackupDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Backups SQLite database.

@@ -222,7 +222,9 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+		if (await _dbAccess
+			.BackupDatabaseAsync(token)
+			.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
 			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -246,7 +248,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						variant,
 						objects,
 						hierarchy,
-						token))
+						token).ConfigureAwait(false))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
@@ -264,7 +266,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						variant,
 						objects,
 						hierarchy,
-						token))
+						token).ConfigureAwait(false))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 

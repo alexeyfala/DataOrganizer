@@ -238,7 +238,9 @@ public sealed class EntityEcryption : IEntityEcryption
 						return;
 					}
 
-					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					if (await _dbAccess
+						.BackupDatabaseAsync(token)
+						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -355,7 +357,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				try
 				{
-					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					if (await _dbAccess
+						.BackupDatabaseAsync(token)
+						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 

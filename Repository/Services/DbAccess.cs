@@ -233,10 +233,14 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public string? BackupDatabase()
+	public async Task<string?> BackupDatabaseAsync(CancellationToken token = default)
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			string dbFilePath = GetDbFilePath();
 
 			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
@@ -268,6 +272,13 @@ public sealed class DbAccess : IDbAccess
 			_logger.LogException(ex);
 
 			return null;
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 

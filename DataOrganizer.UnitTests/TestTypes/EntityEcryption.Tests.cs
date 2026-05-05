@@ -138,7 +138,7 @@ internal class EntityEcryptionTests
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(dialogService);
@@ -296,7 +296,7 @@ internal class EntityEcryptionTests
 				.Returns([]);
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(encryption);
