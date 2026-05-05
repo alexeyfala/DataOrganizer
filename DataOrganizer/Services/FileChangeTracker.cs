@@ -161,11 +161,12 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <summary>
 	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of <see cref="Stream" /> content.
 	/// </summary>
-	private static async ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
+	private static ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
 	{
-		return await CryptographicOperations
-			.HashDataAsync(HashAlgorithmName.SHA256, stream, token)
-			.ConfigureAwait(false);
+		return CryptographicOperations.HashDataAsync(
+			HashAlgorithmName.SHA256,
+			stream,
+			token);
 	}
 
 	/// <summary>
