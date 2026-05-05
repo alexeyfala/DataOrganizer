@@ -5,6 +5,7 @@ using CommonTestHelpers.Helpers;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -811,6 +812,235 @@ internal class DbAccessTests
 		result
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFilePropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
+	{
+		// Arrange
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFilesRepository repository = Substitute.For<IFilesRepository>();
+
+			repository
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFilePropertiesAsync(updates);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFilePropertiesAsync_Returns_False_When_File_Does_Not_Exist()
+	{
+		// Arrange
+		Action<UpdateSettersBuilder<FileModel>>[] setters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFilesRepository repository = Substitute.For<IFilesRepository>();
+
+			repository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFilePropertiesAsync(Guid.NewGuid(), setters);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFilePropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
+	{
+		// Arrange
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))],
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestUtils.CreateRandomIntFrom10To100())]
+		};
+
+		IFilesRepository repository = Substitute.For<IFilesRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			repository
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(updates.Count);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFilePropertiesAsync(updates);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await repository
+			.Received()
+			.UpdatePropertiesAsync(updates);
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFilePropertiesAsync_Returns_True_When_File_Was_Updated()
+	{
+		// Arrange
+		Guid fileId = Guid.NewGuid();
+
+		Action<UpdateSettersBuilder<FileModel>>[] setters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		IFilesRepository repository = Substitute.For<IFilesRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			repository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>())
+				.Returns(1);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFilePropertiesAsync(fileId, setters);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await repository
+			.Received()
+			.UpdatePropertiesAsync(fileId, setters);
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFolderPropertiesAsync" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Folder_Does_Not_Exist()
+	{
+		// Arrange
+		Action<UpdateSettersBuilder<FolderModel>>[] setters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+
+			repository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFolderPropertiesAsync(Guid.NewGuid(), setters);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="DbAccess.UpdateFolderPropertiesAsync" />.
+	/// </summary>
+	[Test]
+	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Folder_Was_Updated()
+	{
+		// Arrange
+		Guid folderId = Guid.NewGuid();
+
+		Action<UpdateSettersBuilder<FolderModel>>[] setters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			repository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(1);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFolderPropertiesAsync(folderId, setters);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await repository
+			.Received()
+			.UpdatePropertiesAsync(folderId, setters);
 	}
 	#endregion
 

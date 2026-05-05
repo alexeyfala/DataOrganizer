@@ -590,7 +590,7 @@ internal class EditorViewModelTests
 			};
 
 			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(pair);
 
 			builder.RegisterInstance(dbAccess);
