@@ -443,19 +443,21 @@ public sealed class DataExchangeService : IDataExchangeService
 			});
 		});
 
+		ILookup<Guid?, FolderModel> foldersByParent = folders.ToLookup(x => x.ParentId);
+
+		ILookup<Guid?, FileModel> filesByParent = files.ToLookup(x => x.ParentId);
+
 		folders.ForEach(folder =>
 		{
-			FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
-
-			FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
-
 			Guid newFolderId = Guid.NewGuid();
+
+			Guid oldFolderId = folder.Id;
 
 			folder.Id = newFolderId;
 
-			childFolders.ForEach(x => x.ParentId = newFolderId);
+			foldersByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 
-			childFiles.ForEach(x => x.ParentId = newFolderId);
+			filesByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 		});
 	}
 
