@@ -75,7 +75,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 				await using MemoryStream memoryStream = new();
 
-				fileStream.CopyTo(memoryStream);
+				await fileStream
+					.CopyToAsync(memoryStream, token)
+					.ConfigureAwait(false);
 
 				byte[] bytes = memoryStream.ToArray();
 
