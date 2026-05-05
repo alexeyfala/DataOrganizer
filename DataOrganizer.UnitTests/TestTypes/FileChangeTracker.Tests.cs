@@ -38,6 +38,8 @@ internal class FileChangeTrackerTests
 		{
 			byte[] contents = TestUtils.CreateRandomBytes(32);
 
+			byte[] hash = TestUtils.CreateRandomBytes(32);
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
@@ -47,6 +49,10 @@ internal class FileChangeTrackerTests
 			fileSystem
 				.OpenRead(Arg.Any<string>())
 				.Returns(_ => new MemoryStream(contents));
+
+			fileSystem
+				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(hash);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -92,6 +98,10 @@ internal class FileChangeTrackerTests
 
 			byte[] encryptedContents = TestUtils.CreateRandomBytes(48);
 
+			byte[] previousHash = TestUtils.CreateRandomBytes(32);
+
+			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
@@ -103,6 +113,10 @@ internal class FileChangeTrackerTests
 				.Returns(
 					_ => new MemoryStream(previousContents),
 					_ => new MemoryStream(currentContents));
+
+			fileSystem
+				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(previousHash, currentHash);
 
 			entityEcryption
 				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -164,6 +178,8 @@ internal class FileChangeTrackerTests
 		{
 			byte[] contents = TestUtils.CreateRandomBytes(32);
 
+			byte[] hash = TestUtils.CreateRandomBytes(32);
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
@@ -173,6 +189,10 @@ internal class FileChangeTrackerTests
 			fileSystem
 				.OpenRead(Arg.Any<string>())
 				.Returns(_ => new MemoryStream(contents));
+
+			fileSystem
+				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(hash);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -216,6 +236,10 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
+			byte[] previousHash = TestUtils.CreateRandomBytes(32);
+
+			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
@@ -227,6 +251,10 @@ internal class FileChangeTrackerTests
 				.Returns(
 					_ => new MemoryStream(previousContents),
 					_ => new MemoryStream(currentContents));
+
+			fileSystem
+				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(previousHash, currentHash);
 
 			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
 
@@ -284,6 +312,10 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
+			byte[] previousHash = TestUtils.CreateRandomBytes(32);
+
+			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
@@ -295,6 +327,10 @@ internal class FileChangeTrackerTests
 				.Returns(
 					_ => new MemoryStream(previousContents),
 					_ => new MemoryStream(currentContents));
+
+			fileSystem
+				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(previousHash, currentHash);
 
 			dbAccess
 				.UpdateFilePropertiesAsync(

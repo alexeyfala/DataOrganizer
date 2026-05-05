@@ -26,6 +26,15 @@ public sealed class FileSystem : IFileSystem
 
 	#region Methods
 	/// <inheritdoc />
+	public ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
+	{
+		return CryptographicOperations.HashDataAsync(
+			HashAlgorithmName.SHA256,
+			stream,
+			token);
+	}
+
+	/// <inheritdoc />
 	public void CreateDirectory(string directoryPath) => Directory.CreateDirectory(directoryPath);
 
 	/// <inheritdoc />

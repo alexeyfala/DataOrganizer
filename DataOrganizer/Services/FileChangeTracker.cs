@@ -9,7 +9,6 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,7 +62,9 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			await using Stream initial = _fileSystem.OpenRead(parameters.FilePath);
 
-			byte[] previousHash = await ComputeSha256HashAsync(initial, token).ConfigureAwait(false);
+			byte[] previousHash = await _fileSystem
+				.ComputeSha256HashAsync(initial, token)
+				.ConfigureAwait(false);
 
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
@@ -74,7 +75,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 				await using Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
 
-				byte[] currentHash = await ComputeSha256HashAsync(currentStream, token).ConfigureAwait(false);
+				byte[] currentHash = await _fileSystem
+					.ComputeSha256HashAsync(currentStream, token)
+					.ConfigureAwait(false);
 
 				if (!currentHash.SequenceEqual(previousHash))
 				{
@@ -154,19 +157,6 @@ public class FileChangeTracker : IFileChangeTracker
 					.ZeroMemory();
 			}
 		}
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of <see cref="Stream" /> content.
-	/// </summary>
-	private static ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
-	{
-		return CryptographicOperations.HashDataAsync(
-			HashAlgorithmName.SHA256,
-			stream,
-			token);
 	}
 	#endregion
 }
