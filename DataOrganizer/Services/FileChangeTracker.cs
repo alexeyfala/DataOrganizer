@@ -60,11 +60,14 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			await using Stream initial = _fileSystem.OpenRead(parameters.FilePath);
+			Stream initial = _fileSystem.OpenRead(parameters.FilePath);
 
 			byte[] previousHash = await _fileSystem
 				.ComputeSha256HashAsync(initial, token)
 				.ConfigureAwait(false);
+
+			// You must explicitly call the Dispose() method without the 'using' keyword, otherwise the file will be locked.
+			initial.Dispose();
 
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
