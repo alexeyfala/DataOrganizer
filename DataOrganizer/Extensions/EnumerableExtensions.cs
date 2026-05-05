@@ -172,9 +172,11 @@ public static class EnumerableExtensions
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		IEnumerable<Guid> identifiers)
 	{
+		Dictionary<Guid, FileModelDto> filesById = GetFiles(hierarchy).ToDictionary(x => x.Id);
+
 		foreach (Guid id in identifiers)
 		{
-			if (FindById(hierarchy, id) is FileModelDto file)
+			if (filesById.TryGetValue(id, out FileModelDto? file))
 			{
 				yield return file;
 			}
