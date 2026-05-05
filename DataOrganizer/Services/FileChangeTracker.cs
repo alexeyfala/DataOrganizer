@@ -66,7 +66,8 @@ public class FileChangeTracker : IFileChangeTracker
 				.ComputeSha256HashAsync(initial, token)
 				.ConfigureAwait(false);
 
-			// You must explicitly call the Dispose() method without the 'using' keyword, otherwise the file will be locked.
+			// You must explicitly call the Dispose() method without the 'using' keyword,
+			// otherwise the file will be locked. Follow this behavior in the code below.
 			initial.Dispose();
 
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
@@ -76,7 +77,7 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				await using Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
+				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
 
 				byte[] currentHash = await _fileSystem
 					.ComputeSha256HashAsync(currentStream, token)
@@ -137,6 +138,8 @@ public class FileChangeTracker : IFileChangeTracker
 				}
 
 				previousHash = currentHash;
+
+				currentStream.Dispose();
 
 				await Task
 					.Delay(800, token)
