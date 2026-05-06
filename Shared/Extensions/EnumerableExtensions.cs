@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shared.Extensions;
@@ -37,6 +38,45 @@ public static class EnumerableExtensions
 	public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
 	{
 		return Task.WhenAll(sequence.Select(action));
+	}
+
+	/// <summary>
+	/// Performs the specified action on each element of the sequence with bounded parallelism.
+	/// Preserves <see cref="Task.WhenAll(IEnumerable{Task})"/> exception semantics (all exceptions are aggregated).
+	/// </summary>
+	/// <param name="maxDegreeOfParallelism">
+	/// Maximum number of concurrently running tasks. Must be positive.
+	/// Choose the value based on the bottleneck resource the action contends for, not on a generic default:
+	/// <list type="bullet">
+	/// <item><description>Database calls — match the connection pool size (or a fraction of it if shared with the rest of the app).</description></item>
+	/// <item><description>HTTP / external APIs — respect the provider's rate limit and per-host connection limit (<see cref="System.Net.ServicePointManager.DefaultConnectionLimit"/> / <c>HttpClient</c> handler settings).</description></item>
+	/// <item><description>File system / disk I/O — typically a small number (e.g. 4–16); higher values rarely help and can thrash on HDDs.</description></item>
+	/// <item><description>CPU-bound work inside the action — use <see cref="Environment.ProcessorCount"/> as a starting point.</description></item>
+	/// </list>
+	/// Note: <see cref="Environment.ProcessorCount"/> is generally a poor default for I/O-bound work — it usually under-utilizes available throughput.
+	/// If no throttling is required, use the overload without this parameter.
+	/// </param>
+	public static async Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action, int maxDegreeOfParallelism)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDegreeOfParallelism);
+
+		using SemaphoreSlim semaphore = new(maxDegreeOfParallelism);
+
+		Task[] tasks = [.. sequence.AsNotNull().Select(async item =>
+		{
+			await semaphore.WaitAsync().ConfigureAwait(false);
+
+			try
+			{
+				await action(item).ConfigureAwait(false);
+			}
+			finally
+			{
+				semaphore.Release();
+			}
+		})];
+
+		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	/// <summary>
