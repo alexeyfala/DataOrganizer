@@ -96,12 +96,8 @@ public sealed class App : Application
 		{
 			Debug.Fail(ex.Message);
 
-			string appDirectory = IAppEnvironment.GetAppDataDirectoryPath();
-
-			Directory.CreateDirectory(appDirectory);
-
 			string filePath = Path.Combine(
-				appDirectory,
+				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
 				$"{AppUtils.AppNameAsOneWord}_Critical_Errors{AppUtils.TxtExtension}");
 
 			File.AppendAllText(
