@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shared.Extensions;
@@ -39,6 +40,39 @@ public static class EnumerableExtensions
 	public static Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action)
 	{
 		return Task.WhenAll(sequence.Select(action));
+	}
+
+	/// <summary>
+	/// Executes a synchronous <paramref name="action"/> over the sequence in parallel on the thread pool
+	/// limited by <paramref name="maxDegreeOfParallelism"/>.
+	/// </summary>
+	/// <remarks>
+	/// Use for CPU-bound or short, non-blocking work on bounded collections where parallelism must be capped
+	/// (avoiding thread pool saturation from <see cref="Task.WhenAll(IEnumerable{Task})"/> with per-item <see cref="Task.Run(Action)"/>).
+	/// Not intended for I/O-bound work — prefer the <see cref="Func{T, TResult}"/>-based overload.
+	/// Exceptions thrown by <paramref name="action"/> are collected and rethrown as an <see cref="AggregateException"/>
+	/// when the returned task is awaited.
+	/// </remarks>
+	public static Task ForEachAsync<T>(
+		this IEnumerable<T> sequence,
+		Action<T> action,
+		in int maxDegreeOfParallelism,
+		CancellationToken token = default)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDegreeOfParallelism);
+
+		ParallelOptions options = new()
+		{
+			CancellationToken = token,
+			MaxDegreeOfParallelism = maxDegreeOfParallelism,
+		};
+
+		return Parallel.ForEachAsync(sequence.AsNotNull(), options, (item, _) =>
+		{
+			action(item);
+
+			return ValueTask.CompletedTask;
+		});
 	}
 
 	/// <summary>

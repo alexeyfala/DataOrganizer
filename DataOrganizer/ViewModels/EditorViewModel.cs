@@ -1250,7 +1250,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
 	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
 	/// </remarks>
-	public async Task ExpandCollapseAllFoldersAsync(bool isExpanded)
+	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
 		if (!isExpanded)
 		{
@@ -1261,14 +1261,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (folders.IsEmpty())
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		await Task
-			.WhenAll(folders.Select(x => Task.Run(() => x.IsExpanded = isExpanded)))
-			.ConfigureAwait(false);
-
-		_logger.LogDebug($"{folders.Length} folders are {(isExpanded ? "expanded" : "collapsed")}");
+		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
 	}
 
 	/// <summary>
