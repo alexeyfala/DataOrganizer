@@ -42,7 +42,6 @@ public static class EnumerableExtensions
 
 	/// <summary>
 	/// Performs the specified action on each element of the sequence with bounded parallelism.
-	/// Preserves <see cref="Task.WhenAll(IEnumerable{Task})"/> exception semantics (all exceptions are aggregated).
 	/// </summary>
 	/// <param name="maxDegreeOfParallelism">
 	/// Maximum number of concurrently running tasks. Must be positive.
@@ -56,7 +55,10 @@ public static class EnumerableExtensions
 	/// Note: <see cref="Environment.ProcessorCount"/> is generally a poor default for I/O-bound work — it usually under-utilizes available throughput.
 	/// If no throttling is required, use the overload without this parameter.
 	/// </param>
-	public static async Task ForEachAsync<T>(this IEnumerable<T> sequence, Func<T, Task> action, int maxDegreeOfParallelism)
+	public static async Task ForEachAsync<T>(
+		this IEnumerable<T> sequence,
+		Func<T, Task> action,
+		int maxDegreeOfParallelism)
 	{
 		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDegreeOfParallelism);
 
@@ -64,7 +66,9 @@ public static class EnumerableExtensions
 
 		Task[] tasks = [.. sequence.AsNotNull().Select(async item =>
 		{
-			await semaphore.WaitAsync().ConfigureAwait(false);
+			await semaphore
+				.WaitAsync()
+				.ConfigureAwait(false);
 
 			try
 			{
@@ -76,7 +80,38 @@ public static class EnumerableExtensions
 			}
 		})];
 
-		await Task.WhenAll(tasks).ConfigureAwait(false);
+		await Task
+			.WhenAll(tasks)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Performs the specified action on each element of the sequence with bounded parallelism, optimized for large collections.
+	/// Spawns at most <paramref name="maxDegreeOfParallelism"/> worker tasks that pull items from the source enumerator,
+	/// so memory and allocation pressure scale with the degree of parallelism, not with the size of the sequence.
+	/// Fail-fast: on first exception, no new iterations start and <paramref name="action"/> receives a canceled token
+	/// so in-flight iterations can abort early; the resulting task faults with the encountered exception(s).
+	/// </summary>
+	/// <param name="maxDegreeOfParallelism">Maximum number of concurrently running iterations. Must be positive.</param>
+	/// <param name="cancellationToken">Token that cancels the overall operation and is forwarded to each invocation of <paramref name="action"/>.</param>
+	public static Task ForEachAsync<T>(
+		this IEnumerable<T> sequence,
+		Func<T, CancellationToken, ValueTask> action,
+		int maxDegreeOfParallelism,
+		CancellationToken cancellationToken = default)
+	{
+		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDegreeOfParallelism);
+
+		ParallelOptions options = new()
+		{
+			MaxDegreeOfParallelism = maxDegreeOfParallelism,
+			CancellationToken = cancellationToken,
+		};
+
+		return Parallel.ForEachAsync(
+			sequence.AsNotNull(),
+			options,
+			action);
 	}
 
 	/// <summary>
