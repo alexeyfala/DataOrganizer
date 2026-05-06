@@ -28,7 +28,6 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// </summary>
 	public bool IsEmpty => _source.Items.Count == 0;
 
-
 	/// <summary>
 	/// A visible sequence of <typeparamref name="TModel" />.
 	/// </summary>
