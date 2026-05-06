@@ -5,6 +5,8 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.Abstract;
 using DataOrganizer.Models;
 using DataOrganizer.ViewModels;
+using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -15,7 +17,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -82,10 +83,9 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is RecordsGroup);
 		}
 
-		await dbAccess.Received().UpdatePropertiesAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -148,10 +148,9 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is KeyValueRecord);
 		}
 
-		await dbAccess.Received().UpdatePropertiesAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -212,10 +211,9 @@ internal class DatasetEditorViewModelTests
 				.Contain(x => x is ValueRecord);
 		}
 
-		await dbAccess.Received().UpdatePropertiesAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -306,7 +304,7 @@ internal class DatasetEditorViewModelTests
 			.BeTrue();
 
 		jsonSerializer
-			.Received(0)
+			.DidNotReceive()
 			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
 	}
 
@@ -350,10 +348,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.NotContain(toBeDeleted);
 
-		await dbAccess.Received().UpdatePropertiesAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -405,10 +402,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(value);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -447,10 +443,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(note);
 
-		await dbAccess.Received().UpdatePropertiesAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -494,10 +489,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(value);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -572,10 +566,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsExpanded == expand);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -608,10 +601,9 @@ internal class DatasetEditorViewModelTests
 		await sut.IsHiddenChanged();
 
 		// Assert
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -655,10 +647,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.Be(name);
 
-		await dbAccess.Received(isSameValue ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -736,10 +727,9 @@ internal class DatasetEditorViewModelTests
 			.Should()
 			.OnlyContain(x => x.IsHidden == hide);
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -827,10 +817,9 @@ internal class DatasetEditorViewModelTests
 				.BeInDescendingOrder(x => x.Name);
 		}
 
-		await dbAccess.Received(isReadOnly ? 0 : 1).UpdatePropertiesAsync(
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<CancellationToken>(),
-			Arg.Any<PropertyNameValuePair[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 	#endregion
 }

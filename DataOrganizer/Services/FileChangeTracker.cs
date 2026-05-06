@@ -1,8 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using Entities.Models;
-using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -62,6 +60,16 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
+			Stream initial = _fileSystem.OpenRead(parameters.FilePath);
+
+			byte[] previousHash = await _fileSystem
+				.ComputeSha256HashAsync(initial, token)
+				.ConfigureAwait(false);
+
+			// You must explicitly call the Dispose() method without the 'using' keyword,
+			// otherwise the file will be locked. Follow this behavior in the code below.
+			initial.Dispose();
+
 			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
 			{
 				if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
@@ -69,70 +77,73 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				await using FileStream fileStream = File.Open(
-					parameters.FilePath,
-					FileMode.Open,
-					FileAccess.Read,
-					FileShare.ReadWrite);
+				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
 
-				await using MemoryStream memoryStream = new();
-
-				fileStream.CopyTo(memoryStream);
-
-				byte[] bytes = memoryStream.ToArray();
+				byte[] currentHash = await _fileSystem
+					.ComputeSha256HashAsync(currentStream, token)
+					.ConfigureAwait(false);
 
 				try
 				{
-					if (!bytes.SequenceEqual(parameters.Contents))
+					if (!currentHash.SequenceEqual(previousHash))
 					{
-						byte[] contents = bytes;
+						currentStream.Position = 0;
 
-						if (parameters.SessionEncryptedDek is not null)
+						await using MemoryStream memoryStream = new();
+
+						await currentStream
+							.CopyToAsync(memoryStream, token)
+							.ConfigureAwait(false);
+
+						byte[] bytes = memoryStream.ToArray();
+
+						try
 						{
-							if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+							if (parameters.SessionEncryptedDek is not null)
 							{
-								_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+								if (_entityEcryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+								{
+									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
-								return;
+									return;
+								}
+
+								bytes = encrypted;
 							}
 
-							contents = encrypted;
+							DateTime updatedDate = DateTime.Now;
+
+							if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
+								[
+									x => x.SetProperty(x => x.Contents, bytes),
+									x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+								], token).ConfigureAwait(false))
+							{
+								_logger.LogDebug(
+									"Contents of file is updated in database:" + Environment.NewLine +
+									$"File Id = {parameters.File.Id}," + Environment.NewLine +
+									$"File path = {parameters.FilePath}," + Environment.NewLine +
+									$"New bytes length = {bytes.Length}.");
+
+								parameters
+									.File
+									.UpdatedDate = updatedDate;
+							}
 						}
-
-						DateTime updatedDate = DateTime.Now;
-
-						PropertyNameValuePair[] properties =
-						[
-							new PropertyNameValuePair(nameof(FileModel.Contents), contents),
-							new PropertyNameValuePair(nameof(FileModel.UpdatedDate), updatedDate)
-						];
-
-						if (await _dbAccess.UpdatePropertiesAsync(
-							id: parameters.File.Id,
-							token: token,
-							properties).ConfigureAwait(false))
+						finally
 						{
-							_logger.LogDebug(
-								"Contents of file is updated in database:" + Environment.NewLine +
-								$"File Id = {parameters.File.Id}," + Environment.NewLine +
-								$"File path = {parameters.FilePath}," + Environment.NewLine +
-								$"Old bytes length = {parameters.Contents.Length}," + Environment.NewLine +
-								$"New bytes length = {bytes.Length}.");
-
-							parameters.Contents = [.. bytes];
-
-							parameters
-								.File
-								.UpdatedDate = updatedDate;
+							if (parameters.SessionEncryptedDek is not null)
+							{
+								bytes.ZeroMemory();
+							}
 						}
 					}
 				}
 				finally
 				{
-					if (parameters.SessionEncryptedDek is not null)
-					{
-						bytes.ZeroMemory();
-					}
+					previousHash = currentHash;
+
+					currentStream.Dispose();
 				}
 
 				await Task

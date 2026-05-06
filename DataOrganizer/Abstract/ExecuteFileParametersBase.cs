@@ -8,7 +8,7 @@ public abstract class ExecuteFileParametersBase
 	/// <summary>
 	/// A contents of the file.
 	/// </summary>
-	public required byte[] Contents { get; set; }
+	public required byte[] Contents { get; init; }
 
 	/// <inheritdoc cref="FileModelDto" />
 	public required FileModelDto File { get; init; }
@@ -16,6 +16,6 @@ public abstract class ExecuteFileParametersBase
 	/// <summary>
 	/// Encrypted within the session DEK.
 	/// </summary>
-	public required byte[]? SessionEncryptedDek { get; set; }
+	public required byte[]? SessionEncryptedDek { get; init; }
 	#endregion
 }

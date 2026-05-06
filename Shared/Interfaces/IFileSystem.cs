@@ -26,9 +26,9 @@ public interface IFileSystem
 
 	#region Methods
 	/// <summary>
-	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of a file.
+	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of <see cref="Stream" /> content.
 	/// </summary>
-	byte[] ComputeSha256Hash(string filePath);
+	ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default);
 
 	/// <inheritdoc cref="Directory.CreateDirectory(string)" />
 	void CreateDirectory(string directoryPath);
@@ -86,6 +86,11 @@ public interface IFileSystem
 	/// <see href="https://code-maze.com/csharp-how-to-check-if-a-file-is-in-use" />
 	/// </summary>
 	bool IsFileLocked(string filePath);
+
+	/// <summary>
+	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent writers (e.g. the user's editor) to modify the file while it is being observed.
+	/// </summary>
+	Stream OpenRead(string filePath);
 
 	/// <inheritdoc cref="File.ReadAllText(string)" />
 	string ReadAllText(string filePath);

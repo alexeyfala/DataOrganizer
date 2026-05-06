@@ -77,7 +77,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			return;
 		}
 
-		_handler.Watch(RestorePopupContentAsync());
+		// The RestorePopupContent method must be executed in DispatcherPriority.Background
+		// otherwise the UI will freeze.
+		_dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
 	}
 
 	/// <summary>
@@ -541,13 +543,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Restores the content for popup.
 	/// </summary>
-	private async Task RestorePopupContentAsync(CancellationToken token = default)
+	private void RestorePopupContent()
 	{
-		// Without delay the window freezes.
-		await Task
-			.Delay(100, token)
-			.ConfigureAwait(true);
-
 		if (_previousPopupContent != FavoritesPopupContentType.None)
 		{
 			switch (_previousPopupContent)

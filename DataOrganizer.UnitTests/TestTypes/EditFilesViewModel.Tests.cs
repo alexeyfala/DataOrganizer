@@ -1,11 +1,8 @@
-﻿using Autofac;
-using Autofac.Extras.Moq;
+﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using NSubstitute;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -52,11 +49,9 @@ internal class EditingFilesViewModelTests
 
 		dto.IsEditing = true;
 
-		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
-
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>(TypedParameter.From(viewLauncher));
+		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
 		// Act
 		sut.OpenInEditor(dto);

@@ -26,11 +26,12 @@ public sealed class FileSystem : IFileSystem
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] ComputeSha256Hash(string filePath)
+	public ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
 	{
-		using FileStream stream = File.OpenRead(filePath);
-
-		return CryptographicOperations.HashData(HashAlgorithmName.SHA256, stream);
+		return CryptographicOperations.HashDataAsync(
+			HashAlgorithmName.SHA256,
+			stream,
+			token);
 	}
 
 	/// <inheritdoc />
@@ -180,6 +181,13 @@ public sealed class FileSystem : IFileSystem
 
 		return false;
 	}
+
+	/// <inheritdoc />
+	public Stream OpenRead(string filePath) => File.Open(
+		filePath,
+		FileMode.Open,
+		FileAccess.Read,
+		FileShare.ReadWrite);
 
 	/// <inheritdoc />
 	public string ReadAllText(string filePath) => File.ReadAllText(filePath);

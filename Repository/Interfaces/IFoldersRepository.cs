@@ -1,9 +1,9 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,38 +19,33 @@ public interface IFoldersRepository
 	ValueTask<EntityEntry<FolderModel>> AddAsync(FolderModel entity, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
-	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token);
+	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns a complete flat list of <see cref="FolderModel" /> entities from the database.
 	/// </summary>
-	Task<FolderModel[]> GetAllAsync(bool trackChanges = false, CancellationToken token = default);
+	Task<FolderModel[]> GetAllAsync(CancellationToken token = default);
 
 	/// <summary>
-	/// Makes a request <see cref="FolderModel" /> from the database by identifier.
+	/// Returns IDs of the folder and all its nested folders (with BFS algorithm).
 	/// </summary>
-	Task<FolderModel> GetAsync(Guid id, bool trackChanges = false, CancellationToken token = default);
+	IAsyncEnumerable<Guid> GetFolderSubtreeIdsAsync(Guid rootId, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a flat list of <see cref="FolderModel" /> entities according to a condition from the database.
+	/// Removes entities from the database by IDs.
 	/// </summary>
-	Task<FolderModel[]> GetAsync(
-		Expression<Func<FolderModel, bool>> condition,
-		bool trackChanges = false,
+	Task<int> RemoveRangeByIdsAsync(Guid[] ids, CancellationToken token = default);
+
+	/// <summary>
+	/// Updates the specified properties of the entity with the given <paramref name="id" />.
+	/// </summary>
+	/// <param name="id">Identifier of the entity to update.</param>
+	/// <param name="setters">Property setters, e.g. <c>b =&gt; b.SetProperty(x =&gt; x.Name, "value")</c>.</param>
+	/// <param name="token">Cancellation token.</param>
+	/// <returns>The number of rows affected (0 if the entity does not exist, otherwise 1).</returns>
+	Task<int> UpdatePropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Returns a flat list of <see cref="FolderModel" /> entities according to a list of IDs.
-	/// </summary>
-	Task<FolderModel[]> GetAsync(
-		IEnumerable<Guid> identifiers,
-		bool trackChanges = false,
-		CancellationToken token = default);
-
-	/// <inheritdoc cref="RepositoryBase{T}.Remove" />
-	EntityEntry<FolderModel> Remove(FolderModel entity);
-
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
-	void RemoveRange(IEnumerable<FolderModel> entities);
 	#endregion Methods
 }

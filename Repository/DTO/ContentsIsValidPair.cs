@@ -1,5 +1,4 @@
-﻿using Entities.Interfaces;
-using System;
+﻿using System;
 using System.Diagnostics;
 
 namespace Repository.DTO;
@@ -16,7 +15,9 @@ public sealed class ContentsIsValidPair
 	/// </summary>
 	public byte[] Contents { get; init; } = [];
 
-	/// <inheritdoc cref="IIdentity.Id" />
+	/// <summary>
+	/// Identifier.
+	/// </summary>
 	public Guid Id { get; init; }
 
 	/// <summary>

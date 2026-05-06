@@ -1,10 +1,8 @@
 ﻿using Entities.Models;
-using Microsoft.EntityFrameworkCore;
 using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,12 +18,15 @@ public sealed class HotkeysRepository : RepositoryBase<HotkeyModel>, IHotkeysRep
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<HotkeyModel[]> GetAsync(
-		Expression<Func<HotkeyModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public Task<int> RemoveRangeByOwnerIdAsync(Guid ownerId, CancellationToken token = default)
 	{
-		return FindBy(condition, trackChanges).ToArrayAsync(token);
+		return RemoveRangeByAsync(x => x.OwnerId == ownerId, token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> RemoveRangeByOwnerIdsAsync(Guid[] ownerIds, CancellationToken token = default)
+	{
+		return RemoveRangeByAsync(x => ownerIds.Contains(x.OwnerId), token);
 	}
 	#endregion
 }

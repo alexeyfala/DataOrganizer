@@ -1250,7 +1250,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
 	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
 	/// </remarks>
-	public async Task ExpandCollapseAllFoldersAsync(bool isExpanded)
+	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
 		if (!isExpanded)
 		{
@@ -1261,14 +1261,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		if (folders.IsEmpty())
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		await Task
-			.WhenAll(folders.Select(x => Task.Run(() => x.IsExpanded = isExpanded)))
-			.ConfigureAwait(false);
-
-		_logger.LogDebug($"{folders.Length} folders are {(isExpanded ? "expanded" : "collapsed")}");
+		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
 	}
 
 	/// <summary>
@@ -1455,15 +1451,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return false;
 		}
 
-		PropertyNameValuePair[] properties =
-		[
-			new PropertyNameValuePair(nameof(ExplorerModelBaseDto.Name), newName),
-			new PropertyNameValuePair(nameof(ExplorerModelBaseDto.UpdatedDate), updatedDate)
-		];
+		Task<bool> task = dto.EntityType switch
+		{
+			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.Name, newName),
+				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+			], token),
+			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.Name, newName),
+				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+			], token),
+			_ => throw new NotImplementedException()
+		};
 
-		if (!await _dbAccess
-			.UpdatePropertiesAsync(dto.Id, token, properties)
-			.ConfigureAwait(false))
+		if (!await task.ConfigureAwait(false))
 		{
 			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
@@ -1896,11 +1899,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsFavorite,
-			token);
+		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+		[
+			x => x.SetProperty(x => x.IsFavorite, dto.IsFavorite)
+		], token);
 	}
 
 	/// <summary>
@@ -1921,11 +1923,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsExpanded,
-			token);
+		return _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+		[
+			x => x.SetProperty(x => x.IsExpanded, dto.IsExpanded)
+		], token);
 	}
 
 	/// <summary>
@@ -1946,11 +1947,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			nameof(ExplorerModelBaseDto.Name),
 			propertyName)}", filePath, callerName, lineNumber);
 
-		return _dbAccess.UpdatePropertyAsync(
-			dto.Id,
-			propertyName,
-			dto.IsSelected,
-			token);
+		return dto.EntityType switch
+		{
+			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
+			], token),
+			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			[
+				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
+			], token),
+			_ => throw new NotImplementedException()
+		};
 	}
 	#endregion
 }

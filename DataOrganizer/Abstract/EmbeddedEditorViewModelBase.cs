@@ -7,13 +7,13 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Entities.Models;
-using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -185,28 +185,26 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	{
 		_logger.LogDebug($@"Saving contents of ""{FileId}"" in the database");
 
-		return UpdatePropertyAsync(
-			propertyName: nameof(FileModel.Contents),
-			value: contents,
-			isUpdatedDate: true,
-			token: token);
+		return _dbAccess.UpdateFilePropertiesAsync(FileId,
+		[
+			x => x.SetProperty(x => x.Contents, contents)
+		], token);
 	}
 
 	/// <summary>
 	/// Saves <see cref="FileModel.Properties" /> to the database.
 	/// </summary>
 	protected Task SavePropertiesAsync(
-		string json,
+		[StringSyntax(StringSyntaxAttribute.Json)] string json,
 		CancellationToken token = default)
 	{
 		_logger.LogDebug(
 			$@"Saving properties of ""{FileId}"" in the database:{json}");
 
-		return UpdatePropertyAsync(
-			propertyName: nameof(FileModel.Properties),
-			value: json,
-			isUpdatedDate: false,
-			token: token);
+		return _dbAccess.UpdateFilePropertiesAsync(FileId,
+		[
+			x => x.SetProperty(x => x.Properties, json)
+		], token);
 	}
 
 	/// <summary>
@@ -237,40 +235,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		return _entityEcryption.EncryptSessionContents(
 			input,
 			SessionEncryptedDek);
-	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Updates property of <see cref="FileModel" /> in the database.
-	/// </summary>
-	private async Task UpdatePropertyAsync<T>(
-		string propertyName,
-		T value,
-		bool isUpdatedDate,
-		CancellationToken token) where T : notnull
-	{
-		DateTime updatedDate = DateTime.Now;
-
-		PropertyNameValuePair[] properties =
-		[
-			new PropertyNameValuePair(propertyName, value)
-		];
-
-		if (isUpdatedDate)
-		{
-			properties = [.. properties, new(nameof(FileModel.UpdatedDate), updatedDate)];
-		}
-
-		if (!await _dbAccess.UpdatePropertiesAsync(
-			id: FileId,
-			token: token,
-			properties).ConfigureAwait(false) || !isUpdatedDate)
-		{
-			return;
-		}
-
-		SetUpdatedDateCallback?.Invoke(updatedDate);
 	}
 	#endregion
 }

@@ -7,6 +7,8 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
+using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
@@ -17,7 +19,6 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -68,7 +69,7 @@ internal class EntityEcryptionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -137,7 +138,7 @@ internal class EntityEcryptionTests
 				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(dialogService);
@@ -155,7 +156,7 @@ internal class EntityEcryptionTests
 		// Assert
 		await dbAccess
 			.Received()
-			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
 	}
 
 	/// <summary>
@@ -295,7 +296,7 @@ internal class EntityEcryptionTests
 				.Returns([]);
 
 			dbAccess
-				.BackupDatabase()
+				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(encryption);
@@ -313,7 +314,7 @@ internal class EntityEcryptionTests
 		// Assert
 		await dbAccess
 			.Received()
-			.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>());
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
 	}
 
 	/// <summary>
@@ -347,7 +348,7 @@ internal class EntityEcryptionTests
 			.BeNull();
 
 		encryption
-			.Received(0)
+			.DidNotReceive()
 			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
@@ -900,7 +901,7 @@ internal class EntityEcryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -951,18 +952,18 @@ internal class EntityEcryptionTests
 			PasswordHash = AppUtils.CreateRandomString(10)
 		};
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, PropertyNameValuePair[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
 				.Returns(true);
 
 			dbAccess
-				.UpdatePropertiesAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>(), Arg.Any<PropertyNameValuePair[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);

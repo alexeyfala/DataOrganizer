@@ -95,7 +95,7 @@
 				Grid.Row="1"
 				Width="{Binding PopupWidth, Mode=OneWay}"
 				Height="{Binding PopupHeight, Mode=OneWay}"
-				IsLightDismissEnabled="{Binding !IsPopupFixed, Mode=TwoWay}"
+				IsLightDismissEnabled="{Binding !IsPopupFixed, Mode=OneWay}"
 				IsOpen="{Binding IsPopupOpen, Mode=TwoWay}"
 				OverlayDismissEventPassThrough="True"
 				Placement="Top"

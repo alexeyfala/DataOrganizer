@@ -1,11 +1,10 @@
 ﻿using Entities.Abstract;
-using Entities.Interfaces;
 using System;
 
 namespace DataOrganizer.DTO.Entities.Abstract;
 
 /// <inheritdoc cref="EntityModelBase" />
-public abstract class EntityModelBaseDto : IIdentity
+public abstract class EntityModelBaseDto
 {
 	#region Properties
 	/// <inheritdoc />

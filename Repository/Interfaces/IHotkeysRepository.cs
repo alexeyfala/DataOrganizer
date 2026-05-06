@@ -2,8 +2,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Repository.Abstract;
 using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,17 +14,16 @@ public interface IHotkeysRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
-	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token);
+	ValueTask<EntityEntry<HotkeyModel>> AddAsync(HotkeyModel entity, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a flat list of <see cref="HotkeyModel" /> entities according to a condition from the database.
+	/// Removes entities from the database by owner ID.
 	/// </summary>
-	Task<HotkeyModel[]> GetAsync(
-		Expression<Func<HotkeyModel, bool>> condition,
-		bool trackChanges = false,
-		CancellationToken token = default);
+	Task<int> RemoveRangeByOwnerIdAsync(Guid ownerId, CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.RemoveRange" />
-	void RemoveRange(IEnumerable<HotkeyModel> entities);
+	/// <summary>
+	/// Removes entities from the database by owner IDs.
+	/// </summary>
+	Task<int> RemoveRangeByOwnerIdsAsync(Guid[] ownerIds, CancellationToken token = default);
 	#endregion
 }

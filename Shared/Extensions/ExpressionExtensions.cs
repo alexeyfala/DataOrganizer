@@ -54,9 +54,35 @@ public static class ExpressionExtensions
 			_ => null
 		};
 
-		return body is not null
-			? Expression.Lambda(body).Compile().DynamicInvoke()
-			: null;
+		return Evaluate(body);
+	}
+
+	/// <summary>
+	/// Computes the value of an expression without runtime compilation.
+	/// </summary>
+	private static object? Evaluate(Expression? expression)
+	{
+		return expression switch
+		{
+			null => null,
+			ConstantExpression constant => constant.Value,
+			MemberExpression member => GetMemberValue(member.Member, Evaluate(member.Expression)),
+			// Fallback for unsupported expression shapes.
+			_ => Expression.Lambda(expression).Compile().DynamicInvoke()
+		};
+	}
+
+	/// <summary>
+	/// Reads a field or property value via reflection.
+	/// </summary>
+	private static object? GetMemberValue(MemberInfo member, object? target)
+	{
+		return member switch
+		{
+			FieldInfo field => field.GetValue(target),
+			PropertyInfo property => property.GetValue(target),
+			_ => null
+		};
 	}
 
 	/// <summary>

@@ -1,6 +1,8 @@
 ﻿using Entities.Abstract;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 
 namespace Repository.DbContexts;
 
@@ -36,6 +38,10 @@ public class SqliteDbContext : DbContext
 	/// <inheritdoc />
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
+		ValueConverter<DateTime, DateTime> timeTicksRemoveConverter = new(
+			x => new DateTime(x.Ticks - (x.Ticks % TimeSpan.TicksPerSecond), x.Kind),
+			x => x);
+
 		#region Base
 		// SQLite does not support sequences or Identity seed/increment, and hence integer key value generation
 		// is not supported when using SQLite with the TPC strategy.
@@ -48,6 +54,16 @@ public class SqliteDbContext : DbContext
 		modelBuilder
 			.Entity<ExplorerModelBase>()
 			.HasIndex(x => x.Id);
+
+		modelBuilder
+			.Entity<ExplorerModelBase>()
+			.Property(x => x.CreatedDate)
+			.HasConversion(timeTicksRemoveConverter);
+
+		modelBuilder
+			.Entity<ExplorerModelBase>()
+			.Property(x => x.UpdatedDate)
+			.HasConversion(timeTicksRemoveConverter);
 		#endregion
 
 		#region Folder
@@ -75,13 +91,7 @@ public class SqliteDbContext : DbContext
 			.Entity<FileModel>()
 			.HasMany(x => x.Hotkeys)
 			.WithOne(x => x.Owner)
-			.HasForeignKey(x => x.OwnerId)
-			.OnDelete(DeleteBehavior.ClientCascade);
-
-		modelBuilder
-			.Entity<FileModel>()
-			.Navigation(x => x.Hotkeys)
-			.AutoInclude();
+			.HasForeignKey(x => x.OwnerId);
 
 		modelBuilder
 			.Entity<FileModel>()

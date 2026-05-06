@@ -149,7 +149,7 @@ internal class ConsoleViewModelTests
 
 		// Assert
 		processUtils
-			.Received(0)
+			.DidNotReceive()
 			.OpenDirectory(Arg.Any<string>());
 	}
 

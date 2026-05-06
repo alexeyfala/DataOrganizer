@@ -890,7 +890,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Expands or collapses all <see cref="RecordsGroup" /> in <see cref="RecordsGroup.Children" /> or in <see cref="Records" /> depending on <paramref name="expand"/> value.
 	/// </summary>
-	public Task ExpandCollapseAsync(
+	public async Task ExpandCollapseAsync(
 		RecordsGroup? group,
 		bool expand,
 		CancellationToken token = default)
@@ -902,19 +902,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		if (groups.IsEmpty())
 		{
-			return Task.CompletedTask;
+			return;
 		}
-
-		groups.ForEach(x => x.IsExpanded = expand);
 
 		_logger.LogInformation($"{(expand ? "Expand" : "Collapse")} all groups");
 
+		await groups
+			.ForEachAsync(x => x.IsExpanded = expand, Environment.ProcessorCount, token)
+			.ConfigureAwait(false);
+
 		if (IsReadOnly || IsContentCorrupted)
 		{
-			return Task.CompletedTask;
+			return;
 		}
 
-		return SaveContentsAsync(token);
+		await SaveContentsAsync(token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc cref="RenameGroup" />

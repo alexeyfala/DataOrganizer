@@ -6,6 +6,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -133,16 +134,11 @@ public sealed class EntityEcryption : IEntityEcryption
 
 					string passwordHash = _encryption.HashPassword(newPassword);
 
-					PropertyNameValuePair[] properties =
-					[
-						new PropertyNameValuePair(nameof(FolderModel.PasswordHash), passwordHash),
-						new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), encryptedDek)
-					];
-
-					if (!await _dbAccess.UpdatePropertiesAsync(
-						id: folder.Id,
-						token: token,
-						properties: properties).ConfigureAwait(false))
+					if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
+						[
+							x => x.SetProperty(x => x.PasswordHash, passwordHash),
+							x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
+						], token).ConfigureAwait(false))
 					{
 						return;
 					}
@@ -242,7 +238,9 @@ public sealed class EntityEcryption : IEntityEcryption
 						return;
 					}
 
-					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					if (await _dbAccess
+						.BackupDatabaseAsync(token)
+						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -359,7 +357,9 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				try
 				{
-					if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					if (await _dbAccess
+						.BackupDatabaseAsync(token)
+						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -701,17 +701,19 @@ public sealed class EntityEcryption : IEntityEcryption
 		{
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, PropertyNameValuePair[]> relations = parameters.Contents.ToDictionary(x => x.Id, x =>
+			Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = parameters
+				.Contents
+				.ToDictionary(x => x.Id, pair =>
 			{
-				return new PropertyNameValuePair[]
+				return new Action<UpdateSettersBuilder<FileModel>>[]
 				{
-					new(nameof(FileModel.Contents), x.Contents),
-					new(nameof(FileModel.UpdatedDate), updatedDate)
+					builder => builder.SetProperty(x => x.Contents, pair.Contents),
+					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
 				};
 			});
 
 			if (!await _dbAccess
-				.UpdatePropertiesAsync(relations, token)
+				.UpdateFilePropertiesAsync(updates, token)
 				.ConfigureAwait(false))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
@@ -725,16 +727,11 @@ public sealed class EntityEcryption : IEntityEcryption
 				return UpdateDatabaseResult.FailedToSaveContentsInDb;
 			}
 
-			PropertyNameValuePair[] properties =
-			[
-				new PropertyNameValuePair(nameof(FolderModel.PasswordHash), parameters.PasswordHash),
-				new PropertyNameValuePair(nameof(FolderModel.EncryptedDek), parameters.EncryptedDek)
-			];
-
-			if (!await _dbAccess.UpdatePropertiesAsync(
-				id: parameters.Folder.Id,
-				token: token,
-				properties: properties).ConfigureAwait(false))
+			if (!await _dbAccess.UpdateFolderPropertiesAsync(parameters.Folder.Id,
+				[
+					x => x.SetProperty(x => x.PasswordHash, parameters.PasswordHash),
+					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
+				], token).ConfigureAwait(false))
 			{
 				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 

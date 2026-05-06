@@ -172,9 +172,11 @@ public static class EnumerableExtensions
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
 		IEnumerable<Guid> identifiers)
 	{
+		Dictionary<Guid, FileModelDto> filesById = GetFiles(hierarchy).ToDictionary(x => x.Id);
+
 		foreach (Guid id in identifiers)
 		{
-			if (FindById(hierarchy, id) is FileModelDto file)
+			if (filesById.TryGetValue(id, out FileModelDto? file))
 			{
 				yield return file;
 			}
@@ -473,15 +475,14 @@ public static class EnumerableExtensions
 		this FolderModelDto[] folders,
 		FileModelDto[] files)
 	{
+		Dictionary<Guid, FolderModelDto> foldersById = folders.ToDictionary(x => x.Id);
+
 		foreach (FileModelDto file in files)
 		{
-			if (file.ParentId is null || folders.All(x => x.Id != file.ParentId))
+			if (file.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderModelDto? parent))
 			{
 				yield return file;
-			}
 
-			if (folders.FirstOrDefault(x => x.Id == file.ParentId) is not { } parent)
-			{
 				continue;
 			}
 
@@ -494,18 +495,18 @@ public static class EnumerableExtensions
 
 		foreach (FolderModelDto folder in folders)
 		{
-			if (folder.ParentId is null || folders.All(x => x.Id != folder.ParentId))
+			if (folder.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderModelDto? parent))
 			{
 				yield return folder;
-			}
-			else if (folders.FirstOrDefault(x => x.Id == folder.ParentId) is { } parent)
-			{
-				parent
-					.Children
-					.Add(folder);
 
-				folder.Parent = parent;
+				continue;
 			}
+
+			parent
+				.Children
+				.Add(folder);
+
+			folder.Parent = parent;
 		}
 	}
 

@@ -1,6 +1,6 @@
 ﻿using Entities.Abstract;
-using Entities.Interfaces;
 using Entities.Models;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using System;
 using System.Collections.Generic;
@@ -44,17 +44,19 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Tries to backup database in file, and returns a path to it.
 	/// </summary>
-	string? BackupDatabase();
+	Task<string?> BackupDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Backups SQLite database.
 	/// </summary>
-	void BackupSqliteDatabase(in BackupSqliteParameters parameters);
+	Task BackupSqliteDatabaseAsync(
+		BackupSqliteParameters parameters,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Completely clears the database.
 	/// </summary>
-	bool ClearDatabase();
+	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Establishes a connection to the database.
@@ -82,19 +84,12 @@ public interface IDbAccess : IDisposable
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
 	/// <inheritdoc cref="IFilesRepository.GetAllAsync" />
-	Task<FileModel[]> GetAllFilesAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties);
+	Task<FileModel[]> GetAllFilesAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IFoldersRepository.GetAllAsync" />
-	Task<FolderModel[]> GetAllFoldersAsync(
-		bool trackChanges = false,
-		CancellationToken token = default);
+	Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default);
 
-	/// <summary>
-	/// Gets the database file path.
-	/// </summary>
+	/// <inheritdoc cref="IDbContextService.GetDbFilePath" />
 	string GetDbFilePath();
 
 	/// <summary>
@@ -135,42 +130,26 @@ public interface IDbAccess : IDisposable
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the properties of an entity in the database.
+	/// Updates properties of <see cref="FileModel" />.
 	/// </summary>
-	Task<bool> UpdatePropertiesAsync<T>(
-		T dtoSource,
-		CancellationToken token,
-		params string[] propertyNames) where T : class, IIdentity;
-
-	/// <inheritdoc cref="UpdatePropertiesAsync{T}" />
-	Task<bool> UpdatePropertiesAsync(
+	Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
-		CancellationToken token,
-		params PropertyNameValuePair[] properties);
-
-	/// <summary>
-	/// Updates the properties of entities in the database.
-	/// </summary>
-	Task<bool> UpdatePropertiesAsync(
-		IDictionary<Guid, PropertyNameValuePair[]> relations,
+		Action<UpdateSettersBuilder<FileModel>>[] setters,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the property of an entity in the database.
+	/// Updates properties of multiple <see cref="FileModel" /> entities in a single transaction.
 	/// </summary>
-	Task<bool> UpdatePropertyAsync<T>(
-		Guid id,
-		string propertyName,
-		T value,
+	Task<bool> UpdateFilePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates property of entities in the database by identifiers.
+	/// Updates properties of <see cref="FolderModel" />.
 	/// </summary>
-	Task<bool> UpdatePropertyAsync<T>(
-		IEnumerable<Guid> identifiers,
-		string propertyName,
-		T value,
+	Task<bool> UpdateFolderPropertiesAsync(
+		Guid id,
+		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default);
 	#endregion
 }

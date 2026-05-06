@@ -1,12 +1,9 @@
-﻿using Entities.Interfaces;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Repository.DbContexts;
 using Repository.Interfaces;
-using Shared.Extensions;
-using System;
-using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -19,6 +16,11 @@ public sealed class DbContextService : IDbContextService
 	#region Data
 	/// <inheritdoc cref="SqliteDbContext" />
 	private readonly SqliteDbContext _dbContext;
+
+	/// <summary>
+	/// Returns <c>True</c> if the service was disposed.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
@@ -27,33 +29,16 @@ public sealed class DbContextService : IDbContextService
 
 	#region Methods
 	/// <inheritdoc />
-	public void Detach<T>(IEnumerable<T> entities) where T : class, IIdentity
+	public void Dispose()
 	{
-		LocalView<T> localView = GetLocalView<T>();
-
-		if (localView.Count == 0)
+		if (_isDisposed)
 		{
 			return;
 		}
 
-		IEnumerable<Guid> identifiers = entities.Select(x => x.Id);
+		_isDisposed = true;
 
-		localView
-			.Where(x => identifiers.Contains(x.Id))
-			.ForEach(x => SetEntryState(x, EntityState.Detached));
-	}
-
-	/// <inheritdoc />
-	public void Detach<T>(Guid id) where T : class, IIdentity
-	{
-		LocalView<T> localView = GetLocalView<T>();
-
-		if (localView.Count == 0 || localView.FirstOrDefault(x => x.Id == id) is not { } local)
-		{
-			return;
-		}
-
-		SetEntryState(local, EntityState.Detached);
+		_dbContext.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -81,6 +66,23 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public DbConnection GetDbConnection()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection();
+	}
+
+	/// <inheritdoc />
+	public string GetDbFilePath()
+	{
+		return _dbContext
+			.Database
+			.GetDbConnection()
+			.DataSource;
+	}
+
+	/// <inheritdoc />
 	public bool HasMigrations(Assembly assembly)
 	{
 		return assembly
@@ -103,6 +105,9 @@ public sealed class DbContextService : IDbContextService
 			.Database
 			.MigrateAsync(token);
 	}
+
+	/// <inheritdoc />
+	public Task<int> SaveChangesAsync(CancellationToken token = default) => _dbContext.SaveChangesAsync(token);
 	#endregion
 
 	#region Service

@@ -1,9 +1,9 @@
 ﻿using Entities.Abstract;
 using Entities.Enums;
-using Entities.Interfaces;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -31,9 +31,6 @@ public sealed class DbAccess : IDbAccess
 	#region Data
 	/// <inheritdoc cref="IExplorerModelBaseRepository" />
 	private readonly IExplorerModelBaseRepository _baseRepository;
-
-	/// <inheritdoc cref="SqliteDbContext" />
-	private readonly SqliteDbContext _dbContext;
 
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
@@ -70,12 +67,9 @@ public sealed class DbAccess : IDbAccess
 		IFileSystem fileSystem,
 		IFoldersRepository foldersRepository,
 		IHotkeysRepository hotkeysRepository,
-		ILogger logger,
-		SqliteDbContext dbContext)
+		ILogger logger)
 	{
 		_baseRepository = baseRepository;
-
-		_dbContext = dbContext;
 
 		_dbContextService = dbContextService;
 
@@ -107,7 +101,7 @@ public sealed class DbAccess : IDbAccess
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -141,7 +135,7 @@ public sealed class DbAccess : IDbAccess
 				.AddRangeAsync(files, token)
 				.ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -175,7 +169,7 @@ public sealed class DbAccess : IDbAccess
 				.AddRangeAsync(folders, token)
 				.ConfigureAwait(false);
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -217,7 +211,7 @@ public sealed class DbAccess : IDbAccess
 					.ConfigureAwait(false);
 			}
 
-			await _dbContext
+			await _dbContextService
 				.SaveChangesAsync(token)
 				.ConfigureAwait(false);
 
@@ -239,10 +233,14 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public string? BackupDatabase()
+	public async Task<string?> BackupDatabaseAsync(CancellationToken token = default)
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			string dbFilePath = GetDbFilePath();
 
 			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
@@ -275,47 +273,46 @@ public sealed class DbAccess : IDbAccess
 
 			return null;
 		}
-	}
-
-	/// <inheritdoc />
-	public void BackupSqliteDatabase(in BackupSqliteParameters parameters)
-	{
-		SqliteConnectionStringBuilder sourceBuilder = new()
+		finally
 		{
-			DataSource = parameters.SourceFilePath
-		};
-
-		SqliteConnectionStringBuilder destBuilder = new()
-		{
-			DataSource = parameters.DestFilePath
-		};
-
-		using SqliteConnection source = new(sourceBuilder.ToString());
-
-		using SqliteConnection dest = new(destBuilder.ToString());
-
-		source.Open();
-
-		dest.Open();
-
-		source.BackupDatabase(dest);
-
-		if (parameters.ClearSourcePool)
-		{
-			SqliteConnection.ClearPool(source);
-		}
-
-		if (parameters.ClearDestPool)
-		{
-			SqliteConnection.ClearPool(dest);
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
 	/// <inheritdoc />
-	public bool ClearDatabase()
+	public async Task BackupSqliteDatabaseAsync(
+		BackupSqliteParameters parameters,
+		CancellationToken token = default)
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			BackupSqliteDatabase(parameters);
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> ClearDatabaseAsync(CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			_dbContextService.EnsureDeleted();
 
 			if (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly()))
@@ -335,6 +332,13 @@ public sealed class DbAccess : IDbAccess
 
 			return false;
 		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
 	}
 
 	/// <inheritdoc />
@@ -342,6 +346,10 @@ public sealed class DbAccess : IDbAccess
 	{
 		try
 		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
 			_logger.LogInformation("Connecting to the database.");
 
 			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
@@ -351,6 +359,13 @@ public sealed class DbAccess : IDbAccess
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
 		}
 	}
 
@@ -393,12 +408,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DetachAndDelete(await _filesRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false));
+			await _hotkeysRepository
+				.RemoveRangeByOwnerIdAsync(id, token)
+				.ConfigureAwait(false);
 
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _filesRepository
+				.RemoveAsync(id, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -427,20 +442,28 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DetachAndDelete(await GetChildFilesAsync(id, token)
+			Guid[] folderIds = await _foldersRepository
+				.GetFolderSubtreeIdsAsync(id, token)
 				.ToArrayAsync(token)
-				.ConfigureAwait(false));
+				.ConfigureAwait(false);
 
-			DetachAndDelete(await GetChildFoldersAsync(id, token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false));
+			Guid[] fileIds = await _filesRepository
+				.GetFileIdsAsync(folderIds, token)
+				.ConfigureAwait(false);
 
-			DetachAndDelete(await _foldersRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false));
+			if (fileIds.Length > 0)
+			{
+				await _hotkeysRepository
+					.RemoveRangeByOwnerIdsAsync(fileIds, token)
+					.ConfigureAwait(false);
 
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+				await _filesRepository
+					.RemoveRangeByIdsAsync(fileIds, token)
+					.ConfigureAwait(false);
+			}
+
+			int count = await _foldersRepository
+				.RemoveRangeByIdsAsync(folderIds, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -469,14 +492,8 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			HotkeyModel[] hotkeys = await _hotkeysRepository
-				.GetAsync(x => x.OwnerId == fileId, token: token)
-				.ConfigureAwait(false);
-
-			DetachAndDelete(hotkeys);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _hotkeysRepository
+				.RemoveRangeByOwnerIdAsync(fileId, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -509,15 +526,10 @@ public sealed class DbAccess : IDbAccess
 		_isDisposed = true;
 
 		_semaphore.Dispose();
-
-		_dbContext.Dispose();
 	}
 
 	/// <inheritdoc />
-	public async Task<FileModel[]> GetAllFilesAsync(
-		bool trackChanges = false,
-		CancellationToken token = default,
-		params string[] excludedProperties)
+	public async Task<FileModel[]> GetAllFilesAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -525,10 +537,9 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _filesRepository.GetAllAsync(
-				trackChanges,
-				token,
-				excludedProperties).ConfigureAwait(false);
+			return await _filesRepository
+				.GetAllAsync(token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -546,9 +557,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FolderModel[]> GetAllFoldersAsync(
-		bool trackChanges = false,
-		CancellationToken token = default)
+	public async Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -557,7 +566,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _foldersRepository
-				.GetAllAsync(trackChanges, token)
+				.GetAllAsync(token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -576,13 +585,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public string GetDbFilePath()
-	{
-		return _dbContext
-			.Database
-			.GetDbConnection()
-			.DataSource;
-	}
+	public string GetDbFilePath() => _dbContextService.GetDbFilePath();
 
 	/// <inheritdoc />
 	public async Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default)
@@ -593,13 +596,16 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			FileModel entity = await _filesRepository
-				.GetAsync(id, token: token)
-				.ConfigureAwait(false);
+			if (await _filesRepository
+				.GetContentsAsync(id, token)
+				.ConfigureAwait(false) is not { } contents)
+			{
+				return new();
+			}
 
 			return new()
 			{
-				Contents = entity.Contents,
+				Contents = contents,
 				Id = id,
 				IsValid = true
 			};
@@ -628,11 +634,9 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			FileModel entity = await _filesRepository
-				.GetAsync(id, token: token)
+			return await _filesRepository
+				.GetPropertiesAsync(id, token)
 				.ConfigureAwait(false);
-
-			return entity.Properties;
 		}
 		catch (Exception ex)
 		{
@@ -792,9 +796,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			DbConnection connection = _dbContext
-				.Database
-				.GetDbConnection();
+			DbConnection connection = _dbContextService.GetDbConnection();
 
 			if (connection.State != ConnectionState.Closed)
 			{
@@ -829,86 +831,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync<T>(
-		T dtoSource,
-		CancellationToken token,
-		params string[] propertyNames) where T : class, IIdentity
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(dtoSource.Id, trackChanges: true, token)
-				.ConfigureAwait(false);
-
-			dtoSource.CopyPropertiesTo(entity, propertyNames);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync(
+	public async Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
-		CancellationToken token,
-		params PropertyNameValuePair[] properties)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(id, trackChanges: true, token)
-				.ConfigureAwait(false);
-
-			properties.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertiesAsync(
-		IDictionary<Guid, PropertyNameValuePair[]> relations,
+		Action<UpdateSettersBuilder<FileModel>>[] setters,
 		CancellationToken token = default)
 	{
 		try
@@ -917,19 +842,8 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			foreach (KeyValuePair<Guid, PropertyNameValuePair[]> relation in relations)
-			{
-				ExplorerModelBase entity = await _baseRepository
-					.GetAsync(relation.Key, trackChanges: true, token)
-					.ConfigureAwait(false);
-
-				relation
-					.Value
-					.ForEach(x => entity.SetPropertyValue(x.PropertyName, x.Value));
-			}
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _filesRepository
+				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -950,10 +864,41 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> UpdatePropertyAsync<T>(
+	public async Task<bool> UpdateFilePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			int count = await _filesRepository
+				.UpdatePropertiesAsync(updates, token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			if (!_isDisposed)
+			{
+				_semaphore.Release();
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateFolderPropertiesAsync(
 		Guid id,
-		string propertyName,
-		T value,
+		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default)
 	{
 		try
@@ -962,54 +907,8 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = await _baseRepository
-				.GetAsync(id, trackChanges: true, token)
-				.ConfigureAwait(false);
-
-			entity.SetPropertyValue(propertyName, value);
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
-				.ConfigureAwait(false);
-
-			return count > 0;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			if (!_isDisposed)
-			{
-				_semaphore.Release();
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> UpdatePropertyAsync<T>(
-		IEnumerable<Guid> identifiers,
-		string propertyName,
-		T value,
-		CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			ExplorerModelBase[] sequence = await _baseRepository
-				.GetAsync(identifiers, trackChanges: true, token)
-				.ConfigureAwait(false);
-
-			sequence.ForEach(x => x.SetPropertyValue(propertyName, value));
-
-			int count = await _dbContext
-				.SaveChangesAsync(token)
+			int count = await _foldersRepository
+				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
 
 			return count > 0;
@@ -1031,6 +930,40 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Service
+	/// <inheritdoc cref="BackupSqliteDatabaseAsync" />
+	private static void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	{
+		SqliteConnectionStringBuilder sourceBuilder = new()
+		{
+			DataSource = parameters.SourceFilePath
+		};
+
+		SqliteConnectionStringBuilder destBuilder = new()
+		{
+			DataSource = parameters.DestFilePath
+		};
+
+		using SqliteConnection source = new(sourceBuilder.ToString());
+
+		using SqliteConnection dest = new(destBuilder.ToString());
+
+		source.Open();
+
+		dest.Open();
+
+		source.BackupDatabase(dest);
+
+		if (parameters.ClearSourcePool)
+		{
+			SqliteConnection.ClearPool(source);
+		}
+
+		if (parameters.ClearDestPool)
+		{
+			SqliteConnection.ClearPool(dest);
+		}
+	}
+
 	/// <inheritdoc cref="SqliteConnection.ClearPool" />
 	private static void ClearPool(SqliteDbContext context)
 	{
@@ -1131,118 +1064,6 @@ public sealed class DbAccess : IDbAccess
 			.ConfigureAwait(false);
 
 		return folder;
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes <see cref="FolderModel" />.
-	/// </summary>
-	private void DetachAndDelete(FolderModel entity)
-	{
-		_dbContextService.Detach<FolderModel>(entity.Id);
-
-		_foldersRepository.Remove(entity);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(FileModel file)
-	{
-		_dbContextService.Detach<FileModel>(file.Id);
-
-		_filesRepository.Remove(file);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FolderModel" />.
-	/// </summary>
-	private void DetachAndDelete(FolderModel[] folders)
-	{
-		if (folders.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(folders);
-
-		_foldersRepository.RemoveRange(folders);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(FileModel[] files)
-	{
-		if (files.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(files);
-
-		_filesRepository.RemoveRange(files);
-	}
-
-	/// <summary>
-	/// Stops tracking changes and deletes sequence of <see cref="FileModel" />.
-	/// </summary>
-	private void DetachAndDelete(HotkeyModel[] hotkeys)
-	{
-		if (hotkeys.IsEmpty())
-		{
-			return;
-		}
-
-		_dbContextService.Detach(hotkeys);
-
-		_hotkeysRepository.RemoveRange(hotkeys);
-	}
-
-	/// <summary>
-	/// Returns a flat list of child <see cref="FileModel" /> objects according to parent ID, recursively.
-	/// </summary>
-	private async IAsyncEnumerable<FileModel> GetChildFilesAsync(
-		Guid parentId,
-		[EnumeratorCancellation] CancellationToken token)
-	{
-		foreach (FileModel document in await _filesRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			yield return document;
-		}
-
-		foreach (FolderModel folder in await _foldersRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			await foreach (FileModel child in GetChildFilesAsync(
-				folder.Id,
-				token).ConfigureAwait(false))
-			{
-				yield return child;
-			}
-		}
-	}
-
-	/// <summary>
-	/// Returns a flat list of child <see cref="FolderModel" /> entities according to parent ID, recursively.
-	/// </summary>
-	private async IAsyncEnumerable<FolderModel> GetChildFoldersAsync(
-		Guid parentId,
-		[EnumeratorCancellation] CancellationToken token)
-	{
-		foreach (FolderModel child in await _foldersRepository
-			.GetAsync(x => x.ParentId == parentId, token: token)
-			.ConfigureAwait(false))
-		{
-			yield return child;
-
-			await foreach (FolderModel item in GetChildFoldersAsync(child.Id, token).ConfigureAwait(false))
-			{
-				yield return item;
-			}
-		}
 	}
 	#endregion
 }

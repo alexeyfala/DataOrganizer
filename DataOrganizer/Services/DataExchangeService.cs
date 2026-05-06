@@ -166,7 +166,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case AppUtils.SQLiteExtension:
-					ExportToSQLite(filePath);
+					await ExportToSQLiteAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				default:
@@ -222,7 +222,9 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		if (_dbAccess.BackupDatabase() is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+		if (await _dbAccess
+			.BackupDatabaseAsync(token)
+			.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
 			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
 
@@ -246,7 +248,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						variant,
 						objects,
 						hierarchy,
-						token))
+						token).ConfigureAwait(false))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
@@ -264,7 +266,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						variant,
 						objects,
 						hierarchy,
-						token))
+						token).ConfigureAwait(false))
 					{
 						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
 
@@ -352,7 +354,9 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportListVariant.Replace && !_dbAccess.ClearDatabase())
+		if (variant == ImportListVariant.Replace && !await _dbAccess
+			.ClearDatabaseAsync(token)
+			.ConfigureAwait(false))
 		{
 			return false;
 		}
@@ -439,19 +443,21 @@ public sealed class DataExchangeService : IDataExchangeService
 			});
 		});
 
+		ILookup<Guid?, FolderModel> foldersByParent = folders.ToLookup(x => x.ParentId);
+
+		ILookup<Guid?, FileModel> filesByParent = files.ToLookup(x => x.ParentId);
+
 		folders.ForEach(folder =>
 		{
-			FolderModel[] childFolders = [.. folders.Where(x => folder.Id == x.ParentId)];
-
-			FileModel[] childFiles = [.. files.Where(x => folder.Id == x.ParentId)];
-
 			Guid newFolderId = Guid.NewGuid();
+
+			Guid oldFolderId = folder.Id;
 
 			folder.Id = newFolderId;
 
-			childFolders.ForEach(x => x.ParentId = newFolderId);
+			foldersByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 
-			childFiles.ForEach(x => x.ParentId = newFolderId);
+			filesByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 		});
 	}
 
@@ -470,7 +476,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Exports data to SQLite database.
 	/// </summary>
-	private void ExportToSQLite(string filePath)
+	private Task ExportToSQLiteAsync(string filePath, CancellationToken token)
 	{
 		BackupSqliteParameters parameters = new()
 		{
@@ -480,7 +486,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			SourceFilePath = _dbAccess.GetDbFilePath()
 		};
 
-		_dbAccess.BackupSqliteDatabase(parameters);
+		return _dbAccess.BackupSqliteDatabaseAsync(parameters, token);
 	}
 
 	/// <summary>

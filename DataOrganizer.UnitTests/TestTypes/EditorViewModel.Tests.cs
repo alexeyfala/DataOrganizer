@@ -17,6 +17,7 @@ using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -270,7 +271,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 
@@ -471,7 +472,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 
@@ -559,7 +560,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dbAccess
-			.Received(0)
+			.DidNotReceive()
 			.GetFileContentsAsync(Arg.Any<Guid>());
 	}
 
@@ -589,7 +590,7 @@ internal class EditorViewModelTests
 			};
 
 			dbAccess
-				.GetFileContentsAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(pair);
 
 			builder.RegisterInstance(dbAccess);
@@ -1204,8 +1205,6 @@ internal class EditorViewModelTests
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		ExplorerModelBaseDto dto = Substitute.For<ExplorerModelBaseDto>();
 
 		string newName = AppUtils.CreateRandomString(10);
@@ -1216,10 +1215,11 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbAccess.UpdatePropertiesAsync(
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<PropertyNameValuePair[]>())
+				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
 			.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -1251,8 +1251,6 @@ internal class EditorViewModelTests
 	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
 		ExplorerModelBaseDto toBeRenamed = Substitute.For<ExplorerModelBaseDto>();
 
 		string newName = AppUtils.CreateRandomString(10);
@@ -1263,7 +1261,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dbAccess));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedDate);
@@ -1276,11 +1274,6 @@ internal class EditorViewModelTests
 		toBeRenamed.UpdatedDate
 			.Should()
 			.NotBe(updatedDate);
-
-		await dbAccess.Received(0).UpdatePropertyAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<string>(),
-			Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1364,10 +1357,9 @@ internal class EditorViewModelTests
 			.Should()
 			.NotBe(initialValue);
 
-		await dbAccess.Received().UpdatePropertyAsync(
+		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
 	}
 
 	/// <summary>
@@ -1454,7 +1446,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await dialogService
-			.Received(0)
+			.DidNotReceive()
 			.RequestCloseFilesAsync();
 	}
 
