@@ -110,10 +110,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefault" />.
+	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />.
 	/// </summary>
 	[Test]
-	public void FirstOrDefault_Returns_Matching_Item()
+	public void FirstOrDefaultFromSource_Returns_Matching_Item()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -125,7 +125,7 @@ internal class FilterEngineTests
 		FileModelDto target = items[1];
 
 		// Act
-		FileModelDto? result = sut.FirstOrDefault(x => x.Id == target.Id);
+		FileModelDto? result = sut.FirstOrDefaultFromSource(x => x.Id == target.Id);
 
 		// Assert
 		result
@@ -134,10 +134,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefault" />.
+	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />.
 	/// </summary>
 	[Test]
-	public void FirstOrDefault_Returns_Null_If_No_Item_Matches()
+	public void FirstOrDefaultFromSource_Returns_Null_If_No_Item_Matches()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -145,7 +145,7 @@ internal class FilterEngineTests
 		sut.AddRange(TestUtils.CreateFilesDto(3));
 
 		// Act
-		FileModelDto? result = sut.FirstOrDefault(x => x.Id == Guid.NewGuid());
+		FileModelDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
 
 		// Assert
 		result
@@ -218,7 +218,7 @@ internal class FilterEngineTests
 			.Should()
 			.BeTrue();
 
-		sut.FirstOrDefault(x => x.Id == items[1].Id)
+		sut.FirstOrDefaultFromSource(x => x.Id == items[1].Id)
 			.Should()
 			.BeNull();
 	}
@@ -246,10 +246,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Select" />.
+	/// Test of <see cref="FilterEngine{TModel}.SelectFromSource" />.
 	/// </summary>
 	[Test]
-	public void Select_Projects_Source_Items()
+	public void SelectFromSource_Projects_Source_Items()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -259,7 +259,7 @@ internal class FilterEngineTests
 		sut.AddRange(items);
 
 		// Act
-		Guid[] result = [.. sut.Select(x => x.Id)];
+		Guid[] result = [.. sut.SelectFromSource(x => x.Id)];
 
 		// Assert
 		result

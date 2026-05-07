@@ -106,7 +106,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			return;
 		}
 
-		if (_favoritesFilter.FirstOrDefault(x => x.Id == pair.FavoriteId) is not { } favorite)
+		if (_favoritesFilter.FirstOrDefaultFromSource(x => x.Id == pair.FavoriteId) is not { } favorite)
 		{
 			return;
 		}
@@ -143,7 +143,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 
-		OrderedCategories.ClearAddRange(_categoriesFilter.Select(x => x.Id));
+		OrderedCategories.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
 	}
 
 	/// <summary>

@@ -136,7 +136,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// Returns a sequence of identifiers from <see cref="Items" />.
 	/// </summary>
-	public IEnumerable<Guid> GetIdentifiers() => _filter.Select(x => x.Id);
+	public IEnumerable<Guid> GetIdentifiers() => _filter.SelectFromSource(x => x.Id);
 
 	/// <summary>
 	/// Performs initialization.
@@ -145,7 +145,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	{
 		_filter.AddRange(items);
 
-		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
+		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefaultFromSource(x => x.Id == selectedId));
 	}
 
 	/// <summary>

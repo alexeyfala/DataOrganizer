@@ -125,8 +125,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		_source.Dispose();
 	}
 
-	/// <inheritdoc cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})" />
-	public TModel? FirstOrDefault(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
+	/// <summary>
+	/// Returns the first source item matching <paramref name="condition"/>, or <c>null</c> if none match.
+	/// Searches the entire source — items currently hidden by an active filter are still considered.
+	/// </summary>
+	public TModel? FirstOrDefaultFromSource(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
 
 	/// <summary>
 	/// Inserts <paramref name="item"/> so that it lands at <paramref name="destinationVisibleIndex"/>
@@ -206,8 +209,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		});
 	}
 
-	/// <inheritdoc cref="Enumerable.Select" />
-	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
+	/// <summary>
+	/// Projects every item in the source through <paramref name="selector"/>, in source order.
+	/// Iterates the entire source — items currently hidden by an active filter are still included.
+	/// </summary>
+	public IEnumerable<TResult> SelectFromSource<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 	#endregion
 
 	#region Service
