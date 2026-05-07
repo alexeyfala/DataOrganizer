@@ -146,8 +146,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 		_filter.AddRange(items);
 
 		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
-
-		_filter.Refresh();
 	}
 
 	/// <summary>
@@ -165,8 +163,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 		{
 			_filter.Insert(0, file);
 		}
-
-		_filter.Refresh();
 	}
 
 	/// <summary>
@@ -179,11 +175,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// The action called when <see cref="HistorySearch" /> has empty string value.
 	/// </summary>
-	private void HistorySearchEmptyStringAction()
-	{
-		_filter.Refresh();
-
-		SelectedItem ??= _previousSelectedItem;
-	}
+	private void HistorySearchEmptyStringAction() => SelectedItem ??= _previousSelectedItem;
 	#endregion
 }

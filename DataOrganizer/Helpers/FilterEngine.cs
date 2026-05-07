@@ -104,37 +104,32 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public int IndexOf(TModel item) => _source.Items.IndexOf(item);
 
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Insert" />
-	public void Insert(in int index, TModel item) => _source.Insert(index, item);
-
-	/// <summary>
-	/// Iterates the source and passes to <paramref name="action"/> item and index.
-	/// </summary>
-	public void IterateSource(Action<TModel, int> action)
+	public void Insert(int index, TModel item) => _source.Edit(list =>
 	{
-		for (int i = 0; i < _source.Items.Count; i++)
-		{
-			action(_source.Items[i], i);
-		}
-	}
+		List<TModel> ordered = [.. list];
+
+		ordered.Insert(index, item);
+
+		list.Clear();
+
+		list.AddRange(ordered);
+	});
 
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Move" />
-	public void Move(int original, int destination)
+	public void Move(int original, int destination) => _source.Edit(list =>
 	{
-		_source.Edit(list =>
-		{
-			List<TModel> ordered = [.. list];
+		List<TModel> ordered = [.. list];
 
-			TModel item = ordered[original];
+		TModel item = ordered[original];
 
-			ordered.RemoveAt(original);
+		ordered.RemoveAt(original);
 
-			ordered.Insert(destination, item);
+		ordered.Insert(destination, item);
 
-			list.Clear();
+		list.Clear();
 
-			list.AddRange(ordered);
-		});
-	}
+		list.AddRange(ordered);
+	});
 
 	/// <summary>
 	/// Posts <paramref name="action"/> to the captured <see cref="SynchronizationContext"/> so it runs
