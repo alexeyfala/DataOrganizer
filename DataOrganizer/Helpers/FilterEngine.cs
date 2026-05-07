@@ -42,6 +42,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	private readonly SourceList<TModel> _source = new();
 
 	/// <summary>
+	/// Subscription handle for the bind pipeline; disposed in <see cref="Dispose"/>.
+	/// </summary>
+	private readonly IDisposable _subscription;
+
+	/// <summary>
 	/// A backing field for <see cref="Visible" />.
 	/// </summary>
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
@@ -83,7 +88,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 			observable = observable.ObserveOn(_context);
 		}
 
-		observable
+		_subscription = observable
 			.Bind(out _visible)
 			.Subscribe();
 	}
@@ -112,6 +117,8 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		_isDisposed = true;
 
 		_source.Clear();
+
+		_subscription.Dispose();
 
 		_source.Dispose();
 	}
