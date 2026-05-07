@@ -153,15 +153,13 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// </summary>
 	public void InsertOrMoveToTop(FileModelDto file)
 	{
-		int index = _filter.IndexOf(file);
-
-		if (index >= 0)
+		if (_filter.Contains(file))
 		{
-			_filter.Move(index, 0);
+			_filter.Move(file, 0);
 		}
 		else
 		{
-			_filter.Insert(0, file);
+			_filter.Insert(file, 0);
 		}
 	}
 

@@ -62,6 +62,29 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Contains" />.
+	/// </summary>
+	[Test]
+	public void Contains_Returns_True_For_Existing_Item()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act / Assert
+		sut.Contains(items[1])
+			.Should()
+			.BeTrue();
+
+		sut.Contains(TestUtils.CreateFileDto())
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// Test of <see cref="FilterEngine{TModel}.Dispose" />.
 	/// </summary>
 	[Test]
@@ -84,28 +107,6 @@ internal class FilterEngineTests
 		act
 			.Should()
 			.NotThrow();
-	}
-
-	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.ElementAt" />.
-	/// </summary>
-	[Test]
-	public void ElementAt_Returns_Item_From_Source_By_Index()
-	{
-		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
-
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
-
-		sut.AddRange(items);
-
-		// Act
-		FileModelDto result = sut.ElementAt(1);
-
-		// Assert
-		result
-			.Should()
-			.Be(items[1]);
 	}
 
 	/// <summary>
@@ -153,32 +154,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.IndexOf" />.
+	/// Test of <see cref="FilterEngine{TModel}.Insert(TModel, int)" />.
 	/// </summary>
 	[Test]
-	public void IndexOf_Returns_Source_Index_Of_Item()
-	{
-		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
-
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
-
-		sut.AddRange(items);
-
-		// Act
-		int result = sut.IndexOf(items[2]);
-
-		// Assert
-		result
-			.Should()
-			.Be(2);
-	}
-
-	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Insert" />.
-	/// </summary>
-	[Test]
-	public void Insert_Places_Item_At_Specified_Index()
+	public void Insert_Places_Item_At_Specified_Visible_Index()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -188,23 +167,19 @@ internal class FilterEngineTests
 		FileModelDto inserted = TestUtils.CreateFileDto();
 
 		// Act
-		sut.Insert(0, inserted);
+		sut.Insert(inserted, 0);
 
 		// Assert
-		sut.ElementAt(0)
+		sut.Visible[0]
 			.Should()
 			.Be(inserted);
-
-		sut.IndexOf(inserted)
-			.Should()
-			.Be(0);
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Move" />.
+	/// Test of <see cref="FilterEngine{TModel}.Move(TModel, int)" />.
 	/// </summary>
 	[Test]
-	public void Move_Reorders_Items_Within_Source()
+	public void Move_Reorders_Item_To_Specified_Visible_Index()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -214,12 +189,34 @@ internal class FilterEngineTests
 		sut.AddRange(items);
 
 		// Act
-		sut.Move(0, 2);
+		sut.Move(items[0], 2);
 
 		// Assert
-		sut.ElementAt(2)
+		sut.Visible[2]
 			.Should()
 			.Be(items[0]);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.PostToUi" />.
+	/// </summary>
+	[Test]
+	public void PostToUi_Executes_Action_Inline_When_No_Context()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		bool executed = false;
+
+		// Act
+		sut.PostToUi(() => executed = true);
+
+		// Assert
+		executed
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -268,28 +265,6 @@ internal class FilterEngineTests
 		result
 			.Should()
 			.BeEquivalentTo(items.Select(x => x.Id));
-	}
-
-	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.PostToUi" />.
-	/// </summary>
-	[Test]
-	public void PostToUi_Executes_Action_Inline_When_No_Context()
-	{
-		// Arrange
-		SynchronizationContext.SetSynchronizationContext(null);
-
-		using FilterEngine<FileModelDto> sut = CreateSut();
-
-		bool executed = false;
-
-		// Act
-		sut.PostToUi(() => executed = true);
-
-		// Assert
-		executed
-			.Should()
-			.BeTrue();
 	}
 	#endregion
 

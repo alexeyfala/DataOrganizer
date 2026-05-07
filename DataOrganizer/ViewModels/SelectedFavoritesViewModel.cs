@@ -137,9 +137,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	[RelayCommand]
 	private void CategoryDragged(DraggedIndexTargetIndexPair pair)
 	{
-		FavoriteCategory selected = _categoriesFilter.ElementAt(pair.DraggedIndex);
+		FavoriteCategory selected = Categories[pair.DraggedIndex];
 
-		_categoriesFilter.Move(pair.DraggedIndex, pair.TargetIndex);
+		_categoriesFilter.Move(selected, pair.TargetIndex);
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 

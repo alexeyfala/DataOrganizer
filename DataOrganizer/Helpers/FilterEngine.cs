@@ -79,6 +79,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Clear{T}(ISourceList{T})" />
 	public void Clear() => _source.Clear();
 
+	/// <summary>
+	/// Returns <c>true</c> if <paramref name="item"/> is present in the source.
+	/// </summary>
+	public bool Contains(TModel item) => _source.Items.Contains(item);
+
 	/// <inheritdoc />
 	public void Dispose()
 	{
@@ -94,42 +99,65 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		_source.Dispose();
 	}
 
-	/// <inheritdoc cref="Enumerable.ElementAt{TSource}(IEnumerable{TSource}, int)" />
-	public TModel ElementAt(in int index) => _source.Items[index];
-
 	/// <inheritdoc cref="Enumerable.FirstOrDefault{TSource}(IEnumerable{TSource}, Func{TSource, bool})" />
 	public TModel? FirstOrDefault(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
 
-	/// <inheritdoc cref="ListEx.IndexOf{T}(IEnumerable{T}, T)" />
-	public int IndexOf(TModel item) => _source.Items.IndexOf(item);
-
-	/// <inheritdoc cref="SourceListEditConvenienceEx.Insert" />
-	public void Insert(int index, TModel item) => _source.Edit(list =>
+	/// <summary>
+	/// Inserts <paramref name="item"/> so that it lands at <paramref name="destinationVisibleIndex"/>
+	/// in <see cref="Visible"/> after the source is rebuilt. Translation uses the item currently at that
+	/// visible index as an anchor, so behavior is correct even when a filter is active.
+	/// Triggers a full rebuild of <see cref="Visible"/> (Reset semantics for <c>ItemsControl</c>).
+	/// </summary>
+	public void Insert(TModel item, int destinationVisibleIndex)
 	{
-		List<TModel> ordered = [.. list];
+		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
-		ordered.Insert(index, item);
+		_source.Edit(list =>
+		{
+			List<TModel> ordered = [.. list];
 
-		list.Clear();
+			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
 
-		list.AddRange(ordered);
-	});
+			list.Clear();
 
-	/// <inheritdoc cref="SourceListEditConvenienceEx.Move" />
-	public void Move(int original, int destination) => _source.Edit(list =>
+			list.AddRange(ordered);
+		});
+	}
+
+	/// <summary>
+	/// Moves <paramref name="item"/> within the source so that it lands at
+	/// <paramref name="destinationVisibleIndex"/> in <see cref="Visible"/> after the rebuild.
+	/// Translation uses the item currently at that visible index as an anchor, so behavior is
+	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in
+	/// the source.
+	/// Triggers a full rebuild of <see cref="Visible"/> (Reset semantics for <c>ItemsControl</c>).
+	/// </summary>
+	public void Move(TModel item, int destinationVisibleIndex)
 	{
-		List<TModel> ordered = [.. list];
+		int sourceOriginal = _source
+			.Items
+			.IndexOf(item);
 
-		TModel item = ordered[original];
+		if (sourceOriginal < 0)
+		{
+			return;
+		}
 
-		ordered.RemoveAt(original);
+		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
-		ordered.Insert(destination, item);
+		_source.Edit(list =>
+		{
+			List<TModel> ordered = [.. list];
 
-		list.Clear();
+			ordered.RemoveAt(sourceOriginal);
 
-		list.AddRange(ordered);
-	});
+			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
+
+			list.Clear();
+
+			list.AddRange(ordered);
+		});
+	}
 
 	/// <summary>
 	/// Posts <paramref name="action"/> to the captured <see cref="SynchronizationContext"/> so it runs
@@ -153,5 +181,29 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 
 	/// <inheritdoc cref="Enumerable.Select" />
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Translates an index in <see cref="Visible"/> to the corresponding source index by looking up
+	/// the item currently at that visible position. Past-end and negative inputs are clamped to the
+	/// source ends. When no filter is active, this is a 1:1 mapping.
+	/// </summary>
+	private int TranslateVisibleToSource(int destinationVisibleIndex)
+	{
+		if (destinationVisibleIndex >= _visible.Count)
+		{
+			return _source.Items.Count;
+		}
+
+		if (destinationVisibleIndex <= 0)
+		{
+			return 0;
+		}
+
+		return _source
+			.Items
+			.IndexOf(_visible[destinationVisibleIndex]);
+	}
 	#endregion
 }
