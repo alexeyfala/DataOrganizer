@@ -38,12 +38,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Categories" /> is empty.
 	/// </summary>
-	public bool IsCategoriesEmpty => _categoriesFilter.IsEmpty;
+	public bool IsCategoriesEmpty => _categoriesFilter.IsSourceEmpty;
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Favorites" /> is empty.
 	/// </summary>
-	public bool IsFavoritesEmpty => _favoritesFilter.IsEmpty;
+	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 
 	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
 	public List<Guid> OrderedCategories { get; } = [];

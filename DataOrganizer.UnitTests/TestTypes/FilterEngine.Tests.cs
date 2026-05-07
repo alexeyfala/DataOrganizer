@@ -14,7 +14,7 @@ internal class FilterEngineTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsEmpty" />.
+	/// Test of <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsSourceEmpty" />.
 	/// </summary>
 	[Test]
 	public void AddRange_Populates_Source_And_Visible_Sequence()
@@ -28,7 +28,7 @@ internal class FilterEngineTests
 		sut.AddRange(items);
 
 		// Assert
-		sut.IsEmpty
+		sut.IsSourceEmpty
 			.Should()
 			.BeFalse();
 
@@ -52,7 +52,7 @@ internal class FilterEngineTests
 		sut.Clear();
 
 		// Assert
-		sut.IsEmpty
+		sut.IsSourceEmpty
 			.Should()
 			.BeTrue();
 

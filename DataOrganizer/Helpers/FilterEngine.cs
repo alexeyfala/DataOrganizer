@@ -24,9 +24,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if the source is empty.
+	/// Returns <c>true</c> when the underlying source contains no items at all.
+	/// This reflects total contents — items hidden by an active filter still count.
+	/// To check whether the currently shown subset is empty, use <c><see cref="Visible"/>.Count == 0</c>.
 	/// </summary>
-	public bool IsEmpty => _source.Items.Count == 0;
+	public bool IsSourceEmpty => _source.Items.Count == 0;
 
 	/// <summary>
 	/// A visible sequence of <typeparamref name="TModel" />.

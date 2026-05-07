@@ -25,7 +25,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Items" /> is empty.
 	/// </summary>
-	public bool IsEmpty => _filter.IsEmpty;
+	public bool IsEmpty => _filter.IsSourceEmpty;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
 	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
