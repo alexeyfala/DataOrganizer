@@ -91,7 +91,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 			HistorySearch,
 			HistorySearchEmptyStringAction);
 
-		_filter = new(predicate);
+		_filter = new(predicate, autoRefreshOn: x => x.Name);
 	}
 	#endregion
 

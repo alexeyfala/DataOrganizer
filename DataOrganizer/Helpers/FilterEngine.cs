@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Threading;
 
@@ -52,14 +53,30 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	#endregion
 
 	#region Constructors
-	public FilterEngine(IObservable<Func<TModel, bool>> filterPredicate)
+	/// <summary>
+	/// Creates a new <see cref="FilterEngine{TModel}"/>.
+	/// </summary>
+	/// <param name="filterPredicate">Stream of predicates driving <see cref="Visible"/>.</param>
+	/// <param name="autoRefreshOn">
+	/// Optional property accessor that scopes <c>AutoRefresh</c> — the filter is re-evaluated only when
+	/// this specific property changes on a source item (e.g. <c>x =&gt; x.Name</c>). Pass <c>null</c>
+	/// to skip per-item INPC tracking entirely; in that case property changes on items already in the
+	/// source will not trigger <see cref="Visible"/> recomputation until the predicate itself changes.
+	/// </param>
+	public FilterEngine(
+		IObservable<Func<TModel, bool>> filterPredicate,
+		Expression<Func<TModel, object?>>? autoRefreshOn = null)
 	{
 		_context = SynchronizationContext.Current;
 
-		IObservable<IChangeSet<TModel>> observable = _source
-			.Connect()
-			.AutoRefresh()
-			.Filter(filterPredicate, ListFilterPolicy.ClearAndReplace);
+		IObservable<IChangeSet<TModel>> observable = _source.Connect();
+
+		if (autoRefreshOn is not null)
+		{
+			observable = observable.AutoRefresh(autoRefreshOn);
+		}
+
+		observable = observable.Filter(filterPredicate, ListFilterPolicy.ClearAndReplace);
 
 		if (_context is not null)
 		{
