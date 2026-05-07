@@ -42,15 +42,6 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FileModel.IsFavorite" />
 	[ObservableProperty]
 	private bool _isFavorite;
-
-	/// <summary>
-	/// Order.
-	/// </summary>
-	/// <remarks>
-	/// For filtering purposes.
-	/// </remarks>
-	[ObservableProperty]
-	private int _order;
 	#endregion
 
 	#region Methods

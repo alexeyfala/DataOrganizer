@@ -26,12 +26,4 @@ public sealed partial class FavoriteCategory : EntityModelBaseDto, IName
 	/// </summary>
 	public required string Name { get; init; }
 	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
-	/// Order.
-	/// </summary>
-	[ObservableProperty]
-	private int _order;
-	#endregion
 }

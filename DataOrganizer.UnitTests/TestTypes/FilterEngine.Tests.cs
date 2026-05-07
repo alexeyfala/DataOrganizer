@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Helpers;
-using DynamicData.Binding;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
@@ -202,37 +201,6 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.IterateSource" />.
-	/// </summary>
-	[Test]
-	public void IterateSource_Invokes_Action_For_Each_Item_With_Index()
-	{
-		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
-
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
-
-		sut.AddRange(items);
-
-		int callCount = 0;
-
-		// Act
-		sut.IterateSource((item, index) =>
-		{
-			callCount++;
-
-			item
-				.Should()
-				.Be(items[index]);
-		});
-
-		// Assert
-		callCount
-			.Should()
-			.Be(3);
-	}
-
-	/// <summary>
 	/// Test of <see cref="FilterEngine{TModel}.Move" />.
 	/// </summary>
 	[Test]
@@ -303,10 +271,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Synchronize" />.
+	/// Test of <see cref="FilterEngine{TModel}.PostToUi" />.
 	/// </summary>
 	[Test]
-	public void Synchronize_Executes_Action_Inline_When_No_Context()
+	public void PostToUi_Executes_Action_Inline_When_No_Context()
 	{
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
@@ -316,7 +284,7 @@ internal class FilterEngineTests
 		bool executed = false;
 
 		// Act
-		sut.Synchronize(() => executed = true);
+		sut.PostToUi(() => executed = true);
 
 		// Assert
 		executed
@@ -336,9 +304,7 @@ internal class FilterEngineTests
 
 		IObservable<Func<FileModelDto, bool>> filter = Observable.Return<Func<FileModelDto, bool>>(_ => true);
 
-		SortExpressionComparer<FileModelDto> sort = SortExpressionComparer<FileModelDto>.Ascending(x => x.Index);
-
-		return new FilterEngine<FileModelDto>(filter, sort);
+		return new FilterEngine<FileModelDto>(filter);
 	}
 	#endregion
 }

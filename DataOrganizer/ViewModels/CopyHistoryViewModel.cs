@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -8,7 +7,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
-using DynamicData.Binding;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -93,9 +91,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 			HistorySearch,
 			HistorySearchEmptyStringAction);
 
-		_filter = new(
-			predicate,
-			SortExpressionComparer<FileModelDto>.Ascending(x => x.Order));
+		_filter = new(predicate);
 	}
 	#endregion
 
@@ -149,7 +145,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	{
 		_filter.AddRange(items);
 
-		_filter.Synchronize(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
+		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
 
 		_filter.Refresh();
 	}

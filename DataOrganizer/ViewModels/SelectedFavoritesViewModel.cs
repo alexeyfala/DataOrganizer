@@ -10,7 +10,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
-using DynamicData.Binding;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -112,7 +111,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			return;
 		}
 
-		_favoritesFilter.Synchronize(() => SelectedFavorite = favorite);
+		_favoritesFilter.PostToUi(() => SelectedFavorite = favorite);
 	}
 
 	/// <summary>
@@ -142,9 +141,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_categoriesFilter.Move(pair.DraggedIndex, pair.TargetIndex);
 
-		_categoriesFilter.Refresh();
-
-		SelectedCategory = selected;
+		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 
 		OrderedCategories.ClearAddRange(_categoriesFilter.Select(x => x.Id));
 	}
@@ -216,18 +213,14 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			CategorySearch,
 			CategorySearchEmptyStringAction);
 
-		_categoriesFilter = new(
-			categoryPredicate,
-			SortExpressionComparer<FavoriteCategory>.Ascending(x => x.Order));
+		_categoriesFilter = new(categoryPredicate);
 
 		IObservable<Func<IName, bool>> favoritesPredicate = this.FilterPredicate(
 			x => x.FavoriteSearch,
 			FavoriteSearch,
 			FavoriteSearchEmptyStringAction);
 
-		_favoritesFilter = new(
-			favoritesPredicate,
-			SortExpressionComparer<FileModelDto>.Ascending(x => x.Order));
+		_favoritesFilter = new(favoritesPredicate);
 	}
 	#endregion
 
@@ -320,7 +313,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		SelectedPairs.AddRange(selectedPairs);
 
-		_categoriesFilter.Synchronize(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
+		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
 	#endregion
 
@@ -352,21 +345,11 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// The action called when <see cref="CategorySearch" /> has empty string value.
 	/// </summary>
-	private void CategorySearchEmptyStringAction()
-	{
-		_categoriesFilter.Refresh();
-
-		SelectedCategory ??= _previousSelectedCategory;
-	}
+	private void CategorySearchEmptyStringAction() => SelectedCategory ??= _previousSelectedCategory;
 
 	/// <summary>
 	/// The action called when <see cref="FavoriteSearch" /> has empty string value.
 	/// </summary>
-	private void FavoriteSearchEmptyStringAction()
-	{
-		_favoritesFilter.Refresh();
-
-		SelectedFavorite ??= _previousSelectedFavorite;
-	}
+	private void FavoriteSearchEmptyStringAction() => SelectedFavorite ??= _previousSelectedFavorite;
 	#endregion
 }

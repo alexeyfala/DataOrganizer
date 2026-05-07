@@ -1,5 +1,4 @@
 ﻿using DynamicData;
-using DynamicData.Binding;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -53,16 +52,14 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	#endregion
 
 	#region Constructors
-	public FilterEngine(
-		IObservable<Func<TModel, bool>> filterPredicate,
-		SortExpressionComparer<TModel> sortComparer)
+	public FilterEngine(IObservable<Func<TModel, bool>> filterPredicate)
 	{
 		_context = SynchronizationContext.Current;
 
 		IObservable<IChangeSet<TModel>> observable = _source
 			.Connect()
 			.AutoRefresh()
-			.Filter(filterPredicate);
+			.Filter(filterPredicate, ListFilterPolicy.ClearAndReplace);
 
 		if (_context is not null)
 		{
@@ -70,7 +67,6 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 		}
 
 		observable
-			.Sort(sortComparer)
 			.Bind(out _visible)
 			.Subscribe();
 	}
@@ -122,18 +118,30 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	}
 
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Move" />
-	public void Move(in int original, int destination) => _source.Move(original, destination);
+	public void Move(int original, int destination)
+	{
+		_source.Edit(list =>
+		{
+			List<TModel> ordered = [.. list];
 
-	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />
-	public bool Remove(TModel item) => _source.Remove(item);
+			TModel item = ordered[original];
 
-	/// <inheritdoc cref="Enumerable.Select" />
-	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
+			ordered.RemoveAt(original);
+
+			ordered.Insert(destination, item);
+
+			list.Clear();
+
+			list.AddRange(ordered);
+		});
+	}
 
 	/// <summary>
-	/// Executes the delegate from <paramref name="action"/>, if possible, in <see cref="SynchronizationContext.Post" />.
+	/// Posts <paramref name="action"/> to the captured <see cref="SynchronizationContext"/> so it runs
+	/// after any pending <see cref="Visible"/> updates already queued on the UI thread (FIFO ordering of
+	/// <see cref="SynchronizationContext.Post"/>). If no context was captured, runs synchronously.
 	/// </summary>
-	public void Synchronize(Action action)
+	public void PostToUi(Action action)
 	{
 		if (_context is { } context)
 		{
@@ -144,5 +152,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 			action();
 		}
 	}
+
+	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />
+	public bool Remove(TModel item) => _source.Remove(item);
+
+	/// <inheritdoc cref="Enumerable.Select" />
+	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 	#endregion
 }
