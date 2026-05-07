@@ -106,50 +106,16 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// Inserts <paramref name="item"/> so that it lands at <paramref name="destinationVisibleIndex"/>
 	/// in <see cref="Visible"/> after the source is rebuilt. Translation uses the item currently at that
 	/// visible index as an anchor, so behavior is correct even when a filter is active.
-	/// Triggers a full rebuild of <see cref="Visible"/> (Reset semantics for <c>ItemsControl</c>).
+	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
+	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
 	/// </summary>
-	public void Insert(TModel item, int destinationVisibleIndex)
+	public void InsertAndRebuild(TModel item, int destinationVisibleIndex)
 	{
 		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
 		_source.Edit(list =>
 		{
 			List<TModel> ordered = [.. list];
-
-			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
-
-			list.Clear();
-
-			list.AddRange(ordered);
-		});
-	}
-
-	/// <summary>
-	/// Moves <paramref name="item"/> within the source so that it lands at
-	/// <paramref name="destinationVisibleIndex"/> in <see cref="Visible"/> after the rebuild.
-	/// Translation uses the item currently at that visible index as an anchor, so behavior is
-	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in
-	/// the source.
-	/// Triggers a full rebuild of <see cref="Visible"/> (Reset semantics for <c>ItemsControl</c>).
-	/// </summary>
-	public void Move(TModel item, int destinationVisibleIndex)
-	{
-		int sourceOriginal = _source
-			.Items
-			.IndexOf(item);
-
-		if (sourceOriginal < 0)
-		{
-			return;
-		}
-
-		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
-
-		_source.Edit(list =>
-		{
-			List<TModel> ordered = [.. list];
-
-			ordered.RemoveAt(sourceOriginal);
 
 			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
 
@@ -178,6 +144,41 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 
 	/// <inheritdoc cref="SourceListEditConvenienceEx.Remove" />
 	public bool Remove(TModel item) => _source.Remove(item);
+
+	/// <summary>
+	/// Moves <paramref name="item"/> within the source so that it lands at
+	/// <paramref name="destinationVisibleIndex"/> in <see cref="Visible"/> after the rebuild.
+	/// Translation uses the item currently at that visible index as an anchor, so behavior is
+	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in the source.
+	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
+	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
+	/// </summary>
+	public void Reorder(TModel item, int destinationVisibleIndex)
+	{
+		int sourceOriginal = _source
+			.Items
+			.IndexOf(item);
+
+		if (sourceOriginal < 0)
+		{
+			return;
+		}
+
+		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
+
+		_source.Edit(list =>
+		{
+			List<TModel> ordered = [.. list];
+
+			ordered.RemoveAt(sourceOriginal);
+
+			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
+
+			list.Clear();
+
+			list.AddRange(ordered);
+		});
+	}
 
 	/// <inheritdoc cref="Enumerable.Select" />
 	public IEnumerable<TResult> Select<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);

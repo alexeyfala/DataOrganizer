@@ -139,7 +139,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	{
 		FavoriteCategory selected = Categories[pair.DraggedIndex];
 
-		_categoriesFilter.Move(selected, pair.TargetIndex);
+		_categoriesFilter.Reorder(selected, pair.TargetIndex);
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 

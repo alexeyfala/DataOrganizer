@@ -154,10 +154,10 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Insert(TModel, int)" />.
+	/// Test of <see cref="FilterEngine{TModel}.InsertAndRebuild" />.
 	/// </summary>
 	[Test]
-	public void Insert_Places_Item_At_Specified_Visible_Index()
+	public void InsertAndRebuild_Places_Item_At_Specified_Visible_Index()
 	{
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
@@ -167,34 +167,12 @@ internal class FilterEngineTests
 		FileModelDto inserted = TestUtils.CreateFileDto();
 
 		// Act
-		sut.Insert(inserted, 0);
+		sut.InsertAndRebuild(inserted, 0);
 
 		// Assert
 		sut.Visible[0]
 			.Should()
 			.Be(inserted);
-	}
-
-	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Move(TModel, int)" />.
-	/// </summary>
-	[Test]
-	public void Move_Reorders_Item_To_Specified_Visible_Index()
-	{
-		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
-
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
-
-		sut.AddRange(items);
-
-		// Act
-		sut.Move(items[0], 2);
-
-		// Assert
-		sut.Visible[2]
-			.Should()
-			.Be(items[0]);
 	}
 
 	/// <summary>
@@ -243,6 +221,28 @@ internal class FilterEngineTests
 		sut.FirstOrDefault(x => x.Id == items[1].Id)
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.Reorder" />.
+	/// </summary>
+	[Test]
+	public void Reorder_Moves_Item_To_Specified_Visible_Index()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		// Act
+		sut.Reorder(items[0], 2);
+
+		// Assert
+		sut.Visible[2]
+			.Should()
+			.Be(items[0]);
 	}
 
 	/// <summary>

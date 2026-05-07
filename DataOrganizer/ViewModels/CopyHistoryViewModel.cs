@@ -155,11 +155,11 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	{
 		if (_filter.Contains(file))
 		{
-			_filter.Move(file, 0);
+			_filter.Reorder(file, 0);
 		}
 		else
 		{
-			_filter.Insert(file, 0);
+			_filter.InsertAndRebuild(file, 0);
 		}
 	}
 
