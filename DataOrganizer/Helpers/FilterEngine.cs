@@ -18,13 +18,18 @@ namespace DataOrganizer.Helpers;
 // Nuget: DynamicData
 
 /// <summary>
-/// Filtering engine for <typeparamref name="TModel" />.
+/// Wraps a DynamicData <see cref="SourceList{T}"/> with a <c>Filter</c>/<c>Bind</c> pipeline and exposes
+/// a read-only <see cref="Visible"/> projection of the source through a caller-supplied predicate stream.
+/// Mutating methods (<see cref="InsertAndRebuild"/>, <see cref="Reorder"/>) trigger a full rebuild of the
+/// source so that <see cref="Visible"/> reflects source order under <see cref="ListFilterPolicy.ClearAndReplace"/>.
+/// Not thread-safe — intended to be created and used on the UI thread; the captured
+/// <see cref="SynchronizationContext"/> is used to marshal change notifications back to that thread.
 /// </summary>
 internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyPropertyChanged
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>true</c> when the underlying source contains no items at all.
+	/// Returns <c>True</c> when the underlying source contains no items at all.
 	/// This reflects total contents — items hidden by an active filter still count.
 	/// To check whether the currently shown subset is empty, use <c><see cref="Visible"/>.Count == 0</c>.
 	/// </summary>
@@ -104,7 +109,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public void Clear() => _source.Clear();
 
 	/// <summary>
-	/// Returns <c>true</c> if <paramref name="item"/> is present in the source.
+	/// Returns <c>True</c> if <paramref name="item"/> is present in the source.
 	/// </summary>
 	public bool Contains(TModel item) => _source.Items.Contains(item);
 
@@ -142,16 +147,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	{
 		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
-		_source.Edit(list =>
-		{
-			List<TModel> ordered = [.. list];
-
-			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
-
-			list.Clear();
-
-			list.AddRange(ordered);
-		});
+		RebuildSourceWith(ordered => ordered.Insert(Math.Min(sourceDestination, ordered.Count), item));
 	}
 
 	/// <summary>
@@ -195,17 +191,16 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 
 		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
-		_source.Edit(list =>
+		if (sourceOriginal == sourceDestination)
 		{
-			List<TModel> ordered = [.. list];
+			return;
+		}
 
+		RebuildSourceWith(ordered =>
+		{
 			ordered.RemoveAt(sourceOriginal);
 
 			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
-
-			list.Clear();
-
-			list.AddRange(ordered);
 		});
 	}
 
@@ -217,6 +212,23 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Snapshots the source into a working list, applies <paramref name="mutate"/>, then replays the
+	/// result via <c>Clear</c> + <c>AddRange</c> inside a single <see cref="ISourceList{T}.Edit"/>.
+	/// The <c>Clear</c> step forces the <c>Filter</c> cache (under <see cref="ListFilterPolicy.ClearAndReplace"/>)
+	/// to rebuild in the new source order, sidestepping the cache's insertion-order tracking.
+	/// </summary>
+	private void RebuildSourceWith(Action<List<TModel>> mutate) => _source.Edit(list =>
+	{
+		List<TModel> ordered = [.. list];
+
+		mutate(ordered);
+
+		list.Clear();
+
+		list.AddRange(ordered);
+	});
+
 	/// <summary>
 	/// Translates an index in <see cref="Visible"/> to the corresponding source index by looking up
 	/// the item currently at that visible position. Past-end and negative inputs are clamped to the
