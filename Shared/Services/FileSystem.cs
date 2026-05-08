@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -172,10 +173,23 @@ public sealed class FileSystem : IFileSystem
 	{
 		try
 		{
-			using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None);
+			using FileStream stream = File.Open(
+				filePath,
+				FileMode.Open,
+				FileAccess.Read,
+				FileShare.None);
 		}
-		catch (IOException e) when ((e.HResult & 0x0000FFFF) == 32)
+		catch (IOException ex) when (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && (ex.HResult & 0x0000FFFF) == 32)
 		{
+			return true;
+		}
+		catch (IOException) when (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			// On Unix .NET maps FileShare.None to an advisory fcntl lock,
+			// so an IOException here means another process holds the lock.
+			// Note: most Unix apps do not set advisory locks, so a false
+			// negative is expected — caller should additionally rely on
+			// size/LastWriteTime stabilization where it matters.
 			return true;
 		}
 
