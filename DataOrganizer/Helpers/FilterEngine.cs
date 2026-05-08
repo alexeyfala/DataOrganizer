@@ -140,11 +140,18 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// Inserts <paramref name="item"/> so that it lands at <paramref name="destinationVisibleIndex"/>
 	/// in <see cref="Visible"/> after the source is rebuilt. Translation uses the item currently at that
 	/// visible index as an anchor, so behavior is correct even when a filter is active.
+	/// Does nothing if <paramref name="item"/> is already present in the source — to relocate an existing
+	/// item use <see cref="Reorder"/>.
 	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
 	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
 	/// </summary>
 	public void InsertAndRebuild(TModel item, int destinationVisibleIndex)
 	{
+		if (Contains(item))
+		{
+			return;
+		}
+
 		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
 
 		RebuildSourceWith(ordered => ordered.Insert(Math.Min(sourceDestination, ordered.Count), item));

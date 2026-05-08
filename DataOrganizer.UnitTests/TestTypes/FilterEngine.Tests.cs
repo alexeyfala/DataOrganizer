@@ -157,6 +157,34 @@ internal class FilterEngineTests
 	/// Test of <see cref="FilterEngine{TModel}.InsertAndRebuild" />.
 	/// </summary>
 	[Test]
+	public void InsertAndRebuild_Does_Nothing_When_Item_Already_Present()
+	{
+		// Arrange
+		using FilterEngine<FileModelDto> sut = CreateSut();
+
+		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+
+		sut.AddRange(items);
+
+		FileModelDto duplicate = items[2];
+
+		// Act
+		sut.InsertAndRebuild(duplicate, 0);
+
+		// Assert
+		sut.Visible
+			.Should()
+			.HaveCount(3);
+
+		sut.Visible
+			.Should()
+			.ContainInOrder(items);
+	}
+
+	/// <summary>
+	/// Test of <see cref="FilterEngine{TModel}.InsertAndRebuild" />.
+	/// </summary>
+	[Test]
 	public void InsertAndRebuild_Places_Item_At_Specified_Visible_Index()
 	{
 		// Arrange
