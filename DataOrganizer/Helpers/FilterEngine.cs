@@ -245,7 +245,9 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	{
 		if (destinationVisibleIndex >= _visible.Count)
 		{
-			return _source.Items.Count;
+			return _source
+				.Items
+				.Count;
 		}
 
 		if (destinationVisibleIndex <= 0)
