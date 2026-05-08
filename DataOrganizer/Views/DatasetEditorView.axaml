@@ -172,11 +172,7 @@
 			Theme="{StaticResource MaterialModernScrollViewer}"
 			VerticalScrollBarVisibility="Auto">
 
-			<!-- Virtualization is disabled due to the following issues: -->
-			<!-- 1. Unable to scroll to the bottom the first time -->
-			<!-- 2. Unable to restore scroll value for ScrollViewer -->
-			<!-- 3. Unwanted scrolling occurs when the Expander (in ItemTemplate) is expanded -->
-			<!-- Classes="VirtualizedItemsControlStyle" -->
+			<!-- TODO: Unwanted scrolling occurs when the Expander (in RecordsGroupTemplate) is expanded -->
 			<ItemsControl
 				x:Name="RecordsItemsControl"
 				Classes="VirtualizedItemsControlStyle"

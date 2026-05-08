@@ -157,7 +157,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 	/// <summary>
 	/// Builds the flyout from <see cref="ContentTemplate" /> and assigns it as
 	/// <see cref="Control.ContextFlyout" /> on <see cref="AssociatedObject" />.
-	/// Returns <c>true</c> if the flyout is ready (either freshly built or already cached).
+	/// Returns <c>True</c> if the flyout is ready (either freshly built or already cached).
 	/// </summary>
 	private bool EnsureFlyout()
 	{

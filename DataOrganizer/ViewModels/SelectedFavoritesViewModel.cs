@@ -10,7 +10,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
-using DynamicData.Binding;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -39,12 +38,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Categories" /> is empty.
 	/// </summary>
-	public bool IsCategoriesEmpty => _categoriesFilter.IsEmpty;
+	public bool IsCategoriesEmpty => _categoriesFilter.IsSourceEmpty;
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Favorites" /> is empty.
 	/// </summary>
-	public bool IsFavoritesEmpty => _favoritesFilter.IsEmpty;
+	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 
 	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
 	public List<Guid> OrderedCategories { get; } = [];
@@ -107,12 +106,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			return;
 		}
 
-		if (_favoritesFilter.FirstOrDefault(x => x.Id == pair.FavoriteId) is not { } favorite)
+		if (_favoritesFilter.FirstOrDefaultFromSource(x => x.Id == pair.FavoriteId) is not { } favorite)
 		{
 			return;
 		}
 
-		_favoritesFilter.Synchronize(() => SelectedFavorite = favorite);
+		_favoritesFilter.PostToUi(() => SelectedFavorite = favorite);
 	}
 
 	/// <summary>
@@ -138,15 +137,13 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	[RelayCommand]
 	private void CategoryDragged(DraggedIndexTargetIndexPair pair)
 	{
-		FavoriteCategory selected = _categoriesFilter.ElementAt(pair.DraggedIndex);
+		FavoriteCategory selected = Categories[pair.DraggedIndex];
 
-		_categoriesFilter.Move(pair.DraggedIndex, pair.TargetIndex);
+		_categoriesFilter.Reorder(selected, pair.TargetIndex);
 
-		_categoriesFilter.Refresh();
+		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 
-		SelectedCategory = selected;
-
-		OrderedCategories.ClearAddRange(_categoriesFilter.Select(x => x.Id));
+		OrderedCategories.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
 	}
 
 	/// <summary>
@@ -216,18 +213,14 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			CategorySearch,
 			CategorySearchEmptyStringAction);
 
-		_categoriesFilter = new(
-			categoryPredicate,
-			SortExpressionComparer<FavoriteCategory>.Ascending(x => x.Order));
+		_categoriesFilter = new(categoryPredicate, autoRefreshOn: x => x.Name);
 
 		IObservable<Func<IName, bool>> favoritesPredicate = this.FilterPredicate(
 			x => x.FavoriteSearch,
 			FavoriteSearch,
 			FavoriteSearchEmptyStringAction);
 
-		_favoritesFilter = new(
-			favoritesPredicate,
-			SortExpressionComparer<FileModelDto>.Ascending(x => x.Order));
+		_favoritesFilter = new(favoritesPredicate, autoRefreshOn: x => x.Name);
 	}
 	#endregion
 
@@ -320,7 +313,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		SelectedPairs.AddRange(selectedPairs);
 
-		_categoriesFilter.Synchronize(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
+		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
 	#endregion
 
@@ -352,21 +345,11 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// The action called when <see cref="CategorySearch" /> has empty string value.
 	/// </summary>
-	private void CategorySearchEmptyStringAction()
-	{
-		_categoriesFilter.Refresh();
-
-		SelectedCategory ??= _previousSelectedCategory;
-	}
+	private void CategorySearchEmptyStringAction() => SelectedCategory ??= _previousSelectedCategory;
 
 	/// <summary>
 	/// The action called when <see cref="FavoriteSearch" /> has empty string value.
 	/// </summary>
-	private void FavoriteSearchEmptyStringAction()
-	{
-		_favoritesFilter.Refresh();
-
-		SelectedFavorite ??= _previousSelectedFavorite;
-	}
+	private void FavoriteSearchEmptyStringAction() => SelectedFavorite ??= _previousSelectedFavorite;
 	#endregion
 }

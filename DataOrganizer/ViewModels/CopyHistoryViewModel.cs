@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -8,7 +7,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
-using DynamicData.Binding;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -27,7 +25,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Items" /> is empty.
 	/// </summary>
-	public bool IsEmpty => _filter.IsEmpty;
+	public bool IsEmpty => _filter.IsSourceEmpty;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
 	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
@@ -93,9 +91,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 			HistorySearch,
 			HistorySearchEmptyStringAction);
 
-		_filter = new(
-			predicate,
-			SortExpressionComparer<FileModelDto>.Ascending(x => x.Order));
+		_filter = new(predicate, autoRefreshOn: x => x.Name);
 	}
 	#endregion
 
@@ -140,7 +136,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// Returns a sequence of identifiers from <see cref="Items" />.
 	/// </summary>
-	public IEnumerable<Guid> GetIdentifiers() => _filter.Select(x => x.Id);
+	public IEnumerable<Guid> GetIdentifiers() => _filter.SelectFromSource(x => x.Id);
 
 	/// <summary>
 	/// Performs initialization.
@@ -149,9 +145,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	{
 		_filter.AddRange(items);
 
-		_filter.Synchronize(() => SelectedItem = _filter.FirstOrDefault(x => x.Id == selectedId));
-
-		_filter.Refresh();
+		_filter.PostToUi(() => SelectedItem = _filter.FirstOrDefaultFromSource(x => x.Id == selectedId));
 	}
 
 	/// <summary>
@@ -159,18 +153,14 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// </summary>
 	public void InsertOrMoveToTop(FileModelDto file)
 	{
-		int index = _filter.IndexOf(file);
-
-		if (index >= 0)
+		if (_filter.Contains(file))
 		{
-			_filter.Move(index, 0);
+			_filter.Reorder(file, 0);
 		}
 		else
 		{
-			_filter.Insert(0, file);
+			_filter.InsertAndRebuild(file, 0);
 		}
-
-		_filter.Refresh();
 	}
 
 	/// <summary>
@@ -183,11 +173,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// <summary>
 	/// The action called when <see cref="HistorySearch" /> has empty string value.
 	/// </summary>
-	private void HistorySearchEmptyStringAction()
-	{
-		_filter.Refresh();
-
-		SelectedItem ??= _previousSelectedItem;
-	}
+	private void HistorySearchEmptyStringAction() => SelectedItem ??= _previousSelectedItem;
 	#endregion
 }
