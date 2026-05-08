@@ -432,7 +432,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
 	{
-		if (e?.Source is not Expander expander || !expander.IsPointerOver)
+		if (e?.Source is not Expander expander /*|| !expander.IsPointerOver*/)
 		{
 			return Task.CompletedTask;
 		}
