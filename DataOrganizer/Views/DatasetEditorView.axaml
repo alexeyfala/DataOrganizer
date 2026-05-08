@@ -172,7 +172,7 @@
 			Theme="{StaticResource MaterialModernScrollViewer}"
 			VerticalScrollBarVisibility="Auto">
 
-			<!-- TODO: Unwanted scrolling occurs when the Expander (in ItemTemplate) is expanded -->
+			<!-- TODO: Unwanted scrolling occurs when the Expander (in RecordsGroupTemplate) is expanded -->
 			<ItemsControl
 				x:Name="RecordsItemsControl"
 				Classes="VirtualizedItemsControlStyle"
