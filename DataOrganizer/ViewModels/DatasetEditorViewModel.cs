@@ -440,6 +440,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		// If this event is not handled, it may fire multiple times, especially in highly nested groups.
 		e.Handled = true;
 
+
 		return SaveContentsAsync();
 	}
 
