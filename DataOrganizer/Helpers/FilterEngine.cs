@@ -181,9 +181,13 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// Moves <paramref name="item"/> within the source so that it lands at
 	/// <paramref name="destinationVisibleIndex"/> in <see cref="Visible"/> after the rebuild.
 	/// Translation uses the item currently at that visible index as an anchor, so behavior is
-	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in the source.
+	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in the source
+	/// or if it is already at the resolved destination.
 	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
 	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
+	/// Performs two <c>O(N)</c> linear scans of the source (one to locate <paramref name="item"/>, one to
+	/// resolve the anchor at <paramref name="destinationVisibleIndex"/>) plus the <c>O(N)</c> rebuild — not
+	/// suited for collections in the tens of thousands of elements without further optimization.
 	/// </summary>
 	public void Reorder(TModel item, int destinationVisibleIndex)
 	{
