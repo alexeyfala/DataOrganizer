@@ -490,16 +490,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Scroll records to the end");
 
-		// Force-realize the last item so StackLayout's Extent reflects the actual
-		// content height through to the end. Without this, jumping to
-		// scrollViewer.Extent.Height lands on an "estimated" end that is short of
-		// the real one, leaving an unrealized gap below the viewport.
+		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
+
+		// Realize the last item so Extent reflects the real content height —
+		// otherwise the jump lands on an estimated end short of the real one.
 		if (Records.Count > 0)
 		{
-			container.GetOrCreateElement(Records.Count - 1);
+			return;
 		}
 
-		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
+		container.GetOrCreateElement(Records.Count - 1);
 	}
 
 	/// <summary>
@@ -516,6 +516,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation("Scroll records to the top");
 
 		scrollViewer.Offset = default;
+
+		if (Records.Count == 0)
+		{
+			return;
+		}
+
+		container.GetOrCreateElement(0);
 	}
 
 	/// <summary>
@@ -652,20 +659,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			(int topIndex, double withinOffset) = ComputeLogicalScrollPosition(scrollViewer);
 
-			// Gap detection. Two distinct symptoms in Avalonia.Controls.ItemsRepeater 12.0.0
-			// (https://github.com/AvaloniaUI/Avalonia.Controls.ItemsRepeater/issues/28):
-			//
-			//   topIndex < 0  — nothing realized at the viewport top (top gap, or the
-			//                   user scrolled past the last realized element entirely
-			//                   into a never-realized region).
-			//
-			//   bottom gap    — the realized window covers the viewport top but its
-			//                   bottommost element ends ABOVE the viewport bottom; the
-			//                   tail of the viewport is empty even though some items
-			//                   are realized above. ComputeLogicalScrollPosition
-			//                   returns a valid topIndex in this case, so we need a
-			//                   separate check based on the bottom edge of the
-			//                   bottommost realized child.
+			// Gap detection (https://github.com/AvaloniaUI/Avalonia.Controls.ItemsRepeater/issues/28).
+			// topIndex < 0: nothing realized at the viewport top.
+			// hasBottomGap: realized window covers the top but its bottom edge is
+			// above the viewport bottom — tail of viewport is empty.
 			bool hasBottomGap = false;
 
 			if (_container is not null && Records.Count > 0 && scrollViewer.Viewport.Height > 0.0)
@@ -687,15 +684,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			bool hasGap = topIndex < 0 || hasBottomGap;
 
-			// Wake the repeater up by force-realizing strategic elements:
-			// the viewport-centred estimate seeds local realization, and BOTH
-			// boundary items lock StackLayout's Extent so its average-height
-			// extrapolation is bounded by the true endpoints (anchoring only
-			// one side skews items toward that end and produces a phantom gap
-			// elsewhere). Posted at Background priority to defer past the
-			// current ScrollChanged so the recursive ScrollChanged from the
-			// realization layout pass goes to the next dispatcher iteration
-			// instead of stack-overflowing.
+			// Force-realize strategic elements: estimated seeds local realization,
+			// both boundaries lock StackLayout's Extent (anchoring only one side
+			// skews extrapolation and creates a phantom gap on the other).
+			// Posted at Background priority to break the recursive ScrollChanged
+			// from the realization layout pass.
 			if (hasGap && _container is not null && Records.Count > 0 && scrollViewer.Extent.Height > 0.0)
 			{
 				double ratio = scrollViewer.Offset.Y / scrollViewer.Extent.Height;
@@ -1190,16 +1183,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		double topPosition = double.NegativeInfinity;
 
-		// ItemsRepeater inherits from Panel; its Children collection holds the
-		// realized elements. Pick the one with the largest Bounds.Top still at
-		// or above the viewport top AND whose Bounds.Bottom is below it — i.e.
-		// the container actually intersects the viewport top.
-		// The Bounds.Bottom > offsetY check catches the "bottom gap" case:
-		// when the user scrolled past the last realized item into an unrealized
-		// area, every realized child sits entirely above the viewport. Without
-		// this check we would return the index of the last realized item
-		// (frozen TopRecordIndex) and the gap-fix in ScrollViewer_ScrollChanged
-		// would never trigger.
+		// Pick the realized child that actually intersects the viewport top:
+		// largest Bounds.Top <= offsetY AND Bounds.Bottom > offsetY. The bottom
+		// check is essential — without it a child sitting entirely above the
+		// viewport would still match (the "bottom gap" case) and freeze
+		// TopRecordIndex on the last realized item.
 		foreach (Control child in _container.Children)
 		{
 			double top = child.Bounds.Top;
