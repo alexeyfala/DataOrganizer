@@ -490,6 +490,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Scroll records to the end");
 
+		// Force-realize the last item so StackLayout's Extent reflects the actual
+		// content height through to the end. Without this, jumping to
+		// scrollViewer.Extent.Height lands on an "estimated" end that is short of
+		// the real one, leaving an unrealized gap below the viewport.
+		if (Records.Count > 0)
+		{
+			container.GetOrCreateElement(Records.Count - 1);
+		}
+
 		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
 	}
 
@@ -642,6 +651,69 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			}
 
 			(int topIndex, double withinOffset) = ComputeLogicalScrollPosition(scrollViewer);
+
+			// Gap detection. ComputeLogicalScrollPosition returns (-1, 0) iff the
+			// ItemsRepeater has no realized child whose Bounds.Top <= Offset.Y —
+			// i.e. nothing is realized in the leading half of the visible viewport.
+			// This is the symptom of the known Avalonia.Controls.ItemsRepeater
+			// 12.0.0 bug where Visual.EffectiveViewportChanged does not always fire
+			// after a large Offset jump (scrollbar drag, programmatic scroll), so
+			// ViewportManager._visibleWindow stays stale and realization never
+			// catches up. See
+			// https://github.com/AvaloniaUI/Avalonia.Controls.ItemsRepeater/issues/28.
+			//
+			// Wake the repeater up by force-realizing one element near the
+			// expected position — GetOrCreateElement adds it to the visual tree
+			// and invalidates measure, which on the next layout pass realizes the
+			// surrounding elements naturally. Estimate the index from Offset.Y /
+			// Extent.Height; it does not have to be exact, just inside the gap.
+			// Posted at Background priority to defer past the current ScrollChanged
+			// so the recursive ScrollChanged from the realization layout pass goes
+			// to the next dispatcher iteration instead of stack-overflowing.
+			if (topIndex < 0
+				&& _container is { } repeater
+				&& Records.Count > 0
+				&& scrollViewer.Extent.Height > 0.0)
+			{
+				double ratio = scrollViewer.Offset.Y / scrollViewer.Extent.Height;
+
+				int estimatedIndex = Math.Clamp(
+					(int)(ratio * Records.Count),
+					0,
+					Records.Count - 1);
+
+				// Direction-aware boundary anchoring. The element near the
+				// estimated viewport position seeds realization there.
+				// Additionally, force-realizing the boundary item TOWARD which
+				// the user is scrolling locks StackLayout's Extent on that side
+				// to the real value and lets the leading edge of the viewport
+				// fill in. We must NOT anchor both ends unconditionally —
+				// realizing the far end (e.g. last when scrolling near top)
+				// distorts the average-height extrapolation for items in
+				// between and produces a phantom gap on the opposite side.
+				int boundaryIndex = ratio > 0.5
+					? Records.Count - 1
+					: 0;
+
+				_dispatcher.Post(() =>
+				{
+					if (_container is null)
+					{
+						return;
+					}
+
+					_container.GetOrCreateElement(estimatedIndex);
+
+					if (boundaryIndex != estimatedIndex)
+					{
+						_container.GetOrCreateElement(boundaryIndex);
+					}
+				}, DispatcherPriority.Background);
+
+				// Skip saving the bogus (-1, 0) properties — we'll get a real
+				// position on the next ScrollChanged after realization completes.
+				return;
+			}
 
 			DatasetProperties properties = new()
 			{
@@ -1104,12 +1176,19 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		// ItemsRepeater inherits from Panel; its Children collection holds the
 		// realized elements. Pick the one with the largest Bounds.Top still at
-		// or above the viewport top.
+		// or above the viewport top AND whose Bounds.Bottom is below it — i.e.
+		// the container actually intersects the viewport top.
+		// The Bounds.Bottom > offsetY check catches the "bottom gap" case:
+		// when the user scrolled past the last realized item into an unrealized
+		// area, every realized child sits entirely above the viewport. Without
+		// this check we would return the index of the last realized item
+		// (frozen TopRecordIndex) and the gap-fix in ScrollViewer_ScrollChanged
+		// would never trigger.
 		foreach (Control child in _container.Children)
 		{
 			double top = child.Bounds.Top;
 
-			if (top <= offsetY && top > topPosition)
+			if (top <= offsetY && top > topPosition && child.Bounds.Bottom > offsetY)
 			{
 				topContainer = child;
 
