@@ -147,7 +147,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public void HandleKeyReleased(in EventMask rawMask, in KeyCode code)
+	public void HandleKeyReleased(EventMask rawMask, KeyCode code)
 	{
 		EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
 
@@ -200,7 +200,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="KeyCode" /> is mask.
 	/// </summary>
-	private static bool IsMask(in KeyCode code) => code switch
+	private static bool IsMask(KeyCode code) => code switch
 	{
 		KeyCode.VcCapsLock => true,
 		KeyCode.VcScrollLock => true,

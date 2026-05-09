@@ -24,7 +24,7 @@ public interface IProcessUtils
 	bool IsProcessExists(int processId);
 
 	/// <inheritdoc cref="Process.Kill()" />
-	void KillProcess(in int processId);
+	void KillProcess(int processId);
 
 	/// <summary>
 	/// Opens the application directory.

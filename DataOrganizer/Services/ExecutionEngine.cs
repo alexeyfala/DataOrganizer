@@ -269,8 +269,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// Returns <c>True</c> if the file is exists and tries to kill the process of it.
 	/// </summary>
 	private bool TryKillProcess(
-		in Guid fileId,
-		in int processId,
+		Guid fileId,
+		int processId,
 		string filePath)
 	{
 		if (!_fileSystem.IsFileExists(filePath))

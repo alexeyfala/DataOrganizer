@@ -433,8 +433,8 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 
 	private static void SetTranslateTransform(
 		Control control,
-		in double x,
-		in double y)
+		double x,
+		double y)
 	{
 		TransformOperations.Builder builder = new(1);
 

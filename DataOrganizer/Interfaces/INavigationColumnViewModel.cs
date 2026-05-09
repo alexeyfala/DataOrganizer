@@ -15,7 +15,7 @@ public interface INavigationColumnViewModel
 	/// <summary>
 	/// Sets and validate the value for <see cref="NavigationColumnWidth" />.
 	/// </summary>
-	void SetNavigationColumnWidth(in double value)
+	void SetNavigationColumnWidth(double value)
 	{
 		const double increment = 20.0;
 

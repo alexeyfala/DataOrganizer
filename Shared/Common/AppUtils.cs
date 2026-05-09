@@ -105,7 +105,7 @@ public static class AppUtils
 	/// <summary>
 	/// Generates a random file name.
 	/// </summary>
-	public static string CreateRandomFileName(in int length)
+	public static string CreateRandomFileName(int length)
 	{
 		return $"{CreateRandomString(length)}_file.{CreateRandomString(3).ToLower()}";
 	}
@@ -113,7 +113,7 @@ public static class AppUtils
 	/// <summary>
 	/// Generates a random string in upper case of the required length.
 	/// </summary>
-	public static string CreateRandomString(in int length)
+	public static string CreateRandomString(int length)
 	{
 		const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 

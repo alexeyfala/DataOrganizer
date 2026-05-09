@@ -26,7 +26,7 @@ public static partial class SerilogExtensions
 	public static string GetSourceInfo(
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0) => CreateSourceInfo(filePath, callerName, in lineNumber);
+		[CallerLineNumber] int lineNumber = 0) => CreateSourceInfo(filePath, callerName, lineNumber);
 
 	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Debug" /> level entry.
@@ -36,12 +36,12 @@ public static partial class SerilogExtensions
 		string? message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Debug(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 
 	/// <summary>
@@ -58,12 +58,12 @@ public static partial class SerilogExtensions
 		bool isAssertDebug = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Error(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 
 		if (!isAssertDebug || AppDomain
 			.CurrentDomain
@@ -84,12 +84,12 @@ public static partial class SerilogExtensions
 		bool isAssertDebug = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Error(
 			exception,
 			"{Source}",
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 
 		if (!isAssertDebug || AppDomain
 			.CurrentDomain
@@ -110,13 +110,13 @@ public static partial class SerilogExtensions
 		Exception exception,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Error(
 			exception,
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 
 		if (AppDomain
 			.CurrentDomain
@@ -136,12 +136,12 @@ public static partial class SerilogExtensions
 		string? message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Information(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 
 	/// <summary>
@@ -160,12 +160,12 @@ public static partial class SerilogExtensions
 		string message,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0)
+		[CallerLineNumber] int lineNumber = 0)
 	{
 		target.Warning(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),
-			CreateSourceInfo(filePath, callerName, in lineNumber));
+			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
 	#endregion
 
@@ -176,7 +176,7 @@ public static partial class SerilogExtensions
 	private static string CreateSourceInfo(
 		string filePath,
 		string callerName,
-		in int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(AppUtils.GetPlatformEntryPath(filePath))}";
+		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(AppUtils.GetPlatformEntryPath(filePath))}";
 
 	/// <summary>
 	/// Converts Unicode characters into readable ones.
@@ -196,7 +196,7 @@ public static partial class SerilogExtensions
 			static string GetSource(
 				[CallerFilePath] string filePath = "",
 				[CallerMemberName] string callerName = "",
-				[CallerLineNumber] in int lineNumber = 0) => CreateSourceInfo(filePath, callerName, in lineNumber);
+				[CallerLineNumber] int lineNumber = 0) => CreateSourceInfo(filePath, callerName, lineNumber);
 		}
 
 		return value;

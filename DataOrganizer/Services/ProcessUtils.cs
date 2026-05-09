@@ -59,7 +59,7 @@ public sealed class ProcessUtils : IProcessUtils
 	}
 
 	/// <inheritdoc />
-	public void KillProcess(in int processId)
+	public void KillProcess(int processId)
 	{
 		Process
 			.GetProcessById(processId)

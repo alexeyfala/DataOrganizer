@@ -13,8 +13,8 @@ internal static class ObservableExtensions
 	/// </summary>
 	public static IObservable<EventPattern<TEventArgs>> SetDelay<TEventArgs>(
 		this IObservable<EventPattern<TEventArgs>> target,
-		in TimeSpan delay,
-		in bool ignoreContext)
+		TimeSpan delay,
+		bool ignoreContext)
 	{
 		if (ignoreContext)
 		{

@@ -931,7 +931,7 @@ public sealed class DbAccess : IDbAccess
 
 	#region Service
 	/// <inheritdoc cref="BackupSqliteDatabaseAsync" />
-	private static void BackupSqliteDatabase(in BackupSqliteParameters parameters)
+	private static void BackupSqliteDatabase(BackupSqliteParameters parameters)
 	{
 		SqliteConnectionStringBuilder sourceBuilder = new()
 		{
