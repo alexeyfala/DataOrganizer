@@ -16,13 +16,16 @@ internal static class NotifyPropertyChangedExtensions
 	public static IObservable<Func<IName, bool>> FilterPredicate<T>(
 		this T target,
 		Expression<Func<T, string?>> whenValueChanged,
-		string? startWith,
 		Action emptyStringAction) where T : INotifyPropertyChanged
 	{
 		return target
-			.WhenValueChanged(whenValueChanged, notifyOnInitialValue: false)
-			.Throttle(TimeSpan.FromMilliseconds(500L))
-			.StartWith(startWith) // Important for not to throttle when collection shown for the first time.
+			.WhenValueChanged(whenValueChanged)
+			.Publish(stream =>
+			{
+				return stream
+					.Take(1)
+					.Merge(stream.Skip(1).Throttle(TimeSpan.FromMilliseconds(500L)));
+			})
 			.Select(Predicate);
 
 		Func<IName, bool> Predicate(string? value)

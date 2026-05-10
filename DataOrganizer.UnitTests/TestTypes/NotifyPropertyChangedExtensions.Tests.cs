@@ -15,7 +15,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
 	/// </summary>
 	[Test]
-	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_StartWith_Is_Null()
+	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_Search_Is_Null()
 	{
 		// Arrange
 		Source source = new();
@@ -24,7 +24,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, null, emptyStringAction)
+			.FilterPredicate(x => x.Search, emptyStringAction)
 			.Subscribe(predicate =>
 			{
 				// Assert
@@ -42,16 +42,16 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
 	/// </summary>
 	[Test]
-	public void FilterPredicate_Invokes_EmptyStringAction_When_StartWith_Is_Empty()
+	public void FilterPredicate_Invokes_EmptyStringAction_When_Search_Is_Empty()
 	{
 		// Arrange
-		Source source = new();
+		Source source = new() { Search = string.Empty };
 
 		Action emptyStringAction = Substitute.For<Action>();
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, string.Empty, emptyStringAction)
+			.FilterPredicate(x => x.Search, emptyStringAction)
 			.Subscribe(_ => { });
 
 		// Assert
@@ -64,16 +64,16 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
 	/// </summary>
 	[Test]
-	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_StartWith_Is_Provided()
+	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_Search_Is_Provided()
 	{
 		// Arrange
-		Source source = new();
+		Source source = new() { Search = "hello" };
 
 		Action emptyStringAction = Substitute.For<Action>();
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, "hello", emptyStringAction)
+			.FilterPredicate(x => x.Search, emptyStringAction)
 			.Subscribe(predicate =>
 			{
 				// Assert

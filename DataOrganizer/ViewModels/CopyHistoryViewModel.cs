@@ -88,7 +88,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	{
 		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(
 			x => x.HistorySearch,
-			HistorySearch,
 			HistorySearchEmptyStringAction);
 
 		_filter = new(predicate, autoRefreshOn: x => x.Name);

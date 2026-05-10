@@ -210,14 +210,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	{
 		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(
 			x => x.CategorySearch,
-			CategorySearch,
 			CategorySearchEmptyStringAction);
 
 		_categoriesFilter = new(categoryPredicate, autoRefreshOn: x => x.Name);
 
 		IObservable<Func<IName, bool>> favoritesPredicate = this.FilterPredicate(
 			x => x.FavoriteSearch,
-			FavoriteSearch,
 			FavoriteSearchEmptyStringAction);
 
 		_favoritesFilter = new(favoritesPredicate, autoRefreshOn: x => x.Name);
