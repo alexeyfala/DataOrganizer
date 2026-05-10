@@ -33,9 +33,9 @@ internal partial class DatasetEditorView : UserControl
 	{
 		e.TemplateKey = e.DataContext switch
 		{
-			KeyValueRecord => "KeyValueRecord",
-			ValueRecord => "ValueRecord",
-			RecordsGroup => "RecordsGroup",
+			KeyValueRecord => nameof(KeyValueRecord),
+			ValueRecord => nameof(ValueRecord),
+			RecordsGroup => nameof(RecordsGroup),
 			_ => string.Empty
 		};
 	}

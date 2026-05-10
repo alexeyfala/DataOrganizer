@@ -444,7 +444,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
 
-		if (CopyHistorySettings.Items.Count > 0)
+		if (CopyHistorySettings
+			.Items
+			.Count > 0)
 		{
 			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 		}
