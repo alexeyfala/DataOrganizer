@@ -20,7 +20,7 @@ internal static class NotifyPropertyChangedExtensions
 		Action emptyStringAction) where T : INotifyPropertyChanged
 	{
 		return target
-			.WhenValueChanged(whenValueChanged)
+			.WhenValueChanged(whenValueChanged, notifyOnInitialValue: false)
 			.Throttle(TimeSpan.FromMilliseconds(500L))
 			.StartWith(startWith) // Important for not to throttle when collection shown for the first time.
 			.Select(Predicate);
