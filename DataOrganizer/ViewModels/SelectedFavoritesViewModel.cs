@@ -169,12 +169,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Categories" />.
+	/// <inheritdoc cref="FilterEngine{T}" />
 	/// </summary>
 	private readonly FilterEngine<FavoriteCategory> _categoriesFilter;
 
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Favorites" />.
+	/// <inheritdoc cref="FilterEngine{T}" />
 	/// </summary>
 	private readonly FilterEngine<FileModelDto> _favoritesFilter;
 
