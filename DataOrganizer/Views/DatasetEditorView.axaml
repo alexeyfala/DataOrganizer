@@ -4,7 +4,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:componentModel="using:System.ComponentModel"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
@@ -172,10 +171,8 @@
 			Theme="{StaticResource MaterialModernScrollViewer}"
 			VerticalScrollBarVisibility="Auto">
 
-			<!-- TODO: Unwanted scrolling occurs when the Expander (in RecordsGroupTemplate) is expanded -->
-			<ItemsControl
+			<ItemsRepeater
 				x:Name="RecordsItemsControl"
-				Classes="VirtualizedItemsControlStyle"
 				ItemsSource="{Binding Records, Mode=OneTime}">
 
 				<Interaction.Behaviors>
@@ -186,22 +183,20 @@
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 
-				<ItemsControl.ItemTemplate>
-					<helpers:DatasetRecordTemplateSelector>
-						<StaticResource ResourceKey="KeyValueRecordTemplate" />
+				<ItemsRepeater.Layout>
+					<StackLayout Orientation="Vertical" Spacing="4.0" />
+				</ItemsRepeater.Layout>
 
-						<StaticResource ResourceKey="RecordsGroupTemplate" />
-
-						<StaticResource ResourceKey="ValueRecordTemplate" />
-					</helpers:DatasetRecordTemplateSelector>
-				</ItemsControl.ItemTemplate>
-
-				<ItemsControl.ItemContainerTheme>
-					<ControlTheme TargetType="ContentPresenter">
-						<Setter Property="Margin" Value="2.0" />
-					</ControlTheme>
-				</ItemsControl.ItemContainerTheme>
-			</ItemsControl>
+				<ItemsRepeater.ItemTemplate>
+					<RecyclingElementFactory SelectTemplateKey="OnSelectRecordTemplateKey">
+						<RecyclingElementFactory.Templates>
+							<StaticResource x:Key="KeyValueRecord" ResourceKey="KeyValueRecordTemplate" />
+							<StaticResource x:Key="ValueRecord" ResourceKey="ValueRecordTemplate" />
+							<StaticResource x:Key="RecordsGroup" ResourceKey="RecordsGroupTemplate" />
+						</RecyclingElementFactory.Templates>
+					</RecyclingElementFactory>
+				</ItemsRepeater.ItemTemplate>
+			</ItemsRepeater>
 		</ScrollViewer>
 	</Grid>
 </UserControl>

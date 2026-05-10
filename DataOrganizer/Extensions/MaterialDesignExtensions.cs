@@ -21,11 +21,11 @@ internal static class MaterialDesignExtensions
 	/// <summary>
 	/// Returns <see cref="Color" /> according to <see cref="PrimaryColor" />.
 	/// </summary>
-	private static Color GetColor(in PrimaryColor color) => SwatchHelper.Lookup[(MaterialColor)color];
+	private static Color GetColor(PrimaryColor color) => SwatchHelper.Lookup[(MaterialColor)color];
 
 	/// <summary>
 	/// Returns <see cref="Color" /> according to <see cref="SecondaryColor" />.
 	/// </summary>
-	private static Color GetColor(in SecondaryColor color) => SwatchHelper.Lookup[(MaterialColor)color];
+	private static Color GetColor(SecondaryColor color) => SwatchHelper.Lookup[(MaterialColor)color];
 	#endregion
 }

@@ -281,7 +281,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// Performs initialization.
 	/// </summary>
 	public void Initialize(
-		in double navigationColumnWidth,
+		double navigationColumnWidth,
 		Guid selectedCategoryId,
 		List<FavoriteCategory> categories,
 		List<Guid> orderedCategories,
@@ -321,7 +321,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Adds or updates value in <see cref="SelectedPairs" />.
 	/// </summary>
-	private void AddOrUpdateSelectedPairs(in Guid favoriteId)
+	private void AddOrUpdateSelectedPairs(Guid favoriteId)
 	{
 		if (SelectedCategory is not { } category)
 		{

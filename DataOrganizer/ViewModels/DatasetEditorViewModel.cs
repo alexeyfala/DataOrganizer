@@ -45,10 +45,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsControl" />.
+	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsRepeater" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task ContainerLoaded(ItemsControl? container)
+	public async Task ContainerLoaded(ItemsRepeater? container)
 	{
 		if (IsInitialized)
 		{
@@ -72,7 +72,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			_itemsControl = container;
+			_container = container;
 
 			if (result
 				.Contents
@@ -481,7 +481,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Scrolls the list to the end.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToEnd(ItemsControl? container)
+	private void ScrollToEnd(ItemsRepeater? container)
 	{
 		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
 		{
@@ -490,19 +490,23 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		_logger.LogInformation("Scroll records to the end");
 
-		// Step 1: realize the last root item so VirtualizingStackPanel can update
-		// its Extent based on the real measured size (including any expanded content).
-		container.ScrollIntoView(container.ItemCount - 1);
-
-		// Step 2: now Extent reflects the actual content height — go to the very bottom.
 		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
+
+		// Realize the last item so Extent reflects the real content height —
+		// otherwise the jump lands on an estimated end short of the real one.
+		if (Records.Count > 0)
+		{
+			return;
+		}
+
+		container.GetOrCreateElement(Records.Count - 1);
 	}
 
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToTop(ItemsControl? container)
+	private void ScrollToTop(ItemsRepeater? container)
 	{
 		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
 		{
@@ -512,6 +516,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation("Scroll records to the top");
 
 		scrollViewer.Offset = default;
+
+		if (Records.Count == 0)
+		{
+			return;
+		}
+
+		container.GetOrCreateElement(0);
 	}
 
 	/// <summary>
@@ -593,12 +604,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private readonly IDispatcher _dispatcher;
 
 	/// <summary>
-	/// Cached reference to the records <see cref="ItemsControl" /> set in
-	/// <see cref="ContainerLoaded(ItemsControl?)" />. Used by the scroll handlers
-	/// to translate between the visible viewport offset and a stable logical
-	/// position (top record index + within-record offset).
+	/// Cached reference to the records <see cref="ItemsRepeater" />.
 	/// </summary>
-	private ItemsControl? _itemsControl;
+	private ItemsRepeater? _container;
 	#endregion
 
 	#region Constructors
@@ -650,6 +658,71 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			}
 
 			(int topIndex, double withinOffset) = ComputeLogicalScrollPosition(scrollViewer);
+
+			// Gap detection (https://github.com/AvaloniaUI/Avalonia.Controls.ItemsRepeater/issues/28).
+			// topIndex < 0: nothing realized at the viewport top.
+			// hasBottomGap: realized window covers the top but its bottom edge is
+			// above the viewport bottom — tail of viewport is empty.
+			bool hasBottomGap = false;
+
+			if (_container is not null && Records.Count > 0 && scrollViewer.Viewport.Height > 0.0)
+			{
+				double viewportBottom = scrollViewer.Offset.Y + scrollViewer.Viewport.Height;
+
+				double maxRealizedBottom = double.NegativeInfinity;
+
+				foreach (Control child in _container.Children)
+				{
+					if (child.Bounds.Bottom > maxRealizedBottom)
+					{
+						maxRealizedBottom = child.Bounds.Bottom;
+					}
+				}
+
+				hasBottomGap = maxRealizedBottom < viewportBottom - 1.0;
+			}
+
+			bool hasGap = topIndex < 0 || hasBottomGap;
+
+			// Force-realize strategic elements: estimated seeds local realization,
+			// both boundaries lock StackLayout's Extent (anchoring only one side
+			// skews extrapolation and creates a phantom gap on the other).
+			// Posted at Background priority to break the recursive ScrollChanged
+			// from the realization layout pass.
+			if (hasGap && _container is not null && Records.Count > 0 && scrollViewer.Extent.Height > 0.0)
+			{
+				double ratio = scrollViewer.Offset.Y / scrollViewer.Extent.Height;
+
+				int estimatedIndex = Math.Clamp(
+					(int)(ratio * Records.Count),
+					0,
+					Records.Count - 1);
+
+				_dispatcher.Post(() =>
+				{
+					if (_container is null)
+					{
+						return;
+					}
+
+					_container.GetOrCreateElement(0);
+
+					_container.GetOrCreateElement(Records.Count - 1);
+
+					if (estimatedIndex != 0 && estimatedIndex != Records.Count - 1)
+					{
+						_container.GetOrCreateElement(estimatedIndex);
+					}
+				}, DispatcherPriority.Background);
+
+				// Skip the save only when the saved position would be bogus (-1, 0).
+				// For bottom-gap-with-valid-topIndex, fall through and persist the
+				// real top — it's accurate, the gap is just visual at the tail.
+				if (topIndex < 0)
+				{
+					return;
+				}
+			}
 
 			DatasetProperties properties = new()
 			{
@@ -1099,7 +1172,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private (int topIndex, double withinOffset) ComputeLogicalScrollPosition(ScrollViewer scrollViewer)
 	{
-		if (_itemsControl is null || _itemsControl.ItemsPanelRoot is not VirtualizingStackPanel panel)
+		if (_container is null)
 		{
 			return (-1, 0.0);
 		}
@@ -1110,16 +1183,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		double topPosition = double.NegativeInfinity;
 
-		// Find the realized container with the largest Bounds.Top still at or
-		// above the viewport top. That container is the one currently showing
-		// at the top of the visible area.
-		foreach (Control container in panel.Children)
+		// Pick the realized child that actually intersects the viewport top:
+		// largest Bounds.Top <= offsetY AND Bounds.Bottom > offsetY. The bottom
+		// check is essential — without it a child sitting entirely above the
+		// viewport would still match (the "bottom gap" case) and freeze
+		// TopRecordIndex on the last realized item.
+		foreach (Control child in _container.Children)
 		{
-			double top = container.Bounds.Top;
+			double top = child.Bounds.Top;
 
-			if (top <= offsetY && top > topPosition)
+			if (top <= offsetY && top > topPosition && child.Bounds.Bottom > offsetY)
 			{
-				topContainer = container;
+				topContainer = child;
 
 				topPosition = top;
 			}
@@ -1130,7 +1205,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return (-1, 0.0);
 		}
 
-		int index = _itemsControl.IndexFromContainer(topContainer);
+		int index = _container.GetElementIndex(topContainer);
 
 		if (index < 0)
 		{
@@ -1161,7 +1236,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private async Task InitializePropertiesAsync(
 		ScrollViewer scrollViewer,
-		ItemsControl itemsControl,
+		ItemsRepeater container,
 		CancellationToken token = default)
 	{
 		string? value = InitialProperties ?? await _dbAccess
@@ -1177,25 +1252,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
 
-			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= itemsControl.ItemCount)
+			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
 			{
 				return;
 			}
 
-			// Step 1: ensure the saved record is realized; this also gives the
-			// VirtualizingStackPanel a chance to refine its Extent estimate.
-			itemsControl.ScrollIntoView(properties.TopRecordIndex);
-
-			if (itemsControl.ContainerFromIndex(properties.TopRecordIndex) is not { } container)
+			if (container.GetOrCreateElement(properties.TopRecordIndex) is not { } realizedContainer)
 			{
 				return;
 			}
 
-			// Step 2: nudge the offset so the within-record pixel position
-			// matches what was saved.
+			container.UpdateLayout();
+
 			scrollViewer.Offset = new Vector(
 				scrollViewer.Offset.X,
-				container.Bounds.Top + properties.WithinRecordOffset);
+				realizedContainer.Bounds.Top + properties.WithinRecordOffset);
 		}
 		catch (Exception ex)
 		{

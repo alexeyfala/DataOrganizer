@@ -110,7 +110,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
 	/// </summary>
-	public static bool ContainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, in Guid id)
+	public static bool ContainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, Guid id)
 	{
 		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
 
@@ -386,7 +386,7 @@ public static class EnumerableExtensions
 	/// </summary>
 	public static DatasetRecordBase[] Sort(
 		this ICollection<DatasetRecordBase> records,
-		in ListSortDirection direction)
+		ListSortDirection direction)
 	{
 		RecordsGroup[] groups = direction switch
 		{

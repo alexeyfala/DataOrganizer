@@ -1836,7 +1836,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Switches the right side sheet content.
 	/// </summary>
-	private void SwitchRightSideSheetContent(in RightSideSheetContentType type)
+	private void SwitchRightSideSheetContent(RightSideSheetContentType type)
 	{
 		if (RightSideSheetContent == type)
 		{

@@ -295,7 +295,7 @@ public sealed class FileSystem : IFileSystem
 	/// <summary>
 	/// Adds attributes <see cref="FileAttributes" /> to a file.
 	/// </summary>
-	private static void AddFileAttributes(string filePath, in FileAttributes value)
+	private static void AddFileAttributes(string filePath, FileAttributes value)
 	{
 		FileAttributes attributes = File.GetAttributes(filePath);
 
@@ -307,7 +307,7 @@ public sealed class FileSystem : IFileSystem
 	/// <summary>
 	/// Removes the <see cref="FileAttributes" /> attribute from a file.
 	/// </summary>
-	private static void RemoveFileAttributes(string filePath, in FileAttributes value)
+	private static void RemoveFileAttributes(string filePath, FileAttributes value)
 	{
 		FileAttributes attributes = File.GetAttributes(filePath);
 

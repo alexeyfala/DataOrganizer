@@ -32,7 +32,7 @@ internal sealed class ExecutingFileInfo
 		CancellationTokenSource cancellation,
 		string filePath,
 		string directoryPath,
-		in int processId)
+		int processId)
 	{
 		Cancellation = cancellation;
 

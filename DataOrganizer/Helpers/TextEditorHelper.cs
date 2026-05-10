@@ -144,7 +144,7 @@ internal static class TextEditorHelper
 	/// </summary>
 	public static void Spin(
 		SpinEventArgs? e,
-		in double currentValue,
+		double currentValue,
 		Expression<Func<double>> expression)
 	{
 		if (e is null)
@@ -192,7 +192,7 @@ internal static class TextEditorHelper
 	/// </summary>
 	private static void IncreaseDecrease(
 		SpinDirection direction,
-		in double currentValue,
+		double currentValue,
 		Expression<Func<double>> expression)
 	{
 		const double step = 0.5;

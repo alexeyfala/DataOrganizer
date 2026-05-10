@@ -263,7 +263,7 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random sequence of bytes.
 	/// </summary>
-	public static byte[] CreateRandomBytes(in int length)
+	public static byte[] CreateRandomBytes(int length)
 	{
 		byte[] buffer = new byte[length];
 
@@ -288,7 +288,7 @@ public static class TestUtils
 	/// <remarks>
 	/// <see href="https://code-maze.com/csharp-random-double-range" />
 	/// </remarks>
-	public static double CreateRandomDouble(in double minValue, in double maxValue)
+	public static double CreateRandomDouble(double minValue, double maxValue)
 	{
 		double value = Random
 			.Shared
@@ -314,7 +314,7 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random file name.
 	/// </summary>
-	public static string CreateRandomFileName(in int length, string extension)
+	public static string CreateRandomFileName(int length, string extension)
 	{
 		return $"{AppUtils.CreateRandomString(length)}_file{extension}";
 	}
@@ -322,7 +322,7 @@ public static class TestUtils
 	/// <summary>
 	/// Generates a random <see cref="int" /> number within a given range.
 	/// </summary>
-	public static int CreateRandomInt(in int minValue, in int maxValue)
+	public static int CreateRandomInt(int minValue, int maxValue)
 	{
 		return Random
 			.Shared

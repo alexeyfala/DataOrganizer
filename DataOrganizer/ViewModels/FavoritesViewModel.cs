@@ -600,7 +600,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Sets <see cref="PopupContent" /> from <paramref name="content"/>,
 	/// <see cref="IsPopupOpen" /> to <c>True</c> and updates commands.
 	/// </summary>
-	private void ShowContentInPopup(in FavoritesPopupContentType content)
+	private void ShowContentInPopup(FavoritesPopupContentType content)
 	{
 		PopupContent = content;
 

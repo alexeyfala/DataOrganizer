@@ -56,8 +56,8 @@ public interface IAppSettingsManager
 	/// Sets the application theme <see cref="MaterialTheme" />.
 	/// </summary>
 	void SetAppMaterialTheme(
-		in BaseThemeMode mode,
-		in PrimaryColor primaryColor,
-		in SecondaryColor secondaryColor);
+		BaseThemeMode mode,
+		PrimaryColor primaryColor,
+		SecondaryColor secondaryColor);
 	#endregion
 }

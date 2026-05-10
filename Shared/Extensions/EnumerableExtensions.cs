@@ -56,7 +56,7 @@ public static class EnumerableExtensions
 	public static Task ForEachAsync<T>(
 		this IEnumerable<T> sequence,
 		Action<T> action,
-		in int maxDegreeOfParallelism,
+		int maxDegreeOfParallelism,
 		CancellationToken token = default)
 	{
 		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxDegreeOfParallelism);

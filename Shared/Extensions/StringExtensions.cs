@@ -21,7 +21,7 @@ public static partial class StringExtensions
 	/// <summary>
 	/// Repeats a string the required number of times.
 	/// </summary>
-	public static string Repeat(this string value, in int count, string separator)
+	public static string Repeat(this string value, int count, string separator)
 	{
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 
@@ -71,7 +71,7 @@ public static partial class StringExtensions
 	/// <param name="suffix">Placeholder suffix for the trimmed string (usually an ellipsis ...)</param>
 	public static string Truncate(
 		this string value,
-		in int maxLength,
+		int maxLength,
 		string suffix = "...")
 	{
 		return value[.. Math.Min(value.Length, maxLength)] + (value.Length > maxLength ? suffix : string.Empty);

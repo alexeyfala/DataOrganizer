@@ -91,9 +91,9 @@ public sealed class AppSettingsManager : IAppSettingsManager
 
 	/// <inheritdoc />
 	public void SetAppMaterialTheme(
-		in BaseThemeMode mode,
-		in PrimaryColor primaryColor,
-		in SecondaryColor secondaryColor)
+		BaseThemeMode mode,
+		PrimaryColor primaryColor,
+		SecondaryColor secondaryColor)
 	{
 		if (AppDomain
 			.CurrentDomain
