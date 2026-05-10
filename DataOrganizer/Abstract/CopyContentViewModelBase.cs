@@ -2,7 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -21,7 +20,7 @@ using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.Abstract;
 
-public abstract class CopyContentViewModelBase : ObservableObject
+public abstract class CopyContentViewModelBase : ObservableDisposableBase
 {
 	#region Data
 	/// <inheritdoc cref="Application" />

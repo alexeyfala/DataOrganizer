@@ -190,6 +190,8 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
+		base.AfterDispose();
+
 		_hook.Dispose();
 
 		Buffer.Clear();

@@ -173,6 +173,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
+		base.AfterDispose();
+
 		SessionEncryptedDek?.ZeroMemory();
 
 		SessionEncryptedDek = null;
