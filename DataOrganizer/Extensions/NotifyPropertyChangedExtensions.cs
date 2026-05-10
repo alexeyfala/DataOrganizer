@@ -15,8 +15,7 @@ internal static class NotifyPropertyChangedExtensions
 	/// </summary>
 	public static IObservable<Func<IName, bool>> FilterPredicate<T>(
 		this T target,
-		Expression<Func<T, string?>> whenValueChanged,
-		Action emptyStringAction) where T : INotifyPropertyChanged
+		Expression<Func<T, string?>> whenValueChanged) where T : INotifyPropertyChanged
 	{
 		return target
 			.WhenValueChanged(whenValueChanged)
@@ -25,23 +24,12 @@ internal static class NotifyPropertyChangedExtensions
 				return stream
 					.Take(1)
 					.Merge(stream.Skip(1).Throttle(TimeSpan.FromMilliseconds(500L)));
-			})
-			.Select(Predicate);
+			}).Select(Predicate);
 
-		Func<IName, bool> Predicate(string? value)
-		{
-			if (string.IsNullOrWhiteSpace(value))
-			{
-				if (string.Equals(value, string.Empty))
-				{
-					emptyStringAction();
-				}
-
-				return _ => true;
-			}
-
-			return x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase);
-		}
+		static Func<IName, bool> Predicate(string? value) =>
+			string.IsNullOrWhiteSpace(value)
+				? _ => true
+				: x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase);
 	}
 	#endregion
 }

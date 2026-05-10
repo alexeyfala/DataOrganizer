@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using NSubstitute;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -20,11 +19,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		// Arrange
 		Source source = new();
 
-		Action emptyStringAction = Substitute.For<Action>();
-
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, emptyStringAction)
+			.FilterPredicate(x => x.Search)
 			.Subscribe(predicate =>
 			{
 				// Assert
@@ -32,32 +29,6 @@ internal partial class NotifyPropertyChangedExtensionsTests
 					.Should()
 					.BeTrue();
 			});
-
-		emptyStringAction
-			.DidNotReceive()
-			.Invoke();
-	}
-
-	/// <summary>
-	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
-	/// </summary>
-	[Test]
-	public void FilterPredicate_Invokes_EmptyStringAction_When_Search_Is_Empty()
-	{
-		// Arrange
-		Source source = new() { Search = string.Empty };
-
-		Action emptyStringAction = Substitute.For<Action>();
-
-		// Act
-		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, emptyStringAction)
-			.Subscribe(_ => { });
-
-		// Assert
-		emptyStringAction
-			.Received(1)
-			.Invoke();
 	}
 
 	/// <summary>
@@ -69,11 +40,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 		// Arrange
 		Source source = new() { Search = "hello" };
 
-		Action emptyStringAction = Substitute.For<Action>();
-
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, emptyStringAction)
+			.FilterPredicate(x => x.Search)
 			.Subscribe(predicate =>
 			{
 				// Assert

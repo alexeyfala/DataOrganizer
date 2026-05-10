@@ -13,6 +13,7 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace DataOrganizer.ViewModels;
 
@@ -86,11 +87,19 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 			handler,
 			viewModel)
 	{
-		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(
-			x => x.HistorySearch,
-			HistorySearchEmptyStringAction);
+		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(x => x.HistorySearch);
 
 		_filter = new(predicate, autoRefreshOn: x => x.Name);
+
+		((INotifyCollectionChanged)_filter.Visible).CollectionChanged += (_, _) =>
+		{
+			if (SelectedItem is null
+				&& _previousSelectedItem is { } previous
+				&& _filter.Visible.Contains(previous))
+			{
+				SelectedItem = previous;
+			}
+		};
 	}
 	#endregion
 
@@ -166,12 +175,5 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// Tries to remove value from <see cref="Items" />.
 	/// </summary>
 	public bool Remove(FileModelDto file) => _filter.Remove(file);
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// The action called when <see cref="HistorySearch" /> has empty string value.
-	/// </summary>
-	private void HistorySearchEmptyStringAction() => SelectedItem ??= _previousSelectedItem;
 	#endregion
 }

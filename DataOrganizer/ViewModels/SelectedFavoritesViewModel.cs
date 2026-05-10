@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
@@ -195,6 +196,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
+		IDispatcher dispatcher,
 		IEntityEcryption entityEcryption,
 		ILogger logger,
 		ITaskExceptionHandler handler,
@@ -208,15 +210,31 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			handler,
 			viewModel)
 	{
-		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(
-			x => x.CategorySearch,
-			CategorySearchEmptyStringAction);
+		IObservable<Func<IName, bool>> categoryPredicate = this
+			.FilterPredicate(x => x.CategorySearch)
+			.Do(_ =>
+			{
+				if (CategorySearch?.Length == 0)
+				{
+					dispatcher.Post(
+						() => SelectedCategory ??= _previousSelectedCategory,
+						DispatcherPriority.Background);
+				}
+			});
 
 		_categoriesFilter = new(categoryPredicate, autoRefreshOn: x => x.Name);
 
-		IObservable<Func<IName, bool>> favoritesPredicate = this.FilterPredicate(
-			x => x.FavoriteSearch,
-			FavoriteSearchEmptyStringAction);
+		IObservable<Func<IName, bool>> favoritesPredicate = this
+			.FilterPredicate(x => x.FavoriteSearch)
+			.Do(_ =>
+			{
+				if (FavoriteSearch?.Length == 0)
+				{
+					dispatcher.Post(
+						() => SelectedFavorite ??= _previousSelectedFavorite,
+						DispatcherPriority.Background);
+				}
+			});
 
 		_favoritesFilter = new(favoritesPredicate, autoRefreshOn: x => x.Name);
 	}
@@ -339,15 +357,5 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			});
 		}
 	}
-
-	/// <summary>
-	/// The action called when <see cref="CategorySearch" /> has empty string value.
-	/// </summary>
-	private void CategorySearchEmptyStringAction() => SelectedCategory ??= _previousSelectedCategory;
-
-	/// <summary>
-	/// The action called when <see cref="FavoriteSearch" /> has empty string value.
-	/// </summary>
-	private void FavoriteSearchEmptyStringAction() => SelectedFavorite ??= _previousSelectedFavorite;
 	#endregion
 }
