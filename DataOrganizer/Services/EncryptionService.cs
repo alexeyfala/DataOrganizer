@@ -94,11 +94,58 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password)
+	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
+	{
+		if (input.Length < _algorithm.NonceSize + _algorithm.TagSize)
+		{
+			return null;
+		}
+
+		try
+		{
+			byte[] nonce = new byte[_algorithm.NonceSize];
+
+			byte[] ciphertext = new byte[input.Length - nonce.Length];
+
+			Buffer.BlockCopy(input, 0, nonce, 0, nonce.Length);
+
+			Buffer.BlockCopy(input, nonce.Length, ciphertext, 0, ciphertext.Length);
+
+			using Key key = ImportKey(dek);
+
+			byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
+
+			if (!_algorithm.Decrypt(
+				key: key,
+				nonce: nonce,
+				associatedData: [],
+				ciphertext: ciphertext,
+				plaintext: plaintext))
+			{
+				return null;
+			}
+
+			return plaintext;
+		}
+		// Expected: crypto-level failure.
+		catch (CryptographicException ex)
+		{
+			_logger.LogException(ex);
+		}
+		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+
+		return null;
+	}
+
+	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Decrypt(item.Contents, password) is { } output)
+			if (DecryptWithDek(item.Contents, dek) is { } output)
 			{
 				yield return new()
 				{
@@ -150,11 +197,44 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password)
+	public byte[]? EncryptWithDek(byte[] input, byte[] dek)
+	{
+		try
+		{
+			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
+
+			using Key key = ImportKey(dek);
+
+			byte[] encrypted = _algorithm.Encrypt(
+				key,
+				nonce,
+				associatedData: [],
+				input);
+
+			// Format: [nonce][ciphertext+tag]. No salt.
+			byte[] result = new byte[nonce.Length + encrypted.Length];
+
+			Buffer.BlockCopy(nonce, 0, result, 0, nonce.Length);
+
+			Buffer.BlockCopy(encrypted, 0, result, nonce.Length, encrypted.Length);
+
+			return result;
+		}
+		// Defensive: covers null args, RNG failure, etc.
+		// Caught to keep the UI alive, logged for diagnostics.
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
+	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (Encrypt(item.Contents, password) is { } output)
+			if (EncryptWithDek(item.Contents, dek) is { } output)
 			{
 				yield return new()
 				{

@@ -292,7 +292,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			return _encryption.Decrypt(encryptedContents, decryptedDek);
+			return _encryption.DecryptWithDek(encryptedContents, decryptedDek);
 		}
 		finally
 		{
@@ -411,7 +411,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 		try
 		{
-			return _encryption.Encrypt(decryptedContents, decryptedDek);
+			return _encryption.EncryptWithDek(decryptedContents, decryptedDek);
 		}
 		finally
 		{
@@ -661,7 +661,7 @@ public sealed class EntityEcryption : IEntityEcryption
 
 				try
 				{
-					if (_encryption.Decrypt(contents, decryptedDek) is not { } decrypted)
+					if (_encryption.DecryptWithDek(contents, decryptedDek) is not { } decrypted)
 					{
 						_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
 
