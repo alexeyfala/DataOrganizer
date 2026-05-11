@@ -1,5 +1,4 @@
 ﻿using Repository.DTO;
-using System;
 using System.Collections.Generic;
 
 namespace DataOrganizer.Interfaces;
@@ -16,24 +15,34 @@ public interface IEncryptionService
 	byte[] CreateRandomDek();
 
 	/// <summary>
-	/// Decrypts data.
+	/// Decrypts data using a password (runs KDF). For wrap/unwrap of DEK.
 	/// </summary>
 	byte[]? Decrypt(byte[] input, byte[] password);
 
 	/// <summary>
-	/// Decrypts a sequence of contents.
+	/// Decrypts a sequence of contents using a DEK directly.
 	/// </summary>
-	IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] password);
+	IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek);
 
 	/// <summary>
-	/// Encrypts data.
+	/// Decrypts data using a DEK directly (no KDF). For content encryption.
+	/// </summary>
+	byte[]? DecryptWithDek(byte[] input, byte[] dek);
+
+	/// <summary>
+	/// Encrypts data using a password (runs KDF). For wrap/unwrap of DEK.
 	/// </summary>
 	byte[]? Encrypt(byte[] input, byte[] password);
 
 	/// <summary>
-	/// Encrypts a sequence of contents.
+	/// Encrypts a sequence of contents using a DEK directly.
 	/// </summary>
-	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] password);
+	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] dek);
+
+	/// <summary>
+	/// Encrypts data using a DEK directly (no KDF). For content encryption.
+	/// </summary>
+	byte[]? EncryptWithDek(byte[] input, byte[] dek);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
 	string HashPassword(char[] password);

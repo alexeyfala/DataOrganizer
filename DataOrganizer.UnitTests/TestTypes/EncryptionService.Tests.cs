@@ -63,6 +63,86 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="EncryptionService.Decrypt" />.
+	/// </summary>
+	[Test]
+	public void Decrypt_Returns_Null_On_Malformed_Input()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] password = TextHelper
+			.Utf8Encoding
+			.GetBytes("SomePassword");
+
+		// Act
+		byte[]? result = sut.Decrypt([1, 2, 3], password);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.DecryptWithDek" />.
+	/// </summary>
+	[Test]
+	public void DecryptWithDek_Cannot_Decrypt_With_Wrong_Dek()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		byte[] dek = sut.CreateRandomDek();
+
+		byte[] wrongDek = sut.CreateRandomDek();
+
+		// Act
+		byte[]? encrypted = sut.EncryptWithDek(input, dek);
+
+		encrypted
+			.Should()
+			.NotBeNull();
+
+		byte[]? result = sut.DecryptWithDek(encrypted, wrongDek);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.DecryptWithDek" />.
+	/// </summary>
+	[Test]
+	public void DecryptWithDek_Returns_Null_On_Malformed_Input()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		// Act
+		byte[]? result = sut.DecryptWithDek([1, 2, 3], dek);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// Test of <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.Decrypt" />.
 	/// </summary>
 	[Test]
@@ -89,6 +169,45 @@ internal class EncryptionServiceTests
 			.NotBeNullOrEmpty();
 
 		byte[]? decrypted = sut.Decrypt(encrypted, password);
+
+		decrypted
+			.Should()
+			.NotBeNullOrEmpty();
+
+		TextHelper.Utf8Encoding.GetString(encrypted)
+			.Should()
+			.NotBe(TextHelper.LoremIpsum);
+
+		TextHelper.Utf8Encoding.GetString(decrypted)
+			.Should()
+			.Be(TextHelper.LoremIpsum);
+	}
+
+	/// <summary>
+	/// Test of <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />.
+	/// </summary>
+	[Test]
+	public void EncryptWithDek_DecryptWithDek_Checking_Functionality()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		byte[] dek = sut.CreateRandomDek();
+
+		// Act, Assert
+		byte[]? encrypted = sut.EncryptWithDek(input, dek);
+
+		encrypted
+			.Should()
+			.NotBeNullOrEmpty();
+
+		byte[]? decrypted = sut.DecryptWithDek(encrypted, dek);
 
 		decrypted
 			.Should()

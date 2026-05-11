@@ -172,7 +172,11 @@ internal class EntityEcryptionTests
 		{
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([], default(byte[]));
+				.Returns([]);
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(default(byte[]));
 
 			builder.RegisterInstance(encryption);
 		});
@@ -190,8 +194,12 @@ internal class EntityEcryptionTests
 			.BeNull();
 
 		encryption
-			.Received(2)
+			.Received(1)
 			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+
+		encryption
+			.Received(1)
+			.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -242,6 +250,10 @@ internal class EntityEcryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -368,7 +380,7 @@ internal class EntityEcryptionTests
 				.Returns([]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(encryption);
@@ -388,7 +400,7 @@ internal class EntityEcryptionTests
 
 		encryption
 			.Received()
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 
 		encryption
 			.Received()
@@ -411,7 +423,7 @@ internal class EntityEcryptionTests
 				.Returns([]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -676,6 +688,10 @@ internal class EntityEcryptionTests
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
 			builder.RegisterInstance(encryption);
 		});
 
@@ -725,6 +741,10 @@ internal class EntityEcryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -784,6 +804,10 @@ internal class EntityEcryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);

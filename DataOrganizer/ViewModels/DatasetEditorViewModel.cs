@@ -1173,7 +1173,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <see cref="VirtualizingStackPanel" /> hosting the records.
 	/// Returns <c>(-1, 0)</c> when no realized container intersects the viewport top.
 	/// </summary>
-	private (int topIndex, double withinOffset) ComputeLogicalScrollPosition(ScrollViewer scrollViewer)
+	private (int TopIndex, double WithinOffset) ComputeLogicalScrollPosition(ScrollViewer scrollViewer)
 	{
 		if (_container is null)
 		{
