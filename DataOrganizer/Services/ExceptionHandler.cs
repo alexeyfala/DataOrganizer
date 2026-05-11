@@ -95,7 +95,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	{
 		lock (_mutex)
 		{
-			if (!_handledExceptions.Add(exception.Message))
+			if (!_handledExceptions.Add($"{exception.GetType().Name}: {exception.Message}"))
 			{
 				return;
 			}
