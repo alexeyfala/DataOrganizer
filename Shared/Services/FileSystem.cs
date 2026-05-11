@@ -281,7 +281,7 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public async Task WaitWhileFileIsLockedAsync(
+	public async Task WaitFileLockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default)

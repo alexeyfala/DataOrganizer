@@ -123,7 +123,7 @@ public interface IFileSystem
 	/// <summary>
 	/// Checks if a file is locked by another process and waits for it to be unlocked.
 	/// </summary>
-	Task WaitWhileFileIsLockedAsync(
+	Task WaitFileLockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default);

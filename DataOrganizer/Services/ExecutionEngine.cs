@@ -115,7 +115,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				CancellationTokenSource cancellation = new(TimeSpan.FromSeconds(30));
 
 				await _fileSystem
-					.WaitWhileFileIsLockedAsync(info.FilePath, token: cancellation.Token)
+					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
 				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
