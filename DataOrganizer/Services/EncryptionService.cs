@@ -12,9 +12,53 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services;
 
+/// <summary>
+/// <inheritdoc cref="IEncryptionService" />
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Ciphertext format versioning.</b> Every ciphertext produced by this service starts with a
+/// single version byte (see <see cref="FormatVersionPasswordV1" /> and <see cref="FormatVersionDekV1" />).
+/// The version byte tells the decryptor how to interpret the remaining bytes — which algorithm,
+/// which parameters, which layout. Without it, a future change in format (different AEAD, different
+/// salt size, different KDF parameters, etc.) would silently break decryption of existing data,
+/// because raw bytes are indistinguishable between formats.
+/// </para>
+/// <para>
+/// <b>Current format layout:</b>
+/// <list type="bullet">
+///   <item><c>0x01</c> — password path: <c>[0x01][salt 16][nonce 24][ciphertext+tag]</c></item>
+///   <item><c>0x02</c> — DEK path:      <c>[0x02][nonce 24][ciphertext+tag]</c></item>
+/// </list>
+/// Different version codes between paths also prevent accidental cross-use: a password-path blob
+/// fed to <see cref="DecryptWithDek" /> returns <c>null</c> instead of attempting decryption.
+/// </para>
+/// <para>
+/// <b>Rules when changing the format:</b>
+/// <list type="number">
+///   <item>Allocate a new version constant (e.g. <c>0x03</c>) — do not reuse existing ones.</item>
+///   <item>Add the new layout / algorithm under the new code; keep the old branch readable so existing
+///         data can still be decrypted.</item>
+///   <item>Bump the version constant only in the <i>encryption</i> path; decryption should accept
+///         all known versions and dispatch by the first byte.</item>
+///   <item>Unknown version → return <c>null</c> (already enforced by the guards). Never fall back
+///         to "try a different format" — that's a downgrade vector.</item>
+/// </list>
+/// </para>
+/// </remarks>
 public sealed class EncryptionService : IEncryptionService
 {
 	#region Data
+	/// <summary>
+	/// Format version for the password-based path: <c>[0x01][salt][nonce][ciphertext+tag]</c>.
+	/// </summary>
+	private const byte FormatVersionPasswordV1 = 0x01;
+
+	/// <summary>
+	/// Format version for the DEK-based path: <c>[0x02][nonce][ciphertext+tag]</c>.
+	/// </summary>
+	private const byte FormatVersionDekV1 = 0x02;
+
 	/// <summary>
 	/// Salt size.
 	/// </summary>
@@ -40,9 +84,9 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? Decrypt(byte[] input, byte[] password)
 	{
-		// Guard against malformed input: otherwise ciphertext.Length would be negative
-		// and Buffer.BlockCopy would throw ArgumentException inside the try/catch.
-		if (input.Length < SaltSize + _algorithm.NonceSize + _algorithm.TagSize)
+		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
+		if (input.Length < 1 + SaltSize + _algorithm.NonceSize + _algorithm.TagSize
+			|| input[0] != FormatVersionPasswordV1)
 		{
 			return null;
 		}
@@ -51,20 +95,18 @@ public sealed class EncryptionService : IEncryptionService
 		{
 			byte[] salt = new byte[SaltSize];
 
-			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
+			Buffer.BlockCopy(input, 1, salt, 0, salt.Length);
 
-			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: SaltSize);
+			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 1 + SaltSize);
 
 			using Key key = DeriveKey(password, salt);
 
 			return OpenAead(key, nonce, ciphertext);
 		}
-		// Expected: crypto-level failure.
 		catch (CryptographicException ex)
 		{
 			_logger.LogException(ex);
 		}
-		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
@@ -96,25 +138,25 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
 	{
-		if (input.Length < _algorithm.NonceSize + _algorithm.TagSize)
+		// Guard: enough bytes for [version][nonce][tag] and the version byte must match.
+		if (input.Length < 1 + _algorithm.NonceSize + _algorithm.TagSize
+			|| input[0] != FormatVersionDekV1)
 		{
 			return null;
 		}
 
 		try
 		{
-			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 0);
+			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 1);
 
 			using Key key = ImportKey(dek);
 
 			return OpenAead(key, nonce, ciphertext);
 		}
-		// Expected: crypto-level failure.
 		catch (CryptographicException ex)
 		{
 			_logger.LogException(ex);
 		}
-		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
@@ -134,13 +176,16 @@ public sealed class EncryptionService : IEncryptionService
 
 			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
 
-			byte[] result = new byte[salt.Length + nonce.Length + ciphertext.Length];
+			// Format: [version 1][salt 16][nonce 24][ciphertext+tag].
+			byte[] result = new byte[1 + salt.Length + nonce.Length + ciphertext.Length];
 
-			Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
+			result[0] = FormatVersionPasswordV1;
 
-			Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
+			Buffer.BlockCopy(salt, 0, result, 1, salt.Length);
 
-			Buffer.BlockCopy(ciphertext, 0, result, salt.Length + nonce.Length, ciphertext.Length);
+			Buffer.BlockCopy(nonce, 0, result, 1 + salt.Length, nonce.Length);
+
+			Buffer.BlockCopy(ciphertext, 0, result, 1 + salt.Length + nonce.Length, ciphertext.Length);
 
 			return result;
 		}
@@ -181,11 +226,14 @@ public sealed class EncryptionService : IEncryptionService
 
 			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
 
-			byte[] result = new byte[nonce.Length + ciphertext.Length];
+			// Format: [version 2][nonce 24][ciphertext+tag].
+			byte[] result = new byte[1 + nonce.Length + ciphertext.Length];
 
-			Buffer.BlockCopy(nonce, 0, result, 0, nonce.Length);
+			result[0] = FormatVersionDekV1;
 
-			Buffer.BlockCopy(ciphertext, 0, result, nonce.Length, ciphertext.Length);
+			Buffer.BlockCopy(nonce, 0, result, 1, nonce.Length);
+
+			Buffer.BlockCopy(ciphertext, 0, result, 1 + nonce.Length, ciphertext.Length);
 
 			return result;
 		}
