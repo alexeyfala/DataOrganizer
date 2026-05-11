@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed class EntityEcryption : IEntityEcryption
+public sealed class EntityEncryption : IEntityEncryption
 {
 	#region Data
 	/// <inheritdoc cref="IDbAccess" />
@@ -54,7 +54,7 @@ public sealed class EntityEcryption : IEntityEcryption
 	#endregion
 
 	#region Constructors
-	public EntityEcryption(
+	public EntityEncryption(
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEncryptionService encryption,

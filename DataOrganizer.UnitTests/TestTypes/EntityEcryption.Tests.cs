@@ -23,12 +23,12 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(EntityEcryption)}"" type")]
-internal class EntityEcryptionTests
+[TestFixture(Description = $@"Tests of ""{nameof(EntityEncryption)}"" type")]
+internal class EntityEncryptionTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.ChangePasswordAsync" />.
+	/// Test of <see cref="EntityEncryption.ChangePasswordAsync" />.
 	/// </summary>
 	[Test]
 	public async Task ChangePasswordAsync_Does_Work()
@@ -79,7 +79,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(dbAccess);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		await sut.ChangePasswordAsync(folder);
@@ -95,7 +95,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.DecryptFolderAsync" />.
+	/// Test of <see cref="EntityEncryption.DecryptFolderAsync" />.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolderAsync_Does_Work()
@@ -148,7 +148,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(dbAccess);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		await sut.DecryptFolderAsync(folder, files);
@@ -160,7 +160,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Cannot_Decrypt_Binary()
@@ -181,7 +181,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = sut.DecryptSessionContents(
@@ -203,7 +203,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Cannot_Decrypt_Encrypted_Password()
@@ -220,7 +220,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = sut.DecryptSessionContents(
@@ -238,7 +238,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.DecryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Does_Work()
@@ -259,7 +259,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? output = sut.DecryptSessionContents(
@@ -273,7 +273,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptFolderAsync" />.
+	/// Test of <see cref="EntityEncryption.EncryptFolderAsync" />.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolderAsync_Does_Work()
@@ -318,7 +318,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(dbAccess);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		await sut.EncryptFolderAsync(folder, files);
@@ -330,7 +330,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Cannot_Decrypt_Encrypted_Password()
@@ -347,7 +347,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = sut.EncryptSessionContents(
@@ -365,7 +365,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Cannot_Encrypt_Binary()
@@ -386,7 +386,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = sut.EncryptSessionContents(
@@ -408,7 +408,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.EncryptSessionContents" />.
+	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Does_Work()
@@ -429,7 +429,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? output = sut.EncryptSessionContents(
@@ -443,7 +443,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.GetSessionId" />.
+	/// Test of <see cref="EntityEncryption.GetSessionId" />.
 	/// </summary>
 	[Test]
 	public void GetSessionId_Returns_Different_Values_Between_Sessions()
@@ -451,7 +451,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[] first = sut.GetSessionId();
@@ -467,7 +467,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.GetSessionId" />.
+	/// Test of <see cref="EntityEncryption.GetSessionId" />.
 	/// </summary>
 	[Test]
 	public void GetSessionId_Returns_Same_Value_During_Session()
@@ -475,7 +475,7 @@ internal class EntityEcryptionTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[] value = sut.GetSessionId();
@@ -490,7 +490,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.HideFolderContents" />.
+	/// Test of <see cref="EntityEncryption.HideFolderContents" />.
 	/// </summary>
 	[Test]
 	public void HideFolderContents_Does_Work()
@@ -506,7 +506,7 @@ internal class EntityEcryptionTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		sut.HideFolderContents(folder, []);
@@ -526,7 +526,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.ShowFileContentsAsync" />.
+	/// Test of <see cref="EntityEncryption.ShowFileContentsAsync" />.
 	/// </summary>
 	[Test]
 	public async Task ShowFileContentsAsync_Does_Work()
@@ -573,7 +573,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		bool result = await sut.ShowFileContentsAsync(file);
@@ -593,7 +593,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.ShowFolderContentsAsync" />.
+	/// Test of <see cref="EntityEncryption.ShowFolderContentsAsync" />.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContentsAsync_Does_Work()
@@ -636,7 +636,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(dialogService);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		await sut.ShowFolderContentsAsync(folder);
@@ -656,7 +656,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.TryToDecrypt" />.
+	/// Test of <see cref="EntityEncryption.TryToDecrypt" />.
 	/// </summary>
 	[Test]
 	public void TryToDecrypt_Does_Work()
@@ -695,7 +695,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? output = sut.TryToDecrypt(file, contents);
@@ -711,7 +711,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
@@ -750,7 +750,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(encryption);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
@@ -766,7 +766,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
@@ -815,7 +815,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(dialogService);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
@@ -831,7 +831,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.TryToDecryptContentsAsync" />.
+	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
@@ -841,7 +841,7 @@ internal class EntityEcryptionTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		byte[]? result = await sut.TryToDecryptContentsAsync(
@@ -856,7 +856,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_Contents_In_Database()
@@ -879,7 +879,7 @@ internal class EntityEcryptionTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEcryption sut = mock.Create<EntityEcryption>(
+		EntityEncryption sut = mock.Create<EntityEncryption>(
 			TypedParameter.From(dbAccess),
 			TypedParameter.From(fileSystem));
 
@@ -901,7 +901,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Properties_In_Database()
@@ -933,7 +933,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(fileSystem);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
@@ -953,7 +953,7 @@ internal class EntityEcryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEcryption.UpdateDatabaseAsync" />.
+	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)
@@ -995,7 +995,7 @@ internal class EntityEcryptionTests
 			builder.RegisterInstance(fileSystem);
 		});
 
-		EntityEcryption sut = mock.Create<EntityEcryption>();
+		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
 		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);

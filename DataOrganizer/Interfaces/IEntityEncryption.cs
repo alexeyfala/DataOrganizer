@@ -11,7 +11,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Provides methods for encrypting entities.
 /// </summary>
-public interface IEntityEcryption
+public interface IEntityEncryption
 {
 	#region Methods
 	/// <summary>

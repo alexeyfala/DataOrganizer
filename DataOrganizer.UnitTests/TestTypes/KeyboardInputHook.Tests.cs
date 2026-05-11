@@ -101,13 +101,13 @@ internal class KeyboardInputHookTests
 					IsValid = true
 				});
 
-			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
-			entityEcryption
+			entityEncryption
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 
 			builder.RegisterInstance(dbAccess);
 

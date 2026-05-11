@@ -104,7 +104,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
-			if (_entityEcryption.TryToDecrypt(file, contents) is not { } decrypted)
+			if (_entityEncryption.TryToDecrypt(file, contents) is not { } decrypted)
 			{
 				return;
 			}
@@ -162,7 +162,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		ILogger logger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
@@ -170,7 +170,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			clipboard,
 			dbAccess,
 			dialogService,
-			entityEcryption,
+			entityEncryption,
 			logger,
 			handler,
 			viewModel)

@@ -35,8 +35,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="IDialogService" />
 	protected readonly IDialogService _dialogService;
 
-	/// <inheritdoc cref="IEntityEcryption" />
-	protected readonly IEntityEcryption _entityEcryption;
+	/// <inheritdoc cref="IEntityEncryption" />
+	protected readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _handler;
@@ -54,7 +54,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		ILogger logger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel)
@@ -67,7 +67,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		_dialogService = dialogService;
 
-		_entityEcryption = entityEcryption;
+		_entityEncryption = entityEncryption;
 
 		_handler = handler;
 
@@ -127,7 +127,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			if (await _entityEcryption
+			if (await _entityEncryption
 				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{

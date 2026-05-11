@@ -54,8 +54,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
-	/// <inheritdoc cref="IEntityEcryption" />
-	private readonly IEntityEcryption _entityEcryption;
+	/// <inheritdoc cref="IEntityEncryption" />
+	private readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _handler;
@@ -84,7 +84,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IGlobalHook hook,
 		ILogger logger,
 		INotificationService notificationService,
@@ -98,7 +98,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_dispatcher = dispatcher;
 
-		_entityEcryption = entityEcryption;
+		_entityEncryption = entityEncryption;
 
 		_handler = handler;
 
@@ -210,7 +210,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					await ActivateWindowAsync().ConfigureAwait(false);
 				}
 
-				if (await _entityEcryption
+				if (await _entityEncryption
 					.TryToDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
 					.ConfigureAwait(false) is not { } contents)
 				{
