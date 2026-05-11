@@ -103,16 +103,12 @@ public sealed class EncryptionService : IEncryptionService
 
 			return OpenAead(key, nonce, ciphertext);
 		}
-		catch (CryptographicException ex)
-		{
-			_logger.LogException(ex);
-		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
 
-		return null;
+			return null;
+		}
 	}
 
 	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek)
@@ -153,16 +149,12 @@ public sealed class EncryptionService : IEncryptionService
 
 			return OpenAead(key, nonce, ciphertext);
 		}
-		catch (CryptographicException ex)
-		{
-			_logger.LogException(ex);
-		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
 
-		return null;
+			return null;
+		}
 	}
 
 	/// <inheritdoc />
