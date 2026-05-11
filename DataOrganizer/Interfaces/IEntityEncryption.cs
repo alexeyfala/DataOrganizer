@@ -33,7 +33,7 @@ public interface IEntityEncryption
 	byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek);
 
 	/// <summary>
-	/// Encryptd files in folder.
+	/// Encrypts files in folder.
 	/// </summary>
 	Task EncryptFolderAsync(
 		FolderModelDto folder,

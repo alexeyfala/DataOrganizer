@@ -75,7 +75,7 @@ public static class AppUtils
 	public static string PlatformSpecificExplorer { get; }
 
 	/// <summary>
-	/// Delay in millideconds for displaying the tip.
+	/// Delay in milliseconds for displaying the tip.
 	/// </summary>
 	public static int TipDelay => 400;
 
