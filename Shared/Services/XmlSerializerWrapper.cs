@@ -12,14 +12,21 @@ public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
 	/// <inheritdoc />
 	public T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Xml)] string xml)
 	{
-		XmlSerializer serializer = new(typeof(T));
-
 		using StringReader stringReader = new(xml);
 
-		using XmlReader xmlReader = XmlReader.Create(stringReader, new XmlReaderSettings
+		return DeserializeFromTextReader<T>(stringReader);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(Stream stream)
+	{
+		XmlSerializer serializer = new(typeof(T));
+
+		using XmlReader xmlReader = XmlReader.Create(stream, new XmlReaderSettings
 		{
 			DtdProcessing = DtdProcessing.Prohibit,
-			XmlResolver = null
+			XmlResolver = null,
+			Async = false
 		});
 
 		return (T?)serializer.Deserialize(xmlReader);
@@ -35,6 +42,33 @@ public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
 		serializer.Serialize(writer, value);
 
 		return writer.ToString();
+	}
+
+	/// <inheritdoc />
+	public void Serialize<T>(Stream stream, T value)
+	{
+		XmlSerializer serializer = new(typeof(T));
+
+		serializer.Serialize(stream, value);
+	}
+	#endregion
+
+	#region Service
+	/// <summary>
+	/// Deserializes XML content from a <see cref="TextReader" /> into <typeparamref name="T"/>
+	/// using a hardened <see cref="XmlReader" /> (DTD processing prohibited, no external resolver).
+	/// </summary>
+	private static T? DeserializeFromTextReader<T>(TextReader reader)
+	{
+		XmlSerializer serializer = new(typeof(T));
+
+		using XmlReader xmlReader = XmlReader.Create(reader, new XmlReaderSettings
+		{
+			DtdProcessing = DtdProcessing.Prohibit,
+			XmlResolver = null
+		});
+
+		return (T?)serializer.Deserialize(xmlReader);
 	}
 	#endregion
 }

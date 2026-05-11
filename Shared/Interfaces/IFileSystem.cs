@@ -33,6 +33,11 @@ public interface IFileSystem
 	/// <inheritdoc cref="Directory.CreateDirectory(string)" />
 	void CreateDirectory(string directoryPath);
 
+	/// <summary>
+	/// Creates or overwrites a file for sequential, asynchronous writing.
+	/// </summary>
+	Stream CreateSequentialWrite(string filePath);
+
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
@@ -91,6 +96,11 @@ public interface IFileSystem
 	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent writers (e.g. the user's editor) to modify the file while it is being observed.
 	/// </summary>
 	Stream OpenRead(string filePath);
+
+	/// <summary>
+	/// Opens an existing file for sequential, asynchronous reading.
+	/// </summary>
+	Stream OpenSequentialRead(string filePath);
 
 	/// <inheritdoc cref="File.ReadAllText(string)" />
 	string ReadAllText(string filePath);

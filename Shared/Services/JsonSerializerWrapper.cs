@@ -7,6 +7,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shared.Services;
 
@@ -22,6 +24,12 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 	public T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Json)] string json)
 	{
 		return JsonSerializer.Deserialize<T>(json);
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(Stream stream, CancellationToken token = default)
+	{
+		return JsonSerializer.DeserializeAsync<T>(stream, cancellationToken: token);
 	}
 
 	/// <inheritdoc />
@@ -46,6 +54,20 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 	public string Serialize<T>(T value, JsonSerializerOptions? options = null)
 	{
 		return JsonSerializer.Serialize(value, options);
+	}
+
+	/// <inheritdoc />
+	public Task SerializeAsync<T>(
+		Stream stream,
+		T value,
+		JsonSerializerOptions? options = null,
+		CancellationToken token = default)
+	{
+		return JsonSerializer.SerializeAsync(
+			stream,
+			value,
+			options,
+			token);
 	}
 
 	/// <inheritdoc />

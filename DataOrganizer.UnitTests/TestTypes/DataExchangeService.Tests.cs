@@ -18,8 +18,10 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -93,6 +95,10 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			fileSystem
+				.CreateSequentialWrite(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
@@ -114,11 +120,13 @@ internal class DataExchangeServiceTests
 		// Assert
 		fileSystem
 			.Received()
-			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
+			.CreateSequentialWrite(Arg.Any<string>());
 
-		serializer
-			.Received()
-			.Serialize(Arg.Any<ExplorerModelBase[]>(), Arg.Any<JsonSerializerOptions>());
+		await serializer.Received().SerializeAsync(
+			Arg.Any<Stream>(),
+			Arg.Any<ExplorerModelBase[]>(),
+			Arg.Any<JsonSerializerOptions>(),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -167,6 +175,10 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			fileSystem
+				.CreateSequentialWrite(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
 
 			picker
@@ -188,11 +200,11 @@ internal class DataExchangeServiceTests
 		// Assert
 		fileSystem
 			.Received()
-			.WriteAllText(Arg.Any<string>(), Arg.Any<string>());
+			.CreateSequentialWrite(Arg.Any<string>());
 
 		serializer
 			.Received()
-			.Serialize(Arg.Any<ExplorerModelBase[]>());
+			.Serialize(Arg.Any<Stream>(), Arg.Any<ExplorerModelBase[]>());
 	}
 
 	/// <summary>
@@ -216,11 +228,19 @@ internal class DataExchangeServiceTests
 				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.OpenSequentialRead(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.DeserializeAsync<ExplorerModelBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(serializer);
 
@@ -306,11 +326,19 @@ internal class DataExchangeServiceTests
 				.BackupDatabaseAsync()
 				.Returns(AppUtils.CreateRandomFileName(10));
 
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.OpenSequentialRead(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
 				.Returns(default(ExplorerModelBase[]));
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(serializer);
 
@@ -359,13 +387,23 @@ internal class DataExchangeServiceTests
 				.ClearDatabaseAsync()
 				.Returns(true);
 
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.OpenSequentialRead(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
+#pragma warning disable CA2012 // Use ValueTasks correctly
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
-				.Returns([]);
+				.DeserializeAsync<ExplorerModelBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new ValueTask<ExplorerModelBase[]?>([]));
+#pragma warning restore CA2012 // Use ValueTasks correctly
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(picker);
 
@@ -453,13 +491,21 @@ internal class DataExchangeServiceTests
 				.ClearDatabaseAsync()
 				.Returns(true);
 
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.OpenSequentialRead(Arg.Any<string>())
+				.Returns(new MemoryStream());
+
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<string>())
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
 				.Returns([]);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(picker);
 
