@@ -39,9 +39,7 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 		}
 	}
 
-	/// <summary>
-	/// Injects <see cref="ILogger" /> dependency.
-	/// </summary>
+	/// <inheritdoc />
 	public void InjectDependency(ILogger logger) => _logger = logger;
 
 	/// <inheritdoc />
