@@ -368,36 +368,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.AddRange(GetCategories(hierarchy));
 	}
 
-	/// <inheritdoc />
-	public void Dispose()
-	{
-		FavoritesSettings
-			.Categories
-			.ForEach(x => x.Children.Clear());
-
-		FavoritesSettings
-			.Categories
-			.Clear();
-
-		FavoritesSettings
-			.OrderedCategories
-			.Clear();
-
-		FavoritesSettings
-			.SelectedPairs
-			.Clear();
-
-		CopyHistorySettings
-			.Items
-			.Clear();
-
-		PopupContent = FavoritesPopupContentType.None;
-
-		_copyHistory?.Dispose();
-
-		_favorites?.Dispose();
-	}
-
 	/// <summary>
 	/// Performs initialization.
 	/// </summary>
@@ -496,6 +466,38 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			id).Show();
 
 		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		FavoritesSettings
+			.Categories
+			.ForEach(x => x.Children.Clear());
+
+		FavoritesSettings
+			.Categories
+			.Clear();
+
+		FavoritesSettings
+			.OrderedCategories
+			.Clear();
+
+		FavoritesSettings
+			.SelectedPairs
+			.Clear();
+
+		CopyHistorySettings
+			.Items
+			.Clear();
+
+		PopupContent = FavoritesPopupContentType.None;
+
+		_copyHistory?.Dispose();
+
+		_favorites?.Dispose();
 	}
 	#endregion
 
