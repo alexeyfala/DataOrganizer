@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -11,6 +12,11 @@ namespace Shared.Services;
 
 public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 {
+	#region Data
+	/// <inheritdoc cref="ILogger" />
+	private ILogger? _logger;
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	public T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Json)] string json)
@@ -25,11 +31,18 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 		{
 			return Deserialize<T>(File.ReadAllText(filePath));
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger?.LogException(ex);
+
 			return default;
 		}
 	}
+
+	/// <summary>
+	/// Injects <see cref="ILogger" /> dependency.
+	/// </summary>
+	public void InjectDependency(ILogger logger) => _logger = logger;
 
 	/// <inheritdoc />
 	public string Serialize<T>(T value, JsonSerializerOptions? options = null)

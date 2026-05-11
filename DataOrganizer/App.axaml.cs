@@ -90,7 +90,9 @@ public sealed class App : Application
 
 		try
 		{
-			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
+				.Args
+				.AsNotNull()));
 		}
 		catch (Exception ex)
 		{

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Serilog;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Shared.Interfaces;
@@ -19,6 +20,11 @@ public interface IJsonSerializerWrapper
 	/// Returns the default value for type <typeparamref name="T"/> if an exception occurs during deserialization.
 	/// </summary>
 	T? FromFile<T>(string filePath);
+
+	/// <summary>
+	/// Injects <see cref="ILogger" /> dependency.
+	/// </summary>
+	void InjectDependency(ILogger logger);
 
 	/// <summary>
 	/// Serializes data into a Json string.
