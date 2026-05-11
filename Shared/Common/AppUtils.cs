@@ -27,7 +27,7 @@ public static class AppUtils
 	/// <summary>
 	/// Application version.
 	/// </summary>
-	public static string? AppVersion { get; } = Assembly.GetEntryAssembly().GetVersionWithSuffix();
+	public static string? AppVersion { get; } = Assembly.GetEntryAssembly()?.GetVersionWithSuffix() ?? "unknown";
 
 	/// <summary>
 	/// Current operating system.
