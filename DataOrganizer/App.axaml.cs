@@ -297,7 +297,7 @@ public sealed class App : Application
 					AppUtils.TxtExtension);
 
 				configure.FileEx(
-					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", AppUtils.TxtExtension),
+					path: path,
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
