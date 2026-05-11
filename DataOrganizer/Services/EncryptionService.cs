@@ -79,6 +79,14 @@ public sealed class EncryptionService : IEncryptionService
 
 			return plaintext;
 		}
+		// Expected: crypto-level failure.
+		catch (CryptographicException ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
+		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
