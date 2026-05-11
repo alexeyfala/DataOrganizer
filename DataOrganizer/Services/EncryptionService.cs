@@ -51,81 +51,13 @@ public sealed class EncryptionService : IEncryptionService
 		{
 			byte[] salt = new byte[SaltSize];
 
-			byte[] nonce = new byte[_algorithm.NonceSize];
-
-			byte[] ciphertext = new byte[input.Length - salt.Length - nonce.Length];
-
 			Buffer.BlockCopy(input, 0, salt, 0, salt.Length);
 
-			Buffer.BlockCopy(input, salt.Length, nonce, 0, nonce.Length);
-
-			Buffer.BlockCopy(input, salt.Length + nonce.Length, ciphertext, 0, ciphertext.Length);
+			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: SaltSize);
 
 			using Key key = DeriveKey(password, salt);
 
-			// Bool-returning Decrypt overload signals auth failure without throwing
-			// on the hot "wrong password" path.
-			byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
-
-			if (!_algorithm.Decrypt(
-				key: key,
-				nonce: nonce,
-				associatedData: [],
-				ciphertext: ciphertext,
-				plaintext: plaintext))
-			{
-				return null;
-			}
-
-			return plaintext;
-		}
-		// Expected: crypto-level failure.
-		catch (CryptographicException ex)
-		{
-			_logger.LogException(ex);
-		}
-		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-
-		return null;
-	}
-
-	/// <inheritdoc />
-	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
-	{
-		if (input.Length < _algorithm.NonceSize + _algorithm.TagSize)
-		{
-			return null;
-		}
-
-		try
-		{
-			byte[] nonce = new byte[_algorithm.NonceSize];
-
-			byte[] ciphertext = new byte[input.Length - nonce.Length];
-
-			Buffer.BlockCopy(input, 0, nonce, 0, nonce.Length);
-
-			Buffer.BlockCopy(input, nonce.Length, ciphertext, 0, ciphertext.Length);
-
-			using Key key = ImportKey(dek);
-
-			byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
-
-			if (!_algorithm.Decrypt(
-				key: key,
-				nonce: nonce,
-				associatedData: [],
-				ciphertext: ciphertext,
-				plaintext: plaintext))
-			{
-				return null;
-			}
-
-			return plaintext;
+			return OpenAead(key, nonce, ciphertext);
 		}
 		// Expected: crypto-level failure.
 		catch (CryptographicException ex)
@@ -162,66 +94,56 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
+	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
+	{
+		if (input.Length < _algorithm.NonceSize + _algorithm.TagSize)
+		{
+			return null;
+		}
+
+		try
+		{
+			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 0);
+
+			using Key key = ImportKey(dek);
+
+			return OpenAead(key, nonce, ciphertext);
+		}
+		// Expected: crypto-level failure.
+		catch (CryptographicException ex)
+		{
+			_logger.LogException(ex);
+		}
+		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+
+		return null;
+	}
+
+	/// <inheritdoc />
 	public byte[]? Encrypt(byte[] input, byte[] password)
 	{
 		try
 		{
 			byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
-			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-
 			using Key key = DeriveKey(password, salt);
 
-			byte[] encrypted = _algorithm.Encrypt(
-				key,
-				nonce,
-				associatedData: [],
-				input);
+			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
 
-			byte[] result = new byte[salt.Length + nonce.Length + encrypted.Length];
+			byte[] result = new byte[salt.Length + nonce.Length + ciphertext.Length];
 
 			Buffer.BlockCopy(salt, 0, result, 0, salt.Length);
 
 			Buffer.BlockCopy(nonce, 0, result, salt.Length, nonce.Length);
 
-			Buffer.BlockCopy(encrypted, 0, result, salt.Length + nonce.Length, encrypted.Length);
+			Buffer.BlockCopy(ciphertext, 0, result, salt.Length + nonce.Length, ciphertext.Length);
 
 			return result;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
-
-	/// <inheritdoc />
-	public byte[]? EncryptWithDek(byte[] input, byte[] dek)
-	{
-		try
-		{
-			byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-
-			using Key key = ImportKey(dek);
-
-			byte[] encrypted = _algorithm.Encrypt(
-				key,
-				nonce,
-				associatedData: [],
-				input);
-
-			// Format: [nonce][ciphertext+tag]. No salt.
-			byte[] result = new byte[nonce.Length + encrypted.Length];
-
-			Buffer.BlockCopy(nonce, 0, result, 0, nonce.Length);
-
-			Buffer.BlockCopy(encrypted, 0, result, nonce.Length, encrypted.Length);
-
-			return result;
-		}
-		// Defensive: covers null args, RNG failure, etc.
-		// Caught to keep the UI alive, logged for diagnostics.
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
@@ -247,6 +169,31 @@ public sealed class EncryptionService : IEncryptionService
 			{
 				yield break;
 			}
+		}
+	}
+
+	/// <inheritdoc />
+	public byte[]? EncryptWithDek(byte[] input, byte[] dek)
+	{
+		try
+		{
+			using Key key = ImportKey(dek);
+
+			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
+
+			byte[] result = new byte[nonce.Length + ciphertext.Length];
+
+			Buffer.BlockCopy(nonce, 0, result, 0, nonce.Length);
+
+			Buffer.BlockCopy(ciphertext, 0, result, nonce.Length, ciphertext.Length);
+
+			return result;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
 		}
 	}
 
@@ -330,12 +277,70 @@ public sealed class EncryptionService : IEncryptionService
 		}
 	}
 
+	/// <summary>
+	/// Extracts the nonce and ciphertext slices from <paramref name="input" /> starting at <paramref name="offset" />.
+	/// Caller is responsible for ensuring <paramref name="input" /> has enough bytes.
+	/// </summary>
+	private static (byte[] Nonce, byte[] Ciphertext) ExtractNonceAndCiphertext(byte[] input, int offset)
+	{
+		byte[] nonce = new byte[_algorithm.NonceSize];
+
+		byte[] ciphertext = new byte[input.Length - offset - nonce.Length];
+
+		Buffer.BlockCopy(input, offset, nonce, 0, nonce.Length);
+
+		Buffer.BlockCopy(input, offset + nonce.Length, ciphertext, 0, ciphertext.Length);
+
+		return (nonce, ciphertext);
+	}
+
 	private static Key ImportKey(byte[] blob)
 	{
 		return Key.Import(
 			algorithm: _algorithm,
 			blob: blob,
 			format: KeyBlobFormat.RawSymmetricKey);
+	}
+
+	/// <summary>
+	/// Runs AEAD authenticated decryption. Returns plaintext on success, <c>null</c> on auth failure.
+	/// Defensive: returns <c>null</c> if ciphertext is shorter than the tag.
+	/// </summary>
+	private static byte[]? OpenAead(
+		Key key,
+		byte[] nonce,
+		byte[] ciphertext)
+	{
+		if (ciphertext.Length < _algorithm.TagSize)
+		{
+			return null;
+		}
+
+		byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
+
+		return _algorithm.Decrypt(
+			key: key,
+			nonce: nonce,
+			associatedData: [],
+			ciphertext: ciphertext,
+			plaintext: plaintext) ? plaintext : null;
+	}
+
+	/// <summary>
+	/// Runs AEAD authenticated encryption with a fresh random nonce.
+	/// Returns the nonce and the ciphertext (with appended tag).
+	/// </summary>
+	private static (byte[] Nonce, byte[] Ciphertext) SealAead(Key key, byte[] input)
+	{
+		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
+
+		byte[] ciphertext = _algorithm.Encrypt(
+			key: key,
+			nonce: nonce,
+			associatedData: [],
+			plaintext: input);
+
+		return (nonce, ciphertext);
 	}
 	#endregion
 }
