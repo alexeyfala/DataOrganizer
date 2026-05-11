@@ -84,6 +84,8 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? Decrypt(byte[] input, byte[] password)
 	{
+		ArgumentNullException.ThrowIfNull(input);
+
 		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
 		if (input.Length < 1 + SaltSize + _algorithm.NonceSize + _algorithm.TagSize
 			|| input[0] != FormatVersionPasswordV1)
@@ -134,6 +136,8 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
 	{
+		ArgumentNullException.ThrowIfNull(input);
+
 		// Guard: enough bytes for [version][nonce][tag] and the version byte must match.
 		if (input.Length < 1 + _algorithm.NonceSize + _algorithm.TagSize
 			|| input[0] != FormatVersionDekV1)
