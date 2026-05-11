@@ -745,7 +745,7 @@ internal class EditorViewModelTests
 		{
 			settingsManager
 				.Received()
-				.ApplyMeterialTheme();
+				.ApplyMaterialTheme();
 
 		}
 

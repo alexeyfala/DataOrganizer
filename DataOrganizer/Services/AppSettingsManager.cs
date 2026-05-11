@@ -54,7 +54,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 
 		try
 		{
-			ApplyMeterialTheme();
+			ApplyMaterialTheme();
 
 			Strings.Culture = new(Settings.Language);
 		}
@@ -69,7 +69,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 
 	#region Methods
 	/// <inheritdoc />
-	public void ApplyMeterialTheme()
+	public void ApplyMaterialTheme()
 	{
 		SetAppMaterialTheme(
 			Settings.Theme,

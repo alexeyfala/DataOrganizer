@@ -1283,7 +1283,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 		else
 		{
-			_settingsManager.ApplyMeterialTheme();
+			_settingsManager.ApplyMaterialTheme();
 		}
 
 		if (_keyboardInputHook.IsRunning)
