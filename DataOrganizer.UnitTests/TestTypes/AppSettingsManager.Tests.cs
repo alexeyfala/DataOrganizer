@@ -21,7 +21,7 @@ internal class AppSettingsManagerTests
 	/// Test of <see cref="AppSettingsManager.ApplyMaterialTheme" />.
 	/// </summary>
 	[Test]
-	public void ApplyMeterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
+	public void ApplyMaterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
