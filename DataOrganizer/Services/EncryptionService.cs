@@ -40,6 +40,13 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? Decrypt(byte[] input, byte[] password)
 	{
+		// Guard against malformed input: otherwise ciphertext.Length would be negative
+		// and Buffer.BlockCopy would throw ArgumentException inside the try/catch.
+		if (input.Length < SaltSize + _algorithm.NonceSize)
+		{
+			return null;
+		}
+
 		try
 		{
 			byte[] salt = new byte[SaltSize];
