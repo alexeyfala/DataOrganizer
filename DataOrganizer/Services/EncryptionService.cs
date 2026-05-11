@@ -83,16 +83,14 @@ public sealed class EncryptionService : IEncryptionService
 		catch (CryptographicException ex)
 		{
 			_logger.LogException(ex);
-
-			return null;
 		}
 		// Unexpected: anything else. Caught to keep the UI alive, logged for diagnostics.
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-
-			return null;
 		}
+
+		return null;
 	}
 
 	/// <inheritdoc />
