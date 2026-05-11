@@ -50,14 +50,14 @@ public sealed class EncryptionService : IEncryptionService
 {
 	#region Data
 	/// <summary>
-	/// Format version for the password-based path: <c>[0x01][salt][nonce][ciphertext+tag]</c>.
-	/// </summary>
-	private const byte FormatVersionPasswordV1 = 0x01;
-
-	/// <summary>
 	/// Format version for the DEK-based path: <c>[0x02][nonce][ciphertext+tag]</c>.
 	/// </summary>
 	private const byte FormatVersionDekV1 = 0x02;
+
+	/// <summary>
+	/// Format version for the password-based path: <c>[0x01][salt][nonce][ciphertext+tag]</c>.
+	/// </summary>
+	private const byte FormatVersionPasswordV1 = 0x01;
 
 	/// <summary>
 	/// Salt size.
