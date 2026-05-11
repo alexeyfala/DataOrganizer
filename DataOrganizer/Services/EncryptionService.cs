@@ -42,7 +42,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		// Guard against malformed input: otherwise ciphertext.Length would be negative
 		// and Buffer.BlockCopy would throw ArgumentException inside the try/catch.
-		if (input.Length < SaltSize + _algorithm.NonceSize)
+		if (input.Length < SaltSize + _algorithm.NonceSize + _algorithm.TagSize)
 		{
 			return null;
 		}
@@ -63,11 +63,21 @@ public sealed class EncryptionService : IEncryptionService
 
 			using Key key = DeriveKey(password, salt);
 
-			return _algorithm.Decrypt(
+			// Bool-returning Decrypt overload signals auth failure without throwing
+			// on the hot "wrong password" path.
+			byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
+
+			if (!_algorithm.Decrypt(
 				key: key,
 				nonce: nonce,
 				associatedData: [],
-				ciphertext: ciphertext);
+				ciphertext: ciphertext,
+				plaintext: plaintext))
+			{
+				return null;
+			}
+
+			return plaintext;
 		}
 		catch (Exception ex)
 		{
