@@ -1,6 +1,6 @@
 ﻿namespace Shared.Enums;
 
-public enum OperateSystem : byte
+public enum OperatingSystemType : byte
 {
 	Unknown,
 	Windows,
