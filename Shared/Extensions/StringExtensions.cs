@@ -1,6 +1,5 @@
 ﻿using Cysharp.Text;
 using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Shared.Extensions;
@@ -33,7 +32,9 @@ public static partial class StringExtensions
 			}
 			else
 			{
-				builder.Append(value + separator);
+				builder.Append(value);
+
+				builder.Append(separator);
 			}
 		}
 
@@ -74,7 +75,7 @@ public static partial class StringExtensions
 		int maxLength,
 		string suffix = "...")
 	{
-		return value[.. Math.Min(value.Length, maxLength)] + (value.Length > maxLength ? suffix : string.Empty);
+		return value[..Math.Min(value.Length, maxLength)] + (value.Length > maxLength ? suffix : string.Empty);
 	}
 	#endregion
 
