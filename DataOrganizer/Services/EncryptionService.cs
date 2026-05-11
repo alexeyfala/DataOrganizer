@@ -12,6 +12,7 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services;
 
+
 public sealed class EncryptionService : IEncryptionService
 {
 	#region Data
