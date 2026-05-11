@@ -18,10 +18,10 @@ internal class AppSettingsManagerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.ApplyMeterialTheme" />.
+	/// Test of <see cref="AppSettingsManager.ApplyMaterialTheme" />.
 	/// </summary>
 	[Test]
-	public void ApplyMeterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
+	public void ApplyMaterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -29,7 +29,7 @@ internal class AppSettingsManagerTests
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();
 
 		// Act
-		Action act = sut.ApplyMeterialTheme;
+		Action act = sut.ApplyMaterialTheme;
 
 		// Assert
 		act

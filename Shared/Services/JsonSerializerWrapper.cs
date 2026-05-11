@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -6,16 +7,29 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shared.Services;
 
 public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 {
+	#region Data
+	/// <inheritdoc cref="ILogger" />
+	private ILogger? _logger;
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	public T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Json)] string json)
 	{
 		return JsonSerializer.Deserialize<T>(json);
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(Stream stream, CancellationToken token = default)
+	{
+		return JsonSerializer.DeserializeAsync<T>(stream, cancellationToken: token);
 	}
 
 	/// <inheritdoc />
@@ -25,16 +39,35 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 		{
 			return Deserialize<T>(File.ReadAllText(filePath));
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger?.LogException(ex);
+
 			return default;
 		}
 	}
 
 	/// <inheritdoc />
+	public void InjectDependency(ILogger logger) => _logger = logger;
+
+	/// <inheritdoc />
 	public string Serialize<T>(T value, JsonSerializerOptions? options = null)
 	{
 		return JsonSerializer.Serialize(value, options);
+	}
+
+	/// <inheritdoc />
+	public Task SerializeAsync<T>(
+		Stream stream,
+		T value,
+		JsonSerializerOptions? options = null,
+		CancellationToken token = default)
+	{
+		return JsonSerializer.SerializeAsync(
+			stream,
+			value,
+			options,
+			token);
 	}
 
 	/// <inheritdoc />

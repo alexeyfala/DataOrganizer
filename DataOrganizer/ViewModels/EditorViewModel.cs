@@ -200,7 +200,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Change password of the folder");
 
-		await _entityEcryption
+		await _entityEncryption
 			.ChangePasswordAsync(dto)
 			.ConfigureAwait(false);
 	}
@@ -260,7 +260,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Decrypt files in a folder");
 
-		await _entityEcryption
+		await _entityEncryption
 			.DecryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
@@ -296,7 +296,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Encrypt files in a folder");
 
-		await _entityEcryption
+		await _entityEncryption
 			.EncryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
@@ -369,7 +369,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			sessionEncryptedDek = [.. encryptedDek];
 
-			byte[]? decryptedContents = _entityEcryption.DecryptSessionContents(
+			byte[]? decryptedContents = _entityEncryption.DecryptSessionContents(
 				contents,
 				sessionEncryptedDek);
 
@@ -464,7 +464,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
 
-	/// <inheritdoc cref="IEntityEcryption.HideFolderContents" />
+	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
@@ -484,7 +484,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Hide files in a folder");
 
-		_entityEcryption.HideFolderContents(dto, Hierarchy);
+		_entityEncryption.HideFolderContents(dto, Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -621,7 +621,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		await _entityEcryption
+		await _entityEncryption
 			.ShowFolderContentsAsync(dto)
 			.ConfigureAwait(true);
 
@@ -910,7 +910,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutingFiles);
 	}
 
-	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IEntityEncryption.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
 	private Task ShowFileContents(FileModelDto? dto)
 	{
@@ -1027,7 +1027,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
@@ -1043,7 +1043,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			dbAccess,
 			dialogService,
 			dispatcher,
-			entityEcryption,
+			entityEncryption,
 			eventSimulator,
 			keyboardInputHook,
 			logger,
@@ -1283,7 +1283,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 		else
 		{
-			_settingsManager.ApplyMeterialTheme();
+			_settingsManager.ApplyMaterialTheme();
 		}
 
 		if (_keyboardInputHook.IsRunning)
@@ -1320,9 +1320,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			IViewLauncher.SetDefaultSize(window);
 		}
 
-		if (windowSettings.X > 0 && windowSettings.Y > 0)
+		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
+
+		if (windowSettings.X > 0
+			&& windowSettings.Y > 0
+			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
 		{
-			window.Position = new(windowSettings.X, windowSettings.Y);
+			window.Position = savedPosition;
 		}
 		else
 		{
@@ -1816,12 +1820,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_copyHistory?.Remove(file);
 	}
 
-	/// <inheritdoc cref="IEntityEcryption.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IEntityEncryption.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
 	{
 		_logger.LogInformation("Show file contents");
 
-		if (!await _entityEcryption
+		if (!await _entityEncryption
 			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true))
 		{

@@ -11,7 +11,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Provides methods for encrypting entities.
 /// </summary>
-public interface IEntityEcryption
+public interface IEntityEncryption
 {
 	#region Methods
 	/// <summary>
@@ -33,7 +33,7 @@ public interface IEntityEcryption
 	byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek);
 
 	/// <summary>
-	/// Encryptd files in folder.
+	/// Encrypts files in folder.
 	/// </summary>
 	Task EncryptFolderAsync(
 		FolderModelDto folder,

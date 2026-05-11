@@ -201,14 +201,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public EmbeddedFileEditorViewModel(
 		Application app,
 		IDbAccess dbAccess,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
 			dbAccess,
-			entityEcryption,
+			entityEncryption,
 			jsonSerializer,
 			logger,
 			handler,

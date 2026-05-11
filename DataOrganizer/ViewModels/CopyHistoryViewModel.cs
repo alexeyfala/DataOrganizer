@@ -76,7 +76,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		ILogger logger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
@@ -84,7 +84,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			clipboard,
 			dbAccess,
 			dialogService,
-			entityEcryption,
+			entityEncryption,
 			logger,
 			handler,
 			viewModel)

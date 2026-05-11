@@ -468,9 +468,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
-		_fileSystem.WriteAllText(
-			filePath,
-			_jsonSerializer.Serialize(entities, AppUtils.JsonOptions));
+		// Streaming serialization: writes Json directly to the file without
+		// materializing the whole document as a string in memory.
+		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
+
+		await _jsonSerializer
+			.SerializeAsync(stream, entities, AppUtils.JsonOptions, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -496,9 +500,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
-		_fileSystem.WriteAllText(
-			filePath,
-			_xmlSerializer.Serialize(entities));
+		// Streaming serialization: XmlSerializer writes directly to the file
+		// without materializing the whole document as a string in memory.
+		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
+
+		_xmlSerializer.Serialize(stream, entities);
 	}
 
 	/// <summary>
@@ -520,26 +526,34 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
-	private Task<bool> ImportFromJsonAsync(
+	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		string json = _fileSystem.ReadAllText(filePath);
+		// Streaming deserialization: avoids loading the entire file into a string before parsing.
+		ExplorerModelBase[]? entities;
 
-		if (_jsonSerializer.Deserialize<ExplorerModelBase[]>(json) is not { } entities)
+		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
-			return Task.FromResult(false);
+			entities = await _jsonSerializer
+				.DeserializeAsync<ExplorerModelBase[]>(stream, token)
+				.ConfigureAwait(false);
 		}
 
-		return ImportEntitiesAsync(
+		if (entities is null)
+		{
+			return false;
+		}
+
+		return await ImportEntitiesAsync(
 			entities,
 			variant,
 			objects,
 			hierarchy,
-			token);
+			token).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -571,26 +585,33 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from XML.
 	/// </summary>
-	private Task<bool> ImportFromXmlAsync(
+	private async Task<bool> ImportFromXmlAsync(
 		string filePath,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		string xml = _fileSystem.ReadAllText(filePath);
+		// Streaming deserialization: XmlSerializer reads directly from the file
+		// without materializing the whole document as a string in memory.
+		ExplorerModelBase[]? entities;
 
-		if (_xmlSerializer.Deserialize<ExplorerModelBase[]>(xml) is not { } entities)
+		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
-			return Task.FromResult(false);
+			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(stream);
 		}
 
-		return ImportEntitiesAsync(
+		if (entities is null)
+		{
+			return false;
+		}
+
+		return await ImportEntitiesAsync(
 			entities,
 			variant,
 			objects,
 			hierarchy,
-			token);
+			token).ConfigureAwait(false);
 	}
 	#endregion
 }

@@ -27,33 +27,33 @@ public static class AppUtils
 	/// <summary>
 	/// Application version.
 	/// </summary>
-	public static string? AppVersion { get; } = Assembly.GetEntryAssembly().GetVersionWithSuffix();
+	public static string? AppVersion { get; } = Assembly.GetEntryAssembly()?.GetVersionWithSuffix() ?? "unknown";
 
 	/// <summary>
 	/// Current operating system.
 	/// </summary>
-	public static OperateSystem CurrentOs { get; } = GetCurrentOs();
+	public static OperatingSystemType CurrentOs { get; } = GetCurrentOs();
 
 	/// <inheritdoc cref="IsDebugMode" />
 	public static bool IsDebug { get; } = IsDebugMode();
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Linux" />.
+	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.Linux" />.
 	/// </summary>
-	public static bool IsLinux { get; } = CurrentOs == OperateSystem.Linux;
+	public static bool IsLinux { get; } = CurrentOs == OperatingSystemType.Linux;
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.MacOs" />.
+	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.MacOs" />.
 	/// </summary>
-	public static bool IsMacOs { get; } = CurrentOs == OperateSystem.MacOs;
+	public static bool IsMacOs { get; } = CurrentOs == OperatingSystemType.MacOs;
 
 	/// <inheritdoc cref="IsReleaseMode" />
 	public static bool IsRelease { get; } = IsReleaseMode();
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperateSystem.Windows" />.
+	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.Windows" />.
 	/// </summary>
-	public static bool IsWindows { get; } = CurrentOs == OperateSystem.Windows;
+	public static bool IsWindows { get; } = CurrentOs == OperatingSystemType.Windows;
 
 	/// <summary>
 	/// Json serialization options.
@@ -75,7 +75,7 @@ public static class AppUtils
 	public static string PlatformSpecificExplorer { get; }
 
 	/// <summary>
-	/// Delay in millideconds for displaying the tip.
+	/// Delay in milliseconds for displaying the tip.
 	/// </summary>
 	public static int TipDelay => 400;
 
@@ -130,7 +130,7 @@ public static class AppUtils
 	/// <remarks>
 	/// The value obtained using <see cref="CallerFilePathAttribute" /> passed at compile time
 	/// and depends on the type of computer on which the code is compiled.
-	/// Compiling code for <see cref="OperateSystem.Linux" /> happens in <see cref="OperateSystem.Windows" />,
+	/// Compiling code for <see cref="OperatingSystemType.Linux" /> happens in <see cref="OperatingSystemType.Windows" />,
 	/// so it is necessary to replace the '\' characters in the path to <see cref="Path.DirectorySeparatorChar" />.
 	/// </remarks>
 	public static string GetPlatformEntryPath(string filePath)
@@ -145,21 +145,21 @@ public static class AppUtils
 	/// <summary>
 	/// Returns a value for <see cref="CurrentOs" />.
 	/// </summary>
-	private static OperateSystem GetCurrentOs()
+	private static OperatingSystemType GetCurrentOs()
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return OperateSystem.Windows;
+			return OperatingSystemType.Windows;
 		}
 
 		if (OperatingSystem.IsLinux())
 		{
-			return OperateSystem.Linux;
+			return OperatingSystemType.Linux;
 		}
 
 		return OperatingSystem.IsMacOS()
-			? OperateSystem.MacOs
-			: OperateSystem.Unknown;
+			? OperatingSystemType.MacOs
+			: OperatingSystemType.Unknown;
 	}
 
 	/// <summary>
@@ -167,9 +167,9 @@ public static class AppUtils
 	/// </summary>
 	private static string GetPlatformSpecificExplorer() => CurrentOs switch
 	{
-		OperateSystem.Windows => "explorer",
-		OperateSystem.Linux => "xdg-open",
-		OperateSystem.MacOs => "open",
+		OperatingSystemType.Windows => "explorer",
+		OperatingSystemType.Linux => "xdg-open",
+		OperatingSystemType.MacOs => "open",
 		_ => throw new NotImplementedException()
 	};
 

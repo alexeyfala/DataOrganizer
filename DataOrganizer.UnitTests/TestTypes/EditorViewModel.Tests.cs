@@ -149,7 +149,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -161,7 +161,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -178,7 +178,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEcryption
+		await entityEncryption
 			.Received()
 			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
 	}
@@ -296,7 +296,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -308,7 +308,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -325,7 +325,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEcryption
+		await entityEncryption
 			.Received()
 			.DecryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
@@ -497,7 +497,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -509,7 +509,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -526,7 +526,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEcryption
+		await entityEncryption
 			.Received()
 			.EncryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
@@ -745,7 +745,7 @@ internal class EditorViewModelTests
 		{
 			settingsManager
 				.Received()
-				.ApplyMeterialTheme();
+				.ApplyMaterialTheme();
 
 		}
 
@@ -865,7 +865,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -877,7 +877,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -894,7 +894,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		entityEcryption
+		entityEncryption
 			.Received()
 			.HideFolderContents(Arg.Any<FolderModelDto>(), Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
@@ -1471,7 +1471,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1483,7 +1483,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1500,7 +1500,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEcryption
+		await entityEncryption
 			.Received()
 			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
 	}

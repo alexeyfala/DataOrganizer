@@ -40,7 +40,7 @@ public interface IAppSettingsManager
 	/// <summary>
 	/// Applies material theme from <see cref="Settings" />.
 	/// </summary>
-	void ApplyMeterialTheme();
+	void ApplyMaterialTheme();
 
 	/// <summary>
 	/// Overwrites <see cref="Settings" /> from <paramref name="value"/>.

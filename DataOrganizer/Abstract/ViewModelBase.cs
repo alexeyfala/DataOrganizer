@@ -129,7 +129,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
@@ -140,7 +140,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			clipboard,
 			dbAccess,
 			dialogService,
-			entityEcryption,
+			entityEncryption,
 			logger,
 			handler,
 			viewModel)

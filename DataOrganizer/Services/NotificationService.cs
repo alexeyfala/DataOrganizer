@@ -3,7 +3,9 @@ using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
+using Serilog;
 using Shared.Common;
+using Shared.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -18,6 +20,9 @@ public sealed class NotificationService : INotificationService
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 	#endregion
@@ -26,11 +31,14 @@ public sealed class NotificationService : INotificationService
 	public NotificationService(
 		Application app,
 		IDispatcher dispatcher,
+		ILogger logger,
 		IViewFactory viewFactory)
 	{
 		_app = app;
 
 		_dispatcher = dispatcher;
+
+		_logger = logger;
 
 		_viewFactory = viewFactory;
 	}
@@ -42,51 +50,58 @@ public sealed class NotificationService : INotificationService
 	{
 		_dispatcher.Post(async () =>
 		{
-			_app
-				.FindWindow<ToastWindow>()?
-				.Close();
-
-			ToastWindow window = _viewFactory.CreateWindow<ToastWindow>();
-
-			window
-				.ViewModel
-				.Title = AppUtils.AppName;
-
-			window
-				.ViewModel
-				.Message = message;
-
-			if (window.Screens.Primary is not { } screen)
+			try
 			{
-				return;
-			}
+				_app
+					.FindWindow<ToastWindow>()?
+					.Close();
 
-			window.Show();
+				ToastWindow window = _viewFactory.CreateWindow<ToastWindow>();
 
-			PixelSize screenSize = screen
-				.WorkingArea
-				.Size;
+				window
+					.ViewModel
+					.Title = AppUtils.AppName;
 
-			PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
+				window
+					.ViewModel
+					.Message = message;
 
-			const int margin = 10;
+				if (window.Screens.Primary is not { } screen)
+				{
+					return;
+				}
 
-			window.Position = new PixelPoint(
-				screenSize.Width - (windowSize.Width + margin),
-				screenSize.Height - (windowSize.Height + margin));
+				window.Show();
 
-			await Task
-				.Delay(TimeSpan.FromSeconds(3))
-				.ConfigureAwait(true);
+				PixelSize screenSize = screen
+					.WorkingArea
+					.Size;
 
-			while (window.IsPointerOver)
-			{
+				PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
+
+				const int margin = 10;
+
+				window.Position = new PixelPoint(
+					screenSize.Width - (windowSize.Width + margin),
+					screenSize.Height - (windowSize.Height + margin));
+
 				await Task
-					.Delay(TimeSpan.FromSeconds(1))
+					.Delay(TimeSpan.FromSeconds(3))
 					.ConfigureAwait(true);
-			}
 
-			window.Close();
+				while (window.IsPointerOver)
+				{
+					await Task
+						.Delay(TimeSpan.FromSeconds(1))
+						.ConfigureAwait(true);
+				}
+
+				window.Close();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
 		});
 	}
 	#endregion

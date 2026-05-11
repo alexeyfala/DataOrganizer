@@ -166,38 +166,47 @@ public sealed class DialogService : IDialogService
 
 		_dispatcher.Post(async () =>
 		{
-			PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
-
-			view.Header = header;
-
-			view.Label = label ?? Strings.Password;
-
-			_handler.Watch(DialogHost.Show(view));
-
-			if (!await view
-				.GetResultAsync(token)
-				.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
-			{
-				source.SetResult([]);
-
-				return;
-			}
-
 			try
 			{
-				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
-					PasswordInput
-					.Text);
+				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
 
-				source.SetResult(secret
-					.AsReadOnlySpan()
-					.ToArray());
+				view.Header = header;
+
+				view.Label = label ?? Strings.Password;
+
+				_handler.Watch(DialogHost.Show(view));
+
+				if (!await view
+					.GetResultAsync(token)
+					.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
+				{
+					source.SetResult([]);
+
+					return;
+				}
+
+				try
+				{
+					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
+						PasswordInput
+						.Text);
+
+					source.SetResult(secret
+						.AsReadOnlySpan()
+						.ToArray());
+				}
+				finally
+				{
+					view
+						.PasswordInput
+						.Text = null;
+				}
 			}
-			finally
+			catch (Exception ex)
 			{
-				view
-					.PasswordInput
-					.Text = null;
+				_logger.LogException(ex);
+
+				source.SetException(ex);
 			}
 		});
 

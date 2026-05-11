@@ -39,6 +39,15 @@ public sealed class FileSystem : IFileSystem
 	public void CreateDirectory(string directoryPath) => Directory.CreateDirectory(directoryPath);
 
 	/// <inheritdoc />
+	public Stream CreateSequentialWrite(string filePath) => new FileStream(
+		filePath,
+		FileMode.Create,
+		FileAccess.Write,
+		FileShare.None,
+		bufferSize: 81920,
+		options: FileOptions.Asynchronous);
+
+	/// <inheritdoc />
 	public void DeleteDirectory(string directoryPath, bool recursive = true)
 	{
 		Directory.Delete(directoryPath, recursive);
@@ -204,6 +213,15 @@ public sealed class FileSystem : IFileSystem
 		FileShare.ReadWrite);
 
 	/// <inheritdoc />
+	public Stream OpenSequentialRead(string filePath) => new FileStream(
+		filePath,
+		FileMode.Open,
+		FileAccess.Read,
+		FileShare.Read,
+		bufferSize: 81920,
+		options: FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+	/// <inheritdoc />
 	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
 
 	/// <inheritdoc />
@@ -263,18 +281,21 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public async Task WaitWhileFileIsLockedAsync(
+	public async Task WaitFileLockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default)
 	{
-		while (IsFileExists(filePath) && IsFileLocked(filePath))
+		while (
+			!token.IsCancellationRequested
+			&& IsFileExists(filePath)
+			&& IsFileLocked(filePath))
 		{
 			logger?.LogWarning($@"File ""{filePath}"" is locked by another process, waiting it to be released.");
 
 			await Task
 				.Delay(500, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 		}
 	}
 

@@ -90,7 +90,9 @@ public sealed class App : Application
 
 		try
 		{
-			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop.Args.AsNotNull()));
+			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
+				.Args
+				.AsNotNull()));
 		}
 		catch (Exception ex)
 		{
@@ -295,7 +297,7 @@ public sealed class App : Application
 					AppUtils.TxtExtension);
 
 				configure.FileEx(
-					path: Path.Combine(provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath, "Logs", AppUtils.TxtExtension),
+					path: path,
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
 					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
@@ -367,7 +369,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton<IEntityEcryption, EntityEcryption>();
+		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();

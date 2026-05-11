@@ -112,8 +112,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
 
+				CancellationTokenSource cancellation = new(TimeSpan.FromSeconds(30));
+
 				await _fileSystem
-					.WaitWhileFileIsLockedAsync(info.FilePath, token: token)
+					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
 				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");

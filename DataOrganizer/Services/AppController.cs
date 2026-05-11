@@ -58,6 +58,7 @@ public sealed class AppController : IAppController
 		IEntityLoader entityLoader,
 		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
+		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IProcessUtils processUtils,
 		IViewLauncher viewLauncher)
@@ -81,6 +82,8 @@ public sealed class AppController : IAppController
 		_viewLauncher = viewLauncher;
 
 		exceptionHandler.StartMonitoring();
+
+		jsonSerializer.InjectDependency(logger);
 	}
 	#endregion
 

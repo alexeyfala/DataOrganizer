@@ -102,15 +102,15 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IEntityEcryption" />
-	private readonly IEntityEcryption _entityEcryption;
+	/// <inheritdoc cref="IEntityEncryption" />
+	private readonly IEntityEncryption _entityEncryption;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		ITaskExceptionHandler handler,
@@ -120,7 +120,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 		_dbAccess = dbAccess;
 
-		_entityEcryption = entityEcryption;
+		_entityEncryption = entityEncryption;
 
 		_handler = handler;
 
@@ -219,7 +219,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			return input;
 		}
 
-		return _entityEcryption.DecryptSessionContents(
+		return _entityEncryption.DecryptSessionContents(
 			input,
 			SessionEncryptedDek);
 	}
@@ -234,7 +234,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			return input;
 		}
 
-		return _entityEcryption.EncryptSessionContents(
+		return _entityEncryption.EncryptSessionContents(
 			input,
 			SessionEncryptedDek);
 	}

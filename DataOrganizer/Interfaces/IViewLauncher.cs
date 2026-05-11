@@ -1,12 +1,14 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Platform;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +23,7 @@ public interface IViewLauncher
 	/// <summary>
 	/// The default size of the window.
 	/// </summary>
-	static Size DefaultWindowSize { get; } = new(900, 600);
+	static System.Drawing.Size DefaultWindowSize { get; } = new(900, 600);
 	#endregion
 
 	#region Methods
@@ -56,6 +58,29 @@ public interface IViewLauncher
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
 	Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default);
+
+	/// <summary>
+	/// Checks whether <paramref name="position" /> places the window's title bar
+	/// area on a working area of any connected screen. Used to prevent restoring
+	/// the window onto a disconnected monitor.
+	/// </summary>
+	internal static bool IsWindowPositionOnScreen(Window window, PixelPoint position)
+	{
+		IReadOnlyList<Screen>? screens = window
+			.Screens?
+			.All;
+
+		if (screens is null || screens.Count == 0)
+		{
+			return true;
+		}
+
+		// Roughly title-bar sized area at the top-left of the window — must be
+		// reachable by the user so they can drag the window back.
+		PixelRect titleBarRect = new(position.X, position.Y, 100, 30);
+
+		return screens.Any(x => x.WorkingArea.Intersects(titleBarRect));
+	}
 
 	/// <summary>
 	/// Sets default <see cref="Window.WindowStartupLocation" /> to the window.

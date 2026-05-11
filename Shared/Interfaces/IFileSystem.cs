@@ -33,6 +33,11 @@ public interface IFileSystem
 	/// <inheritdoc cref="Directory.CreateDirectory(string)" />
 	void CreateDirectory(string directoryPath);
 
+	/// <summary>
+	/// Creates or overwrites a file for sequential, asynchronous writing.
+	/// </summary>
+	Stream CreateSequentialWrite(string filePath);
+
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
@@ -92,6 +97,11 @@ public interface IFileSystem
 	/// </summary>
 	Stream OpenRead(string filePath);
 
+	/// <summary>
+	/// Opens an existing file for sequential, asynchronous reading.
+	/// </summary>
+	Stream OpenSequentialRead(string filePath);
+
 	/// <inheritdoc cref="File.ReadAllText(string)" />
 	string ReadAllText(string filePath);
 
@@ -113,7 +123,7 @@ public interface IFileSystem
 	/// <summary>
 	/// Checks if a file is locked by another process and waits for it to be unlocked.
 	/// </summary>
-	Task WaitWhileFileIsLockedAsync(
+	Task WaitFileLockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default);

@@ -86,7 +86,7 @@ internal class FileChangeTrackerTests
 		// Arrange		
 		using CancellationTokenSource cts = new();
 
-		IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -118,7 +118,7 @@ internal class FileChangeTrackerTests
 				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
-			entityEcryption
+			entityEncryption
 				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(encryptedContents);
 
@@ -136,7 +136,7 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -155,7 +155,7 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cts.Token);
 
 		// Assert
-		entityEcryption
+		entityEncryption
 			.Received(1)
 			.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 
@@ -256,15 +256,15 @@ internal class FileChangeTrackerTests
 				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
-			IEntityEcryption entityEcryption = Substitute.For<IEntityEcryption>();
+			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
-			entityEcryption
+			entityEncryption
 				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEcryption);
+			builder.RegisterInstance(entityEncryption);
 
 			builder.RegisterInstance(dbAccess);
 

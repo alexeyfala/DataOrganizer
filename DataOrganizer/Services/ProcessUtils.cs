@@ -71,15 +71,15 @@ public sealed class ProcessUtils : IProcessUtils
 	{
 		switch (AppUtils.CurrentOs)
 		{
-			case OperateSystem.Windows:
+			case OperatingSystemType.Windows:
 				Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + Environment.ProcessPath);
 				break;
 
-			case OperateSystem.Linux:
+			case OperatingSystemType.Linux:
 				Process.Start(AppUtils.PlatformSpecificExplorer, Environment.CurrentDirectory);
 				break;
 
-			case OperateSystem.MacOs:
+			case OperatingSystemType.MacOs:
 				Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(AppDomain.CurrentDomain.BaseDirectory));
 				break;
 
@@ -121,7 +121,7 @@ public sealed class ProcessUtils : IProcessUtils
 
 	#region Service
 	/// <summary>
-	/// Creates a process to open a file on an operating system other than <see cref="OperateSystem.Windows" />.
+	/// Creates a process to open a file on an operating system other than <see cref="OperatingSystemType.Windows" />.
 	/// </summary>
 	private static Process CreateNonWindowsProcess(string filePath) => new()
 	{
@@ -135,7 +135,7 @@ public sealed class ProcessUtils : IProcessUtils
 	};
 
 	/// <summary>
-	/// Creates a process to open a file in the <see cref="OperateSystem.Windows" /> operating system.
+	/// Creates a process to open a file in the <see cref="OperatingSystemType.Windows" /> operating system.
 	/// </summary>
 	private static Process CreateWindowsProcess(string filePath) => new()
 	{
@@ -146,7 +146,7 @@ public sealed class ProcessUtils : IProcessUtils
 	};
 
 	/// <summary>
-	/// Combines the path with the folder expansion argument for <see cref="OperateSystem.MacOs" />.
+	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemType.MacOs" />.
 	/// </summary>
 	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
 

@@ -333,7 +333,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcher dispatcher,
-		IEntityEcryption entityEcryption,
+		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
@@ -346,7 +346,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			dbAccess,
 			dialogService,
 			dispatcher,
-			entityEcryption,
+			entityEncryption,
 			eventSimulator,
 			keyboardInputHook,
 			logger,
@@ -368,36 +368,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			.AddRange(GetCategories(hierarchy));
 	}
 
-	/// <inheritdoc />
-	public void Dispose()
-	{
-		FavoritesSettings
-			.Categories
-			.ForEach(x => x.Children.Clear());
-
-		FavoritesSettings
-			.Categories
-			.Clear();
-
-		FavoritesSettings
-			.OrderedCategories
-			.Clear();
-
-		FavoritesSettings
-			.SelectedPairs
-			.Clear();
-
-		CopyHistorySettings
-			.Items
-			.Clear();
-
-		PopupContent = FavoritesPopupContentType.None;
-
-		_copyHistory?.Dispose();
-
-		_favorites?.Dispose();
-	}
-
 	/// <summary>
 	/// Performs initialization.
 	/// </summary>
@@ -407,9 +377,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		FavoritesViewSettings favoritesSettings,
 		CopyHistoryViewSettings copyHistorySettings)
 	{
-		if (windowSettings.X > 0 && windowSettings.Y > 0)
+		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
+
+		if (windowSettings.X > 0
+			&& windowSettings.Y > 0
+			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
 		{
-			window.Position = new(windowSettings.X, windowSettings.Y);
+			window.Position = savedPosition;
 		}
 		else
 		{
@@ -496,6 +470,38 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			id).Show();
 
 		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		FavoritesSettings
+			.Categories
+			.ForEach(x => x.Children.Clear());
+
+		FavoritesSettings
+			.Categories
+			.Clear();
+
+		FavoritesSettings
+			.OrderedCategories
+			.Clear();
+
+		FavoritesSettings
+			.SelectedPairs
+			.Clear();
+
+		CopyHistorySettings
+			.Items
+			.Clear();
+
+		PopupContent = FavoritesPopupContentType.None;
+
+		_copyHistory?.Dispose();
+
+		_favorites?.Dispose();
 	}
 	#endregion
 
