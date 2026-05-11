@@ -286,13 +286,16 @@ public sealed class FileSystem : IFileSystem
 		ILogger? logger = null,
 		CancellationToken token = default)
 	{
-		while (IsFileExists(filePath) && IsFileLocked(filePath))
+		while (
+			!token.IsCancellationRequested
+			&& IsFileExists(filePath)
+			&& IsFileLocked(filePath))
 		{
 			logger?.LogWarning($@"File ""{filePath}"" is locked by another process, waiting it to be released.");
 
 			await Task
 				.Delay(500, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 		}
 	}
 
