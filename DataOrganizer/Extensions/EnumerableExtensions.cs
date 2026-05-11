@@ -270,8 +270,7 @@ public static class EnumerableExtensions
 	{
 		return hierarchy
 			.Flatten()
-			.ToArray()
-			.Length;
+			.Count();
 	}
 
 	/// <summary>

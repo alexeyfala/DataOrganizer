@@ -16,7 +16,10 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
 namespace DataOrganizer.ViewModels;
@@ -24,7 +27,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="SelectedFavoritesView" />.
 /// </summary>
-public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel, IDisposable
+public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings.Categories" />
@@ -169,12 +172,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Categories" />.
+	/// <inheritdoc cref="FilterEngine{T}" />
 	/// </summary>
 	private readonly FilterEngine<FavoriteCategory> _categoriesFilter;
 
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Favorites" />.
+	/// <inheritdoc cref="FilterEngine{T}" />
 	/// </summary>
 	private readonly FilterEngine<FileModelDto> _favoritesFilter;
 
@@ -208,19 +211,67 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			handler,
 			viewModel)
 	{
-		IObservable<Func<IName, bool>> categoryPredicate = this.FilterPredicate(
-			x => x.CategorySearch,
-			CategorySearch,
-			CategorySearchEmptyStringAction);
+		_categoriesFilter = new(
+			this.FilterPredicate(x => x.CategorySearch),
+			autoRefreshOn: x => x.Name);
 
-		_categoriesFilter = new(categoryPredicate, autoRefreshOn: x => x.Name);
+		_favoritesFilter = new(
+			this.FilterPredicate(x => x.FavoriteSearch),
+			autoRefreshOn: x => x.Name);
 
-		IObservable<Func<IName, bool>> favoritesPredicate = this.FilterPredicate(
-			x => x.FavoriteSearch,
-			FavoriteSearch,
-			FavoriteSearchEmptyStringAction);
+		if (_categoriesFilter.Visible is INotifyCollectionChanged categoriesNotifier)
+		{
+			categoriesNotifier.CollectionChanged += CategoriesNotifier_CollectionChanged;
 
-		_favoritesFilter = new(favoritesPredicate, autoRefreshOn: x => x.Name);
+			Disposable
+				.Create(() => categoriesNotifier.CollectionChanged -= CategoriesNotifier_CollectionChanged)
+				.DisposeWith(_disposables);
+		}
+
+		if (_favoritesFilter.Visible is INotifyCollectionChanged favoritesNotifier)
+		{
+			favoritesNotifier.CollectionChanged += FavoritesNotifier_CollectionChanged;
+
+			Disposable
+				.Create(() => favoritesNotifier.CollectionChanged -= FavoritesNotifier_CollectionChanged)
+				.DisposeWith(_disposables);
+		}
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
+	/// </summary>
+	private void CategoriesNotifier_CollectionChanged(
+		object? sender,
+		NotifyCollectionChangedEventArgs e)
+	{
+		if (SelectedCategory is not null
+			|| _previousSelectedCategory is null
+			|| !_categoriesFilter.Visible.Contains(_previousSelectedCategory))
+		{
+			return;
+		}
+
+		SelectedCategory = _previousSelectedCategory;
+	}
+
+	/// <summary>
+	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
+	/// </summary>
+	private void FavoritesNotifier_CollectionChanged(
+		object? sender,
+		NotifyCollectionChangedEventArgs e)
+	{
+		if (SelectedFavorite is not null
+			|| _previousSelectedFavorite is null
+			|| !_favoritesFilter.Visible.Contains(_previousSelectedFavorite))
+		{
+			return;
+		}
+
+		SelectedFavorite = _previousSelectedFavorite;
 	}
 	#endregion
 
@@ -253,28 +304,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		}
 
 		_favoritesFilter.AddRange(items);
-	}
-
-	/// <inheritdoc />
-	public void Dispose()
-	{
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
-		_categoriesFilter.Dispose();
-
-		_favoritesFilter.Dispose();
-
-		_previousSelectedCategory = null;
-
-		_previousSelectedFavorite = null;
-
-		OrderedCategories.Clear();
-
-		SelectedCategory = null;
-
-		SelectedFavorite = null;
-
-		SelectedPairs.Clear();
 	}
 
 	/// <summary>
@@ -315,6 +344,30 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
 	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_categoriesFilter.Dispose();
+
+		_favoritesFilter.Dispose();
+
+		_previousSelectedCategory = null;
+
+		_previousSelectedFavorite = null;
+
+		OrderedCategories.Clear();
+
+		SelectedCategory = null;
+
+		SelectedFavorite = null;
+
+		SelectedPairs.Clear();
+	}
 	#endregion
 
 	#region Service
@@ -341,15 +394,5 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			});
 		}
 	}
-
-	/// <summary>
-	/// The action called when <see cref="CategorySearch" /> has empty string value.
-	/// </summary>
-	private void CategorySearchEmptyStringAction() => SelectedCategory ??= _previousSelectedCategory;
-
-	/// <summary>
-	/// The action called when <see cref="FavoriteSearch" /> has empty string value.
-	/// </summary>
-	private void FavoriteSearchEmptyStringAction() => SelectedFavorite ??= _previousSelectedFavorite;
 	#endregion
 }

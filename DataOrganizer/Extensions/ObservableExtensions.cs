@@ -22,7 +22,9 @@ internal static class ObservableExtensions
 		}
 		else if (SynchronizationContext.Current is { } context)
 		{
-			return target.Throttle(delay).ObserveOn(context);
+			return target
+				.Throttle(delay)
+				.ObserveOn(context);
 		}
 
 		return target;

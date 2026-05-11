@@ -129,14 +129,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					x => editor.TextArea.Caret.PositionChanged += x,
 					x => editor.TextArea.Caret.PositionChanged -= x)
 					.SetDelay(delay, false)
-					.Subscribe(Editor_PropertyChanged)
-					.DisposeWith(_disposables);
-
-				Observable.FromEventPattern<EventHandler, EventArgs>(
-					x => editor.TextArea.SelectionChanged += x,
-					x => editor.TextArea.SelectionChanged -= x)
-					.SetDelay(delay, false)
-					.Subscribe(Editor_PropertyChanged)
+					.Subscribe(Caret_PositionChanged)
 					.DisposeWith(_disposables);
 
 				//// ScrollToVerticalOffset() and ScrollToHorizontalOffset() are not implemented in TextEditor.
@@ -227,9 +220,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Event Handlers
 	/// <summary>
-	/// Event handler of <see cref="TextEditor" />.
+	/// <see cref="Caret.PositionChanged" /> event handler.
 	/// </summary>
-	private void Editor_PropertyChanged(EventPattern<EventArgs> e)
+	private void Caret_PositionChanged(EventPattern<EventArgs> e)
 	{
 		lock (_mutex)
 		{

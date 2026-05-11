@@ -13,13 +13,16 @@ using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// View model for <see cref="CopyHistoryView" />.
 /// </summary>
-public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDisposable
+public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 {
 	#region Properties
 	/// <summary>
@@ -86,12 +89,39 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 			handler,
 			viewModel)
 	{
-		IObservable<Func<IName, bool>> predicate = this.FilterPredicate(
-			x => x.HistorySearch,
-			HistorySearch,
-			HistorySearchEmptyStringAction);
+		_filter = new(
+			this.FilterPredicate(x => x.HistorySearch),
+			autoRefreshOn: x => x.Name);
 
-		_filter = new(predicate, autoRefreshOn: x => x.Name);
+		if (_filter.Visible is not INotifyCollectionChanged notifier)
+		{
+			return;
+		}
+
+		notifier.CollectionChanged += Filter_CollectionChanged;
+
+		Disposable
+			.Create(() => notifier.CollectionChanged -= Filter_CollectionChanged)
+			.DisposeWith(_disposables);
+	}
+	#endregion
+
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler.
+	/// </summary>
+	private void Filter_CollectionChanged(
+		object? sender,
+		NotifyCollectionChangedEventArgs e)
+	{
+		if (SelectedItem is not null
+			|| _previousSelectedItem is null
+			|| !_filter.Visible.Contains(_previousSelectedItem))
+		{
+			return;
+		}
+
+		SelectedItem = _previousSelectedItem;
 	}
 	#endregion
 
@@ -121,16 +151,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 		SelectedItem = null;
 
 		_filter.Clear();
-	}
-
-	/// <inheritdoc />
-	public void Dispose()
-	{
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
-		_filter.Dispose();
-
-		SelectedItem = null;
 	}
 
 	/// <summary>
@@ -167,12 +187,17 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase, IDispo
 	/// Tries to remove value from <see cref="Items" />.
 	/// </summary>
 	public bool Remove(FileModelDto file) => _filter.Remove(file);
-	#endregion
 
-	#region Service
-	/// <summary>
-	/// The action called when <see cref="HistorySearch" /> has empty string value.
-	/// </summary>
-	private void HistorySearchEmptyStringAction() => SelectedItem ??= _previousSelectedItem;
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		_logger.LogInformation($"Disposing: {GetType().Name}");
+
+		_filter.Dispose();
+
+		SelectedItem = null;
+	}
 	#endregion
 }

@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -150,9 +151,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 					_dispatcher.Post(() =>
 					{
-						scrollViewer.ScrollChanged += ScrollViewer_ScrollChanged;
-
-						scrollSubscription.Disposable = Disposable.Create(() => scrollViewer.ScrollChanged -= ScrollViewer_ScrollChanged);
+						scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
+							x => scrollViewer.ScrollChanged += x,
+							x => scrollViewer.ScrollChanged -= x)
+							.SetDelay(TimeSpan.FromSeconds(0.3), false)
+							.Subscribe(ScrollViewer_ScrollChanged);
 					}, DispatcherPriority.Loaded);
 				}
 			}
@@ -641,18 +644,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <see cref="ScrollViewer.ScrollChanged" /> event handler.
 	/// </summary>
-	private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
+	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
 			{
 				return;
 			}
 
 			// Skip layout-driven events from virtualization (Extent/Viewport changed but not Offset).
 			// We only want to react to actual user-initiated scroll changes.
-			if (e.OffsetDelta == default)
+			if (e.EventArgs.OffsetDelta == default)
 			{
 				return;
 			}

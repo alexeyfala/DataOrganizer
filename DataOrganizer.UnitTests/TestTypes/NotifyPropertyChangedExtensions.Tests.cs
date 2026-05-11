@@ -2,7 +2,6 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using NSubstitute;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -15,16 +14,14 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
 	/// </summary>
 	[Test]
-	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_StartWith_Is_Null()
+	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_Search_Is_Null()
 	{
 		// Arrange
 		Source source = new();
 
-		Action emptyStringAction = Substitute.For<Action>();
-
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, null, emptyStringAction)
+			.FilterPredicate(x => x.Search)
 			.Subscribe(predicate =>
 			{
 				// Assert
@@ -32,48 +29,20 @@ internal partial class NotifyPropertyChangedExtensionsTests
 					.Should()
 					.BeTrue();
 			});
-
-		emptyStringAction
-			.DidNotReceive()
-			.Invoke();
 	}
 
 	/// <summary>
 	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
 	/// </summary>
 	[Test]
-	public void FilterPredicate_Invokes_EmptyStringAction_When_StartWith_Is_Empty()
+	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_Search_Is_Provided()
 	{
 		// Arrange
-		Source source = new();
-
-		Action emptyStringAction = Substitute.For<Action>();
+		Source source = new() { Search = "hello" };
 
 		// Act
 		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, string.Empty, emptyStringAction)
-			.Subscribe(_ => { });
-
-		// Assert
-		emptyStringAction
-			.Received(1)
-			.Invoke();
-	}
-
-	/// <summary>
-	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />.
-	/// </summary>
-	[Test]
-	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_StartWith_Is_Provided()
-	{
-		// Arrange
-		Source source = new();
-
-		Action emptyStringAction = Substitute.For<Action>();
-
-		// Act
-		using IDisposable subscription = source
-			.FilterPredicate(x => x.Search, "hello", emptyStringAction)
+			.FilterPredicate(x => x.Search)
 			.Subscribe(predicate =>
 			{
 				// Assert

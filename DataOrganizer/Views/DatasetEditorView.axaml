@@ -184,15 +184,25 @@
 				</Interaction.Behaviors>
 
 				<ItemsRepeater.Layout>
-					<StackLayout Orientation="Vertical" Spacing="4.0" />
+					<StackLayout
+						Orientation="Vertical"
+						Spacing="4.0" />
 				</ItemsRepeater.Layout>
 
 				<ItemsRepeater.ItemTemplate>
 					<RecyclingElementFactory SelectTemplateKey="OnSelectRecordTemplateKey">
 						<RecyclingElementFactory.Templates>
-							<StaticResource x:Key="KeyValueRecord" ResourceKey="KeyValueRecordTemplate" />
-							<StaticResource x:Key="ValueRecord" ResourceKey="ValueRecordTemplate" />
-							<StaticResource x:Key="RecordsGroup" ResourceKey="RecordsGroupTemplate" />
+							<StaticResource
+								x:Key="KeyValueRecord"
+								ResourceKey="KeyValueRecordTemplate" />
+
+							<StaticResource
+								x:Key="ValueRecord"
+								ResourceKey="ValueRecordTemplate" />
+
+							<StaticResource
+								x:Key="RecordsGroup"
+								ResourceKey="RecordsGroupTemplate" />
 						</RecyclingElementFactory.Templates>
 					</RecyclingElementFactory>
 				</ItemsRepeater.ItemTemplate>
