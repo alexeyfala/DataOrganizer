@@ -1320,9 +1320,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			IViewLauncher.SetDefaultSize(window);
 		}
 
-		if (windowSettings.X > 0 && windowSettings.Y > 0)
+		PixelPoint savedPosition = new(windowSettings.X, windowSettings.Y);
+
+		if (windowSettings.X > 0
+			&& windowSettings.Y > 0
+			&& IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
 		{
-			window.Position = new(windowSettings.X, windowSettings.Y);
+			window.Position = savedPosition;
 		}
 		else
 		{
