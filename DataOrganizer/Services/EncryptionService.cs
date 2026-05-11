@@ -12,6 +12,7 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services;
 
+
 /// <summary>
 /// <inheritdoc cref="IEncryptionService" />
 /// </summary>
