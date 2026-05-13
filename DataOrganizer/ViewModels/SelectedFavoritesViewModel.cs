@@ -332,7 +332,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 			if (orderedCategories.Count > 0)
 			{
-				categories.ClearAddRange([.. categories.OrderBySequence(orderedCategories, x => x.Id)]);
+				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategories, x => x.Id)]);
 
 				OrderedCategories.AddRange(orderedCategories);
 			}
