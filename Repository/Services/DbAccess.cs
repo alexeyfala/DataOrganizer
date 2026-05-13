@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.DTO;
+using Repository.Enums;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -529,7 +530,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FileModel[]> GetAllFilesAsync(CancellationToken token = default)
+	public async Task<FileModel[]> GetAllFilesAsync(
+		OptionalFileProperty optionalProperties,
+		CancellationToken token = default)
 	{
 		try
 		{
@@ -538,7 +541,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _filesRepository
-				.GetAllAsync(token)
+				.GetAllAsync(optionalProperties, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)

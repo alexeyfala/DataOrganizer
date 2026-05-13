@@ -8,6 +8,7 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
+using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
 using Shared.Common;
@@ -622,7 +623,7 @@ internal class DbAccessTests
 			IFilesRepository repository = Substitute.For<IFilesRepository>();
 
 			repository
-				.GetAllAsync()
+				.GetAllAsync(OptionalFileProperty.None)
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);
@@ -631,7 +632,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FileModel[] result = await sut.GetAllFilesAsync();
+		FileModel[] result = await sut.GetAllFilesAsync(OptionalFileProperty.None);
 
 		// Assert
 		result

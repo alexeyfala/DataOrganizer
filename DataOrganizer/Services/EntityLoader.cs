@@ -7,6 +7,7 @@ using Entities.Abstract;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;
+using Repository.Enums;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -60,7 +61,7 @@ public sealed class EntityLoader : IEntityLoader
 				.ConfigureAwait(false);
 
 			FileModel[] dbFiles = await _dbAccess
-				.GetAllFilesAsync(token)
+				.GetAllFilesAsync(OptionalFileProperty.None, token)
 				.ConfigureAwait(false);
 
 			_logger.LogInformation(

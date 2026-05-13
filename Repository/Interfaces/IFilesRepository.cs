@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
+using Repository.Enums;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,9 +23,12 @@ public interface IFilesRepository
 	Task AddRangeAsync(IEnumerable<FileModel> entities, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database.
+	/// Returns a complete flat list of <see cref="FileModel" /> entities from the database,
+	/// additionally loading the optional (heavy) properties specified in <paramref name="optionalProperties" />.
 	/// </summary>
-	Task<FileModel[]> GetAllAsync(CancellationToken token = default);
+	/// <param name="optionalProperties">Bitwise combination of optional properties to include in the result.</param>
+	/// <param name="token">Cancellation token.</param>
+	Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns value from <see cref="FileModel.Contents" />.

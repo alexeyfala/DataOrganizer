@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.Abstract;
 using Repository.DbContexts;
+using Repository.Enums;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -23,22 +24,75 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAllAsync(CancellationToken token = default)
+	public Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default)
 	{
-		return FindAll().Select(x => new FileModel
+		bool includeContents = optionalProperties.HasFlag(OptionalFileProperty.Contents);
+
+		bool includeProperties = optionalProperties.HasFlag(OptionalFileProperty.Properties);
+
+		return (includeContents, includeProperties) switch
 		{
-			CreatedDate = x.CreatedDate,
-			EntityType = x.EntityType,
-			Hotkeys = x.Hotkeys,
-			Id = x.Id,
-			Index = x.Index,
-			IsFavorite = x.IsFavorite,
-			IsSelected = x.IsSelected,
-			Name = x.Name,
-			Note = x.Note,
-			ParentId = x.ParentId,
-			UpdatedDate = x.UpdatedDate
-		}).ToArrayAsync(token);
+			(false, false) => FindAll().Select(x => new FileModel
+			{
+				CreatedDate = x.CreatedDate,
+				EntityType = x.EntityType,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedDate = x.UpdatedDate
+			}).ToArrayAsync(token),
+			(true, false) => FindAll().Select(x => new FileModel
+			{
+				Contents = x.Contents, // ← Include.
+				CreatedDate = x.CreatedDate,
+				EntityType = x.EntityType,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				UpdatedDate = x.UpdatedDate
+			}).ToArrayAsync(token),
+			(false, true) => FindAll().Select(x => new FileModel
+			{
+				CreatedDate = x.CreatedDate,
+				EntityType = x.EntityType,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				Properties = x.Properties, // ← Include.
+				UpdatedDate = x.UpdatedDate
+			}).ToArrayAsync(token),
+			(true, true) => FindAll().Select(x => new FileModel
+			{
+				Contents = x.Contents, // ← Include.
+				CreatedDate = x.CreatedDate,
+				EntityType = x.EntityType,
+				Hotkeys = x.Hotkeys,
+				Id = x.Id,
+				Index = x.Index,
+				IsFavorite = x.IsFavorite,
+				IsSelected = x.IsSelected,
+				Name = x.Name,
+				Note = x.Note,
+				ParentId = x.ParentId,
+				Properties = x.Properties, // ← Include.
+				UpdatedDate = x.UpdatedDate
+			}).ToArrayAsync(token)
+		};
 	}
 
 	/// <inheritdoc />
