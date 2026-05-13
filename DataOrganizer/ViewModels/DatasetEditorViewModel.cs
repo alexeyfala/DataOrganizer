@@ -646,7 +646,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		lock (_mutex)
 		{
-			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer)
+			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer || _container is null)
 			{
 				return;
 			}
@@ -658,22 +658,64 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			//DatasetProperties properties = new()
-			//{
-			//	TopRecordIndex = topIndex,
-			//	WithinRecordOffset = withinOffset
-			//};
+			// Identify the top-most visible record: among realized children, find the one
+			// whose top edge in the ScrollViewer's coordinate space is the largest value
+			// that is still at or above the viewport's top. The pixel gap from that edge
+			// to the viewport's top (always >= 0) is "WithinRecordOffset".
+			//
+			// "TransformToVisual" / "TranslatePoint" is used instead of "child.Bounds.Top"
+			// because in ProItemsRepeater's logical-scrolling mode "Bounds" is already
+			// viewport-relative (the "ArrangeOverride" subtracts the logical offset), so
+			// "Bounds.Top" alone does not describe the absolute scroll position. Going
+			// through the transform tree gives a correct viewport-relative coordinate in
+			// both logical and pixel scrolling modes.
+			int topIndex = -1;
+			double bestViewportY = double.NegativeInfinity;
 
-			//string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
+			foreach (Control child in _container.Children)
+			{
+				int index = _container.GetElementIndex(child);
 
-			//SetPropertiesCallback?.Invoke(json);
+				if (index < 0)
+				{
+					continue;
+				}
 
-			//if (IsReadOnly)
-			//{
-			//	return;
-			//}
+				if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
+				{
+					continue;
+				}
 
-			//_handler.Watch(SavePropertiesAsync(json));
+				double viewportY = pointInViewport.Y;
+
+				if (viewportY <= 0 && viewportY > bestViewportY)
+				{
+					bestViewportY = viewportY;
+					topIndex = index;
+				}
+			}
+
+			if (topIndex < 0)
+			{
+				return;
+			}
+
+			DatasetProperties properties = new()
+			{
+				TopRecordIndex = topIndex,
+				WithinRecordOffset = -bestViewportY
+			};
+
+			string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
+
+			SetPropertiesCallback?.Invoke(json);
+
+			if (IsReadOnly)
+			{
+				return;
+			}
+
+			_handler.Watch(SavePropertiesAsync(json));
 		}
 	}
 	#endregion
@@ -1135,21 +1177,56 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
 
-			//if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
-			//{
-			//	return;
-			//}
+			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
+			{
+				return;
+			}
 
-			//if (container.GetOrCreateElement(properties.TopRecordIndex) is not { } realizedContainer)
-			//{
-			//	return;
-			//}
+			// Ensure the repeater has measured/arranged at least once so the viewport exists.
+			container.UpdateLayout();
 
-			//container.UpdateLayout();
+			// We want the anchor record's top edge to land at "y = -WithinRecordOffset" in
+			// the ScrollViewer's coordinate space. Iteratively adjust the offset because
+			// (1) "GetOrCreateElement" forces realization but the layout has to settle, and
+			// (2) in ProItemsRepeater's logical-scrolling mode each offset change causes a
+			// re-layout that can shift the element a few pixels further. A handful of
+			// passes converges in practice.
+			double targetViewportY = -properties.WithinRecordOffset;
 
-			//scrollViewer.Offset = new Vector(
-			//	scrollViewer.Offset.X,
-			//	realizedContainer.Bounds.Top + properties.WithinRecordOffset);
+			for (int attempt = 0; attempt < 8; attempt++)
+			{
+				Control? child = container.TryGetElement(properties.TopRecordIndex)
+					?? container.GetOrCreateElement(properties.TopRecordIndex);
+
+				if (child is null)
+				{
+					return;
+				}
+
+				container.UpdateLayout();
+
+				if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
+				{
+					return;
+				}
+
+				double delta = pointInViewport.Y - targetViewportY;
+
+				if (Math.Abs(delta) < 0.5)
+				{
+					break;
+				}
+
+				double maxOffsetY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+				double newOffsetY = Math.Clamp(scrollViewer.Offset.Y + delta, 0, maxOffsetY);
+
+				if (Math.Abs(newOffsetY - scrollViewer.Offset.Y) < 0.5)
+				{
+					break;
+				}
+
+				scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newOffsetY);
+			}
 		}
 		catch (Exception ex)
 		{
