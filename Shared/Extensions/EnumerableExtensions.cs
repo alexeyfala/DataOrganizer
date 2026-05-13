@@ -106,19 +106,36 @@ public static class EnumerableExtensions
 	/// <param name="source">Original sequence.</param>
 	/// <param name="ordered">Ordered sequence.</param>
 	/// <param name="selector">Property - selector.</param>
-	/// <returns>An ordered sequence in which elements from the original are missing and were not found in the ordered sequence.</returns>
-	public static IEnumerable<T> OrderBySequence<T, TOrdered>(
+	/// <returns>An ordered sequence in which elements from the original are present and were not found in the other.</returns>
+	public static IEnumerable<T> OrderBySequenceKeepSource<T, TOrdered>(
 		this IEnumerable<T> source,
 		IEnumerable<TOrdered> ordered,
 		Func<T, TOrdered> selector)
 	{
 		ILookup<TOrdered, T> lookup = source.ToLookup(selector, x => x);
 
+		HashSet<TOrdered> included = [];
+
 		foreach (TOrdered orderedItem in ordered)
 		{
+			if (!lookup.Contains(orderedItem))
+			{
+				continue;
+			}
+
 			foreach (T lookupItem in lookup[orderedItem])
 			{
 				yield return lookupItem;
+
+				included.Add(orderedItem);
+			}
+		}
+
+		foreach (T item in source)
+		{
+			if (!included.Contains(selector(item)))
+			{
+				yield return item;
 			}
 		}
 	}
