@@ -26,7 +26,6 @@
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="12.0.3" />
 		<PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
-		<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
 		<PackageReference Include="Avalonia.Themes.Simple" Version="12.0.3" />
@@ -43,6 +42,7 @@
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
 		<PackageReference Include="NSec.Cryptography" Version="26.4.0" />
 		<PackageReference Include="OSVersionExt.NetStd" Version="3.0.1" />
+		<PackageReference Include="ProItemsRepeater" Version="12.0.0" />
 		<PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" />
 		<PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
 		<PackageReference Include="Serilog.Sinks.Async" Version="2.1.0" />
