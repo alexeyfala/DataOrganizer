@@ -363,6 +363,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	{
 		Hierarchy.AddRange(hierarchy);
 
+
 		FavoritesSettings
 			.Categories
 			.AddRange(GetCategories(hierarchy));
