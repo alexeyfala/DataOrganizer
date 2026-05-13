@@ -21,6 +21,7 @@ public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepositor
 	}
 	#endregion
 
+
 	#region Methods
 	/// <inheritdoc />
 	public Task<FileModel[]> GetAllAsync(CancellationToken token = default)
