@@ -154,6 +154,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 						scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
 							x => scrollViewer.ScrollChanged += x,
 							x => scrollViewer.ScrollChanged -= x)
+							.Do(_ => FillRealizationGapsInViewport(container, scrollViewer))
 							.SetDelay(TimeSpan.FromSeconds(0.3), false)
 							.Subscribe(ScrollViewer_ScrollChanged);
 					}, DispatcherPriority.Loaded);
@@ -1036,6 +1037,75 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			if (item is RecordsGroup group && group.Children.Count > 0)
 			{
 				DeleteRecord(group.Children, record);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Forces realization of every data index that should be inside the
+	/// <paramref name="scrollViewer" /> viewport but is not yet realized.
+	/// Mitigates ProItemsRepeater's tendency to leave holes when its realization
+	/// window lags during scrolling (the same holes that close on
+	/// <see cref="Layoutable.InvalidateMeasure" /> triggers like group expand or
+	/// window resize). Bounded by realized children's index span, so it never
+	/// realizes items outside the visible region.
+	/// </summary>
+	private static void FillRealizationGapsInViewport(ItemsRepeater container, ScrollViewer scrollViewer)
+	{
+		double viewportHeight = scrollViewer.Viewport.Height;
+
+		HashSet<int> visibleIndices = [];
+
+		int min = int.MaxValue;
+
+		int max = int.MinValue;
+
+		foreach (Control child in container.Children)
+		{
+			int index = container.GetElementIndex(child);
+
+			if (index < 0)
+			{
+				continue;
+			}
+
+			if (child.TranslatePoint(default, scrollViewer) is not { } point)
+			{
+				continue;
+			}
+
+			double top = point.Y;
+
+			double bottom = top + child.Bounds.Height;
+
+			if (bottom <= 0 || top >= viewportHeight)
+			{
+				continue;
+			}
+
+			visibleIndices.Add(index);
+
+			if (index < min)
+			{
+				min = index;
+			}
+
+			if (index > max)
+			{
+				max = index;
+			}
+		}
+
+		if (visibleIndices.Count <= 1)
+		{
+			return;
+		}
+
+		for (int i = min + 1; i < max; i++)
+		{
+			if (!visibleIndices.Contains(i))
+			{
+				container.GetOrCreateElement(i);
 			}
 		}
 	}
