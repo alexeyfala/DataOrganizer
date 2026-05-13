@@ -495,9 +495,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
 
-		// Realize the last item so Extent reflects the real content height —
-		// otherwise the jump lands on an estimated end short of the real one.
-		if (Records.Count > 0)
+		if (Records.Count == 0)
 		{
 			return;
 		}
@@ -660,89 +658,22 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			(int topIndex, double withinOffset) = ComputeLogicalScrollPosition(scrollViewer);
+			//DatasetProperties properties = new()
+			//{
+			//	TopRecordIndex = topIndex,
+			//	WithinRecordOffset = withinOffset
+			//};
 
-			// Gap detection (https://github.com/AvaloniaUI/Avalonia.Controls.ItemsRepeater/issues/28).
-			// topIndex < 0: nothing realized at the viewport top.
-			// hasBottomGap: realized window covers the top but its bottom edge is
-			// above the viewport bottom — tail of viewport is empty.
-			bool hasBottomGap = false;
+			//string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
 
-			if (_container is not null && Records.Count > 0 && scrollViewer.Viewport.Height > 0.0)
-			{
-				double viewportBottom = scrollViewer.Offset.Y + scrollViewer.Viewport.Height;
+			//SetPropertiesCallback?.Invoke(json);
 
-				double maxRealizedBottom = double.NegativeInfinity;
+			//if (IsReadOnly)
+			//{
+			//	return;
+			//}
 
-				foreach (Control child in _container.Children)
-				{
-					if (child.Bounds.Bottom > maxRealizedBottom)
-					{
-						maxRealizedBottom = child.Bounds.Bottom;
-					}
-				}
-
-				hasBottomGap = maxRealizedBottom < viewportBottom - 1.0;
-			}
-
-			bool hasGap = topIndex < 0 || hasBottomGap;
-
-			// Force-realize strategic elements: estimated seeds local realization,
-			// both boundaries lock StackLayout's Extent (anchoring only one side
-			// skews extrapolation and creates a phantom gap on the other).
-			// Posted at Background priority to break the recursive ScrollChanged
-			// from the realization layout pass.
-			if (hasGap && _container is not null && Records.Count > 0 && scrollViewer.Extent.Height > 0.0)
-			{
-				double ratio = scrollViewer.Offset.Y / scrollViewer.Extent.Height;
-
-				int estimatedIndex = Math.Clamp(
-					(int)(ratio * Records.Count),
-					0,
-					Records.Count - 1);
-
-				_dispatcher.Post(() =>
-				{
-					if (_container is null)
-					{
-						return;
-					}
-
-					_container.GetOrCreateElement(0);
-
-					_container.GetOrCreateElement(Records.Count - 1);
-
-					if (estimatedIndex != 0 && estimatedIndex != Records.Count - 1)
-					{
-						_container.GetOrCreateElement(estimatedIndex);
-					}
-				}, DispatcherPriority.Background);
-
-				// Skip the save only when the saved position would be bogus (-1, 0).
-				// For bottom-gap-with-valid-topIndex, fall through and persist the
-				// real top — it's accurate, the gap is just visual at the tail.
-				if (topIndex < 0)
-				{
-					return;
-				}
-			}
-
-			DatasetProperties properties = new()
-			{
-				TopRecordIndex = topIndex,
-				WithinRecordOffset = withinOffset
-			};
-
-			string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_handler.Watch(SavePropertiesAsync(json));
+			//_handler.Watch(SavePropertiesAsync(json));
 		}
 	}
 	#endregion
@@ -1165,57 +1096,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			Records.Add(record);
 		}
-	}
-
-	/// <summary>
-	/// Computes the logical scroll position (top record index + within-record
-	/// pixel offset) by walking the realized containers of the
-	/// <see cref="VirtualizingStackPanel" /> hosting the records.
-	/// Returns <c>(-1, 0)</c> when no realized container intersects the viewport top.
-	/// </summary>
-	private (int TopIndex, double WithinOffset) ComputeLogicalScrollPosition(ScrollViewer scrollViewer)
-	{
-		if (_container is null)
-		{
-			return (-1, 0.0);
-		}
-
-		double offsetY = scrollViewer.Offset.Y;
-
-		Control? topContainer = null;
-
-		double topPosition = double.NegativeInfinity;
-
-		// Pick the realized child that actually intersects the viewport top:
-		// largest Bounds.Top <= offsetY AND Bounds.Bottom > offsetY. The bottom
-		// check is essential — without it a child sitting entirely above the
-		// viewport would still match (the "bottom gap" case) and freeze
-		// TopRecordIndex on the last realized item.
-		foreach (Control child in _container.Children)
-		{
-			double top = child.Bounds.Top;
-
-			if (top <= offsetY && top > topPosition && child.Bounds.Bottom > offsetY)
-			{
-				topContainer = child;
-
-				topPosition = top;
-			}
-		}
-
-		if (topContainer is null)
-		{
-			return (-1, 0.0);
-		}
-
-		int index = _container.GetElementIndex(topContainer);
-
-		if (index < 0)
-		{
-			return (-1, 0.0);
-		}
-
-		return (index, offsetY - topPosition);
 	}
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
