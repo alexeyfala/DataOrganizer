@@ -1135,21 +1135,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
 
-			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
-			{
-				return;
-			}
+			//if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
+			//{
+			//	return;
+			//}
 
-			if (container.GetOrCreateElement(properties.TopRecordIndex) is not { } realizedContainer)
-			{
-				return;
-			}
+			//if (container.GetOrCreateElement(properties.TopRecordIndex) is not { } realizedContainer)
+			//{
+			//	return;
+			//}
 
-			container.UpdateLayout();
+			//container.UpdateLayout();
 
-			scrollViewer.Offset = new Vector(
-				scrollViewer.Offset.X,
-				realizedContainer.Bounds.Top + properties.WithinRecordOffset);
+			//scrollViewer.Offset = new Vector(
+			//	scrollViewer.Offset.X,
+			//	realizedContainer.Bounds.Top + properties.WithinRecordOffset);
 		}
 		catch (Exception ex)
 		{
