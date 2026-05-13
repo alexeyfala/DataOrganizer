@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class FilesRepository : RepositoryBase<FileModel>, IFilesRepository
+public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 {
 	#region Constructors
-	public FilesRepository(SqliteDbContext context) : base(context)
+	public FileRepository(SqliteDbContext context) : base(context)
 	{
 	}
 	#endregion

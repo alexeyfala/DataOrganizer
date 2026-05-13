@@ -36,14 +36,14 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
-	/// <inheritdoc cref="IFoldersRepository" />
-	private readonly IFilesRepository _filesRepository;
+	/// <inheritdoc cref="IFolderRepository" />
+	private readonly IFileRepository _fileRepository;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IFoldersRepository" />
-	private readonly IFoldersRepository _foldersRepository;
+	/// <inheritdoc cref="IFolderRepository" />
+	private readonly IFolderRepository _folderRepository;
 
 	/// <inheritdoc cref="IHotkeysRepository" />
 	private readonly IHotkeysRepository _hotkeysRepository;
@@ -64,9 +64,9 @@ public sealed class DbAccess : IDbAccess
 	public DbAccess(
 		IDbContextService dbContextService,
 		IExplorerModelBaseRepository baseRepository,
-		IFilesRepository filesRepository,
+		IFileRepository fileRepository,
 		IFileSystem fileSystem,
-		IFoldersRepository foldersRepository,
+		IFolderRepository folderRepository,
 		IHotkeysRepository hotkeysRepository,
 		ILogger logger)
 	{
@@ -74,11 +74,11 @@ public sealed class DbAccess : IDbAccess
 
 		_dbContextService = dbContextService;
 
-		_filesRepository = filesRepository;
+		_fileRepository = fileRepository;
 
 		_fileSystem = fileSystem;
 
-		_foldersRepository = foldersRepository;
+		_folderRepository = folderRepository;
 
 		_hotkeysRepository = hotkeysRepository;
 
@@ -132,7 +132,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			await _filesRepository
+			await _fileRepository
 				.AddRangeAsync(files, token)
 				.ConfigureAwait(false);
 
@@ -166,7 +166,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			await _foldersRepository
+			await _folderRepository
 				.AddRangeAsync(folders, token)
 				.ConfigureAwait(false);
 
@@ -413,7 +413,7 @@ public sealed class DbAccess : IDbAccess
 				.RemoveRangeByOwnerIdAsync(id, token)
 				.ConfigureAwait(false);
 
-			int count = await _filesRepository
+			int count = await _fileRepository
 				.RemoveAsync(id, token)
 				.ConfigureAwait(false);
 
@@ -443,12 +443,12 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			Guid[] folderIds = await _foldersRepository
+			Guid[] folderIds = await _folderRepository
 				.GetFolderSubtreeIdsAsync(id, token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			Guid[] fileIds = await _filesRepository
+			Guid[] fileIds = await _fileRepository
 				.GetFileIdsAsync(folderIds, token)
 				.ConfigureAwait(false);
 
@@ -458,12 +458,12 @@ public sealed class DbAccess : IDbAccess
 					.RemoveRangeByOwnerIdsAsync(fileIds, token)
 					.ConfigureAwait(false);
 
-				await _filesRepository
+				await _fileRepository
 					.RemoveRangeByIdsAsync(fileIds, token)
 					.ConfigureAwait(false);
 			}
 
-			int count = await _foldersRepository
+			int count = await _folderRepository
 				.RemoveRangeByIdsAsync(folderIds, token)
 				.ConfigureAwait(false);
 
@@ -540,7 +540,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _filesRepository
+			return await _fileRepository
 				.GetAllAsync(optionalProperties, token)
 				.ConfigureAwait(false);
 		}
@@ -568,7 +568,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _foldersRepository
+			return await _folderRepository
 				.GetAllAsync(token)
 				.ConfigureAwait(false);
 		}
@@ -599,7 +599,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (await _filesRepository
+			if (await _fileRepository
 				.GetContentsAsync(id, token)
 				.ConfigureAwait(false) is not { } contents)
 			{
@@ -637,7 +637,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _filesRepository
+			return await _fileRepository
 				.GetPropertiesAsync(id, token)
 				.ConfigureAwait(false);
 		}
@@ -845,7 +845,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			int count = await _filesRepository
+			int count = await _fileRepository
 				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
 
@@ -877,7 +877,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			int count = await _filesRepository
+			int count = await _fileRepository
 				.UpdatePropertiesAsync(updates, token)
 				.ConfigureAwait(false);
 
@@ -910,7 +910,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			int count = await _foldersRepository
+			int count = await _folderRepository
 				.UpdatePropertiesAsync(id, setters, token)
 				.ConfigureAwait(false);
 
@@ -1035,7 +1035,7 @@ public sealed class DbAccess : IDbAccess
 			UpdatedDate = now
 		};
 
-		await _filesRepository
+		await _fileRepository
 			.AddAsync(file, token)
 			.ConfigureAwait(false);
 
@@ -1062,7 +1062,7 @@ public sealed class DbAccess : IDbAccess
 			UpdatedDate = now
 		};
 
-		await _foldersRepository
+		await _folderRepository
 			.AddAsync(folder, token)
 			.ConfigureAwait(false);
 

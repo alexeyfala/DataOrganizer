@@ -13,10 +13,10 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class FoldersRepository : RepositoryBase<FolderModel>, IFoldersRepository
+public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepository
 {
 	#region Constructors
-	public FoldersRepository(SqliteDbContext context) : base(context)
+	public FolderRepository(SqliteDbContext context) : base(context)
 	{
 	}
 	#endregion

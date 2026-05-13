@@ -13,7 +13,7 @@ namespace Repository.Interfaces;
 /// <summary>
 /// Repository for <see cref="FileModel" />.
 /// </summary>
-public interface IFilesRepository
+public interface IFileRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
