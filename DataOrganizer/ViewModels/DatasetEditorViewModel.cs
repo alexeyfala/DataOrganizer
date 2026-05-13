@@ -1078,6 +1078,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		double targetViewportY = -withinRecordOffset;
 
+		// Usually converges in 1-2 passes; 8 is just a safety cap against runaway loops.
 		for (int attempt = 0; attempt < 8; attempt++)
 		{
 			Control? child = container.TryGetElement(topRecordIndex) ?? container.GetOrCreateElement(topRecordIndex);
