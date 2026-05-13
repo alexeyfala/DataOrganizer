@@ -12,7 +12,7 @@ namespace Repository.Interfaces;
 /// <summary>
 /// Repository for <see cref="FolderModel" />.
 /// </summary>
-public interface IFoldersRepository
+public interface IFolderRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />

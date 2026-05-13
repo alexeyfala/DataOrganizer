@@ -8,6 +8,7 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
+using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
 using Shared.Common;
@@ -33,9 +34,9 @@ internal class DbAccessTests
 		// Arrange
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
-		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		AddEntityParameters parameters = new()
 		{
@@ -49,8 +50,8 @@ internal class DbAccessTests
 
 		DbAccess sut = mock.Create<DbAccess>(
 			TypedParameter.From(dbConnection),
-			TypedParameter.From(foldersRepository),
-			TypedParameter.From(filesRepository));
+			TypedParameter.From(folderRepository),
+			TypedParameter.From(fileRepository));
 
 		// Act
 		ExplorerModelBase? entity = await sut.AddEntityAsync(parameters);
@@ -90,7 +91,7 @@ internal class DbAccessTests
 				.Should()
 				.BeOfType<FolderModel>();
 
-			await foldersRepository
+			await folderRepository
 				.Received()
 				.AddAsync(Arg.Any<FolderModel>());
 		}
@@ -100,7 +101,7 @@ internal class DbAccessTests
 				.Should()
 				.BeOfType<FileModel>();
 
-			await filesRepository
+			await fileRepository
 				.Received()
 				.AddAsync(Arg.Any<FileModel>());
 		}
@@ -117,7 +118,7 @@ internal class DbAccessTests
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
-		IFilesRepository repository = Substitute.For<IFilesRepository>();
+		IFileRepository repository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -153,7 +154,7 @@ internal class DbAccessTests
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
-		IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+		IFolderRepository repository = Substitute.For<IFolderRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -344,15 +345,15 @@ internal class DbAccessTests
 		// Arrange
 		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
 
-		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			filesRepository
+			fileRepository
 				.RemoveAsync(Arg.Any<Guid>())
 				.Returns(1);
 
-			builder.RegisterInstance(filesRepository);
+			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(hotkeysRepository);
 		});
@@ -371,7 +372,7 @@ internal class DbAccessTests
 			.Received()
 			.RemoveRangeByOwnerIdAsync(Arg.Any<Guid>());
 
-		await filesRepository
+		await fileRepository
 			.Received()
 			.RemoveAsync(Arg.Any<Guid>());
 	}
@@ -387,29 +388,29 @@ internal class DbAccessTests
 
 		Guid[] subtreeIds = [folderId];
 
-		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			foldersRepository
+			folderRepository
 				.GetFolderSubtreeIdsAsync(folderId)
 				.Returns(ToAsyncEnumerable(subtreeIds));
 
-			filesRepository
+			fileRepository
 				.GetFileIdsAsync(Arg.Any<Guid[]>())
 				.Returns([]);
 
-			foldersRepository
+			folderRepository
 				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
 				.Returns(subtreeIds.Length);
 
-			builder.RegisterInstance(foldersRepository);
+			builder.RegisterInstance(folderRepository);
 
-			builder.RegisterInstance(filesRepository);
+			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(hotkeysRepository);
 		});
@@ -424,7 +425,7 @@ internal class DbAccessTests
 			.Should()
 			.BeTrue();
 
-		await foldersRepository
+		await folderRepository
 			.Received()
 			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
 
@@ -432,7 +433,7 @@ internal class DbAccessTests
 			.DidNotReceive()
 			.RemoveRangeByOwnerIdsAsync(Arg.Any<Guid[]>());
 
-		await filesRepository
+		await fileRepository
 			.DidNotReceive()
 			.RemoveRangeByIdsAsync(Arg.Any<Guid[]>());
 	}
@@ -450,19 +451,19 @@ internal class DbAccessTests
 
 		Guid[] fileIds = [.. TestUtils.CreateGuids(4)];
 
-		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		IHotkeysRepository hotkeysRepository = Substitute.For<IHotkeysRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			foldersRepository
+			folderRepository
 				.GetFolderSubtreeIdsAsync(rootId)
 				.Returns(ToAsyncEnumerable(subtreeIds));
 
-			filesRepository
+			fileRepository
 				.GetFileIdsAsync(Arg.Any<Guid[]>())
 				.Returns(fileIds);
 
@@ -470,17 +471,17 @@ internal class DbAccessTests
 				.RemoveRangeByOwnerIdsAsync(Arg.Any<Guid[]>())
 				.Returns(fileIds.Length);
 
-			filesRepository
+			fileRepository
 				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
 				.Returns(fileIds.Length);
 
-			foldersRepository
+			folderRepository
 				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
 				.Returns(subtreeIds.Length);
 
-			builder.RegisterInstance(foldersRepository);
+			builder.RegisterInstance(folderRepository);
 
-			builder.RegisterInstance(filesRepository);
+			builder.RegisterInstance(fileRepository);
 
 			builder.RegisterInstance(hotkeysRepository);
 		});
@@ -499,11 +500,11 @@ internal class DbAccessTests
 			.Received()
 			.RemoveRangeByOwnerIdsAsync(fileIds);
 
-		await filesRepository
+		await fileRepository
 			.Received()
 			.RemoveRangeByIdsAsync(fileIds);
 
-		await foldersRepository
+		await folderRepository
 			.Received()
 			.RemoveRangeByIdsAsync(Arg.Is<Guid[]>(x => x.SequenceEqual(subtreeIds)));
 	}
@@ -517,27 +518,27 @@ internal class DbAccessTests
 		// Arrange
 		Guid folderId = Guid.NewGuid();
 
-		IFoldersRepository foldersRepository = Substitute.For<IFoldersRepository>();
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		IFilesRepository filesRepository = Substitute.For<IFilesRepository>();
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			foldersRepository
+			folderRepository
 				.GetFolderSubtreeIdsAsync(folderId)
 				.Returns(ToAsyncEnumerable<Guid>([]));
 
-			filesRepository
+			fileRepository
 				.GetFileIdsAsync(Arg.Any<Guid[]>())
 				.Returns([]);
 
-			foldersRepository
+			folderRepository
 				.RemoveRangeByIdsAsync(Arg.Any<Guid[]>())
 				.Returns(0);
 
-			builder.RegisterInstance(foldersRepository);
+			builder.RegisterInstance(folderRepository);
 
-			builder.RegisterInstance(filesRepository);
+			builder.RegisterInstance(fileRepository);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -619,10 +620,10 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
-				.GetAllAsync()
+				.GetAllAsync(OptionalFileProperty.None)
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);
@@ -631,7 +632,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FileModel[] result = await sut.GetAllFilesAsync();
+		FileModel[] result = await sut.GetAllFilesAsync(OptionalFileProperty.None);
 
 		// Assert
 		result
@@ -650,7 +651,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+			IFolderRepository repository = Substitute.For<IFolderRepository>();
 
 			repository
 				.GetAllAsync()
@@ -681,7 +682,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
 				.GetContentsAsync(Arg.Any<Guid>())
@@ -720,7 +721,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
 				.GetPropertiesAsync(Arg.Any<Guid>())
@@ -751,7 +752,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			foreach (FileModel file in files)
 			{
@@ -828,7 +829,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
 				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
@@ -862,7 +863,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFilesRepository repository = Substitute.For<IFilesRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
 				.UpdatePropertiesAsync(
@@ -897,7 +898,7 @@ internal class DbAccessTests
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestUtils.CreateRandomIntFrom10To100())]
 		};
 
-		IFilesRepository repository = Substitute.For<IFilesRepository>();
+		IFileRepository repository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -937,7 +938,7 @@ internal class DbAccessTests
 			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
 		];
 
-		IFilesRepository repository = Substitute.For<IFilesRepository>();
+		IFileRepository repository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -979,7 +980,7 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+			IFolderRepository repository = Substitute.For<IFolderRepository>();
 
 			repository
 				.UpdatePropertiesAsync(
@@ -1015,7 +1016,7 @@ internal class DbAccessTests
 			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
 		];
 
-		IFoldersRepository repository = Substitute.For<IFoldersRepository>();
+		IFolderRepository repository = Substitute.For<IFolderRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

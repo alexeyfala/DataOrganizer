@@ -374,8 +374,8 @@ public sealed class App : Application
 		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
-		services.AddSingleton<IFilesRepository, FilesRepository>();
-		services.AddSingleton<IFoldersRepository, FoldersRepository>();
+		services.AddSingleton<IFileRepository, FileRepository>();
+		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<ILogger>(ConfigureLogger);

@@ -9,6 +9,7 @@ using Entities.Models;
 using Mapster;
 using MapsterMapper;
 using NSubstitute;
+using Repository.Enums;
 using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -39,7 +40,7 @@ internal class EntityLoaderTests
 				.Returns([.. TestUtils.CreateFolders(folderCount)]);
 
 			dbAccess
-				.GetAllFilesAsync()
+				.GetAllFilesAsync(OptionalFileProperty.None)
 				.Returns([.. TestUtils.CreateFiles(fileCount)]);
 
 			IMapper mapper = Substitute.For<IMapper>();

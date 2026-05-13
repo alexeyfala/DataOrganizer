@@ -6,6 +6,7 @@ using DataOrganizer.Windows;
 using Entities.Abstract;
 using Entities.Models;
 using Repository.DTO;
+using Repository.Enums;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -513,11 +514,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task<ExplorerModelBase[]> GetEntitiesFromDbAsync(CancellationToken token)
 	{
 		FolderModel[] dbFolders = await _dbAccess
-			.GetAllFoldersAsync(token: token)
+			.GetAllFoldersAsync(token)
 			.ConfigureAwait(false);
 
 		FileModel[] dbFiles = await _dbAccess
-			.GetAllFilesAsync(token: token)
+			.GetAllFilesAsync(OptionalFileProperty.Contents | OptionalFileProperty.Properties, token)
 			.ConfigureAwait(false);
 
 		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
