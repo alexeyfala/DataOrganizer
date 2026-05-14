@@ -363,7 +363,7 @@
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
-					<DataTemplate x:DataType="localModels:RecordsGroup">
+					<DataTemplate x:DataType="localModels:RecordsGroup">						
 						<Grid
 							Classes="PointerOverBackgroundStyle"
 							ColumnDefinitions="Auto,*">
@@ -415,6 +415,8 @@
 
 				<Interaction.Behaviors>
 					<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource RecordsGroupContextMenuTemplate}" />
+
+					<behaviors:OverrideExpanderToggleCursorBehavior />
 
 					<EventTriggerBehavior EventName="Expanded">
 						<InvokeCommandAction
