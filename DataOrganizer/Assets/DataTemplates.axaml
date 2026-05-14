@@ -347,7 +347,9 @@
 						<Setter Property="RenderTransform" Value="rotate(0deg)" />
 						<Setter Property="Transitions">
 							<Transitions>
-								<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+								<TransformOperationsTransition
+									Property="RenderTransform"
+									Duration="0:0:0.2" />
 							</Transitions>
 						</Setter>
 					</Style>
@@ -363,8 +365,13 @@
 				<Expander.HeaderTemplate>
 					<DataTemplate x:DataType="localModels:RecordsGroup">
 						<Grid
-							ColumnDefinitions="Auto,*"
-							Classes="PointerOverBackgroundStyle">
+							Classes="PointerOverBackgroundStyle"
+							ColumnDefinitions="Auto,*">
+
+							<Interaction.Behaviors>
+								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+							</Interaction.Behaviors>
+
 							<materialIcons:MaterialIcon
 								Grid.Column="0"
 								Width="16.0"
@@ -379,11 +386,7 @@
 								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
 								Note="{Binding Note, Mode=OneWay}"
-								Text="{Binding Name, Mode=OneWay}">
-								<Interaction.Behaviors>
-									<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
-								</Interaction.Behaviors>
-							</views:ClipboardTextBlock>
+								Text="{Binding Name, Mode=OneWay}" />
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>

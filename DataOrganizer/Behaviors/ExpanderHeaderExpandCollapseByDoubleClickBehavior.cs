@@ -20,7 +20,7 @@ internal sealed class ExpanderHeaderExpandCollapseByDoubleClickBehavior : Behavi
 	{
 		if (e.ClickCount == 2
 			|| e.Source is not Visual visual
-			|| visual.GetLogicalAncestors().OfType<Button>().Any(x => !string.Equals(x.Name, "PART_toggle")))
+			|| visual.GetLogicalAncestors().OfType<Button>().Any(x => !string.Equals(x.Name, "PART_ToggleButton")))
 		{
 			return;
 		}
