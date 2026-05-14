@@ -313,8 +313,21 @@
 						<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 					</Style>
 
+					<!--
+						Compact header (Material default: ToggleButton MinHeight=48, inner Border Padding=12,8).
+						The inner Border#PART_RootBorder is INSIDE the ToggleButton template — need to drill
+						via nested /template/.
+					-->
+					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton">
+						<Setter Property="MinHeight" Value="0.0" />
+					</Style>
+
+					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder">
+						<Setter Property="Padding" Value="0.0" />
+					</Style>
+
 					<!-- Nuget: Avalonia.Themes.Simple -->
-					<SimpleTheme />
+					<!--<SimpleTheme />-->
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
