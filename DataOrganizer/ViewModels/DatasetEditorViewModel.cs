@@ -106,7 +106,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					return;
 				}
 
-				await WaitVirtualizingStackPanelIsLoadedAsync(scrollViewer).ConfigureAwait(true);
+				await WaitItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
 				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
 
@@ -1192,24 +1192,26 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Finds the <see cref="" /> within the visual tree and waits until it is loaded.
+	/// Waits until <paramref name="container" /> has realized at least one child —
+	/// i.e. its first measure / arrange pass after the items source was populated has
+	/// completed. Restoring the saved scroll position before that point would target a
+	/// container that does not yet know its own extent.
 	/// </summary>
-	private static async Task<bool> WaitVirtualizingStackPanelIsLoadedAsync(
-		Visual element,
+	private static async Task<bool> WaitItemsRepeaterRealizedAsync(
+		ItemsRepeater container,
 		CancellationToken token = default)
 	{
-		if (element.FindDescendantOfType<VirtualizingStackPanel>(includeSelf: false) is not { } panel)
-		{
-			return false;
-		}
-
-		Func<bool> condition = () => panel.IsLoaded;
+		Func<bool> condition = () => container
+			.Children
+			.Count > 0;
 
 		await condition
-			.WaitAsync(300, 10, token)
+			.WaitAsync(1000, 10, token)
 			.ConfigureAwait(true);
 
-		return panel.IsLoaded;
+		return container
+			.Children
+			.Count > 0;
 	}
 
 	/// <summary>
