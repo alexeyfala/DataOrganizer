@@ -68,7 +68,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToTopCommand}"
-				CommandParameter="{Binding #RecordsItemsControl}"
+				CommandParameter="{Binding #ScrollViewer}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
@@ -76,7 +76,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToEndCommand}"
-				CommandParameter="{Binding #RecordsItemsControl}"
+				CommandParameter="{Binding #ScrollViewer}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />

@@ -483,37 +483,37 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Scrolls the list to the end.
 	/// </summary>
-	[RelayCommand]
-	private async Task ScrollToEnd(ItemsRepeater? container)
+	[RelayCommand(CanExecute = nameof(CanExecuteScrollToEnd))]
+	private Task ScrollToEnd(ScrollViewer? scrollViewer)
 	{
-		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer || Records.Count == 0)
+		if (scrollViewer is null || Records.Count == 0)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
 		_logger.LogInformation("Scroll records to the end");
 
 		//scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
 
-		await SmoothScrollAsync(scrollViewer, toEnd: true).ConfigureAwait(true);
+		return SmoothScrollAsync(scrollViewer, toEnd: true);
 	}
 
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
-	[RelayCommand]
-	private async Task ScrollToTop(ItemsRepeater? container)
+	[RelayCommand(CanExecute = nameof(CanExecuteScrollToTop))]
+	private Task ScrollToTop(ScrollViewer? scrollViewer)
 	{
-		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer || Records.Count == 0)
+		if (scrollViewer is null || Records.Count == 0)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
 		_logger.LogInformation("Scroll records to the top");
 
 		//scrollViewer.Offset = default;
 
-		await SmoothScrollAsync(scrollViewer, toEnd: false).ConfigureAwait(true);
+		return SmoothScrollAsync(scrollViewer, toEnd: false);
 	}
 
 	/// <summary>
@@ -1052,13 +1052,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Smoothly drives <paramref name="scrollViewer" /> offset to the absolute top
-	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>) in small
-	/// pixel-sized steps, yielding to the dispatcher between steps so the
-	/// <see cref="ItemsRepeater" /> can materialize items along the way. A single hard
-	/// jump on <see cref="ScrollViewer.Offset" /> leaves ProItemsRepeater's realization
-	/// window stuck and produces holes on subsequent wheel scrolling; stepping mimics
-	/// the wheel path, which materializes records cleanly.
+	/// Smoothly scrolls <paramref name="scrollViewer" /> to the absolute top
+	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>).
 	/// </summary>
 	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
 	{
@@ -1073,19 +1068,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Smoothly drives <paramref name="scrollViewer" /> until the record at
-	/// <paramref name="topRecordIndex" /> lands with its top edge at
+	/// Smoothly scrolls <paramref name="scrollViewer" /> so the record at
+	/// <paramref name="topRecordIndex" /> sits with its top edge at
 	/// <c>y = -<paramref name="withinRecordOffset" /></c> in viewport coordinates.
-	/// Done in two phases:
-	/// (1) coarse smooth scroll to a proportional offset estimate
-	/// <c>(topRecordIndex / totalRecords) × Extent.Height − withinRecordOffset</c>,
-	/// going through ProItemsRepeater's normal realization path like a wheel scroll
-	/// — crucially WITHOUT calling <see cref="ItemsRepeater.GetOrCreateElement" />
-	/// during the scroll, since pinning a far-off anchor mid-travel biases the
-	/// realization window toward it and leaves opposite-direction scrolling broken
-	/// afterwards;
-	/// (2) fine-tune smooth scroll using the anchor's real measured position — by
-	/// now the anchor is in or near the viewport, so the brief pinning is harmless.
 	/// </summary>
 	private static async Task SmoothScrollAsync(
 		ScrollViewer scrollViewer,
@@ -1136,10 +1121,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <summary>
 	/// Shared step-loop for the <see cref="SmoothScrollAsync" /> overloads.
-	/// On each iteration: asks <paramref name="getRemainingDelta" /> how far the offset
-	/// still needs to move (signed pixels — positive scrolls down), takes a single
-	/// <c>StepPx</c>-bounded step (clamped to valid offset range), then yields to the
-	/// dispatcher so a layout pass can run before the next measurement.
+	/// <paramref name="getRemainingDelta" /> returns signed pixels still to move
+	/// (positive scrolls down).
 	/// </summary>
 	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
 	{
@@ -1176,7 +1159,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
-			await Task.Delay(DelayMs).ConfigureAwait(true);
+			await Task
+				.Delay(DelayMs)
+				.ConfigureAwait(true);
 		}
 	}
 
@@ -1184,9 +1169,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Returns the data index and pixel offset of the realized record whose top edge
 	/// is the closest one at or above the <paramref name="scrollViewer" /> viewport
 	/// top, or <c>null</c> if no realized child qualifies.
-	/// <see cref="Visual.TranslatePoint" /> is used rather than <c>Bounds.Top</c>
-	/// because ProItemsRepeater renders children in viewport-relative coordinates in
-	/// logical-scrolling mode; the transform tree gives a correct value in both modes.
 	/// </summary>
 	private static (int Index, double WithinRecordOffset)? TryGetTopVisibleRecord(
 		ItemsRepeater container,
@@ -1224,10 +1206,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Waits until <paramref name="container" /> has realized at least one child —
-	/// i.e. its first measure / arrange pass after the items source was populated has
-	/// completed. Restoring the saved scroll position before that point would target a
-	/// container that does not yet know its own extent.
+	/// Waits until <paramref name="container" /> has realized at least one child.
 	/// </summary>
 	private static async Task<bool> WaitItemsRepeaterRealizedAsync(
 		ItemsRepeater container,
@@ -1238,7 +1217,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Count > 0;
 
 		await condition
-			.WaitAsync(500, 10, token)
+			.WaitAsync(400, 10, token)
 			.ConfigureAwait(true);
 
 		return container
@@ -1265,6 +1244,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			Records.Add(record);
 		}
 	}
+
+	/// <summary>
+	/// Validates <see cref="ScrollToEndCommand" />.
+	/// </summary>
+	private bool CanExecuteScrollToEnd() => !ScrollToTopCommand.IsRunning;
+
+	/// <summary>
+	/// Validates <see cref="ScrollToTopCommand" />.
+	/// </summary>
+	private bool CanExecuteScrollToTop() => !ScrollToEndCommand.IsRunning;
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
 	private async Task DeleteRecordAsync(
@@ -1313,7 +1302,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				container,
 				properties.TopRecordIndex,
 				Records.Count,
-				properties.WithinRecordOffset).ConfigureAwait(true);
+				properties.WithinRecordOffset).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
