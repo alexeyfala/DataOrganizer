@@ -1052,69 +1052,96 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Iteratively adjusts <paramref name="scrollViewer" /> offset until the record at
-	/// <paramref name="topRecordIndex" /> lands with its top edge at
-	/// <c>y = -<paramref name="withinRecordOffset" /></c> in the viewport.
-	/// Iteration is needed because in ProItemsRepeater's logical-scrolling mode each
-	/// offset change triggers a re-layout that can nudge the anchor element.
+	/// Smoothly drives <paramref name="scrollViewer" /> offset to the absolute top
+	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>) in small
+	/// pixel-sized steps, yielding to the dispatcher between steps so the
+	/// <see cref="ItemsRepeater" /> can materialize items along the way. A single hard
+	/// jump on <see cref="ScrollViewer.Offset" /> leaves ProItemsRepeater's realization
+	/// window stuck and produces holes on subsequent wheel scrolling; stepping mimics
+	/// the wheel path, which materializes records cleanly.
 	/// </summary>
-	private static void RestoreScrollPosition(
+	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
+	{
+		return StepOffsetUntilDoneAsync(scrollViewer, () =>
+		{
+			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+
+			double targetY = toEnd ? maxY : 0;
+
+			return targetY - scrollViewer.Offset.Y;
+		});
+	}
+
+	/// <summary>
+	/// Smoothly drives <paramref name="scrollViewer" /> until the record at
+	/// <paramref name="topRecordIndex" /> lands with its top edge at
+	/// <c>y = -<paramref name="withinRecordOffset" /></c> in viewport coordinates.
+	/// Done in two phases:
+	/// (1) coarse smooth scroll to a proportional offset estimate
+	/// <c>(topRecordIndex / totalRecords) × Extent.Height − withinRecordOffset</c>,
+	/// going through ProItemsRepeater's normal realization path like a wheel scroll
+	/// — crucially WITHOUT calling <see cref="ItemsRepeater.GetOrCreateElement" />
+	/// during the scroll, since pinning a far-off anchor mid-travel biases the
+	/// realization window toward it and leaves opposite-direction scrolling broken
+	/// afterwards;
+	/// (2) fine-tune smooth scroll using the anchor's real measured position — by
+	/// now the anchor is in or near the viewport, so the brief pinning is harmless.
+	/// </summary>
+	private static async Task SmoothScrollAsync(
 		ScrollViewer scrollViewer,
 		ItemsRepeater container,
 		int topRecordIndex,
+		int totalRecords,
 		double withinRecordOffset)
 	{
-		container.UpdateLayout();
+		if (totalRecords <= 0)
+		{
+			return;
+		}
+
+		await StepOffsetUntilDoneAsync(scrollViewer, () =>
+		{
+			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+
+			double targetY = Math.Clamp(
+				((double)topRecordIndex / totalRecords * scrollViewer.Extent.Height) - withinRecordOffset,
+				0,
+				maxY);
+
+			return targetY - scrollViewer.Offset.Y;
+		}).ConfigureAwait(true);
 
 		double targetViewportY = -withinRecordOffset;
 
-		// Usually converges in 1-2 passes; 8 is just a safety cap against runaway loops.
-		for (int attempt = 0; attempt < 8; attempt++)
+		await StepOffsetUntilDoneAsync(scrollViewer, () =>
 		{
-			Control? child = container.TryGetElement(topRecordIndex) ?? container.GetOrCreateElement(topRecordIndex);
+			Control? child = container.TryGetElement(topRecordIndex)
+				?? container.GetOrCreateElement(topRecordIndex);
 
 			if (child is null)
 			{
-				return;
+				return 0;
 			}
 
 			container.UpdateLayout();
 
 			if (child.TranslatePoint(default, scrollViewer) is not { } pointInViewport)
 			{
-				return;
+				return 0;
 			}
 
-			double delta = pointInViewport.Y - targetViewportY;
-
-			if (Math.Abs(delta) < 0.5)
-			{
-				return;
-			}
-
-			double maxOffsetY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-			double newOffsetY = Math.Clamp(scrollViewer.Offset.Y + delta, 0, maxOffsetY);
-
-			if (Math.Abs(newOffsetY - scrollViewer.Offset.Y) < 0.5)
-			{
-				return;
-			}
-
-			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newOffsetY);
-		}
+			return pointInViewport.Y - targetViewportY;
+		}).ConfigureAwait(true);
 	}
 
 	/// <summary>
-	/// Smoothly drives <paramref name="scrollViewer" /> offset to the absolute top
-	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>) in small
-	/// pixel-sized steps, yielding to the dispatcher between steps so the
-	/// <see cref="ItemsRepeater" /> can materialize items along the way. Empirically
-	/// a single hard jump on <see cref="ScrollViewer.Offset" /> leaves ProItemsRepeater's
-	/// realization window stuck and produces holes on subsequent mouse-wheel scrolling;
-	/// stepping mimics the wheel path, which materializes records cleanly.
+	/// Shared step-loop for the <see cref="SmoothScrollAsync" /> overloads.
+	/// On each iteration: asks <paramref name="getRemainingDelta" /> how far the offset
+	/// still needs to move (signed pixels — positive scrolls down), takes a single
+	/// <c>StepPx</c>-bounded step (clamped to valid offset range), then yields to the
+	/// dispatcher so a layout pass can run before the next measurement.
 	/// </summary>
-	private static async Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
+	private static async Task StepOffsetUntilDoneAsync(ScrollViewer scrollViewer, Func<double> getRemainingDelta)
 	{
 		// Pixels moved per step. Smaller = more reliable realization, slower travel.
 		const double StepPx = 100;
@@ -1127,22 +1154,27 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		for (int i = 0; i < MaxIterations; i++)
 		{
-			double currentY = scrollViewer.Offset.Y;
+			double delta = getRemainingDelta();
 
-			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-
-			double targetY = toEnd ? maxY : 0;
-
-			double diff = targetY - currentY;
-
-			if (Math.Abs(diff) < 0.5)
+			if (Math.Abs(delta) < 0.5)
 			{
 				return;
 			}
 
-			double step = Math.Sign(diff) * Math.Min(Math.Abs(diff), StepPx);
+			double currentY = scrollViewer.Offset.Y;
 
-			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, currentY + step);
+			double step = Math.Sign(delta) * Math.Min(Math.Abs(delta), StepPx);
+
+			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+
+			double newY = Math.Clamp(currentY + step, 0, maxY);
+
+			if (Math.Abs(newY - currentY) < 0.5)
+			{
+				return;
+			}
+
+			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newY);
 
 			await Task.Delay(DelayMs).ConfigureAwait(true);
 		}
@@ -1206,7 +1238,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			.Count > 0;
 
 		await condition
-			.WaitAsync(1000, 10, token)
+			.WaitAsync(500, 10, token)
 			.ConfigureAwait(true);
 
 		return container
@@ -1276,11 +1308,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			RestoreScrollPosition(
+			await SmoothScrollAsync(
 				scrollViewer,
 				container,
 				properties.TopRecordIndex,
-				properties.WithinRecordOffset);
+				Records.Count,
+				properties.WithinRecordOffset).ConfigureAwait(true);
 		}
 		catch (Exception ex)
 		{
