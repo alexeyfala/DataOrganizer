@@ -154,7 +154,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 						scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
 							x => scrollViewer.ScrollChanged += x,
 							x => scrollViewer.ScrollChanged -= x)
-							.Do(_ => FillRealizationGapsInViewport(container, scrollViewer))
 							.SetDelay(TimeSpan.FromSeconds(0.3), false)
 							.Subscribe(ScrollViewer_ScrollChanged);
 					}, DispatcherPriority.Loaded);
@@ -485,46 +484,50 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Scrolls the list to the end.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToEnd(ItemsRepeater? container)
+	private async Task ScrollToEnd(ItemsRepeater? container)
 	{
-		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer || Records.Count == 0)
 		{
 			return;
 		}
 
 		_logger.LogInformation("Scroll records to the end");
 
-		scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
+		//scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
+		//
+		//if (Records.Count == 0)
+		//{
+		//	return;
+		//}
+		//
+		//container.GetOrCreateElement(Records.Count - 1);
 
-		if (Records.Count == 0)
-		{
-			return;
-		}
-
-		container.GetOrCreateElement(Records.Count - 1);
+		await SmoothScrollAsync(scrollViewer, toEnd: true).ConfigureAwait(true);
 	}
 
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
 	[RelayCommand]
-	private void ScrollToTop(ItemsRepeater? container)
+	private async Task ScrollToTop(ItemsRepeater? container)
 	{
-		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+		if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer || Records.Count == 0)
 		{
 			return;
 		}
 
 		_logger.LogInformation("Scroll records to the top");
 
-		scrollViewer.Offset = default;
+		//scrollViewer.Offset = default;
+		//
+		//if (Records.Count == 0)
+		//{
+		//	return;
+		//}
+		//
+		//container.GetOrCreateElement(0);
 
-		if (Records.Count == 0)
-		{
-			return;
-		}
-
-		container.GetOrCreateElement(0);
+		await SmoothScrollAsync(scrollViewer, toEnd: false).ConfigureAwait(true);
 	}
 
 	/// <summary>
@@ -1042,75 +1045,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Forces realization of every data index that should be inside the
-	/// <paramref name="scrollViewer" /> viewport but is not yet realized.
-	/// Mitigates ProItemsRepeater's tendency to leave holes when its realization
-	/// window lags during scrolling (the same holes that close on
-	/// <see cref="Layoutable.InvalidateMeasure" /> triggers like group expand or
-	/// window resize). Bounded by realized children's index span, so it never
-	/// realizes items outside the visible region.
-	/// </summary>
-	private static void FillRealizationGapsInViewport(ItemsRepeater container, ScrollViewer scrollViewer)
-	{
-		double viewportHeight = scrollViewer.Viewport.Height;
-
-		HashSet<int> visibleIndices = [];
-
-		int min = int.MaxValue;
-
-		int max = int.MinValue;
-
-		foreach (Control child in container.Children)
-		{
-			int index = container.GetElementIndex(child);
-
-			if (index < 0)
-			{
-				continue;
-			}
-
-			if (child.TranslatePoint(default, scrollViewer) is not { } point)
-			{
-				continue;
-			}
-
-			double top = point.Y;
-
-			double bottom = top + child.Bounds.Height;
-
-			if (bottom <= 0 || top >= viewportHeight)
-			{
-				continue;
-			}
-
-			visibleIndices.Add(index);
-
-			if (index < min)
-			{
-				min = index;
-			}
-
-			if (index > max)
-			{
-				max = index;
-			}
-		}
-
-		if (visibleIndices.Count <= 1)
-		{
-			return;
-		}
-
-		for (int i = min + 1; i < max; i++)
-		{
-			if (!visibleIndices.Contains(i))
-			{
-				container.GetOrCreateElement(i);
-			}
-		}
-	}
-
-	/// <summary>
 	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
 	private static bool HasChildren(RecordsGroup? group)
@@ -1182,6 +1116,46 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			}
 
 			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, newOffsetY);
+		}
+	}
+
+	/// <summary>
+	/// Smoothly drives <paramref name="scrollViewer" /> offset to the absolute top
+	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>) in small
+	/// pixel-sized steps, yielding to the dispatcher between steps so the
+	/// <see cref="ItemsRepeater" /> can materialize items along the way. Empirically
+	/// a single hard jump on <see cref="ScrollViewer.Offset" /> leaves ProItemsRepeater's
+	/// realization window stuck and produces holes on subsequent mouse-wheel scrolling;
+	/// stepping mimics the wheel path, which materializes records cleanly.
+	/// </summary>
+	private static async Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
+	{
+		const double StepPx = 100;
+
+		const int DelayMs = 16;
+
+		const int MaxIterations = 1000;
+
+		for (int i = 0; i < MaxIterations; i++)
+		{
+			double currentY = scrollViewer.Offset.Y;
+
+			double maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+
+			double targetY = toEnd ? maxY : 0;
+
+			double diff = targetY - currentY;
+
+			if (Math.Abs(diff) < 0.5)
+			{
+				return;
+			}
+
+			double step = Math.Sign(diff) * Math.Min(Math.Abs(diff), StepPx);
+
+			scrollViewer.Offset = new Vector(scrollViewer.Offset.X, currentY + step);
+
+			await Task.Delay(DelayMs).ConfigureAwait(true);
 		}
 	}
 
