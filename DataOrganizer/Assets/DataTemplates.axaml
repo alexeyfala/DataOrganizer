@@ -326,14 +326,57 @@
 						<Setter Property="Padding" Value="0.0" />
 					</Style>
 
+					<!--
+						Chevron on the left: Material's "Grid.ColumnDefinitions" is not an "AvaloniaProperty"
+						so we cannot flip columns via Setter. Instead — hide Material's built-in chevron
+						and render our own at the start of the "HeaderTemplate" below. The custom chevron
+						rotates via the "Expander :expanded" pseudo-class.
+					-->
+					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder Border">
+						<Setter Property="IsVisible" Value="False" />
+					</Style>
+
+					<!--
+						Rotation is keyed off the chevron's OWN ".expanded" class (bound to the nearest
+						Expander.IsExpanded via "Classes.expanded" in the HeaderTemplate). A descendant
+						pseudo-class selector ("Expander:expanded ... .HeaderChevron") would also match
+						chevrons of nested groups whenever any ancestor Expander is expanded — making
+						nested chevrons always point down.
+					-->
+					<Style Selector="materialIcons|MaterialIcon.HeaderChevron">
+						<Setter Property="RenderTransform" Value="rotate(0deg)" />
+						<Setter Property="Transitions">
+							<Transitions>
+								<TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" />
+							</Transitions>
+						</Setter>
+					</Style>
+
+					<Style Selector="materialIcons|MaterialIcon.HeaderChevron.expanded">
+						<Setter Property="RenderTransform" Value="rotate(90deg)" />
+					</Style>
+
 					<!-- Nuget: Avalonia.Themes.Simple -->
 					<!--<SimpleTheme />-->
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
 					<DataTemplate x:DataType="localModels:RecordsGroup">
-						<Grid Classes="PointerOverBackgroundStyle">
+						<Grid
+							ColumnDefinitions="Auto,*"
+							Classes="PointerOverBackgroundStyle">
+							<materialIcons:MaterialIcon
+								Grid.Column="0"
+								Width="16.0"
+								Height="16.0"
+								Margin="0.0,0.0,4.0,0.0"
+								VerticalAlignment="Center"
+								Classes="HeaderChevron"
+								Classes.expanded="{Binding $parent[Expander].IsExpanded, Mode=OneWay}"
+								Kind="ChevronRight" />
+
 							<views:ClipboardTextBlock
+								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
 								Note="{Binding Note, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}">
