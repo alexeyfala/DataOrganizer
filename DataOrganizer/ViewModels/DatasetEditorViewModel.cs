@@ -909,7 +909,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation($"{(expand ? "Expand" : "Collapse")} all groups");
 
 		await groups
-			.ForEachAsync(x => x.IsExpanded = expand, Environment.ProcessorCount, token)
+			.ForEachAsync(x => _dispatcher.PostAsync(() => x.IsExpanded = expand, DispatcherPriority.Background))
 			.ConfigureAwait(false);
 
 		if (IsReadOnly || IsContentCorrupted)

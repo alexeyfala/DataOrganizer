@@ -8,9 +8,13 @@ internal static class DspatcherExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Posts an action that will be invoked on the dispatcher thread asynchronously.
+	/// Posts an action that will be invoked on the dispatcher thread asynchronously
+	/// at the specified <paramref name="priority"/>.
 	/// </summary>
-	public static Task PostAsync(this IDispatcher target, Action action)
+	public static Task PostAsync(
+		this IDispatcher target,
+		Action action,
+		DispatcherPriority priority = default)
 	{
 		TaskCompletionSource source = new();
 
@@ -19,7 +23,7 @@ internal static class DspatcherExtensions
 			action();
 
 			source.SetResult();
-		});
+		}, priority);
 
 		return source.Task;
 	}
