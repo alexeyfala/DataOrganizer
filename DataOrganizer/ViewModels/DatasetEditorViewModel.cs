@@ -494,13 +494,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation("Scroll records to the end");
 
 		//scrollViewer.Offset = new Vector(scrollViewer.Offset.X, scrollViewer.Extent.Height);
-		//
-		//if (Records.Count == 0)
-		//{
-		//	return;
-		//}
-		//
-		//container.GetOrCreateElement(Records.Count - 1);
 
 		await SmoothScrollAsync(scrollViewer, toEnd: true).ConfigureAwait(true);
 	}
@@ -519,13 +512,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		_logger.LogInformation("Scroll records to the top");
 
 		//scrollViewer.Offset = default;
-		//
-		//if (Records.Count == 0)
-		//{
-		//	return;
-		//}
-		//
-		//container.GetOrCreateElement(0);
 
 		await SmoothScrollAsync(scrollViewer, toEnd: false).ConfigureAwait(true);
 	}
@@ -1130,10 +1116,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private static async Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
 	{
+		// Pixels moved per step. Smaller = more reliable realization, slower travel.
 		const double StepPx = 100;
 
+		// Pause between steps. Larger = more time for the layout pass to materialize items.
 		const int DelayMs = 16;
 
+		// Safety cap against runaway loops if the offset never converges (e.g. extent keeps growing).
 		const int MaxIterations = 1000;
 
 		for (int i = 0; i < MaxIterations; i++)
