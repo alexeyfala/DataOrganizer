@@ -143,14 +143,13 @@
 					Grid.Row="1"
 					MaxWidth="500.0"
 					MaxHeight="500.0"
+					IsLightDismissEnabled="True"
 					IsOpen="{Binding ShowNote, Mode=TwoWay}"
 					Placement="Bottom"
 					PlacementTarget="{Binding #Icon}"
 					VerticalOffset="8.0">
 
 					<Interaction.Behaviors>
-						<behaviors:PopupOutsideClickDismissBehavior />
-
 						<EventTriggerBehavior EventName="Opened">
 							<InvokeCommandAction
 								Command="{Binding PopupOpenedCommand}"
