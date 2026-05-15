@@ -587,41 +587,38 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// </summary>
 	private void ScrollViewer_ScrollChanged(EventPattern<ScrollChangedEventArgs> e)
 	{
-		lock (_mutex)
+		if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer || _container is null)
 		{
-			if (IsContentCorrupted || e.Sender is not ScrollViewer scrollViewer || _container is null)
-			{
-				return;
-			}
-
-			// Skip layout-driven events (Extent/Viewport changed but not Offset).
-			if (e.EventArgs.OffsetDelta == default)
-			{
-				return;
-			}
-
-			if (TryGetTopVisibleRecord(_container, scrollViewer) is not { } anchor)
-			{
-				return;
-			}
-
-			DatasetProperties properties = new()
-			{
-				TopRecordIndex = anchor.Index,
-				WithinRecordOffset = anchor.WithinRecordOffset
-			};
-
-			string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
-
-			SetPropertiesCallback?.Invoke(json);
-
-			if (IsReadOnly)
-			{
-				return;
-			}
-
-			_handler.Watch(SavePropertiesAsync(json));
+			return;
 		}
+
+		// Skip layout-driven events (Extent/Viewport changed but not Offset).
+		if (e.EventArgs.OffsetDelta == default)
+		{
+			return;
+		}
+
+		if (TryGetTopVisibleRecord(_container, scrollViewer) is not { } anchor)
+		{
+			return;
+		}
+
+		DatasetProperties properties = new()
+		{
+			TopRecordIndex = anchor.Index,
+			WithinRecordOffset = anchor.WithinRecordOffset
+		};
+
+		string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
+
+		SetPropertiesCallback?.Invoke(json);
+
+		if (IsReadOnly)
+		{
+			return;
+		}
+
+		_handler.Watch(SavePropertiesAsync(json));
 	}
 	#endregion
 
