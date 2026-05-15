@@ -143,7 +143,6 @@
 					Grid.Row="1"
 					MaxWidth="500.0"
 					MaxHeight="500.0"
-					IsLightDismissEnabled="True"
 					IsOpen="{Binding ShowNote, Mode=TwoWay}"
 					Placement="Bottom"
 					PlacementTarget="{Binding #Icon}"
@@ -219,5 +218,3 @@
 			ToolTip.Tip="{x:Static prop:Strings.Hide}" />
 	</Grid>
 </UserControl>
-
-
