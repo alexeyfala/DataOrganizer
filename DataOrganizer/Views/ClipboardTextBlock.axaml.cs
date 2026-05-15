@@ -252,6 +252,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
 	#endregion
 
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
