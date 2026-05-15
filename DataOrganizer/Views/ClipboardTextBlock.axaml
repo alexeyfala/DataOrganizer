@@ -219,5 +219,3 @@
 			ToolTip.Tip="{x:Static prop:Strings.Hide}" />
 	</Grid>
 </UserControl>
-
-

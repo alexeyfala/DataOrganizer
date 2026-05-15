@@ -299,6 +299,7 @@
 			CornerRadius="4.0">
 			<Expander
 				HorizontalAlignment="Stretch"
+				Classes="RecordsGroupExpanderStyle"
 				Content="{Binding Children, Mode=OneTime}"
 				Header="{Binding Mode=OneTime}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
@@ -312,22 +313,38 @@
 					<Style Selector="ToolTip">
 						<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 					</Style>
-
-					<!-- Nuget: Avalonia.Themes.Simple -->
-					<SimpleTheme />
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
 					<DataTemplate x:DataType="localModels:RecordsGroup">
-						<Grid Classes="PointerOverBackgroundStyle">
+						<Grid
+							Classes="PointerOverBackgroundStyle"
+							ColumnDefinitions="Auto,*">
+
+							<Interaction.Behaviors>
+								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+							</Interaction.Behaviors>
+
+							<ToggleButton
+								Grid.Column="0"
+								Padding="4.0"
+								Margin="0.0,0.0,4.0,0.0"
+								VerticalAlignment="Center"
+								IsChecked="{Binding $parent[Expander].IsExpanded, Mode=TwoWay}"
+								Theme="{StaticResource MaterialFlatButton}">
+								<materialIcons:MaterialIcon
+									Width="16.0"
+									Height="16.0"
+									Classes="HeaderChevron"
+									Classes.expanded="{Binding $parent[Expander].IsExpanded, Mode=OneWay}"
+									Kind="ChevronRight" />
+							</ToggleButton>
+
 							<views:ClipboardTextBlock
+								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
 								Note="{Binding Note, Mode=OneWay}"
-								Text="{Binding Name, Mode=OneWay}">
-								<Interaction.Behaviors>
-									<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
-								</Interaction.Behaviors>
-							</views:ClipboardTextBlock>
+								Text="{Binding Name, Mode=OneWay}" />
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>
@@ -356,6 +373,8 @@
 
 				<Interaction.Behaviors>
 					<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource RecordsGroupContextMenuTemplate}" />
+
+					<behaviors:OverrideExpanderToggleCursorBehavior />
 
 					<EventTriggerBehavior EventName="Expanded">
 						<InvokeCommandAction

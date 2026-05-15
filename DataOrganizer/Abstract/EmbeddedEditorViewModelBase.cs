@@ -93,9 +93,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="Lock" />
-	protected readonly Lock _mutex = new();
-
 	/// <inheritdoc cref="IViewModelExecutionService" />
 	protected readonly IViewModelExecutionService _viewModel;
 

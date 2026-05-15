@@ -4,12 +4,47 @@
 <Styles
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:assists="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared">
 
 	<Style Selector="Grid.PointerOverBackgroundStyle:pointerover">
 		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 		<!--<Setter Property="Background" Value="{StaticResource MaterialSelectionBrush}" />-->
+	</Style>
+
+	<!-- Compact header, chevron on the left (custom MaterialIcon.HeaderChevron in HeaderTemplate). -->
+	<Style Selector="Expander.RecordsGroupExpanderStyle">
+		<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
+
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton">
+			<Setter Property="MinHeight" Value="0.0" />
+			<Setter Property="assists:ShadowAssist.ShadowDepth" Value="Depth0" />
+		</Style>
+
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder">
+			<Setter Property="Padding" Value="0.0" />
+		</Style>
+
+		<!-- Hide Material's built-in chevron (the unnamed Border wrapping the chevron Path inside PART_RootBorder). -->
+		<Style Selector="^ /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder Border">
+			<Setter Property="IsVisible" Value="False" />
+		</Style>
+
+		<Style Selector="^ materialIcons|MaterialIcon.HeaderChevron">
+			<Setter Property="RenderTransform" Value="rotate(0deg)" />
+			<Setter Property="Transitions">
+				<Transitions>
+					<TransformOperationsTransition
+						Property="RenderTransform"
+						Duration="0:0:0.2" />
+				</Transitions>
+			</Setter>
+		</Style>
+
+		<Style Selector="^ materialIcons|MaterialIcon.HeaderChevron.expanded">
+			<Setter Property="RenderTransform" Value="rotate(90deg)" />
+		</Style>
 	</Style>
 
 	<Style Selector="Panel.VerticalSeparatorPanelStyle">

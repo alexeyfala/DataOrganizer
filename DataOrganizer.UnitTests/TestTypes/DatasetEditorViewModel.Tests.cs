@@ -1,8 +1,10 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Abstract;
+using DataOrganizer.Extensions;
 using DataOrganizer.Models;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -223,7 +225,7 @@ internal class DatasetEditorViewModelTests
 	public async Task ContainerLoaded_Adds_Records()
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords()];
+		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -315,7 +317,7 @@ internal class DatasetEditorViewModelTests
 	public async Task DeleteRecordAsync_Deletes_Record()
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords()];
+		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords()];
 
 		DatasetRecordBase toBeDeleted = records[0];
 
@@ -504,7 +506,7 @@ internal class DatasetEditorViewModelTests
 		[Values] bool inGroup)
 	{
 		// Arrange
-		RecordsGroup[] groups = [.. DatasetEditorViewModel
+		RecordsGroup[] groups = [.. DbAccessExtensions
 			.CreateGroups(50)
 			.ToArray()
 			.ForEach(x => x.IsExpanded = !expand)];
@@ -519,9 +521,17 @@ internal class DatasetEditorViewModelTests
 				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
 				.Returns(AppUtils.CreateRandomString(10));
 
+			IDispatcher dispatcher = Substitute.For<IDispatcher>();
+
+			dispatcher
+				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>()))
+				.Do(call => call.Arg<Action>().Invoke());
+
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(dispatcher);
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
@@ -664,9 +674,9 @@ internal class DatasetEditorViewModelTests
 		// Arrange
 		const int count = 50;
 
-		ValueRecord[] records = [.. DatasetEditorViewModel
+		ValueRecord[] records = [.. DbAccessExtensions
 			.CreateValueRecords(count)
-			.Concat(DatasetEditorViewModel.CreateKeyValueRecords(count))
+			.Concat(DbAccessExtensions.CreateKeyValueRecords(count))
 			.ToArray()
 			.ForEach(x => x.IsHidden = !hide)];
 
@@ -742,7 +752,7 @@ internal class DatasetEditorViewModelTests
 		[Values] bool inGroup)
 	{
 		// Arrange
-		DatasetRecordBase[] records = [.. DatasetEditorViewModel.CreateRandomRecords(eachTypes: 5)];
+		DatasetRecordBase[] records = [.. DbAccessExtensions.CreateRandomRecords(eachTypes: 5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 

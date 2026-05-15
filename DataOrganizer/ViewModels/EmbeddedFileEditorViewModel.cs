@@ -182,6 +182,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="Lock" />
+	private readonly Lock _mutex = new();
+
 	/// <summary>
 	/// Channel for save operations.
 	/// </summary>
