@@ -106,6 +106,7 @@
 			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 				</Style>
 
 				<Style Selector="Separator">
