@@ -149,6 +149,8 @@
 					VerticalOffset="8.0">
 
 					<Interaction.Behaviors>
+						<behaviors:PopupOutsideClickDismissBehavior />
+
 						<EventTriggerBehavior EventName="Opened">
 							<InvokeCommandAction
 								Command="{Binding PopupOpenedCommand}"
