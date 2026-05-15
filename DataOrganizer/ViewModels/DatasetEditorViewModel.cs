@@ -110,54 +110,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
 
-				SerialDisposable scrollSubscription = new();
-
-				scrollSubscription.DisposeWith(_disposables);
-
-				bool isAttached = true;
-
-				scrollViewer.DetachedFromVisualTree += ScrollViewer_DetachedFromVisualTree;
-
-				scrollViewer.AttachedToVisualTree += ScrollViewer_AttachedToVisualTree;
-
-				Disposable.Create(() =>
-				{
-					scrollViewer.DetachedFromVisualTree -= ScrollViewer_DetachedFromVisualTree;
-					scrollViewer.AttachedToVisualTree -= ScrollViewer_AttachedToVisualTree;
-				}).DisposeWith(_disposables);
-
-				SubscribeToScrollChanged();
-
-				void ScrollViewer_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-				{
-					isAttached = false;
-
-					scrollSubscription.Disposable = null;
-				}
-
-				void ScrollViewer_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
-				{
-					isAttached = true;
-
-					SubscribeToScrollChanged();
-				}
-
-				void SubscribeToScrollChanged()
-				{
-					if (!isAttached)
-					{
-						return;
-					}
-
-					_dispatcher.Post(() =>
-					{
-						scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
-							x => scrollViewer.ScrollChanged += x,
-							x => scrollViewer.ScrollChanged -= x)
-							.SetDelay(TimeSpan.FromSeconds(0.3), false)
-							.Subscribe(ScrollViewer_ScrollChanged);
-					}, DispatcherPriority.Loaded);
-				}
+				SetupScrollSubscription(scrollViewer);
 			}
 			finally
 			{
@@ -1375,6 +1328,64 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			contents.ZeroMemory();
 
 			output.ZeroMemory();
+		}
+	}
+
+	/// <summary>
+	/// Wires up the debounced subscription to <see cref="ScrollViewer.ScrollChanged" />
+	/// on <paramref name="scrollViewer" />, re-attaching the handler whenever the
+	/// scroll viewer is detached / re-attached to the visual tree, and disposing
+	/// everything with the view-model's lifetime.
+	/// </summary>
+	private void SetupScrollSubscription(ScrollViewer scrollViewer)
+	{
+		SerialDisposable scrollSubscription = new();
+
+		scrollSubscription.DisposeWith(_disposables);
+
+		bool isAttached = true;
+
+		scrollViewer.DetachedFromVisualTree += ScrollViewer_DetachedFromVisualTree;
+
+		scrollViewer.AttachedToVisualTree += ScrollViewer_AttachedToVisualTree;
+
+		Disposable.Create(() =>
+		{
+			scrollViewer.DetachedFromVisualTree -= ScrollViewer_DetachedFromVisualTree;
+			scrollViewer.AttachedToVisualTree -= ScrollViewer_AttachedToVisualTree;
+		}).DisposeWith(_disposables);
+
+		SubscribeToScrollChanged();
+
+		void ScrollViewer_DetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+		{
+			isAttached = false;
+
+			scrollSubscription.Disposable = null;
+		}
+
+		void ScrollViewer_AttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+		{
+			isAttached = true;
+
+			SubscribeToScrollChanged();
+		}
+
+		void SubscribeToScrollChanged()
+		{
+			if (!isAttached)
+			{
+				return;
+			}
+
+			_dispatcher.Post(() =>
+			{
+				scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
+					x => scrollViewer.ScrollChanged += x,
+					x => scrollViewer.ScrollChanged -= x)
+					.SetDelay(TimeSpan.FromSeconds(0.3), false)
+					.Subscribe(ScrollViewer_ScrollChanged);
+			}, DispatcherPriority.Loaded);
 		}
 	}
 	#endregion
