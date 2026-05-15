@@ -328,15 +328,20 @@
 								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
 							</Interaction.Behaviors>
 
-							<materialIcons:MaterialIcon
+							<ToggleButton
 								Grid.Column="0"
-								Width="16.0"
-								Height="16.0"
+								Padding="4.0"
 								Margin="0.0,0.0,4.0,0.0"
 								VerticalAlignment="Center"
-								Classes="HeaderChevron"
-								Classes.expanded="{Binding $parent[Expander].IsExpanded, Mode=OneWay}"
-								Kind="ChevronRight" />
+								IsChecked="{Binding $parent[Expander].IsExpanded, Mode=TwoWay}"
+								Theme="{StaticResource MaterialFlatButton}">
+								<materialIcons:MaterialIcon
+									Width="16.0"
+									Height="16.0"
+									Classes="HeaderChevron"
+									Classes.expanded="{Binding $parent[Expander].IsExpanded, Mode=OneWay}"
+									Kind="ChevronRight" />
+							</ToggleButton>
 
 							<views:ClipboardTextBlock
 								Grid.Column="1"
