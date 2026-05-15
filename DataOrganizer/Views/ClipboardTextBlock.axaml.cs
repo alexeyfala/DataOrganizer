@@ -294,7 +294,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		ShowNote = true;
 	}
 
-
 	/// <summary>
 	/// <see cref="Popup.Opened" /> event handler of control for "Note".
 	/// </summary>
