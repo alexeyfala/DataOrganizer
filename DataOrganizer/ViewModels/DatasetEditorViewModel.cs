@@ -101,7 +101,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					.Deserialize<DatasetRecordBase[]>(json)
 					.AsNotNull());
 
-				if (container is null || container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
+				if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
 				{
 					return;
 				}
