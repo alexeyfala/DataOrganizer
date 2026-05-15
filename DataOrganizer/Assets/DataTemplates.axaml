@@ -313,9 +313,6 @@
 					<Style Selector="ToolTip">
 						<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 					</Style>
-
-					<!-- Nuget: Avalonia.Themes.Simple -->
-					<!--<SimpleTheme />-->
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
