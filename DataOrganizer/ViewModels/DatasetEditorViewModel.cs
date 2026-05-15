@@ -271,7 +271,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Collapses all <see cref="RecordsGroup" /> in <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasGroups))]
-	private Task Collapse(RecordsGroup? group) => ExpandCollapseAsync(group, true);
+	private Task Collapse(RecordsGroup? group) => ExpandCollapseAsync(group, false);
 
 	/// <summary>
 	/// Copies <see cref="KeyValueRecord" /> key and value to system clipboard.
@@ -421,7 +421,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Expands all <see cref="RecordsGroup" /> in <see cref="RecordsGroup" />.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(HasGroups))]
-	private Task Expand(RecordsGroup? group) => ExpandCollapseAsync(group, false);
+	private Task Expand(RecordsGroup? group) => ExpandCollapseAsync(group, true);
 
 	/// <summary>
 	/// Expands or collapses all <see cref="RecordsGroup" /> in <see cref="Records" /> depending on <paramref name="expand"/> value.

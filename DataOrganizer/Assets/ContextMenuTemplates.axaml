@@ -180,13 +180,13 @@
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
 							<wrappers:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
+								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.CollapseAll}"
 								Icon="ChevronDoubleUp" />
 
 							<wrappers:FlyoutButton
-								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).CollapseCommand}"
+								Command="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).ExpandCommand}"
 								CommandParameter="{Binding}"
 								Header="{x:Static prop:Strings.ExpandAll}"
 								Icon="ChevronDoubleDown" />
