@@ -299,6 +299,7 @@
 			CornerRadius="4.0">
 			<Expander
 				HorizontalAlignment="Stretch"
+				Classes="RecordsGroupExpanderStyle"
 				Content="{Binding Children, Mode=OneTime}"
 				Header="{Binding Mode=OneTime}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
@@ -313,57 +314,12 @@
 						<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 					</Style>
 
-					<!--
-						Compact header (Material default: ToggleButton MinHeight=48, inner Border Padding=12,8).
-						The inner Border#PART_RootBorder is INSIDE the ToggleButton template — need to drill
-						via nested /template/.
-					-->
-					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton">
-						<Setter Property="MinHeight" Value="0.0" />
-					</Style>
-
-					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder">
-						<Setter Property="Padding" Value="0.0" />
-					</Style>
-
-					<!--
-						Chevron on the left: Material's "Grid.ColumnDefinitions" is not an "AvaloniaProperty"
-						so we cannot flip columns via Setter. Instead — hide Material's built-in chevron
-						and render our own at the start of the "HeaderTemplate" below. The custom chevron
-						rotates via the "Expander :expanded" pseudo-class.
-					-->
-					<Style Selector="Expander /template/ ToggleButton#PART_ToggleButton /template/ Border#PART_RootBorder Border">
-						<Setter Property="IsVisible" Value="False" />
-					</Style>
-
-					<!--
-						Rotation is keyed off the chevron's OWN ".expanded" class (bound to the nearest
-						Expander.IsExpanded via "Classes.expanded" in the HeaderTemplate). A descendant
-						pseudo-class selector ("Expander:expanded ... .HeaderChevron") would also match
-						chevrons of nested groups whenever any ancestor Expander is expanded — making
-						nested chevrons always point down.
-					-->
-					<Style Selector="materialIcons|MaterialIcon.HeaderChevron">
-						<Setter Property="RenderTransform" Value="rotate(0deg)" />
-						<Setter Property="Transitions">
-							<Transitions>
-								<TransformOperationsTransition
-									Property="RenderTransform"
-									Duration="0:0:0.2" />
-							</Transitions>
-						</Setter>
-					</Style>
-
-					<Style Selector="materialIcons|MaterialIcon.HeaderChevron.expanded">
-						<Setter Property="RenderTransform" Value="rotate(90deg)" />
-					</Style>
-
 					<!-- Nuget: Avalonia.Themes.Simple -->
 					<!--<SimpleTheme />-->
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
-					<DataTemplate x:DataType="localModels:RecordsGroup">						
+					<DataTemplate x:DataType="localModels:RecordsGroup">
 						<Grid
 							Classes="PointerOverBackgroundStyle"
 							ColumnDefinitions="Auto,*">
