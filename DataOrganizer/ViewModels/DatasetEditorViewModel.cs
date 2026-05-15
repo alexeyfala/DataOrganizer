@@ -896,7 +896,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		bool expand,
 		CancellationToken token = default)
 	{
-		RecordsGroup[] groups = [.. (group is not null ? group.Children : Records)
+		IEnumerable<DatasetRecordBase> source = group is not null ? [group] : Records;
+
+		RecordsGroup[] groups = [.. source
 			.Flatten()
 			.OfType<RecordsGroup>()
 			.Where(x => x.IsExpanded != expand)];
