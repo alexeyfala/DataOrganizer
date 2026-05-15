@@ -37,14 +37,9 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 	{
 		base.OnAttached();
 
-		if (AssociatedObject is null)
-		{
-			return;
-		}
+		AssociatedObject?.Opened += AssociatedObject_Opened;
 
-		AssociatedObject.Opened += AssociatedObject_Opened;
-
-		AssociatedObject.Closed += AssociatedObject_Closed;
+		AssociatedObject?.Closed += AssociatedObject_Closed;
 	}
 
 	/// <inheritdoc />
@@ -52,12 +47,9 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 	{
 		base.OnDetaching();
 
-		if (AssociatedObject is not null)
-		{
-			AssociatedObject.Opened -= AssociatedObject_Opened;
+		AssociatedObject?.Opened -= AssociatedObject_Opened;
 
-			AssociatedObject.Closed -= AssociatedObject_Closed;
-		}
+		AssociatedObject?.Closed -= AssociatedObject_Closed;
 
 		DetachPointerHandler();
 	}
@@ -74,7 +66,7 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 	/// </summary>
 	private void AssociatedObject_Opened(object? sender, EventArgs e)
 	{
-		if (AssociatedObject is null || TopLevel.GetTopLevel(AssociatedObject) is not { } topLevel)
+		if (TopLevel.GetTopLevel(AssociatedObject) is not { } topLevel)
 		{
 			return;
 		}
@@ -93,6 +85,15 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 			_pressedHandler,
 			RoutingStrategies.Tunnel,
 			handledEventsToo: true);
+
+		// PointerPressedEvent only fires while the window is active. Subscribe to Deactivated as well
+		// so the popup also closes on clicks outside the application (e.g. on the desktop).
+		if (_topLevel is not Window window)
+		{
+			return;
+		}
+
+		window.Deactivated += OnWindowDeactivated;
 	}
 
 	/// <summary>
@@ -108,11 +109,26 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 
 		AssociatedObject.IsOpen = false;
 	}
+
+	/// <summary>
+	/// <see cref="Window.Deactivated" /> handler. Closes <see cref="AssociatedObject" /> when the
+	/// host window loses activation, covering clicks outside the application window.
+	/// </summary>
+	private void OnWindowDeactivated(object? sender, EventArgs e)
+	{
+		if (AssociatedObject is null)
+		{
+			return;
+		}
+
+		AssociatedObject.IsOpen = false;
+	}
 	#endregion
 
 	#region Service
 	/// <summary>
-	/// Removes the <see cref="TopLevel" /> pointer handler if currently attached.
+	/// Removes the <see cref="TopLevel" /> pointer handler and the <see cref="Window.Deactivated" />
+	/// subscription if currently attached.
 	/// </summary>
 	private void DetachPointerHandler()
 	{
@@ -122,6 +138,11 @@ internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 		}
 
 		_topLevel.RemoveHandler(InputElement.PointerPressedEvent, _pressedHandler);
+
+		if (_topLevel is Window window)
+		{
+			window.Deactivated -= OnWindowDeactivated;
+		}
 
 		_topLevel = null;
 
