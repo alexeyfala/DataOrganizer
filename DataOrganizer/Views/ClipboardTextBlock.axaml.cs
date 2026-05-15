@@ -7,7 +7,9 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using AvaloniaEdit;
+using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Helpers;
 using Material.Icons.Avalonia;
 using Shared.Common;
 using Shared.Extensions;
@@ -243,6 +245,11 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<string?> TextProperty = AvaloniaProperty
 		.Register<ClipboardTextBlock, string?>(name: nameof(Text));
+	#endregion
+
+	#region Commands
+	/// <inheritdoc cref="TextEditorHelper.Copy" />
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
 	#endregion
 
 	#region Auto-Generated Commands
