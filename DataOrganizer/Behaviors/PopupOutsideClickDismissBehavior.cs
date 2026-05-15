@@ -12,7 +12,7 @@ namespace DataOrganizer.Behaviors;
 /// <summary>
 /// Closes the attached <see cref="Popup" /> when the user presses the pointer outside of it.
 /// Drop-in replacement for <see cref="Popup.IsLightDismissEnabled" />, which interferes with
-/// pointer capture in hosted controls such as <c>AvaloniaEdit.TextEditor</c>.
+/// pointer capture in hosted controls.
 /// </summary>
 internal sealed class PopupOutsideClickDismissBehavior : Behavior<Popup>
 {
