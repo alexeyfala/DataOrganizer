@@ -247,6 +247,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to clipboard.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
+	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();
+
+	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
@@ -383,6 +389,14 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Validates <see cref="CopySelectedNoteCommand" />.
+	/// </summary>
+	private static bool CanCopySelectedNote(SelectableTextBlock? noteView)
+	{
+		return noteView is not null && noteView.SelectionStart != noteView.SelectionEnd;
+	}
+
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Text" /> is not null.
 	/// </summary>

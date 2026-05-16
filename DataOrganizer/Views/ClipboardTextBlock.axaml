@@ -170,6 +170,7 @@
 								HorizontalScrollBarVisibility="Disabled"
 								VerticalScrollBarVisibility="Auto">
 								<SelectableTextBlock
+									x:Name="NoteView"
 									FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 									FontSize="14.0"
 									Foreground="{StaticResource MaterialPaperBrush}"
@@ -180,6 +181,17 @@
 											<Setter Property="MaxHeight" Value="24.0" />
 										</Style>
 									</SelectableTextBlock.Styles>
+
+									<SelectableTextBlock.ContextFlyout>
+										<MenuFlyout>
+											<MenuItem
+												Command="{Binding CopySelectedNoteCommand}"
+												CommandParameter="{Binding #NoteView}"
+												Header="{x:Static prop:Strings.Copy}"
+												InputGesture="{OnPlatform Default='Ctrl+C',
+												                          macOS='⌘+C'}" />
+										</MenuFlyout>
+									</SelectableTextBlock.ContextFlyout>
 
 									<Interaction.Behaviors>
 										<behaviors:HyperlinkInlinesBehavior Text="{Binding Note}" />
