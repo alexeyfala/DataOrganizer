@@ -348,8 +348,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	{
 		base.AfterDispose();
 
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
 		_categoriesFilter.Dispose();
 
 		_favoritesFilter.Dispose();

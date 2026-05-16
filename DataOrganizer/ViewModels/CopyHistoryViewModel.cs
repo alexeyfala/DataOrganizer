@@ -191,8 +191,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	{
 		base.AfterDispose();
 
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
 		_filter.Dispose();
 
 		SelectedItem = null;

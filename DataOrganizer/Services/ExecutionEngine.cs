@@ -146,8 +146,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return;
 		}
 
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
 		_isDisposed = true;
 
 		_executingFiles.ForEach(pair =>

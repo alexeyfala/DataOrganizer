@@ -7,6 +7,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -49,6 +50,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ServiceProvider" />
+	private readonly IServiceProvider _serviceProvider;
+
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
 	#endregion
@@ -62,6 +66,7 @@ public class ViewLauncher : IViewLauncher
 		IJsonSerializerWrapper jsonSerializer,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		IServiceProvider serviceProvider,
 		ITaskExceptionHandler handler,
 		IViewFactory viewFactory)
 	{
@@ -80,6 +85,8 @@ public class ViewLauncher : IViewLauncher
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
+
+		_serviceProvider = serviceProvider;
 
 		_viewFactory = viewFactory;
 	}
@@ -522,6 +529,23 @@ public class ViewLauncher : IViewLauncher
 			directoryPath: _appEnvironment.SandboxDirectoryPath,
 			maxAttepmts: 10,
 			token: token).ConfigureAwait(false);
+
+		if (_app is App app)
+		{
+			app
+				.AppLifetimeTimer
+				.Stop();
+
+			_logger.LogInformationWithTemplate(
+				$"App life time is: {app.AppLifetimeTimer.GetElapsedTime()}{Environment.NewLine}{Environment.NewLine}");
+		}
+
+		if (_serviceProvider is IAsyncDisposable asyncDisposable)
+		{
+			await asyncDisposable
+				.DisposeAsync()
+				.ConfigureAwait(false);
+		}
 
 		desktop.TryShutdown();
 	}

@@ -40,33 +40,18 @@ namespace DataOrganizer;
 /// <inheritdoc />
 public sealed class App : Application
 {
-	#region Data
-	/// <inheritdoc cref="Stopwatch" />
-	private readonly Stopwatch _timer = new();
+	#region Properties
+	/// <summary>
+	/// The application lifetime timer.
+	/// </summary>
+	public Stopwatch AppLifetimeTimer { get; } = new();
+	#endregion
 
+	#region Data
 	/// <summary>
 	/// A window designed for displaying logs.
 	/// </summary>
 	private ConsoleWindow? _console;
-
-	/// <inheritdoc cref="ServiceProvider" />
-	private ServiceProvider? _serviceProvider;
-	#endregion
-
-	#region Event Handlers
-	/// <inheritdoc cref="IControlledApplicationLifetime.Exit" />
-	private void Desktop_Exit(
-		object? sender,
-		ControlledApplicationLifetimeExitEventArgs e)
-	{
-		_timer.Stop();
-
-		_serviceProvider?
-			.GetRequiredService<ILogger>()
-			.LogInformationWithTemplate($"App life time: {_timer.GetElapsedTime()}, exit with code: {e.ApplicationExitCode}{Environment.NewLine}{Environment.NewLine}");
-
-		_serviceProvider?.Dispose();
-	}
 	#endregion
 
 	#region Methods
@@ -84,13 +69,13 @@ public sealed class App : Application
 
 		desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-		desktop.Exit += Desktop_Exit;
+		AppLifetimeTimer.Start();
 
-		_timer.Start();
+		ServiceProvider? serviceProvider = null;
 
 		try
 		{
-			_serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
+			serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
 				.Args
 				.AsNotNull()));
 		}
@@ -113,12 +98,12 @@ public sealed class App : Application
 			});
 		}
 
-		if (_serviceProvider is null)
+		if (serviceProvider is null)
 		{
 			return;
 		}
 
-		_ = _serviceProvider
+		_ = serviceProvider
 			.GetRequiredService<IAppController>()
 			.LaunchAppAsync(_console);
 	}
