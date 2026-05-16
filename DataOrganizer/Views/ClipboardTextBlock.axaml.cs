@@ -252,7 +252,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
 	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();
 
-
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
