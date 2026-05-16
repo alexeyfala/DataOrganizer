@@ -1,22 +1,20 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using AvaloniaEdit;
-using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers;
 using Material.Icons.Avalonia;
 using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -57,6 +55,15 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
+	/// Signal source that fires a one-shot highlight animation of <see cref="AreaBrush" />.
+	/// </summary>
+	public IObservable<Unit>? HighlightSignal
+	{
+		get => GetValue(HighlightSignalProperty);
+		set => SetValue(HighlightSignalProperty, value);
+	}
+
+	/// <summary>
 	/// Returns <c>True</c> if value in <see cref="Text" /> is color.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
@@ -92,15 +99,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		get => GetValue(IsHideEnabledProperty);
 		set => SetValue(IsHideEnabledProperty, value);
-	}
-
-	/// <summary>
-	/// Used to enable color animation of <see cref="AreaBrush" />.
-	/// </summary>
-	public bool IsHighlight
-	{
-		get => GetValue(IsHighlightProperty);
-		set => SetValue(IsHighlightProperty, value);
 	}
 
 	/// <summary>
@@ -181,6 +179,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, Brush?>(name: nameof(ColorSampleBrush));
 
 	/// <summary>
+	/// Identifies the <see cref="HighlightSignal" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IObservable<Unit>?> HighlightSignalProperty = AvaloniaProperty
+		.Register<ClipboardTextBlock, IObservable<Unit>?>(name: nameof(HighlightSignal));
+
+	/// <summary>
 	/// Identifies the <see cref="IsColor" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsColorProperty = AvaloniaProperty
@@ -203,12 +207,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHideEnabledProperty = AvaloniaProperty
 		.Register<ClipboardTextBlock, bool>(name: nameof(IsHideEnabled));
-
-	/// <summary>
-	/// Identifies the <see cref="IsHighlight" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsHighlightProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsHighlight));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHyperlink" /> avalonia property.
@@ -247,19 +245,22 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, string?>(name: nameof(Text));
 	#endregion
 
-	#region Commands
-	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
-	#endregion
-
 	#region Auto-Generated Commands
+	/// <summary>
+	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to clipboard.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
+	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();
+
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
 	private async Task CopyToClipboard()
 	{
-		if (string.IsNullOrWhiteSpace(Text) || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+		if (string.IsNullOrWhiteSpace(Text) || TopLevel
+			.GetTopLevel(this)?
+			.Clipboard is not { } clipboard)
 		{
 			return;
 		}
@@ -268,13 +269,11 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		{
 			await clipboard
 				.SetTextAsync(Text)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 		}
 		finally
 		{
-			IsHighlight = true;
-
-			IsHighlight = false;
+			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
 		}
 	}
 
@@ -300,20 +299,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 
 		ShowNote = true;
 	}
-
-	/// <summary>
-	/// <see cref="Popup.Opened" /> event handler of control for "Note".
-	/// </summary>
-	[RelayCommand]
-	private void PopupOpened(TextEditor? editor)
-	{
-		if (editor is null || Note is null)
-		{
-			return;
-		}
-
-		editor.Text = Note.Trim();
-	}
 	#endregion
 
 	#region Data
@@ -322,54 +307,23 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	#endregion
 
 	#region Constructors
-	public ClipboardTextBlock()
-	{
-		InitializeComponent();
-
-		this
-			.GetObservable(IsHiddenProperty)
-			.Subscribe(IsHiddenProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(IsHighlightProperty)
-			.Subscribe(IsHighlightProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(NoteProperty)
-			.Subscribe(NoteProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(TextProperty)
-			.Subscribe(TextProperty_Changed)
-			.DisposeWith(_disposables);
-	}
+	public ClipboardTextBlock() => InitializeComponent();
 	#endregion
 
 	#region Event Handlers
+	/// <summary>
+	/// <see cref="HighlightSignal" /> <see cref="IObserver{T}.OnNext" /> handler.
+	/// </summary>
+	private void HighlightSignal_OnNext(Unit signal) => _ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+
 	/// <summary>
 	/// <see cref="IsHiddenProperty" /> changed handler.
 	/// </summary>
 	private void IsHiddenProperty_Changed(bool value)
 	{
-		BlurRadius = value ? 20.0 : default;
+		BlurRadius = value ? 20.0 : 0.0;
 
 		SetColorSampleBrush(Text);
-	}
-
-	/// <summary>
-	/// <see cref="IsHighlightProperty" /> changed handler.
-	/// </summary>
-	private void IsHighlightProperty_Changed(bool value)
-	{
-		if (!value)
-		{
-			return;
-		}
-
-		_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
 	}
 
 	/// <summary>
@@ -399,6 +353,28 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		base.OnLoaded(e);
 
 		IsHideEnabled = BindingOperations.GetBindingExpressionBase(this, IsHiddenProperty) is not null;
+
+		this
+			.GetObservable(IsHiddenProperty)
+			.Subscribe(IsHiddenProperty_Changed)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(HighlightSignalProperty)
+			.Select(static x => x ?? Observable.Never<Unit>())
+			.Switch()
+			.Subscribe(HighlightSignal_OnNext)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(NoteProperty)
+			.Subscribe(NoteProperty_Changed)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(TextProperty)
+			.Subscribe(TextProperty_Changed)
+			.DisposeWith(_disposables);
 	}
 
 	/// <inheritdoc />
@@ -406,11 +382,21 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		base.OnUnloaded(e);
 
-		_disposables.Dispose();
+		// Disposes current subscriptions but keeps the container alive so
+		// the next OnLoaded can re-subscribe into the same _disposables.
+		_disposables.Clear();
 	}
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Validates <see cref="CopySelectedNoteCommand" />.
+	/// </summary>
+	private static bool CanCopySelectedNote(SelectableTextBlock? noteView)
+	{
+		return noteView is not null && noteView.SelectionStart != noteView.SelectionEnd;
+	}
+
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Text" /> is not null.
 	/// </summary>

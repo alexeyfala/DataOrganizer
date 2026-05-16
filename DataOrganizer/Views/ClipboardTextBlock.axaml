@@ -2,7 +2,6 @@
 	x:Class="DataOrganizer.Views.ClipboardTextBlock"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:AvaloniaEdit="using:AvaloniaEdit"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
@@ -149,14 +148,6 @@
 					PlacementTarget="{Binding #Icon}"
 					VerticalOffset="8.0">
 
-					<Interaction.Behaviors>
-						<EventTriggerBehavior EventName="Opened">
-							<InvokeCommandAction
-								Command="{Binding PopupOpenedCommand}"
-								CommandParameter="{Binding #Editor}" />
-						</EventTriggerBehavior>
-					</Interaction.Behaviors>
-
 					<Border
 						Padding="8.0"
 						Background="{StaticResource MaterialToolTipBackgroundBrush}"
@@ -174,33 +165,39 @@
 								Theme="{StaticResource MaterialFlatButton}"
 								ToolTip.Tip="{x:Static prop:Strings.Close}" />
 
-							<AvaloniaEdit:TextEditor
-								x:Name="Editor"
+							<ScrollViewer
 								Grid.Row="1"
-								FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-								FontSize="14.0"
-								Foreground="{StaticResource MaterialPaperBrush}"
 								HorizontalScrollBarVisibility="Disabled"
-								IsReadOnly="True"
-								VerticalScrollBarVisibility="Auto"
-								WordWrap="True">
-								<Interaction.Behaviors>
-									<behaviors:TextEditorOptionsBehavior />
+								VerticalScrollBarVisibility="Auto">
+								<SelectableTextBlock
+									x:Name="NoteView"
+									FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+									FontSize="14.0"
+									Foreground="{StaticResource MaterialPaperBrush}"
+									TextWrapping="Wrap">
+									<SelectableTextBlock.Styles>
+										<Style Selector="MenuItem">
+											<Setter Property="Cursor" Value="Arrow" />
+											<Setter Property="MaxHeight" Value="24.0" />
+										</Style>
+									</SelectableTextBlock.Styles>
 
-									<behaviors:StyledElementAddFluentThemeBehavior />
-								</Interaction.Behaviors>
+									<SelectableTextBlock.ContextFlyout>
+										<MenuFlyout>
+											<MenuItem
+												Command="{Binding CopySelectedNoteCommand}"
+												CommandParameter="{Binding #NoteView}"
+												Header="{x:Static prop:Strings.Copy}"
+												InputGesture="{OnPlatform Default='Ctrl+C',
+												                          macOS='⌘+C'}" />
+										</MenuFlyout>
+									</SelectableTextBlock.ContextFlyout>
 
-								<AvaloniaEdit:TextEditor.ContextMenu>
-									<ContextMenu Padding="4.0,0.0">
-										<MenuItem
-											Command="{Binding CopyCommand}"
-											CommandParameter="{Binding #Editor.TextArea}"
-											Header="{x:Static prop:Strings.Copy}"
-											InputGesture="{OnPlatform Default='Ctrl+C',
-											                          macOS='⌘+C'}" />
-									</ContextMenu>
-								</AvaloniaEdit:TextEditor.ContextMenu>
-							</AvaloniaEdit:TextEditor>
+									<Interaction.Behaviors>
+										<behaviors:HyperlinkInlinesBehavior Text="{Binding Note}" />
+									</Interaction.Behaviors>
+								</SelectableTextBlock>
+							</ScrollViewer>
 						</Grid>
 					</Border>
 				</Popup>

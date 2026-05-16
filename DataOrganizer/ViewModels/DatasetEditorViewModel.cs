@@ -239,9 +239,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		record.IsHighlight = true;
-
-		record.IsHighlight = false;
+		record.PulseHighlight();
 	}
 
 	/// <summary>
