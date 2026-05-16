@@ -301,10 +301,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	#endregion
 
 	#region Constructors
-	public ClipboardTextBlock()
-	{
-		InitializeComponent();
-	}
+	public ClipboardTextBlock() => InitializeComponent();
 	#endregion
 
 	#region Event Handlers
