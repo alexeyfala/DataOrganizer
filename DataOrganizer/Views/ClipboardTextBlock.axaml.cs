@@ -385,6 +385,8 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		base.OnUnloaded(e);
 
+		// Disposes current subscriptions but keeps the container alive so
+		// the next OnLoaded can re-subscribe into the same _disposables.
 		_disposables.Clear();
 	}
 	#endregion
