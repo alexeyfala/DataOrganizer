@@ -174,10 +174,11 @@
 									FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 									FontSize="14.0"
 									Foreground="{StaticResource MaterialPaperBrush}"
-									TextWrapping="Wrap">									
+									TextWrapping="Wrap">
 									<SelectableTextBlock.Styles>
 										<Style Selector="MenuItem">
 											<Setter Property="Cursor" Value="Arrow" />
+											<Setter Property="MaxHeight" Value="24.0" />
 										</Style>
 									</SelectableTextBlock.Styles>
 
