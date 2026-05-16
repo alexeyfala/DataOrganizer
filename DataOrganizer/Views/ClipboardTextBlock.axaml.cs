@@ -304,26 +304,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	public ClipboardTextBlock()
 	{
 		InitializeComponent();
-
-		this
-			.GetObservable(IsHiddenProperty)
-			.Subscribe(IsHiddenProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(IsHighlightProperty)
-			.Subscribe(IsHighlightProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(NoteProperty)
-			.Subscribe(NoteProperty_Changed)
-			.DisposeWith(_disposables);
-
-		this
-			.GetObservable(TextProperty)
-			.Subscribe(TextProperty_Changed)
-			.DisposeWith(_disposables);
 	}
 	#endregion
 
@@ -378,6 +358,26 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		base.OnLoaded(e);
 
 		IsHideEnabled = BindingOperations.GetBindingExpressionBase(this, IsHiddenProperty) is not null;
+
+		this
+			.GetObservable(IsHiddenProperty)
+			.Subscribe(IsHiddenProperty_Changed)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(IsHighlightProperty)
+			.Subscribe(IsHighlightProperty_Changed)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(NoteProperty)
+			.Subscribe(NoteProperty_Changed)
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(TextProperty)
+			.Subscribe(TextProperty_Changed)
+			.DisposeWith(_disposables);
 	}
 
 	/// <inheritdoc />
@@ -385,7 +385,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		base.OnUnloaded(e);
 
-		_disposables.Dispose();
+		_disposables.Clear();
 	}
 	#endregion
 
