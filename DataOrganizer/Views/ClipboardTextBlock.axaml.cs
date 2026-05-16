@@ -259,7 +259,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		{
 			await clipboard
 				.SetTextAsync(Text)
-				.ConfigureAwait(false);
+				.ConfigureAwait(true);
 		}
 		finally
 		{
