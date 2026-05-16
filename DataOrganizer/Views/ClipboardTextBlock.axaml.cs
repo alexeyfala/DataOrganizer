@@ -1,15 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using AvaloniaEdit;
-using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Helpers;
 using Material.Icons.Avalonia;
 using Shared.Common;
 using Shared.Extensions;
@@ -247,11 +243,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, string?>(name: nameof(Text));
 	#endregion
 
-	#region Commands
-	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
-	#endregion
-
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
@@ -299,20 +290,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		}
 
 		ShowNote = true;
-	}
-
-	/// <summary>
-	/// <see cref="Popup.Opened" /> event handler of control for "Note".
-	/// </summary>
-	[RelayCommand]
-	private void PopupOpened(TextEditor? editor)
-	{
-		if (editor is null || Note is null)
-		{
-			return;
-		}
-
-		editor.Text = Note.Trim();
 	}
 	#endregion
 
