@@ -315,7 +315,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	private void IsHiddenProperty_Changed(bool value)
 	{
-		BlurRadius = value ? 20.0 : default;
+		BlurRadius = value ? 20.0 : 0.0;
 
 		SetColorSampleBrush(Text);
 	}

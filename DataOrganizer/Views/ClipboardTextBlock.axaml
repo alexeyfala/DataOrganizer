@@ -170,7 +170,6 @@
 								HorizontalScrollBarVisibility="Disabled"
 								VerticalScrollBarVisibility="Auto">
 								<SelectableTextBlock
-									x:Name="Editor"
 									FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 									FontSize="14.0"
 									Foreground="{StaticResource MaterialPaperBrush}"
