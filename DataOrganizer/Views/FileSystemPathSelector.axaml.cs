@@ -37,7 +37,7 @@ public sealed partial class FileSystemPathSelector : UserControl
 	/// <summary>
 	/// Clears value in <see cref="Path" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteClear))]
+	[RelayCommand(CanExecute = nameof(CanClear))]
 	private void Clear() => Path = null;
 
 	/// <summary>
@@ -114,6 +114,6 @@ public sealed partial class FileSystemPathSelector : UserControl
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanExecuteClear() => !string.IsNullOrWhiteSpace(Path);
+	private bool CanClear() => !string.IsNullOrWhiteSpace(Path);
 	#endregion
 }

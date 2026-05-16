@@ -62,7 +62,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// <summary>
 	/// Save.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteSave))]
+	[RelayCommand(CanExecute = nameof(CanSave))]
 	private Task Save() => SetResultAsync(true);
 	#endregion
 
@@ -120,7 +120,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// <summary>
 	/// Validates <see cref="SaveCommand" />.
 	/// </summary>
-	private bool CanExecuteSave() => !string.IsNullOrWhiteSpace(Name);
+	private bool CanSave() => !string.IsNullOrWhiteSpace(Name);
 
 	/// <summary>
 	/// Initializes settings from file.

@@ -129,7 +129,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Displays the favorites in the popup panel.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]
+	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
 	public void ShowFavorites()
 	{
 		_logger.LogInformation("Show favorites");
@@ -293,7 +293,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowCopyHistory))]
+	[RelayCommand(CanExecute = nameof(CanShowCopyHistory))]
 	private void ShowCopyHistory()
 	{
 		_logger.LogInformation("Show copy history");
@@ -509,12 +509,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Validates <see cref="ShowCopyHistoryCommand" />.
 	/// </summary>
-	private bool CanExecuteShowCopyHistory() => PopupContent != FavoritesPopupContentType.CopyHistory;
+	private bool CanShowCopyHistory() => PopupContent != FavoritesPopupContentType.CopyHistory;
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
+	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
 
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.

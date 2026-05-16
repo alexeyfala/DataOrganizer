@@ -62,7 +62,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// <summary>
 	/// Handles default button pressed.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDefaultPressed))]
+	[RelayCommand(CanExecute = nameof(CanDefaultPressed))]
 	private Task DefaultPressed() => SetResultAsync(true);
 	#endregion
 
@@ -98,6 +98,6 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// <summary>
 	/// Validates <see cref="DefaultPressedCommand" />.
 	/// </summary>
-	private bool CanExecuteDefaultPressed() => !string.IsNullOrWhiteSpace(Key);
+	private bool CanDefaultPressed() => !string.IsNullOrWhiteSpace(Key);
 	#endregion
 }

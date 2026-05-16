@@ -181,7 +181,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Changes password for folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteChangePassword))]
+	[RelayCommand(CanExecute = nameof(CanChangePassword))]
 	internal async Task ChangePassword(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -232,7 +232,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Decrypts files in folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDecryptFolder))]
+	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
 	internal async Task DecryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -268,7 +268,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Encrypts files in folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteEncryptFolder))]
+	[RelayCommand(CanExecute = nameof(CanEncryptFolder))]
 	internal async Task EncryptFolder(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -417,7 +417,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Hides all file contents.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteHideAllFiles))]
+	[RelayCommand(CanExecute = nameof(CanHideAllFiles))]
 	internal async Task HideAllFileContents()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
@@ -492,7 +492,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Imports data.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteImport))]
+	[RelayCommand(CanExecute = nameof(CanImport))]
 	internal async Task Import()
 	{
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
@@ -514,7 +514,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Change to the <see cref="ExplorerModelBaseDto.IsSelected" /> property is saved to the database
 	/// using the <see cref="OnSelectedObjectChanging(ExplorerModelBaseDto?, ExplorerModelBaseDto?)" /> method.
 	/// </remarks>
-	[RelayCommand(CanExecute = nameof(CanExecuteResetSelectedObject))]
+	[RelayCommand(CanExecute = nameof(CanResetSelectedObject))]
 	internal void ResetSelectedObject()
 	{
 		if (SelectedObject is null)
@@ -546,7 +546,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Sets <see cref="FileModelDto.IsFavorite" /> value.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteSetFavorite))]
+	[RelayCommand(CanExecute = nameof(CanSetFavorite))]
 	internal Task SetFavorite(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -562,7 +562,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Displays the "Favorites" window.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]
+	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
 	internal void ShowFavorites(EditorWindow? window)
 	{
 		IsShutdown = false;
@@ -593,7 +593,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFolderContents))]
+	[RelayCommand(CanExecute = nameof(CanShowFolderContents))]
 	internal async Task ShowFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -631,7 +631,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Displays the add object dialog box.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteAdd))]
+	[RelayCommand(CanExecute = nameof(CanAdd))]
 	private async Task Add(FolderModelDto? parent)
 	{
 		_logger.LogInformation("Adding an object using a dialog");
@@ -705,7 +705,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
+	[RelayCommand(CanExecute = nameof(CanCopyContent))]
 	private Task CopyContentByContextMenu(FileModelDto? dto)
 	{
 		if (dto is null
@@ -758,7 +758,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Displays the delete object dialog box.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteDelete))]
+	[RelayCommand(CanExecute = nameof(CanDelete))]
 	private async Task Delete(ExplorerModelBaseDto? dto)
 	{
 		ExplorerModelBaseDto? toBeDeleted = dto ?? SelectedObject;
@@ -814,7 +814,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Exports data.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteExport))]
+	[RelayCommand(CanExecute = nameof(CanExport))]
 	private Task Export() => _dataExchange.ExportDataAsync();
 
 	/// <summary>
@@ -858,7 +858,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteRename))]
+	[RelayCommand(CanExecute = nameof(CanRename))]
 	private async Task Rename(ExplorerModelBaseDto? dto)
 	{
 		ExplorerModelBaseDto? toBeRenamed = dto ?? SelectedObject;
@@ -911,7 +911,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <inheritdoc cref="IEntityEncryption.ShowFileContentsAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFileContents))]
+	[RelayCommand(CanExecute = nameof(CanShowFileContents))]
 	private Task ShowFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -925,7 +925,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Displays the hotkey editor.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowHotkeysEditor))]
+	[RelayCommand(CanExecute = nameof(CanShowHotkeysEditor))]
 	private async Task ShowHotkeysEditor(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -1633,6 +1633,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	private static bool IsOpened(FileModelDto dto) => dto.IsOpened();
 
 	/// <summary>
+	/// Validates <see cref="AddCommand" />.
+	/// </summary>
+	private bool CanAdd() => !IsReadOnly && !IsActionInProgress;
+
+	/// <summary>
 	/// Returns <c>True</c> if file can be edited or executed.
 	/// </summary>
 	private bool CanBeEditedOrExecuted(FileModelDto? dto)
@@ -1641,16 +1646,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			&& dto is not null
 			&& !IsOpened(dto);
 	}
-
-	/// <summary>
-	/// Validates <see cref="AddCommand" />.
-	/// </summary>
-	private bool CanExecuteAdd() => !IsReadOnly && !IsActionInProgress;
-
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
-	private bool CanExecuteChangePassword(FolderModelDto? dto)
+	private bool CanChangePassword(FolderModelDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1660,12 +1659,12 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
-	private bool CanExecuteCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
+	private bool CanCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteDecryptFolder(FolderModelDto? dto)
+	private bool CanDecryptFolder(FolderModelDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1677,7 +1676,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
 	/// </summary>
-	private bool CanExecuteDelete(ExplorerModelBaseDto? dto)
+	private bool CanDelete(ExplorerModelBaseDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1687,7 +1686,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="EncryptFolderCommand" />.
 	/// </summary>
-	private bool CanExecuteEncryptFolder(FolderModelDto? dto)
+	private bool CanEncryptFolder(FolderModelDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1699,22 +1698,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ExportCommand" />.
 	/// </summary>
-	private bool CanExecuteExport() => !IsActionInProgress && Hierarchy.Count > 0;
+	private bool CanExport() => !IsActionInProgress && Hierarchy.Count > 0;
 
 	/// <summary>
 	/// Validates <see cref="HideAllFilesCommand" />.
 	/// </summary>
-	private bool CanExecuteHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	private bool CanHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
 	/// <summary>
 	/// Validates <see cref="ImportCommand" />.
 	/// </summary>
-	private bool CanExecuteImport() => !IsReadOnly && !IsActionInProgress;
+	private bool CanImport() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.
 	/// </summary>
-	private bool CanExecuteRename(ExplorerModelBaseDto? dto)
+	private bool CanRename(ExplorerModelBaseDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1724,22 +1723,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ResetSelectedObjectCommand" />.
 	/// </summary>
-	private bool CanExecuteResetSelectedObject() => SelectedObject is not null;
+	private bool CanResetSelectedObject() => SelectedObject is not null;
 
 	/// <summary>
 	/// Validates <see cref="SetFavoriteCommand" />.
 	/// </summary>
-	private bool CanExecuteSetFavorite() => !IsReadOnly && !IsActionInProgress;
+	private bool CanSetFavorite() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => !IsActionInProgress && Hierarchy.ContainsFileBy(x => x.IsFavorite);
+	private bool CanShowFavorites() => !IsActionInProgress && Hierarchy.ContainsFileBy(x => x.IsFavorite);
 
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFileContents(FileModelDto? dto)
+	private bool CanShowFileContents(FileModelDto? dto)
 	{
 		return !IsActionInProgress
 			&& dto is not null
@@ -1749,7 +1748,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFolderContents(FolderModelDto? dto)
+	private bool CanShowFolderContents(FolderModelDto? dto)
 	{
 		return !IsActionInProgress
 			&& dto is not null
@@ -1760,7 +1759,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <summary>
 	/// Validates <see cref="ShowHotkeysEditorCommand" />.
 	/// </summary>
-	private bool CanExecuteShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
+	private bool CanShowHotkeysEditor() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
 	/// Clears copy history.

@@ -51,7 +51,7 @@ public sealed partial class PasswordBox : UserControl
 	/// <summary>
 	/// Apply.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteApply))]
+	[RelayCommand(CanExecute = nameof(CanApply))]
 	private Task Apply() => _viewModel.SetResultAsync(true);
 
 	/// <summary>
@@ -107,7 +107,7 @@ public sealed partial class PasswordBox : UserControl
 	/// <summary>
 	/// Validates <see cref="ApplyCommand" />.
 	/// </summary>
-	private bool CanExecuteApply()
+	private bool CanApply()
 	{
 		const char space = ' ';
 

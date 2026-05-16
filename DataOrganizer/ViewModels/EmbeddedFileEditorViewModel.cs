@@ -45,7 +45,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	#region Commands
 	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanCopy);
 
 	/// <inheritdoc cref="TextEditorHelper.Find" />
 	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
@@ -57,7 +57,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
 
 	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanSelectAll);
 
 	/// <inheritdoc cref="TextEditorHelper.Spin" />
 	public RelayCommand<SpinEventArgs> SpinCommand { get; }
