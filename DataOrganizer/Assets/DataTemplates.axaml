@@ -246,16 +246,16 @@
 			<views:ClipboardTextBlock
 				Grid.Column="0"
 				Padding="{StaticResource RecordPadding}"
-				IsHighlight="{Binding IsHighlight, Mode=OneWay}"
+				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 				Text="{Binding Key, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
 
 			<views:ClipboardTextBlock
 				Grid.Column="1"
 				Padding="{StaticResource RecordPadding}"
+				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 				IsHidden="{Binding IsHidden, Mode=TwoWay}"
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
-				IsHighlight="{Binding IsHighlight, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
@@ -327,8 +327,8 @@
 
 							<ToggleButton
 								Grid.Column="0"
-								Padding="4.0"
 								Margin="0.0,0.0,4.0,0.0"
+								Padding="4.0"
 								VerticalAlignment="Center"
 								IsChecked="{Binding $parent[Expander].IsExpanded, Mode=TwoWay}"
 								Theme="{StaticResource MaterialFlatButton}">

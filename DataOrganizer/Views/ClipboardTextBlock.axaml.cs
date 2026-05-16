@@ -11,8 +11,10 @@ using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.ComponentModel;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -53,6 +55,15 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
+	/// Signal source that fires a one-shot highlight animation of <see cref="AreaBrush" />.
+	/// </summary>
+	public IObservable<Unit>? HighlightSignal
+	{
+		get => GetValue(HighlightSignalProperty);
+		set => SetValue(HighlightSignalProperty, value);
+	}
+
+	/// <summary>
 	/// Returns <c>True</c> if value in <see cref="Text" /> is color.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
@@ -88,15 +99,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		get => GetValue(IsHideEnabledProperty);
 		set => SetValue(IsHideEnabledProperty, value);
-	}
-
-	/// <summary>
-	/// Used to enable color animation of <see cref="AreaBrush" />.
-	/// </summary>
-	public bool IsHighlight
-	{
-		get => GetValue(IsHighlightProperty);
-		set => SetValue(IsHighlightProperty, value);
 	}
 
 	/// <summary>
@@ -177,6 +179,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, Brush?>(name: nameof(ColorSampleBrush));
 
 	/// <summary>
+	/// Identifies the <see cref="HighlightSignal" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IObservable<Unit>?> HighlightSignalProperty = AvaloniaProperty
+		.Register<ClipboardTextBlock, IObservable<Unit>?>(name: nameof(HighlightSignal));
+
+	/// <summary>
 	/// Identifies the <see cref="IsColor" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsColorProperty = AvaloniaProperty
@@ -199,12 +207,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHideEnabledProperty = AvaloniaProperty
 		.Register<ClipboardTextBlock, bool>(name: nameof(IsHideEnabled));
-
-	/// <summary>
-	/// Identifies the <see cref="IsHighlight" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsHighlightProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsHighlight));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHyperlink" /> avalonia property.
@@ -265,9 +267,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		}
 		finally
 		{
-			IsHighlight = true;
-
-			IsHighlight = false;
+			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
 		}
 	}
 
@@ -306,6 +306,11 @@ internal sealed partial class ClipboardTextBlock : UserControl
 
 	#region Event Handlers
 	/// <summary>
+	/// <see cref="HighlightSignal" /> <see cref="IObserver{T}.OnNext" /> handler.
+	/// </summary>
+	private void HighlightSignal_OnNext(Unit signal) => _ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+
+	/// <summary>
 	/// <see cref="IsHiddenProperty" /> changed handler.
 	/// </summary>
 	private void IsHiddenProperty_Changed(bool value)
@@ -313,19 +318,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		BlurRadius = value ? 20.0 : default;
 
 		SetColorSampleBrush(Text);
-	}
-
-	/// <summary>
-	/// <see cref="IsHighlightProperty" /> changed handler.
-	/// </summary>
-	private void IsHighlightProperty_Changed(bool value)
-	{
-		if (!value)
-		{
-			return;
-		}
-
-		_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
 	}
 
 	/// <summary>
@@ -362,8 +354,10 @@ internal sealed partial class ClipboardTextBlock : UserControl
 			.DisposeWith(_disposables);
 
 		this
-			.GetObservable(IsHighlightProperty)
-			.Subscribe(IsHighlightProperty_Changed)
+			.GetObservable(HighlightSignalProperty)
+			.Select(static x => x ?? Observable.Never<Unit>())
+			.Switch()
+			.Subscribe(HighlightSignal_OnNext)
 			.DisposeWith(_disposables);
 
 		this
