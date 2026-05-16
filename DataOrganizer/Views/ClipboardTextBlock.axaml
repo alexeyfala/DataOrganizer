@@ -174,7 +174,13 @@
 									FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 									FontSize="14.0"
 									Foreground="{StaticResource MaterialPaperBrush}"
-									TextWrapping="Wrap">
+									TextWrapping="Wrap">									
+									<SelectableTextBlock.Styles>
+										<Style Selector="MenuItem">
+											<Setter Property="Cursor" Value="Arrow" />
+										</Style>
+									</SelectableTextBlock.Styles>
+
 									<Interaction.Behaviors>
 										<behaviors:HyperlinkInlinesBehavior Text="{Binding Note}" />
 									</Interaction.Behaviors>
