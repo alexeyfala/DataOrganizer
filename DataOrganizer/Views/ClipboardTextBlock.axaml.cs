@@ -250,7 +250,9 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
 	private async Task CopyToClipboard()
 	{
-		if (string.IsNullOrWhiteSpace(Text) || TopLevel.GetTopLevel(this)?.Clipboard is not { } clipboard)
+		if (string.IsNullOrWhiteSpace(Text) || TopLevel
+			.GetTopLevel(this)?
+			.Clipboard is not { } clipboard)
 		{
 			return;
 		}
