@@ -42,14 +42,12 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// Returns <c>True</c> if user has saved the hotkeys.
 	/// </summary>
 	public bool IsSaved { get; private set; }
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Hotkey list preview text.
 	/// </summary>
 	[ObservableProperty]
-	private string _preview = Strings.AssigningHotkeys;
+	public partial string Preview { get; set; } = Strings.AssigningHotkeys;
 	#endregion
 
 	#region Auto-Generated Commands

@@ -17,36 +17,36 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelResult>
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Returns <c>True</c> if "Canlel" button is visible.
 	/// </summary>
 	[ObservableProperty]
-	private bool _cancelButtonVisible;
+	public partial bool CancelButtonVisible { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if "Cancel" button is <see cref="Button.IsCancel" />.
 	/// </summary>
 	[ObservableProperty]
-	private bool _cancelIsCancel;
+	public partial bool CancelIsCancel { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if "No" button is visible.
 	/// </summary>
 	[ObservableProperty]
-	private bool _noButtonVisible;
+	public partial bool NoButtonVisible { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if "No" button is <see cref="Button.IsCancel" />.
 	/// </summary>
 	[ObservableProperty]
-	private bool _noIsCancel;
+	public partial bool NoIsCancel { get; set; }
 
 	/// <summary>
 	/// Text.
 	/// </summary>
 	[ObservableProperty]
-	private string? _text;
+	public partial string? Text { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

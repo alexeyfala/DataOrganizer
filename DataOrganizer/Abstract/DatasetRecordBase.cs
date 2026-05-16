@@ -11,6 +11,12 @@ public abstract partial class DatasetRecordBase : ObservableObject
 {
 	#region Properties
 	/// <summary>
+	/// Note.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Note { get; set; }
+
+	/// <summary>
 	/// Record type.
 	/// </summary>
 	[JsonIgnore]
@@ -19,13 +25,5 @@ public abstract partial class DatasetRecordBase : ObservableObject
 
 	#region Constructors
 	protected DatasetRecordBase() => Type = GetType().Name;
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
-	/// Note.
-	/// </summary>
-	[ObservableProperty]
-	private string? _note;
 	#endregion
 }

@@ -16,32 +16,30 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FileModel.Hotkeys" />
 	public ObservableCollection<HotkeyModelDto> Hotkeys { get; init; } = [];
 
-	/// <inheritdoc cref="FileModel.Properties" />
-	public string? Properties { get; set; }
-	#endregion
-
-	#region Auto-Generated Properties
 	/// <summary>
 	/// A tooltip for hotkeys.
 	/// </summary>
 	[ObservableProperty]
-	private string? _hotkeysToolTip;
+	public partial string? HotkeysToolTip { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if the file is opened in the built-in editor.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isEditing;
+	public partial bool IsEditing { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if the file is executing in the operating system.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isExecuting;
+	public partial bool IsExecuting { get; set; }
 
 	/// <inheritdoc cref="FileModel.IsFavorite" />
 	[ObservableProperty]
-	private bool _isFavorite;
+	public partial bool IsFavorite { get; set; }
+
+	/// <inheritdoc cref="FileModel.Properties" />
+	public string? Properties { get; set; }
 	#endregion
 
 	#region Methods

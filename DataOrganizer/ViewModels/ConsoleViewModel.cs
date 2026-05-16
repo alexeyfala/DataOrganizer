@@ -24,31 +24,29 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {
 	#region Properties
-	/// <summary>
-	/// Returns <c>True</c> if settings are saved.
-	/// </summary>
-	public bool IsSaved { get; set; }
-
-	/// <summary>
-	/// A reference to a method for writing a line of text.
-	/// </summary>
-	public Action<string> WriteCallback => Write;
-	#endregion
-
-	#region Auto-Generated Properties
 	/// <inheritdoc cref="FileProperties.FontSize" />
 	[ObservableProperty]
-	private double _fontSize = 14.0;
+	public partial double FontSize { get; set; } = 14.0;
 
 	/// <summary>
 	/// Indicates that recording should be paused.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isPaused;
+	public partial bool IsPaused { get; set; }
+
+	/// <summary>
+	/// Returns <c>True</c> if settings are saved.
+	/// </summary>
+	public bool IsSaved { get; set; }
 
 	/// <inheritdoc cref="FileProperties.IsWordWrap" />
 	[ObservableProperty]
-	private bool _isWordWrap;
+	public partial bool IsWordWrap { get; set; }
+
+	/// <summary>
+	/// A reference to a method for writing a line of text.
+	/// </summary>
+	public Action<string> WriteCallback => Write;
 	#endregion
 
 	#region Commands

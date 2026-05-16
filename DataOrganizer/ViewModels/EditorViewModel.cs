@@ -48,44 +48,44 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Information in the lower left corner.
 	/// </summary>
 	[ObservableProperty]
-	private string? _bottomLeftCornerInfo;
+	public partial string? BottomLeftCornerInfo { get; set; }
 
 	/// <summary>
 	/// Controls the progress bar for an action.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isActionInProgress;
+	public partial bool IsActionInProgress { get; set; }
 
 	/// <summary>
 	/// Controls the display of the <see cref="NavigationDrawer" />.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isLeftDrawerOpened;
+	public partial bool IsLeftDrawerOpened { get; set; }
 
 	/// <summary>
 	/// Read-only mode.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isReadOnly;
+	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> when right side sheet should be opened.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isRightSideSheetOpened;
+	public partial bool IsRightSideSheetOpened { get; set; }
 
 	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
 	[ObservableProperty]
-	private GridLength _navigationColumnWidth;
+	public partial GridLength NavigationColumnWidth { get; set; }
 
 	/// <inheritdoc cref="RightSideSheetContentType" />
 	[ObservableProperty]
-	private RightSideSheetContentType _rightSideSheetContent;
+	public partial RightSideSheetContentType RightSideSheetContent { get; set; }
 
 	/// <summary>
 	/// The selected object in <see cref="TreeView" /> from <see cref="Hierarchy" />.
@@ -94,13 +94,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(RenameCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
-	private ExplorerModelBaseDto? _selectedObject;
+	public partial ExplorerModelBaseDto? SelectedObject { get; set; }
 
 	/// <summary>
 	/// Window width.
 	/// </summary>
 	[ObservableProperty]
-	private double _viewWidth;
+	public partial double ViewWidth { get; set; }
 	#endregion
 
 	#region Partial

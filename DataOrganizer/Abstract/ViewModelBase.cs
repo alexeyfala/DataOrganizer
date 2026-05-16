@@ -61,14 +61,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Opened in editor files.
 	/// </summary>
 	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Snackbar's text color.
 	/// </summary>
 	[ObservableProperty]
-	private IBrush? _snackbarForeground;
+	public partial IBrush? SnackbarForeground { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

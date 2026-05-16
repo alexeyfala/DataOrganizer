@@ -26,24 +26,22 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 {
 	#region Properties
 	/// <summary>
+	/// Search value within <see cref="Items" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? HistorySearch { get; set; }
+
+	/// <summary>
 	/// Returns <c>True</c> if <see cref="Items" /> is empty.
 	/// </summary>
 	public bool IsEmpty => _filter.IsSourceEmpty;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
 	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
-	/// Search value within <see cref="Items" />.
-	/// </summary>
-	[ObservableProperty]
-	private string? _historySearch;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />
 	[ObservableProperty]
-	private FileModelDto? _selectedItem;
+	public partial FileModelDto? SelectedItem { get; set; }
 	#endregion
 
 	#region Partial

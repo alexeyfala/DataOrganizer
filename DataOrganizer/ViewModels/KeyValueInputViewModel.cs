@@ -13,43 +13,43 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Text for default button.
 	/// </summary>
 	[ObservableProperty]
-	private string? _defaultButtonText;
+	public partial string? DefaultButtonText { get; set; }
 
 	/// <summary>
 	/// Specifies the visibility of the <see cref="Value" /> input field.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isValueInputVisible;
+	public partial bool IsValueInputVisible { get; set; }
 
 	/// <summary>
 	/// Key.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DefaultPressedCommand))]
-	private string? _key;
+	public partial string? Key { get; set; }
 
 	/// <summary>
 	/// Hint for the input field <see cref="Key" />.
 	/// </summary>
 	[ObservableProperty]
-	private string? _keyHint;
+	public partial string? KeyHint { get; set; }
 
 	/// <summary>
 	/// Value.
 	/// </summary>
 	[ObservableProperty]
-	private string? _value;
+	public partial string? Value { get; set; }
 
 	/// <summary>
 	/// Hint for the input field <see cref="Value" />.
 	/// </summary>
 	[ObservableProperty]
-	private string? _valueHint;
+	public partial string? ValueHint { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

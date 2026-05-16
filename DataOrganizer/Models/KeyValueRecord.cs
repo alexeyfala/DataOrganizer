@@ -12,21 +12,19 @@ namespace DataOrganizer.Models;
 	$"{nameof(Value)} = {{{nameof(Value)}}}")]
 public sealed partial class KeyValueRecord : ValueRecord
 {
-	#region Auto-Generated Properties
+	#region Properties
+	/// <summary>
+	/// Fires whenever <see cref="PulseHighlight" /> is called.
+	/// Bound by the view to play a one-shot animation.
+	/// </summary>
+	[JsonIgnore]
+	public Subject<Unit> HighlightSignal { get; } = new();
+
 	/// <summary>
 	/// Key.
 	/// </summary>
 	[ObservableProperty]
-	private string? _key;
-	#endregion
-
-	#region Properties
-	/// <summary>
-	/// Fires whenever <see cref="PulseHighlight" /> is called. Bound by the view
-	/// to play a one-shot animation.
-	/// </summary>
-	[JsonIgnore]
-	public Subject<Unit> HighlightSignal { get; } = new();
+	public partial string? Key { get; set; }
 	#endregion
 
 	#region Methods

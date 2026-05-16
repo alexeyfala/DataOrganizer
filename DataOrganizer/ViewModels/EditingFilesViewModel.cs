@@ -23,14 +23,12 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// Opened in editor files.
 	/// </summary>
 	public ObservableCollection<FileModelDto> Items { get; } = [];
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Index of selected element in <see cref="TabControl" />.
 	/// </summary>
 	[ObservableProperty]
-	private int _selectedIndex;
+	public partial int SelectedIndex { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

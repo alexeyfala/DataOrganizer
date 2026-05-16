@@ -34,9 +34,21 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public ReadOnlyObservableCollection<FavoriteCategory> Categories => _categoriesFilter.Visible;
 
 	/// <summary>
+	/// Search value within <see cref="Categories" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? CategorySearch { get; set; }
+
+	/// <summary>
 	/// A sequence of <see cref="FileModelDto" />.
 	/// </summary>
 	public ReadOnlyObservableCollection<FileModelDto> Favorites => _favoritesFilter.Visible;
+
+	/// <summary>
+	/// Search value within <see cref="Favorites" />.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? FavoriteSearch { get; set; }
 
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Categories" /> is empty.
@@ -48,41 +60,27 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// </summary>
 	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 
-	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
-	public List<Guid> OrderedCategories { get; } = [];
-
-	/// <inheritdoc cref="FavoritesViewSettings.SelectedPairs" />
-	public List<CategoryFavoritePair> SelectedPairs { get; } = [];
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
-	/// Search value within <see cref="Categories" />.
-	/// </summary>
-	[ObservableProperty]
-	private string? _categorySearch;
-
-	/// <summary>
-	/// Search value within <see cref="Favorites" />.
-	/// </summary>
-	[ObservableProperty]
-	private string? _favoriteSearch;
-
 	/// <inheritdoc cref="INavigationColumnViewModel.NavigationColumnWidth" />
 	[ObservableProperty]
-	private GridLength _navigationColumnWidth;
+	public partial GridLength NavigationColumnWidth { get; set; }
+
+	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
+	public List<Guid> OrderedCategories { get; } = [];
 
 	/// <summary>
 	/// The selected object in the <see cref="Categories" />.
 	/// </summary>
 	[ObservableProperty]
-	private FavoriteCategory? _selectedCategory;
+	public partial FavoriteCategory? SelectedCategory { get; set; }
 
 	/// <summary>
 	/// The selected object in the <see cref="Favorites" />.
 	/// </summary>
 	[ObservableProperty]
-	private FileModelDto? _selectedFavorite;
+	public partial FileModelDto? SelectedFavorite { get; set; }
+
+	/// <inheritdoc cref="FavoritesViewSettings.SelectedPairs" />
+	public List<CategoryFavoritePair> SelectedPairs { get; } = [];
 	#endregion
 
 	#region Partial

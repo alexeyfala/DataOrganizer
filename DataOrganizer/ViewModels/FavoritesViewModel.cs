@@ -36,32 +36,30 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
 	public FavoritesViewSettings FavoritesSettings { get; } = new();
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Returns <c>True</c> if popup should be fixed.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isPopupFixed;
+	public partial bool IsPopupFixed { get; set; }
 
 	/// <summary>
 	/// Controls the display of the popup panel.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isPopupOpen;
+	public partial bool IsPopupOpen { get; set; }
 
 	/// <inheritdoc cref="FavoritesPopupContentType" />
 	[ObservableProperty]
-	private FavoritesPopupContentType _popupContent;
+	public partial FavoritesPopupContentType PopupContent { get; set; }
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupHeight" />
 	[ObservableProperty]
-	private double _popupHeight;
+	public partial double PopupHeight { get; set; }
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
-	private double _popupWidth;
+	public partial double PopupWidth { get; set; }
 	#endregion
 
 	#region Partial

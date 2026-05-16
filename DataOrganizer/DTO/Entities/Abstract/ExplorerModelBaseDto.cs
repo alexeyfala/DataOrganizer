@@ -25,11 +25,31 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	/// <inheritdoc cref="ExplorerModelBase.CreatedDate" />
 	public required DateTime CreatedDate { get; init; }
 
+	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	[ObservableProperty]
+	public partial EncryptionStatus EncryptionStatus { get; set; }
+
 	/// <inheritdoc cref="ExplorerModelBase.EntityType" />
 	public required EntityType EntityType { get; init; }
 
+	/// <inheritdoc cref="FolderModel.IsExpanded" />
+	/// <remarks>
+	/// Due to an error when binding a property to a TreeViewItem in XAML,
+	/// I have to place the property in <see cref="ExplorerModelBase" /> instead of <see cref="FolderModelDto" />.
+	/// </remarks>
+	[ObservableProperty]
+	public partial bool IsExpanded { get; set; }
+
 	/// <inheritdoc cref="ExplorerModelBase.IsSelected" />
 	public bool IsSelected { get; set; }
+
+	/// <inheritdoc cref="ExplorerModelBase.Name" />
+	[ObservableProperty]
+	public partial string Name { get; set; } = string.Empty;
+
+	/// <inheritdoc cref="ExplorerModelBase.Note" />
+	[ObservableProperty]
+	public partial string? Note { get; set; }
 
 	/// <inheritdoc cref="ExplorerModelBase.Parent" />
 	public FolderModelDto? Parent { get; set; }
@@ -39,28 +59,6 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 	/// <inheritdoc cref="ExplorerModelBase.UpdatedDate" />
 	public required DateTime UpdatedDate { get; set; }
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <inheritdoc cref="Enums.EncryptionStatus" />
-	[ObservableProperty]
-	private EncryptionStatus _encryptionStatus;
-
-	/// <inheritdoc cref="FolderModel.IsExpanded" />
-	/// <remarks>
-	/// Due to an error when binding a property to a TreeViewItem in XAML,
-	/// I have to place the property in <see cref="ExplorerModelBase" /> instead of <see cref="FolderModelDto" />.
-	/// </remarks>
-	[ObservableProperty]
-	private bool _isExpanded;
-
-	/// <inheritdoc cref="ExplorerModelBase.Name" />
-	[ObservableProperty]
-	private string _name = string.Empty;
-
-	/// <inheritdoc cref="ExplorerModelBase.Note" />
-	[ObservableProperty]
-	private string? _note;
 	#endregion
 
 	#region Partial

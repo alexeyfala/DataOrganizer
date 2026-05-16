@@ -15,29 +15,29 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModel
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <inheritdoc cref="EntityCreationViewSettings.IsDatasetSelected" />
 	[ObservableProperty]
-	private bool _isDatasetSelected;
+	public partial bool IsDatasetSelected { get; set; }
 
 	/// <inheritdoc cref="EntityCreationViewSettings.IsFileSelected" />
 	[ObservableProperty]
-	private bool _isFileSelected;
+	public partial bool IsFileSelected { get; set; }
 
 	/// <inheritdoc cref="EntityCreationViewSettings.IsFolderSelected" />
 	[ObservableProperty]
-	private bool _isFolderSelected;
+	public partial bool IsFolderSelected { get; set; }
 
 	/// <inheritdoc cref="EntityCreationViewSettings.Name" />
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-	private string _name = string.Empty;
+	public partial string Name { get; set; } = string.Empty;
 
 	/// <summary>
 	/// A hint for <see cref="Name" /> input field.
 	/// </summary>
 	[ObservableProperty]
-	private string _nameInputHint = Strings.Name;
+	public partial string NameInputHint { get; set; } = Strings.Name;
 	#endregion
 
 	#region Partial

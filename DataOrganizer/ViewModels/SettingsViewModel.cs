@@ -40,45 +40,43 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public AppSettings CurrentSettings { get; }
 
 	/// <summary>
-	/// Returns <c>True</c> if user has saved the settings.
-	/// </summary>
-	public bool IsSaved { get; private set; }
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Dark" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isDarkTheme;
+	public partial bool IsDarkTheme { get; set; }
 
 	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Inherit" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isInheritTheme;
+	public partial bool IsInheritTheme { get; set; }
 
 	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Light" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isLightTheme;
+	public partial bool IsLightTheme { get; set; }
+
+	/// <summary>
+	/// Returns <c>True</c> if user has saved the settings.
+	/// </summary>
+	public bool IsSaved { get; private set; }
 
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
-	private CultureInfo? _language;
+	public partial CultureInfo? Language { get; set; }
 
 	/// <inheritdoc cref="AppSettings.PrimaryColor" />
 	[ObservableProperty]
-	private PrimaryColor _primaryColor;
+	public partial PrimaryColor PrimaryColor { get; set; }
 
 	/// <inheritdoc cref="AppSettings.SecondaryColor" />
 	[ObservableProperty]
-	private SecondaryColor _secondaryColor;
+	public partial SecondaryColor SecondaryColor { get; set; }
 
 	/// <inheritdoc cref="AppSettings.TrackHotkeys" />
 	[ObservableProperty]
-	private bool _trackHotkeys;
+	public partial bool TrackHotkeys { get; set; }
 	#endregion
 
 	#region Partial
@@ -236,19 +234,19 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
 
-		_isDarkTheme = CurrentSettings.Theme == BaseThemeMode.Dark;
+		TrackHotkeys = CurrentSettings.TrackHotkeys;
 
-		_isInheritTheme = CurrentSettings.Theme == BaseThemeMode.Inherit;
+		SecondaryColor = CurrentSettings.SecondaryColor;
 
-		_isLightTheme = CurrentSettings.Theme == BaseThemeMode.Light;
+		PrimaryColor = CurrentSettings.PrimaryColor;
 
-		_language = new(CurrentSettings.Language);
+		Language = new(CurrentSettings.Language);
 
-		_primaryColor = CurrentSettings.PrimaryColor;
+		IsLightTheme = CurrentSettings.Theme == BaseThemeMode.Light;
 
-		_secondaryColor = CurrentSettings.SecondaryColor;
+		IsInheritTheme = CurrentSettings.Theme == BaseThemeMode.Inherit;
 
-		_trackHotkeys = CurrentSettings.TrackHotkeys;
+		IsDarkTheme = CurrentSettings.Theme == BaseThemeMode.Dark;
 	}
 	#endregion
 
