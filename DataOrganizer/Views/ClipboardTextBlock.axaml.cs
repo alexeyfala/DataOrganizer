@@ -417,12 +417,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 
 	/// <summary>
 	/// Recomputes <see cref="DisplayText" /> based on the current <see cref="Text" /> and <see cref="IsHidden" />.
-	/// When hidden, replaces visible text with a same-length string of bullet characters.
+	/// When hidden, replaces visible text with a fixed-length bullet mask so the real text length is not leaked.
 	/// </summary>
 	private void UpdateDisplayText()
 	{
 		DisplayText = IsHidden && !string.IsNullOrEmpty(Text)
-			? new string('•', Text.Length)
+			? "▓▓▓▓▓▓▓▓"
 			: Text;
 	}
 	#endregion
