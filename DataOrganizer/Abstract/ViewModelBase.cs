@@ -20,9 +20,11 @@ using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -271,6 +273,16 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
+	/// </summary>
+	private static bool IsSnackbarHostLoaded()
+	{
+		return typeof(SnackbarHost)
+			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
+			?.GetValue(null) is IDictionary registered && registered.Count > 0;
+	}
+
 	/// <inheritdoc cref="SaveCopyHistory()" />
 	private void SaveCopyHistory(CopyHistoryViewModel viewModel)
 	{
@@ -331,7 +343,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				};
 			}
 
-			string message = $"Shown in Snackbar: {text}";
+			bool isLoaded = IsSnackbarHostLoaded();
+
+			string message = $"{(isLoaded ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
 
 			switch (level)
 			{
@@ -346,6 +360,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				default:
 					_logger.LogInformation(message);
 					break;
+			}
+
+			if (!isLoaded)
+			{
+				return;
 			}
 
 			SnackbarHost.Post(
