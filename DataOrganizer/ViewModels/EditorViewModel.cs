@@ -206,30 +206,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Closes a file executing in the operating system.
-	/// </summary>
-	[RelayCommand]
-	internal void CloseExecutingFile(FileModelDto? dto)
-	{
-		if (dto is null)
-		{
-			return;
-		}
-
-		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
-			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name),
-			nameof(FileModelDto.EntityType))}");
-
-		ExecutingFiles.Remove(dto);
-
-		dto.IsExecuting = false;
-
-		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
-	}
-
-	/// <summary>
 	/// Decrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
@@ -1003,9 +979,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
-	/// <inheritdoc cref="IExecutionEngine" />
-	private readonly IExecutionEngine _executionEngine;
-
 	/// <summary>
 	/// Mapper.
 	/// </summary>
@@ -1045,6 +1018,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			dispatcher,
 			entityEncryption,
 			eventSimulator,
+			executionEngine,
 			keyboardInputHook,
 			logger,
 			handler,
@@ -1052,8 +1026,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			viewModel)
 	{
 		_dataExchange = dataExchange;
-
-		_executionEngine = executionEngine;
 
 		_mapper = mapper;
 

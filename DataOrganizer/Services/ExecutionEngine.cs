@@ -281,7 +281,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		if (!_fileSystem.IsFileExists(filePath))
 		{
-			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""");
+			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""", false);
 
 			return false;
 		}

@@ -71,6 +71,30 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Closes a file executing in the operating system.
+	/// </summary>
+	[RelayCommand]
+	internal void CloseExecutingFile(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
+			true,
+			nameof(FileModelDto.Id),
+			nameof(FileModelDto.Name),
+			nameof(FileModelDto.EntityType))}");
+
+		ExecutingFiles.Remove(dto);
+
+		dto.IsExecuting = false;
+
+		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
+	}
+
+	/// <summary>
 	/// Handles the display of copy history.
 	/// </summary>
 	[RelayCommand]
@@ -103,6 +127,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IDispatcher" />
 	protected readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="IExecutionEngine" />
+	protected readonly IExecutionEngine _executionEngine;
+
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
@@ -129,6 +156,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IDispatcher dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
+		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		ITaskExceptionHandler handler,
@@ -146,6 +174,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_dispatcher = dispatcher;
 
 		_eventSimulator = eventSimulator;
+
+		_executionEngine = executionEngine;
 
 		_keyboardInputHook = keyboardInputHook;
 

@@ -70,8 +70,10 @@ public class FileChangeTracker : IFileChangeTracker
 			{
 				_logger.LogException(ex);
 
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(
+				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
 					$@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}"""));
+
+				_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
 
 				return;
 			}
@@ -98,6 +100,8 @@ public class FileChangeTracker : IFileChangeTracker
 					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
 						$@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}"));
 
+					_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
+
 					return;
 				}
 
@@ -113,6 +117,8 @@ public class FileChangeTracker : IFileChangeTracker
 
 					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
 						$@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}"""));
+
+					_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
 
 					return;
 				}
