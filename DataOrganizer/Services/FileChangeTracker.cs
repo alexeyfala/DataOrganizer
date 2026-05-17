@@ -87,7 +87,21 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
+				Stream currentStream;
+
+				try
+				{
+					currentStream = _fileSystem.OpenRead(parameters.FilePath);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+
+					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
+						$@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}"""));
+
+					return;
+				}
 
 				byte[] currentHash = previousHash;
 
