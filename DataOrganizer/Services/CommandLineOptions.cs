@@ -66,16 +66,15 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 		Dictionary<string, string> descriptions = GetCommandDescriptions();
 
-		int maxCommandLength = GetMaxCommandLength(descriptions.Keys);
+		int maxCommandLength = GetLongestValueLength(descriptions.Keys);
 
 		descriptions
 			.OrderBy(x => x.Key)
-			.ToArray()
 			.ForEachFor((element, i) =>
 			{
 				int requiredLength = maxCommandLength - element.Key.Length;
 
-				string spaces = new([.. GetSpaces(requiredLength)]);
+				string spaces = new(' ', requiredLength);
 
 				builder.Append(element.Key);
 
@@ -118,26 +117,12 @@ public sealed class CommandLineOptions : ICommandLineOptions
 		return typeof(ICommandLineOptions)
 			.GetProperty(propertyName)?
 			.GetCustomAttribute<DescriptionAttribute>()?
-			.Description ?? string.Empty;
+			.Description ?? "Missing ...";
 	}
 
 	/// <summary>
-	/// Returns the number of characters in the longest value from <paramref name="keys"/>.
+	/// Returns the longest value.
 	/// </summary>
-	private static int GetMaxCommandLength(Dictionary<string, string>.KeyCollection keys)
-	{
-		return (keys.MaxBy(x => x.Length)?.Length) ?? 0;
-	}
-
-	/// <summary>
-	/// Returns a specified number of spaces.
-	/// </summary>
-	private static IEnumerable<char> GetSpaces(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return ' ';
-		}
-	}
+	private static int GetLongestValueLength(IEnumerable<string> values) => (values.MaxBy(x => x.Length)?.Length) ?? 0;
 	#endregion
 }
