@@ -85,8 +85,8 @@ public class FileChangeTracker : IFileChangeTracker
 			}
 			finally
 			{
-				// You must explicitly call the Dispose() method without the 'using' keyword,
-				// otherwise the file will be locked. Follow this behavior in the code below.
+				// Release the stream right after the hash is computed so the file is not held
+				// open while the monitoring loop below is running.
 				initial.Dispose();
 			}
 
