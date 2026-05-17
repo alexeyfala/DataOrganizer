@@ -22,7 +22,7 @@ public interface ICommandLineOptions
 	bool IsConsoleNeeded { get; }
 
 	/// <summary>
-	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information />".
+	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information" />.
 	/// </summary>
 	[Description("Logging level entries Debug, default Information.")]
 	LogEventLevel MinimumLogEventLevel { get; }
