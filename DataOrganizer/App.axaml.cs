@@ -118,7 +118,7 @@ public sealed class App : Application
 		if (AppUtils.IsDebug)
 		{
 			return args
-				.AddHelpArg()
+				//.AddHelpArg()
 				//.AddFillObjectsArg()
 				.AddConsoleArg()
 				.AddDebugArg();
