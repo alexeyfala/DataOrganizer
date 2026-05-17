@@ -24,7 +24,7 @@ public interface ICommandLineOptions
 	/// <summary>
 	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information />".
 	/// </summary>
-	[Description("Logging level entries LogEventLevel.Debug, default LogEventLevel.Information.")]
+	[Description("Logging level entries Debug, default Information.")]
 	LogEventLevel MinimumLogEventLevel { get; }
 
 	/// <summary>

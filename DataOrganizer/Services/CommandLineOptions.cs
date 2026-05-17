@@ -4,7 +4,9 @@ using Serilog.Events;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 
 namespace DataOrganizer.Services;
 
@@ -37,17 +39,6 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 	/// <inheritdoc cref="PrintHelp" />
 	internal const string HelpArg = "--help";
-
-	/// <summary>
-	/// Contains descriptions of the command line arguments that the application works with.
-	/// </summary>
-	private static readonly Dictionary<string, string> CommandDescriptions = new()
-	{
-		{ ConsoleArg, "Show console window to view logs." },
-		{ DebugArg, $@"Logging level entries ""{LogEventLevel.Debug}"", default ""{LogEventLevel.Information}""." },
-		{ FillObjectsArg, "Fill the database with random objects for debugging." },
-		{ HelpArg, "Show help information." }
-	};
 	#endregion
 
 	#region Constructors
@@ -73,9 +64,11 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 		builder.AppendLine("Available command line arguments:");
 
-		int maxCommandLength = GetMaxCommandLength();
+		Dictionary<string, string> descriptions = GetCommandDescriptions();
 
-		CommandDescriptions
+		int maxCommandLength = GetMaxCommandLength(descriptions.Keys);
+
+		descriptions
 			.OrderBy(x => x.Key)
 			.ToArray()
 			.ForEachFor((element, i) =>
@@ -90,7 +83,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 				builder.Append(spaces);
 
-				if (i < CommandDescriptions.Count - 1)
+				if (i < descriptions.Count - 1)
 				{
 					builder.AppendLine(element.Value);
 				}
@@ -106,11 +99,34 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 	#region Service
 	/// <summary>
-	/// Returns the number of characters in the longest command from <see cref="CommandDescriptions" />.
+	/// Returns descriptions of the command line arguments that the application works with.
 	/// </summary>
-	private static int GetMaxCommandLength()
+	private static Dictionary<string, string> GetCommandDescriptions() => new()
 	{
-		return (CommandDescriptions.Keys.MaxBy(x => x.Length)?.Length) ?? 0;
+		{ ConsoleArg, GetDescription(nameof(ICommandLineOptions.IsConsoleNeeded)) },
+		{ DebugArg, GetDescription(nameof(ICommandLineOptions.MinimumLogEventLevel)) },
+		{ FillObjectsArg, GetDescription(nameof(ICommandLineOptions.FillObjects)) },
+		{ HelpArg, GetDescription(nameof(ICommandLineOptions.PrintHelp)) }
+	};
+
+	/// <summary>
+	/// Returns the value of the <see cref="DescriptionAttribute" /> applied to
+	/// the <see cref="ICommandLineOptions" /> property with the given name.
+	/// </summary>
+	private static string GetDescription(string propertyName)
+	{
+		return typeof(ICommandLineOptions)
+			.GetProperty(propertyName)?
+			.GetCustomAttribute<DescriptionAttribute>()?
+			.Description ?? string.Empty;
+	}
+
+	/// <summary>
+	/// Returns the number of characters in the longest value from <paramref name="keys"/>.
+	/// </summary>
+	private static int GetMaxCommandLength(Dictionary<string, string>.KeyCollection keys)
+	{
+		return (keys.MaxBy(x => x.Length)?.Length) ?? 0;
 	}
 
 	/// <summary>
