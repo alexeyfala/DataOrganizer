@@ -33,19 +33,19 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <inheritdoc cref="FileProperties.FontSize" />
 	[ObservableProperty]
-	private double _fontSize = 14.0;
+	public partial double FontSize { get; set; } = 14.0;
 
 	/// <inheritdoc cref="FileProperties.IsWordWrap" />
 	[ObservableProperty]
-	private bool _isWordWrap;
+	public partial bool IsWordWrap { get; set; }
 	#endregion
 
 	#region Commands
 	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanCopy);
 
 	/// <inheritdoc cref="TextEditorHelper.Find" />
 	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
@@ -57,7 +57,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
 
 	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanSelectAll);
 
 	/// <inheritdoc cref="TextEditorHelper.Spin" />
 	public RelayCommand<SpinEventArgs> SpinCommand { get; }

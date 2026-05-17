@@ -44,7 +44,7 @@
 				<TextBlock
 					Foreground="{StaticResource MaterialBodyBrush}"
 					IsVisible="{Binding !IsHyperlink, Mode=OneWay}"
-					Text="{Binding Text, Mode=OneWay}">
+					Text="{Binding DisplayText, Mode=OneWay}">
 
 					<Interaction.Behaviors>
 						<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
@@ -55,16 +55,12 @@
 				<HyperlinkButton
 					IsVisible="{Binding IsHyperlink, Mode=OneWay}"
 					NavigateUri="{Binding Text, Mode=OneWay}">
-					<TextBlock Text="{Binding Text, Mode=OneWay}">
+					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
 							<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
 						</Interaction.Behaviors>
 					</TextBlock>
 				</HyperlinkButton>
-
-				<Grid.Effect>
-					<BlurEffect Radius="{Binding BlurRadius, Mode=OneWay}" />
-				</Grid.Effect>
 			</Grid>
 
 			<Interaction.Behaviors>

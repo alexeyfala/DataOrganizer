@@ -434,7 +434,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Scrolls the list to the end.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteScrollToEnd))]
+	[RelayCommand(CanExecute = nameof(CanScrollToEnd))]
 	private Task ScrollToEnd(ScrollViewer? scrollViewer)
 	{
 		if (scrollViewer is null || Records.Count == 0)
@@ -452,7 +452,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Scrolls the list to the top.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteScrollToTop))]
+	[RelayCommand(CanExecute = nameof(CanScrollToTop))]
 	private Task ScrollToTop(ScrollViewer? scrollViewer)
 	{
 		if (scrollViewer is null || Records.Count == 0)
@@ -1106,12 +1106,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.
 	/// </summary>
-	private bool CanExecuteScrollToEnd() => !ScrollToTopCommand.IsRunning;
+	private bool CanScrollToEnd() => !ScrollToTopCommand.IsRunning;
 
 	/// <summary>
 	/// Validates <see cref="ScrollToTopCommand" />.
 	/// </summary>
-	private bool CanExecuteScrollToTop() => !ScrollToEndCommand.IsRunning;
+	private bool CanScrollToTop() => !ScrollToEndCommand.IsRunning;
 
 	/// <inheritdoc cref="DeleteRecordAsync(DatasetRecordBase, CancellationToken)" />
 	private async Task DeleteRecordAsync(

@@ -8,17 +8,17 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 internal sealed partial class ToastViewModel : ObservableObject
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Message.
 	/// </summary>
 	[ObservableProperty]
-	private string? _message;
+	public partial string? Message { get; set; }
 
 	/// <summary>
 	/// Title.
 	/// </summary>
 	[ObservableProperty]
-	private string? _title;
+	public partial string? Title { get; set; }
 	#endregion
 }

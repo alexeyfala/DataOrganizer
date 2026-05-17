@@ -11,20 +11,18 @@ public sealed partial class RecordsGroup : DatasetRecordBase
 	/// Child records.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Children { get; set; } = [];
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Returns <c>True</c> if group is expanded.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isExpanded = true;
+	public partial bool IsExpanded { get; set; } = true;
 
 	/// <summary>
 	/// Name.
 	/// </summary>
 	[ObservableProperty]
-	private string? _name;
+	public partial string? Name { get; set; }
 	#endregion
 
 	#region Methods

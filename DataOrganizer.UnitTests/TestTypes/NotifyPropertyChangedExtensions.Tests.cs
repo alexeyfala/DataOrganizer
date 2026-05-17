@@ -74,7 +74,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	private sealed partial class Source : ObservableObject
 	{
 		[ObservableProperty]
-		private string? _search;
+		public partial string? Search { get; set; }
 	}
 	#endregion
 }

@@ -24,10 +24,24 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {
 	#region Properties
+	/// <inheritdoc cref="FileProperties.FontSize" />
+	[ObservableProperty]
+	public partial double FontSize { get; set; } = 14.0;
+
+	/// <summary>
+	/// Indicates that recording should be paused.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsPaused { get; set; }
+
 	/// <summary>
 	/// Returns <c>True</c> if settings are saved.
 	/// </summary>
 	public bool IsSaved { get; set; }
+
+	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	[ObservableProperty]
+	public partial bool IsWordWrap { get; set; }
 
 	/// <summary>
 	/// A reference to a method for writing a line of text.
@@ -35,25 +49,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	public Action<string> WriteCallback => Write;
 	#endregion
 
-	#region Auto-Generated Properties
-	/// <inheritdoc cref="FileProperties.FontSize" />
-	[ObservableProperty]
-	private double _fontSize = 14.0;
-
-	/// <summary>
-	/// Indicates that recording should be paused.
-	/// </summary>
-	[ObservableProperty]
-	private bool _isPaused;
-
-	/// <inheritdoc cref="FileProperties.IsWordWrap" />
-	[ObservableProperty]
-	private bool _isWordWrap;
-	#endregion
-
 	#region Commands
 	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanExecuteCopy);
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanCopy);
 
 	/// <inheritdoc cref="TextEditorHelper.Find" />
 	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
@@ -65,7 +63,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
 
 	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanExecuteSelectAll);
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanSelectAll);
 
 	/// <inheritdoc cref="TextEditorHelper.Spin" />
 	public RelayCommand<SpinEventArgs> SpinCommand { get; }

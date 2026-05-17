@@ -7,17 +7,17 @@ namespace DataOrganizer.Models;
 [DebuggerDisplay($"{nameof(Type)} = {{{nameof(Type)}}}, {nameof(Value)} = {{{nameof(Value)}}}")]
 public partial class ValueRecord : DatasetRecordBase
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Returns <c>True</c> when <see cref="Value" /> should be hidden.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isHidden;
+	public partial bool IsHidden { get; set; }
 
 	/// <summary>
 	/// Value.
 	/// </summary>
 	[ObservableProperty]
-	private string? _value;
+	public partial string? Value { get; set; }
 	#endregion
 }

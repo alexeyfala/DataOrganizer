@@ -60,31 +60,68 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			Stream initial = _fileSystem.OpenRead(parameters.FilePath);
+			Stream initial;
 
-			byte[] previousHash = await _fileSystem
-				.ComputeSha256HashAsync(initial, token)
-				.ConfigureAwait(false);
-
-			// You must explicitly call the Dispose() method without the 'using' keyword,
-			// otherwise the file will be locked. Follow this behavior in the code below.
-			initial.Dispose();
-
-			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
+			try
 			{
-				if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
+				initial = _fileSystem.OpenRead(parameters.FilePath);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+
+				CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+
+				return;
+			}
+
+			byte[] previousHash;
+
+			try
+			{
+				previousHash = await _fileSystem
+					.ComputeSha256HashAsync(initial, token)
+					.ConfigureAwait(false);
+			}
+			finally
+			{
+				// Release the stream right after the hash is computed so the file is not held
+				// open while the monitoring loop below is running.
+				initial.Dispose();
+			}
+
+			while (!token.IsCancellationRequested)
+			{
+				if (!_fileSystem.IsFileExists(parameters.FilePath))
 				{
+					CloseExecutingFile($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+
 					return;
 				}
 
-				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
-
-				byte[] currentHash = await _fileSystem
-					.ComputeSha256HashAsync(currentStream, token)
-					.ConfigureAwait(false);
+				Stream currentStream;
 
 				try
 				{
+					currentStream = _fileSystem.OpenRead(parameters.FilePath);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+
+					CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+
+					return;
+				}
+
+				byte[] currentHash = previousHash;
+
+				try
+				{
+					currentHash = await _fileSystem
+						.ComputeSha256HashAsync(currentStream, token)
+						.ConfigureAwait(false);
+
 					if (!currentHash.SequenceEqual(previousHash))
 					{
 						currentStream.Position = 0;
@@ -146,6 +183,7 @@ public class FileChangeTracker : IFileChangeTracker
 					currentStream.Dispose();
 				}
 
+				// Polling interval between change checks.
 				await Task
 					.Delay(800, token)
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -167,6 +205,13 @@ public class FileChangeTracker : IFileChangeTracker
 					.Contents
 					.ZeroMemory();
 			}
+		}
+
+		void CloseExecutingFile(string message)
+		{
+			_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(message));
+
+			_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
 		}
 	}
 	#endregion

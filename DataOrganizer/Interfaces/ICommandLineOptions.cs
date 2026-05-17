@@ -1,4 +1,5 @@
 ﻿using Serilog.Events;
+using System.ComponentModel;
 
 namespace DataOrganizer.Interfaces;
 
@@ -9,23 +10,27 @@ public interface ICommandLineOptions
 {
 	#region Properties
 	/// <summary>
-	/// Indicates the need to fill the database with random objects for debugging.
+	/// Fill the database with random objects for debugging.
 	/// </summary>
+	[Description("Fill the database with random objects for debugging.")]
 	bool FillObjects { get; }
 
 	/// <summary>
-	/// Indicates whether the console should be shown.
+	/// Show console window to view logs.
 	/// </summary>
+	[Description("Show console window to view logs.")]
 	bool IsConsoleNeeded { get; }
 
 	/// <summary>
-	/// Minimum logging level.
+	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information" />.
 	/// </summary>
+	[Description("Logging level entries Debug, default Information.")]
 	LogEventLevel MinimumLogEventLevel { get; }
 
 	/// <summary>
-	/// Indicates the need to display the help information.
+	/// Show help information.
 	/// </summary>
+	[Description("Show help information.")]
 	bool PrintHelp { get; }
 	#endregion
 

@@ -12,12 +12,12 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewModel
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Text.
 	/// </summary>
 	[ObservableProperty]
-	private string? _text;
+	public partial string? Text { get; set; }
 	#endregion
 
 	#region Constructors

@@ -35,16 +35,6 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Text blur radius.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public double BlurRadius
-	{
-		get => GetValue(BlurRadiusProperty);
-		set => SetValue(BlurRadiusProperty, value);
-	}
-
-	/// <summary>
 	/// Color sample.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
@@ -52,6 +42,17 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	{
 		get => GetValue(ColorSampleBrushProperty);
 		set => SetValue(ColorSampleBrushProperty, value);
+	}
+
+	/// <summary>
+	/// Text to display: equals <see cref="Text" /> normally, or a bullet-character mask
+	/// of the same length when <see cref="IsHidden" /> is <c>True</c>.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public string? DisplayText
+	{
+		get => GetValue(DisplayTextProperty);
+		set => SetValue(DisplayTextProperty, value);
 	}
 
 	/// <summary>
@@ -167,16 +168,16 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, Brush?>(name: nameof(AreaBrush));
 
 	/// <summary>
-	/// Identifies the <see cref="BlurRadius" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<double> BlurRadiusProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, double>(name: nameof(BlurRadius));
-
-	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Brush?> ColorSampleBrushProperty = AvaloniaProperty
 		.Register<ClipboardTextBlock, Brush?>(name: nameof(ColorSampleBrush));
+
+	/// <summary>
+	/// Identifies the <see cref="DisplayText" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> DisplayTextProperty = AvaloniaProperty
+		.Register<ClipboardTextBlock, string?>(name: nameof(DisplayText));
 
 	/// <summary>
 	/// Identifies the <see cref="HighlightSignal" /> avalonia property.
@@ -321,7 +322,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	private void IsHiddenProperty_Changed(bool value)
 	{
-		BlurRadius = value ? 20.0 : 0.0;
+		UpdateDisplayText();
 
 		SetColorSampleBrush(Text);
 	}
@@ -341,6 +342,8 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		IsHyperlink = value.IsUriFormat();
 
 		IsColor = value.IsHtmlColorFormat();
+
+		UpdateDisplayText();
 
 		SetColorSampleBrush(value);
 	}
@@ -410,6 +413,17 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		ColorSampleBrush = IsColor && text is not null
 			? SolidColorBrush.Parse(text)
 			: null;
+	}
+
+	/// <summary>
+	/// Recomputes <see cref="DisplayText" /> based on the current <see cref="Text" /> and <see cref="IsHidden" />.
+	/// When hidden, replaces visible text with a fixed-length bullet mask so the real text length is not leaked.
+	/// </summary>
+	private void UpdateDisplayText()
+	{
+		DisplayText = IsHidden && !string.IsNullOrEmpty(Text)
+			? "▓▓▓▓▓▓▓▓"
+			: Text;
 	}
 	#endregion
 }

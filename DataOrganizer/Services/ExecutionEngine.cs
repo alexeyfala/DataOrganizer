@@ -108,6 +108,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
+			if (!_fileSystem.IsFileExists(info.FilePath))
+			{
+				return;
+			}
+
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
 				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
@@ -145,8 +150,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			return;
 		}
-
-		_logger.LogInformation($"Disposing: {GetType().Name}");
 
 		_isDisposed = true;
 
@@ -220,9 +223,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				TrackChangesParameters trackParameters = new()
 				{
 					Contents = parameters.Contents,
-					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
-					FilePath = filePath
+					FileName = fileName,
+					FilePath = filePath,
+					SessionEncryptedDek = parameters.SessionEncryptedDek
 				};
 
 				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
@@ -277,7 +281,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		if (!_fileSystem.IsFileExists(filePath))
 		{
-			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""");
+			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""", false);
 
 			return false;
 		}

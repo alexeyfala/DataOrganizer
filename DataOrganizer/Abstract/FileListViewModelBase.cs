@@ -41,7 +41,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
-	[RelayCommand(CanExecute = nameof(CanExecuteCopyContent))]
+	[RelayCommand(CanExecute = nameof(CanCopyContent))]
 	private void CopyContent(IEnumerable<object>? multiBindings)
 	{
 		object[] values = [.. multiBindings.AsNotNull()];
@@ -182,7 +182,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>
-	private static bool CanExecuteCopyContent(IEnumerable<object>? multiBindings)
+	private static bool CanCopyContent(IEnumerable<object>? multiBindings)
 	{
 		if (GetFile(
 			multiBindings?.ToArray() ?? [],

@@ -15,24 +15,24 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportListVariant>
 {
-	#region Auto-Generated Properties
+	#region Properties
 	/// <summary>
 	/// Add to the list.
 	/// </summary>
 	[ObservableProperty]
-	private bool _addToList;
+	public partial bool AddToList { get; set; }
 
 	/// <summary>
 	/// Header.
 	/// </summary>
 	[ObservableProperty]
-	private string? _header;
+	public partial string? Header { get; set; }
 
 	/// <summary>
 	/// Replace the list.
 	/// </summary>
 	[ObservableProperty]
-	private bool _replace = true;
+	public partial bool Replace { get; set; } = true;
 	#endregion
 
 	#region Auto-Generated Commands

@@ -46,6 +46,12 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	public bool IsInitialized { get; protected set; }
 
 	/// <summary>
+	/// Read-only mode.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsReadOnly { get; set; }
+
+	/// <summary>
 	/// Encrypted within the session DEK.
 	/// </summary>
 	public byte[]? SessionEncryptedDek { get; set; }
@@ -59,14 +65,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// Callback to set object's updated date.
 	/// </summary>
 	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
-	#endregion
-
-	#region Auto-Generated Properties
-	/// <summary>
-	/// Read-only mode.
-	/// </summary>
-	[ObservableProperty]
-	private bool _isReadOnly;
 	#endregion
 
 	#region Auto-Generated Commands

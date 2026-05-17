@@ -56,7 +56,7 @@ internal static class TextEditorHelper
 	/// <summary>
 	/// Validates <see cref="Copy" />.
 	/// </summary>
-	public static bool CanExecuteCopy(TextArea? area)
+	public static bool CanCopy(TextArea? area)
 	{
 		return area?
 			.Selection
@@ -66,7 +66,7 @@ internal static class TextEditorHelper
 	/// <summary>
 	/// Validates <see cref="SelectAll" />.
 	/// </summary>
-	public static bool CanExecuteSelectAll(TextEditor? editor) => editor?.Text.Length > 0;
+	public static bool CanSelectAll(TextEditor? editor) => editor?.Text.Length > 0;
 
 	/// <summary>
 	/// Command <see cref="ApplicationCommands.Copy" />.

@@ -36,32 +36,30 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
 	public FavoritesViewSettings FavoritesSettings { get; } = new();
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Returns <c>True</c> if popup should be fixed.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isPopupFixed;
+	public partial bool IsPopupFixed { get; set; }
 
 	/// <summary>
 	/// Controls the display of the popup panel.
 	/// </summary>
 	[ObservableProperty]
-	private bool _isPopupOpen;
+	public partial bool IsPopupOpen { get; set; }
 
 	/// <inheritdoc cref="FavoritesPopupContentType" />
 	[ObservableProperty]
-	private FavoritesPopupContentType _popupContent;
+	public partial FavoritesPopupContentType PopupContent { get; set; }
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupHeight" />
 	[ObservableProperty]
-	private double _popupHeight;
+	public partial double PopupHeight { get; set; }
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
-	private double _popupWidth;
+	public partial double PopupWidth { get; set; }
 	#endregion
 
 	#region Partial
@@ -129,7 +127,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Displays the favorites in the popup panel.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowFavorites))]
+	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
 	public void ShowFavorites()
 	{
 		_logger.LogInformation("Show favorites");
@@ -293,7 +291,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteShowCopyHistory))]
+	[RelayCommand(CanExecute = nameof(CanShowCopyHistory))]
 	private void ShowCopyHistory()
 	{
 		_logger.LogInformation("Show copy history");
@@ -335,6 +333,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IDispatcher dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
+		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		ITaskExceptionHandler handler,
@@ -348,6 +347,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			dispatcher,
 			entityEncryption,
 			eventSimulator,
+			executionEngine,
 			keyboardInputHook,
 			logger,
 			handler,
@@ -509,12 +509,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// <summary>
 	/// Validates <see cref="ShowCopyHistoryCommand" />.
 	/// </summary>
-	private bool CanExecuteShowCopyHistory() => PopupContent != FavoritesPopupContentType.CopyHistory;
+	private bool CanShowCopyHistory() => PopupContent != FavoritesPopupContentType.CopyHistory;
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanExecuteShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
+	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
 
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.

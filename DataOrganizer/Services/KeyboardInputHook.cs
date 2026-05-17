@@ -133,8 +133,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			return;
 		}
 
-		_logger.LogInformation($"Disposing: {GetType().Name}");
-
 		_isDisposed = true;
 
 		_semaphore.Dispose();

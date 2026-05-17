@@ -20,9 +20,11 @@ using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,17 +63,39 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Opened in editor files.
 	/// </summary>
 	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
-	#endregion
 
-	#region Auto-Generated Properties
 	/// <summary>
 	/// Snackbar's text color.
 	/// </summary>
 	[ObservableProperty]
-	private IBrush? _snackbarForeground;
+	public partial IBrush? SnackbarForeground { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
+	/// <summary>
+	/// Closes a file executing in the operating system.
+	/// </summary>
+	[RelayCommand]
+	internal void CloseExecutingFile(FileModelDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
+			true,
+			nameof(FileModelDto.Id),
+			nameof(FileModelDto.Name),
+			nameof(FileModelDto.EntityType))}");
+
+		ExecutingFiles.Remove(dto);
+
+		dto.IsExecuting = false;
+
+		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
+	}
+
 	/// <summary>
 	/// Handles the display of copy history.
 	/// </summary>
@@ -105,6 +129,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IDispatcher" />
 	protected readonly IDispatcher _dispatcher;
 
+	/// <inheritdoc cref="IExecutionEngine" />
+	protected readonly IExecutionEngine _executionEngine;
+
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
@@ -131,6 +158,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IDispatcher dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
+		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		ITaskExceptionHandler handler,
@@ -148,6 +176,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_dispatcher = dispatcher;
 
 		_eventSimulator = eventSimulator;
+
+		_executionEngine = executionEngine;
 
 		_keyboardInputHook = keyboardInputHook;
 
@@ -243,6 +273,16 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
+	/// </summary>
+	private static bool IsSnackbarHostLoaded()
+	{
+		return typeof(SnackbarHost)
+			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
+			?.GetValue(null) is IDictionary registered && registered.Count > 0;
+	}
+
 	/// <inheritdoc cref="SaveCopyHistory()" />
 	private void SaveCopyHistory(CopyHistoryViewModel viewModel)
 	{
@@ -303,7 +343,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				};
 			}
 
-			string message = $"Shown in Snackbar: {text}";
+			bool isLoaded = IsSnackbarHostLoaded();
+
+			string message = $"{(isLoaded ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
 
 			switch (level)
 			{
@@ -318,6 +360,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 				default:
 					_logger.LogInformation(message);
 					break;
+			}
+
+			if (!isLoaded)
+			{
+				return;
 			}
 
 			SnackbarHost.Post(
