@@ -9,22 +9,22 @@ public interface ICommandLineOptions
 {
 	#region Properties
 	/// <summary>
-	/// Indicates the need to fill the database with random objects for debugging.
+	/// Fill the database with random objects for debugging.
 	/// </summary>
 	bool FillObjects { get; }
 
 	/// <summary>
-	/// Indicates whether the console should be shown.
+	/// Show console window to view logs.
 	/// </summary>
 	bool IsConsoleNeeded { get; }
 
 	/// <summary>
-	/// Minimum logging level.
+	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information" />.
 	/// </summary>
 	LogEventLevel MinimumLogEventLevel { get; }
 
 	/// <summary>
-	/// Indicates the need to display the help information.
+	/// Show help information.
 	/// </summary>
 	bool PrintHelp { get; }
 	#endregion
