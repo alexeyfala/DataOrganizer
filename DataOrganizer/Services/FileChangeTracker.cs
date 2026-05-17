@@ -126,13 +126,17 @@ public class FileChangeTracker : IFileChangeTracker
 					{
 						currentStream.Position = 0;
 
-						await using MemoryStream memoryStream = new();
+						// 'checked' guards against silently truncating files larger than
+						// int.MaxValue (~2 GB). For text / editor files this branch is
+						// effectively unreachable, but if it ever is, we want a clear
+						// OverflowException instead of a corrupted partial read.
+						int length = checked((int)currentStream.Length);
+
+						byte[] bytes = new byte[length];
 
 						await currentStream
-							.CopyToAsync(memoryStream, token)
+							.ReadExactlyAsync(bytes, token)
 							.ConfigureAwait(false);
-
-						byte[] bytes = memoryStream.ToArray();
 
 						try
 						{
