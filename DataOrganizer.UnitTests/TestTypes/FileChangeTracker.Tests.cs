@@ -61,9 +61,14 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10),
+			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+		};
 
 		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
 
@@ -147,6 +152,7 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
 			FilePath = AppUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
@@ -201,9 +207,14 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10),
+			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+		};
 
 		// Act
 		Func<Task> act = () => sut.TrackChangesAsync(parameters);
@@ -277,6 +288,7 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
 			FilePath = AppUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
@@ -351,9 +363,14 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10),
+			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+		};
 
 		DateTime before = DateTime.Now;
 
@@ -370,18 +387,5 @@ internal class FileChangeTrackerTests
 			.Should()
 			.BeOnOrAfter(before);
 	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Builds <see cref="TrackChangesParameters" /> for tests with a fresh semaphore and the supplied contents.
-	/// </summary>
-	private static TrackChangesParameters CreateParameters(string filePath, byte[] contents) => new()
-	{
-		Contents = contents,
-		File = TestUtils.CreateFileDto(),
-		FilePath = filePath,
-		SessionEncryptedDek = null
-	};
 	#endregion
 }
