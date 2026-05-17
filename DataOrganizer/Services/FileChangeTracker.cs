@@ -183,7 +183,6 @@ public class FileChangeTracker : IFileChangeTracker
 					currentStream.Dispose();
 				}
 
-
 				// Polling interval between change checks.
 				await Task
 					.Delay(800, token)
