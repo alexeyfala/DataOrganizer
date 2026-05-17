@@ -6,7 +6,12 @@ public sealed class TrackChangesParameters : ExecuteFileParametersBase
 {
 	#region Properties
 	/// <summary>
-	/// A path to the file.
+	/// File name.
+	/// </summary>
+	public required string FileName { get; init; }
+
+	/// <summary>
+	/// Path to the file.
 	/// </summary>
 	public required string FilePath { get; init; }
 	#endregion

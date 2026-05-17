@@ -77,11 +77,12 @@ public class FileChangeTracker : IFileChangeTracker
 				initial.Dispose();
 			}
 
-			while (!token.IsCancellationRequested && _fileSystem.IsFileExists(parameters.FilePath))
+			while (!token.IsCancellationRequested)
 			{
-				if (token.IsCancellationRequested || !_fileSystem.IsFileExists(parameters.FilePath))
+				if (!_fileSystem.IsFileExists(parameters.FilePath))
 				{
-					return;
+					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
+						$@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}"));
 				}
 
 				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);

@@ -223,9 +223,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				TrackChangesParameters trackParameters = new()
 				{
 					Contents = parameters.Contents,
-					SessionEncryptedDek = parameters.SessionEncryptedDek,
 					File = parameters.File,
-					FilePath = filePath
+					FileName = fileName,
+					FilePath = filePath,
+					SessionEncryptedDek = parameters.SessionEncryptedDek
 				};
 
 				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
