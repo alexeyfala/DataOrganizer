@@ -93,8 +93,16 @@ public interface IFileSystem
 	bool IsFileLocked(string filePath);
 
 	/// <summary>
-	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent writers (e.g. the user's editor) to modify the file while it is being observed.
+	/// Opens an existing file for reading with <see cref="FileShare.ReadWrite" />, allowing concurrent
+	/// writers (e.g. the user's editor) to modify the file while it is being observed.
 	/// </summary>
+	/// <returns>
+	/// A <see cref="Stream" /> that <b>must support seeking</b> (<see cref="Stream.CanSeek" /> is
+	/// <c>true</c>). Callers may rely on <see cref="Stream.Position" />, <see cref="Stream.Seek" /> and
+	/// <see cref="Stream.Length" /> — for example, the file-change tracker resets the position after
+	/// computing the hash to re-read the contents. Implementations that cannot guarantee seekability
+	/// must not expose them via this method; use a separate non-seekable API instead.
+	/// </returns>
 	Stream OpenRead(string filePath);
 
 	/// <summary>
