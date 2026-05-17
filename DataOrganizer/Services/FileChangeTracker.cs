@@ -60,7 +60,21 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			Stream initial = _fileSystem.OpenRead(parameters.FilePath);
+			Stream initial;
+
+			try
+			{
+				initial = _fileSystem.OpenRead(parameters.FilePath);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+
+				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(
+					$@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}"""));
+
+				return;
+			}
 
 			byte[] previousHash;
 
