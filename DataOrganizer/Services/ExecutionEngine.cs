@@ -108,6 +108,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
+			if (!_fileSystem.IsFileExists(info.FilePath))
+			{
+				return;
+			}
+
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
 				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
