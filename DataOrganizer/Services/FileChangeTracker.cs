@@ -132,7 +132,7 @@ public class FileChangeTracker : IFileChangeTracker
 							.CopyToAsync(memoryStream, token)
 							.ConfigureAwait(false);
 
-						byte[] bytes = memoryStream.GetBuffer();
+						byte[] bytes = memoryStream.ToArray();
 
 						try
 						{
