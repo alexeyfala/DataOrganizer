@@ -83,6 +83,8 @@ public class FileChangeTracker : IFileChangeTracker
 				{
 					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(
 						$@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}"));
+
+					return;
 				}
 
 				Stream currentStream = _fileSystem.OpenRead(parameters.FilePath);
