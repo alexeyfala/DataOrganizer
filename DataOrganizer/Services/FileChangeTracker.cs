@@ -78,11 +78,11 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				Stream currentStream;
+				Stream fileStream;
 
 				try
 				{
-					currentStream = _fileSystem.OpenRead(parameters.FilePath);
+					fileStream = _fileSystem.OpenRead(parameters.FilePath);
 				}
 				catch (Exception ex)
 				{
@@ -98,22 +98,22 @@ public class FileChangeTracker : IFileChangeTracker
 				try
 				{
 					currentHash = await _fileSystem
-						.ComputeStreamHashAsync(algorithm, currentStream, token)
+						.ComputeStreamHashAsync(algorithm, fileStream, token)
 						.ConfigureAwait(false);
 
 					if (!currentHash.SequenceEqual(previousHash))
 					{
-						currentStream.Position = 0;
+						fileStream.Position = 0;
 
 						// 'checked' guards against silently truncating files larger than
 						// int.MaxValue (~2 GB). For text / editor files this branch is
 						// effectively unreachable, but if it ever is, we want a clear
 						// OverflowException instead of a corrupted partial read.
-						int length = checked((int)currentStream.Length);
+						int length = checked((int)fileStream.Length);
 
 						byte[] bytes = new byte[length];
 
-						await currentStream
+						await fileStream
 							.ReadExactlyAsync(bytes, token)
 							.ConfigureAwait(false);
 
@@ -166,7 +166,7 @@ public class FileChangeTracker : IFileChangeTracker
 				}
 				finally
 				{
-					currentStream.Dispose();
+					fileStream.Dispose();
 				}
 
 				// Polling interval between change checks.
