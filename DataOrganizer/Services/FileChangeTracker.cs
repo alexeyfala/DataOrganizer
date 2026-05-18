@@ -193,11 +193,15 @@ public class FileChangeTracker : IFileChangeTracker
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			// User-initiated cancellation — normal flow, no notification, no log noise.
+		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			CloseExecutingFile(ex.Message);
+			CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
 		finally
 		{
