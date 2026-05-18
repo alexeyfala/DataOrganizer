@@ -547,7 +547,7 @@ public class ViewLauncher : IViewLauncher
 				.ConfigureAwait(false);
 		}
 
-		desktop.TryShutdown();
+		desktop.Shutdown();
 	}
 	#endregion
 }
