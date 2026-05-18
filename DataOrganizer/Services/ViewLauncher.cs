@@ -358,7 +358,7 @@ public class ViewLauncher : IViewLauncher
 				return;
 			}
 
-			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
+			await ShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -406,7 +406,7 @@ public class ViewLauncher : IViewLauncher
 				return;
 			}
 
-			await TryShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
+			await ShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -489,9 +489,9 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
-	/// Tries to shutdown the application.
+	/// Shutdowns the application.
 	/// </summary>
-	private async Task TryShutdownAppAsync(
+	private async Task ShutdownAppAsync(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
@@ -499,6 +499,8 @@ public class ViewLauncher : IViewLauncher
 
 		if (!_app.IsDesktop(out var desktop))
 		{
+			Environment.Exit(0);
+
 			return;
 		}
 
