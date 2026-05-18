@@ -7,7 +7,6 @@ using DataOrganizer.DTO;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -16,6 +15,7 @@ using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,11 +36,13 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		byte[] parametersContents = TestUtils.CreateRandomBytes(10);
+
+		byte[] expectedHash = SHA256.HashData(parametersContents);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			byte[] contents = TestUtils.CreateRandomBytes(32);
-
-			byte[] hash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -53,8 +55,8 @@ internal class FileChangeTrackerTests
 				.Returns(_ => new MemoryStream(contents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(hash);
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(expectedHash);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -65,7 +67,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			Contents = parametersContents,
 			File = TestUtils.CreateFileDto(),
 			FileName = AppUtils.CreateRandomFileName(10),
 			FilePath = AppUtils.CreateRandomFileName(10),
@@ -122,7 +124,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			entityEncryption
@@ -199,7 +201,7 @@ internal class FileChangeTrackerTests
 				.Returns(_ => new MemoryStream(contents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(hash);
 
 			builder.RegisterInstance(fileSystem);
@@ -241,13 +243,6 @@ internal class FileChangeTrackerTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		// Previous mock (kept per the "do not delete user code" rule):
-		// IViewModelExecutionService viewModel = Substitute.For<IViewModelExecutionService>();
-		//
-		// FileChangeTracker no longer depends on IViewModelExecutionService — it publishes
-		// failures through IMessenger instead. A real StrongReferenceMessenger is used here
-		// rather than a Substitute because the CommunityToolkit Unit token is internal and
-		// cannot be referenced from this assembly to set up an NSubstitute argument matcher.
 		StrongReferenceMessenger messenger = new();
 
 		FileTrackingFailedPayload? receivedPayload = null;
@@ -279,7 +274,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
@@ -294,12 +289,6 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
-			// Previous registration (kept per the "do not delete user code" rule):
-			// builder.RegisterInstance(viewModel);
-			//
-			// Register as IMessenger explicitly — without As<IMessenger>() AutoMock would
-			// satisfy the IMessenger constructor parameter with its own NSubstitute auto-mock
-			// instead of our captured-recipient instance.
 			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
@@ -317,15 +306,6 @@ internal class FileChangeTrackerTests
 		// Act
 		await sut.TrackChangesAsync(parameters);
 
-		// Assert
-		// Previous assertion (kept per the "do not delete user code" rule):
-		// viewModel
-		//     .Received(1)
-		//     .ExecuteInEditor(Arg.Any<Action<EditorViewModel>>());
-		//
-		// FileChangeTracker now publishes a FileTrackingFailedMessage through IMessenger
-		// instead of poking the editor view-model directly. The real messenger above
-		// captures the payload into receivedPayload so we can verify it here.
 		receivedPayload
 			.Should()
 			.NotBeNull();
@@ -375,7 +355,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			dbAccess

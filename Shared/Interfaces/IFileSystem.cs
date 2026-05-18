@@ -26,9 +26,12 @@ public interface IFileSystem
 
 	#region Methods
 	/// <summary>
-	/// Computes the <see cref="HashAlgorithmName.SHA256" /> hash of <see cref="Stream" /> content.
+	/// Computes a hash of <see cref="Stream" /> content.
 	/// </summary>
-	ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default);
+	ValueTask<byte[]> ComputeStreamHashAsync(
+		HashAlgorithmName algorithm,
+		Stream stream,
+		CancellationToken token = default);
 
 	/// <inheritdoc cref="Directory.CreateDirectory(string)" />
 	void CreateDirectory(string directoryPath);

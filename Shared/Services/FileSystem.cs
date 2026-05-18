@@ -27,10 +27,13 @@ public sealed class FileSystem : IFileSystem
 
 	#region Methods
 	/// <inheritdoc />
-	public ValueTask<byte[]> ComputeSha256HashAsync(Stream stream, CancellationToken token = default)
+	public ValueTask<byte[]> ComputeStreamHashAsync(
+		HashAlgorithmName algorithm,
+		Stream stream,
+		CancellationToken token = default)
 	{
 		return CryptographicOperations.HashDataAsync(
-			HashAlgorithmName.SHA256,
+			algorithm,
 			stream,
 			token);
 	}

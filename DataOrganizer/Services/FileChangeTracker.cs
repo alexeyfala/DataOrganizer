@@ -11,6 +11,7 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -62,35 +63,11 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			Stream initial;
+			HashAlgorithmName algorithm = HashAlgorithmName.SHA256;
 
-			try
-			{
-				initial = _fileSystem.OpenRead(parameters.FilePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
-
-				return;
-			}
-
-			byte[] previousHash;
-
-			try
-			{
-				previousHash = await _fileSystem
-					.ComputeSha256HashAsync(initial, token)
-					.ConfigureAwait(false);
-			}
-			finally
-			{
-				// Release the stream right after the hash is computed so the file is not held
-				// open while the monitoring loop below is running.
-				initial.Dispose();
-			}
+			byte[] previousHash = CryptographicOperations.HashData(
+				algorithm,
+				parameters.Contents);
 
 			while (!token.IsCancellationRequested)
 			{
@@ -121,7 +98,7 @@ public class FileChangeTracker : IFileChangeTracker
 				try
 				{
 					currentHash = await _fileSystem
-						.ComputeSha256HashAsync(currentStream, token)
+						.ComputeStreamHashAsync(algorithm, currentStream, token)
 						.ConfigureAwait(false);
 
 					if (!currentHash.SequenceEqual(previousHash))
