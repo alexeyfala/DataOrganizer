@@ -90,9 +90,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		ExecutingFiles.Remove(dto);
+		_dispatcher.Post(() =>
+		{
+			ExecutingFiles.Remove(dto);
 
-		dto.IsExecuting = false;
+			dto.IsExecuting = false;
+		});
 
 		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
 	}
@@ -202,7 +205,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));		
+		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 
