@@ -1,5 +1,7 @@
-﻿using DataOrganizer.DTO;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Repository.Interfaces;
 using Serilog;
@@ -30,8 +32,8 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
@@ -40,7 +42,7 @@ public class FileChangeTracker : IFileChangeTracker
 		IEntityEncryption entityEncryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IViewModelExecutionService viewModel)
+		IMessenger messenger)
 	{
 		_dbAccess = dbAccess;
 
@@ -50,7 +52,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		_logger = logger;
 
-		_viewModel = viewModel;
+		_messenger = messenger;
 	}
 	#endregion
 
@@ -219,9 +221,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		void CloseExecutingFile(string message)
 		{
-			_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(message));
-
-			_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
+			_messenger.Send(new FileTrackingFailedMessage(new FileTrackingFailedPayload(parameters.File, message)));
 		}
 	}
 	#endregion

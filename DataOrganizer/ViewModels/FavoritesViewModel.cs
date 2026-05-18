@@ -14,6 +14,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
 using DynamicData;
@@ -357,6 +358,24 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			viewLauncher,
 			viewModel)
 	{
+		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
+	}
+	#endregion
+
+	#region Message handlers
+	/// <summary>
+	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by
+	/// <see cref="Services.FileChangeTracker" />.
+	/// </summary>
+	private void OnFileTrackingFailed(
+		object recipient,
+		FileTrackingFailedMessage message)
+	{
+		FileTrackingFailedPayload payload = message.Value;
+
+		ShowErrorSnackbar(payload.Message);
+
+		CloseExecutingFile(payload.File);
 	}
 	#endregion
 
@@ -479,6 +498,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
+
+		_messenger.Unregister<FileTrackingFailedMessage>(this);
 
 		FavoritesSettings
 			.Categories
