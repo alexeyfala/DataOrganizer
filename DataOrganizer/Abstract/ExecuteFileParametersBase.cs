@@ -16,6 +16,6 @@ public abstract class ExecuteFileParametersBase
 	/// <summary>
 	/// Encrypted within the session DEK.
 	/// </summary>
-	public required byte[]? SessionEncryptedDek { get; init; }
+	public byte[]? SessionEncryptedDek { get; init; }
 	#endregion
 }

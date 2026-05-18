@@ -70,8 +70,7 @@ internal class FileChangeTrackerTests
 			Contents = parametersContents,
 			File = TestUtils.CreateFileDto(),
 			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			FilePath = AppUtils.CreateRandomFileName(10)
 		};
 
 		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -216,8 +215,7 @@ internal class FileChangeTrackerTests
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
 			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			FilePath = AppUtils.CreateRandomFileName(10)
 		};
 
 		// Act
@@ -382,8 +380,7 @@ internal class FileChangeTrackerTests
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
 			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			FilePath = AppUtils.CreateRandomFileName(10)
 		};
 
 		DateTime before = DateTime.Now;
