@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -135,6 +136,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
+	/// <inheritdoc cref="IMessenger" />
+	protected readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
@@ -161,6 +165,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
@@ -181,6 +186,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_keyboardInputHook = keyboardInputHook;
 
+		_messenger = messenger;
+
 		_settingsManager = settingsManager;
 
 		_viewLauncher = viewLauncher;
@@ -195,7 +202,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
+		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));		
 	}
 	#endregion
 

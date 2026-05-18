@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
@@ -364,6 +365,7 @@ public sealed class App : Application
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
+		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		#endregion
 
 		#endregion

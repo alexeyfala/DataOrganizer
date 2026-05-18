@@ -547,9 +547,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_copyHistory?.Dispose();
 
-		WeakReferenceMessenger
-			.Default
-			.Unregister<FolderExpandedMessage>(this);
+		_messenger.Unregister<FolderExpandedMessage>(this);
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
@@ -1006,6 +1004,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
+		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
@@ -1021,6 +1020,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			executionEngine,
 			keyboardInputHook,
 			logger,
+			messenger,
 			handler,
 			viewLauncher,
 			viewModel)
@@ -1031,9 +1031,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		WeakReferenceMessenger
-			.Default
-			.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
+		messenger.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
 	}
 	#endregion
 
