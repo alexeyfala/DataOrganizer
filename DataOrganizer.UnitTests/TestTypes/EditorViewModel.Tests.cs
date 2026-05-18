@@ -163,10 +163,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.ChangePassword(folder);
@@ -314,10 +315,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.DecryptFolder(folder);
@@ -369,10 +371,11 @@ internal class EditorViewModelTests
 			}
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		sut
 			.Hierarchy
@@ -517,10 +520,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.EncryptFolder(folder);
@@ -792,10 +796,11 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		sut.AddHierarchy(editingFiles.Concat(executingFiles));
 
@@ -832,10 +837,11 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.HideFileContents(file);
@@ -888,10 +894,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.HideFolderContents(folder);
@@ -1495,10 +1502,11 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
 		await sut.ShowFolderContents(folder);
