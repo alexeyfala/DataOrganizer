@@ -116,7 +116,7 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				byte[] currentHash = previousHash;
+				byte[] currentHash;
 
 				try
 				{
@@ -184,11 +184,11 @@ public class FileChangeTracker : IFileChangeTracker
 							cleartext?.ZeroMemory();
 						}
 					}
+
+					previousHash = currentHash;
 				}
 				finally
 				{
-					previousHash = currentHash;
-
 					currentStream.Dispose();
 				}
 
