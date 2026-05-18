@@ -173,10 +173,7 @@ public class FileChangeTracker : IFileChangeTracker
 						}
 						finally
 						{
-							if (parameters.SessionEncryptedDek is not null)
-							{
-								bytes.ZeroMemory();
-							}
+							bytes.ZeroMemory();
 						}
 					}
 				}
@@ -205,16 +202,13 @@ public class FileChangeTracker : IFileChangeTracker
 		}
 		finally
 		{
-			if (parameters.SessionEncryptedDek is not null)
-			{
-				parameters
-					.SessionEncryptedDek
-					.ZeroMemory();
+			parameters
+				.SessionEncryptedDek?
+				.ZeroMemory();
 
-				parameters
-					.Contents
-					.ZeroMemory();
-			}
+			parameters
+				.Contents
+				.ZeroMemory();
 		}
 
 		void CloseExecutingFile(string message)
