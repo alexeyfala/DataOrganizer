@@ -547,7 +547,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_copyHistory?.Dispose();
 
-		_messenger.Unregister<FolderExpandedMessage>(this);
+		UnregisterMessages();
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
@@ -1532,6 +1532,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
 	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		UnregisterMessages();
+	}
 	#endregion
 
 	#region Service
@@ -1852,6 +1860,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Unregisters a recipient from messages.
+	/// </summary>
+	private void UnregisterMessages()
+	{
+		_messenger.Unregister<FolderExpandedMessage>(this);
 	}
 
 	/// <summary>
