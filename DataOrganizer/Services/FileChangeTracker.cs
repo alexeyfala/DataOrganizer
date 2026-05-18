@@ -138,6 +138,8 @@ public class FileChangeTracker : IFileChangeTracker
 							.ReadExactlyAsync(bytes, token)
 							.ConfigureAwait(false);
 
+						byte[]? cleartext = null;
+
 						try
 						{
 							if (parameters.SessionEncryptedDek is not null)
@@ -148,6 +150,8 @@ public class FileChangeTracker : IFileChangeTracker
 
 									return;
 								}
+
+								cleartext = bytes;
 
 								bytes = encrypted;
 							}
@@ -174,6 +178,8 @@ public class FileChangeTracker : IFileChangeTracker
 						finally
 						{
 							bytes.ZeroMemory();
+
+							cleartext?.ZeroMemory();
 						}
 					}
 				}
