@@ -72,7 +72,7 @@ public class FileChangeTracker : IFileChangeTracker
 			{
 				_logger.LogException(ex);
 
-				CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+				PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 
 				return;
 			}
@@ -96,7 +96,7 @@ public class FileChangeTracker : IFileChangeTracker
 			{
 				if (!_fileSystem.IsFileExists(parameters.FilePath))
 				{
-					CloseExecutingFile($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+					PublishFailure($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 
 					return;
 				}
@@ -111,7 +111,7 @@ public class FileChangeTracker : IFileChangeTracker
 				{
 					_logger.LogException(ex);
 
-					CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+					PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 
 					return;
 				}
@@ -148,7 +148,7 @@ public class FileChangeTracker : IFileChangeTracker
 							{
 								if (_entityEncryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
 								{
-									CloseExecutingFile($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
+									PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 									return;
 								}
@@ -206,7 +206,7 @@ public class FileChangeTracker : IFileChangeTracker
 		{
 			_logger.LogException(ex);
 
-			CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+			PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
 		finally
 		{
@@ -219,7 +219,7 @@ public class FileChangeTracker : IFileChangeTracker
 				.ZeroMemory();
 		}
 
-		void CloseExecutingFile(string message)
+		void PublishFailure(string message)
 		{
 			_messenger.Send(new FileTrackingFailedMessage(new FileTrackingFailedPayload(parameters.File, message)));
 		}

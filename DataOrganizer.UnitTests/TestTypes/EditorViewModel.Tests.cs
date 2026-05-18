@@ -2,6 +2,7 @@
 using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
+using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
@@ -11,6 +12,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Entities.Abstract;
@@ -27,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -164,7 +165,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(entityEncryption);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.ChangePassword(folder);
@@ -198,7 +200,9 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(engine));
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(engine),
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		sut
 			.ExecutingFiles
@@ -238,7 +242,8 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		sut.CloseFiles(editingFiles, executingFiles);
@@ -311,7 +316,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(entityEncryption);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.DecryptFolder(folder);
@@ -365,7 +371,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dbAccess);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		sut
 			.Hierarchy
@@ -512,7 +519,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(entityEncryption);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.EncryptFolder(folder);
@@ -786,7 +794,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		sut.AddHierarchy(editingFiles.Concat(executingFiles));
 
@@ -825,7 +834,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(dialogService);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.HideFileContents(file);
@@ -880,7 +890,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(entityEncryption);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.HideFolderContents(folder);
@@ -1486,7 +1497,8 @@ internal class EditorViewModelTests
 			builder.RegisterInstance(entityEncryption);
 		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		EditorViewModel sut = mock.Create<EditorViewModel>(
+			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
 
 		// Act
 		await sut.ShowFolderContents(folder);

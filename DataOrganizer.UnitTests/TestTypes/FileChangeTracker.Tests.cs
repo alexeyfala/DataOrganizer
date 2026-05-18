@@ -2,7 +2,9 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
@@ -239,7 +241,20 @@ internal class FileChangeTrackerTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IViewModelExecutionService viewModel = Substitute.For<IViewModelExecutionService>();
+		// Previous mock (kept per the "do not delete user code" rule):
+		// IViewModelExecutionService viewModel = Substitute.For<IViewModelExecutionService>();
+		//
+		// FileChangeTracker no longer depends on IViewModelExecutionService — it publishes
+		// failures through IMessenger instead. A real StrongReferenceMessenger is used here
+		// rather than a Substitute because the CommunityToolkit Unit token is internal and
+		// cannot be referenced from this assembly to set up an NSubstitute argument matcher.
+		StrongReferenceMessenger messenger = new();
+
+		FileTrackingFailedPayload? receivedPayload = null;
+
+		object recipient = new();
+
+		messenger.Register<FileTrackingFailedMessage>(recipient, (_, message) => receivedPayload = message.Value);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -279,7 +294,13 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(viewModel);
+			// Previous registration (kept per the "do not delete user code" rule):
+			// builder.RegisterInstance(viewModel);
+			//
+			// Register as IMessenger explicitly — without As<IMessenger>() AutoMock would
+			// satisfy the IMessenger constructor parameter with its own NSubstitute auto-mock
+			// instead of our captured-recipient instance.
+			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -297,9 +318,22 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters);
 
 		// Assert
-		viewModel
-			.Received(1)
-			.ExecuteInEditor(Arg.Any<Action<EditorViewModel>>());
+		// Previous assertion (kept per the "do not delete user code" rule):
+		// viewModel
+		//     .Received(1)
+		//     .ExecuteInEditor(Arg.Any<Action<EditorViewModel>>());
+		//
+		// FileChangeTracker now publishes a FileTrackingFailedMessage through IMessenger
+		// instead of poking the editor view-model directly. The real messenger above
+		// captures the payload into receivedPayload so we can verify it here.
+		receivedPayload
+			.Should()
+			.NotBeNull();
+
+		receivedPayload!
+			.File
+			.Should()
+			.Be(parameters.File);
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
