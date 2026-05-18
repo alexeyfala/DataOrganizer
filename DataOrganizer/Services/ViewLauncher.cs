@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -358,7 +359,7 @@ public class ViewLauncher : IViewLauncher
 				return;
 			}
 
-			await ShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
+			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -406,7 +407,7 @@ public class ViewLauncher : IViewLauncher
 				return;
 			}
 
-			await ShutdownAppAsync(window.ViewModel.Hierarchy, token).ConfigureAwait(false);
+			await ShutdownAppAsync(window.ViewModel.Hierarchy).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -428,8 +429,7 @@ public class ViewLauncher : IViewLauncher
 	private async Task DeleteDirectoryAsync(
 		string directoryPath,
 		int maxAttepmts,
-		int currentAttepmt = 0,
-		CancellationToken token = default)
+		int currentAttepmt = 0)
 	{
 		if (!_fileSystem.IsDirectoryExists(directoryPath))
 		{
@@ -448,7 +448,7 @@ public class ViewLauncher : IViewLauncher
 		currentAttepmt++;
 
 		await Task
-			.Delay(300, token)
+			.Delay(300)
 			.ConfigureAwait(false);
 
 		_logger.LogInformation(
@@ -465,8 +465,7 @@ public class ViewLauncher : IViewLauncher
 			await DeleteDirectoryAsync(
 				directoryPath,
 				maxAttepmts,
-				currentAttepmt,
-				token).ConfigureAwait(false);
+				currentAttepmt).ConfigureAwait(false);
 		}
 	}
 
@@ -491,65 +490,71 @@ public class ViewLauncher : IViewLauncher
 	/// <summary>
 	/// Shutdowns the application.
 	/// </summary>
-	private async Task ShutdownAppAsync(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token = default)
+	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		_keyboardInputHook.Dispose();
 
-		if (!_app.IsDesktop(out var desktop))
+		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
 		{
+			await ShutdownAsync(hierarchy);
+
+			desktop.Shutdown();
+		}
+		else
+		{
+			await ShutdownAsync(hierarchy);
+
 			Environment.Exit(0);
-
-			return;
 		}
 
-		if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
+		async Task ShutdownAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 		{
-			console.Close();
-
-			while (_app.IsAnyWindow<ConsoleWindow>())
+			if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
 			{
-				await Task
-					.Delay(300, token)
-					.ConfigureAwait(true);
+				console.Close();
+
+				while (_app.IsAnyWindow<ConsoleWindow>())
+				{
+					await Task
+						.Delay(300)
+						.ConfigureAwait(true);
+				}
 			}
-		}
 
-		Guid[] executingFiles = [.. hierarchy
-			.GetFilesBy(x => x.IsExecuting)
-			.Select(x => x.Id)];
+			Guid[] executingFiles = [.. hierarchy
+				.GetFilesBy(x => x.IsExecuting)
+				.Select(x => x.Id)];
 
-		if (executingFiles.IsNotEmpty())
-		{
-			await executingFiles
-				.ForEachAsync(x => _executionEngine.CloseAsync(x, token))
-				.ConfigureAwait(false);
-		}
+			if (executingFiles.IsNotEmpty())
+			{
+				await executingFiles
+					.ForEachAsync(x => _executionEngine.CloseAsync(x))
+					.ConfigureAwait(false);
+			}
 
-		await DeleteDirectoryAsync(
-			directoryPath: _appEnvironment.SandboxDirectoryPath,
-			maxAttepmts: 10,
-			token: token).ConfigureAwait(false);
+			await DeleteDirectoryAsync(
+				directoryPath: _appEnvironment.SandboxDirectoryPath,
+				maxAttepmts: 10).ConfigureAwait(false);
 
-		if (_app is App app)
-		{
-			app
-				.AppLifetimeTimer
-				.Stop();
+			if (_app is App app)
+			{
+				app
+					.AppLifetimeTimer
+					.Stop();
 
-			_logger.LogInformationWithTemplate(
-				$"App life time is: {app.AppLifetimeTimer.GetElapsedTime()}{Environment.NewLine}{Environment.NewLine}");
-		}
+				_logger.LogInformationWithTemplate(
+					$"App life time is: {app.AppLifetimeTimer.GetElapsedTime()}{Environment.NewLine}{Environment.NewLine}");
+			}
 
-		if (_serviceProvider is IAsyncDisposable asyncDisposable)
-		{
+			if (_serviceProvider is not IAsyncDisposable asyncDisposable)
+			{
+				return;
+			}
+
 			await asyncDisposable
 				.DisposeAsync()
 				.ConfigureAwait(false);
 		}
-
-		desktop.Shutdown();
 	}
 	#endregion
 }
