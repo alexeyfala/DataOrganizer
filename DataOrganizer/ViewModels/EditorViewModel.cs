@@ -547,7 +547,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_copyHistory?.Dispose();
 
-		UnregisterMessages();
+		AfterDispose();
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
@@ -1032,8 +1032,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_processUtils = processUtils;
 
 		messenger.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
-
-		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
 	}
 	#endregion
 
@@ -1055,20 +1053,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by <see cref="Services.FileChangeTracker" />.
-	/// </summary>
-	private void OnFileTrackingFailed(
-		object recipient,
-		FileTrackingFailedMessage message)
-	{
-		FileTrackingFailedPayload payload = message.Value;
-
-		ShowErrorSnackbar(payload.Message);
-
-		CloseExecutingFile(payload.File);
 	}
 	#endregion
 
@@ -1554,7 +1538,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		base.AfterDispose();
 
-		UnregisterMessages();
+		_messenger.Unregister<FolderExpandedMessage>(this);
 	}
 	#endregion
 
@@ -1876,16 +1860,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		return true;
-	}
-
-	/// <summary>
-	/// Unregisters a recipient from messages.
-	/// </summary>
-	private void UnregisterMessages()
-	{
-		_messenger.Unregister<FolderExpandedMessage>(this);
-
-		_messenger.Unregister<FileTrackingFailedMessage>(this);
 	}
 
 	/// <summary>

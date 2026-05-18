@@ -10,6 +10,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using Material.Styles.Controls;
@@ -195,6 +196,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_viewLauncher = viewLauncher;
 
+		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
+
 		if (keyboardInputHook.IsRunning)
 		{
 			_handler.Watch(keyboardInputHook.StopTrackingAsync());
@@ -206,6 +209,22 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		}
 
 		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
+	}
+	#endregion
+
+	#region Message handlers
+	/// <summary>
+	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by <see cref="Services.FileChangeTracker" />.
+	/// </summary>
+	private void OnFileTrackingFailed(
+		object recipient,
+		FileTrackingFailedMessage message)
+	{
+		FileTrackingFailedPayload payload = message.Value;
+
+		ShowErrorSnackbar(payload.Message);
+
+		CloseExecutingFile(payload.File);
 	}
 	#endregion
 
@@ -265,6 +284,14 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
 	/// </summary>
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		_messenger.Unregister<FileTrackingFailedMessage>(this);
+	}
 
 	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.
