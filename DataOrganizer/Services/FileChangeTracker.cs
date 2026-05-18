@@ -196,6 +196,8 @@ public class FileChangeTracker : IFileChangeTracker
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			CloseExecutingFile(ex.Message);
 		}
 		finally
 		{
