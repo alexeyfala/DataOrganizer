@@ -146,7 +146,7 @@ public class FileChangeTracker : IFileChangeTracker
 							{
 								if (_entityEncryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
 								{
-									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+									CloseExecutingFile($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 									return;
 								}
