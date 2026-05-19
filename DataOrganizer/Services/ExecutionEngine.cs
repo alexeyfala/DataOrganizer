@@ -180,9 +180,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ExecuteAsync(
-		ExecuteFileParameters parameters,
-		CancellationToken token = default)
+	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
 		try
 		{
