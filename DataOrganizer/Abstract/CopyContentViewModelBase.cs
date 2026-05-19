@@ -119,7 +119,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				.IsExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				PublishMessage($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
+				SendMessage($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -130,7 +130,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			if (!result.IsValid)
 			{
-				PublishMessage($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
+				SendMessage($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -150,7 +150,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (string.IsNullOrEmpty(text))
 				{
-					PublishMessage($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
+					SendMessage($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
 
 					return;
 				}
@@ -181,7 +181,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 			_logger.LogException(ex);
 		}
 
-		void PublishMessage(string message, SnackbarMessageLevel level)
+		void SendMessage(string message, SnackbarMessageLevel level)
 		{
 			_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
 		}

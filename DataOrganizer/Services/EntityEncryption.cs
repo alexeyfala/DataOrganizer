@@ -1,10 +1,12 @@
-﻿using DataOrganizer.DTO.Encryption;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
@@ -41,6 +43,9 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
@@ -60,6 +65,7 @@ public sealed class EntityEncryption : IEntityEncryption
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
+		IMessenger messenger,
 		IViewModelExecutionService viewModel)
 	{
 		_dbAccess = dbAccess;
@@ -71,6 +77,8 @@ public sealed class EntityEncryption : IEntityEncryption
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_messenger = messenger;
 
 		_viewModel = viewModel;
 	}
@@ -98,7 +106,7 @@ public sealed class EntityEncryption : IEntityEncryption
 		{
 			if (!_encryption.VerifyPassword(oldPassword, folder.PasswordHash))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -147,7 +155,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 					folder.EncryptedDek = encryptedDek;
 
-					_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.PasswordChanged));
+					SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
 				}
 				finally
 				{
@@ -197,7 +205,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -209,7 +217,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!AreLoadedContentsValid(contents, files.Length))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
+				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -233,7 +241,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 					if (!AreContentsValid(result, contents.Length))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 						return;
 					}
@@ -242,7 +250,7 @@ public sealed class EntityEncryption : IEntityEncryption
 						.BackupDatabaseAsync(token)
 						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 						return;
 					}
@@ -326,7 +334,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!AreLoadedContentsValid(contents, files.Length))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToLoadFilesContents));
+				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -339,7 +347,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				if (!AreContentsValid(result, contents.Length))
 				{
-					_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 					return;
 				}
@@ -361,7 +369,7 @@ public sealed class EntityEncryption : IEntityEncryption
 						.BackupDatabaseAsync(token)
 						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 						return;
 					}
@@ -500,7 +508,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 				return false;
 			}
@@ -571,7 +579,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -587,7 +595,7 @@ public sealed class EntityEncryption : IEntityEncryption
 					return;
 				}
 
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToShowFileContents));
+				SendMessage(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
 			}
 			finally
 			{
@@ -641,7 +649,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				if (!_encryption.VerifyPassword(password, root.PasswordHash))
 				{
-					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.IncorrectPassword));
+					SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 					return null;
 				}
@@ -654,7 +662,7 @@ public sealed class EntityEncryption : IEntityEncryption
 					root.EncryptedDek,
 					passwordBinary) is not { } decryptedDek)
 				{
-					_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 					return null;
 				}
@@ -663,7 +671,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				{
 					if (_encryption.DecryptWithDek(contents, decryptedDek) is not { } decrypted)
 					{
-						_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 						return null;
 					}
@@ -716,7 +724,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				.UpdateFilePropertiesAsync(updates, token)
 				.ConfigureAwait(false))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				await _dbAccess
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
@@ -733,7 +741,7 @@ public sealed class EntityEncryption : IEntityEncryption
 					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
 				], token).ConfigureAwait(false))
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				await _dbAccess
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
@@ -803,6 +811,14 @@ public sealed class EntityEncryption : IEntityEncryption
 	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
 	{
 		return contents.Length == fileCount && contents.All(x => x.IsValid);
+	}
+
+	/// <summary>
+	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
+	/// </summary>
+	private void SendMessage(string message, SnackbarMessageLevel level)
+	{
+		_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
 	}
 
 	/// <summary>

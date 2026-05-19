@@ -9,6 +9,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -121,8 +122,9 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_viewModel.ExecuteInBaseViewModel(
-					x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
+				_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(
+					$@"{Strings.ThereIsNoContentFor} ""{file.Name}""",
+					SnackbarMessageLevel.Information)));
 
 				return;
 			}
