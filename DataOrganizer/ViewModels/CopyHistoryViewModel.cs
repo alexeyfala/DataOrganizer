@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -76,6 +77,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -84,6 +86,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			dialogService,
 			entityEncryption,
 			logger,
+			messenger,
 			handler,
 			viewModel)
 	{

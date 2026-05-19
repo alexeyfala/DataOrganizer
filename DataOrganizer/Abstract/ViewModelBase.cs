@@ -139,9 +139,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
-	/// <inheritdoc cref="IMessenger" />
-	protected readonly IMessenger _messenger;
-
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
@@ -178,6 +175,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			dialogService,
 			entityEncryption,
 			logger,
+			messenger,
 			handler,
 			viewModel)
 	{
@@ -188,8 +186,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_executionEngine = executionEngine;
 
 		_keyboardInputHook = keyboardInputHook;
-
-		_messenger = messenger;
 
 		_settingsManager = settingsManager;
 

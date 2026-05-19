@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -164,6 +165,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -172,6 +174,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			dialogService,
 			entityEncryption,
 			logger,
+			messenger,
 			handler,
 			viewModel)
 	{

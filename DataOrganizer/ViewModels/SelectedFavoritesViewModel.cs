@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
@@ -198,6 +199,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -206,6 +208,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			dialogService,
 			entityEncryption,
 			logger,
+			messenger,
 			handler,
 			viewModel)
 	{
