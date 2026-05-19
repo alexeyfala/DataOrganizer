@@ -5,10 +5,10 @@ namespace DataOrganizer.Messages;
 /// <summary>
 /// Notification raised to request displaying a progress bar in the editor.
 /// </summary>
-internal sealed class ShowProgressMessage : ValueChangedMessage<bool>
+internal sealed class ShowProgressBarMessage : ValueChangedMessage<bool>
 {
 	#region Constructors
-	public ShowProgressMessage(bool value) : base(value)
+	public ShowProgressBarMessage(bool value) : base(value)
 	{
 	}
 	#endregion

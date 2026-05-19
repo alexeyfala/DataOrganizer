@@ -49,9 +49,6 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
-
 	/// <summary>
 	/// Encryption session identifier.
 	/// </summary>
@@ -65,8 +62,7 @@ public sealed class EntityEncryption : IEntityEncryption
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger,
-		IViewModelExecutionService viewModel)
+		IMessenger messenger)
 	{
 		_dbAccess = dbAccess;
 
@@ -79,8 +75,6 @@ public sealed class EntityEncryption : IEntityEncryption
 		_logger = logger;
 
 		_messenger = messenger;
-
-		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -201,7 +195,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
 			{
@@ -284,7 +278,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				.AsBytes(password.AsSpan())
 				.ZeroMemory();
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -325,7 +319,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
@@ -403,7 +397,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				.AsBytes(password.AsSpan())
 				.ZeroMemory();
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -504,7 +498,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
@@ -552,7 +546,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				.AsBytes(password.AsSpan())
 				.ZeroMemory();
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -575,7 +569,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			if (!_encryption.VerifyPassword(password, root.PasswordHash))
 			{
@@ -608,7 +602,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				.AsBytes(password.AsSpan())
 				.ZeroMemory();
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -814,6 +808,11 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
+	/// </summary>
+	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+
+	/// <summary>
 	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
 	/// </summary>
 	private void SendMessage(string message, SnackbarMessageLevel level)
@@ -856,5 +855,10 @@ public sealed class EntityEncryption : IEntityEncryption
 			dek.ZeroMemory();
 		}
 	}
+
+	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
+	/// </summary>
+	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

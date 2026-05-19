@@ -1033,7 +1033,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
 
-		messenger.Register<ShowProgressMessage>(this, OnShowProgress);
+		messenger.Register<ShowProgressBarMessage>(this, OnShowProgressBar);
 	}
 	#endregion
 
@@ -1058,11 +1058,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Reacts to a <see cref="ShowProgressMessage" /> by displaying a progress bar.
+	/// Reacts to a <see cref="ShowProgressBarMessage" /> by displaying a progress bar.
 	/// </summary>
-	private void OnShowProgress(
+	private void OnShowProgressBar(
 		object recipient,
-		ShowProgressMessage message)
+		ShowProgressBarMessage message)
 	{
 		IsActionInProgress = message.Value;
 	}
@@ -1552,7 +1552,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_messenger.Unregister<FolderExpandedChangedMessage>(this);
 
-		_messenger.Unregister<ShowProgressMessage>(this);
+		_messenger.Unregister<ShowProgressBarMessage>(this);
 	}
 	#endregion
 
