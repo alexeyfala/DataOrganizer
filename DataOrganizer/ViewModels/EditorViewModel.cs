@@ -1032,12 +1032,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_processUtils = processUtils;
 
 		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
+
+		messenger.Register<ShowProgressMessage>(this, OnShowProgress);
 	}
 	#endregion
 
 	#region Message handlers
 	/// <summary>
-	/// <see cref="ExplorerModelBaseDto.IsExpanded" /> changed handler of <see cref="FolderModelDto" />.
+	/// Reacts to a <see cref="FolderExpandedChangedMessage" /> by saving folder expanded or collapsed state in DB.
 	/// </summary>
 	/// <remarks>
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
@@ -1053,6 +1055,16 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
+	}
+
+	/// <summary>
+	/// Reacts to a <see cref="ShowProgressMessage" /> by displaying a progress bar.
+	/// </summary>
+	private void OnShowProgress(
+		object recipient,
+		ShowProgressMessage message)
+	{
+		IsActionInProgress = message.Value;
 	}
 	#endregion
 
