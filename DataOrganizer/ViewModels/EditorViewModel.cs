@@ -1031,7 +1031,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		messenger.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
+		messenger.Register<FolderExpandedMessage>(this, OnFolderIsExpandedChanged);
 	}
 	#endregion
 
@@ -1043,7 +1043,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
 	/// so I had to use a global message to persist the changes to the database in one place.
 	/// </remarks>
-	private void Folder_IsExpandedChanged(
+	private void OnFolderIsExpandedChanged(
 		object recipient,
 		FolderExpandedMessage message)
 	{
@@ -1218,7 +1218,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	/// <remarks>
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
+	/// using the <see cref="OnFolderIsExpandedChanged" /> message handler.
 	/// </remarks>
 	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{

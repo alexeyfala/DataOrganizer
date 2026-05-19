@@ -195,7 +195,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_viewLauncher = viewLauncher;
 
-		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
+		messenger.Register<ShowSnackbarMessage>(this, OnShowSnackbar);
+
+		messenger.Register<CloseExecutingFileMessage>(this, OnCloseExecutingFile);
 
 		if (keyboardInputHook.IsRunning)
 		{
@@ -213,17 +215,25 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Message handlers
 	/// <summary>
-	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by <see cref="Services.FileChangeTracker" />.
+	/// Reacts to a <see cref="CloseExecutingFileMessage" /> by closing the executing file referenced in the payload.
 	/// </summary>
-	private void OnFileTrackingFailed(
+	private void OnCloseExecutingFile(
 		object recipient,
-		FileTrackingFailedMessage message)
+		CloseExecutingFileMessage message)
 	{
-		FileTrackingFailedPayload payload = message.Value;
+		CloseExecutingFile(message.Value);
+	}
 
-		ShowErrorSnackbar(payload.Message);
+	/// <summary>
+	/// Reacts to a <see cref="ShowSnackbarMessage" /> by displaying a snackbar with the requested text and level.
+	/// </summary>
+	private void OnShowSnackbar(
+		object recipient,
+		ShowSnackbarMessage message)
+	{
+		ShowSnackbarPayload payload = message.Value;
 
-		CloseExecutingFile(payload.File);
+		ShowSnackbar(payload.Text, payload.Level);
 	}
 	#endregion
 
@@ -289,7 +299,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<FileTrackingFailedMessage>(this);
+		_messenger.Unregister<ShowSnackbarMessage>(this);
+
+		_messenger.Unregister<CloseExecutingFileMessage>(this);
 	}
 
 	/// <summary>

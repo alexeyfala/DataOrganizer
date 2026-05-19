@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
@@ -198,7 +199,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 		void PublishFailure(string message)
 		{
-			_messenger.Send(new FileTrackingFailedMessage(new FileTrackingFailedPayload(parameters.File, message)));
+			_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, SnackbarMessageLevel.Error)));
+
+			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
 		}
 	}
 	#endregion

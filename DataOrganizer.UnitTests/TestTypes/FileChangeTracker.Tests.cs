@@ -4,8 +4,10 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
-using DataOrganizer.Helpers;
+using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -243,11 +245,15 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		FileTrackingFailedPayload? receivedPayload = null;
+		ShowSnackbarPayload? receivedSnackbar = null;
+
+		FileModelDto? receivedClosedFile = null;
 
 		object recipient = new();
 
-		messenger.Register<FileTrackingFailedMessage>(recipient, (_, message) => receivedPayload = message.Value);
+		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message.Value);
+
+		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.Value);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -304,12 +310,16 @@ internal class FileChangeTrackerTests
 		// Act
 		await sut.TrackChangesAsync(parameters);
 
-		receivedPayload
+		receivedSnackbar
 			.Should()
 			.NotBeNull();
 
-		receivedPayload!
-			.File
+		receivedSnackbar!
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
+
+		receivedClosedFile
 			.Should()
 			.Be(parameters.File);
 
