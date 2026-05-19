@@ -9,6 +9,7 @@ namespace DataOrganizer.Messages;
 /// </summary>
 internal sealed record FileTrackingFailedPayload(FileModelDto File, string Message);
 
+
 /// <summary>
 /// Notification raised when file-change tracking fails.
 /// </summary>
