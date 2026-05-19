@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using DataOrganizer.DTO.Entities.Models;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Messages;
 
 /// <summary>
 /// Payload published by <see cref="Services.FileChangeTracker" /> when the
