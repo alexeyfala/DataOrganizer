@@ -8,7 +8,7 @@ namespace Repository.Enums;
 /// when loading entities from the database. Combine with bitwise OR.
 /// </summary>
 [Flags]
-public enum OptionalFileProperty : byte
+public enum OptionalFileProperty
 {
 	None = 0,
 	Contents = 1 << 0,

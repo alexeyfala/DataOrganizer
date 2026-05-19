@@ -3,9 +3,8 @@
 /// <summary>
 /// Current theme of the application.
 /// </summary>
-internal enum CurrentTheme : byte
+internal enum CurrentTheme
 {
 	Dark,
 	Light
 }
-

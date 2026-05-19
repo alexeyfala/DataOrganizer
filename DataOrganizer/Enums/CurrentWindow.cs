@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.Enums;
 
-public enum CurrentWindow : byte
+public enum CurrentWindow
 {
 	Editor,
 	Favorites

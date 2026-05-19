@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.Enums;
 
-public enum ImportListVariant : byte
+public enum ImportListVariant
 {
 	None,
 	Append,
