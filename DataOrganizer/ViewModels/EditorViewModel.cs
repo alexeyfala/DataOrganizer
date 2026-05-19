@@ -1031,7 +1031,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		messenger.Register<FolderExpandedMessage>(this, OnFolderIsExpandedChanged);
+		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
 	}
 	#endregion
 
@@ -1045,7 +1045,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </remarks>
 	private void OnFolderIsExpandedChanged(
 		object recipient,
-		FolderExpandedMessage message)
+		FolderExpandedChangedMessage message)
 	{
 		if (IsReadOnly || IsActionInProgress)
 		{
@@ -1538,7 +1538,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<FolderExpandedMessage>(this);
+		_messenger.Unregister<FolderExpandedChangedMessage>(this);
 	}
 	#endregion
 
