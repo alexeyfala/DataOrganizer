@@ -1,7 +1,9 @@
 ﻿using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Abstract;
 using Entities.Models;
@@ -45,6 +47,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
@@ -64,6 +69,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IFileSystemPicker picker,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IMessenger messenger,
 		IViewModelExecutionService viewModel,
 		IXmlSerializerWrapper xmlSerializer)
 	{
@@ -78,6 +84,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		_messenger = messenger;
 
 		_picker = picker;
 
@@ -174,13 +182,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataExportCompleted));
+			SendMessage(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToExportData));
+			SendMessage(Strings.FailedToExportData, SnackbarMessageLevel.Error);
 		}
 		finally
 		{
@@ -227,7 +235,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			.BackupDatabaseAsync(token)
 			.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 			return false;
 		}
@@ -251,7 +259,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
@@ -269,7 +277,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
@@ -287,7 +295,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
@@ -315,7 +323,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 				viewModel.AddHierarchy(objects);
 
-				viewModel.ShowInfoSnackbar(Strings.DataImportCompleted);
+				SendMessage(Strings.DataImportCompleted, SnackbarMessageLevel.Information);
 			});
 
 			return true;
@@ -324,7 +332,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			_logger.LogException(ex);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath, token)
@@ -613,6 +621,14 @@ public sealed class DataExchangeService : IDataExchangeService
 			objects,
 			hierarchy,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
+	/// </summary>
+	private void SendMessage(string message, SnackbarMessageLevel level)
+	{
+		_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
 	}
 	#endregion
 }
