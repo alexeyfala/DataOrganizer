@@ -17,7 +17,6 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
-using Serilog.Events;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
@@ -265,7 +264,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
 	/// </summary>
-	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Error);
+	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Error);
 
 	/// <summary>
 	/// Displays object in the "Editor" window.
@@ -278,12 +277,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Shows the snackbar with default text color.
 	/// </summary>
-	public void ShowInfoSnackbar(string text) => ShowSnackbar(text);
+	public void ShowInfoSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Information);
 
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
 	/// </summary>
-	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
+	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
 
 	/// <inheritdoc />
 	protected override void AfterDispose()
@@ -350,7 +349,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Shows the snackbar with default text color.
 	/// </summary>
-	private void ShowSnackbar(string text, LogEventLevel? level = null)
+	private void ShowSnackbar(string text, SnackbarMessageLevel level)
 	{
 		if (AppDomain
 			.CurrentDomain
@@ -361,7 +360,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_dispatcher.Post(() =>
 		{
-			if (level is null)
+			if (level == SnackbarMessageLevel.Information)
 			{
 				SnackbarForeground = _app.GetCurrentTheme() switch
 				{
@@ -374,8 +373,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			{
 				SnackbarForeground = level switch
 				{
-					LogEventLevel.Warning => Brushes.Orange,
-					LogEventLevel.Error => Brushes.OrangeRed,
+					SnackbarMessageLevel.Warning => Brushes.Orange,
+					SnackbarMessageLevel.Error => Brushes.OrangeRed,
 					_ => null
 				};
 			}
@@ -386,11 +385,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 			switch (level)
 			{
-				case LogEventLevel.Warning:
+				case SnackbarMessageLevel.Warning:
 					_logger.LogWarning(message);
 					break;
 
-				case LogEventLevel.Error:
+				case SnackbarMessageLevel.Error:
 					_logger.LogError(message, isAssertDebug: false);
 					break;
 
