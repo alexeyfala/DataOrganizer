@@ -162,7 +162,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -192,7 +192,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 		finally
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -242,7 +242,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			// The path may contain %20 instead of spaces, so it needs to be decoded.
 			string filePath = WebUtility.UrlDecode(filePaths[0]);
@@ -351,7 +351,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				_logger.LogException(ex);
 			}
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -533,6 +533,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
+	/// </summary>
+	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+
+	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
 	private async Task<bool> ImportFromJsonAsync(
@@ -630,5 +635,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
 	}
+
+	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
+	/// </summary>
+	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }
