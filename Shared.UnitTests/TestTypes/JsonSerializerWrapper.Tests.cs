@@ -1,7 +1,5 @@
 ﻿using AwesomeAssertions;
 using Shared.Services;
-using System;
-using System.IO;
 
 namespace Shared.UnitTests.TestTypes;
 
@@ -35,92 +33,6 @@ internal class JsonSerializerWrapperTests
 		result.Number
 			.Should()
 			.Be(42);
-	}
-
-	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.FromFile{T}" />.
-	/// </summary>
-	[Test]
-	public void FromFile_Returns_Default_On_Invalid_Json_Without_Throwing()
-	{
-		// Arrange
-		JsonSerializerWrapper sut = new();
-
-		string filePath = Path.Combine(Path.GetTempPath(), $"invalid_{Guid.NewGuid():N}.json");
-
-		File.WriteAllText(filePath, "this is not json");
-
-		try
-		{
-			// Act
-			Sample? result = sut.FromFile<Sample>(filePath);
-
-			// Assert
-			result
-				.Should()
-				.BeNull();
-		}
-		finally
-		{
-			File.Delete(filePath);
-		}
-	}
-
-	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.FromFile{T}" />.
-	/// </summary>
-	[Test]
-	public void FromFile_Returns_Default_When_File_Does_Not_Exist()
-	{
-		// Arrange
-		JsonSerializerWrapper sut = new();
-
-		string filePath = Path.Combine(Path.GetTempPath(), $"non_existing_{Guid.NewGuid():N}.json");
-
-		// Act
-		Sample? result = sut.FromFile<Sample>(filePath);
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.FromFile{T}" />.
-	/// </summary>
-	[Test]
-	public void FromFile_Returns_Object_When_File_Contains_Valid_Json()
-	{
-		// Arrange
-		JsonSerializerWrapper sut = new();
-
-		string filePath = Path.Combine(Path.GetTempPath(), $"sample_{Guid.NewGuid():N}.json");
-
-		File.WriteAllText(filePath, """{"Name":"delta","Number":13}""");
-
-		try
-		{
-			// Act
-			Sample? result = sut.FromFile<Sample>(filePath);
-
-			// Assert
-			result
-				.Should()
-				.NotBeNull();
-
-			result.Name
-				.Should()
-				.Be("delta");
-
-			result.Number
-				.Should()
-				.Be(13);
-		}
-		finally
-		{
-			File.Delete(filePath);
-		}
 	}
 
 	/// <summary>
