@@ -48,9 +48,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 	/// <inheritdoc cref="IMessenger" />
 	protected readonly IMessenger _messenger;
-
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	protected readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -62,8 +59,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel)
+		ITaskExceptionHandler handler)
 	{
 		_app = app;
 
@@ -80,8 +76,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		_logger = logger;
 
 		_messenger = messenger;
-
-		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -155,7 +149,10 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					return;
 				}
 
-				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file, updateView));
+				if (this is ViewModelBase viewModel)
+				{
+					viewModel.InsertToCopyHistory(file, updateView);
+				}
 
 				await _clipboard
 					.SetTextAsync(text)
