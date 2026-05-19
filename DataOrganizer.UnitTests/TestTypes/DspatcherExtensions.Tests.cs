@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DspatcherExtensions)}"" type")]
-internal class DspatcherExtensionsTests
+[TestFixture(Description = $@"Tests of ""{nameof(DispatcherExtensions)}"" type")]
+internal class DispatcherExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DspatcherExtensions.PostAsync" />.
+	/// Test of <see cref="DispatcherExtensions.PostAsync" />.
 	/// </summary>
 	[Test]
 	public async Task PostAsync_Invokes_Action_On_Dispatcher_And_Completes_Task()
@@ -47,7 +47,7 @@ internal class DspatcherExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DspatcherExtensions.PostAsync" />.
+	/// Test of <see cref="DispatcherExtensions.PostAsync" />.
 	/// </summary>
 	[Test]
 	public void PostAsync_Returns_Pending_Task_When_Dispatcher_Does_Not_Invoke_Action()

@@ -4,12 +4,14 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
 using Material.Styles.Controls;
 using Material.Styles.Models;
@@ -89,9 +91,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		ExecutingFiles.Remove(dto);
+		_dispatcher.Post(() =>
+		{
+			ExecutingFiles.Remove(dto);
 
-		dto.IsExecuting = false;
+			dto.IsExecuting = false;
+		});
 
 		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
 	}
@@ -135,6 +140,9 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
+	/// <inheritdoc cref="IMessenger" />
+	protected readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
@@ -161,6 +169,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
@@ -181,9 +190,13 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_keyboardInputHook = keyboardInputHook;
 
+		_messenger = messenger;
+
 		_settingsManager = settingsManager;
 
 		_viewLauncher = viewLauncher;
+
+		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
 
 		if (keyboardInputHook.IsRunning)
 		{
@@ -196,6 +209,22 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		}
 
 		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
+	}
+	#endregion
+
+	#region Message handlers
+	/// <summary>
+	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by <see cref="Services.FileChangeTracker" />.
+	/// </summary>
+	private void OnFileTrackingFailed(
+		object recipient,
+		FileTrackingFailedMessage message)
+	{
+		FileTrackingFailedPayload payload = message.Value;
+
+		ShowErrorSnackbar(payload.Message);
+
+		CloseExecutingFile(payload.File);
 	}
 	#endregion
 
@@ -255,6 +284,14 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
 	/// </summary>
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		_messenger.Unregister<FileTrackingFailedMessage>(this);
+	}
 
 	/// <summary>
 	/// Saves data in <see cref="CopyHistorySettings" />.

@@ -2,10 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -14,6 +15,7 @@ using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,11 +36,13 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
+		byte[] parametersContents = TestUtils.CreateRandomBytes(10);
+
+		byte[] expectedHash = SHA256.HashData(parametersContents);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			byte[] contents = TestUtils.CreateRandomBytes(32);
-
-			byte[] hash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -51,8 +55,8 @@ internal class FileChangeTrackerTests
 				.Returns(_ => new MemoryStream(contents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(hash);
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(expectedHash);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -61,9 +65,13 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = parametersContents,
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10)
+		};
 
 		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
 
@@ -115,7 +123,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			entityEncryption
@@ -147,6 +155,7 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
 			FilePath = AppUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
@@ -191,7 +200,7 @@ internal class FileChangeTrackerTests
 				.Returns(_ => new MemoryStream(contents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(hash);
 
 			builder.RegisterInstance(fileSystem);
@@ -201,9 +210,13 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10)
+		};
 
 		// Act
 		Func<Task> act = () => sut.TrackChangesAsync(parameters);
@@ -228,7 +241,13 @@ internal class FileChangeTrackerTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IViewModelExecutionService viewModel = Substitute.For<IViewModelExecutionService>();
+		StrongReferenceMessenger messenger = new();
+
+		FileTrackingFailedPayload? receivedPayload = null;
+
+		object recipient = new();
+
+		messenger.Register<FileTrackingFailedMessage>(recipient, (_, message) => receivedPayload = message.Value);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -253,7 +272,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
@@ -268,7 +287,7 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(viewModel);
+			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -277,6 +296,7 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
 			FilePath = AppUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
@@ -284,10 +304,14 @@ internal class FileChangeTrackerTests
 		// Act
 		await sut.TrackChangesAsync(parameters);
 
-		// Assert
-		viewModel
-			.Received(1)
-			.ExecuteInEditor(Arg.Any<Action<EditorViewModel>>());
+		receivedPayload
+			.Should()
+			.NotBeNull();
+
+		receivedPayload!
+			.File
+			.Should()
+			.Be(parameters.File);
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
@@ -329,7 +353,7 @@ internal class FileChangeTrackerTests
 					_ => new MemoryStream(currentContents));
 
 			fileSystem
-				.ComputeSha256HashAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
 			dbAccess
@@ -351,9 +375,13 @@ internal class FileChangeTrackerTests
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
 
-		TrackChangesParameters parameters = CreateParameters(
-			AppUtils.CreateRandomFileName(10),
-			TestUtils.CreateRandomBytes(10));
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = AppUtils.CreateRandomFileName(10),
+			FilePath = AppUtils.CreateRandomFileName(10)
+		};
 
 		DateTime before = DateTime.Now;
 
@@ -370,18 +398,5 @@ internal class FileChangeTrackerTests
 			.Should()
 			.BeOnOrAfter(before);
 	}
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Builds <see cref="TrackChangesParameters" /> for tests with a fresh semaphore and the supplied contents.
-	/// </summary>
-	private static TrackChangesParameters CreateParameters(string filePath, byte[] contents) => new()
-	{
-		Contents = contents,
-		File = TestUtils.CreateFileDto(),
-		FilePath = filePath,
-		SessionEncryptedDek = null
-	};
 	#endregion
 }

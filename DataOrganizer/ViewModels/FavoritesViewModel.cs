@@ -6,6 +6,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
@@ -336,6 +337,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IExecutionEngine executionEngine,
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
 		IViewModelExecutionService viewModel) : base(
@@ -350,6 +352,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			executionEngine,
 			keyboardInputHook,
 			logger,
+			messenger,
 			handler,
 			viewLauncher,
 			viewModel)

@@ -18,8 +18,8 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Abstract;
 using Entities.Enums;
@@ -547,9 +547,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_copyHistory?.Dispose();
 
-		WeakReferenceMessenger
-			.Default
-			.Unregister<FolderExpandedMessage>(this);
+		AfterDispose();
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
@@ -1006,6 +1004,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
+		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
@@ -1021,6 +1020,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			executionEngine,
 			keyboardInputHook,
 			logger,
+			messenger,
 			handler,
 			viewLauncher,
 			viewModel)
@@ -1031,9 +1031,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		WeakReferenceMessenger
-			.Default
-			.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
+		messenger.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
 	}
 	#endregion
 
@@ -1533,6 +1531,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await BrushExtensions.ApplyLimeGreenColorAnimation(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
+	protected override void AfterDispose()
+	{
+		base.AfterDispose();
+
+		_messenger.Unregister<FolderExpandedMessage>(this);
 	}
 	#endregion
 

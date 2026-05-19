@@ -3,7 +3,7 @@
 /// <summary>
 /// The result of values: Yes, No, Cancel.
 /// </summary>
-public enum YesNoCancelResult : byte
+public enum YesNoCancelResult
 {
 	No,
 	Cancel,

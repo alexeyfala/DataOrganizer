@@ -1,6 +1,6 @@
 ﻿namespace DataOrganizer.Enums;
 
-public enum OverwriteHotkeysResult : byte
+public enum OverwriteHotkeysResult
 {
 	SameHotkeys,
 	AlreadyInUse,

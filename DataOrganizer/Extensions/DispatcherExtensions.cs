@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Extensions;
 
-internal static class DspatcherExtensions
+internal static class DispatcherExtensions
 {
 	#region Methods
 	/// <summary>

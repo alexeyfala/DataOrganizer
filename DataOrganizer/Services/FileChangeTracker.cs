@@ -1,6 +1,8 @@
-﻿using DataOrganizer.DTO;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -9,6 +11,7 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,8 +33,8 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
@@ -40,7 +43,7 @@ public class FileChangeTracker : IFileChangeTracker
 		IEntityEncryption entityEncryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IViewModelExecutionService viewModel)
+		IMessenger messenger)
 	{
 		_dbAccess = dbAccess;
 
@@ -50,7 +53,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		_logger = logger;
 
-		_viewModel = viewModel;
+		_messenger = messenger;
 	}
 	#endregion
 
@@ -60,79 +63,61 @@ public class FileChangeTracker : IFileChangeTracker
 	{
 		try
 		{
-			Stream initial;
+			HashAlgorithmName algorithm = HashAlgorithmName.SHA256;
 
-			try
-			{
-				initial = _fileSystem.OpenRead(parameters.FilePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
-
-				return;
-			}
-
-			byte[] previousHash;
-
-			try
-			{
-				previousHash = await _fileSystem
-					.ComputeSha256HashAsync(initial, token)
-					.ConfigureAwait(false);
-			}
-			finally
-			{
-				// Release the stream right after the hash is computed so the file is not held
-				// open while the monitoring loop below is running.
-				initial.Dispose();
-			}
+			byte[] previousHash = CryptographicOperations.HashData(
+				algorithm,
+				parameters.Contents);
 
 			while (!token.IsCancellationRequested)
 			{
 				if (!_fileSystem.IsFileExists(parameters.FilePath))
 				{
-					CloseExecutingFile($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
+					PublishFailure($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 
 					return;
 				}
 
-				Stream currentStream;
+				Stream fileStream;
 
 				try
 				{
-					currentStream = _fileSystem.OpenRead(parameters.FilePath);
+					fileStream = _fileSystem.OpenRead(parameters.FilePath);
 				}
 				catch (Exception ex)
 				{
 					_logger.LogException(ex);
 
-					CloseExecutingFile($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
+					PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 
 					return;
 				}
 
-				byte[] currentHash = previousHash;
+				byte[] currentHash;
 
 				try
 				{
 					currentHash = await _fileSystem
-						.ComputeSha256HashAsync(currentStream, token)
+						.ComputeStreamHashAsync(algorithm, fileStream, token)
 						.ConfigureAwait(false);
 
 					if (!currentHash.SequenceEqual(previousHash))
 					{
-						currentStream.Position = 0;
+						fileStream.Position = 0;
 
-						await using MemoryStream memoryStream = new();
+						// 'checked' guards against silently truncating files larger than
+						// int.MaxValue (~2 GB). For text / editor files this branch is
+						// effectively unreachable, but if it ever is, we want a clear
+						// OverflowException instead of a corrupted partial read.
+						int length = checked((int)fileStream.Length);
 
-						await currentStream
-							.CopyToAsync(memoryStream, token)
+						byte[] bytes = new byte[length];
+
+						await fileStream
+							.ReadExactlyAsync(bytes, token)
 							.ConfigureAwait(false);
 
-						byte[] bytes = memoryStream.ToArray();
+						byte[]? cleartext = null;
 
 						try
 						{
@@ -140,10 +125,12 @@ public class FileChangeTracker : IFileChangeTracker
 							{
 								if (_entityEncryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
 								{
-									_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+									PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 									return;
 								}
+
+								cleartext = bytes;
 
 								bytes = encrypted;
 							}
@@ -169,18 +156,17 @@ public class FileChangeTracker : IFileChangeTracker
 						}
 						finally
 						{
-							if (parameters.SessionEncryptedDek is not null)
-							{
-								bytes.ZeroMemory();
-							}
+							bytes.ZeroMemory();
+
+							cleartext?.ZeroMemory();
 						}
 					}
+
+					previousHash = currentHash;
 				}
 				finally
 				{
-					previousHash = currentHash;
-
-					currentStream.Dispose();
+					fileStream.Dispose();
 				}
 
 				// Polling interval between change checks.
@@ -189,29 +175,30 @@ public class FileChangeTracker : IFileChangeTracker
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 			}
 		}
+		catch (OperationCanceledException)
+		{
+			// User-initiated cancellation — normal flow, no notification, no log noise.
+		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+
+			PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
 		finally
 		{
-			if (parameters.SessionEncryptedDek is not null)
-			{
-				parameters
-					.SessionEncryptedDek
-					.ZeroMemory();
+			parameters
+				.SessionEncryptedDek?
+				.ZeroMemory();
 
-				parameters
-					.Contents
-					.ZeroMemory();
-			}
+			parameters
+				.Contents
+				.ZeroMemory();
 		}
 
-		void CloseExecutingFile(string message)
+		void PublishFailure(string message)
 		{
-			_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar(message));
-
-			_viewModel.ExecuteInBaseViewModel(x => x.CloseExecutingFile(parameters.File));
+			_messenger.Send(new FileTrackingFailedMessage(new FileTrackingFailedPayload(parameters.File, message)));
 		}
 	}
 	#endregion

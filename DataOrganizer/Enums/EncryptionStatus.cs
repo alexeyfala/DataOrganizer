@@ -3,7 +3,7 @@
 /// <summary>
 /// The status of encryption.
 /// </summary>
-public enum EncryptionStatus : byte
+public enum EncryptionStatus
 {
 	/// <summary>
 	/// Original data.

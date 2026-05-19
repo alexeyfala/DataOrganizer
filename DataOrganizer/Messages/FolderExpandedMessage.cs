@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 using DataOrganizer.DTO.Entities.Models;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Messages;
 
 internal sealed class FolderExpandedMessage : ValueChangedMessage<FolderModelDto>
 {
