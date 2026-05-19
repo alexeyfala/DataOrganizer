@@ -1890,7 +1890,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
 	/// </summary>
 	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderModelDto dto,
+		FolderExpandedChangedPayload payload,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] in int lineNumber = 0,
@@ -1898,15 +1898,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		const string propertyName = nameof(FolderModelDto.IsExpanded);
 
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
+		_logger.LogDebug(
+			$@"Update ""{propertyName}"" property in of folder ""{payload.Id}"" in database is requested",
+			filePath,
+			callerName,
+			lineNumber);
 
-		return _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+		return _dbAccess.UpdateFolderPropertiesAsync(payload.Id,
 		[
-			x => x.SetProperty(x => x.IsExpanded, dto.IsExpanded)
+			x => x.SetProperty(x => x.IsExpanded, payload.IsExpanded)
 		], token);
 	}
 
