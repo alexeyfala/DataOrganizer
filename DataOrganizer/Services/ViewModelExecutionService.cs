@@ -3,7 +3,6 @@ using Avalonia.Threading;
 using DataOrganizer.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.ViewModels;
 using System;
 
 namespace DataOrganizer.Services;
@@ -32,17 +31,6 @@ public sealed class ViewModelExecutionService : IViewModelExecutionService
 	public void ExecuteInBaseViewModel(Action<ViewModelBase> action) => _dispatcher.Post(() =>
 	{
 		if (_app.FindBaseDataContext() is not { } viewModel)
-		{
-			return;
-		}
-
-		action(viewModel);
-	});
-
-	/// <inheritdoc />
-	public void ExecuteInEditor(Action<EditorViewModel> action) => _dispatcher.Post(() =>
-	{
-		if (_app.FindDataContext<EditorViewModel>() is not { } viewModel)
 		{
 			return;
 		}

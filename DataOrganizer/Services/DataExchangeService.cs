@@ -1,5 +1,6 @@
 ﻿using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -53,9 +54,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
-
 	/// <inheritdoc cref="IXmlSerializerWrapper" />
 	private readonly IXmlSerializerWrapper _xmlSerializer;
 	#endregion
@@ -70,7 +68,6 @@ public sealed class DataExchangeService : IDataExchangeService
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		IViewModelExecutionService viewModel,
 		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
@@ -88,8 +85,6 @@ public sealed class DataExchangeService : IDataExchangeService
 		_messenger = messenger;
 
 		_picker = picker;
-
-		_viewModel = viewModel;
 
 		_xmlSerializer = xmlSerializer;
 	}
@@ -197,7 +192,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ImportDataAsync(
+	public async Task<ImportDataResult?> ImportDataAsync(
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
@@ -211,7 +206,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			if (variant == ImportListVariant.None)
 			{
-				return false;
+				return null;
 			}
 		}
 
@@ -228,7 +223,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (filePaths.IsEmpty())
 		{
-			return false;
+			return null;
 		}
 
 		if (await _dbAccess
@@ -237,7 +232,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
-			return false;
+			return null;
 		}
 
 		try
@@ -265,7 +260,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -283,7 +278,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -301,7 +296,7 @@ public sealed class DataExchangeService : IDataExchangeService
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -309,24 +304,11 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(viewModel =>
+			return new()
 			{
-				if (variant == ImportListVariant.Replace)
-				{
-					viewModel
-						.CopyHistorySettings
-						.Items
-						.Clear();
-
-					viewModel.IsRightSideSheetOpened = false;
-				}
-
-				viewModel.AddHierarchy(objects);
-
-				SendMessage(Strings.DataImportCompleted, SnackbarMessageLevel.Information);
-			});
-
-			return true;
+				ImportedItems = objects,
+				Variant = variant
+			};
 		}
 		catch (Exception ex)
 		{
@@ -338,7 +320,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				.RestoreFromBackupAsync(backupFilePath, token)
 				.ConfigureAwait(false);
 
-			return false;
+			return null;
 		}
 		finally
 		{

@@ -478,9 +478,25 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		await _dataExchange
+		if (await _dataExchange
 			.ImportDataAsync(Hierarchy)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true) is not { } result || result.Variant == ImportListVariant.None)
+		{
+			return;
+		}
+
+		if (result.Variant == ImportListVariant.Replace)
+		{
+			CopyHistorySettings
+				.Items
+				.Clear();
+
+			IsRightSideSheetOpened = false;
+		}
+
+		AddHierarchy(result.ImportedItems);
+
+		ShowInfoSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
