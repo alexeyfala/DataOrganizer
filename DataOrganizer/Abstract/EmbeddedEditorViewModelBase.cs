@@ -2,8 +2,11 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Entities.Models;
@@ -91,14 +94,17 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	protected readonly IViewModelExecutionService _viewModel;
-
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
 	/// <inheritdoc cref="IEntityEncryption" />
 	private readonly IEntityEncryption _entityEncryption;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="IViewModelExecutionService" />
+	private readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -108,6 +114,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel)
 	{
@@ -122,6 +129,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_jsonSerializer = jsonSerializer;
 
 		_logger = logger;
+
+		_messenger = messenger;
 
 		_viewModel = viewModel;
 	}
@@ -202,6 +211,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		[
 			x => x.SetProperty(x => x.Properties, json)
 		], token);
+	}
+
+	/// <summary>
+	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
+	/// </summary>
+	protected void SendMessage(string message, SnackbarMessageLevel level)
+	{
+		_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
 	}
 
 	/// <summary>

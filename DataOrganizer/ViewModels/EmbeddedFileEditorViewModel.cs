@@ -4,8 +4,10 @@ using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -92,7 +94,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
@@ -207,6 +209,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IMessenger messenger,
 		ITaskExceptionHandler handler,
 		IViewModelExecutionService viewModel) : base(
 			app,
@@ -214,6 +217,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			entityEncryption,
 			jsonSerializer,
 			logger,
+			messenger,
 			handler,
 			viewModel)
 	{
@@ -418,7 +422,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			if (TryToEncrypt(latest) is not { } output)
 			{
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				latest.ZeroMemory();
 
