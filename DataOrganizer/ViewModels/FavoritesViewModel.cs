@@ -339,8 +339,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher,
-		IViewModelExecutionService viewModel) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -354,8 +353,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			logger,
 			messenger,
 			handler,
-			viewLauncher,
-			viewModel)
+			viewLauncher)
 	{
 	}
 	#endregion

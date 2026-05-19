@@ -167,8 +167,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher,
-		IViewModelExecutionService viewModel) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -176,8 +175,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			entityEncryption,
 			logger,
 			messenger,
-			handler,
-			viewModel)
+			handler)
 	{
 		_dispatcher = dispatcher;
 

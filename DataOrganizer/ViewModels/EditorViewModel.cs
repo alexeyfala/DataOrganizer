@@ -1023,8 +1023,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher,
-		IViewModelExecutionService viewModel) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1038,8 +1037,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			logger,
 			messenger,
 			handler,
-			viewLauncher,
-			viewModel)
+			viewLauncher)
 	{
 		_dataExchange = dataExchange;
 

@@ -78,8 +78,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		ITaskExceptionHandler handler) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -87,8 +86,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			entityEncryption,
 			logger,
 			messenger,
-			handler,
-			viewModel)
+			handler)
 	{
 		_filter = new(
 			this.FilterPredicate(x => x.HistorySearch),
