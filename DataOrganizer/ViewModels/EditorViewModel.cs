@@ -1551,6 +1551,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		base.AfterDispose();
 
 		_messenger.Unregister<FolderExpandedChangedMessage>(this);
+
+		_messenger.Unregister<ShowProgressMessage>(this);
 	}
 	#endregion
 
