@@ -504,7 +504,12 @@ public class ViewLauncher : IViewLauncher
 		{
 			await ShutdownAsync(hierarchy);
 
-			Environment.Exit(0);
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
 		}
 
 		async Task ShutdownAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
