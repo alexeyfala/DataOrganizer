@@ -8,6 +8,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
+using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;
@@ -31,11 +32,19 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
-				.CreateWindow<EditorWindow>()
-				.Returns(windowMock.Create<EditorWindow>());
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -86,6 +95,10 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
@@ -95,8 +108,12 @@ internal class ViewLauncherTests
 				.Returns(settings);
 
 			viewFactory
-				.CreateWindow<EditorWindow>()
-				.Returns(windowMock.Create<EditorWindow>());
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -125,11 +142,19 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
-				.CreateWindow<FavoritesWindow>()
-				.Returns(windowMock.Create<FavoritesWindow>());
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -182,6 +207,10 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
@@ -191,8 +220,12 @@ internal class ViewLauncherTests
 				.Returns(settings);
 
 			viewFactory
-				.CreateWindow<FavoritesWindow>()
-				.Returns(windowMock.Create<FavoritesWindow>());
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewFactory);
 
@@ -221,11 +254,19 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
-				.CreateWindow<EditorWindow>()
-				.Returns(windowMock.Create<EditorWindow>());
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -252,11 +293,19 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			EditorViewModel viewModel = windowMock.Create<EditorViewModel>();
+
+			EditorWindow editorWindow = windowMock.Create<EditorWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			viewFactory
-				.CreateWindow<EditorWindow>()
-				.Returns(windowMock.Create<EditorWindow>());
+				.CreateViewModel<EditorViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<EditorWindow>(Arg.Any<object[]>())
+				.Returns(editorWindow);
 
 			builder.RegisterInstance(viewFactory);
 		});
@@ -283,6 +332,10 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			FavoritesViewModel viewModel = windowMock.Create<FavoritesViewModel>();
+
+			FavoritesWindow favoritesWindow = windowMock.Create<FavoritesWindow>(TypedParameter.From(viewModel));
+
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
@@ -292,8 +345,12 @@ internal class ViewLauncherTests
 				.Returns(CurrentWindow.Favorites);
 
 			viewFactory
-				.CreateWindow<FavoritesWindow>()
-				.Returns(windowMock.Create<FavoritesWindow>());
+				.CreateViewModel<FavoritesViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<FavoritesWindow>(Arg.Any<object[]>())
+				.Returns(favoritesWindow);
 
 			builder.RegisterInstance(viewFactory);
 
