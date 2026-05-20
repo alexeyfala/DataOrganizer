@@ -104,6 +104,8 @@ public sealed class App : Application
 			return;
 		}
 
+		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
+
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
 			.LaunchAppAsync(_console);
@@ -340,6 +342,11 @@ public sealed class App : Application
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
+		#endregion
+
+		#region View locator
+		services.AddSingleton<ViewLocator>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
 		#endregion
 
 		#region Singletons

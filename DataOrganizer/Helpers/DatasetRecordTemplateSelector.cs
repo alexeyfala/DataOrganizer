@@ -22,7 +22,7 @@ internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDat
 			return template.Build(param);
 		}
 
-		return ViewLocator.GetPlugControl(typeName);
+		return PlugControl.Create(typeName);
 	}
 
 	/// <inheritdoc />

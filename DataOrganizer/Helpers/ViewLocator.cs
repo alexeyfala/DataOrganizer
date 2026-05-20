@@ -1,8 +1,5 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.Layout;
-using Avalonia.Media;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
@@ -15,36 +12,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Helpers;
 
-internal sealed class ViewLocator : IDataTemplate
+internal sealed class ViewLocator : IDataTemplate, IViewCache
 {
 	#region Data
 	/// <summary>
 	/// Cache of <see cref="Control" />.
 	/// </summary>
-	private static readonly Dictionary<object, Control> _cache = [];
+	private readonly Dictionary<object, Control> _cache = [];
 
 	/// <inheritdoc cref="IViewFactory" />
-	private static readonly IViewFactory _viewFactory = Ioc
-		.Default
-		.GetRequiredService<IViewFactory>();
+	private readonly IViewFactory _viewFactory;
+	#endregion
+
+	#region Constructors
+	public ViewLocator(IViewFactory viewFactory) => _viewFactory = viewFactory;
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Removes control from cache.
-	/// </summary>
-	public static void RemoveFromCache<T>(T key) where T : notnull
-	{
-		_cache.Remove(key, out Control? control);
-
-		if (control?.DataContext is not IDisposable disposable)
-		{
-			return;
-		}
-
-		disposable.Dispose();
-	}
-
 	/// <inheritdoc />
 	public Control? Build(object? param)
 	{
@@ -62,30 +46,33 @@ internal sealed class ViewLocator : IDataTemplate
 			return control;
 		}
 
-		return GetPlugControl(param?.GetType().Name);
+		return PlugControl.Create(param?.GetType().Name);
+
+		//return GetPlugControl(param?.GetType().Name);
 	}
 
 	/// <inheritdoc />
 	public bool Match(object? data) => data is FileModelDto;
 
-	/// <summary>
-	/// Returns default control plug.
-	/// </summary>
-	internal static Control GetPlugControl(string? typeName) => new TextBlock
+	/// <inheritdoc />
+	public void Remove<T>(T key) where T : notnull
 	{
-		FontSize = 24.0,
-		Foreground = Brushes.OrangeRed,
-		HorizontalAlignment = HorizontalAlignment.Center,
-		Text = "Not found view for: " + typeName,
-		VerticalAlignment = VerticalAlignment.Center
-	};
+		_cache.Remove(key, out Control? control);
+
+		if (control?.DataContext is not IDisposable disposable)
+		{
+			return;
+		}
+
+		disposable.Dispose();
+	}
 	#endregion
 
 	#region Service
 	/// <summary>
 	/// Creates a control for editing a file.
 	/// </summary>
-	private static bool CreateEditingFileControl(
+	private bool CreateEditingFileControl(
 		FileModelDto file,
 		[NotNullWhen(true)] out Control? control)
 	{
