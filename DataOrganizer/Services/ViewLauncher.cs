@@ -96,23 +96,6 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="AvaloniaObject.PropertyChanged" /> event handler of <see cref="EditorWindow" />.
-	/// </summary>
-	private static void EditorWindow_PropertyChanged(
-		object? sender,
-		AvaloniaPropertyChangedEventArgs e)
-	{
-		if (e.Property != Visual.BoundsProperty
-			|| sender is not EditorWindow window
-			|| e.OldValue is not Rect value)
-		{
-			return;
-		}
-
-		window.PreviousBounds = value;
-	}
-
-	/// <summary>
 	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
 	/// </summary>
 	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -123,8 +106,6 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		window.Closing -= EditorWindow_Closing;
-
-		window.PropertyChanged -= EditorWindow_PropertyChanged;
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
@@ -226,8 +207,6 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		window.Closing += EditorWindow_Closing;
-
-		window.PropertyChanged += EditorWindow_PropertyChanged;
 
 		return window;
 	}
