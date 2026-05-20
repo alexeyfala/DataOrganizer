@@ -365,6 +365,12 @@ public class ViewLauncher : IViewLauncher
 		{
 			_logger.LogException(ex);
 		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
+		}
 	}
 
 	/// <inheritdoc />

@@ -563,8 +563,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_copyHistory?.Dispose();
 
-		AfterDispose();
-
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
 			_editingFiles?.Items ?? [],
