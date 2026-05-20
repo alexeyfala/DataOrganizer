@@ -2,6 +2,7 @@
 using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Serilog;
 using Shared.Common;
@@ -56,17 +57,17 @@ public sealed class NotificationService : INotificationService
 					.FindWindow<ToastWindow>()?
 					.Close();
 
-				ToastWindow window = _viewFactory.CreateWindow<ToastWindow>();
+				ToastViewModel viewModel = _viewFactory.CreateViewModel<ToastViewModel>();
 
-				window
-					.ViewModel
-					.Title = AppUtils.AppName;
+				ToastWindow window = _viewFactory.CreateWindow<ToastWindow>(viewModel);
 
-				window
-					.ViewModel
-					.Message = message;
+				viewModel.Title = AppUtils.AppName;
 
-				if (window.Screens.Primary is not { } screen)
+				viewModel.Message = message;
+
+				if (window
+					.Screens
+					.Primary is not { } screen)
 				{
 					return;
 				}

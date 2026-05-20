@@ -23,11 +23,6 @@ public interface IViewFactory
 	T CreateViewModel<T>();
 
 	/// <summary>
-	/// Creates a <see cref="Window" /> from application's <see cref="ServiceCollection" />.
-	/// </summary>
-	T CreateWindow<T>() where T : Window;
-
-	/// <summary>
 	/// Creates a <see cref="Window" /> resolving constructor parameters from application's
 	/// <see cref="ServiceCollection" />, except the ones supplied explicitly in
 	/// <paramref name="args" /> — those are matched to constructor parameters by type

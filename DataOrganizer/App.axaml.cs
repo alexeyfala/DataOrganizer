@@ -140,12 +140,14 @@ public sealed class App : Application
 		IViewFactory viewFactory,
 		out LogCallbackSink sink)
 	{
-		ConsoleWindow window = viewFactory.CreateWindow<ConsoleWindow>();
+		ConsoleViewModel viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
+
+		ConsoleWindow window = viewFactory.CreateWindow<ConsoleWindow>(viewModel);
 
 		sink = new LogCallbackSink()
 		{
 			IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
-			LogCallback = window.ViewModel.WriteCallback
+			LogCallback = viewModel.WriteCallback
 		};
 
 		window.Title = $"{appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
@@ -156,9 +158,9 @@ public sealed class App : Application
 			&& serializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
 			&& settings.IsNotDefault())
 		{
-			window.ViewModel.FontSize = settings.FontSize;
+			viewModel.FontSize = settings.FontSize;
 
-			window.ViewModel.IsWordWrap = settings.IsWordWrap;
+			viewModel.IsWordWrap = settings.IsWordWrap;
 
 			window.Position = new(settings.X, settings.Y);
 
@@ -186,18 +188,16 @@ public sealed class App : Application
 		{
 			try
 			{
-				if (window
-					.ViewModel
-					.IsSaved)
+				if (viewModel.IsSaved)
 				{
 					return;
 				}
 
 				ConsoleWindowSettings settings = new()
 				{
-					FontSize = window.ViewModel.FontSize,
+					FontSize = viewModel.FontSize,
 					IsTopmost = window.Topmost,
-					IsWordWrap = window.ViewModel.IsWordWrap,
+					IsWordWrap = viewModel.IsWordWrap,
 					WindowState = window.WindowState,
 					Size = new((int)window.Width, (int)window.Height),
 					X = window.Position.X,
@@ -209,9 +209,7 @@ public sealed class App : Application
 					settingsFilePath,
 					false);
 
-				window
-					.ViewModel
-					.IsSaved = true;
+				viewModel.IsSaved = true;
 
 				app.CloseAllWindows();
 			}
