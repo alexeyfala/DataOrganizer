@@ -19,7 +19,14 @@ internal sealed class ViewFactory : IViewFactory
 
 	#region Methods
 	/// <inheritdoc />
+	public T CreateViewModel<T>() => ActivatorUtilities.CreateInstance<T>(_serviceProvider);
+
+	/// <inheritdoc />
 	public T CreateWindow<T>() where T : Window => _serviceProvider.GetRequiredService<T>();
+
+	/// <inheritdoc />
+	public T CreateWindow<T>(params object[] args) where T : Window
+		=> ActivatorUtilities.CreateInstance<T>(_serviceProvider, args);
 
 	/// <inheritdoc />
 	public T CreateUserControl<T>() where T : UserControl => _serviceProvider.GetRequiredService<T>();
