@@ -6,17 +6,12 @@ namespace DataOrganizer.Views;
 
 internal sealed partial class SelectedFavoritesView : UserControl
 {
-	#region Properties
-	/// <inheritdoc cref="SelectedFavoritesViewModel" />
-	public SelectedFavoritesViewModel ViewModel { get; }
-	#endregion
-
 	#region Constructors
 	public SelectedFavoritesView()
 	{
 		InitializeComponent();
 
-		DataContext = ViewModel = Ioc
+		DataContext = Ioc
 			.Default
 			.GetRequiredService<SelectedFavoritesViewModel>();
 	}

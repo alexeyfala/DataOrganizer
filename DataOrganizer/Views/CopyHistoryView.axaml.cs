@@ -6,17 +6,12 @@ namespace DataOrganizer.Views;
 
 internal sealed partial class CopyHistoryView : UserControl
 {
-	#region Properties
-	/// <inheritdoc cref="CopyHistoryViewModel" />
-	public CopyHistoryViewModel ViewModel { get; }
-	#endregion
-
 	#region Constructors
 	public CopyHistoryView()
 	{
 		InitializeComponent();
 
-		DataContext = ViewModel = Ioc
+		DataContext = Ioc
 			.Default
 			.GetRequiredService<CopyHistoryViewModel>();
 	}
