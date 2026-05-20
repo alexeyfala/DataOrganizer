@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
@@ -42,6 +41,12 @@ namespace DataOrganizer;
 public sealed class App : Application
 {
 	#region Properties
+	/// <summary>
+	/// Application-wide service provider. Set in <see cref="OnFrameworkInitializationCompleted" />.
+	/// Consumed by XAML markup extensions and other contexts that cannot use constructor injection.
+	/// </summary>
+	public static IServiceProvider Services { get; private set; } = null!;
+
 	/// <summary>
 	/// The application lifetime timer.
 	/// </summary>
@@ -103,6 +108,8 @@ public sealed class App : Application
 		{
 			return;
 		}
+
+		Services = serviceProvider;
 
 		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
 
@@ -413,11 +420,7 @@ public sealed class App : Application
 		services.AddTransient<YesNoCancelBox>();
 		#endregion
 
-		ServiceProvider provider = services.BuildServiceProvider();
-
-		Ioc.Default.ConfigureServices(provider);
-
-		return provider;
+		return services.BuildServiceProvider();
 	}
 	#endregion
 }
