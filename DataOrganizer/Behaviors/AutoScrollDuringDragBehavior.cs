@@ -151,7 +151,7 @@ internal sealed class AutoScrollDuringDragBehavior : StyledElementBehavior<Visua
 	{
 		base.OnDetachedFromVisualTree();
 
-		if (AssociatedObject?.FindDescendantOfType<ScrollViewer>(includeSelf: false) is not { } scrollViewer)
+		if (AssociatedObject?.FindDescendantOfType<ScrollViewer>() is not { } scrollViewer)
 		{
 			return;
 		}
@@ -178,7 +178,7 @@ internal sealed class AutoScrollDuringDragBehavior : StyledElementBehavior<Visua
 	{
 		base.OnLoaded();
 
-		if (AssociatedObject?.FindDescendantOfType<ScrollViewer>(includeSelf: false) is not { } scrollViewer)
+		if (AssociatedObject?.FindDescendantOfType<ScrollViewer>() is not { } scrollViewer)
 		{
 			return;
 		}

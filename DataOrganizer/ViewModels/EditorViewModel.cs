@@ -700,7 +700,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
+			|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
 		{
 			return Task.CompletedTask;
 		}
@@ -721,7 +721,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
+				|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
 			{
 				return;
 			}
@@ -1520,7 +1520,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		Func<bool> condition = () =>
 		{
-			treeView = window.FindDescendantOfType<TreeView>(includeSelf: false);
+			treeView = window.FindDescendantOfType<TreeView>();
 
 			return treeView is not null;
 		};
@@ -1536,7 +1536,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		treeView.ScrollIntoView(found);
 
-		if (treeView.FindDescendantOfType<ScrollViewer>(includeSelf: false) is { } scrollViewer)
+		if (treeView.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
 		{
 			scrollViewer.Offset = new(
 				int.MaxValue,

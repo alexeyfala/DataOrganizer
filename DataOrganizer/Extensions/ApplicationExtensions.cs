@@ -84,7 +84,7 @@ internal static class ApplicationExtensions
 	public static DialogHost? FindDialogHost(this Application target)
 	{
 		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase)
-			.FindLogicalDescendantOfType<DialogHost>(includeSelf: false);
+			.FindLogicalDescendantOfType<DialogHost>();
 	}
 
 	/// <summary>

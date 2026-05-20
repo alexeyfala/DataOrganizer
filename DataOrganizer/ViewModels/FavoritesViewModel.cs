@@ -156,7 +156,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		}
 
 		visual
-			.FindLogicalAncestorOfType<Window>(includeSelf: false)?
+			.FindLogicalAncestorOfType<Window>()?
 			.BeginMoveDrag(e);
 	}
 
