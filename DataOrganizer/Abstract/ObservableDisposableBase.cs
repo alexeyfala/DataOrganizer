@@ -22,6 +22,11 @@ public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
+		if (IsDisposed)
+		{
+			return;
+		}
+
 		GC.SuppressFinalize(this);
 
 		_disposables.Dispose();
