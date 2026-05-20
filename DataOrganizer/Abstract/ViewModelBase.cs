@@ -274,8 +274,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// Displays object in the "Editor" window.
 	/// </summary>
 	public abstract Task ShowInEditorAsync(
-		Window? window,
 		Guid id,
+		Window window,
 		CancellationToken token = default);
 
 	/// <summary>

@@ -210,16 +210,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		ITaskExceptionHandler handler) : base(
 			app,
 			dbAccess,
 			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
-			handler,
-			viewModel)
+			handler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}

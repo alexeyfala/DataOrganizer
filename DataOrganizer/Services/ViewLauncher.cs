@@ -193,7 +193,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			_handler.Watch(window
 				.ViewModel
-				.ShowInEditorAsync(window, showObjectId));
+				.ShowInEditorAsync(showObjectId, window));
 		}
 		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{

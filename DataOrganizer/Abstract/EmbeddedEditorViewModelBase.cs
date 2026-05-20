@@ -77,7 +77,12 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	[RelayCommand]
 	private void ShowInList(Window? window)
 	{
-		_viewModel.ExecuteInBaseViewModel(x => _handler.Watch(x.ShowInEditorAsync(window, FileId)));
+		if (window is null)
+		{
+			return;
+		}
+
+		_messenger.Send(new ShowInEditorMessage(new(FileId, window)));
 	}
 	#endregion
 
@@ -102,9 +107,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
-
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
 	#endregion
 
 	#region Constructors
@@ -115,8 +117,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel)
+		ITaskExceptionHandler handler)
 	{
 		_app = app;
 
@@ -131,8 +132,6 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_logger = logger;
 
 		_messenger = messenger;
-
-		_viewModel = viewModel;
 	}
 	#endregion
 
@@ -218,7 +217,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// </summary>
 	protected void SendMessage(string message, SnackbarMessageLevel level)
 	{
-		_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
+		_messenger.Send(new ShowSnackbarMessage(new(message, level)));
 	}
 
 	/// <summary>

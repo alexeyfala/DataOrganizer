@@ -180,7 +180,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		void SendMessage(string message, SnackbarMessageLevel level)
 		{
-			_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(message, level)));
+			_messenger.Send(new ShowSnackbarMessage(new(message, level)));
 		}
 	}
 	#endregion

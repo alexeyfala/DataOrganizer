@@ -953,7 +953,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
-	private void ShowInList(Guid id) => _handler.Watch(ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id));
+	private void ShowInList(Guid id)
+	{
+		if (_app.FindWindow<EditorWindow>() is not { } window)
+		{
+			return;
+		}
+
+		_handler.Watch(ShowInEditorAsync(id, window));
+	}
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1047,13 +1055,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
 
+		messenger.Register<ShowInEditorMessage>(this, OnShowInEditor);
+
 		messenger.Register<ShowProgressBarMessage>(this, OnShowProgressBar);
 	}
 	#endregion
 
 	#region Message handlers
 	/// <summary>
-	/// Reacts to a <see cref="FolderExpandedChangedMessage" /> by saving folder expanded or collapsed state in DB.
+	/// Reacts to a <see cref="FolderExpandedChangedMessage" />.
 	/// </summary>
 	/// <remarks>
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
@@ -1072,7 +1082,19 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
-	/// Reacts to a <see cref="ShowProgressBarMessage" /> by displaying a progress bar.
+	/// Reacts to a <see cref="ShowInEditorMessage" />.
+	/// </summary>
+	private void OnShowInEditor(
+		object recipient,
+		ShowInEditorMessage message)
+	{
+		ShowInEditorPayload payload = message.Value;
+
+		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
+	}
+
+	/// <summary>
+	/// Reacts to a <see cref="ShowProgressBarMessage" />.
 	/// </summary>
 	private void OnShowProgressBar(
 		object recipient,
@@ -1502,11 +1524,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc />
 	public override async Task ShowInEditorAsync(
-		Window? window,
 		Guid id,
+		Window window,
 		CancellationToken token = default)
 	{
-		if (window is null || Hierarchy.FindById(id) is not { } found)
+		if (Hierarchy.FindById(id) is not { } found)
 		{
 			return;
 		}
@@ -1565,6 +1587,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		base.AfterDispose();
 
 		_messenger.Unregister<FolderExpandedChangedMessage>(this);
+
+		_messenger.Unregister<ShowInEditorMessage>(this);
 
 		_messenger.Unregister<ShowProgressBarMessage>(this);
 	}

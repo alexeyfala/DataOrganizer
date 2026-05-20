@@ -341,7 +341,6 @@ public sealed class App : Application
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
-		services.AddTransient<IViewModelExecutionService, ViewModelExecutionService>();
 		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 

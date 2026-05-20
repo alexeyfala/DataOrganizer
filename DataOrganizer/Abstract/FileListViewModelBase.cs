@@ -122,7 +122,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_messenger.Send(new ShowSnackbarMessage(new ShowSnackbarPayload(
+				_messenger.Send(new ShowSnackbarMessage(new(
 					$@"{Strings.ThereIsNoContentFor} ""{file.Name}""",
 					SnackbarMessageLevel.Information)));
 
@@ -155,7 +155,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(viewModel.ShowInEditorAsync(window, id));
+		_handler.Watch(viewModel.ShowInEditorAsync(id, window));
 	}
 	#endregion
 

@@ -35,11 +35,6 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Searches for a <see cref="ViewModelBase" /> as a <see cref="StyledElement.DataContext" /> among windows already running in the application.
-	/// </summary>
-	public static ViewModelBase? FindBaseDataContext(this Application target) => FindDataContext<ViewModelBase>(target);
-
-	/// <summary>
 	/// Searches for a <see cref="TopLevel.Clipboard" /> among windows already running in the application.
 	/// </summary>
 	public static IClipboard? FindClipboard(this Application target)
@@ -106,11 +101,6 @@ internal static class ApplicationExtensions
 			? windows.OfType<T>().FirstOrDefault(x => condition(x))
 			: null;
 	}
-
-	/// <summary>
-	/// Returns a sequence of all windows in the application.
-	/// </summary>
-	public static IReadOnlyList<Window> GetAllWindows(this Application target) => HasWindows(target, out var windows) ? windows : [];
 
 	/// <summary>
 	/// Returns the application icon as <see cref="WindowIcon" />.

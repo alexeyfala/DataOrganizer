@@ -306,7 +306,15 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Displays the "Editor" window.
 	/// </summary>
 	[RelayCommand]
-	private Task ShowEditor(FavoritesWindow? window) => ShowInEditorAsync(window, default);
+	private Task ShowEditor(FavoritesWindow? window)
+	{
+		if (window is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return ShowInEditorAsync(default, window);
+	}
 	#endregion
 
 	#region Data
@@ -451,8 +459,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 	/// <inheritdoc />
 	public override Task ShowInEditorAsync(
-		Window? window,
 		Guid id,
+		Window window,
 		CancellationToken _ = default)
 	{
 		IsShutdown = false;
@@ -462,7 +470,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			SaveContent();
 		}
 
-		window?.Close();
+		window.Close();
 
 		_viewLauncher.ConfigureEditorWindow(
 			Hierarchy,
