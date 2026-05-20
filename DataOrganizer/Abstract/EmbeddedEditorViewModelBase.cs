@@ -2,9 +2,11 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.ViewModels;
+using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Models;
 using Repository.Interfaces;
@@ -12,10 +14,7 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +73,12 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	[RelayCommand]
 	private void ShowInList(Window? window)
 	{
-		_viewModel.ExecuteInBaseViewModel(x => _handler.Watch(x.ShowInEditorAsync(window, FileId)));
+		if (window is null)
+		{
+			return;
+		}
+
+		_messenger.Send(new ShowInEditorMessage(new(FileId, window)));
 	}
 	#endregion
 
@@ -91,14 +95,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	protected readonly IViewModelExecutionService _viewModel;
-
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
 	/// <inheritdoc cref="IEntityEncryption" />
 	private readonly IEntityEncryption _entityEncryption;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
@@ -108,8 +112,8 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel)
+		IMessenger messenger,
+		ITaskExceptionHandler handler)
 	{
 		_app = app;
 
@@ -123,23 +127,21 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 		_logger = logger;
 
-		_viewModel = viewModel;
+		_messenger = messenger;
+
+		messenger.Register<EditorReadOnlyModeChangedMessage>(this, OnEditorReadOnlyModeChanged);
 	}
 	#endregion
 
-	#region Event Handlers
+	#region Message handlers
 	/// <summary>
-	/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler of <see cref="EditorViewModel" />.
+	/// Reacts to a <see cref="EditorReadOnlyModeChangedMessage" />.
 	/// </summary>
-	private void EditorViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+	private void OnEditorReadOnlyModeChanged(
+		object recipient,
+		EditorReadOnlyModeChangedMessage message)
 	{
-		if (!string.Equals(e.PropertyName, nameof(EditorViewModel.IsReadOnly))
-			|| sender is not EditorViewModel editor)
-		{
-			return;
-		}
-
-		IsReadOnly = editor.IsReadOnly;
+		IsReadOnly = message.Value;
 	}
 	#endregion
 
@@ -157,18 +159,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IsReadOnly = window
 			.ViewModel
 			.IsReadOnly;
-
-		window.ViewModel.PropertyChanged += EditorViewModel_PropertyChanged;
-
-		Disposable
-			.Create(() => window.ViewModel.PropertyChanged -= EditorViewModel_PropertyChanged)
-			.DisposeWith(_disposables);
 	}
 
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
+
+		_messenger.Unregister<EditorReadOnlyModeChangedMessage>(this);
 
 		SessionEncryptedDek?.ZeroMemory();
 
@@ -202,6 +200,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		[
 			x => x.SetProperty(x => x.Properties, json)
 		], token);
+	}
+
+	/// <summary>
+	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
+	/// </summary>
+	protected void SendMessage(string message, SnackbarMessageLevel level)
+	{
+		_messenger.Send(new ShowSnackbarMessage(new(message, level)));
 	}
 
 	/// <summary>

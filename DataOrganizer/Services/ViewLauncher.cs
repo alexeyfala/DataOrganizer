@@ -7,6 +7,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -95,23 +96,6 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="AvaloniaObject.PropertyChanged" /> event handler of <see cref="EditorWindow" />.
-	/// </summary>
-	private static void EditorWindow_PropertyChanged(
-		object? sender,
-		AvaloniaPropertyChangedEventArgs e)
-	{
-		if (e.Property != Visual.BoundsProperty
-			|| sender is not EditorWindow window
-			|| e.OldValue is not Rect value)
-		{
-			return;
-		}
-
-		window.PreviousBounds = value;
-	}
-
-	/// <summary>
 	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
 	/// </summary>
 	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -122,8 +106,6 @@ public class ViewLauncher : IViewLauncher
 		}
 
 		window.Closing -= EditorWindow_Closing;
-
-		window.PropertyChanged -= EditorWindow_PropertyChanged;
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
@@ -167,56 +149,42 @@ public class ViewLauncher : IViewLauncher
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
 
-		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>();
+		EditorViewModel viewModel = _viewFactory.CreateViewModel<EditorViewModel>();
+
+		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
 
 		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppUtils.AppVersion}";
 
-		window
-			.ViewModel
-			.AddHierarchy(hierarchy);
+		viewModel.AddHierarchy(hierarchy);
 
-		window
-			.ViewModel
-			.AddEditingFiles(editingFiles);
+		viewModel.AddEditingFiles(editingFiles);
 
-		window
-			.ViewModel
+		viewModel
 			.ExecutingFiles
 			.AddRange(executingFiles);
 
-		window
-			.ViewModel
+		viewModel
 			.HideAllFileContentsCommand
 			.NotifyCanExecuteChanged();
 
 		if (showObjectId.IsNotDefault())
 		{
-			_handler.Watch(window
-				.ViewModel
-				.ShowInEditorAsync(window, showObjectId));
+			_handler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
 		}
 		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{
-			bool isReadOnly = window
-				.ViewModel
-				.IsReadOnly;
+			bool isReadOnly = viewModel.IsReadOnly;
 
 			try
 			{
 				// To avoid saving the "IsSelected" object property in the database.
-				window
-					.ViewModel
-					.IsReadOnly = true;
+				viewModel.IsReadOnly = true;
 
-				window
-					.ViewModel
-					.SetSelectedObject(selected);
+				viewModel.SetSelectedObject(selected);
 			}
 			finally
 			{
-				window
-					.ViewModel
-					.IsReadOnly = isReadOnly;
+				viewModel.IsReadOnly = isReadOnly;
 			}
 		}
 
@@ -224,7 +192,7 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<EditorWindowSettings>(filePath) is { } windowSettings)
 		{
-			window.ViewModel.Initialize(
+			viewModel.Initialize(
 				window,
 				windowSettings,
 				GetHistorySettingsFromFile());
@@ -235,12 +203,10 @@ public class ViewLauncher : IViewLauncher
 
 			IViewLauncher.SetDefaultLocation(window);
 
-			IViewLauncher.SetDefaultNavigationColumnWidth(window, window.ViewModel);
+			IViewLauncher.SetDefaultNavigationColumnWidth(window, viewModel);
 		}
 
 		window.Closing += EditorWindow_Closing;
-
-		window.PropertyChanged += EditorWindow_PropertyChanged;
 
 		return window;
 	}
@@ -253,19 +219,17 @@ public class ViewLauncher : IViewLauncher
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
-		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>();
+		FavoritesViewModel viewModel = _viewFactory.CreateViewModel<FavoritesViewModel>();
 
-		window
-			.ViewModel
-			.AddHierarchy(hierarchy);
+		FavoritesWindow window = _viewFactory.CreateWindow<FavoritesWindow>(viewModel);
 
-		window
-			.ViewModel
+		viewModel.AddHierarchy(hierarchy);
+
+		viewModel
 			.OpenedInEditorFiles
 			.AddRange(editingFiles);
 
-		window
-			.ViewModel
+		viewModel
 			.ExecutingFiles
 			.AddRange(executingFiles);
 
@@ -273,7 +237,7 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
 		{
-			window.ViewModel.Initialize(
+			viewModel.Initialize(
 				window,
 				windowSettings,
 				GetFavoritesSettingsFromFile(),
@@ -283,9 +247,9 @@ public class ViewLauncher : IViewLauncher
 		{
 			IViewLauncher.SetDefaultLocation(window);
 
-			IViewLauncher.SetDefaultPopupSize(window.ViewModel);
+			IViewLauncher.SetDefaultPopupSize(viewModel);
 
-			IViewLauncher.SetDefaultNavigationColumnWidth(window.ViewModel);
+			IViewLauncher.SetDefaultNavigationColumnWidth(viewModel);
 		}
 
 		window.Closing += FavoritesWindow_Closing;
@@ -364,6 +328,12 @@ public class ViewLauncher : IViewLauncher
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+		finally
+		{
+			window
+				.ViewModel
+				.Dispose();
 		}
 	}
 
@@ -504,7 +474,12 @@ public class ViewLauncher : IViewLauncher
 		{
 			await ShutdownAsync(hierarchy);
 
-			Environment.Exit(0);
+			if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
 		}
 
 		async Task ShutdownAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)

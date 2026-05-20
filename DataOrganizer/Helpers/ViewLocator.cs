@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using Entities.Enums;
 using System;
@@ -92,21 +93,21 @@ internal sealed class ViewLocator : IDataTemplate
 
 		if (file.EntityType == EntityType.File)
 		{
-			EmbeddedFileEditorView view = _viewFactory.CreateUserControl<EmbeddedFileEditorView>();
+			EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
 
-			Initialize(view.ViewModel);
+			Initialize(viewModel);
 
-			control = view;
+			control = _viewFactory.CreateUserControl<EmbeddedFileEditorView>(viewModel);
 
 			return true;
 		}
 		else if (file.EntityType == EntityType.DataSet)
 		{
-			DatasetEditorView view = _viewFactory.CreateUserControl<DatasetEditorView>();
+			DatasetEditorViewModel viewModel = _viewFactory.CreateViewModel<DatasetEditorViewModel>();
 
-			Initialize(view.ViewModel);
+			Initialize(viewModel);
 
-			control = view;
+			control = _viewFactory.CreateUserControl<DatasetEditorView>(viewModel);
 
 			return true;
 		}

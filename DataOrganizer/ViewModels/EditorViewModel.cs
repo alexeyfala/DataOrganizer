@@ -120,6 +120,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		RenameCommand.NotifyCanExecuteChanged();
 
+		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
+
 		_logger.LogDebug(
 			$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
 	}
@@ -478,9 +480,25 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		await _dataExchange
+		if (await _dataExchange
 			.ImportDataAsync(Hierarchy)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true) is not { } result || result.Variant == ImportListVariant.None)
+		{
+			return;
+		}
+
+		if (result.Variant == ImportListVariant.Replace)
+		{
+			CopyHistorySettings
+				.Items
+				.Clear();
+
+			IsRightSideSheetOpened = false;
+		}
+
+		AddHierarchy(result.ImportedItems);
+
+		ShowInfoSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
@@ -546,8 +564,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		window?.Close();
 
 		_copyHistory?.Dispose();
-
-		AfterDispose();
 
 		_viewLauncher.ConfigureFavoritesWindow(
 			Hierarchy,
@@ -684,7 +700,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
-			|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
+			|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
 		{
 			return Task.CompletedTask;
 		}
@@ -705,7 +721,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		{
 			if (dto is null
 				|| _app.FindWindow<EditorWindow>() is not { } window
-				|| window.FindLogicalDescendantOfType<TreeView>(includeSelf: false) is not { } container)
+				|| window.FindLogicalDescendantOfType<TreeView>() is not { } container)
 			{
 				return;
 			}
@@ -937,7 +953,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
 	[RelayCommand]
-	private void ShowInList(Guid id) => _handler.Watch(ShowInEditorAsync(_app.FindWindow<EditorWindow>(), id));
+	private void ShowInList(Guid id)
+	{
+		if (_app.FindWindow<EditorWindow>() is not { } window)
+		{
+			return;
+		}
+
+		_handler.Watch(ShowInEditorAsync(id, window));
+	}
 
 	/// <summary>
 	/// Shows a properties view.
@@ -1007,8 +1031,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher,
-		IViewModelExecutionService viewModel) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1022,8 +1045,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			logger,
 			messenger,
 			handler,
-			viewLauncher,
-			viewModel)
+			viewLauncher)
 	{
 		_dataExchange = dataExchange;
 
@@ -1031,21 +1053,25 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_processUtils = processUtils;
 
-		messenger.Register<FolderExpandedMessage>(this, Folder_IsExpandedChanged);
+		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
+
+		messenger.Register<ShowInEditorMessage>(this, OnShowInEditor);
+
+		messenger.Register<ShowProgressBarMessage>(this, OnShowProgressBar);
 	}
 	#endregion
 
 	#region Message handlers
 	/// <summary>
-	/// <see cref="ExplorerModelBaseDto.IsExpanded" /> changed handler of <see cref="FolderModelDto" />.
+	/// Reacts to a <see cref="FolderExpandedChangedMessage" />.
 	/// </summary>
 	/// <remarks>
 	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
 	/// so I had to use a global message to persist the changes to the database in one place.
 	/// </remarks>
-	private void Folder_IsExpandedChanged(
+	private void OnFolderIsExpandedChanged(
 		object recipient,
-		FolderExpandedMessage message)
+		FolderExpandedChangedMessage message)
 	{
 		if (IsReadOnly || IsActionInProgress)
 		{
@@ -1053,6 +1079,28 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		}
 
 		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
+	}
+
+	/// <summary>
+	/// Reacts to a <see cref="ShowInEditorMessage" />.
+	/// </summary>
+	private void OnShowInEditor(
+		object recipient,
+		ShowInEditorMessage message)
+	{
+		ShowInEditorPayload payload = message.Value;
+
+		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
+	}
+
+	/// <summary>
+	/// Reacts to a <see cref="ShowProgressBarMessage" />.
+	/// </summary>
+	private void OnShowProgressBar(
+		object recipient,
+		ShowProgressBarMessage message)
+	{
+		IsActionInProgress = message.Value;
 	}
 	#endregion
 
@@ -1218,7 +1266,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// </summary>
 	/// <remarks>
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Folder_IsExpandedChanged" /> message handler.
+	/// using the <see cref="OnFolderIsExpandedChanged" /> message handler.
 	/// </remarks>
 	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
@@ -1476,11 +1524,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 	/// <inheritdoc />
 	public override async Task ShowInEditorAsync(
-		Window? window,
 		Guid id,
+		Window window,
 		CancellationToken token = default)
 	{
-		if (window is null || Hierarchy.FindById(id) is not { } found)
+		if (Hierarchy.FindById(id) is not { } found)
 		{
 			return;
 		}
@@ -1494,7 +1542,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		Func<bool> condition = () =>
 		{
-			treeView = window.FindDescendantOfType<TreeView>(includeSelf: false);
+			treeView = window.FindDescendantOfType<TreeView>();
 
 			return treeView is not null;
 		};
@@ -1510,7 +1558,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		treeView.ScrollIntoView(found);
 
-		if (treeView.FindDescendantOfType<ScrollViewer>(includeSelf: false) is { } scrollViewer)
+		if (treeView.FindDescendantOfType<ScrollViewer>() is { } scrollViewer)
 		{
 			scrollViewer.Offset = new(
 				int.MaxValue,
@@ -1538,7 +1586,11 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<FolderExpandedMessage>(this);
+		_messenger.Unregister<FolderExpandedChangedMessage>(this);
+
+		_messenger.Unregister<ShowInEditorMessage>(this);
+
+		_messenger.Unregister<ShowProgressBarMessage>(this);
 	}
 	#endregion
 
@@ -1890,7 +1942,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
 	/// </summary>
 	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderModelDto dto,
+		FolderExpandedChangedPayload payload,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] in int lineNumber = 0,
@@ -1898,15 +1950,15 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	{
 		const string propertyName = nameof(FolderModelDto.IsExpanded);
 
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
+		_logger.LogDebug(
+			$@"Update ""{propertyName}"" property in of folder ""{payload.Id}"" in database is requested",
+			filePath,
+			callerName,
+			lineNumber);
 
-		return _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+		return _dbAccess.UpdateFolderPropertiesAsync(payload.Id,
 		[
-			x => x.SetProperty(x => x.IsExpanded, dto.IsExpanded)
+			x => x.SetProperty(x => x.IsExpanded, payload.IsExpanded)
 		], token);
 	}
 

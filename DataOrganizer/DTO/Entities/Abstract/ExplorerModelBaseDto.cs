@@ -74,7 +74,7 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 		WeakReferenceMessenger
 			.Default
-			.Send(new FolderExpandedMessage(folder));
+			.Send(new FolderExpandedChangedMessage(new(folder.Id, folder.IsExpanded)));
 	}
 	#endregion
 

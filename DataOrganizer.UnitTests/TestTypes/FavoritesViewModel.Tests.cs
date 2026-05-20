@@ -272,7 +272,7 @@ internal class FavoritesViewModelTests
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
 		// Act
-		await sut.ShowInEditorAsync(null, default);
+		await sut.ShowInEditorAsync(default, new());
 
 		// Assert
 		sut.IsShutdown

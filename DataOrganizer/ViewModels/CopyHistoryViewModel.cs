@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
@@ -76,16 +77,16 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		IMessenger messenger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEncryption,
 			logger,
-			handler,
-			viewModel)
+			messenger,
+			handler)
 	{
 		_filter = new(
 			this.FilterPredicate(x => x.HistorySearch),

@@ -17,7 +17,6 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
-using Serilog.Events;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
@@ -140,9 +139,6 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly IKeyboardInputHook _keyboardInputHook;
 
-	/// <inheritdoc cref="IMessenger" />
-	protected readonly IMessenger _messenger;
-
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
 
@@ -171,16 +167,15 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher,
-		IViewModelExecutionService viewModel) : base(
+		IViewLauncher viewLauncher) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEncryption,
 			logger,
-			handler,
-			viewModel)
+			messenger,
+			handler)
 	{
 		_dispatcher = dispatcher;
 
@@ -190,13 +185,13 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_keyboardInputHook = keyboardInputHook;
 
-		_messenger = messenger;
-
 		_settingsManager = settingsManager;
 
 		_viewLauncher = viewLauncher;
 
-		messenger.Register<FileTrackingFailedMessage>(this, OnFileTrackingFailed);
+		messenger.Register<ShowSnackbarMessage>(this, OnShowSnackbar);
+
+		messenger.Register<CloseExecutingFileMessage>(this, OnCloseExecutingFile);
 
 		if (keyboardInputHook.IsRunning)
 		{
@@ -214,17 +209,25 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Message handlers
 	/// <summary>
-	/// Reacts to a <see cref="FileTrackingFailedMessage" /> raised by <see cref="Services.FileChangeTracker" />.
+	/// Reacts to a <see cref="CloseExecutingFileMessage" />.
 	/// </summary>
-	private void OnFileTrackingFailed(
+	private void OnCloseExecutingFile(
 		object recipient,
-		FileTrackingFailedMessage message)
+		CloseExecutingFileMessage message)
 	{
-		FileTrackingFailedPayload payload = message.Value;
+		CloseExecutingFile(message.Value);
+	}
 
-		ShowErrorSnackbar(payload.Message);
+	/// <summary>
+	/// Reacts to a <see cref="ShowSnackbarMessage" />.
+	/// </summary>
+	private void OnShowSnackbar(
+		object recipient,
+		ShowSnackbarMessage message)
+	{
+		ShowSnackbarPayload payload = message.Value;
 
-		CloseExecutingFile(payload.File);
+		ShowSnackbar(payload.Text, payload.Level);
 	}
 	#endregion
 
@@ -265,32 +268,34 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
 	/// </summary>
-	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Error);
+	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Error);
 
 	/// <summary>
 	/// Displays object in the "Editor" window.
 	/// </summary>
 	public abstract Task ShowInEditorAsync(
-		Window? window,
 		Guid id,
+		Window window,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Shows the snackbar with default text color.
 	/// </summary>
-	public void ShowInfoSnackbar(string text) => ShowSnackbar(text);
+	public void ShowInfoSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Information);
 
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
 	/// </summary>
-	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, LogEventLevel.Warning);
+	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
 
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<FileTrackingFailedMessage>(this);
+		_messenger.Unregister<ShowSnackbarMessage>(this);
+
+		_messenger.Unregister<CloseExecutingFileMessage>(this);
 	}
 
 	/// <summary>
@@ -350,7 +355,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Shows the snackbar with default text color.
 	/// </summary>
-	private void ShowSnackbar(string text, LogEventLevel? level = null)
+	private void ShowSnackbar(string text, SnackbarMessageLevel level)
 	{
 		if (AppDomain
 			.CurrentDomain
@@ -361,7 +366,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_dispatcher.Post(() =>
 		{
-			if (level is null)
+			if (level == SnackbarMessageLevel.Information)
 			{
 				SnackbarForeground = _app.GetCurrentTheme() switch
 				{
@@ -374,8 +379,8 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			{
 				SnackbarForeground = level switch
 				{
-					LogEventLevel.Warning => Brushes.Orange,
-					LogEventLevel.Error => Brushes.OrangeRed,
+					SnackbarMessageLevel.Warning => Brushes.Orange,
+					SnackbarMessageLevel.Error => Brushes.OrangeRed,
 					_ => null
 				};
 			}
@@ -386,11 +391,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 			switch (level)
 			{
-				case LogEventLevel.Warning:
+				case SnackbarMessageLevel.Warning:
 					_logger.LogWarning(message);
 					break;
 
-				case LogEventLevel.Error:
+				case SnackbarMessageLevel.Error:
 					_logger.LogError(message, isAssertDebug: false);
 					break;
 

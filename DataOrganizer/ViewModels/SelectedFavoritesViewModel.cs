@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Models;
@@ -198,16 +199,16 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		IMessenger messenger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEncryption,
 			logger,
-			handler,
-			viewModel)
+			messenger,
+			handler)
 	{
 		_categoriesFilter = new(
 			this.FilterPredicate(x => x.CategorySearch),

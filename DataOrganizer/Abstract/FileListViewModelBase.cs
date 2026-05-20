@@ -3,11 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -120,8 +122,9 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_viewModel.ExecuteInBaseViewModel(
-					x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
+				_messenger.Send(new ShowSnackbarMessage(new(
+					$@"{Strings.ThereIsNoContentFor} ""{file.Name}""",
+					SnackbarMessageLevel.Information)));
 
 				return;
 			}
@@ -152,7 +155,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(viewModel.ShowInEditorAsync(window, id));
+		_handler.Watch(viewModel.ShowInEditorAsync(id, window));
 	}
 	#endregion
 
@@ -164,16 +167,16 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		IMessenger messenger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			clipboard,
 			dbAccess,
 			dialogService,
 			entityEncryption,
 			logger,
-			handler,
-			viewModel)
+			messenger,
+			handler)
 	{
 	}
 	#endregion

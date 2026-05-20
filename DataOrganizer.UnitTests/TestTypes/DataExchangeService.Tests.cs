@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
@@ -252,12 +253,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 
 		await dbAccess
 			.Received()
@@ -293,12 +294,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 
 		await dbAccess
 			.Received()
@@ -350,12 +351,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.BeNull();
 
 		await dbAccess
 			.Received()
@@ -413,12 +414,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.NotBeNull();
 	}
 
 	/// <summary>
@@ -458,12 +459,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.NotBeNull();
 	}
 
 	/// <summary>
@@ -515,12 +516,12 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.NotBeNull();
 	}
 
 	/// <summary>

@@ -1,7 +1,10 @@
 ﻿using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Abstract;
 using Entities.Models;
@@ -45,11 +48,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
-
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	private readonly IViewModelExecutionService _viewModel;
 
 	/// <inheritdoc cref="IXmlSerializerWrapper" />
 	private readonly IXmlSerializerWrapper _xmlSerializer;
@@ -64,7 +67,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IFileSystemPicker picker,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewModelExecutionService viewModel,
+		IMessenger messenger,
 		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
@@ -79,9 +82,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		_logger = logger;
 
-		_picker = picker;
+		_messenger = messenger;
 
-		_viewModel = viewModel;
+		_picker = picker;
 
 		_xmlSerializer = xmlSerializer;
 	}
@@ -154,7 +157,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -174,22 +177,22 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(x => x.ShowInfoSnackbar(Strings.DataExportCompleted));
+			SendMessage(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToExportData));
+			SendMessage(Strings.FailedToExportData, SnackbarMessageLevel.Error);
 		}
 		finally
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ImportDataAsync(
+	public async Task<ImportDataResult?> ImportDataAsync(
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
@@ -203,7 +206,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			if (variant == ImportListVariant.None)
 			{
-				return false;
+				return null;
 			}
 		}
 
@@ -220,21 +223,21 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (filePaths.IsEmpty())
 		{
-			return false;
+			return null;
 		}
 
 		if (await _dbAccess
 			.BackupDatabaseAsync(token)
 			.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
 		{
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup));
+			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
-			return false;
+			return null;
 		}
 
 		try
 		{
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = true);
+			ShowProgressBar();
 
 			// The path may contain %20 instead of spaces, so it needs to be decoded.
 			string filePath = WebUtility.UrlDecode(filePaths[0]);
@@ -251,13 +254,13 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -269,13 +272,13 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -287,13 +290,13 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backupFilePath, token)
 							.ConfigureAwait(false);
 
-						return false;
+						return null;
 					}
 					break;
 
@@ -301,36 +304,23 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_viewModel.ExecuteInEditor(viewModel =>
+			return new()
 			{
-				if (variant == ImportListVariant.Replace)
-				{
-					viewModel
-						.CopyHistorySettings
-						.Items
-						.Clear();
-
-					viewModel.IsRightSideSheetOpened = false;
-				}
-
-				viewModel.AddHierarchy(objects);
-
-				viewModel.ShowInfoSnackbar(Strings.DataImportCompleted);
-			});
-
-			return true;
+				ImportedItems = objects,
+				Variant = variant
+			};
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToImportData));
+			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backupFilePath, token)
 				.ConfigureAwait(false);
 
-			return false;
+			return null;
 		}
 		finally
 		{
@@ -343,7 +333,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				_logger.LogException(ex);
 			}
 
-			_viewModel.ExecuteInEditor(x => x.IsActionInProgress = false);
+			HideProgressBar();
 		}
 	}
 
@@ -525,6 +515,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
+	/// </summary>
+	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+
+	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
 	private async Task<bool> ImportFromJsonAsync(
@@ -614,5 +609,18 @@ public sealed class DataExchangeService : IDataExchangeService
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
+
+	/// <summary>
+	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
+	/// </summary>
+	private void SendMessage(string message, SnackbarMessageLevel level)
+	{
+		_messenger.Send(new ShowSnackbarMessage(new(message, level)));
+	}
+
+	/// <summary>
+	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
+	/// </summary>
+	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

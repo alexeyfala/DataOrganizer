@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO;
+using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
 using Entities.Abstract;
 using System.Collections.Generic;
@@ -31,7 +32,9 @@ public interface IDataExchangeService
 	/// <summary>
 	/// Imports data.
 	/// </summary>
-	Task<bool> ImportDataAsync(Collection<ExplorerModelBaseDto> hierarchy, CancellationToken token = default);
+	Task<ImportDataResult?> ImportDataAsync(
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Imports entities.

@@ -4,8 +4,10 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -66,7 +68,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
@@ -86,7 +88,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -123,7 +125,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, isAssertDebug: false);
 
-			_viewModel.ExecuteInEditor(x => x.ShowErrorSnackbar(Strings.FailedToProcessContents));
+			SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 		}
 		finally
 		{
@@ -561,15 +563,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel) : base(
+		IMessenger messenger,
+		ITaskExceptionHandler handler) : base(
 			app,
 			dbAccess,
 			entityEncryption,
 			jsonSerializer,
 			logger,
-			handler,
-			viewModel)
+			messenger,
+			handler)
 	{
 		_clipboard = clipboardService;
 

@@ -3,6 +3,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Entities.Enums;
@@ -54,46 +55,40 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc />
 	public async Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys)
 	{
-		HotkeysEditorView view = _viewFactory.CreateUserControl<HotkeysEditorView>();
+		HotkeysEditorViewModel viewModel = _viewFactory.CreateViewModel<HotkeysEditorViewModel>();
 
-		view
-			.ViewModel
+		viewModel
 			.Buffer
 			.AddRange(initialHotkeys);
 
 		await DialogHost
-			.Show(view)
+			.Show(_viewFactory.CreateUserControl<HotkeysEditorView>(viewModel))
 			.ConfigureAwait(false);
 
 		try
 		{
 			return new()
 			{
-				IsSaved = view.ViewModel.IsSaved,
-				NewHotkeys = [.. view.ViewModel.Buffer]
+				IsSaved = viewModel.IsSaved,
+				NewHotkeys = [.. viewModel.Buffer]
 			};
 		}
 		finally
 		{
-			view
-				.ViewModel
-				.Dispose();
+			viewModel.Dispose();
 		}
 	}
 
 	/// <inheritdoc />
 	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
-		view
-			.ViewModel
-			.Text = $"{Strings.CloseFilesBeingEdited}?";
+		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
-		YesNoCancelResult result = await view
-			.ViewModel
+		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
 			.ConfigureAwait(false);
 
@@ -105,18 +100,15 @@ public sealed class DialogService : IDialogService
 		KeyValueInputParameters parameters,
 		CancellationToken token = default)
 	{
-		KeyValueInputView view = _viewFactory.CreateUserControl<KeyValueInputView>();
+		KeyValueInputViewModel viewModel = _viewFactory.CreateViewModel<KeyValueInputViewModel>();
 
-		view
-			.ViewModel
-			.Initialize(parameters);
+		viewModel.Initialize(parameters);
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel)));
 
-		if (!await view
-			.ViewModel
+		if (!await viewModel
 			.GetResultAsync(token)
-			.ConfigureAwait(false) || view.ViewModel.Key is not { } key)
+			.ConfigureAwait(false) || viewModel.Key is not { } key)
 		{
 			return null;
 		}
@@ -124,23 +116,20 @@ public sealed class DialogService : IDialogService
 		return new()
 		{
 			Key = key,
-			Value = view.ViewModel.Value
+			Value = viewModel.Value
 		};
 	}
 
 	/// <inheritdoc />
 	public async Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default)
 	{
-		MultilineTextEditView view = _viewFactory.CreateUserControl<MultilineTextEditView>();
+		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
 
-		view
-			.ViewModel
-			.Text = text;
+		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel)));
 
-		if (!await view
-			.ViewModel
+		if (!await viewModel
 			.GetResultAsync(token)
 			.ConfigureAwait(false))
 		{
@@ -150,7 +139,7 @@ public sealed class DialogService : IDialogService
 		return new()
 		{
 			IsValid = true,
-			Value = view.ViewModel.Text
+			Value = viewModel.Text
 		};
 	}
 
@@ -168,7 +157,9 @@ public sealed class DialogService : IDialogService
 		{
 			try
 			{
-				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>();
+				BooleanAsyncResultViewModel viewModel = _viewFactory.CreateViewModel<BooleanAsyncResultViewModel>();
+
+				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>(viewModel);
 
 				view.Header = header;
 
@@ -216,16 +207,13 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc />
 	public async Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
-		view
-			.ViewModel
-			.Text = text;
+		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
-		YesNoCancelResult result = await view
-			.ViewModel
+		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
 			.ConfigureAwait(false);
 
@@ -235,16 +223,13 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc />
 	public async Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default)
 	{
-		YesNoCancelBox view = _viewFactory.CreateUserControl<YesNoCancelBox>();
+		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
-		view
-			.ViewModel
-			.Text = text;
+		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
-		YesNoCancelResult result = await view
-			.ViewModel
+		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo, token)
 			.ConfigureAwait(false);
 
@@ -254,37 +239,32 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc />
 	public Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default)
 	{
-		ImportListSelectorView view = _viewFactory.CreateUserControl<ImportListSelectorView>();
+		ImportListSelectorViewModel viewModel = _viewFactory.CreateViewModel<ImportListSelectorViewModel>();
 
-		view
-			.ViewModel
-			.Header = Strings.ImportList;
+		viewModel.Header = Strings.ImportList;
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel)));
 
-		return view
-			.ViewModel
-			.GetResultAsync(token);
+		return viewModel.GetResultAsync(token);
 	}
 
 	/// <inheritdoc />
 	public async Task<EntityCreationResult?> ShowEntityCreationAsync(CancellationToken token = default)
 	{
-		EntityCreationView view = _viewFactory.CreateUserControl<EntityCreationView>();
+		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
 
-		_handler.Watch(DialogHost.Show(view));
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel)));
 
 		try
 		{
-			if (!await view
-				.ViewModel
+			if (!await viewModel
 				.GetResultAsync(token)
 				.ConfigureAwait(false))
 			{
 				return null;
 			}
 
-			EntityType entityType = view.ViewModel switch
+			EntityType entityType = viewModel switch
 			{
 				{ IsFolderSelected: true } => EntityType.Folder,
 				{ IsFileSelected: true } => EntityType.File,
@@ -294,44 +274,41 @@ public sealed class DialogService : IDialogService
 
 			return new()
 			{
-				Name = view.ViewModel.Name,
+				Name = viewModel.Name,
 				Type = entityType
 			};
 		}
 		finally
 		{
-			view
-				.ViewModel
-				.SaveSettingsInFile();
+			viewModel.SaveSettingsInFile();
 		}
 	}
 
 	/// <inheritdoc />
 	public void ShowProperties(IEnumerable<PropertyNameValuePair> properties)
 	{
-		PropertiesView view = _viewFactory.CreateUserControl<PropertiesView>();
+		PropertiesViewModel viewModel = _viewFactory.CreateViewModel<PropertiesViewModel>();
 
-		view
-			.ViewModel
+		viewModel
 			.Properties
 			.AddRange(properties);
 
-		DialogHost.Show(view);
+		DialogHost.Show(_viewFactory.CreateUserControl<PropertiesView>(viewModel));
 	}
 
 	/// <inheritdoc />
 	public async Task<ShowSettingsResult> ShowSettingsAsync()
 	{
-		SettingsView view = _viewFactory.CreateUserControl<SettingsView>();
+		SettingsViewModel viewModel = _viewFactory.CreateViewModel<SettingsViewModel>();
 
 		await DialogHost
-			.Show(view)
+			.Show(_viewFactory.CreateUserControl<SettingsView>(viewModel))
 			.ConfigureAwait(false);
 
 		return new()
 		{
-			IsSaved = view.ViewModel.IsSaved,
-			Settings = view.ViewModel.CurrentSettings
+			IsSaved = viewModel.IsSaved,
+			Settings = viewModel.CurrentSettings
 		};
 	}
 	#endregion

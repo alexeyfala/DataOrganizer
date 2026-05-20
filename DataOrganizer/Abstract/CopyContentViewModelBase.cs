@@ -2,11 +2,13 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -44,8 +46,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="IViewModelExecutionService" />
-	protected readonly IViewModelExecutionService _viewModel;
+	/// <inheritdoc cref="IMessenger" />
+	protected readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
@@ -56,8 +58,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,
 		ILogger logger,
-		ITaskExceptionHandler handler,
-		IViewModelExecutionService viewModel)
+		IMessenger messenger,
+		ITaskExceptionHandler handler)
 	{
 		_app = app;
 
@@ -73,7 +75,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		_logger = logger;
 
-		_viewModel = viewModel;
+		_messenger = messenger;
 	}
 	#endregion
 
@@ -111,7 +113,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				.IsExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}"));
+				SendMessage($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -122,7 +124,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			if (!result.IsValid)
 			{
-				_viewModel.ExecuteInBaseViewModel(x => x.ShowErrorSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}"""));
+				SendMessage($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -142,12 +144,15 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (string.IsNullOrEmpty(text))
 				{
-					_viewModel.ExecuteInBaseViewModel(x => x.ShowInfoSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}"""));
+					SendMessage($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
 
 					return;
 				}
 
-				_viewModel.ExecuteInBaseViewModel(x => x.InsertToCopyHistory(file, updateView));
+				if (this is ViewModelBase viewModel)
+				{
+					viewModel.InsertToCopyHistory(file, updateView);
+				}
 
 				await _clipboard
 					.SetTextAsync(text)
@@ -171,6 +176,11 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+
+		void SendMessage(string message, SnackbarMessageLevel level)
+		{
+			_messenger.Send(new ShowSnackbarMessage(new(message, level)));
 		}
 	}
 	#endregion
