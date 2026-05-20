@@ -7,7 +7,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
-using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Entities.Models;
 using Repository.Interfaces;
@@ -15,10 +14,7 @@ using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -132,22 +128,20 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		_logger = logger;
 
 		_messenger = messenger;
+
+		messenger.Register<EditorReadOnlyModeChangedMessage>(this, OnEditorReadOnlyModeChanged);
 	}
 	#endregion
 
-	#region Event Handlers
+	#region Message handlers
 	/// <summary>
-	/// <see cref="INotifyPropertyChanged.PropertyChanged" /> event handler of <see cref="EditorViewModel" />.
+	/// Reacts to a <see cref="EditorReadOnlyModeChangedMessage" />.
 	/// </summary>
-	private void EditorViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+	private void OnEditorReadOnlyModeChanged(
+		object recipient,
+		EditorReadOnlyModeChangedMessage message)
 	{
-		if (!string.Equals(e.PropertyName, nameof(EditorViewModel.IsReadOnly))
-			|| sender is not EditorViewModel editor)
-		{
-			return;
-		}
-
-		IsReadOnly = editor.IsReadOnly;
+		IsReadOnly = message.Value;
 	}
 	#endregion
 
@@ -165,18 +159,14 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 		IsReadOnly = window
 			.ViewModel
 			.IsReadOnly;
-
-		window.ViewModel.PropertyChanged += EditorViewModel_PropertyChanged;
-
-		Disposable
-			.Create(() => window.ViewModel.PropertyChanged -= EditorViewModel_PropertyChanged)
-			.DisposeWith(_disposables);
 	}
 
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
+
+		_messenger.Unregister<EditorReadOnlyModeChangedMessage>(this);
 
 		SessionEncryptedDek?.ZeroMemory();
 

@@ -209,7 +209,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 	#region Message handlers
 	/// <summary>
-	/// Reacts to a <see cref="CloseExecutingFileMessage" /> by closing the executing file referenced in the payload.
+	/// Reacts to a <see cref="CloseExecutingFileMessage" />.
 	/// </summary>
 	private void OnCloseExecutingFile(
 		object recipient,
@@ -219,7 +219,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	}
 
 	/// <summary>
-	/// Reacts to a <see cref="ShowSnackbarMessage" /> by displaying a snackbar with the requested text and level.
+	/// Reacts to a <see cref="ShowSnackbarMessage" />.
 	/// </summary>
 	private void OnShowSnackbar(
 		object recipient,

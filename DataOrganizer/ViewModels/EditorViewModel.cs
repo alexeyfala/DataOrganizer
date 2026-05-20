@@ -120,6 +120,8 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		RenameCommand.NotifyCanExecuteChanged();
 
+		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
+
 		_logger.LogDebug(
 			$@"""{nameof(IsReadOnly)}"" property of ""{nameof(EditorViewModel)}"" has changed to ""{value}""");
 	}
