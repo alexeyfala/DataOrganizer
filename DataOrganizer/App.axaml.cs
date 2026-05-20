@@ -63,7 +63,7 @@ public sealed class App : Application
 	{
 		base.OnFrameworkInitializationCompleted();
 
-		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
 		{
 			return;
 		}
