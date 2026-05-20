@@ -1588,6 +1588,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_messenger.Unregister<FolderExpandedChangedMessage>(this);
 
+
 		_messenger.Unregister<ShowInEditorMessage>(this);
 
 		_messenger.Unregister<ShowProgressBarMessage>(this);
