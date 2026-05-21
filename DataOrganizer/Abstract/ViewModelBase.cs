@@ -141,7 +141,7 @@ public abstract partial class ViewModelBase :
 	protected readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
-	protected readonly IKeyboardInputHook _keyboardInputHook;
+	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
@@ -167,11 +167,11 @@ public abstract partial class ViewModelBase :
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -195,9 +195,9 @@ public abstract partial class ViewModelBase :
 
 		messenger.RegisterAll(this);
 
-		if (keyboardInputHook.IsRunning)
+		if (keyboardInputHook.IsValueCreated && keyboardInputHook.Value.IsRunning)
 		{
-			_handler.Watch(keyboardInputHook.StopTrackingAsync());
+			_handler.Watch(keyboardInputHook.Value.StopTrackingAsync());
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
@@ -205,7 +205,7 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
+		_handler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 

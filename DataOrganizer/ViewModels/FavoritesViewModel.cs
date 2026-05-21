@@ -343,11 +343,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -357,11 +357,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			entityEncryption,
 			eventSimulator,
 			executionEngine,
-			keyboardInputHook,
 			logger,
 			messenger,
 			handler,
-			viewLauncher)
+			viewLauncher,
+			keyboardInputHook)
 	{
 	}
 	#endregion

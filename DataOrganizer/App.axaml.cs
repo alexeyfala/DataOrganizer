@@ -358,6 +358,7 @@ public sealed class App : Application
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
+		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
@@ -374,7 +375,6 @@ public sealed class App : Application
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
-		services.AddSingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		#endregion

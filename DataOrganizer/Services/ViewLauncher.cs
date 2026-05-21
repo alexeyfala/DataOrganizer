@@ -47,7 +47,7 @@ public class ViewLauncher : IViewLauncher
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
-	private readonly IKeyboardInputHook _keyboardInputHook;
+	private readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -66,11 +66,11 @@ public class ViewLauncher : IViewLauncher
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler handler,
-		IViewFactory viewFactory)
+		IViewFactory viewFactory,
+		Lazy<IKeyboardInputHook> keyboardInputHook)
 	{
 		_app = app;
 
@@ -464,7 +464,10 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		_keyboardInputHook.Dispose();
+		if (_keyboardInputHook.IsValueCreated)
+		{
+			_keyboardInputHook.Value.Dispose();
+		}
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
 		{

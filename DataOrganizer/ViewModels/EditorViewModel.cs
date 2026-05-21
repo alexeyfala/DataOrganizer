@@ -937,9 +937,10 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Show hotkeys editor");
 
-		if (_keyboardInputHook.IsRunning)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
 			await _keyboardInputHook
+				.Value
 				.StopTrackingAsync()
 				.ConfigureAwait(true);
 		}
@@ -960,7 +961,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy));
+		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -1037,13 +1038,13 @@ public partial class EditorViewModel :
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1053,11 +1054,11 @@ public partial class EditorViewModel :
 			entityEncryption,
 			eventSimulator,
 			executionEngine,
-			keyboardInputHook,
 			logger,
 			messenger,
 			handler,
-			viewLauncher)
+			viewLauncher,
+			keyboardInputHook)
 	{
 		_dataExchange = dataExchange;
 
@@ -1262,9 +1263,10 @@ public partial class EditorViewModel :
 			_settingsManager.ApplyMaterialTheme();
 		}
 
-		if (_keyboardInputHook.IsRunning)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
 			await _keyboardInputHook
+				.Value
 				.StopTrackingAsync(token)
 				.ConfigureAwait(false);
 		}
@@ -1274,7 +1276,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy, token));
+		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>
