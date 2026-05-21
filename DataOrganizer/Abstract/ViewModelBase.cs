@@ -245,7 +245,7 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc />
 	public void Receive(CloseExecutingFileMessage message)
 	{
-		CloseExecutingFile(message.Value);
+		CloseExecutingFile(message.File);
 	}
 
 	/// <inheritdoc />

@@ -1423,21 +1423,19 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
+		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
 	}
 
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message)
 	{
-		ShowInEditorPayload payload = message.Value;
-
-		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
+		_handler.Watch(ShowInEditorAsync(message.Id, message.Window));
 	}
 
 	/// <inheritdoc />
 	public void Receive(ShowProgressBarMessage message)
 	{
-		IsActionInProgress = message.Value;
+		IsActionInProgress = message.IsVisible;
 	}
 
 	/// <summary>
@@ -1917,7 +1915,7 @@ public partial class EditorViewModel :
 	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
 	/// </summary>
 	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderExpandedChangedPayload payload,
+		FolderExpandedChangedMessage payload,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] in int lineNumber = 0,

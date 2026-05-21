@@ -80,7 +80,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return;
 		}
 
-		_messenger.Send(new ShowInEditorMessage(new(FileId, window)));
+		_messenger.Send(new ShowInEditorMessage(FileId, window));
 	}
 	#endregion
 
@@ -154,7 +154,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc />
 	public void Receive(EditorReadOnlyModeChangedMessage message)
 	{
-		IsReadOnly = message.Value;
+		IsReadOnly = message.IsReadOnly;
 	}
 
 	/// <inheritdoc />
