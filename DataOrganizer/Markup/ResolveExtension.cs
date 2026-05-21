@@ -5,15 +5,14 @@ using System;
 namespace DataOrganizer.Markup;
 
 /// <summary>
-/// XAML markup extension that resolves an instance of <see cref="Type" /> from
-/// <see cref="App.Services" />. Used to inject view models directly inside
+/// XAML markup extension that resolves an instance of <see cref="Type" />.
+/// Used to inject view models directly inside
 /// <c>DataTemplate</c> blocks where constructor injection is not available.
 /// </summary>
 public sealed class ResolveExtension : MarkupExtension
 {
 	#region Properties
 	/// <summary>
-	/// Type to resolve from <see cref="App.Services" />.
 	/// Public getter/setter is required by the XAML markup-extension contract: the parser
 	/// instantiates the extension via reflection from another assembly and may assign the
 	/// value either positionally through the constructor (e.g. <c>{markup:Resolve {x:Type …}}</c>)
