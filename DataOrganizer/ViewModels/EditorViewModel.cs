@@ -46,7 +46,12 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EditorWindow" />.
 /// </summary>
-public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
+public partial class EditorViewModel :
+	ViewModelBase,
+	INavigationColumnViewModel,
+	IRecipient<FolderExpandedChangedMessage>,
+	IRecipient<ShowInEditorMessage>,
+	IRecipient<ShowProgressBarMessage>
 {
 	#region Properties
 	/// <summary>
@@ -1052,55 +1057,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		_mapper = mapper;
 
 		_processUtils = processUtils;
-
-		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
-
-		messenger.Register<ShowInEditorMessage>(this, OnShowInEditor);
-
-		messenger.Register<ShowProgressBarMessage>(this, OnShowProgressBar);
-	}
-	#endregion
-
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="FolderExpandedChangedMessage" />.
-	/// </summary>
-	/// <remarks>
-	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global message to persist the changes to the database in one place.
-	/// </remarks>
-	private void OnFolderIsExpandedChanged(
-		object recipient,
-		FolderExpandedChangedMessage message)
-	{
-		if (IsReadOnly || IsActionInProgress)
-		{
-			return;
-		}
-
-		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowInEditorMessage" />.
-	/// </summary>
-	private void OnShowInEditor(
-		object recipient,
-		ShowInEditorMessage message)
-	{
-		ShowInEditorPayload payload = message.Value;
-
-		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowProgressBarMessage" />.
-	/// </summary>
-	private void OnShowProgressBar(
-		object recipient,
-		ShowProgressBarMessage message)
-	{
-		IsActionInProgress = message.Value;
 	}
 	#endregion
 
@@ -1454,6 +1410,37 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// <inheritdoc />
+	/// </summary>
+	/// <remarks>
+	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
+	/// so I had to use a global message to persist the changes to the database in one place.
+	/// </remarks>
+	public void Receive(FolderExpandedChangedMessage message)
+	{
+		if (IsReadOnly || IsActionInProgress)
+		{
+			return;
+		}
+
+		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message)
+	{
+		ShowInEditorPayload payload = message.Value;
+
+		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowProgressBarMessage message)
+	{
+		IsActionInProgress = message.Value;
+	}
+
+	/// <summary>
 	/// Renames <see cref="ExplorerModelBase" /> in the database and in the <see cref="TreeView" />.
 	/// </summary>
 	public async Task<bool> RenameAsync(
@@ -1579,18 +1566,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		await BrushExtensions.ApplyLimeGreenColorAnimation(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
-	}
-
-	/// <inheritdoc />
-	protected override void AfterDispose()
-	{
-		base.AfterDispose();
-
-		_messenger.Unregister<FolderExpandedChangedMessage>(this);
-
-		_messenger.Unregister<ShowInEditorMessage>(this);
-
-		_messenger.Unregister<ShowProgressBarMessage>(this);
 	}
 	#endregion
 

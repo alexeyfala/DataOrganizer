@@ -21,7 +21,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposableBase
+public abstract partial class EmbeddedEditorViewModelBase :
+	ObservableDisposableBase,
+	IRecipient<EditorReadOnlyModeChangedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -129,19 +131,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 		_messenger = messenger;
 
-		messenger.Register<EditorReadOnlyModeChangedMessage>(this, OnEditorReadOnlyModeChanged);
-	}
-	#endregion
-
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="EditorReadOnlyModeChangedMessage" />.
-	/// </summary>
-	private void OnEditorReadOnlyModeChanged(
-		object recipient,
-		EditorReadOnlyModeChangedMessage message)
-	{
-		IsReadOnly = message.Value;
+		messenger.RegisterAll(this);
 	}
 	#endregion
 
@@ -162,11 +152,17 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	}
 
 	/// <inheritdoc />
+	public void Receive(EditorReadOnlyModeChangedMessage message)
+	{
+		IsReadOnly = message.Value;
+	}
+
+	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<EditorReadOnlyModeChangedMessage>(this);
+		_messenger.UnregisterAll(this);
 
 		SessionEncryptedDek?.ZeroMemory();
 
