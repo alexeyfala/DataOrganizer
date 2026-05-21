@@ -208,26 +208,6 @@ public abstract partial class ViewModelBase :
 	}
 	#endregion
 
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="CloseExecutingFileMessage" />.
-	/// </summary>
-	public void Receive(CloseExecutingFileMessage message)
-	{
-		CloseExecutingFile(message.Value);
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowSnackbarMessage" />.
-	/// </summary>
-	public void Receive(ShowSnackbarMessage message)
-	{
-		ShowSnackbarPayload payload = message.Value;
-
-		ShowSnackbar(payload.Text, payload.Level);
-	}
-	#endregion
-
 	#region Methods
 	/// <summary>
 	/// Adds objects to <see cref="Hierarchy" />.
@@ -260,6 +240,20 @@ public abstract partial class ViewModelBase :
 		}
 
 		_copyHistory?.InsertOrMoveToTop(file);
+	}
+
+	/// <inheritdoc />
+	public void Receive(CloseExecutingFileMessage message)
+	{
+		CloseExecutingFile(message.Value);
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowSnackbarMessage message)
+	{
+		ShowSnackbarPayload payload = message.Value;
+
+		ShowSnackbar(payload.Text, payload.Level);
 	}
 
 	/// <summary>
