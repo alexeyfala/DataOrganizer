@@ -251,9 +251,7 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc />
 	public void Receive(ShowSnackbarMessage message)
 	{
-		ShowSnackbarPayload payload = message.Value;
-
-		ShowSnackbar(payload.Text, payload.Level);
+		ShowSnackbar(message.Text, message.Level);
 	}
 
 	/// <summary>

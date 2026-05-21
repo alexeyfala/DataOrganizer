@@ -245,13 +245,13 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarPayload? receivedSnackbar = null;
+		ShowSnackbarMessage? receivedSnackbar = null;
 
 		FileModelDto? receivedClosedFile = null;
 
 		object recipient = new();
 
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message.Value);
+		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.Value);
 
