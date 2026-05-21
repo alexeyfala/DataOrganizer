@@ -101,21 +101,13 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 
 	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
 	[RelayCommand]
-	private void OpenAppDirectory() => _processUtils?.OpenAppDirectory();
+	private void OpenAppDirectory() => _processUtils.OpenAppDirectory();
 
 	/// <summary>
 	/// Opens the application database directory.
 	/// </summary>
 	[RelayCommand]
-	private void OpenDatabaseDirectory()
-	{
-		if (_appEnvironment?.DatabaseDirectoryPath is not { } path)
-		{
-			return;
-		}
-
-		_processUtils?.OpenDirectory(path);
-	}
+	private void OpenDatabaseDirectory() => _processUtils.OpenDirectory(_appEnvironment.DatabaseDirectoryPath);
 	#endregion
 
 	#region Partial
@@ -139,48 +131,43 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// </summary>
 	private static readonly TextViewPosition _firstLinePosition = new();
 
+	/// <inheritdoc cref="IAppEnvironment" />
+	private readonly IAppEnvironment _appEnvironment;
+
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
 
+	/// <inheritdoc cref="IProcessUtils" />
+	private readonly IProcessUtils _processUtils;
+
 	/// <summary>
 	/// Record buffer.
 	/// </summary>
 	private readonly List<string> _recordsBuffer = [];
 
-	/// <inheritdoc cref="IAppEnvironment" />
-	private IAppEnvironment? _appEnvironment;
-
 	/// <summary>
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
 	private TextEditor? _editor;
-
-	/// <inheritdoc cref="IProcessUtils" />
-	private IProcessUtils? _processUtils;
 	#endregion
 
 	#region Constructors
-	public ConsoleViewModel(IDispatcher dispatcher)
+	public ConsoleViewModel(
+		IAppEnvironment appEnvironment,
+		IDispatcher dispatcher,
+		IProcessUtils processUtils)
 	{
+		_appEnvironment = appEnvironment;
+
 		_dispatcher = dispatcher;
+
+		_processUtils = processUtils;
 
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
-	#endregion
-
-	#region Methods
-	/// <summary>
-	/// Performs dependency injection <see cref="IProcessUtils" />.
-	/// </summary>
-	public void InjectReference(IProcessUtils target) => _processUtils = target;
-
-	/// <summary>
-	/// Performs dependency injection <see cref="IAppEnvironment" />.
-	/// </summary>
-	public void InjectReference(IAppEnvironment target) => _appEnvironment = target;
 	#endregion
 
 	#region Service

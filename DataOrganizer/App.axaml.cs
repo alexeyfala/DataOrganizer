@@ -4,7 +4,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -27,7 +26,6 @@ using Serilog.Sinks.FileEx;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
-using Shared.Properties;
 using Shared.Services;
 using SharpHook;
 using SharpHook.Data;
@@ -51,13 +49,6 @@ public sealed class App : Application
 	/// The application lifetime timer.
 	/// </summary>
 	public Stopwatch AppLifetimeTimer { get; } = new();
-	#endregion
-
-	#region Data
-	/// <summary>
-	/// A window designed for displaying logs.
-	/// </summary>
-	private ConsoleWindow? _console;
 	#endregion
 
 	#region Methods
@@ -115,7 +106,7 @@ public sealed class App : Application
 
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
-			.LaunchAppAsync(_console);
+			.LaunchAppAsync();
 	}
 	#endregion
 
@@ -135,100 +126,6 @@ public sealed class App : Application
 		}
 
 		return args;
-	}
-
-	/// <summary>
-	/// Configures <see cref="ConsoleWindow" />.
-	/// </summary>
-	private static ConsoleWindow ConfigureConsoleWindow(
-		Application app,
-		IAppEnvironment appEnvironment,
-		ICommandLineOptions options,
-		IFileSystem fileSystem,
-		IJsonSerializerWrapper serializer,
-		IViewFactory viewFactory,
-		out LogCallbackSink sink)
-	{
-		ConsoleViewModel viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
-
-		ConsoleWindow window = viewFactory.CreateWindow<ConsoleWindow>(viewModel);
-
-		sink = new LogCallbackSink()
-		{
-			IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
-			LogCallback = viewModel.WriteCallback
-		};
-
-		window.Title = $"{appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
-
-		string settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
-
-		if (fileSystem.IsFileExists(settingsFilePath)
-			&& serializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
-			&& settings.IsNotDefault())
-		{
-			viewModel.FontSize = settings.FontSize;
-
-			viewModel.IsWordWrap = settings.IsWordWrap;
-
-			window.Position = new(settings.X, settings.Y);
-
-			window.Topmost = settings.IsTopmost;
-
-			window.WindowState = settings.WindowState == WindowState.Minimized
-				? WindowState.Normal
-				: settings.WindowState;
-
-			if (window.WindowState != WindowState.Maximized)
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-
-			IViewLauncher.SetDefaultSize(window);
-		}
-
-		window.Closing += delegate
-		{
-			try
-			{
-				if (viewModel.IsSaved)
-				{
-					return;
-				}
-
-				ConsoleWindowSettings settings = new()
-				{
-					FontSize = viewModel.FontSize,
-					IsTopmost = window.Topmost,
-					IsWordWrap = viewModel.IsWordWrap,
-					WindowState = window.WindowState,
-					Size = new((int)window.Width, (int)window.Height),
-					X = window.Position.X,
-					Y = window.Position.Y
-				};
-
-				fileSystem.SerializeToJsonFile(
-					settings,
-					settingsFilePath,
-					false);
-
-				viewModel.IsSaved = true;
-
-				app.CloseAllWindows();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine(ex.ToStringDemystified());
-			}
-		};
-
-		return window;
 	}
 
 	/// <summary>
@@ -303,14 +200,13 @@ public sealed class App : Application
 
 		if (options.IsConsoleNeeded)
 		{
-			_console = ConfigureConsoleWindow(
-				this,
-				provider.GetRequiredService<IAppEnvironment>(),
-				options,
-				provider.GetRequiredService<IFileSystem>(),
-				provider.GetRequiredService<IJsonSerializerWrapper>(),
-				provider.GetRequiredService<IViewFactory>(),
-				out LogCallbackSink sink);
+			ConsoleViewModel viewModel = provider.GetRequiredService<ConsoleViewModel>();
+
+			LogCallbackSink sink = new()
+			{
+				IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
+				LogCallback = viewModel.WriteCallback
+			};
 
 			configuration
 				.WriteTo
@@ -383,7 +279,7 @@ public sealed class App : Application
 
 		#region ViewModels
 		services.AddTransient<BooleanAsyncResultViewModel>();
-		services.AddTransient<ConsoleViewModel>();
+		services.AddLazySingleton<ConsoleViewModel, ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();

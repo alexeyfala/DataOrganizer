@@ -16,7 +16,11 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 {
 	#region Data
 	/// <inheritdoc cref="ILogger" />
-	private ILogger? _logger;
+	private readonly ILogger _logger;
+	#endregion
+
+	#region Constructors
+	public JsonSerializerWrapper(ILogger logger) => _logger = logger;
 	#endregion
 
 	#region Methods
@@ -46,9 +50,6 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 			return default;
 		}
 	}
-
-	/// <inheritdoc />
-	public void InjectDependency(ILogger logger) => _logger = logger;
 
 	/// <inheritdoc />
 	public string Serialize<T>(T value, JsonSerializerOptions? options = null)

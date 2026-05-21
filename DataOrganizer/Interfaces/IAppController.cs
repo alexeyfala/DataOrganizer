@@ -1,5 +1,4 @@
-﻿using DataOrganizer.Windows;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -13,6 +12,6 @@ public interface IAppController
 	/// <summary>
 	/// Launches the application.
 	/// </summary>
-	Task LaunchAppAsync(ConsoleWindow? console, CancellationToken token = default);
+	Task LaunchAppAsync(CancellationToken token = default);
 	#endregion
 }
