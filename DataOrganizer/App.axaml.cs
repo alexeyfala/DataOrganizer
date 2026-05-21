@@ -201,7 +201,7 @@ public sealed class App : Application
 		if (options.IsConsoleNeeded)
 		{
 			ConsoleViewModel viewModel = provider
-				.GetRequiredService<IConsoleWindowController>()
+				.GetRequiredService<IConsoleWindowHost>()
 				.ViewModel;
 
 			LogCallbackSink sink = new()
@@ -256,7 +256,7 @@ public sealed class App : Application
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddLazySingleton<IConsoleWindowController, ConsoleWindowController>();
+		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();

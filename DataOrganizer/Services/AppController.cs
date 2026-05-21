@@ -23,8 +23,8 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IConsoleWindowController" />
-	private readonly Lazy<IConsoleWindowController> _consoleWindowController;
+	/// <inheritdoc cref="IConsoleWindowHost" />
+	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -59,11 +59,11 @@ public sealed class AppController : IAppController
 		IFileSystem fileSystem,
 		ILogger logger,
 		IViewLauncher viewLauncher,
-		Lazy<IConsoleWindowController> consoleWindowController)
+		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
 
-		_consoleWindowController = consoleWindowController;
+		_consoleWindowHost = consoleWindowHost;
 
 		_dbAccess = dbAccess;
 
@@ -93,7 +93,7 @@ public sealed class AppController : IAppController
 
 			if (_options.IsConsoleNeeded)
 			{
-				await _consoleWindowController
+				await _consoleWindowHost
 					.Value
 					.ConfigureAndShowAsync()
 					.ConfigureAwait(true);

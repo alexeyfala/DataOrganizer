@@ -15,8 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-/// <inheritdoc cref="IConsoleWindowController" />
-internal sealed class ConsoleWindowController : IConsoleWindowController
+internal sealed class ConsoleWindowHost : IConsoleWindowHost
 {
 	#region Properties
 	/// <inheritdoc />
@@ -41,7 +40,7 @@ internal sealed class ConsoleWindowController : IConsoleWindowController
 	#endregion
 
 	#region Constructors
-	public ConsoleWindowController(
+	public ConsoleWindowHost(
 		Application app,
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,

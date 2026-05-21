@@ -9,11 +9,11 @@ namespace DataOrganizer.Interfaces;
 /// creates the view model eagerly so the logger sink can attach to it, then configures and
 /// shows the window on demand.
 /// </summary>
-public interface IConsoleWindowController
+public interface IConsoleWindowHost
 {
 	#region Properties
 	/// <summary>
-	/// The single <see cref="ConsoleViewModel" /> instance backed by this controller.
+	/// The single <see cref="ConsoleViewModel" /> instance backed by this host.
 	/// </summary>
 	ConsoleViewModel ViewModel { get; }
 	#endregion
