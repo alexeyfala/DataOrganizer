@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Serilog;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -27,7 +28,7 @@ public interface IJsonSerializerWrapper
 	/// Deserializes a Json string into <typeparamref name="T"/> from a file.<br />
 	/// Returns the default value for type <typeparamref name="T"/> if an exception occurs during deserialization.
 	/// </summary>
-	T? FromFile<T>(string filePath);
+	T? FromFile<T>(string filePath, ILogger? logger = null);
 
 	/// <summary>
 	/// Serializes data into a Json string.

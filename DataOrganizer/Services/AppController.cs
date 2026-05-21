@@ -1,21 +1,14 @@
-﻿using Avalonia;
-using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.ViewModels;
-using DataOrganizer.Windows;
 using OSVersionExtension;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
-using Shared.Properties;
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -27,16 +20,11 @@ namespace DataOrganizer.Services;
 public sealed class AppController : IAppController
 {
 	#region Data
-	/// <inheritdoc cref="Avalonia.Application" />
-	private readonly Application _app;
-
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <summary>
-	/// Lazy reference to the singleton <see cref="ConsoleViewModel" /> shared with the log sink.
-	/// </summary>
-	private readonly Lazy<ConsoleViewModel> _consoleViewModel;
+	/// <inheritdoc cref="IConsoleWindowController" />
+	private readonly Lazy<IConsoleWindowController> _consoleWindowController;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -47,9 +35,6 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -59,16 +44,12 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
 
-	/// <inheritdoc cref="IViewFactory" />
-	private readonly IViewFactory _viewFactory;
-
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
 
 	#region Constructors
 	public AppController(
-		Application app,
 		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
 		ICommandLineOptions options,
@@ -76,17 +57,13 @@ public sealed class AppController : IAppController
 		IEntityLoader entityLoader,
 		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IViewFactory viewFactory,
 		IViewLauncher viewLauncher,
-		Lazy<ConsoleViewModel> consoleViewModel)
+		Lazy<IConsoleWindowController> consoleWindowController)
 	{
-		_app = app;
-
 		_appEnvironment = appEnvironment;
 
-		_consoleViewModel = consoleViewModel;
+		_consoleWindowController = consoleWindowController;
 
 		_dbAccess = dbAccess;
 
@@ -94,15 +71,11 @@ public sealed class AppController : IAppController
 
 		_fileSystem = fileSystem;
 
-		_jsonSerializer = jsonSerializer;
-
 		_logger = logger;
 
 		_options = options;
 
 		_settingsManager = settingsManager;
-
-		_viewFactory = viewFactory;
 
 		_viewLauncher = viewLauncher;
 
@@ -120,7 +93,10 @@ public sealed class AppController : IAppController
 
 			if (_options.IsConsoleNeeded)
 			{
-				await ConfigureAndShowConsoleAsync().ConfigureAwait(true);
+				await _consoleWindowController
+					.Value
+					.ConfigureAndShowAsync()
+					.ConfigureAwait(true);
 			}
 
 			InitialPrint();
@@ -160,96 +136,6 @@ public sealed class AppController : IAppController
 	#endregion
 
 	#region Service
-	/// <summary>
-	/// Creates, configures and shows <see cref="ConsoleWindow" />.
-	/// </summary>
-	private Task ConfigureAndShowConsoleAsync()
-	{
-		ConsoleViewModel viewModel = _consoleViewModel.Value;
-
-		ConsoleWindow window = _viewFactory.CreateWindow<ConsoleWindow>(viewModel);
-
-		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
-
-		string settingsFilePath = _appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
-
-		if (_fileSystem.IsFileExists(settingsFilePath)
-			&& _jsonSerializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
-			&& settings.IsNotDefault())
-		{
-			viewModel.FontSize = settings.FontSize;
-
-			viewModel.IsWordWrap = settings.IsWordWrap;
-
-			window.Position = new(settings.X, settings.Y);
-
-			window.Topmost = settings.IsTopmost;
-
-			window.WindowState = settings.WindowState == WindowState.Minimized
-				? WindowState.Normal
-				: settings.WindowState;
-
-			if (window.WindowState != WindowState.Maximized)
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-
-			IViewLauncher.SetDefaultSize(window);
-		}
-
-		window.Closing += delegate
-		{
-			try
-			{
-				if (viewModel.IsSaved)
-				{
-					return;
-				}
-
-				ConsoleWindowSettings settings = new()
-				{
-					FontSize = viewModel.FontSize,
-					IsTopmost = window.Topmost,
-					IsWordWrap = viewModel.IsWordWrap,
-					WindowState = window.WindowState,
-					Size = new((int)window.Width, (int)window.Height),
-					X = window.Position.X,
-					Y = window.Position.Y
-				};
-
-				_fileSystem.SerializeToJsonFile(
-					settings,
-					settingsFilePath,
-					false);
-
-				viewModel.IsSaved = true;
-
-				_app.CloseAllWindows();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine(ex.ToStringDemystified());
-			}
-		};
-
-		TaskCompletionSource source = new();
-
-		window.Loaded += delegate
-		{
-			source.SetResult();
-		};
-
-		window.Show();
-
-		return source.Task;
-	}
-
 	/// <summary>
 	/// Writes initial data to log.
 	/// </summary>

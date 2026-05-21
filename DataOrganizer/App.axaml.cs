@@ -200,7 +200,9 @@ public sealed class App : Application
 
 		if (options.IsConsoleNeeded)
 		{
-			ConsoleViewModel viewModel = provider.GetRequiredService<ConsoleViewModel>();
+			ConsoleViewModel viewModel = provider
+				.GetRequiredService<IConsoleWindowController>()
+				.ViewModel;
 
 			LogCallbackSink sink = new()
 			{
@@ -212,6 +214,20 @@ public sealed class App : Application
 				.WriteTo
 				.Async(config => config.Sink(sink));
 		}
+		// if (options.IsConsoleNeeded)
+		// {
+		//     ConsoleViewModel viewModel = provider.GetRequiredService<ConsoleViewModel>();
+		//
+		//     LogCallbackSink sink = new()
+		//     {
+		//         IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
+		//         LogCallback = viewModel.WriteCallback
+		//     };
+		//
+		//     configuration
+		//         .WriteTo
+		//         .Async(config => config.Sink(sink));
+		// }
 
 		return configuration.CreateLogger();
 	}
@@ -254,6 +270,7 @@ public sealed class App : Application
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
+		services.AddLazySingleton<IConsoleWindowController, ConsoleWindowController>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
@@ -279,7 +296,6 @@ public sealed class App : Application
 
 		#region ViewModels
 		services.AddTransient<BooleanAsyncResultViewModel>();
-		services.AddLazySingleton<ConsoleViewModel, ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
