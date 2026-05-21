@@ -45,7 +45,7 @@ public sealed class App : Application
 	/// Application-wide service provider. Set in <see cref="OnFrameworkInitializationCompleted" />.
 	/// Consumed by XAML markup extensions and other contexts that cannot use constructor injection.
 	/// </summary>
-	public static IServiceProvider Services { get; private set; } = null!;
+	public static IServiceProvider? Services { get; private set; }
 
 	/// <summary>
 	/// The application lifetime timer.
