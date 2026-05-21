@@ -10,6 +10,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
@@ -281,6 +282,11 @@ public abstract partial class ViewModelBase :
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
+
+		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		{
+			_logger.LogDebug(logLine);
+		}
 
 		_messenger.UnregisterAll(this);
 	}

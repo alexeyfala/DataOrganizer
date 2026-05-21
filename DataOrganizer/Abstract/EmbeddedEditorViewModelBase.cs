@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
@@ -161,6 +162,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
+
+		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		{
+			_logger.LogDebug(logLine);
+		}
 
 		_messenger.UnregisterAll(this);
 
