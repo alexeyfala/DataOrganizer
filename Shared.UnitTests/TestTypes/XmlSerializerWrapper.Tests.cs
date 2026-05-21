@@ -1,3 +1,4 @@
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Attributes;
 using Shared.Services;
@@ -18,7 +19,9 @@ internal class XmlSerializerWrapperTests
 	public void Deserialize_Returns_Object_From_Xml_String()
 	{
 		// Arrange
-		XmlSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
 
 		const string xml = """
 			<?xml version="1.0" encoding="utf-16"?>
@@ -53,7 +56,9 @@ internal class XmlSerializerWrapperTests
 	public void Deserialize_Throws_When_Xml_Contains_DTD_Declaration()
 	{
 		// Arrange
-		XmlSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
 
 		const string maliciousXml = """
 			<?xml version="1.0" encoding="utf-8"?>
@@ -84,7 +89,9 @@ internal class XmlSerializerWrapperTests
 	public void Serialize_Returns_Xml_String_From_Object()
 	{
 		// Arrange
-		XmlSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
 
 		XmlSample value = new() { Name = "alpha", Number = 42 };
 
@@ -108,7 +115,9 @@ internal class XmlSerializerWrapperTests
 	public void Serialize_Then_Deserialize_Returns_Equivalent_Object()
 	{
 		// Arrange
-		XmlSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
 
 		XmlSample value = new() { Name = "gamma", Number = 100 };
 

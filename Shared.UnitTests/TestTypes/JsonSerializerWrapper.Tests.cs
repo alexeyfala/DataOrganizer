@@ -1,4 +1,5 @@
-﻿using AwesomeAssertions;
+﻿using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using Shared.Services;
 
 namespace Shared.UnitTests.TestTypes;
@@ -14,7 +15,9 @@ internal class JsonSerializerWrapperTests
 	public void Deserialize_Returns_Object_From_Json_String()
 	{
 		// Arrange
-		JsonSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
 
 		const string json = """{"Name":"alpha","Number":42}""";
 
@@ -42,7 +45,9 @@ internal class JsonSerializerWrapperTests
 	public void Serialize_Returns_Json_String_From_Object()
 	{
 		// Arrange
-		JsonSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
 
 		Sample value = new() { Name = "beta", Number = 7 };
 
@@ -66,7 +71,9 @@ internal class JsonSerializerWrapperTests
 	public void Serialize_Then_Deserialize_Returns_Equivalent_Object()
 	{
 		// Arrange
-		JsonSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
 
 		Sample value = new() { Name = "gamma", Number = 100 };
 
@@ -88,7 +95,9 @@ internal class JsonSerializerWrapperTests
 	public void ToReadableJson_Includes_Type_Name_And_Json_Body_For_Non_Null_Value()
 	{
 		// Arrange
-		JsonSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
 
 		Sample value = new() { Name = "epsilon", Number = 5 };
 
@@ -116,7 +125,9 @@ internal class JsonSerializerWrapperTests
 	public void ToReadableJson_Returns_Null_Marker_For_Null_Reference()
 	{
 		// Arrange
-		JsonSerializerWrapper sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
 
 		// Act
 		string result = sut.ToReadableJson<Sample>(null);
