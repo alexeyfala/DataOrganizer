@@ -6,7 +6,7 @@ namespace DataOrganizer.Messages;
 /// <summary>
 /// Notification raised to request closing a file currently executing in the operating system.
 /// </summary>
-internal sealed class CloseExecutingFileMessage : ValueChangedMessage<FileModelDto>
+public sealed class CloseExecutingFileMessage : ValueChangedMessage<FileModelDto>
 {
 	#region Constructors
 	public CloseExecutingFileMessage(FileModelDto file) : base(file)

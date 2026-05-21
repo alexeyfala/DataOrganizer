@@ -34,7 +34,10 @@ namespace DataOrganizer.Abstract;
 /// <summary>
 /// Base view model.
 /// </summary>
-public abstract partial class ViewModelBase : CopyContentViewModelBase
+public abstract partial class ViewModelBase :
+	CopyContentViewModelBase,
+	IRecipient<ShowSnackbarMessage>,
+	IRecipient<CloseExecutingFileMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewSettings" />
@@ -189,9 +192,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_viewLauncher = viewLauncher;
 
-		messenger.Register<ShowSnackbarMessage>(this, OnShowSnackbar);
-
-		messenger.Register<CloseExecutingFileMessage>(this, OnCloseExecutingFile);
+		messenger.RegisterAll(this);
 
 		if (keyboardInputHook.IsRunning)
 		{
@@ -211,9 +212,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Reacts to a <see cref="CloseExecutingFileMessage" />.
 	/// </summary>
-	private void OnCloseExecutingFile(
-		object recipient,
-		CloseExecutingFileMessage message)
+	public void Receive(CloseExecutingFileMessage message)
 	{
 		CloseExecutingFile(message.Value);
 	}
@@ -221,9 +220,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Reacts to a <see cref="ShowSnackbarMessage" />.
 	/// </summary>
-	private void OnShowSnackbar(
-		object recipient,
-		ShowSnackbarMessage message)
+	public void Receive(ShowSnackbarMessage message)
 	{
 		ShowSnackbarPayload payload = message.Value;
 
@@ -293,9 +290,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<ShowSnackbarMessage>(this);
-
-		_messenger.Unregister<CloseExecutingFileMessage>(this);
+		_messenger.UnregisterAll(this);
 	}
 
 	/// <summary>
