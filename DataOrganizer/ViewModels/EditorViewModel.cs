@@ -798,7 +798,14 @@ public partial class EditorViewModel :
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel) => _editingFiles = viewModel;
+	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
+	{
+		viewModel?
+			.Items
+			.AddRange(OpenedInEditorFiles);
+
+		_editingFiles = viewModel;
+	}
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -1141,11 +1148,6 @@ public partial class EditorViewModel :
 			return null;
 		}
 	}
-
-	/// <summary>
-	/// Adds editing files.
-	/// </summary>
-	public void AddEditingFiles(IEnumerable<FileModelDto> editingFiles) => _editingFiles?.Items.AddRange(editingFiles);
 
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)

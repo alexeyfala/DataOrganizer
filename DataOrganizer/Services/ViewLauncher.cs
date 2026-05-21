@@ -157,7 +157,9 @@ public class ViewLauncher : IViewLauncher
 
 		viewModel.AddHierarchy(hierarchy);
 
-		viewModel.AddEditingFiles(editingFiles);
+		viewModel
+			.OpenedInEditorFiles
+			.AddRange(editingFiles);
 
 		viewModel
 			.ExecutingFiles
