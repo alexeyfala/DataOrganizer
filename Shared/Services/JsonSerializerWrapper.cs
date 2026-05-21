@@ -36,7 +36,7 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 		}
 		catch (Exception ex)
 		{
-			logger?.LogException(ex);
+			logger?.LogException(ex, false);
 
 			return default;
 		}
