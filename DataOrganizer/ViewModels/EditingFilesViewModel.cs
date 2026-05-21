@@ -137,13 +137,6 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	{
 		Items.Remove(dto);
 
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
 		_viewCache.Remove(dto);
 	}
 
