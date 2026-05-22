@@ -16,7 +16,7 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
-		<Version>$(AppVersion)-Preview1</Version>
+		<Version>$(AppVersion)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
