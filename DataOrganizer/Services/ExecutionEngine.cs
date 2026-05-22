@@ -189,6 +189,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
+		if (_executingFiles.ContainsKey(parameters.File.Id))
+		{
+			LogDuplicateEntry(parameters.File.Id);
+
+			return false;
+		}
+
 		await using AsyncRollbackScope scope = new(_logger);
 
 		try
@@ -279,8 +286,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			if (!_executingFiles.TryAdd(parameters.File.Id, info))
 			{
-				_logger.LogError(
-					$@"An entry for file id ""{parameters.File.Id}"" already exists in the executing files dictionary.");
+				LogDuplicateEntry(parameters.File.Id);
 
 				return false;
 			}
@@ -294,6 +300,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 			_logger.LogException(ex);
 
 			return false;
+		}
+
+		void LogDuplicateEntry(Guid fileId)
+		{
+			_logger.LogError(
+				$@"An entry for file id ""{fileId}"" already exists in the executing files dictionary.");
 		}
 	}
 
