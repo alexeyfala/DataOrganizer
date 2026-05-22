@@ -92,30 +92,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
-			await info
-				.Cancellation
-				.CancelAsync()
-				.ConfigureAwait(false);
-
-			try
-			{
-				await info
-					.TrackerTask
-					.WaitAsync(TimeSpan.FromSeconds(5), token)
-					.ConfigureAwait(false);
-			}
-			catch (TimeoutException)
-			{
-				_logger.LogWarning($@"Change tracker for ""{info.FilePath}"" did not stop within 5 seconds.");
-			}
-			catch (OperationCanceledException)
-			{
-				// Expected — tracker observed Cancel() or the outer token was cancelled.
-			}
-
-			info
-				.Cancellation
-				.Dispose();
+			await StopTrackerAndDisposeCancellationAsync(
+				info,
+				token).ConfigureAwait(false);
 
 			if (!TryKillProcess(
 				id,
@@ -182,30 +161,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			try
 			{
-				await info
-					.Cancellation
-					.CancelAsync()
-					.ConfigureAwait(false);
-
-				try
-				{
-					await info
-						.TrackerTask
-						.WaitAsync(TimeSpan.FromSeconds(5))
-						.ConfigureAwait(false);
-				}
-				catch (TimeoutException)
-				{
-					_logger.LogWarning($@"Change tracker for ""{info.FilePath}"" did not stop within 5 seconds.");
-				}
-				catch (OperationCanceledException)
-				{
-					// Expected — tracker observed Cancel().
-				}
-
-				info
-					.Cancellation
-					.Dispose();
+				await StopTrackerAndDisposeCancellationAsync(
+					info,
+					CancellationToken.None).ConfigureAwait(false);
 
 				if (!TryKillProcess(id, info.ProcessId, info.FilePath))
 				{
@@ -305,6 +263,40 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Service
+	/// <summary>
+	/// Cancels the tracker, waits up to 5 seconds for it to exit (honouring
+	/// <paramref name="token" />), then disposes <see cref="ExecutingFileInfo.Cancellation" />.
+	/// </summary>
+	private async Task StopTrackerAndDisposeCancellationAsync(
+		ExecutingFileInfo info,
+		CancellationToken token)
+	{
+		await info
+			.Cancellation
+			.CancelAsync()
+			.ConfigureAwait(false);
+
+		try
+		{
+			await info
+				.TrackerTask
+				.WaitAsync(TimeSpan.FromSeconds(5), token)
+				.ConfigureAwait(false);
+		}
+		catch (TimeoutException)
+		{
+			_logger.LogWarning($@"Change tracker for ""{info.FilePath}"" did not stop within 5 seconds.");
+		}
+		catch (OperationCanceledException)
+		{
+			// Expected — tracker observed Cancel() or the outer token was cancelled.
+		}
+
+		info
+			.Cancellation
+			.Dispose();
+	}
+
 	/// <summary>
 	/// Tries to delete a file and the folder containing it.
 	/// </summary>
