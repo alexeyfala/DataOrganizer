@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Reactive.Disposables;
+using System.Threading;
 
 namespace DataOrganizer.Abstract;
 
@@ -10,19 +11,24 @@ public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 	/// <summary>
 	/// Returns <c>True</c> if the object has been disposed.
 	/// </summary>
-	public bool IsDisposed { get; private set; }
+	public bool IsDisposed => _isDisposed;
 	#endregion
 
 	#region Data
 	/// <inheritdoc cref="CompositeDisposable" />
 	protected readonly CompositeDisposable _disposables = [];
+
+	/// <summary>
+	/// Backing field for <see cref="IsDisposed" />.
+	/// </summary>
+	private bool _isDisposed;
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (IsDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
@@ -32,8 +38,6 @@ public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 		_disposables.Dispose();
 
 		AfterDispose();
-
-		IsDisposed = true;
 	}
 
 	/// <summary>
