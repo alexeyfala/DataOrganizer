@@ -85,7 +85,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (!_executingFiles.TryGetValue(id, out ExecutingFileInfo? info))
+			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 			{
 				_logger.LogError($@"Cannot find file information for id ""{id}""");
 
@@ -134,8 +134,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 		finally
 		{
-			_executingFiles.TryRemove(id, out var _);
-
 			try
 			{
 				_semaphore.Release();
@@ -155,28 +153,36 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return;
 		}
 
-		_executingFiles.ForEach(pair =>
+		foreach (Guid id in _executingFiles.Keys)
 		{
-			if (pair.Value is not { } info)
+			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 			{
-				return;
+				// A concurrent CloseAsync got there first and owns this entry now.
+				continue;
 			}
 
-			info
-				.Cancellation
-				.Cancel();
-
-			info
-				.Cancellation
-				.Dispose();
-
-			if (!TryKillProcess(pair.Key, info.ProcessId, info.FilePath))
+			try
 			{
-				return;
-			}
+				info
+					.Cancellation
+					.Cancel();
 
-			TryDeleteFile(info.FilePath, info.DirectoryPath);
-		});
+				info
+					.Cancellation
+					.Dispose();
+
+				if (!TryKillProcess(id, info.ProcessId, info.FilePath))
+				{
+					continue;
+				}
+
+				TryDeleteFile(info.FilePath, info.DirectoryPath);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
+		}
 
 		_semaphore.Dispose();
 	}
