@@ -47,6 +47,8 @@ internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposa
 			return;
 		}
 
+		logger?.LogWarning($"Rolling back {_rollbacks.Count} action(s).");
+
 		while (_rollbacks.TryPop(out Func<Task>? action))
 		{
 			try

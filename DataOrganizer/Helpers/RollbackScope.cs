@@ -49,6 +49,8 @@ internal sealed class RollbackScope(ILogger? logger = null) : IDisposable
 			return;
 		}
 
+		logger?.LogWarning($"Rolling back {_rollbacks.Count} action(s).");
+
 		while (_rollbacks.TryPop(out Action? action))
 		{
 			try
