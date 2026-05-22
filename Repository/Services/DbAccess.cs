@@ -116,9 +116,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -150,9 +154,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -184,9 +192,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -226,9 +238,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -276,9 +292,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -298,9 +318,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -335,9 +359,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -363,9 +391,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -393,9 +425,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -427,9 +463,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -477,9 +517,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -507,9 +551,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -517,12 +565,10 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_semaphore.Dispose();
 	}
@@ -550,9 +596,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -578,9 +628,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -619,9 +673,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -647,9 +705,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -686,9 +748,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -824,9 +890,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -857,9 +927,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -889,9 +963,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -922,9 +1000,13 @@ public sealed class DbAccess : IDbAccess
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}

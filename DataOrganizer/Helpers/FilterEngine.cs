@@ -116,12 +116,10 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_source.Clear();
 

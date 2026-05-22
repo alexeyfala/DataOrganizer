@@ -136,9 +136,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_executingFiles.TryRemove(id, out var _);
 
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -146,12 +150,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_executingFiles.ForEach(pair =>
 		{
