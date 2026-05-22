@@ -96,6 +96,22 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.Cancellation
 				.Cancel();
 
+			try
+			{
+				await info
+					.TrackerTask
+					.WaitAsync(TimeSpan.FromSeconds(5), token)
+					.ConfigureAwait(false);
+			}
+			catch (TimeoutException)
+			{
+				_logger.LogWarning($@"Change tracker for ""{info.FilePath}"" did not stop within 5 seconds.");
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected — tracker observed Cancel() or the outer token was cancelled.
+			}
+
 			info
 				.Cancellation
 				.Dispose();
@@ -169,6 +185,16 @@ public sealed class ExecutionEngine : IExecutionEngine
 					.Cancellation
 					.Cancel();
 
+				try
+				{
+					info
+						.TrackerTask
+						.Wait(TimeSpan.FromSeconds(5));
+				}
+				catch (AggregateException)
+				{
+				}
+
 				info
 					.Cancellation
 					.Dispose();
@@ -220,11 +246,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			_processUtils.StartProcess(filePath, out int processId);
 
-			CancellationTokenSource cancellation = new();
+			CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-			_executingFiles.TryAdd(
-				parameters.File.Id,
-				new(cancellation, filePath, directoryPath, processId));
+			Task trackerTask = Task.CompletedTask;
 
 			if (!parameters.IsReadOnly)
 			{
@@ -237,8 +261,21 @@ public sealed class ExecutionEngine : IExecutionEngine
 					SessionEncryptedDek = parameters.SessionEncryptedDek
 				};
 
-				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
+				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+
+				_handler.Watch(trackerTask);
 			}
+
+			ExecutingFileInfo info = new()
+			{
+				Cancellation = cancellation,
+				DirectoryPath = directoryPath,
+				FilePath = filePath,
+				ProcessId = processId,
+				TrackerTask = trackerTask
+			};
+
+			_executingFiles.TryAdd(parameters.File.Id, info);
 
 			_logger.LogInformation(
 				$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
