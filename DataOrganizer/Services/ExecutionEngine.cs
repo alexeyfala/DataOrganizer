@@ -92,9 +92,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return;
 			}
 
-			info
+			await info
 				.Cancellation
-				.Cancel();
+				.CancelAsync()
+				.ConfigureAwait(false);
 
 			try
 			{
@@ -164,7 +165,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <inheritdoc />
-	public void Dispose()
+	public async ValueTask DisposeAsync()
 	{
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
@@ -181,18 +182,25 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			try
 			{
-				info
+				await info
 					.Cancellation
-					.Cancel();
+					.CancelAsync()
+					.ConfigureAwait(false);
 
 				try
 				{
-					info
+					await info
 						.TrackerTask
-						.Wait(TimeSpan.FromSeconds(5));
+						.WaitAsync(TimeSpan.FromSeconds(5))
+						.ConfigureAwait(false);
 				}
-				catch (AggregateException)
+				catch (TimeoutException)
 				{
+					_logger.LogWarning($@"Change tracker for ""{info.FilePath}"" did not stop within 5 seconds.");
+				}
+				catch (OperationCanceledException)
+				{
+					// Expected — tracker observed Cancel().
 				}
 
 				info
