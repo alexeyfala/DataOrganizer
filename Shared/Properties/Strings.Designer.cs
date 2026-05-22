@@ -187,6 +187,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close the file and delete.
+        /// </summary>
+        public static string CloseTheFileAndDelete {
+            get {
+                return ResourceManager.GetString("CloseTheFileAndDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collapse All.
         /// </summary>
         public static string CollapseAll {

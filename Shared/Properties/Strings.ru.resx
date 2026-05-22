@@ -528,4 +528,7 @@
   <data name="DoesNotExist" xml:space="preserve">
     <value>не существует</value>
   </data>
+  <data name="CloseTheFileAndDelete" xml:space="preserve">
+    <value>Закрыть файл и удалить</value>
+  </data>
 </root>

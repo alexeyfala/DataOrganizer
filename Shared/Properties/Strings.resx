@@ -508,4 +508,7 @@
   <data name="DoesNotExist" xml:space="preserve">
     <value>does not exist</value>
   </data>
+  <data name="CloseTheFileAndDelete" xml:space="preserve">
+    <value>Close the file and delete</value>
+  </data>
 </root>

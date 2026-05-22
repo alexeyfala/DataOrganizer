@@ -765,13 +765,18 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		// Since the editor may have a tab open with the file being deleted,
-		// the operation must be performed in the main thread (ConfigureAwait(true)).
+		bool isopened = dto is FileModelDto file && file.IsOpened();
+
 		if (!await _dialogService
-			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{toBeDeleted.Name}""?")
+			.RequestYesNoDialogAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
 			return;
+		}
+
+		if (isopened && dto is FileModelDto opened)
+		{
+			CloseFile(opened);
 		}
 
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
