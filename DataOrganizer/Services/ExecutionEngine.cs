@@ -52,13 +52,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		ITaskExceptionHandler handler,
-		IProcessUtils processUtils,
-		ILogger logger,
-		IFileSystem fileSystem,
-		IFileChangeTracker changeTracker,
+		IAppEnvironment appEnvironment,
 		IFileAssociationService fileAssociation,
-		IAppEnvironment appEnvironment)
+		IFileChangeTracker changeTracker,
+		IFileSystem fileSystem,
+		ILogger logger,
+		IProcessUtils processUtils,
+		ITaskExceptionHandler handler)
 	{
 		_appEnvironment = appEnvironment;
 
