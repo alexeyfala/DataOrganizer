@@ -208,7 +208,7 @@ internal class GenericExtensionsTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Target with a read-only Name property to verify skip behaviour.
 	/// </summary>

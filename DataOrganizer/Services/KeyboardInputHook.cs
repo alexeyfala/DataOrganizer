@@ -318,7 +318,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Activates the main window.
 	/// </summary>

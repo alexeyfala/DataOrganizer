@@ -68,7 +68,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Creates a control for editing a file.
 	/// </summary>

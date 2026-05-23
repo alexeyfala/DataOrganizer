@@ -124,7 +124,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if the aggregated exception is exclusively composed of DBus failures
 	/// caused by the missing "com.canonical.AppMenu.Registrar" service on Linux.

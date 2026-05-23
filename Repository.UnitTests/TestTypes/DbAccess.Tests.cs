@@ -1045,7 +1045,7 @@ internal class DbAccessTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
 	/// </summary>

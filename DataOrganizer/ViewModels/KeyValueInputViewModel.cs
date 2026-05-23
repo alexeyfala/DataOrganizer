@@ -94,7 +94,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="DefaultPressedCommand" />.
 	/// </summary>

@@ -17,7 +17,7 @@ internal static class MaterialDesignExtensions
 	public static SolidColorBrush GetBrush(this SecondaryColor color) => new(GetColor(color));
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <see cref="Color" /> according to <see cref="PrimaryColor" />.
 	/// </summary>

@@ -67,7 +67,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Tries to get <see cref="IStorageProvider" /> in the application.
 	/// </summary>

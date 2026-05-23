@@ -220,7 +220,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public IEnumerable<TResult> SelectFromSource<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Snapshots the source into a working list, applies <paramref name="mutate"/>, then replays the
 	/// result via <c>Clear</c> + <c>AddRange</c> inside a single <see cref="ISourceList{T}.Edit"/>.

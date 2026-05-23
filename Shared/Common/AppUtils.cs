@@ -141,7 +141,7 @@ public static class AppUtils
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns a value for <see cref="CurrentOs" />.
 	/// </summary>

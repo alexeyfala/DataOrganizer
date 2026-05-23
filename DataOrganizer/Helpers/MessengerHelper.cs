@@ -31,7 +31,7 @@ internal static class MessengerHelper
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns the message types <paramref name="recipient" /> is subscribed to via
 	/// <see cref="IRecipient{TMessage}" /> implementations on its runtime type.

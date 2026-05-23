@@ -307,7 +307,7 @@ public abstract partial class ViewModelBase :
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
 	/// </summary>

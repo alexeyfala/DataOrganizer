@@ -287,7 +287,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Applies settings to <see cref="TextEditor" />.
 	/// </summary>

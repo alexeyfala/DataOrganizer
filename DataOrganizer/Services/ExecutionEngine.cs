@@ -338,7 +338,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	public bool IsExecuting(Guid id) => _executingFiles.ContainsKey(id);
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Cancels <paramref name="cancellation" />, waits up to 5 seconds for
 	/// <paramref name="trackerTask" /> to exit (honouring <paramref name="token" />),

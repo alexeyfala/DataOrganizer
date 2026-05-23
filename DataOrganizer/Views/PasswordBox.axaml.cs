@@ -103,7 +103,7 @@ public sealed partial class PasswordBox : UserControl
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="ApplyCommand" />.
 	/// </summary>

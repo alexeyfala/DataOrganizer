@@ -788,7 +788,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if the contents are valid.
 	/// </summary>

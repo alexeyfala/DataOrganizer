@@ -1576,7 +1576,7 @@ public partial class EditorViewModel :
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>

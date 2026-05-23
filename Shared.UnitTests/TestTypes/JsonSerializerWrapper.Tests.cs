@@ -143,7 +143,7 @@ internal class JsonSerializerWrapperTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Sample DTO for serialization round-trip tests.
 	/// </summary>

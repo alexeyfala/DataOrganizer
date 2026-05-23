@@ -196,7 +196,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="KeyCode" /> is mask.
 	/// </summary>

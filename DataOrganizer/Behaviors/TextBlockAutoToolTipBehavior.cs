@@ -92,7 +92,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Sets or removes a <see cref="ToolTip" /> of <see cref="TextBlock" />.
 	/// </summary>

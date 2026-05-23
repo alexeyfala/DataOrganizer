@@ -82,7 +82,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Waits for the dialog <see cref="DialogHost" /> to close.
 	/// </summary>

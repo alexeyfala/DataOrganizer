@@ -1012,7 +1012,7 @@ public sealed class DbAccess : IDbAccess
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <inheritdoc cref="BackupSqliteDatabaseAsync" />
 	private static void BackupSqliteDatabase(BackupSqliteParameters parameters)
 	{

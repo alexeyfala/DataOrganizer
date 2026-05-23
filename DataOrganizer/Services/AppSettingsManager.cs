@@ -123,7 +123,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns the application theme.
 	/// </summary>

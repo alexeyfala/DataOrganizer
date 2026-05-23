@@ -135,7 +135,7 @@ public sealed class AppController : IAppController
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Writes initial data to log.
 	/// </summary>

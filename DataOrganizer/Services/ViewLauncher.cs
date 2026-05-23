@@ -394,7 +394,7 @@ public class ViewLauncher : IViewLauncher
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Tries to delete directory multiple times.
 	/// </summary>

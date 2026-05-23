@@ -315,7 +315,7 @@ public sealed class FileSystem : IFileSystem
 	public void WriteAllText(string filePath, string? contents) => File.WriteAllText(filePath, contents);
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds attributes <see cref="FileAttributes" /> to a file.
 	/// </summary>

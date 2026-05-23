@@ -414,7 +414,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Regenerates identifiers.
 	/// </summary>

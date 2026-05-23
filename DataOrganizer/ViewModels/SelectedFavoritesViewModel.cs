@@ -367,7 +367,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds or updates value in <see cref="SelectedPairs" />.
 	/// </summary>

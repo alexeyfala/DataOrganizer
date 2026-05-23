@@ -514,7 +514,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="ShowCopyHistoryCommand" />.
 	/// </summary>

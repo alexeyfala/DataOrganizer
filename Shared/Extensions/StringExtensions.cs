@@ -79,7 +79,7 @@ public static partial class StringExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	[GeneratedRegex("^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")]
 	private static partial Regex HtmlColorRegex();
 	#endregion

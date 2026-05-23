@@ -186,7 +186,7 @@ internal static class TextEditorHelper
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Increases/decreases value for <paramref name="expression"/>.
 	/// </summary>

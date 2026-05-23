@@ -110,7 +110,7 @@ public sealed class App : Application
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds command line arguments for Debug mode.
 	/// </summary>

@@ -391,7 +391,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="CopySelectedNoteCommand" />.
 	/// </summary>

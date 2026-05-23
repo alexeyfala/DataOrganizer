@@ -57,7 +57,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Simple <see cref="IName" /> implementation for predicate matching tests.
 	/// </summary>

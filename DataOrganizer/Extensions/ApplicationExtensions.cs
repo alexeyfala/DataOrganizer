@@ -192,7 +192,7 @@ internal static class ApplicationExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Determines whether the application has any running windows.
 	/// </summary>

@@ -170,7 +170,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Applies settings to <see cref="TextEditor" />.
 	/// </summary>

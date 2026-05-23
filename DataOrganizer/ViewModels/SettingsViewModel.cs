@@ -250,7 +250,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>

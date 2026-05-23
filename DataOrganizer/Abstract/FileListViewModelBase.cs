@@ -181,7 +181,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="CopyContentCommand" />.
 	/// </summary>

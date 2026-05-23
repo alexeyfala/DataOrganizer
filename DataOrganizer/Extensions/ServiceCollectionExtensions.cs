@@ -20,7 +20,7 @@ internal static class ServiceCollectionExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Registers a singleton <see cref="Lazy{T}" /> wrapper over an already registered
 	/// <typeparamref name="TService" />.

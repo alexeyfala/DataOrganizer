@@ -60,7 +60,7 @@ internal class ObservableDisposableBaseTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Minimal concrete subclass used to exercise the abstract base.
 	/// </summary>

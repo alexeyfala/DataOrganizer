@@ -24,7 +24,7 @@ public static class ExpressionExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns a reference to the property's owner object.
 	/// </summary>
