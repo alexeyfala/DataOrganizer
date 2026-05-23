@@ -149,38 +149,76 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return;
 		}
 
-		foreach (Guid id in _executingFiles.Keys)
+		// Drain in-flight ExecuteAsync / CloseAsync before iterating so the dictionary
+		// snapshot is stable. A 10-second cap keeps shutdown bounded if some operation
+		// is hung — in that case we log and continue in best-effort mode.
+		bool semaphoreAcquired;
+
+		try
 		{
-			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
+			semaphoreAcquired = await _semaphore
+				.WaitAsync(TimeSpan.FromSeconds(10))
+				.ConfigureAwait(false);
+		}
+		catch (ObjectDisposedException)
+		{
+			semaphoreAcquired = false;
+		}
+
+		if (!semaphoreAcquired)
+		{
+			_logger.LogWarning(
+				$"{nameof(DisposeAsync)} could not acquire the semaphore within 10 seconds; proceeding without it.");
+		}
+
+		try
+		{
+			foreach (Guid id in _executingFiles.Keys)
 			{
-				// A concurrent CloseAsync got there first and owns this entry now.
-				continue;
-			}
-
-			try
-			{
-				await StopTrackerAndDisposeCancellationAsync(
-					info.Cancellation,
-					info.TrackerTask,
-					info.FilePath,
-					CancellationToken.None).ConfigureAwait(false);
-
-				TryKillProcess(info.ProcessId);
-
-				if (!_fileSystem.IsFileExists(info.FilePath))
+				if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 				{
+					// A concurrent CloseAsync got there first and owns this entry now.
 					continue;
 				}
 
-				TryDeleteFile(info.FilePath, info.DirectoryPath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
+				try
+				{
+					await StopTrackerAndDisposeCancellationAsync(
+						info.Cancellation,
+						info.TrackerTask,
+						info.FilePath,
+						CancellationToken.None).ConfigureAwait(false);
+
+					TryKillProcess(info.ProcessId);
+
+					if (!_fileSystem.IsFileExists(info.FilePath))
+					{
+						continue;
+					}
+
+					TryDeleteFile(info.FilePath, info.DirectoryPath);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+				}
 			}
 		}
+		finally
+		{
+			if (semaphoreAcquired)
+			{
+				try
+				{
+					_semaphore.Release();
+				}
+				catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+				{
+				}
+			}
 
-		_semaphore.Dispose();
+			_semaphore.Dispose();
+		}
 	}
 
 	/// <inheritdoc />
