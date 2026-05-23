@@ -235,10 +235,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
 
-				// The method StartProcess may return false and 0 in the process ID
-				// if the file has no extension or the extension does not have an application
-				// associated with it in the operating system.
-				_ = _processUtils.StartProcess(filePath, out int processId);
+				if (!_processUtils.StartProcess(filePath, out int processId))
+				{
+					_logger.LogDebug(
+						$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+				}
 
 				scope.OnRollback(() =>
 				{
