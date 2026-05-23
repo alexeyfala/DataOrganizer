@@ -387,26 +387,31 @@ public sealed class ExecutionEngine : IExecutionEngine
 		string filePath,
 		CancellationToken token)
 	{
-		await cancellation
-			.CancelAsync()
-			.ConfigureAwait(false);
-
 		try
 		{
-			await trackerTask
-				.WaitAsync(TimeSpan.FromSeconds(5), token)
+			await cancellation
+				.CancelAsync()
 				.ConfigureAwait(false);
-		}
-		catch (TimeoutException)
-		{
-			_logger.LogWarning($@"Change tracker for ""{filePath}"" did not stop within 5 seconds.");
-		}
-		catch (OperationCanceledException)
-		{
-			// Expected — tracker observed Cancel() or the outer token was cancelled.
-		}
 
-		cancellation.Dispose();
+			try
+			{
+				await trackerTask
+					.WaitAsync(TimeSpan.FromSeconds(5), token)
+					.ConfigureAwait(false);
+			}
+			catch (TimeoutException)
+			{
+				_logger.LogWarning($@"Change tracker for ""{filePath}"" did not stop within 5 seconds.");
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected — tracker observed Cancel() or the outer token was cancelled.
+			}
+		}
+		finally
+		{
+			cancellation.Dispose();
+		}
 	}
 
 	/// <summary>
