@@ -133,13 +133,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (ObjectDisposedException)
+			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
 			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-			catch (SemaphoreFullException)
-			{
-				// WaitAsync above threw before acquiring the semaphore — nothing to release.
+				// ObjectDisposedException — service was disposed concurrently.
+				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
 			}
 		}
 	}
@@ -321,13 +318,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (ObjectDisposedException)
+			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
 			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-			catch (SemaphoreFullException)
-			{
-				// WaitAsync above threw before acquiring the semaphore — nothing to release.
+				// ObjectDisposedException — service was disposed concurrently.
+				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
 			}
 		}
 
