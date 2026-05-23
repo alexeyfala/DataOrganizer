@@ -285,7 +285,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				};
 
 				_logger.LogInformation(
-					$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+					$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
 
 				if (!_executingFiles.TryAdd(parameters.File.Id, info))
 				{
