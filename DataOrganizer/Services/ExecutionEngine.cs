@@ -137,6 +137,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				// Service was disposed concurrently — safe to ignore.
 			}
+			catch (SemaphoreFullException)
+			{
+				// WaitAsync above threw before acquiring the semaphore — nothing to release.
+			}
 		}
 	}
 
