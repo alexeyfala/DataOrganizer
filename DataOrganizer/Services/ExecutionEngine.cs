@@ -99,12 +99,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 				info.FilePath,
 				token).ConfigureAwait(false);
 
+			TryKillProcess(info.ProcessId);
+
 			if (!_fileSystem.IsFileExists(info.FilePath))
 			{
 				return;
 			}
-
-			TryKillProcess(info.ProcessId);
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
@@ -165,12 +165,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 					info.FilePath,
 					CancellationToken.None).ConfigureAwait(false);
 
+				TryKillProcess(info.ProcessId);
+
 				if (!_fileSystem.IsFileExists(info.FilePath))
 				{
 					continue;
 				}
-
-				TryKillProcess(info.ProcessId);
 
 				TryDeleteFile(info.FilePath, info.DirectoryPath);
 			}
