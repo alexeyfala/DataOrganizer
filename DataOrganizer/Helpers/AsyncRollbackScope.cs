@@ -11,9 +11,12 @@ namespace DataOrganizer.Helpers;
 /// Collects rollback actions and runs them in LIFO order on <see cref="DisposeAsync" />
 /// unless <see cref="Commit" /> was called first.
 /// </summary>
-internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposable
+internal sealed class AsyncRollbackScope : IAsyncDisposable
 {
 	#region Data
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger? _logger;
+
 	/// <summary>
 	/// Stack of rollback actions, popped LIFO on uncommitted disposal.
 	/// </summary>
@@ -30,8 +33,15 @@ internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposa
 	private bool _isDisposed;
 	#endregion
 
+	#region Constructors
+	public AsyncRollbackScope(ILogger? logger = null) => _logger = logger;
+	#endregion
+
 	#region Methods
-	/// <inheritdoc cref="RollbackScope.Commit" />
+	/// <summary>
+	/// Marks the scope as successfully completed. Subsequent <see cref="DisposeAsync" />
+	/// becomes a no-op — registered rollback actions will not run.
+	/// </summary>
 	public void Commit() => _committed = true;
 
 	/// <inheritdoc />
@@ -47,7 +57,7 @@ internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposa
 			return;
 		}
 
-		logger?.LogWarning($"Rolling back {_rollbacks.Count} action(s).");
+		_logger?.LogWarning($"Rolling back {_rollbacks.Count} action(s).");
 
 		while (_rollbacks.TryPop(out Func<Task>? action))
 		{
@@ -57,7 +67,7 @@ internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposa
 			}
 			catch (Exception ex)
 			{
-				logger?.LogException(ex);
+				_logger?.LogException(ex);
 			}
 		}
 	}
@@ -72,6 +82,7 @@ internal sealed class AsyncRollbackScope(ILogger? logger = null) : IAsyncDisposa
 	/// Registers a synchronous <paramref name="action" /> to be executed (LIFO order) if
 	/// the scope is disposed without <see cref="Commit" />. The action is wrapped into a
 	/// completed <see cref="Task" /> internally.
+	/// </summary>
 	public void OnRollback(Action action) => _rollbacks.Push(() =>
 	{
 		action();
