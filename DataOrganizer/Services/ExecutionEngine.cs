@@ -99,18 +99,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 				info.FilePath,
 				token).ConfigureAwait(false);
 
-			if (!TryKillProcess(
-				id,
-				info.ProcessId,
-				info.FilePath))
-			{
-				return;
-			}
-
 			if (!_fileSystem.IsFileExists(info.FilePath))
 			{
 				return;
 			}
+
+			TryKillProcess(info.ProcessId);
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
@@ -170,10 +164,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 					info.FilePath,
 					CancellationToken.None).ConfigureAwait(false);
 
-				if (!TryKillProcess(id, info.ProcessId, info.FilePath))
+				if (!_fileSystem.IsFileExists(info.FilePath))
 				{
 					continue;
 				}
+
+				TryKillProcess(info.ProcessId);
 
 				TryDeleteFile(info.FilePath, info.DirectoryPath);
 			}
@@ -368,33 +364,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is exists and tries to kill the process of it.
+	/// Tries to kill the process by ID if it is not default.
 	/// </summary>
-	private bool TryKillProcess(
-		Guid fileId,
-		int processId,
-		string filePath)
+	private void TryKillProcess(int processId)
 	{
-		if (!_fileSystem.IsFileExists(filePath))
+		if (processId.IsDefault() || !_processUtils.IsProcessExists(processId))
 		{
-			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""", false);
-
-			return false;
+			return;
 		}
 
-		if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
+		try
 		{
-			try
-			{
-				_processUtils.KillProcess(processId);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
+			_processUtils.KillProcess(processId);
 		}
-
-		return true;
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 	#endregion
 }
