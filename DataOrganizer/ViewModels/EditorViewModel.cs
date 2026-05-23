@@ -18,6 +18,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
@@ -304,6 +305,22 @@ public partial class EditorViewModel :
 				nameof(FileModelDto.EntityType))}");
 
 			return;
+		}
+
+		if (ExecutableFileHelper.IsExecutable(dto.Name))
+		{
+			string text =
+				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, dto.Name, Environment.NewLine)}" +
+				Environment.NewLine +
+				Environment.NewLine +
+				$"{Strings.OpenTheExecutableFile}?";
+
+			if (!await _dialogService
+				.RequestYesCancelDialogAsync(text)
+				.ConfigureAwait(false))
+			{
+				return;
+			}
 		}
 
 		_logger.LogInformation($"The file needs to be executed in the operating system:{dto.GetPropertyValues(

@@ -898,6 +898,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open the executable file.
+        /// </summary>
+        public static string OpenTheExecutableFile {
+            get {
+                return ResourceManager.GetString("OpenTheExecutableFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options.
         /// </summary>
         public static string Options {
@@ -1191,6 +1200,15 @@ namespace Shared.Properties {
         public static string TheContentsCopiedToClipboard {
             get {
                 return ResourceManager.GetString("TheContentsCopiedToClipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file &quot;{0}&quot; may run a program or script on your device.{1}Open only if you trust the contents..
+        /// </summary>
+        public static string TheFileMayRunProgramOrScriptOnYourDevice {
+            get {
+                return ResourceManager.GetString("TheFileMayRunProgramOrScriptOnYourDevice", resourceCulture);
             }
         }
         

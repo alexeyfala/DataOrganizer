@@ -531,4 +531,10 @@
   <data name="CloseTheFileAndDelete" xml:space="preserve">
     <value>Закрыть файл и удалить</value>
   </data>
+  <data name="OpenTheExecutableFile" xml:space="preserve">
+    <value>Открыть исполняемый файл</value>
+  </data>
+  <data name="TheFileMayRunProgramOrScriptOnYourDevice" xml:space="preserve">
+    <value>Файл "{0}" может запустить программу или скрипт на вашем устройстве.{1}Открывайте только если доверяете содержимому.</value>
+  </data>
 </root>

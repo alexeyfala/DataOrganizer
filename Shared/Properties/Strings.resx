@@ -511,4 +511,10 @@
   <data name="CloseTheFileAndDelete" xml:space="preserve">
     <value>Close the file and delete</value>
   </data>
+  <data name="OpenTheExecutableFile" xml:space="preserve">
+    <value>Open the executable file</value>
+  </data>
+  <data name="TheFileMayRunProgramOrScriptOnYourDevice" xml:space="preserve">
+    <value>The file "{0}" may run a program or script on your device.{1}Open only if you trust the contents.</value>
+  </data>
 </root>
