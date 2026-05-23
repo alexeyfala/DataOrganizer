@@ -31,7 +31,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	private readonly Lock _mutex = new();
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion

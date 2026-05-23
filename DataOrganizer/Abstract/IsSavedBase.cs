@@ -7,7 +7,7 @@ public abstract class IsSavedBase
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if the hotkeys were saved.
+	/// <c>True</c> when the hotkeys were saved.
 	/// </summary>
 	public required bool IsSaved { get; init; }
 	#endregion

@@ -29,7 +29,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> when the underlying source contains no items at all.
+	/// <c>True</c> when the underlying source contains no items at all.
 	/// This reflects total contents — items hidden by an active filter still count.
 	/// To check whether the currently shown subset is empty, use <c><see cref="Visible"/>.Count == 0</c>.
 	/// </summary>
@@ -59,7 +59,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion

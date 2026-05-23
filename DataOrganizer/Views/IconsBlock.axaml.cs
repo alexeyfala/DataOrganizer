@@ -24,7 +24,7 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is opened in the built-in editor.
+	/// <c>True</c> when the file is opened in the built-in editor.
 	/// </summary>
 	public bool IsEditing
 	{
@@ -33,7 +33,7 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is executing in the operating system.
+	/// <c>True</c> when the file is executing in the operating system.
 	/// </summary>
 	public bool IsExecuting
 	{

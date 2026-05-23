@@ -52,12 +52,12 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public partial string? FavoriteSearch { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Categories" /> is empty.
+	/// <c>True</c> when <see cref="Categories" /> is empty.
 	/// </summary>
 	public bool IsCategoriesEmpty => _categoriesFilter.IsSourceEmpty;
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Favorites" /> is empty.
+	/// <c>True</c> when <see cref="Favorites" /> is empty.
 	/// </summary>
 	public bool IsFavoritesEmpty => _favoritesFilter.IsSourceEmpty;
 

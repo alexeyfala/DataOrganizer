@@ -19,25 +19,25 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if "Canlel" button is visible.
+	/// <c>True</c> when the "Cancel" button is visible.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool CancelButtonVisible { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if "Cancel" button is <see cref="Button.IsCancel" />.
+	/// <c>True</c> when the "Cancel" button is <see cref="Button.IsCancel" />.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool CancelIsCancel { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if "No" button is visible.
+	/// <c>True</c> when the "No" button is visible.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool NoButtonVisible { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if "No" button is <see cref="Button.IsCancel" />.
+	/// <c>True</c> when the "No" button is <see cref="Button.IsCancel" />.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool NoIsCancel { get; set; }

@@ -14,7 +14,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> when the tooltip should not be displayed.
+	/// <c>True</c> when the tooltip should not be displayed.
 	/// </summary>
 	public bool IsDisabled
 	{

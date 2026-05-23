@@ -18,7 +18,7 @@ public interface IKeyboardInputHook : IDisposable
 	static int MaxHotkeys { get; } = 8;
 
 	/// <summary>
-	/// Returns <c>True</c> if hook is running.
+	/// <c>True</c> when the hook is running.
 	/// </summary>
 	bool IsRunning { get; }
 	#endregion

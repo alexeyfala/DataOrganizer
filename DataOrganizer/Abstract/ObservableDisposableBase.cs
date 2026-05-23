@@ -9,7 +9,7 @@ public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if the object has been disposed.
+	/// <c>True</c> when the object has already been disposed.
 	/// </summary>
 	public bool IsDisposed => _isDisposed;
 	#endregion

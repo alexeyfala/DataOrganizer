@@ -55,12 +55,12 @@ public abstract partial class ViewModelBase :
 	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
 
 	/// <summary>
-	/// Returns <c>True</c> if initialization has completed.
+	/// <c>True</c> when initialization has completed.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if shutdown is requested.
+	/// <c>True</c> when shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
 

@@ -38,12 +38,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public string? InitialProperties { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the initialization process revealed that the file contents were corrupted.
+	/// <c>True</c> when the initialization process revealed that the file contents were corrupted.
 	/// </summary>
 	public bool IsContentCorrupted { get; protected set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if editor is initialized once.
+	/// <c>True</c> when the editor has been initialized at least once.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 

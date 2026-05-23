@@ -21,7 +21,7 @@ public sealed class ContentsIsValidPair
 	public Guid Id { get; init; }
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Contents" /> is valid.
+	/// <c>True</c> when <see cref="Contents" /> is valid.
 	/// </summary>
 	public bool IsValid { get; init; }
 	#endregion

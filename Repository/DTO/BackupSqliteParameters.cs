@@ -7,12 +7,12 @@ public readonly struct BackupSqliteParameters
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if the connection pool for the database at <see cref="DestFilePath" /> should be cleared.
+	/// <c>True</c> when the connection pool for the database at <see cref="DestFilePath" /> should be cleared.
 	/// </summary>
 	public required bool ClearDestPool { get; init; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the connection pool for the database at <see cref="SourceFilePath" /> should be cleared.
+	/// <c>True</c> when the connection pool for the database at <see cref="SourceFilePath" /> should be cleared.
 	/// </summary>
 	public required bool ClearSourcePool { get; init; }
 

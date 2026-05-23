@@ -39,7 +39,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	public FavoritesViewSettings FavoritesSettings { get; } = new();
 
 	/// <summary>
-	/// Returns <c>True</c> if popup should be fixed.
+	/// <c>True</c> when the popup should be fixed.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsPopupFixed { get; set; }

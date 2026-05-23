@@ -52,7 +52,7 @@ internal sealed class AutoScrollDuringDragBehavior : StyledElementBehavior<Visua
 
 	#region Data
 	/// <summary>
-	/// Returns <c>True</c> if a drag is in progress.
+	/// <c>True</c> when a drag is in progress.
 	/// </summary>
 	private bool _dragging;
 	#endregion

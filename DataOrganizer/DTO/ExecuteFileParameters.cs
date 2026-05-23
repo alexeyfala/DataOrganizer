@@ -6,7 +6,7 @@ public sealed class ExecuteFileParameters : ExecuteFileParametersBase
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if the file is read-only.
+	/// <c>True</c> when the file is read-only.
 	/// </summary>
 	public required bool IsReadOnly { get; set; }
 	#endregion

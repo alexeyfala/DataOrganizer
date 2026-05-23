@@ -17,7 +17,7 @@ public sealed class DbContextService : IDbContextService
 	private readonly SqliteDbContext _dbContext;
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion

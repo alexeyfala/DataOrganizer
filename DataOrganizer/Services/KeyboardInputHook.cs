@@ -73,7 +73,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion

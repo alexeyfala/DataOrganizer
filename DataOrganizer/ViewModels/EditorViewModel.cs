@@ -79,7 +79,7 @@ public partial class EditorViewModel :
 	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> when right side sheet should be opened.
+	/// <c>True</c> when the right side sheet should be opened.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsRightSideSheetOpened { get; set; }

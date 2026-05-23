@@ -35,7 +35,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	public partial bool IsPaused { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if settings are saved.
+	/// <c>True</c> when settings are saved.
 	/// </summary>
 	public bool IsSaved { get; set; }
 

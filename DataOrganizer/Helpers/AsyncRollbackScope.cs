@@ -23,12 +23,12 @@ internal sealed class AsyncRollbackScope : IAsyncDisposable
 	private readonly Stack<Func<Task>> _rollbacks = new();
 
 	/// <summary>
-	/// Returns <c>True</c> when <see cref="Commit" /> has been called.
+	/// <c>True</c> when <see cref="Commit" /> has been called.
 	/// </summary>
 	private bool _committed;
 
 	/// <summary>
-	/// Returns <c>True</c> if the scope has been disposed.
+	/// <c>True</c> when the scope has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion

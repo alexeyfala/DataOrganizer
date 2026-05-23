@@ -23,13 +23,13 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	public partial string? HotkeysToolTip { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is opened in the built-in editor.
+	/// <c>True</c> when the file is opened in the built-in editor.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsEditing { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is executing in the operating system.
+	/// <c>True</c> when the file is executing in the operating system.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsExecuting { get; set; }
