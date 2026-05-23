@@ -185,117 +185,145 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
-		if (_executingFiles.ContainsKey(parameters.File.Id))
-		{
-			LogDuplicateEntry(parameters.File.Id);
-
-			return false;
-		}
-
-		await using AsyncRollbackScope scope = new(_logger);
-
 		try
 		{
-			string directoryPath = Path.Combine(
-				_appEnvironment.SandboxDirectoryPath,
-				parameters.File.Id.ToString());
-
-			_fileSystem.CreateDirectory(directoryPath);
-
-			scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
-
-			// To prevent a directory traversal attack, all directory components must be removed from the file name.
-			string fileName = Path.GetFileName(parameters
-				.File
-				.Name);
-
-			string filePath = Path.Combine(directoryPath, fileName);
-
-			if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
-			{
-				_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
-			}
-
-			await _fileSystem
-				.WriteAllBytesAsync(filePath, parameters.Contents, token)
+			await _semaphore
+				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			scope.OnRollback(() =>
-			{
-				_fileSystem.SetFileReadOnly(filePath, false);
-
-				_fileSystem.EraseAndDeleteFile(filePath);
-			});
-
-			_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
-
-			// The method StartProcess may return false and 0 in the process ID
-			// if the file has no extension or the extension does not have an application
-			// associated with it in the operating system.
-			_ = _processUtils.StartProcess(filePath, out int processId);
-
-			scope.OnRollback(() =>
-			{
-				if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
-				{
-					_processUtils.KillProcess(processId);
-				}
-			});
-
-			CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-			Task trackerTask = Task.CompletedTask;
-
-			scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
-				cancellation,
-				trackerTask,
-				filePath,
-				CancellationToken.None));
-
-			if (!parameters.IsReadOnly)
-			{
-				TrackChangesParameters trackParameters = new()
-				{
-					Contents = parameters.Contents,
-					File = parameters.File,
-					FileName = fileName,
-					FilePath = filePath,
-					SessionEncryptedDek = parameters.SessionEncryptedDek
-				};
-
-				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
-
-				_handler.Watch(trackerTask);
-			}
-
-			ExecutingFileInfo info = new()
-			{
-				Cancellation = cancellation,
-				DirectoryPath = directoryPath,
-				FilePath = filePath,
-				ProcessId = processId,
-				TrackerTask = trackerTask
-			};
-
-			_logger.LogInformation(
-				$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
-
-			if (!_executingFiles.TryAdd(parameters.File.Id, info))
+			if (_executingFiles.ContainsKey(parameters.File.Id))
 			{
 				LogDuplicateEntry(parameters.File.Id);
 
 				return false;
 			}
 
-			scope.Commit();
+			await using AsyncRollbackScope scope = new(_logger);
 
-			return true;
+			try
+			{
+				string directoryPath = Path.Combine(
+					_appEnvironment.SandboxDirectoryPath,
+					parameters.File.Id.ToString());
+
+				_fileSystem.CreateDirectory(directoryPath);
+
+				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+				// To prevent a directory traversal attack, all directory components must be removed from the file name.
+				string fileName = Path.GetFileName(parameters
+					.File
+					.Name);
+
+				string filePath = Path.Combine(directoryPath, fileName);
+
+				if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
+				{
+					_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+				}
+
+				await _fileSystem
+					.WriteAllBytesAsync(filePath, parameters.Contents, token)
+					.ConfigureAwait(false);
+
+				scope.OnRollback(() =>
+				{
+					_fileSystem.SetFileReadOnly(filePath, false);
+
+					_fileSystem.EraseAndDeleteFile(filePath);
+				});
+
+				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
+
+				// The method StartProcess may return false and 0 in the process ID
+				// if the file has no extension or the extension does not have an application
+				// associated with it in the operating system.
+				_ = _processUtils.StartProcess(filePath, out int processId);
+
+				scope.OnRollback(() =>
+				{
+					if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
+					{
+						_processUtils.KillProcess(processId);
+					}
+				});
+
+				CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+				Task trackerTask = Task.CompletedTask;
+
+				scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+					cancellation,
+					trackerTask,
+					filePath,
+					CancellationToken.None));
+
+				if (!parameters.IsReadOnly)
+				{
+					TrackChangesParameters trackParameters = new()
+					{
+						Contents = parameters.Contents,
+						File = parameters.File,
+						FileName = fileName,
+						FilePath = filePath,
+						SessionEncryptedDek = parameters.SessionEncryptedDek
+					};
+
+					trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+
+					_handler.Watch(trackerTask);
+				}
+
+				ExecutingFileInfo info = new()
+				{
+					Cancellation = cancellation,
+					DirectoryPath = directoryPath,
+					FilePath = filePath,
+					ProcessId = processId,
+					TrackerTask = trackerTask
+				};
+
+				_logger.LogInformation(
+					$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+
+				if (!_executingFiles.TryAdd(parameters.File.Id, info))
+				{
+					LogDuplicateEntry(parameters.File.Id);
+
+					return false;
+				}
+
+				scope.Commit();
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+
+				return false;
+			}
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
 			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+			catch (SemaphoreFullException)
+			{
+				// WaitAsync above threw before acquiring the semaphore — nothing to release.
+			}
 		}
 
 		void LogDuplicateEntry(Guid fileId)
