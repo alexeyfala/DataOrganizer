@@ -112,7 +112,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-				cancellation.CancelAfter(TimeSpan.FromSeconds(30));
+				cancellation.CancelAfter(TimeSpan.FromSeconds(10));
 
 				await _fileSystem
 					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
