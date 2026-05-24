@@ -15,6 +15,7 @@ public interface IFileAssociationService
 
 	/// <summary>
 	/// Returns the path to the executable application file by the absolute path of existing file.
+	/// For the method to work, the file must exist at the specified path.
 	/// </summary>
 	string? GetApplicationByPath(string absoluteFilePath);
 	#endregion
