@@ -28,12 +28,7 @@ public interface IJsonSerializerWrapper
 	/// Deserializes a Json string into <typeparamref name="T"/> from a file.<br />
 	/// Returns the default value for type <typeparamref name="T"/> if an exception occurs during deserialization.
 	/// </summary>
-	T? FromFile<T>(string filePath);
-
-	/// <summary>
-	/// Injects <see cref="ILogger" /> dependency.
-	/// </summary>
-	void InjectDependency(ILogger logger);
+	T? FromFile<T>(string filePath, ILogger? logger = null);
 
 	/// <summary>
 	/// Serializes data into a Json string.

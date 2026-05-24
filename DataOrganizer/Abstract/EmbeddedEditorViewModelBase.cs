@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
@@ -21,7 +22,9 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Abstract;
 
-public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposableBase
+public abstract partial class EmbeddedEditorViewModelBase :
+	ObservableDisposableBase,
+	IRecipient<EditorReadOnlyModeChangedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -35,12 +38,12 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	public string? InitialProperties { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the initialization process revealed that the file contents were corrupted.
+	/// <c>True</c> when the initialization process revealed that the file contents were corrupted.
 	/// </summary>
 	public bool IsContentCorrupted { get; protected set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if editor is initialized once.
+	/// <c>True</c> when the editor has been initialized at least once.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 
@@ -78,7 +81,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 			return;
 		}
 
-		_messenger.Send(new ShowInEditorMessage(new(FileId, window)));
+		_messenger.Send(new ShowInEditorMessage(FileId, window));
 	}
 	#endregion
 
@@ -129,19 +132,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 
 		_messenger = messenger;
 
-		messenger.Register<EditorReadOnlyModeChangedMessage>(this, OnEditorReadOnlyModeChanged);
-	}
-	#endregion
-
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="EditorReadOnlyModeChangedMessage" />.
-	/// </summary>
-	private void OnEditorReadOnlyModeChanged(
-		object recipient,
-		EditorReadOnlyModeChangedMessage message)
-	{
-		IsReadOnly = message.Value;
+		messenger.RegisterAll(this);
 	}
 	#endregion
 
@@ -162,11 +153,22 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	}
 
 	/// <inheritdoc />
+	public void Receive(EditorReadOnlyModeChangedMessage message)
+	{
+		IsReadOnly = message.IsReadOnly;
+	}
+
+	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<EditorReadOnlyModeChangedMessage>(this);
+		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		{
+			_logger.LogDebug(logLine);
+		}
+
+		_messenger.UnregisterAll(this);
 
 		SessionEncryptedDek?.ZeroMemory();
 
@@ -207,7 +209,7 @@ public abstract partial class EmbeddedEditorViewModelBase : ObservableDisposable
 	/// </summary>
 	protected void SendMessage(string message, SnackbarMessageLevel level)
 	{
-		_messenger.Send(new ShowSnackbarMessage(new(message, level)));
+		_messenger.Send(new ShowSnackbarMessage(message, level));
 	}
 
 	/// <summary>

@@ -9,7 +9,7 @@ public partial class ValueRecord : DatasetRecordBase
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> when <see cref="Value" /> should be hidden.
+	/// <c>True</c> when <see cref="Value" /> should be hidden.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsHidden { get; set; }

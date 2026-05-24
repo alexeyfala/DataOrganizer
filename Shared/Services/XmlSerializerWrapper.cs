@@ -53,7 +53,7 @@ public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Deserializes XML content from a <see cref="TextReader" /> into <typeparamref name="T"/>
 	/// using a hardened <see cref="XmlReader" /> (DTD processing prohibited, no external resolver).

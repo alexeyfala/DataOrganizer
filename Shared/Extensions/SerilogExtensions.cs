@@ -169,7 +169,7 @@ public static partial class SerilogExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Creates a message with information about the event source.
 	/// </summary>

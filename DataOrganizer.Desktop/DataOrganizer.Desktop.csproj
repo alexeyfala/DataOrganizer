@@ -16,7 +16,8 @@
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
-		<Version>$(AppVersion)-Preview1</Version>
+		<!-- ↓↓↓ You can add a suffix to version here. -->
+		<Version>$(AppVersion)</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

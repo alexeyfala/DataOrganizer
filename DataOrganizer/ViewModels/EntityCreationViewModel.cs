@@ -116,7 +116,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="SaveCommand" />.
 	/// </summary>

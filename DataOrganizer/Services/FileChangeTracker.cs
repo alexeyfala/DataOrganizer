@@ -199,7 +199,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		void PublishFailure(string message)
 		{
-			_messenger.Send(new ShowSnackbarMessage(new(message, SnackbarMessageLevel.Error)));
+			_messenger.Send(new ShowSnackbarMessage(message, SnackbarMessageLevel.Error));
 
 			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
 		}

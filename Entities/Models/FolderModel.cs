@@ -24,7 +24,7 @@ public sealed class FolderModel : ExplorerModelBase
 	public byte[]? EncryptedDek { get; init; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the folder is expanded.
+	/// <c>True</c> when the folder is expanded.
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]

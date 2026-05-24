@@ -153,7 +153,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Builds the flyout from <see cref="ContentTemplate" /> and assigns it as
 	/// <see cref="Control.ContextFlyout" /> on <see cref="AssociatedObject" />.

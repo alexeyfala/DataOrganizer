@@ -23,7 +23,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	private readonly TaskCompletionSource<TResult> _source = new();
 
 	/// <summary>
-	/// Returns <c>True</c> if result is set my method <see cref="SetResultAsync" />.
+	/// <c>True</c> when the result has been set by <see cref="SetResultAsync" />.
 	/// </summary>
 	private bool _isResultSet;
 	#endregion
@@ -82,7 +82,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Waits for the dialog <see cref="DialogHost" /> to close.
 	/// </summary>

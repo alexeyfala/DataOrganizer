@@ -1,8 +1,7 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Windows;
 using OSVersionExtension;
 using Repository.Interfaces;
 using Serilog;
@@ -24,6 +23,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IConsoleWindowHost" />
+	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -38,9 +40,6 @@ public sealed class AppController : IAppController
 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
-
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
 
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
@@ -58,12 +57,13 @@ public sealed class AppController : IAppController
 		IEntityLoader entityLoader,
 		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IProcessUtils processUtils,
-		IViewLauncher viewLauncher)
+		IViewLauncher viewLauncher,
+		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
+
+		_consoleWindowHost = consoleWindowHost;
 
 		_dbAccess = dbAccess;
 
@@ -75,29 +75,28 @@ public sealed class AppController : IAppController
 
 		_options = options;
 
-		_processUtils = processUtils;
-
 		_settingsManager = settingsManager;
 
 		_viewLauncher = viewLauncher;
 
 		exceptionHandler.StartMonitoring();
-
-		jsonSerializer.InjectDependency(logger);
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task LaunchAppAsync(ConsoleWindow? console, CancellationToken token = default)
+	public async Task LaunchAppAsync(CancellationToken token = default)
 	{
 		try
 		{
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
 
-			if (console is not null)
+			if (_options.IsConsoleNeeded)
 			{
-				await ShowConsoleWindowAsync(console).ConfigureAwait(true);
+				await _consoleWindowHost
+					.Value
+					.ConfigureAndShowAsync()
+					.ConfigureAwait(true);
 			}
 
 			InitialPrint();
@@ -136,7 +135,7 @@ public sealed class AppController : IAppController
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Writes initial data to log.
 	/// </summary>
@@ -186,31 +185,6 @@ public sealed class AppController : IAppController
 		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager
 			.Settings
 			.GetPropertyValues(true)}");
-	}
-
-	/// <summary>
-	/// Prepares and shows <see cref="ConsoleWindow" />.
-	/// </summary>
-	private Task ShowConsoleWindowAsync(ConsoleWindow window)
-	{
-		window
-			.ViewModel
-			.InjectReference(_appEnvironment);
-
-		window
-			.ViewModel
-			.InjectReference(_processUtils);
-
-		TaskCompletionSource source = new();
-
-		window.Loaded += delegate
-		{
-			source.SetResult();
-		};
-
-		window.Show();
-
-		return source.Task;
 	}
 	#endregion
 }

@@ -4,13 +4,10 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
 	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
-	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:system="clr-namespace:System;assembly=mscorlib"
 	xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
 	Name="{x:Static common:AppUtils.AppName}">
-	<!-- RequestedThemeVariant="Default" - ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.Resources>
 		<ResourceDictionary>
@@ -31,10 +28,6 @@
 		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>
 		<!--#endregion-->
 	</Application.Resources>
-
-	<Application.DataTemplates>
-		<helpers:ViewLocator />
-	</Application.DataTemplates>
 
 	<Application.Styles>
 		<!-- Nuget: Material.Avalonia -->

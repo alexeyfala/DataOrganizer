@@ -119,7 +119,7 @@ public sealed class ProcessUtils : IProcessUtils
 	public Process StartProcess(string fileName) => Process.Start(fileName);
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Creates a process to open a file on an operating system other than <see cref="OperatingSystemType.Windows" />.
 	/// </summary>

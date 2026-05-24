@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.DTO;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -44,20 +45,20 @@ public sealed class ExecutionEngine : IExecutionEngine
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
 
 	#region Constructors
 	public ExecutionEngine(
-		ITaskExceptionHandler handler,
-		IProcessUtils processUtils,
-		ILogger logger,
-		IFileSystem fileSystem,
-		IFileChangeTracker changeTracker,
+		IAppEnvironment appEnvironment,
 		IFileAssociationService fileAssociation,
-		IAppEnvironment appEnvironment)
+		IFileChangeTracker changeTracker,
+		IFileSystem fileSystem,
+		ILogger logger,
+		IProcessUtils processUtils,
+		ITaskExceptionHandler handler)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -85,28 +86,20 @@ public sealed class ExecutionEngine : IExecutionEngine
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			if (!_executingFiles.TryGetValue(id, out ExecutingFileInfo? info))
+			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 			{
 				_logger.LogError($@"Cannot find file information for id ""{id}""");
 
 				return;
 			}
 
-			info
-				.Cancellation
-				.Cancel();
+			await StopTrackerAndDisposeCancellationAsync(
+				info.Cancellation,
+				info.TrackerTask,
+				info.FilePath,
+				token).ConfigureAwait(false);
 
-			info
-				.Cancellation
-				.Dispose();
-
-			if (!TryKillProcess(
-				id,
-				info.ProcessId,
-				info.FilePath))
-			{
-				return;
-			}
+			TryKillProcess(info.ProcessId);
 
 			if (!_fileSystem.IsFileExists(info.FilePath))
 			{
@@ -117,7 +110,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
 
-				CancellationTokenSource cancellation = new(TimeSpan.FromSeconds(30));
+				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+				cancellation.CancelAfter(TimeSpan.FromSeconds(10));
 
 				await _fileSystem
 					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
@@ -134,49 +129,96 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 		finally
 		{
-			_executingFiles.TryRemove(id, out var _);
-
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			{
+				// ObjectDisposedException — service was disposed concurrently.
+				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
 			}
 		}
 	}
 
 	/// <inheritdoc />
-	public void Dispose()
+	public async ValueTask DisposeAsync()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
 
-		_isDisposed = true;
+		// Drain in-flight ExecuteAsync / CloseAsync before iterating so the dictionary
+		// snapshot is stable. A 10-second cap keeps shutdown bounded if some operation
+		// is hung — in that case we log and continue in best-effort mode.
+		bool semaphoreAcquired;
 
-		_executingFiles.ForEach(pair =>
+		try
 		{
-			if (pair.Value is not { } info)
+			semaphoreAcquired = await _semaphore
+				.WaitAsync(TimeSpan.FromSeconds(10))
+				.ConfigureAwait(false);
+		}
+		catch (ObjectDisposedException)
+		{
+			semaphoreAcquired = false;
+		}
+
+		if (!semaphoreAcquired)
+		{
+			_logger.LogWarning(
+				$"{nameof(DisposeAsync)} could not acquire the semaphore within 10 seconds; proceeding without it.");
+		}
+
+		try
+		{
+			foreach (Guid id in _executingFiles.Keys)
 			{
-				return;
+				if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
+				{
+					// A concurrent CloseAsync got there first and owns this entry now.
+					continue;
+				}
+
+				try
+				{
+					await StopTrackerAndDisposeCancellationAsync(
+						info.Cancellation,
+						info.TrackerTask,
+						info.FilePath,
+						CancellationToken.None).ConfigureAwait(false);
+
+					TryKillProcess(info.ProcessId);
+
+					if (!_fileSystem.IsFileExists(info.FilePath))
+					{
+						continue;
+					}
+
+					TryDeleteFile(info.FilePath, info.DirectoryPath);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+				}
+			}
+		}
+		finally
+		{
+			if (semaphoreAcquired)
+			{
+				try
+				{
+					_semaphore.Release();
+				}
+				catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+				{
+				}
 			}
 
-			info
-				.Cancellation
-				.Cancel();
-
-			info
-				.Cancellation
-				.Dispose();
-
-			if (!TryKillProcess(pair.Key, info.ProcessId, info.FilePath))
-			{
-				return;
-			}
-
-			TryDeleteFile(info.FilePath, info.DirectoryPath);
-		});
-
-		_semaphore.Dispose();
+			_semaphore.Dispose();
+		}
 	}
 
 	/// <inheritdoc />
@@ -184,64 +226,147 @@ public sealed class ExecutionEngine : IExecutionEngine
 	{
 		try
 		{
-			string directoryPath = Path.Combine(
-				_appEnvironment.SandboxDirectoryPath,
-				parameters.File.Id.ToString());
-
-			_fileSystem.CreateDirectory(directoryPath);
-
-			// To prevent a directory traversal attack, all directory components must be removed from the file name.
-			string fileName = Path.GetFileName(parameters
-				.File
-				.Name);
-
-			string filePath = Path.Combine(directoryPath, fileName);
-
-			if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
-			{
-				_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
-			}
-
-			await _fileSystem
-				.WriteAllBytesAsync(filePath, parameters.Contents, token)
+			await _semaphore
+				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
-
-			_processUtils.StartProcess(filePath, out int processId);
-
-			CancellationTokenSource cancellation = new();
-
-			_executingFiles.TryAdd(
-				parameters.File.Id,
-				new(cancellation, filePath, directoryPath, processId));
-
-			if (!parameters.IsReadOnly)
+			if (_executingFiles.ContainsKey(parameters.File.Id))
 			{
-				TrackChangesParameters trackParameters = new()
-				{
-					Contents = parameters.Contents,
-					File = parameters.File,
-					FileName = fileName,
-					FilePath = filePath,
-					SessionEncryptedDek = parameters.SessionEncryptedDek
-				};
+				LogDuplicateEntry(parameters.File.Id);
 
-				_handler.Watch(_changeTracker.TrackChangesAsync(trackParameters, cancellation.Token));
+				return false;
 			}
 
-			_logger.LogInformation(
-				$"The file {filePath} is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+			await using AsyncRollbackScope scope = new(_logger);
 
-			return true;
+			try
+			{
+				string directoryPath = Path.Combine(
+					_appEnvironment.SandboxDirectoryPath,
+					parameters.File.Id.ToString());
+
+				_fileSystem.CreateDirectory(directoryPath);
+
+				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+				// To prevent a directory traversal attack, all directory components must be removed from the file name.
+				string fileName = Path.GetFileName(parameters
+					.File
+					.Name);
+
+				string filePath = Path.Combine(directoryPath, fileName);
+
+				if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
+				{
+					_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+				}
+
+				await _fileSystem
+					.WriteAllBytesAsync(filePath, parameters.Contents, token)
+					.ConfigureAwait(false);
+
+				scope.OnRollback(() =>
+				{
+					_fileSystem.SetFileReadOnly(filePath, false);
+
+					_fileSystem.EraseAndDeleteFile(filePath);
+				});
+
+				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
+
+				if (!_processUtils.StartProcess(filePath, out int processId))
+				{
+					_logger.LogDebug(
+						$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+				}
+
+				scope.OnRollback(() =>
+				{
+					if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
+					{
+						_processUtils.KillProcess(processId);
+					}
+				});
+
+				CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+				Task trackerTask = Task.CompletedTask;
+
+				scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+					cancellation,
+					trackerTask,
+					filePath,
+					CancellationToken.None));
+
+				if (!parameters.IsReadOnly)
+				{
+					TrackChangesParameters trackParameters = new()
+					{
+						Contents = parameters.Contents,
+						File = parameters.File,
+						FileName = fileName,
+						FilePath = filePath,
+						SessionEncryptedDek = parameters.SessionEncryptedDek
+					};
+
+					trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+
+					_handler.Watch(trackerTask);
+				}
+
+				ExecutingFileInfo info = new()
+				{
+					Cancellation = cancellation,
+					DirectoryPath = directoryPath,
+					FilePath = filePath,
+					ProcessId = processId,
+					TrackerTask = trackerTask
+				};
+
+				_logger.LogInformation(
+					$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+
+				if (!_executingFiles.TryAdd(parameters.File.Id, info))
+				{
+					LogDuplicateEntry(parameters.File.Id);
+
+					return false;
+				}
+
+				scope.Commit();
+
+				return true;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+
+				return false;
+			}
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_executingFiles.TryRemove(parameters.File.Id, out var _);
-
 			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			{
+				// ObjectDisposedException — service was disposed concurrently.
+				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
+			}
+		}
+
+		void LogDuplicateEntry(Guid fileId)
+		{
+			_logger.LogError(
+				$@"An entry for file id ""{fileId}"" already exists in the executing files dictionary.");
 		}
 	}
 
@@ -249,7 +374,46 @@ public sealed class ExecutionEngine : IExecutionEngine
 	public bool IsExecuting(Guid id) => _executingFiles.ContainsKey(id);
 	#endregion
 
-	#region Service
+	#region Helpers
+	/// <summary>
+	/// Cancels <paramref name="cancellation" />, waits up to 5 seconds for
+	/// <paramref name="trackerTask" /> to exit (honouring <paramref name="token" />),
+	/// then disposes <paramref name="cancellation" />.
+	/// <paramref name="filePath" /> is used only for the timeout warning message.
+	/// </summary>
+	private async Task StopTrackerAndDisposeCancellationAsync(
+		CancellationTokenSource cancellation,
+		Task trackerTask,
+		string filePath,
+		CancellationToken token)
+	{
+		try
+		{
+			await cancellation
+				.CancelAsync()
+				.ConfigureAwait(false);
+
+			try
+			{
+				await trackerTask
+					.WaitAsync(TimeSpan.FromSeconds(5), token)
+					.ConfigureAwait(false);
+			}
+			catch (TimeoutException)
+			{
+				_logger.LogWarning($@"Change tracker for ""{filePath}"" did not stop within 5 seconds.");
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected — tracker observed Cancel() or the outer token was cancelled.
+			}
+		}
+		finally
+		{
+			cancellation.Dispose();
+		}
+	}
+
 	/// <summary>
 	/// Tries to delete a file and the folder containing it.
 	/// </summary>
@@ -270,33 +434,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is exists and tries to kill the process of it.
+	/// Tries to kill the process by ID if it is not default.
 	/// </summary>
-	private bool TryKillProcess(
-		Guid fileId,
-		int processId,
-		string filePath)
+	private void TryKillProcess(int processId)
 	{
-		if (!_fileSystem.IsFileExists(filePath))
+		if (processId.IsDefault() || !_processUtils.IsProcessExists(processId))
 		{
-			_logger.LogError($@"The file with id ""{fileId}"" does not exist ""{filePath}""", false);
-
-			return false;
+			return;
 		}
 
-		if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
+		try
 		{
-			try
-			{
-				_processUtils.KillProcess(processId);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
+			_processUtils.KillProcess(processId);
 		}
-
-		return true;
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 	#endregion
 }

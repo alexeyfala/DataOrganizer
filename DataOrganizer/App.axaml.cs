@@ -3,9 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -28,7 +26,6 @@ using Serilog.Sinks.FileEx;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
-using Shared.Properties;
 using Shared.Services;
 using SharpHook;
 using SharpHook.Data;
@@ -43,16 +40,15 @@ public sealed class App : Application
 {
 	#region Properties
 	/// <summary>
+	/// Application-wide service provider. Set in <see cref="OnFrameworkInitializationCompleted" />.
+	/// Consumed by XAML markup extensions and other contexts that cannot use constructor injection.
+	/// </summary>
+	public static IServiceProvider? Services { get; private set; }
+
+	/// <summary>
 	/// The application lifetime timer.
 	/// </summary>
 	public Stopwatch AppLifetimeTimer { get; } = new();
-	#endregion
-
-	#region Data
-	/// <summary>
-	/// A window designed for displaying logs.
-	/// </summary>
-	private ConsoleWindow? _console;
 	#endregion
 
 	#region Methods
@@ -63,7 +59,7 @@ public sealed class App : Application
 	{
 		base.OnFrameworkInitializationCompleted();
 
-		if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
 		{
 			return;
 		}
@@ -104,13 +100,17 @@ public sealed class App : Application
 			return;
 		}
 
+		Services = serviceProvider;
+
+		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
+
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
-			.LaunchAppAsync(_console);
+			.LaunchAppAsync();
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds command line arguments for Debug mode.
 	/// </summary>
@@ -126,100 +126,6 @@ public sealed class App : Application
 		}
 
 		return args;
-	}
-
-	/// <summary>
-	/// Configures <see cref="ConsoleWindow" />.
-	/// </summary>
-	private static ConsoleWindow ConfigureConsoleWindow(
-		Application app,
-		IAppEnvironment appEnvironment,
-		ICommandLineOptions options,
-		IFileSystem fileSystem,
-		IJsonSerializerWrapper serializer,
-		IViewFactory viewFactory,
-		out LogCallbackSink sink)
-	{
-		ConsoleViewModel viewModel = viewFactory.CreateViewModel<ConsoleViewModel>();
-
-		ConsoleWindow window = viewFactory.CreateWindow<ConsoleWindow>(viewModel);
-
-		sink = new LogCallbackSink()
-		{
-			IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
-			LogCallback = viewModel.WriteCallback
-		};
-
-		window.Title = $"{appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
-
-		string settingsFilePath = appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
-
-		if (fileSystem.IsFileExists(settingsFilePath)
-			&& serializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
-			&& settings.IsNotDefault())
-		{
-			viewModel.FontSize = settings.FontSize;
-
-			viewModel.IsWordWrap = settings.IsWordWrap;
-
-			window.Position = new(settings.X, settings.Y);
-
-			window.Topmost = settings.IsTopmost;
-
-			window.WindowState = settings.WindowState == WindowState.Minimized
-				? WindowState.Normal
-				: settings.WindowState;
-
-			if (window.WindowState != WindowState.Maximized)
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
-		}
-		else
-		{
-			IViewLauncher.SetDefaultLocation(window);
-
-			IViewLauncher.SetDefaultSize(window);
-		}
-
-		window.Closing += delegate
-		{
-			try
-			{
-				if (viewModel.IsSaved)
-				{
-					return;
-				}
-
-				ConsoleWindowSettings settings = new()
-				{
-					FontSize = viewModel.FontSize,
-					IsTopmost = window.Topmost,
-					IsWordWrap = viewModel.IsWordWrap,
-					WindowState = window.WindowState,
-					Size = new((int)window.Width, (int)window.Height),
-					X = window.Position.X,
-					Y = window.Position.Y
-				};
-
-				fileSystem.SerializeToJsonFile(
-					settings,
-					settingsFilePath,
-					false);
-
-				viewModel.IsSaved = true;
-
-				app.CloseAllWindows();
-			}
-			catch (Exception ex)
-			{
-				Trace.WriteLine(ex.ToStringDemystified());
-			}
-		};
-
-		return window;
 	}
 
 	/// <summary>
@@ -294,14 +200,15 @@ public sealed class App : Application
 
 		if (options.IsConsoleNeeded)
 		{
-			_console = ConfigureConsoleWindow(
-				this,
-				provider.GetRequiredService<IAppEnvironment>(),
-				options,
-				provider.GetRequiredService<IFileSystem>(),
-				provider.GetRequiredService<IJsonSerializerWrapper>(),
-				provider.GetRequiredService<IViewFactory>(),
-				out LogCallbackSink sink);
+			ConsoleViewModel viewModel = provider
+				.GetRequiredService<IConsoleWindowHost>()
+				.ViewModel;
+
+			LogCallbackSink sink = new()
+			{
+				IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
+				LogCallback = viewModel.WriteCallback
+			};
 
 			configuration
 				.WriteTo
@@ -342,8 +249,15 @@ public sealed class App : Application
 		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 
+		#region View locator
+		services.AddSingleton<ViewLocator>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
+		#endregion
+
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
+		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
+		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
@@ -360,7 +274,6 @@ public sealed class App : Application
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
-		services.AddSingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		#endregion
@@ -369,7 +282,6 @@ public sealed class App : Application
 
 		#region ViewModels
 		services.AddTransient<BooleanAsyncResultViewModel>();
-		services.AddTransient<ConsoleViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
@@ -406,11 +318,7 @@ public sealed class App : Application
 		services.AddTransient<YesNoCancelBox>();
 		#endregion
 
-		ServiceProvider provider = services.BuildServiceProvider();
-
-		Ioc.Default.ConfigureServices(provider);
-
-		return provider;
+		return services.BuildServiceProvider();
 	}
 	#endregion
 }

@@ -58,7 +58,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public partial bool IsLightTheme { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if user has saved the settings.
+	/// <c>True</c> when the user has saved the settings.
 	/// </summary>
 	public bool IsSaved { get; private set; }
 
@@ -250,7 +250,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>

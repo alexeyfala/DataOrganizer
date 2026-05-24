@@ -96,7 +96,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns descriptions of the command line arguments that the application works with.
 	/// </summary>

@@ -65,7 +65,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if value in <see cref="Text" /> is color.
+	/// <c>True</c> when the value in <see cref="Text" /> is a color.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public bool IsColor
@@ -75,7 +75,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> when <see cref="Text" /> value should be hidden.
+	/// <c>True</c> when the <see cref="Text" /> value should be hidden.
 	/// </summary>
 	public bool IsHidden
 	{
@@ -93,7 +93,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if user can hide <see cref="Text" />.
+	/// <c>True</c> when the user can hide <see cref="Text" />.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public bool IsHideEnabled
@@ -103,7 +103,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if value in <see cref="Text" /> is hyperlink.
+	/// <c>True</c> when the value in <see cref="Text" /> is a hyperlink.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public bool IsHyperlink
@@ -113,7 +113,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the visual control for <see cref="Note" /> should be visible.
+	/// <c>True</c> when the visual control for <see cref="Note" /> should be visible.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public bool IsNoteVisible
@@ -391,7 +391,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="CopySelectedNoteCommand" />.
 	/// </summary>

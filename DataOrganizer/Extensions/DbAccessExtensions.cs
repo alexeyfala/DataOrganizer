@@ -140,7 +140,7 @@ internal static class DbAccessExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds random entities to database.
 	/// </summary>

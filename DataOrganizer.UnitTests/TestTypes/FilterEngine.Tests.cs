@@ -296,7 +296,7 @@ internal class FilterEngineTests
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Creates a fresh <see cref="FilterEngine{T}" /> over <see cref="FileModelDto" /> with no filter and Index ordering.
 	/// </summary>

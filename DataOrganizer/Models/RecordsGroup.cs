@@ -13,7 +13,7 @@ public sealed partial class RecordsGroup : DatasetRecordBase
 	public ObservableCollection<DatasetRecordBase> Children { get; set; } = [];
 
 	/// <summary>
-	/// Returns <c>True</c> if group is expanded.
+	/// <c>True</c> when the group is expanded.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsExpanded { get; set; } = true;

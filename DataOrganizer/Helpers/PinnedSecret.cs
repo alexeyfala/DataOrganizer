@@ -1,6 +1,7 @@
 ﻿using DataOrganizer.Extensions;
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace DataOrganizer.Helpers;
 
@@ -16,7 +17,7 @@ internal sealed class PinnedSecret : IDisposable
 	private readonly GCHandle _handle;
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -38,12 +39,10 @@ internal sealed class PinnedSecret : IDisposable
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		MemoryMarshal
 			.AsBytes(_buffer.AsSpan())

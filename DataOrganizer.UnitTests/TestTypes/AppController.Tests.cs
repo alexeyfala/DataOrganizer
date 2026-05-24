@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.Windows;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
@@ -18,7 +17,7 @@ internal class AppControllerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppController.LaunchAppAsync(ConsoleWindow?, CancellationToken)" />.
+	/// Test of <see cref="AppController.LaunchAppAsync(CancellationToken)" />.
 	/// </summary>
 	[Test]
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
@@ -54,7 +53,7 @@ internal class AppControllerTests
 		AppController sut = mock.Create<AppController>();
 
 		// Act
-		await sut.LaunchAppAsync(null);
+		await sut.LaunchAppAsync();
 
 		// Assert
 		fileSystem

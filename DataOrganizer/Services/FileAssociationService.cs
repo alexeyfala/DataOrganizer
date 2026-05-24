@@ -78,7 +78,7 @@ public sealed class FileAssociationService : IFileAssociationService
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	[DllImport("Shlwapi.dll", EntryPoint = "AssocQueryString", CharSet = CharSet.Unicode)]
 	private static extern uint AssocQueryString(
 		AssocF flags,

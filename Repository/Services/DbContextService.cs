@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Repository.DbContexts;
 using Repository.Interfaces;
@@ -18,7 +17,7 @@ public sealed class DbContextService : IDbContextService
 	private readonly SqliteDbContext _dbContext;
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -31,12 +30,10 @@ public sealed class DbContextService : IDbContextService
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_dbContext.Dispose();
 	}
@@ -108,22 +105,5 @@ public sealed class DbContextService : IDbContextService
 
 	/// <inheritdoc />
 	public Task<int> SaveChangesAsync(CancellationToken token = default) => _dbContext.SaveChangesAsync(token);
-	#endregion
-
-	#region Service
-	/// <summary>
-	/// Returns <see cref="LocalView{T}" /> from <see cref="DbSet{T}" />.
-	/// </summary>
-	private LocalView<T> GetLocalView<T>() where T : class => _dbContext.Set<T>().Local;
-
-	/// <summary>
-	/// Sets the value of <see cref="EntityEntry.State" /> of an entity from <see cref="DbContext" />.
-	/// </summary>
-	private void SetEntryState<T>(T local, EntityState state) where T : class
-	{
-		EntityEntry<T> entry = _dbContext.Entry(local);
-
-		entry.State = state;
-	}
 	#endregion
 }

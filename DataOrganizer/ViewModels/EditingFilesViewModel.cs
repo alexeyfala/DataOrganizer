@@ -3,7 +3,7 @@ using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
-using DataOrganizer.Helpers;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
 using Serilog;
 using Shared.Extensions;
@@ -111,6 +111,9 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IViewCache" />
+	private readonly IViewCache _viewCache;
+
 	/// <summary>
 	/// Previous <see cref="SelectedIndex" /> value.
 	/// </summary>
@@ -118,7 +121,12 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
-	public EditingFilesViewModel(ILogger logger) => _logger = logger;
+	public EditingFilesViewModel(ILogger logger, IViewCache viewCache)
+	{
+		_logger = logger;
+
+		_viewCache = viewCache;
+	}
 	#endregion
 
 	#region Methods
@@ -129,14 +137,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	{
 		Items.Remove(dto);
 
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		ViewLocator.RemoveFromCache(dto);
+		_viewCache.Remove(dto);
 	}
 
 	/// <summary>

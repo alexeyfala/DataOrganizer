@@ -32,7 +32,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	public EntityType EntityType { get; init; }
 
 	/// <summary>
-	/// Returns <c>True</c> if the object is selected in the list.
+	/// <c>True</c> when the object is selected in the list.
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]

@@ -414,7 +414,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Regenerates identifiers.
 	/// </summary>
@@ -615,7 +615,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private void SendMessage(string message, SnackbarMessageLevel level)
 	{
-		_messenger.Send(new ShowSnackbarMessage(new(message, level)));
+		_messenger.Send(new ShowSnackbarMessage(message, level));
 	}
 
 	/// <summary>

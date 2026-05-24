@@ -129,7 +129,7 @@ public sealed class EntityLoader : IEntityLoader
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Configures the <see cref="IMapper" />.
 	/// </summary>

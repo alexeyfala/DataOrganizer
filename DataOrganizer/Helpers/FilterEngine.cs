@@ -29,7 +29,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> when the underlying source contains no items at all.
+	/// <c>True</c> when the underlying source contains no items at all.
 	/// This reflects total contents — items hidden by an active filter still count.
 	/// To check whether the currently shown subset is empty, use <c><see cref="Visible"/>.Count == 0</c>.
 	/// </summary>
@@ -59,7 +59,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -116,12 +116,10 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_source.Clear();
 
@@ -222,7 +220,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public IEnumerable<TResult> SelectFromSource<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Snapshots the source into a working list, applies <paramref name="mutate"/>, then replays the
 	/// result via <c>Clear</c> + <c>AddRange</c> inside a single <see cref="ISourceList{T}.Edit"/>.

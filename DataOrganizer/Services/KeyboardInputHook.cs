@@ -73,7 +73,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -128,12 +128,10 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_semaphore.Dispose();
 
@@ -241,9 +239,13 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
@@ -304,15 +306,19 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		}
 		finally
 		{
-			if (!_isDisposed)
+			try
 			{
 				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
 			}
 		}
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Activates the main window.
 	/// </summary>
@@ -357,9 +363,13 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			}
 			finally
 			{
-				if (!_isDisposed)
+				try
 				{
 					_semaphore.Release();
+				}
+				catch (ObjectDisposedException)
+				{
+					// Service was disposed concurrently — safe to ignore.
 				}
 			}
 

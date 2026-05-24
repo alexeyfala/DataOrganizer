@@ -83,7 +83,7 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	[GeneratedRegex(@"\bhttps?://[^\s<>""]+", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
 	private static partial Regex GetUrlRegex();
 

@@ -8,7 +8,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Provides methods for opening files in different OS.
 /// </summary>
-public interface IExecutionEngine : IDisposable
+public interface IExecutionEngine : IAsyncDisposable
 {
 	#region Methods
 	/// <summary>

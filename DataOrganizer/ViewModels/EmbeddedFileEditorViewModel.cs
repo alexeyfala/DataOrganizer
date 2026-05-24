@@ -20,7 +20,6 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
 using System;
-using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
@@ -258,6 +257,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 	#endregion
 
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="FontSize" /> changes.
+	/// </summary>
+	partial void OnFontSizeChanged(double value) => TrySavePersistentProperties();
+
+	/// <summary>
+	/// Called when <see cref="IsWordWrap" /> changes.
+	/// </summary>
+	partial void OnIsWordWrapChanged(bool value) => TrySavePersistentProperties();
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	protected override void AfterDispose()
@@ -274,30 +285,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		base.AfterDispose();
 	}
-
-	/// <inheritdoc />
-	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-	{
-		base.OnPropertyChanged(e);
-
-		lock (_mutex)
-		{
-			if (IsContentCorrupted || !IsInitialized)
-			{
-				return;
-			}
-
-			if (!string.Equals(e.PropertyName, nameof(FontSize)) && !string.Equals(e.PropertyName, nameof(IsWordWrap)))
-			{
-				return;
-			}
-
-			_handler.Watch(TrySavePropertiesAsync());
-		}
-	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Applies settings to <see cref="TextEditor" />.
 	/// </summary>
@@ -437,6 +427,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				output.ZeroMemory();
 			}
+		}
+	}
+
+	/// <summary>
+	/// Persists view-model properties once the editor is ready.
+	/// </summary>
+	private void TrySavePersistentProperties()
+	{
+		lock (_mutex)
+		{
+			if (IsContentCorrupted || !IsInitialized)
+			{
+				return;
+			}
+
+			_handler.Watch(TrySavePropertiesAsync());
 		}
 	}
 

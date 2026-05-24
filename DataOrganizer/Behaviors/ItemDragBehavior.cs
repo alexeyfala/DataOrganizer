@@ -399,7 +399,7 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	private static void ApplyTransforms(ItemsControl? itemsControl)
 	{
 		if (itemsControl?.Items is not { } items)

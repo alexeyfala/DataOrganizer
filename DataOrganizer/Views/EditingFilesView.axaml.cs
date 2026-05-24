@@ -1,8 +1,4 @@
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using DataOrganizer.ViewModels;
-using Shared.Extensions;
-using System;
 
 namespace DataOrganizer.Views;
 
@@ -12,20 +8,6 @@ namespace DataOrganizer.Views;
 internal sealed partial class EditingFilesView : UserControl
 {
 	#region Constructors
-	public EditingFilesView()
-	{
-		InitializeComponent();
-
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		DataContext = Ioc
-			.Default
-			.GetRequiredService<EditingFilesViewModel>();
-	}
+	public EditingFilesView() => InitializeComponent();
 	#endregion
 }

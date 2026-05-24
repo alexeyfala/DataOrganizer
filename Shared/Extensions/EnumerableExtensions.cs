@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cysharp.Text;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -138,6 +139,34 @@ public static class EnumerableExtensions
 				yield return item;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Converts a sequence to a delimited string.
+	/// </summary>
+	public static string SplitAsString<T>(
+		this IEnumerable<T> sequence,
+		string separator,
+		bool addSeparatorToEnd = false)
+	{
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		foreach (T item in sequence.AsNotNull())
+		{
+			if (builder.Length != 0)
+			{
+				builder.Append(separator);
+			}
+
+			builder.Append(item);
+		}
+
+		if (addSeparatorToEnd && builder.Length > 0)
+		{
+			builder.Append(separator);
+		}
+
+		return builder.ToString();
 	}
 	#endregion
 }

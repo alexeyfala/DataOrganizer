@@ -9,7 +9,7 @@ public sealed class ValueIsValidPair : StringValueBase
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="StringValueBase.Value" /> is valid.
+	/// <c>True</c> when <see cref="StringValueBase.Value" /> is valid.
 	/// </summary>
 	public bool IsValid { get; init; }
 	#endregion

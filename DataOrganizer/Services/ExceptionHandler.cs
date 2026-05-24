@@ -31,7 +31,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	private readonly Lock _mutex = new();
 
 	/// <summary>
-	/// Returns <c>True</c> if the service was disposed.
+	/// <c>True</c> when the service has already been disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -76,12 +76,10 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	/// <inheritdoc />
 	public void Dispose()
 	{
-		if (_isDisposed)
+		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
 			return;
 		}
-
-		_isDisposed = true;
 
 		_disposables.Dispose();
 
@@ -126,7 +124,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if the aggregated exception is exclusively composed of DBus failures
 	/// caused by the missing "com.canonical.AppMenu.Registrar" service on Linux.

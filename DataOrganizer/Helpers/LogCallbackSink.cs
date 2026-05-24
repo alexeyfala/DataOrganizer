@@ -14,7 +14,7 @@ internal sealed class LogCallbackSink : ILogEventSink
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> if logs of level <see cref="LogEventLevel.Debug" /> should be ignored.
+	/// <c>True</c> when logs of level <see cref="LogEventLevel.Debug" /> should be ignored.
 	/// </summary>
 	public required bool IgnoreDebugLevel { get; init; }
 

@@ -10,6 +10,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
@@ -34,7 +35,10 @@ namespace DataOrganizer.Abstract;
 /// <summary>
 /// Base view model.
 /// </summary>
-public abstract partial class ViewModelBase : CopyContentViewModelBase
+public abstract partial class ViewModelBase :
+	CopyContentViewModelBase,
+	IRecipient<ShowSnackbarMessage>,
+	IRecipient<CloseExecutingFileMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewSettings" />
@@ -51,12 +55,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
 
 	/// <summary>
-	/// Returns <c>True</c> if initialization has completed.
+	/// <c>True</c> when initialization has completed.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if shutdown is requested.
+	/// <c>True</c> when shutdown is requested.
 	/// </summary>
 	public bool IsShutdown { get; protected set; } = true;
 
@@ -137,7 +141,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	protected readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
-	protected readonly IKeyboardInputHook _keyboardInputHook;
+	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
 	/// <inheritdoc cref="IAppSettingsManager" />
 	protected readonly IAppSettingsManager _settingsManager;
@@ -163,11 +167,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -189,13 +193,11 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 
 		_viewLauncher = viewLauncher;
 
-		messenger.Register<ShowSnackbarMessage>(this, OnShowSnackbar);
+		messenger.RegisterAll(this);
 
-		messenger.Register<CloseExecutingFileMessage>(this, OnCloseExecutingFile);
-
-		if (keyboardInputHook.IsRunning)
+		if (keyboardInputHook.IsValueCreated && keyboardInputHook.Value.IsRunning)
 		{
-			_handler.Watch(keyboardInputHook.StopTrackingAsync());
+			_handler.Watch(keyboardInputHook.Value.StopTrackingAsync());
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
@@ -203,31 +205,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(keyboardInputHook.StartTrackingAsync(Hierarchy));
-	}
-	#endregion
-
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="CloseExecutingFileMessage" />.
-	/// </summary>
-	private void OnCloseExecutingFile(
-		object recipient,
-		CloseExecutingFileMessage message)
-	{
-		CloseExecutingFile(message.Value);
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowSnackbarMessage" />.
-	/// </summary>
-	private void OnShowSnackbar(
-		object recipient,
-		ShowSnackbarMessage message)
-	{
-		ShowSnackbarPayload payload = message.Value;
-
-		ShowSnackbar(payload.Text, payload.Level);
+		_handler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 
@@ -265,6 +243,18 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 		_copyHistory?.InsertOrMoveToTop(file);
 	}
 
+	/// <inheritdoc />
+	public void Receive(CloseExecutingFileMessage message)
+	{
+		CloseExecutingFile(message.File);
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowSnackbarMessage message)
+	{
+		ShowSnackbar(message.Text, message.Level);
+	}
+
 	/// <summary>
 	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
 	/// </summary>
@@ -293,9 +283,12 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	{
 		base.AfterDispose();
 
-		_messenger.Unregister<ShowSnackbarMessage>(this);
+		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		{
+			_logger.LogDebug(logLine);
+		}
 
-		_messenger.Unregister<CloseExecutingFileMessage>(this);
+		_messenger.UnregisterAll(this);
 	}
 
 	/// <summary>
@@ -314,7 +307,7 @@ public abstract partial class ViewModelBase : CopyContentViewModelBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
 	/// </summary>

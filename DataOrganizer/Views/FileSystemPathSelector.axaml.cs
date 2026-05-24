@@ -110,7 +110,7 @@ public sealed partial class FileSystemPathSelector : UserControl
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>

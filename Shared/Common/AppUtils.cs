@@ -38,12 +38,12 @@ public static class AppUtils
 	public static bool IsDebug { get; } = IsDebugMode();
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.Linux" />.
+	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.Linux" />.
 	/// </summary>
 	public static bool IsLinux { get; } = CurrentOs == OperatingSystemType.Linux;
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.MacOs" />.
+	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.MacOs" />.
 	/// </summary>
 	public static bool IsMacOs { get; } = CurrentOs == OperatingSystemType.MacOs;
 
@@ -51,7 +51,7 @@ public static class AppUtils
 	public static bool IsRelease { get; } = IsReleaseMode();
 
 	/// <summary>
-	/// Returns <c>True</c> if the current operating system is <see cref="OperatingSystemType.Windows" />.
+	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.Windows" />.
 	/// </summary>
 	public static bool IsWindows { get; } = CurrentOs == OperatingSystemType.Windows;
 
@@ -141,7 +141,7 @@ public static class AppUtils
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns a value for <see cref="CurrentOs" />.
 	/// </summary>

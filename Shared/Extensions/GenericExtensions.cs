@@ -271,7 +271,7 @@ public static class GenericExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Adds property data.
 	/// </summary>

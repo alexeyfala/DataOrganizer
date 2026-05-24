@@ -1,3 +1,4 @@
+using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces;
@@ -89,7 +90,7 @@ internal class ConsoleViewModelTests
 	/// Test of <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />.
 	/// </summary>
 	[Test]
-	public void OpenAppDirectoryCommand_Does_Nothing_When_Process_Utils_Not_Injected()
+	public void OpenAppDirectoryCommand_Does_Not_Throw_With_Default_Substitute()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -112,13 +113,11 @@ internal class ConsoleViewModelTests
 	public void OpenAppDirectoryCommand_Invokes_Process_Utils_When_Reference_Is_Injected()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
 		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
 
-		sut.InjectReference(processUtils);
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>(TypedParameter.From(processUtils));
 
 		// Act
 		sut.OpenAppDirectoryCommand.Execute(null);
@@ -133,50 +132,27 @@ internal class ConsoleViewModelTests
 	/// Test of <see cref="ConsoleViewModel.OpenDatabaseDirectoryCommand" />.
 	/// </summary>
 	[Test]
-	public void OpenDatabaseDirectoryCommand_Does_Nothing_When_AppEnvironment_Not_Injected()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
-
-		sut.InjectReference(processUtils);
-
-		// Act
-		sut.OpenDatabaseDirectoryCommand.Execute(null);
-
-		// Assert
-		processUtils
-			.DidNotReceive()
-			.OpenDirectory(Arg.Any<string>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.OpenDatabaseDirectoryCommand" />.
-	/// </summary>
-	[Test]
 	public void OpenDatabaseDirectoryCommand_Opens_Database_Directory_When_References_Are_Injected()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
+		const string databasePath = @"C:\fake\Data\Database";
 
 		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
 
-		const string databasePath = @"C:\fake\Data\Database";
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+			appEnvironment
+				.DatabaseDirectoryPath
+				.Returns(databasePath);
 
-		appEnvironment
-			.DatabaseDirectoryPath
-			.Returns(databasePath);
+			builder.RegisterInstance(processUtils);
 
-		sut.InjectReference(processUtils);
+			builder.RegisterInstance(appEnvironment);
+		});
 
-		sut.InjectReference(appEnvironment);
+		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
 
 		// Act
 		sut.OpenDatabaseDirectoryCommand.Execute(null);

@@ -39,7 +39,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	public FavoritesViewSettings FavoritesSettings { get; } = new();
 
 	/// <summary>
-	/// Returns <c>True</c> if popup should be fixed.
+	/// <c>True</c> when the popup should be fixed.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsPopupFixed { get; set; }
@@ -343,11 +343,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -357,11 +357,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			entityEncryption,
 			eventSimulator,
 			executionEngine,
-			keyboardInputHook,
 			logger,
 			messenger,
 			handler,
-			viewLauncher)
+			viewLauncher,
+			keyboardInputHook)
 	{
 	}
 	#endregion
@@ -514,7 +514,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="ShowCopyHistoryCommand" />.
 	/// </summary>

@@ -869,7 +869,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Deletes a record from the sequence.
 	/// </summary>

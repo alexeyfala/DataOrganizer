@@ -119,6 +119,15 @@ internal class ExecutionServiceTests
 				.SandboxDirectoryPath
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
+			processUtils
+				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
+				.Returns(x =>
+				{
+					x[1] = TestUtils.CreateRandomIntFrom10To100();
+
+					return true;
+				});
+
 			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileSystem);

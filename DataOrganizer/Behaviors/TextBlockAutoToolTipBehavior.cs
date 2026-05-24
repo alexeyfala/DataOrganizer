@@ -14,7 +14,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 {
 	#region Properties
 	/// <summary>
-	/// Returns <c>True</c> when the tooltip should not be displayed.
+	/// <c>True</c> when the tooltip should not be displayed.
 	/// </summary>
 	public bool IsDisabled
 	{
@@ -92,7 +92,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Sets or removes a <see cref="ToolTip" /> of <see cref="TextBlock" />.
 	/// </summary>

@@ -18,6 +18,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
@@ -46,7 +47,12 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="EditorWindow" />.
 /// </summary>
-public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
+public partial class EditorViewModel :
+	ViewModelBase,
+	INavigationColumnViewModel,
+	IRecipient<FolderExpandedChangedMessage>,
+	IRecipient<ShowInEditorMessage>,
+	IRecipient<ShowProgressBarMessage>
 {
 	#region Properties
 	/// <summary>
@@ -74,7 +80,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> when right side sheet should be opened.
+	/// <c>True</c> when the right side sheet should be opened.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsRightSideSheetOpened { get; set; }
@@ -299,6 +305,22 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 				nameof(FileModelDto.EntityType))}");
 
 			return;
+		}
+
+		if (ExecutableFileHelper.IsExecutable(dto.Name))
+		{
+			string text =
+				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, dto.Name, Environment.NewLine)}" +
+				Environment.NewLine +
+				Environment.NewLine +
+				$"{Strings.OpenTheExecutableFile}?";
+
+			if (!await _dialogService
+				.RequestYesCancelDialogAsync(text)
+				.ConfigureAwait(false))
+			{
+				return;
+			}
 		}
 
 		_logger.LogInformation($"The file needs to be executed in the operating system:{dto.GetPropertyValues(
@@ -760,13 +782,18 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		// Since the editor may have a tab open with the file being deleted,
-		// the operation must be performed in the main thread (ConfigureAwait(true)).
+		bool isopened = dto is FileModelDto file && file.IsOpened();
+
 		if (!await _dialogService
-			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{toBeDeleted.Name}""?")
+			.RequestYesNoDialogAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
 			return;
+		}
+
+		if (isopened && dto is FileModelDto opened)
+		{
+			CloseFile(opened);
 		}
 
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
@@ -793,7 +820,14 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Handles loading event for rendering the file editor.
 	/// </summary>
 	[RelayCommand]
-	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel) => _editingFiles = viewModel;
+	private void EditingFilesViewLoaded(EditingFilesViewModel? viewModel)
+	{
+		viewModel?
+			.Items
+			.AddRange(OpenedInEditorFiles);
+
+		_editingFiles = viewModel;
+	}
 
 	/// <summary>
 	/// Expands all folders in <see cref="Hierarchy" />.
@@ -925,9 +959,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 
 		_logger.LogInformation("Show hotkeys editor");
 
-		if (_keyboardInputHook.IsRunning)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
 			await _keyboardInputHook
+				.Value
 				.StopTrackingAsync()
 				.ConfigureAwait(true);
 		}
@@ -948,7 +983,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy));
+		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -1025,13 +1060,13 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
-		IKeyboardInputHook keyboardInputHook,
 		ILogger logger,
 		IMapper mapper,
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler handler,
-		IViewLauncher viewLauncher) : base(
+		IViewLauncher viewLauncher,
+		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			settingsManager,
 			clipboard,
@@ -1041,66 +1076,17 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			entityEncryption,
 			eventSimulator,
 			executionEngine,
-			keyboardInputHook,
 			logger,
 			messenger,
 			handler,
-			viewLauncher)
+			viewLauncher,
+			keyboardInputHook)
 	{
 		_dataExchange = dataExchange;
 
 		_mapper = mapper;
 
 		_processUtils = processUtils;
-
-		messenger.Register<FolderExpandedChangedMessage>(this, OnFolderIsExpandedChanged);
-
-		messenger.Register<ShowInEditorMessage>(this, OnShowInEditor);
-
-		messenger.Register<ShowProgressBarMessage>(this, OnShowProgressBar);
-	}
-	#endregion
-
-	#region Message handlers
-	/// <summary>
-	/// Reacts to a <see cref="FolderExpandedChangedMessage" />.
-	/// </summary>
-	/// <remarks>
-	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
-	/// so I had to use a global message to persist the changes to the database in one place.
-	/// </remarks>
-	private void OnFolderIsExpandedChanged(
-		object recipient,
-		FolderExpandedChangedMessage message)
-	{
-		if (IsReadOnly || IsActionInProgress)
-		{
-			return;
-		}
-
-		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message.Value));
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowInEditorMessage" />.
-	/// </summary>
-	private void OnShowInEditor(
-		object recipient,
-		ShowInEditorMessage message)
-	{
-		ShowInEditorPayload payload = message.Value;
-
-		_handler.Watch(ShowInEditorAsync(payload.Id, payload.Window));
-	}
-
-	/// <summary>
-	/// Reacts to a <see cref="ShowProgressBarMessage" />.
-	/// </summary>
-	private void OnShowProgressBar(
-		object recipient,
-		ShowProgressBarMessage message)
-	{
-		IsActionInProgress = message.Value;
 	}
 	#endregion
 
@@ -1185,11 +1171,6 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return null;
 		}
 	}
-
-	/// <summary>
-	/// Adds editing files.
-	/// </summary>
-	public void AddEditingFiles(IEnumerable<FileModelDto> editingFiles) => _editingFiles?.Items.AddRange(editingFiles);
 
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
@@ -1304,9 +1285,10 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			_settingsManager.ApplyMaterialTheme();
 		}
 
-		if (_keyboardInputHook.IsRunning)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
 			await _keyboardInputHook
+				.Value
 				.StopTrackingAsync(token)
 				.ConfigureAwait(false);
 		}
@@ -1316,7 +1298,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.StartTrackingAsync(Hierarchy, token));
+		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>
@@ -1454,6 +1436,35 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	}
 
 	/// <summary>
+	/// <inheritdoc />
+	/// </summary>
+	/// <remarks>
+	/// There was no way to track the expand/collapse events of <see cref="TreeViewItem" /> in Xaml,
+	/// so I had to use a global message to persist the changes to the database in one place.
+	/// </remarks>
+	public void Receive(FolderExpandedChangedMessage message)
+	{
+		if (IsReadOnly || IsActionInProgress)
+		{
+			return;
+		}
+
+		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowInEditorMessage message)
+	{
+		_handler.Watch(ShowInEditorAsync(message.Id, message.Window));
+	}
+
+	/// <inheritdoc />
+	public void Receive(ShowProgressBarMessage message)
+	{
+		IsActionInProgress = message.IsVisible;
+	}
+
+	/// <summary>
 	/// Renames <see cref="ExplorerModelBase" /> in the database and in the <see cref="TreeView" />.
 	/// </summary>
 	public async Task<bool> RenameAsync(
@@ -1580,21 +1591,9 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
 	}
-
-	/// <inheritdoc />
-	protected override void AfterDispose()
-	{
-		base.AfterDispose();
-
-		_messenger.Unregister<FolderExpandedChangedMessage>(this);
-
-		_messenger.Unregister<ShowInEditorMessage>(this);
-
-		_messenger.Unregister<ShowProgressBarMessage>(this);
-	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
@@ -1942,7 +1941,7 @@ public partial class EditorViewModel : ViewModelBase, INavigationColumnViewModel
 	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
 	/// </summary>
 	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderExpandedChangedPayload payload,
+		FolderExpandedChangedMessage payload,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] in int lineNumber = 0,

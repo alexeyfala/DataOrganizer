@@ -293,7 +293,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Derives a key.
 	/// </summary>

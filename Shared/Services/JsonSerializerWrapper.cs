@@ -14,11 +14,6 @@ namespace Shared.Services;
 
 public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 {
-	#region Data
-	/// <inheritdoc cref="ILogger" />
-	private ILogger? _logger;
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
 	public T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Json)] string json)
@@ -33,7 +28,7 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 	}
 
 	/// <inheritdoc />
-	public T? FromFile<T>(string filePath)
+	public T? FromFile<T>(string filePath, ILogger? logger = null)
 	{
 		try
 		{
@@ -41,14 +36,11 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 		}
 		catch (Exception ex)
 		{
-			_logger?.LogException(ex);
+			logger?.LogException(ex, false);
 
 			return default;
 		}
 	}
-
-	/// <inheritdoc />
-	public void InjectDependency(ILogger logger) => _logger = logger;
 
 	/// <inheritdoc />
 	public string Serialize<T>(T value, JsonSerializerOptions? options = null)

@@ -551,7 +551,7 @@ public static class EnumerableExtensions
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Counts files and folders.
 	/// </summary>

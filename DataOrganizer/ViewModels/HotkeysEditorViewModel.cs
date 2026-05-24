@@ -39,7 +39,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	public ObservableCollection<CodeMaskPair> Buffer { get; } = [];
 
 	/// <summary>
-	/// Returns <c>True</c> if user has saved the hotkeys.
+	/// <c>True</c> when the user has saved the hotkeys.
 	/// </summary>
 	public bool IsSaved { get; private set; }
 
@@ -97,7 +97,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	private readonly IGlobalHook _hook;
 
 	/// <summary>
-	/// Returns <c>True</c> if the <see cref="Buffer" /> should be cleared.
+	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
 	/// </summary>
 	private bool _isClearBuffer;
 	#endregion
@@ -196,7 +196,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="KeyCode" /> is mask.
 	/// </summary>
