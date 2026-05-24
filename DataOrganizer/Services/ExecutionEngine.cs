@@ -258,11 +258,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				string filePath = Path.Combine(directoryPath, fileName);
 
-				var x = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
-
-				var y = _fileAssociation.GetApplicationByPath(filePath);
-
-
 				string? selectedAppPath = null;
 
 				if (AppUtils.IsWindows)
