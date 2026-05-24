@@ -69,7 +69,7 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	}
 	#endregion
 
-	#region Helpers
+	#region Native
 	[LibraryImport("Shlwapi.dll", EntryPoint = "AssocQueryStringW", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial uint AssocQueryString(
 		AssocF flags,
@@ -86,7 +86,7 @@ public sealed partial class FileAssociationService : IFileAssociationService
 		[Out] char[] lpResult);
 	#endregion
 
-	#region Enums
+	#region Nested Types
 	[Flags]
 	private enum AssocF
 	{
