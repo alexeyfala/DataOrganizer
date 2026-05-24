@@ -57,9 +57,21 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	{
 		string extension = Path.GetExtension(filePath);
 
-		AssociatedAppInfo[] candidates = string.IsNullOrEmpty(extension)
-			? EnumerateAllApplications()
-			: EnumerateCandidates(extension);
+		AssociatedAppInfo[] candidates;
+
+		if (string.IsNullOrEmpty(extension))
+		{
+			candidates = EnumerateCandidates(".txt");
+
+			if (candidates.Length == 0)
+			{
+				candidates = EnumerateAllApplications();
+			}
+		}
+		else
+		{
+			candidates = EnumerateCandidates(extension);
+		}
 
 		if (candidates.Length == 0)
 		{
@@ -156,6 +168,30 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <summary>
+	/// Builds an <see cref="AssociatedAppInfo" /> from one <c>App Paths\&lt;exe&gt;</c>
+	/// entry. The display name is the executable name without extension; the icon is
+	/// loaded from the resolved exe path.
+	/// </summary>
+	private static AssociatedAppInfo? TryBuildInfoFromAppPaths(RegistryKey appPathsKey, string subkeyName)
+	{
+		using RegistryKey? appKey = appPathsKey.OpenSubKey(subkeyName);
+
+		if (appKey?.GetValue(null) is not string appPath || string.IsNullOrEmpty(appPath))
+		{
+			return null;
+		}
+
+		appPath = appPath.Trim('"');
+
+		return new AssociatedAppInfo
+		{
+			AppName = Path.GetFileNameWithoutExtension(subkeyName),
+			AppPath = appPath,
+			Icon = TryLoadIcon(appPath)
+		};
+	}
+
+	/// <summary>
 	/// Builds an <see cref="AssociatedAppInfo" /> from one
 	/// <c>HKEY_CLASSES_ROOT\Applications\&lt;subkey&gt;</c> entry. Skips apps marked
 	/// with <c>NoOpenWith</c> or missing the <c>shell\open\command</c> value.
@@ -243,30 +279,28 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <summary>
-	/// Enumerates registered applications from <c>HKEY_CLASSES_ROOT\Applications</c>,
-	/// skipping those marked with <c>NoOpenWith</c>.
+	/// Adds entries from <c>SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths</c>
+	/// under <paramref name="root" /> (typically <c>Registry.LocalMachine</c> for
+	/// system-wide apps and <c>Registry.CurrentUser</c> for per-user apps). Each
+	/// subkey is an executable name whose <c>(Default)</c> value holds the full path.
 	/// </summary>
-	private AssociatedAppInfo[] EnumerateAllApplications()
+	private void AddAppPathsTo(
+		List<AssociatedAppInfo> result,
+		HashSet<string> seenPaths,
+		RegistryKey root)
 	{
-		using RegistryKey? appsKey = Registry
-			.ClassesRoot
-			.OpenSubKey("Applications");
+		using RegistryKey? appPathsKey = root.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
 
-		if (appsKey is null)
+		if (appPathsKey is null)
 		{
-			_logger.LogWarning(
-				@"Registry key HKEY_CLASSES_ROOT\Applications not found; cannot enumerate apps for extensionless file.");
-
-			return [];
+			return;
 		}
 
-		List<AssociatedAppInfo> result = [];
-
-		foreach (string subkeyName in appsKey.GetSubKeyNames())
+		foreach (string subkeyName in appPathsKey.GetSubKeyNames())
 		{
 			try
 			{
-				if (TryBuildInfoFromRegistry(appsKey, subkeyName) is { } info)
+				if (TryBuildInfoFromAppPaths(appPathsKey, subkeyName) is { } info && seenPaths.Add(info.AppPath))
 				{
 					result.Add(info);
 				}
@@ -276,6 +310,60 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 				_logger.LogException(ex);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Adds entries from <c>HKEY_CLASSES_ROOT\Applications</c>, skipping apps marked
+	/// with <c>NoOpenWith</c> and ones whose <see cref="AssociatedAppInfo.AppPath" />
+	/// is already in <paramref name="seenPaths" />.
+	/// </summary>
+	private void AddHkcrApplicationsTo(List<AssociatedAppInfo> result, HashSet<string> seenPaths)
+	{
+		using RegistryKey? appsKey = Registry
+			.ClassesRoot
+			.OpenSubKey("Applications");
+
+		if (appsKey is null)
+		{
+			_logger.LogWarning(
+				@"Registry key HKEY_CLASSES_ROOT\Applications not found; skipping this source.");
+
+			return;
+		}
+
+		foreach (string subkeyName in appsKey.GetSubKeyNames())
+		{
+			try
+			{
+				if (TryBuildInfoFromRegistry(appsKey, subkeyName) is { } info && seenPaths.Add(info.AppPath))
+				{
+					result.Add(info);
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Aggregates applications from three registry sources: <c>HKCR\Applications</c>
+	/// (third-party "Open with" handlers), <c>HKLM</c> and <c>HKCU</c>
+	/// <c>App Paths</c> (built-in system apps like Notepad, Calc). Duplicates are
+	/// removed by executable path (case-insensitive).
+	/// </summary>
+	private AssociatedAppInfo[] EnumerateAllApplications()
+	{
+		List<AssociatedAppInfo> result = [];
+
+		HashSet<string> seenPaths = new(StringComparer.OrdinalIgnoreCase);
+
+		AddHkcrApplicationsTo(result, seenPaths);
+
+		AddAppPathsTo(result, seenPaths, Registry.LocalMachine);
+
+		AddAppPathsTo(result, seenPaths, Registry.CurrentUser);
 
 		return [.. result];
 	}
@@ -285,7 +373,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	/// <see cref="AssociatedAppInfo" />. Bad / unreadable entries are logged and skipped
 	/// so a single broken registry record does not crash the picker.
 	/// </summary>
-	private AssociatedAppInfo[] EnumerateCandidates(string extension)
+	private AssociatedAppInfo[] EnumerateCandidates(string extension, AssocFilter filter = AssocFilter.None)
 	{
 		IEnumAssocHandlers? enumerator = null;
 
@@ -293,7 +381,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		{
 			int hr = SHAssocEnumHandlers(
 				string.IsNullOrEmpty(extension) ? null : extension,
-				AssocFilter.None,
+				filter,
 				out enumerator);
 
 			if (hr != S_OK || enumerator is null)
