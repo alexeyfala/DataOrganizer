@@ -20,6 +20,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IAppPickerService" />
+	private readonly IAppPickerService _appPicker;
+
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
 
@@ -53,6 +56,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#region Constructors
 	public ExecutionEngine(
 		IAppEnvironment appEnvironment,
+		IAppPickerService appPicker,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
@@ -61,6 +65,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		ITaskExceptionHandler handler)
 	{
 		_appEnvironment = appEnvironment;
+
+		_appPicker = appPicker;
 
 		_changeTracker = changeTracker;
 
@@ -245,10 +251,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 					_appEnvironment.SandboxDirectoryPath,
 					parameters.File.Id.ToString());
 
-				_fileSystem.CreateDirectory(directoryPath);
-
-				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
-
 				// To prevent a directory traversal attack, all directory components must be removed from the file name.
 				string fileName = Path.GetFileName(parameters
 					.File
@@ -256,14 +258,38 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				string filePath = Path.Combine(directoryPath, fileName);
 
-				if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
+				string? selectedAppPath = null;
+
+				if (AppUtils.IsWindows)
 				{
-					_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+					string? appPath = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
+
+					if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) != false)
+					{
+						// TODO: PickAppAsync must also select app when appPath is null e.g. file has no extension.
+						AssociatedAppInfo? selected = await _appPicker
+							.PickAppAsync(filePath, token)
+							.ConfigureAwait(false);
+
+						if (selected is null)
+						{
+							_logger.LogInformation(
+								$@"User cancelled the application picker for ""{filePath}"".");
+
+							return false;
+						}
+
+						selectedAppPath = selected.AppPath;
+					}
+					else
+					{
+						_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+					}
 				}
 
-				await _fileSystem
-					.WriteAllBytesAsync(filePath, parameters.Contents, token)
-					.ConfigureAwait(false);
+				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+				_fileSystem.CreateDirectory(directoryPath);
 
 				scope.OnRollback(() =>
 				{
@@ -272,21 +298,25 @@ public sealed class ExecutionEngine : IExecutionEngine
 					_fileSystem.EraseAndDeleteFile(filePath);
 				});
 
+				await _fileSystem
+					.WriteAllBytesAsync(filePath, parameters.Contents, token)
+					.ConfigureAwait(false);
+
 				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
 
-				if (!_processUtils.StartProcess(filePath, out int processId))
+				int processId;
+
+				if (selectedAppPath is not null)
+				{
+					_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
+				}
+				else if (!_processUtils.StartProcess(filePath, out processId))
 				{
 					_logger.LogDebug(
 						$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
 				}
 
-				scope.OnRollback(() =>
-				{
-					if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
-					{
-						_processUtils.KillProcess(processId);
-					}
-				});
+				scope.OnRollback(() => TryKillProcess(processId));
 
 				CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 

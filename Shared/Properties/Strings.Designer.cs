@@ -907,6 +907,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open with.
+        /// </summary>
+        public static string OpenWith {
+            get {
+                return ResourceManager.GetString("OpenWith", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options.
         /// </summary>
         public static string Options {

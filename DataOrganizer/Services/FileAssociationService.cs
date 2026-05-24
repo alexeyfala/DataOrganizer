@@ -64,18 +64,6 @@ public sealed class FileAssociationService : IFileAssociationService
 
 		return builder.ToString();
 	}
-
-	/// <inheritdoc />
-	public bool HasAssociatedAppByPath(string absoluteFilePath)
-	{
-		return GetApplicationByPath(absoluteFilePath) is not null;
-	}
-
-	/// <inheritdoc />
-	public bool HasAssociatedByExtension(string fileExtension)
-	{
-		return GetApplicationByExtension(fileExtension) is not null;
-	}
 	#endregion
 
 	#region Helpers

@@ -17,15 +17,5 @@ public interface IFileAssociationService
 	/// Returns the path to the executable application file by the absolute path of existing file.
 	/// </summary>
 	string? GetApplicationByPath(string absoluteFilePath);
-
-	/// <summary>
-	/// Returns <c>True</c> if there is an application in system associated with file by the absolute file path.
-	/// </summary>
-	bool HasAssociatedAppByPath(string absoluteFilePath);
-
-	/// <summary>
-	/// Returns <c>True</c> if there is an application in system associated with file by file extension.
-	/// </summary>
-	bool HasAssociatedByExtension(string fileExtension);
 	#endregion
 }
