@@ -199,10 +199,8 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <summary>
-	/// Extracts the large shell icon for <paramref name="appPath" /> via
-	/// <c>SHGetFileInfo</c>, converts it through PNG and returns it as an Avalonia
-	/// <see cref="Bitmap" />. Returns <c>null</c> on any failure — the picker can still
-	/// list the app without an icon.
+	/// Loads the large shell icon for <paramref name="appPath" /> as an Avalonia
+	/// bitmap; <c>null</c> on any failure.
 	/// </summary>
 	private static Bitmap? TryLoadIcon(string appPath)
 	{
@@ -245,10 +243,8 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <summary>
-	/// Enumerates all applications under <c>HKEY_CLASSES_ROOT\Applications</c> that did
-	/// not opt out of "Open with". Used as a fallback when the target file has no
-	/// extension — in that case <see cref="SHAssocEnumHandlers" /> needs an extension
-	/// argument and cannot be used directly.
+	/// Enumerates registered applications from <c>HKEY_CLASSES_ROOT\Applications</c>,
+	/// skipping those marked with <c>NoOpenWith</c>.
 	/// </summary>
 	private AssociatedAppInfo[] EnumerateAllApplications()
 	{
@@ -355,8 +351,8 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		AssocFilter afFilter,
 		[MarshalAs(UnmanagedType.Interface)] out IEnumAssocHandlers? ppEnumHandler);
 
-	[DllImport("shell32.dll", CharSet = CharSet.Unicode, EntryPoint = "SHGetFileInfoW")]
-	private static extern IntPtr SHGetFileInfo(
+	[LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW", StringMarshalling = StringMarshalling.Utf16)]
+	private static partial IntPtr SHGetFileInfo(
 		string pszPath,
 		uint dwFileAttributes,
 		ref SHFILEINFO psfi,
@@ -431,20 +427,21 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	}
 
 	/// <summary>
-	/// File information block populated by <see cref="SHGetFileInfo" />.
+	/// Blittable mirror of the native <c>SHFILEINFOW</c> struct; string fields use
+	/// <c>fixed char[N]</c> buffers.
 	/// </summary>
-	[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-	private struct SHFILEINFO
+	[StructLayout(LayoutKind.Sequential)]
+	private unsafe struct SHFILEINFO
 	{
 		public IntPtr hIcon;
+
 		public int iIcon;
+
 		public uint dwAttributes;
 
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-		public string szDisplayName;
+		public fixed char szDisplayName[260];
 
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-		public string szTypeName;
+		public fixed char szTypeName[80];
 	}
 	#endregion
 }
