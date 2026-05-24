@@ -1,4 +1,4 @@
-using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace DataOrganizer.DTO;
 
@@ -22,6 +22,6 @@ public sealed class AssociatedAppInfo
 	/// <summary>
 	/// Optional icon shown next to the application name; <c>null</c> when unavailable.
 	/// </summary>
-	public IImage? Icon { get; init; }
+	public Bitmap? Icon { get; init; }
 	#endregion
 }

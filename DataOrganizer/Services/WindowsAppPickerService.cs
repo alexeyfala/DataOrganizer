@@ -1,18 +1,21 @@
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
+using Microsoft.Win32;
 using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DrawingBitmap = System.Drawing.Bitmap;
+using Icon = System.Drawing.Icon;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace DataOrganizer.Services;
 
@@ -55,7 +58,9 @@ public sealed class WindowsAppPickerService : IAppPickerService
 	{
 		string extension = Path.GetExtension(filePath);
 
-		AssociatedAppInfo[] candidates = EnumerateCandidates(extension);
+		AssociatedAppInfo[] candidates = string.IsNullOrEmpty(extension)
+			? EnumerateAllApplications()
+			: EnumerateCandidates(extension);
 
 		if (candidates.Length == 0)
 		{
@@ -71,23 +76,51 @@ public sealed class WindowsAppPickerService : IAppPickerService
 	#endregion
 
 	#region Helpers
-	[DllImport("user32.dll")]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool DestroyIcon(IntPtr hIcon);
+	/// <summary>
+	/// Extracts the executable path from a Windows registry "open command" string,
+	/// handling both quoted ("C:\path\app.exe" "%1") and unquoted (app.exe %1) forms.
+	/// </summary>
+	private static string? ExtractExecutablePath(string command)
+	{
+		string trimmed = command.Trim();
 
-	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-	private static extern int SHAssocEnumHandlers(
-			[MarshalAs(UnmanagedType.LPWStr)] string? pszExtra,
-			AssocFilter afFilter,
-			[MarshalAs(UnmanagedType.Interface)] out IEnumAssocHandlers? ppEnumHandler);
+		if (trimmed.StartsWith('"'))
+		{
+			int end = trimmed.IndexOf('"', 1);
 
-	[DllImport("shell32.dll", CharSet = CharSet.Unicode, EntryPoint = "SHGetFileInfoW")]
-	private static extern IntPtr SHGetFileInfo(
-			string pszPath,
-			uint dwFileAttributes,
-			ref SHFILEINFO psfi,
-			uint cbFileInfo,
-			uint uFlags);
+			return end < 0 ? null : trimmed[1..end];
+		}
+
+		int space = trimmed.IndexOf(' ');
+
+		return space < 0 ? trimmed : trimmed[..space];
+	}
+
+	/// <summary>
+	/// Resolves the display name of an application. <c>FriendlyAppName</c> may be a
+	/// literal ("Notepad") or an indirect resource pointer
+	/// ("@%SystemRoot%\system32\notepad.exe,-469"); for the latter we go through
+	/// <c>SHLoadIndirectString</c>. Falls back to the registry subkey name when
+	/// neither form is usable.
+	/// </summary>
+	private static string ResolveFriendlyName(RegistryKey appKey, string subkeyName)
+	{
+		if (appKey.GetValue("FriendlyAppName") is not string friendly || string.IsNullOrEmpty(friendly))
+		{
+			return subkeyName;
+		}
+
+		if (!friendly.StartsWith('@'))
+		{
+			return friendly;
+		}
+
+		StringBuilder buffer = new(capacity: 1024);
+
+		return SHLoadIndirectString(friendly, buffer, buffer.Capacity, IntPtr.Zero) == S_OK
+			? buffer.ToString()
+			: subkeyName;
+	}
 
 	/// <summary>
 	/// Reads display name, executable path and icon from a single
@@ -110,13 +143,54 @@ public sealed class WindowsAppPickerService : IAppPickerService
 			uiName = Path.GetFileNameWithoutExtension(appPath);
 		}
 
-		IImage? icon = TryLoadIcon(appPath);
-
 		return new AssociatedAppInfo
 		{
 			AppName = uiName,
 			AppPath = appPath,
-			Icon = icon
+			Icon = TryLoadIcon(appPath)
+		};
+	}
+
+	/// <summary>
+	/// Builds an <see cref="AssociatedAppInfo" /> from one
+	/// <c>HKEY_CLASSES_ROOT\Applications\&lt;subkey&gt;</c> entry. Skips apps marked
+	/// with <c>NoOpenWith</c> or missing the <c>shell\open\command</c> value.
+	/// </summary>
+	private static AssociatedAppInfo? TryBuildInfoFromRegistry(RegistryKey appsKey, string subkeyName)
+	{
+		using RegistryKey? appKey = appsKey.OpenSubKey(subkeyName);
+
+		if (appKey is null)
+		{
+			return null;
+		}
+
+		if (appKey
+			.GetValueNames()
+			.Contains("NoOpenWith", StringComparer.OrdinalIgnoreCase))
+		{
+			return null;
+		}
+
+		using RegistryKey? commandKey = appKey.OpenSubKey(@"shell\open\command");
+
+		if (commandKey?.GetValue(null) is not string command || string.IsNullOrEmpty(command))
+		{
+			return null;
+		}
+
+		string? executablePath = ExtractExecutablePath(command);
+
+		if (string.IsNullOrEmpty(executablePath))
+		{
+			return null;
+		}
+
+		return new AssociatedAppInfo
+		{
+			AppName = ResolveFriendlyName(appKey, subkeyName),
+			AppPath = executablePath,
+			Icon = TryLoadIcon(executablePath)
 		};
 	}
 
@@ -126,7 +200,7 @@ public sealed class WindowsAppPickerService : IAppPickerService
 	/// <see cref="Bitmap" />. Returns <c>null</c> on any failure — the picker can still
 	/// list the app without an icon.
 	/// </summary>
-	private static IImage? TryLoadIcon(string appPath)
+	private static Bitmap? TryLoadIcon(string appPath)
 	{
 		SHFILEINFO info = default;
 
@@ -146,7 +220,7 @@ public sealed class WindowsAppPickerService : IAppPickerService
 		{
 			using Icon icon = (Icon)Icon.FromHandle(info.hIcon).Clone();
 
-			using System.Drawing.Bitmap gdiBitmap = icon.ToBitmap();
+			using DrawingBitmap gdiBitmap = icon.ToBitmap();
 
 			using MemoryStream memoryStream = new();
 
@@ -154,7 +228,7 @@ public sealed class WindowsAppPickerService : IAppPickerService
 
 			memoryStream.Position = 0;
 
-			return new Avalonia.Media.Imaging.Bitmap(memoryStream);
+			return new Bitmap(memoryStream);
 		}
 		catch
 		{
@@ -164,6 +238,46 @@ public sealed class WindowsAppPickerService : IAppPickerService
 		{
 			_ = DestroyIcon(info.hIcon);
 		}
+	}
+
+	/// <summary>
+	/// Enumerates all applications under <c>HKEY_CLASSES_ROOT\Applications</c> that did
+	/// not opt out of "Open with". Used as a fallback when the target file has no
+	/// extension — in that case <see cref="SHAssocEnumHandlers" /> needs an extension
+	/// argument and cannot be used directly.
+	/// </summary>
+	private AssociatedAppInfo[] EnumerateAllApplications()
+	{
+		using RegistryKey? appsKey = Registry
+			.ClassesRoot
+			.OpenSubKey("Applications");
+
+		if (appsKey is null)
+		{
+			_logger.LogWarning(
+				@"Registry key HKEY_CLASSES_ROOT\Applications not found; cannot enumerate apps for extensionless file.");
+
+			return [];
+		}
+
+		List<AssociatedAppInfo> result = [];
+
+		foreach (string subkeyName in appsKey.GetSubKeyNames())
+		{
+			try
+			{
+				if (TryBuildInfoFromRegistry(appsKey, subkeyName) is { } info)
+				{
+					result.Add(info);
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
+			}
+		}
+
+		return [.. result];
 	}
 
 	/// <summary>
@@ -224,6 +338,33 @@ public sealed class WindowsAppPickerService : IAppPickerService
 			}
 		}
 	}
+	#endregion
+
+	#region Native
+	[DllImport("user32.dll")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	private static extern bool DestroyIcon(IntPtr hIcon);
+
+	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+	private static extern int SHAssocEnumHandlers(
+		[MarshalAs(UnmanagedType.LPWStr)] string? pszExtra,
+		AssocFilter afFilter,
+		[MarshalAs(UnmanagedType.Interface)] out IEnumAssocHandlers? ppEnumHandler);
+
+	[DllImport("shell32.dll", CharSet = CharSet.Unicode, EntryPoint = "SHGetFileInfoW")]
+	private static extern IntPtr SHGetFileInfo(
+		string pszPath,
+		uint dwFileAttributes,
+		ref SHFILEINFO psfi,
+		uint cbFileInfo,
+		uint uFlags);
+
+	[DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
+	private static extern int SHLoadIndirectString(
+		string pszSource,
+		[Out] StringBuilder pszOutBuf,
+		int cchOutBuf,
+		IntPtr ppvReserved);
 	#endregion
 
 	#region Nested Types
