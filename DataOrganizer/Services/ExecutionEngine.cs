@@ -258,33 +258,14 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				string filePath = Path.Combine(directoryPath, fileName);
 
-				string? selectedAppPath = null;
+				(bool shouldContinue, string? selectedAppPath) = await TryResolveAppPathAsync(
+					fileName,
+					filePath,
+					token).ConfigureAwait(false);
 
-				if (AppUtils.IsWindows)
+				if (!shouldContinue)
 				{
-					string? appPath = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
-
-					if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) != false)
-					{
-						// TODO: PickAppAsync must also select app when appPath is null e.g. file has no extension.
-						AssociatedAppInfo? selected = await _appPicker
-							.PickAppAsync(filePath, token)
-							.ConfigureAwait(false);
-
-						if (selected is null)
-						{
-							_logger.LogInformation(
-								$@"User cancelled the application picker for ""{filePath}"".");
-
-							return false;
-						}
-
-						selectedAppPath = selected.AppPath;
-					}
-					else
-					{
-						_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
-					}
+					return false;
 				}
 
 				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
@@ -481,6 +462,45 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 		}
+	}
+
+	/// <summary>
+	/// On Windows: resolves which application should open the file. Returns the user's
+	/// pick when the system association is missing or points at "OpenWith.exe", or
+	/// <c>null</c> selectedAppPath when the default shell-execute path is fine. The
+	/// bool flag is <c>false</c> only when the user cancelled the picker.
+	/// </summary>
+	private async Task<(bool ShouldContinue, string? SelectedAppPath)> TryResolveAppPathAsync(
+		string fileName,
+		string filePath,
+		CancellationToken token)
+	{
+		if (!AppUtils.IsWindows)
+		{
+			return (true, null);
+		}
+
+		string? appPath = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
+
+		if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) == false)
+		{
+			_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+
+			return (true, null);
+		}
+
+		AssociatedAppInfo? selected = await _appPicker
+			.PickAppAsync(filePath, token)
+			.ConfigureAwait(false);
+
+		if (selected is null)
+		{
+			_logger.LogInformation($@"User cancelled the application picker for ""{filePath}"".");
+
+			return (false, null);
+		}
+
+		return (true, selected.AppPath);
 	}
 	#endregion
 }
