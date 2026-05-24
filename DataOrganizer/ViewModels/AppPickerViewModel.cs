@@ -1,10 +1,12 @@
 using Avalonia;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Views;
+using DataOrganizer.Windows;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +41,43 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Opens the OS file picker filtered to executables; if the user picks one, the
+	/// dialog closes with that selection.
+	/// </summary>
+	[RelayCommand]
+	private async Task Browse()
+	{
+		FilePickerOpenOptions options = new()
+		{
+			Title = "Select application",
+			AllowMultiple = false,
+			FileTypeFilter =
+			[
+				new FilePickerFileType("Executable")
+				{
+					Patterns = ["*.exe"]
+				}
+			]
+		};
+
+		string[] filePaths = await _fileSystemPicker
+			.SelectFilesAsync<EditorWindow>(options)
+			.ConfigureAwait(true);
+
+		if (filePaths.Length == 0)
+		{
+			return;
+		}
+
+		if (_appPicker.CreateFromPath(filePaths[0]) is not { } info)
+		{
+			return;
+		}
+
+		await SetResultAsync(info).ConfigureAwait(false);
+	}
+
+	/// <summary>
 	/// Cancels the dialog without choosing.
 	/// </summary>
 	[RelayCommand]
@@ -51,9 +90,24 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 	private Task Open() => SetResultAsync(SelectedApp);
 	#endregion
 
+	#region Data
+	/// <inheritdoc cref="IAppPickerService" />
+	private readonly IAppPickerService _appPicker;
+
+	/// <inheritdoc cref="IFileSystemPicker" />
+	private readonly IFileSystemPicker _fileSystemPicker;
+	#endregion
+
 	#region Constructors
-	public AppPickerViewModel(Application app, ITaskExceptionHandler handler) : base(app, handler)
+	public AppPickerViewModel(
+		Application app,
+		IAppPickerService appPicker,
+		IFileSystemPicker fileSystemPicker,
+		ITaskExceptionHandler handler) : base(app, handler)
 	{
+		_appPicker = appPicker;
+
+		_fileSystemPicker = fileSystemPicker;
 	}
 	#endregion
 

@@ -53,6 +53,22 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 	#region Methods
 	/// <inheritdoc />
+	public AssociatedAppInfo? CreateFromPath(string appPath)
+	{
+		if (string.IsNullOrEmpty(appPath))
+		{
+			return null;
+		}
+
+		return new()
+		{
+			AppName = Path.GetFileNameWithoutExtension(appPath),
+			AppPath = appPath,
+			Icon = TryLoadIcon(appPath)
+		};
+	}
+
+	/// <inheritdoc />
 	public async Task<AssociatedAppInfo?> PickAppAsync(string filePath, CancellationToken token = default)
 	{
 		string extension = Path.GetExtension(filePath);

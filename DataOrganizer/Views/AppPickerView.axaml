@@ -53,6 +53,15 @@
 			</ListBox.ItemTemplate>
 		</ListBox>
 
+		<Button
+			Grid.Row="2"
+			Grid.Column="0"
+			HorizontalAlignment="Left"
+			Classes="primary"
+			Command="{Binding BrowseCommand}"
+			Content="Browse..."
+			Theme="{StaticResource MaterialFlatButton}" />
+
 		<UniformGrid
 			Grid.Row="2"
 			Grid.Column="1"

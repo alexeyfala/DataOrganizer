@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -239,8 +238,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			ShowProgressBar();
 
-			// The path may contain %20 instead of spaces, so it needs to be decoded.
-			string filePath = WebUtility.UrlDecode(filePaths[0]);
+			string filePath = filePaths[0];
 
 			List<ExplorerModelBaseDto> objects = [];
 
