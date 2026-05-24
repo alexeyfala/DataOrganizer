@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DrawingBitmap = System.Drawing.Bitmap;
@@ -115,11 +114,16 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			return friendly;
 		}
 
-		StringBuilder buffer = new(capacity: 1024);
+		char[] buffer = new char[1024];
 
-		return SHLoadIndirectString(friendly, buffer, buffer.Capacity, IntPtr.Zero) == S_OK
-			? buffer.ToString()
-			: subkeyName;
+		if (SHLoadIndirectString(friendly, buffer, buffer.Length, IntPtr.Zero) != S_OK)
+		{
+			return subkeyName;
+		}
+
+		int nullTerminator = Array.IndexOf(buffer, '\0');
+
+		return new string(buffer, 0, nullTerminator >= 0 ? nullTerminator : buffer.Length);
 	}
 
 	/// <summary>
@@ -359,10 +363,10 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 		uint cbFileInfo,
 		uint uFlags);
 
-	[DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
-	private static extern int SHLoadIndirectString(
+	[LibraryImport("shlwapi.dll", EntryPoint = "SHLoadIndirectString", StringMarshalling = StringMarshalling.Utf16)]
+	private static partial int SHLoadIndirectString(
 		string pszSource,
-		[Out] StringBuilder pszOutBuf,
+		[Out] char[] pszOutBuf,
 		int cchOutBuf,
 		IntPtr ppvReserved);
 	#endregion
