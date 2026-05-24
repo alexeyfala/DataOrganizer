@@ -25,7 +25,7 @@ namespace DataOrganizer.Services;
 /// icons via <c>SHGetFileInfo</c>, and delegates the UI to <see cref="IDialogService" />.
 /// </summary>
 [SupportedOSPlatform("windows")]
-public sealed class WindowsAppPickerService : IAppPickerService
+public sealed partial class WindowsAppPickerService : IAppPickerService
 {
 	#region Data
 	private const int S_OK = 0;
@@ -341,9 +341,9 @@ public sealed class WindowsAppPickerService : IAppPickerService
 	#endregion
 
 	#region Native
-	[DllImport("user32.dll")]
+	[LibraryImport("user32.dll")]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	private static extern bool DestroyIcon(IntPtr hIcon);
+	private static partial bool DestroyIcon(IntPtr hIcon);
 
 	[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
 	private static extern int SHAssocEnumHandlers(
