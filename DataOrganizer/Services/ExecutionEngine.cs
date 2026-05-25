@@ -373,9 +373,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 				TrackerTask = trackerTask
 			};
 
-			_logger.LogInformation(
-				$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
-
 			if (!_executingFiles.TryAdd(parameters.File.Id, info))
 			{
 				LogDuplicateEntry(parameters.File.Id);
@@ -391,6 +388,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			}
 
 			scope.Commit();
+
+			_logger.LogInformation(
+				$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
 
 			return true;
 		}
