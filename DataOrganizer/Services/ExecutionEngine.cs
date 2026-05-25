@@ -494,9 +494,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 		try
 		{
 			_fileSystem.SetFileReadOnly(filePath, false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 
+		try
+		{
 			_fileSystem.EraseAndDeleteFile(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 
+		try
+		{
 			_fileSystem.DeleteDirectory(directoryPath);
 		}
 		catch (Exception ex)
