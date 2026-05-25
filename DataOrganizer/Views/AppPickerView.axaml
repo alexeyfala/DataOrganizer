@@ -7,8 +7,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	Width="400.0"
-	Height="500.0"
+	MinWidth="420.0"
 	x:DataType="vm:AppPickerViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
