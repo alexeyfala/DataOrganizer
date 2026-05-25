@@ -86,6 +86,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task CloseAsync(Guid id, CancellationToken token = default)
 	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
 		try
 		{
 			await _semaphore
@@ -230,6 +235,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
+		if (_isDisposed)
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
