@@ -245,12 +245,54 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return false;
 		}
 
+		if (_executingFiles.ContainsKey(parameters.File.Id))
+		{
+			LogDuplicateEntry(parameters.File.Id);
+
+			return false;
+		}
+
+		string directoryPath = Path.Combine(
+			_appEnvironment.SandboxDirectoryPath,
+			parameters.File.Id.ToString());
+
+		// To prevent a directory traversal attack, all directory components must be removed from the file name.
+		string fileName = Path.GetFileName(parameters
+			.File
+			.Name);
+
+		string filePath = Path.Combine(directoryPath, fileName);
+
+		(bool shouldContinue, string? selectedAppPath) = await TryResolveAppPathAsync(
+			fileName,
+			filePath,
+			token).ConfigureAwait(false);
+
+		if (!shouldContinue)
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// ObjectDisposedException — service was disposed concurrently.
+			// OperationCanceledException — caller cancelled the token.
+			if (ex is not ObjectDisposedException and not OperationCanceledException)
+			{
+				_logger.LogException(ex);
+			}
 
+			return false;
+		}
+
+		try
+		{
 			if (Volatile.Read(ref _isDisposed))
 			{
 				return false;
@@ -263,117 +305,87 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return false;
 			}
 
-			try
+			await using AsyncRollbackScope scope = new(_logger);
+
+			scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+			_fileSystem.CreateDirectory(directoryPath);
+
+			scope.OnRollback(() =>
 			{
-				await using AsyncRollbackScope scope = new(_logger);
+				_fileSystem.SetFileReadOnly(filePath, false);
 
-				string directoryPath = Path.Combine(
-					_appEnvironment.SandboxDirectoryPath,
-					parameters.File.Id.ToString());
+				_fileSystem.EraseAndDeleteFile(filePath);
+			});
 
-				// To prevent a directory traversal attack, all directory components must be removed from the file name.
-				string fileName = Path.GetFileName(parameters
-					.File
-					.Name);
+			await _fileSystem
+				.WriteAllBytesAsync(filePath, parameters.Contents, token)
+				.ConfigureAwait(false);
 
-				string filePath = Path.Combine(directoryPath, fileName);
+			_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
 
-				(bool shouldContinue, string? selectedAppPath) = await TryResolveAppPathAsync(
-					fileName,
-					filePath,
-					token).ConfigureAwait(false);
+			int processId;
 
-				if (!shouldContinue)
+			if (selectedAppPath is not null)
+			{
+				_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
+			}
+			else if (!_processUtils.StartProcess(filePath, out processId))
+			{
+				_logger.LogDebug(
+					$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+			}
+
+			scope.OnRollback(() => TryKillProcess(processId));
+
+			CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+			Task trackerTask = Task.CompletedTask;
+
+			scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+				cancellation,
+				trackerTask,
+				filePath,
+				CancellationToken.None));
+
+			if (!parameters.IsReadOnly)
+			{
+				TrackChangesParameters trackParameters = new()
 				{
-					return false;
-				}
-
-				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
-
-				_fileSystem.CreateDirectory(directoryPath);
-
-				scope.OnRollback(() =>
-				{
-					_fileSystem.SetFileReadOnly(filePath, false);
-
-					_fileSystem.EraseAndDeleteFile(filePath);
-				});
-
-				await _fileSystem
-					.WriteAllBytesAsync(filePath, parameters.Contents, token)
-					.ConfigureAwait(false);
-
-				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
-
-				int processId;
-
-				if (selectedAppPath is not null)
-				{
-					_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
-				}
-				else if (!_processUtils.StartProcess(filePath, out processId))
-				{
-					_logger.LogDebug(
-						$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
-				}
-
-				scope.OnRollback(() => TryKillProcess(processId));
-
-				CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-				Task trackerTask = Task.CompletedTask;
-
-				scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
-					cancellation,
-					trackerTask,
-					filePath,
-					CancellationToken.None));
-
-				if (!parameters.IsReadOnly)
-				{
-					TrackChangesParameters trackParameters = new()
-					{
-						Contents = parameters.Contents,
-						File = parameters.File,
-						FileName = fileName,
-						FilePath = filePath,
-						SessionEncryptedDek = parameters.SessionEncryptedDek
-					};
-
-					trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
-
-					_handler.Watch(trackerTask);
-				}
-
-				ExecutingFileInfo info = new()
-				{
-					Cancellation = cancellation,
-					DirectoryPath = directoryPath,
+					Contents = parameters.Contents,
+					File = parameters.File,
+					FileName = fileName,
 					FilePath = filePath,
-					ProcessId = processId,
-					TrackerTask = trackerTask
+					SessionEncryptedDek = parameters.SessionEncryptedDek
 				};
 
-				_logger.LogInformation(
-					$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
 
-				if (!_executingFiles.TryAdd(parameters.File.Id, info))
-				{
-					LogDuplicateEntry(parameters.File.Id);
-
-					return false;
-				}
-
-				scope.Commit();
-
-				return true;
+				_handler.Watch(trackerTask);
 			}
-			catch (Exception ex)
+
+			ExecutingFileInfo info = new()
 			{
-				_logger.LogException(ex);
+				Cancellation = cancellation,
+				DirectoryPath = directoryPath,
+				FilePath = filePath,
+				ProcessId = processId,
+				TrackerTask = trackerTask
+			};
+
+			_logger.LogInformation(
+				$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+
+			if (!_executingFiles.TryAdd(parameters.File.Id, info))
+			{
+				LogDuplicateEntry(parameters.File.Id);
 
 				return false;
 			}
+
+			scope.Commit();
+
+			return true;
 		}
 		catch (Exception ex)
 		{
@@ -387,10 +399,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			catch (ObjectDisposedException)
 			{
-				// ObjectDisposedException — service was disposed concurrently.
-				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
+				// Service was disposed concurrently.
 			}
 		}
 
