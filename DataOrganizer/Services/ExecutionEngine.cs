@@ -335,31 +335,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			scope.OnRollback(() => TryKillProcess(processId));
 
-			CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-			Task trackerTask = Task.CompletedTask;
-
-			if (!parameters.IsReadOnly)
-			{
-				TrackChangesParameters trackParameters = new()
-				{
-					Contents = parameters.Contents,
-					File = parameters.File,
-					FileName = fileName,
-					FilePath = filePath,
-					SessionEncryptedDek = parameters.SessionEncryptedDek
-				};
-
-				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
-
-				_handler.Watch(trackerTask);
-			}
-
-			scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
-				cancellation,
-				trackerTask,
+			(CancellationTokenSource cancellation, Task trackerTask) = StartChangeTracker(
+				parameters,
+				fileName,
 				filePath,
-				CancellationToken.None));
+				scope,
+				token);
 
 			ExecutingFileInfo info = new()
 			{
@@ -449,6 +430,65 @@ public sealed class ExecutionEngine : IExecutionEngine
 			.ConfigureAwait(false);
 
 		_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
+	}
+
+	/// <summary>
+	/// Creates a linked <see cref="CancellationTokenSource" /> and starts the change
+	/// tracker for non-readonly files; registers stop+dispose rollback on
+	/// <paramref name="scope" />. Disposes the CTS if the start path throws.
+	/// </summary>
+	private (CancellationTokenSource Cancellation, Task TrackerTask) StartChangeTracker(
+		ExecuteFileParameters parameters,
+		string fileName,
+		string filePath,
+		AsyncRollbackScope scope,
+		CancellationToken token)
+	{
+		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+		Task trackerTask = Task.CompletedTask;
+
+		try
+		{
+			if (!parameters.IsReadOnly)
+			{
+				TrackChangesParameters trackParameters = new()
+				{
+					Contents = parameters.Contents,
+					File = parameters.File,
+					FileName = fileName,
+					FilePath = filePath,
+					SessionEncryptedDek = parameters.SessionEncryptedDek
+				};
+
+				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+
+				_handler.Watch(trackerTask);
+			}
+		}
+		catch
+		{
+			try
+			{
+				cancellation.Cancel();
+			}
+			catch
+			{
+				// Ignored — best-effort cancellation only.
+			}
+
+			cancellation.Dispose();
+
+			throw;
+		}
+
+		scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+			cancellation,
+			trackerTask,
+			filePath,
+			CancellationToken.None));
+
+		return (cancellation, trackerTask);
 	}
 
 	/// <summary>
