@@ -15,8 +15,8 @@
 	ShowActivated="False"
 	ShowInTaskbar="False"
 	SizeToContent="WidthAndHeight"
-	SystemDecorations="None"
 	Topmost="True"
+	WindowDecorations="None"
 	mc:Ignorable="d">
 
 	<Design.DataContext>
