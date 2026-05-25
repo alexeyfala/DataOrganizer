@@ -330,34 +330,14 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			await using AsyncRollbackScope scope = new(_logger);
 
-			scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+			await PrepareSandboxAsync(
+				directoryPath,
+				filePath,
+				parameters,
+				scope,
+				token).ConfigureAwait(false);
 
-			_fileSystem.CreateDirectory(directoryPath);
-
-			scope.OnRollback(() =>
-			{
-				_fileSystem.SetFileReadOnly(filePath, false);
-
-				_fileSystem.EraseAndDeleteFile(filePath);
-			});
-
-			await _fileSystem
-				.WriteAllBytesAsync(filePath, parameters.Contents, token)
-				.ConfigureAwait(false);
-
-			_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
-
-			int processId;
-
-			if (selectedAppPath is not null)
-			{
-				_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
-			}
-			else if (!_processUtils.StartProcess(filePath, out processId))
-			{
-				_logger.LogDebug(
-					$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
-			}
+			int processId = StartFileProcess(selectedAppPath, filePath);
 
 			scope.OnRollback(() => TryKillProcess(processId));
 
@@ -447,6 +427,58 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Creates the sandbox directory and writes the file, applies the read-only
+	/// flag, and registers rollback actions on <paramref name="scope" /> to undo
+	/// directory creation and file write on failure.
+	/// </summary>
+	private async Task PrepareSandboxAsync(
+		string directoryPath,
+		string filePath,
+		ExecuteFileParameters parameters,
+		AsyncRollbackScope scope,
+		CancellationToken token)
+	{
+		scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+		_fileSystem.CreateDirectory(directoryPath);
+
+		scope.OnRollback(() =>
+		{
+			_fileSystem.SetFileReadOnly(filePath, false);
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+		});
+
+		await _fileSystem
+			.WriteAllBytesAsync(filePath, parameters.Contents, token)
+			.ConfigureAwait(false);
+
+		_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
+	}
+
+	/// <summary>
+	/// Starts the process that opens <paramref name="filePath" />: via
+	/// <paramref name="selectedAppPath" /> when provided, otherwise via shell-execute.
+	/// Returns the process id, or <c>default</c> if no process could be started.
+	/// </summary>
+	private int StartFileProcess(string? selectedAppPath, string filePath)
+	{
+		int processId;
+
+		if (selectedAppPath is not null)
+		{
+			_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
+		}
+		else if (!_processUtils.StartProcess(filePath, out processId))
+		{
+			_logger.LogDebug(
+				$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+		}
+
+		return processId;
+	}
+
 	/// <summary>
 	/// Cancels <paramref name="cancellation" />, waits up to 5 seconds for
 	/// <paramref name="trackerTask" /> to exit (honouring <paramref name="token" />),
