@@ -342,12 +342,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			Task trackerTask = Task.CompletedTask;
 
-			scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
-				cancellation,
-				trackerTask,
-				filePath,
-				CancellationToken.None));
-
 			if (!parameters.IsReadOnly)
 			{
 				TrackChangesParameters trackParameters = new()
@@ -363,6 +357,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				_handler.Watch(trackerTask);
 			}
+
+			scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+				cancellation,
+				trackerTask,
+				filePath,
+				CancellationToken.None));
 
 			ExecutingFileInfo info = new()
 			{
