@@ -19,7 +19,7 @@
 
 	<Grid
 		ColumnDefinitions="*,Auto"
-		RowDefinitions="Auto,*,Auto"
+		RowDefinitions="Auto,*,Auto,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
 		<TextBlock
 			Grid.Row="0"
@@ -61,14 +61,14 @@
 		<Button
 			Grid.Row="2"
 			Grid.Column="0"
+			Grid.ColumnSpan="2"
 			HorizontalAlignment="Left"
-			Classes="primary"
 			Command="{Binding BrowseCommand}"
-			Content="Browse..."
+			Content="{x:Static prop:Strings.SelectApplicationOnPC}"
 			Theme="{StaticResource MaterialFlatButton}" />
 
 		<UniformGrid
-			Grid.Row="2"
+			Grid.Row="3"
 			Grid.Column="1"
 			ColumnSpacing="{StaticResource ElementSpacing}"
 			Columns="2">

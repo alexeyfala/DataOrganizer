@@ -1105,6 +1105,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select an application on your computer.
+        /// </summary>
+        public static string SelectApplicationOnPC {
+            get {
+                return ResourceManager.GetString("SelectApplicationOnPC", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
         public static string Settings {
