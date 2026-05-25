@@ -7,8 +7,8 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	Width="400"
-	Height="500"
+	Width="400.0"
+	Height="500.0"
 	x:DataType="vm:AppPickerViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
@@ -49,6 +49,7 @@
 							Height="24"
 							VerticalAlignment="Center"
 							Source="{Binding Icon, Mode=OneWay}" />
+
 						<TextBlock
 							VerticalAlignment="Center"
 							Text="{Binding AppName, Mode=OneWay}" />
