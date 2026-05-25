@@ -96,7 +96,21 @@ public sealed class ExecutionEngine : IExecutionEngine
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// ObjectDisposedException — service was disposed concurrently.
+			// OperationCanceledException — caller cancelled the token.
+			if (ex is not ObjectDisposedException and not OperationCanceledException)
+			{
+				_logger.LogException(ex);
+			}
 
+			return;
+		}
+
+		try
+		{
 			if (Volatile.Read(ref _isDisposed))
 			{
 				return;
@@ -149,10 +163,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			catch (ObjectDisposedException)
 			{
-				// ObjectDisposedException — service was disposed concurrently.
-				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
+				// Service was disposed concurrently.
 			}
 		}
 	}
