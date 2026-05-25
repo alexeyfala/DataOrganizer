@@ -147,7 +147,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
 
 				bool released = await _fileSystem
-					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
+					.WaitFileUnlockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
 				if (released)
