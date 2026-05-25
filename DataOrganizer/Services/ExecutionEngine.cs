@@ -86,7 +86,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task CloseAsync(Guid id, CancellationToken token = default)
 	{
-		if (_isDisposed)
+		if (Volatile.Read(ref _isDisposed))
 		{
 			return;
 		}
@@ -96,6 +96,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+
+			if (Volatile.Read(ref _isDisposed))
+			{
+				return;
+			}
 
 			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 			{
@@ -235,7 +240,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
-		if (_isDisposed)
+		if (Volatile.Read(ref _isDisposed))
 		{
 			return false;
 		}
@@ -245,6 +250,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+
+			if (Volatile.Read(ref _isDisposed))
+			{
+				return false;
+			}
 
 			if (_executingFiles.ContainsKey(parameters.File.Id))
 			{
