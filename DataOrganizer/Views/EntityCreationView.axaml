@@ -90,7 +90,7 @@
 			assists:TextFieldAssist.Label="{Binding NameInputHint, Mode=OneWay}"
 			Classes="clearButton"
 			Text="{Binding Name, Mode=TwoWay}"
-			UseFloatingWatermark="True">
+			UseFloatingPlaceholder="True">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
 				<AutoSelectBehavior />
