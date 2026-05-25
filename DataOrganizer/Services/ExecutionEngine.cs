@@ -146,11 +146,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
 
-				bool released = await _fileSystem
+				bool unlocked = await _fileSystem
 					.WaitFileUnlockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
-				if (released)
+				if (unlocked)
 				{
 					_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
 				}
