@@ -383,6 +383,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return false;
 			}
 
+			if (Volatile.Read(ref _isDisposed))
+			{
+				_executingFiles.TryRemove(parameters.File.Id, out _);
+
+				return false;
+			}
+
 			scope.Commit();
 
 			return true;
