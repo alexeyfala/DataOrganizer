@@ -247,13 +247,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			if (semaphoreAcquired)
 			{
-				try
-				{
-					_semaphore.Release();
-				}
-				catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
-				{
-				}
+				_semaphore.Release();
 			}
 
 			_semaphore.Dispose();
