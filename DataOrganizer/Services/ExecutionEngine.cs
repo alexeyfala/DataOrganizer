@@ -263,10 +263,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return false;
 			}
 
-			await using AsyncRollbackScope scope = new(_logger);
-
 			try
 			{
+				await using AsyncRollbackScope scope = new(_logger);
+
 				string directoryPath = Path.Combine(
 					_appEnvironment.SandboxDirectoryPath,
 					parameters.File.Id.ToString());
