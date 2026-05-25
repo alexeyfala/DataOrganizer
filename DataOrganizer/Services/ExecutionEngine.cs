@@ -142,13 +142,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-				cancellation.CancelAfter(TimeSpan.FromSeconds(10));
+				const int timeout = 10;
 
-				await _fileSystem
+				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
+
+				bool released = await _fileSystem
 					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
-				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
+				if (released)
+				{
+					_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
+				}
+				else
+				{
+					_logger.LogWarning(
+						$@"File ""{info.FilePath}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
+				}
 			}
 
 			TryDeleteFile(info.FilePath, info.DirectoryPath);
