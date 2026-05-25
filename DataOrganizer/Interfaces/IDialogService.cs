@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
 
+
 /// <summary>
 /// Provides dialog boxes for interaction.
 /// </summary>
@@ -17,6 +18,14 @@ public interface IDialogService
 	/// Displays the hotkey editor.
 	/// </summary>
 	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys);
+
+	/// <summary>
+	/// Shows the "open with" picker with <paramref name="candidates" /> and returns the
+	/// chosen application, or <c>null</c> when the user cancels.
+	/// </summary>
+	Task<AssociatedAppInfo?> PickAppAsync(
+		IEnumerable<AssociatedAppInfo> candidates,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Requests the user to close files.

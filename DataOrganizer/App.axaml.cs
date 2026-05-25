@@ -229,7 +229,8 @@ public sealed class App : Application
 
 		services.AddMapster();
 
-		#region Transients		
+		#region Transients
+		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
@@ -281,6 +282,7 @@ public sealed class App : Application
 		#endregion
 
 		#region ViewModels
+		services.AddTransient<AppPickerViewModel>();
 		services.AddTransient<BooleanAsyncResultViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
@@ -301,6 +303,7 @@ public sealed class App : Application
 		#endregion
 
 		#region Views
+		services.AddTransient<AppPickerView>();
 		services.AddTransient<ConsoleWindow>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();

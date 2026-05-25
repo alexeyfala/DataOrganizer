@@ -116,6 +116,33 @@ public sealed class ProcessUtils : IProcessUtils
 	}
 
 	/// <inheritdoc />
+	public bool StartProcess(
+		string appPath,
+		string fileArgument,
+		out int processId)
+	{
+		using Process process = new()
+		{
+			StartInfo = new(appPath.SurroundWithQuotesIfNeeded())
+			{
+				Arguments = fileArgument.SurroundWithQuotesIfNeeded(),
+				UseShellExecute = false
+			}
+		};
+
+		if (process.Start())
+		{
+			processId = process.Id;
+
+			return true;
+		}
+
+		processId = default;
+
+		return false;
+	}
+
+	/// <inheritdoc />
 	public Process StartProcess(string fileName) => Process.Start(fileName);
 	#endregion
 

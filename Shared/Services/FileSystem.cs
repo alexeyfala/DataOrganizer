@@ -284,22 +284,26 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public async Task WaitFileLockedAsync(
+	public async Task<bool> WaitFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default)
 	{
-		while (
-			!token.IsCancellationRequested
-			&& IsFileExists(filePath)
-			&& IsFileLocked(filePath))
+		while (IsFileExists(filePath) && IsFileLocked(filePath))
 		{
+			if (token.IsCancellationRequested)
+			{
+				return false;
+			}
+
 			logger?.LogWarning($@"File ""{filePath}"" is locked by another process, waiting it to be released.");
 
 			await Task
 				.Delay(500, token)
 				.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 		}
+
+		return true;
 	}
 
 	/// <inheritdoc />

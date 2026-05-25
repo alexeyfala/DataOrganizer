@@ -52,7 +52,7 @@ internal sealed class AsyncRollbackScope : IAsyncDisposable
 			return;
 		}
 
-		if (_committed)
+		if (_committed || _rollbacks.Count == 0)
 		{
 			return;
 		}

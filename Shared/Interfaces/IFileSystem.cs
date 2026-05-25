@@ -132,9 +132,12 @@ public interface IFileSystem
 	void SetFileReadOnly(string filePath, bool value);
 
 	/// <summary>
-	/// Checks if a file is locked by another process and waits for it to be unlocked.
+	/// Waits until <paramref name="filePath" /> is no longer locked by another
+	/// process (or no longer exists). Returns <c>true</c> in that case, or
+	/// <c>false</c> if <paramref name="token" /> was cancelled while the file
+	/// was still locked. Never throws on cancellation.
 	/// </summary>
-	Task WaitFileLockedAsync(
+	Task<bool> WaitFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default);

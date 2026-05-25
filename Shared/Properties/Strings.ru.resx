@@ -537,4 +537,10 @@
   <data name="TheFileMayRunProgramOrScriptOnYourDevice" xml:space="preserve">
     <value>Файл "{0}" может запустить программу или скрипт на вашем устройстве.{1}Открывайте только если доверяете содержимому.</value>
   </data>
+  <data name="OpenWith" xml:space="preserve">
+    <value>Открыть с помощью</value>
+  </data>
+  <data name="SelectApplicationOnPC" xml:space="preserve">
+    <value>Выберите приложение на компьютере</value>
+  </data>
 </root>

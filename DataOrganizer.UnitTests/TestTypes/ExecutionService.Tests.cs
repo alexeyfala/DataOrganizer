@@ -10,6 +10,7 @@ using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Interfaces;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,8 @@ internal class ExecutionServiceTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+
+		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -57,11 +60,17 @@ internal class ExecutionServiceTests
 				.IsProcessExists(Arg.Any<int>())
 				.Returns(true);
 
+			fileAssociation
+				.GetApplicationByExtension(Arg.Any<string>())
+				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+
 			builder.RegisterInstance(fileSystem);
 
 			builder.RegisterInstance(processUtils);
 
 			builder.RegisterInstance(appEnvironment);
+
+			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
@@ -109,6 +118,8 @@ internal class ExecutionServiceTests
 
 		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
 
+		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
 		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -128,6 +139,10 @@ internal class ExecutionServiceTests
 					return true;
 				});
 
+			fileAssociation
+				.GetApplicationByExtension(Arg.Any<string>())
+				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
+
 			builder.RegisterInstance(appEnvironment);
 
 			builder.RegisterInstance(fileSystem);
@@ -135,6 +150,8 @@ internal class ExecutionServiceTests
 			builder.RegisterInstance(processUtils);
 
 			builder.RegisterInstance(changeTracker);
+
+			builder.RegisterInstance(fileAssociation);
 		});
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();

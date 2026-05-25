@@ -80,6 +80,26 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
+	public async Task<AssociatedAppInfo?> PickAppAsync(
+		IEnumerable<AssociatedAppInfo> candidates,
+		CancellationToken token = default)
+	{
+		AppPickerViewModel viewModel = _viewFactory.CreateViewModel<AppPickerViewModel>();
+
+		viewModel.Header = Strings.OpenWith;
+
+		viewModel
+			.Candidates
+			.AddRange(candidates);
+
+		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel)));
+
+		return await viewModel
+			.GetResultAsync(token)
+			.ConfigureAwait(false);
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> RequestCloseFilesAsync(CancellationToken token = default)
 	{
 		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();

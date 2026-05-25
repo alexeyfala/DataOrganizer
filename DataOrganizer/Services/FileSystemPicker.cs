@@ -36,7 +36,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 		{
 			return file
 				.Path
-				.AbsolutePath;
+				.LocalPath;
 		}
 		finally
 		{
@@ -58,7 +58,7 @@ public sealed class FileSystemPicker : IFileSystemPicker
 
 		try
 		{
-			return [.. files.Select(x => x.Path.AbsolutePath)];
+			return [.. files.Select(x => x.Path.LocalPath)];
 		}
 		finally
 		{

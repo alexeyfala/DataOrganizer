@@ -1,0 +1,93 @@
+<UserControl
+	x:Class="DataOrganizer.Views.AppPickerView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dto="using:DataOrganizer.DTO"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	MinWidth="420.0"
+	x:DataType="vm:AppPickerViewModel"
+	Theme="{StaticResource DialogTheme}"
+	mc:Ignorable="d">
+
+	<Design.DataContext>
+		<vm:AppPickerViewModel />
+	</Design.DataContext>
+
+	<Grid
+		ColumnDefinitions="*,Auto"
+		RowDefinitions="Auto,*,Auto,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<TextBlock
+			Grid.Row="0"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Classes="HeaderTextBlockStyle"
+			Text="{Binding Header, Mode=OneWay}" />
+
+		<ListBox
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			ItemsSource="{Binding Candidates}"
+			SelectedItem="{Binding SelectedApp, Mode=TwoWay}">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction Command="{Binding OpenCommand}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+			<ListBox.ItemTemplate>
+				<DataTemplate DataType="dto:AssociatedAppInfo">
+					<StackPanel
+						Orientation="Horizontal"
+						Spacing="{StaticResource ElementSpacing}">
+						<Image
+							Width="24"
+							Height="24"
+							VerticalAlignment="Center"
+							Source="{Binding Icon, Mode=OneWay}" />
+
+						<TextBlock
+							VerticalAlignment="Center"
+							Text="{Binding AppName, Mode=OneWay}" />
+					</StackPanel>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+
+		<Button
+			Grid.Row="2"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			HorizontalAlignment="Left"
+			Command="{Binding BrowseCommand}"
+			Content="{x:Static prop:Strings.SelectApplicationOnPC}"
+			Theme="{StaticResource MaterialFlatButton}" />
+
+		<UniformGrid
+			Grid.Row="3"
+			Grid.Column="1"
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<UniformGrid.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</UniformGrid.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding OpenCommand}"
+				Content="{x:Static prop:Strings.Select}"
+				IsDefault="True" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding CancelCommand}"
+				Content="{x:Static prop:Strings.Cancel}"
+				IsCancel="True" />
+		</UniformGrid>
+	</Grid>
+</UserControl>

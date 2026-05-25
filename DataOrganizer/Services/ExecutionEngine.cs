@@ -20,6 +20,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IAppPickerService" />
+	private readonly IAppPickerService _appPicker;
+
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
 
@@ -53,6 +56,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#region Constructors
 	public ExecutionEngine(
 		IAppEnvironment appEnvironment,
+		IAppPickerService appPicker,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
@@ -61,6 +65,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		ITaskExceptionHandler handler)
 	{
 		_appEnvironment = appEnvironment;
+
+		_appPicker = appPicker;
 
 		_changeTracker = changeTracker;
 
@@ -80,11 +86,35 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task CloseAsync(Guid id, CancellationToken token = default)
 	{
+		if (Volatile.Read(ref _isDisposed))
+		{
+			return;
+		}
+
 		try
 		{
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// ObjectDisposedException — service was disposed concurrently.
+			// OperationCanceledException — caller cancelled the token.
+			if (ex is not ObjectDisposedException and not OperationCanceledException)
+			{
+				_logger.LogException(ex);
+			}
+
+			return;
+		}
+
+		try
+		{
+			if (Volatile.Read(ref _isDisposed))
+			{
+				return;
+			}
 
 			if (!_executingFiles.TryRemove(id, out ExecutingFileInfo? info))
 			{
@@ -112,13 +142,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
-				cancellation.CancelAfter(TimeSpan.FromSeconds(10));
+				const int timeout = 10;
 
-				await _fileSystem
-					.WaitFileLockedAsync(info.FilePath, token: cancellation.Token)
+				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
+
+				bool unlocked = await _fileSystem
+					.WaitFileUnlockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
-				_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
+				if (unlocked)
+				{
+					_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
+				}
+				else
+				{
+					_logger.LogWarning(
+						$@"File ""{info.FilePath}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
+				}
 			}
 
 			TryDeleteFile(info.FilePath, info.DirectoryPath);
@@ -133,10 +173,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			catch (ObjectDisposedException)
 			{
-				// ObjectDisposedException — service was disposed concurrently.
-				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
+				// Service was disposed concurrently.
 			}
 		}
 	}
@@ -208,13 +247,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			if (semaphoreAcquired)
 			{
-				try
-				{
-					_semaphore.Release();
-				}
-				catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
-				{
-				}
+				_semaphore.Release();
 			}
 
 			_semaphore.Dispose();
@@ -224,11 +257,63 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
+		if (Volatile.Read(ref _isDisposed))
+		{
+			return false;
+		}
+
+		if (_executingFiles.ContainsKey(parameters.File.Id))
+		{
+			LogDuplicateEntry(parameters.File.Id);
+
+			return false;
+		}
+
+		string directoryPath = Path.Combine(
+			_appEnvironment.SandboxDirectoryPath,
+			parameters.File.Id.ToString());
+
+		// To prevent a directory traversal attack, all directory components must be removed from the file name.
+		string fileName = Path.GetFileName(parameters
+			.File
+			.Name);
+
+		string filePath = Path.Combine(directoryPath, fileName);
+
+		(bool shouldContinue, string? selectedAppPath) = await TryResolveAppPathAsync(
+			fileName,
+			filePath,
+			token).ConfigureAwait(false);
+
+		if (!shouldContinue)
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
 				.WaitAsync(token)
 				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			// ObjectDisposedException — service was disposed concurrently.
+			// OperationCanceledException — caller cancelled the token.
+			if (ex is not ObjectDisposedException and not OperationCanceledException)
+			{
+				_logger.LogException(ex);
+			}
+
+			return false;
+		}
+
+		try
+		{
+			if (Volatile.Read(ref _isDisposed))
+			{
+				return false;
+			}
 
 			if (_executingFiles.ContainsKey(parameters.File.Id))
 			{
@@ -239,110 +324,53 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			await using AsyncRollbackScope scope = new(_logger);
 
-			try
+			await PrepareSandboxAsync(
+				directoryPath,
+				filePath,
+				parameters,
+				scope,
+				token).ConfigureAwait(false);
+
+			int processId = StartFileProcess(selectedAppPath, filePath);
+
+			scope.OnRollback(() => TryKillProcess(processId));
+
+			(CancellationTokenSource cancellation, Task trackerTask) = StartChangeTracker(
+				parameters,
+				fileName,
+				filePath,
+				scope,
+				token);
+
+			ExecutingFileInfo info = new()
 			{
-				string directoryPath = Path.Combine(
-					_appEnvironment.SandboxDirectoryPath,
-					parameters.File.Id.ToString());
+				Cancellation = cancellation,
+				DirectoryPath = directoryPath,
+				FilePath = filePath,
+				ProcessId = processId,
+				TrackerTask = trackerTask
+			};
 
-				_fileSystem.CreateDirectory(directoryPath);
-
-				scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
-
-				// To prevent a directory traversal attack, all directory components must be removed from the file name.
-				string fileName = Path.GetFileName(parameters
-					.File
-					.Name);
-
-				string filePath = Path.Combine(directoryPath, fileName);
-
-				if (AppUtils.IsWindows && _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName)) is { } appPath)
-				{
-					_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
-				}
-
-				await _fileSystem
-					.WriteAllBytesAsync(filePath, parameters.Contents, token)
-					.ConfigureAwait(false);
-
-				scope.OnRollback(() =>
-				{
-					_fileSystem.SetFileReadOnly(filePath, false);
-
-					_fileSystem.EraseAndDeleteFile(filePath);
-				});
-
-				_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
-
-				if (!_processUtils.StartProcess(filePath, out int processId))
-				{
-					_logger.LogDebug(
-						$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
-				}
-
-				scope.OnRollback(() =>
-				{
-					if (processId.IsNotDefault() && _processUtils.IsProcessExists(processId))
-					{
-						_processUtils.KillProcess(processId);
-					}
-				});
-
-				CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-				Task trackerTask = Task.CompletedTask;
-
-				scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
-					cancellation,
-					trackerTask,
-					filePath,
-					CancellationToken.None));
-
-				if (!parameters.IsReadOnly)
-				{
-					TrackChangesParameters trackParameters = new()
-					{
-						Contents = parameters.Contents,
-						File = parameters.File,
-						FileName = fileName,
-						FilePath = filePath,
-						SessionEncryptedDek = parameters.SessionEncryptedDek
-					};
-
-					trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
-
-					_handler.Watch(trackerTask);
-				}
-
-				ExecutingFileInfo info = new()
-				{
-					Cancellation = cancellation,
-					DirectoryPath = directoryPath,
-					FilePath = filePath,
-					ProcessId = processId,
-					TrackerTask = trackerTask
-				};
-
-				_logger.LogInformation(
-					$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
-
-				if (!_executingFiles.TryAdd(parameters.File.Id, info))
-				{
-					LogDuplicateEntry(parameters.File.Id);
-
-					return false;
-				}
-
-				scope.Commit();
-
-				return true;
-			}
-			catch (Exception ex)
+			if (!_executingFiles.TryAdd(parameters.File.Id, info))
 			{
-				_logger.LogException(ex);
+				LogDuplicateEntry(parameters.File.Id);
 
 				return false;
 			}
+
+			if (Volatile.Read(ref _isDisposed))
+			{
+				_executingFiles.TryRemove(parameters.File.Id, out _);
+
+				return false;
+			}
+
+			scope.Commit();
+
+			_logger.LogInformation(
+				$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+
+			return true;
 		}
 		catch (Exception ex)
 		{
@@ -356,10 +384,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				_semaphore.Release();
 			}
-			catch (Exception ex) when (ex is ObjectDisposedException or SemaphoreFullException)
+			catch (ObjectDisposedException)
 			{
-				// ObjectDisposedException — service was disposed concurrently.
-				// SemaphoreFullException — WaitAsync above threw before acquiring; nothing to release.
+				// Service was disposed concurrently.
 			}
 		}
 
@@ -375,6 +402,117 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Creates the sandbox directory and writes the file, applies the read-only
+	/// flag, and registers rollback actions on <paramref name="scope" /> to undo
+	/// directory creation and file write on failure.
+	/// </summary>
+	private async Task PrepareSandboxAsync(
+		string directoryPath,
+		string filePath,
+		ExecuteFileParameters parameters,
+		AsyncRollbackScope scope,
+		CancellationToken token)
+	{
+		scope.OnRollback(() => _fileSystem.DeleteDirectory(directoryPath));
+
+		_fileSystem.CreateDirectory(directoryPath);
+
+		scope.OnRollback(() =>
+		{
+			_fileSystem.SetFileReadOnly(filePath, false);
+
+			_fileSystem.EraseAndDeleteFile(filePath);
+		});
+
+		await _fileSystem
+			.WriteAllBytesAsync(filePath, parameters.Contents, token)
+			.ConfigureAwait(false);
+
+		_fileSystem.SetFileReadOnly(filePath, parameters.IsReadOnly);
+	}
+
+	/// <summary>
+	/// Creates a linked <see cref="CancellationTokenSource" /> and starts the change
+	/// tracker for non-readonly files; registers stop+dispose rollback on
+	/// <paramref name="scope" />. Disposes the CTS if the start path throws.
+	/// </summary>
+	private (CancellationTokenSource Cancellation, Task TrackerTask) StartChangeTracker(
+		ExecuteFileParameters parameters,
+		string fileName,
+		string filePath,
+		AsyncRollbackScope scope,
+		CancellationToken token)
+	{
+		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+		Task trackerTask = Task.CompletedTask;
+
+		try
+		{
+			if (!parameters.IsReadOnly)
+			{
+				TrackChangesParameters trackParameters = new()
+				{
+					Contents = parameters.Contents,
+					File = parameters.File,
+					FileName = fileName,
+					FilePath = filePath,
+					SessionEncryptedDek = parameters.SessionEncryptedDek
+				};
+
+				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
+
+				_handler.Watch(trackerTask);
+			}
+		}
+		catch
+		{
+			try
+			{
+				cancellation.Cancel();
+			}
+			catch
+			{
+				// Ignored — best-effort cancellation only.
+			}
+
+			cancellation.Dispose();
+
+			throw;
+		}
+
+		scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
+			cancellation,
+			trackerTask,
+			filePath,
+			CancellationToken.None));
+
+		return (cancellation, trackerTask);
+	}
+
+	/// <summary>
+	/// Starts the process that opens <paramref name="filePath" />: via
+	/// <paramref name="selectedAppPath" /> when provided, otherwise via shell-execute.
+	/// Returns the process id, or <c>default</c> if no process could be started.
+	/// </summary>
+	private int StartFileProcess(string? selectedAppPath, string filePath)
+	{
+		int processId;
+
+		if (selectedAppPath is not null)
+		{
+			_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
+		}
+		else if (!_processUtils.StartProcess(filePath, out processId))
+		{
+			_logger.LogDebug(
+				$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+		}
+
+		return processId;
+	}
+
 	/// <summary>
 	/// Cancels <paramref name="cancellation" />, waits up to 5 seconds for
 	/// <paramref name="trackerTask" /> to exit (honouring <paramref name="token" />),
@@ -422,9 +560,23 @@ public sealed class ExecutionEngine : IExecutionEngine
 		try
 		{
 			_fileSystem.SetFileReadOnly(filePath, false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 
+		try
+		{
 			_fileSystem.EraseAndDeleteFile(filePath);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 
+		try
+		{
 			_fileSystem.DeleteDirectory(directoryPath);
 		}
 		catch (Exception ex)
@@ -451,6 +603,45 @@ public sealed class ExecutionEngine : IExecutionEngine
 		{
 			_logger.LogException(ex);
 		}
+	}
+
+	/// <summary>
+	/// On Windows: resolves which application should open the file. Returns the user's
+	/// pick when the system association is missing or points at "OpenWith.exe", or
+	/// <c>null</c> selectedAppPath when the default shell-execute path is fine. The
+	/// bool flag is <c>false</c> only when the user cancelled the picker.
+	/// </summary>
+	private async Task<(bool ShouldContinue, string? SelectedAppPath)> TryResolveAppPathAsync(
+		string fileName,
+		string filePath,
+		CancellationToken token)
+	{
+		if (!AppUtils.IsWindows)
+		{
+			return (true, null);
+		}
+
+		string? appPath = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
+
+		if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) == false)
+		{
+			_logger.LogDebug($@"Application path to open file ""{fileName}"" is: {appPath}");
+
+			return (true, null);
+		}
+
+		AssociatedAppInfo? selected = await _appPicker
+			.PickAppAsync(filePath, token)
+			.ConfigureAwait(false);
+
+		if (selected is null)
+		{
+			_logger.LogInformation($@"User cancelled the application picker for ""{filePath}"".");
+
+			return (false, null);
+		}
+
+		return (true, selected.AppPath);
 	}
 	#endregion
 }

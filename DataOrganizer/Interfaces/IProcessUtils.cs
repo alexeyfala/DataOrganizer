@@ -44,6 +44,14 @@ public interface IProcessUtils
 	/// <returns><see cref="Process.Id" /></returns>
 	bool StartProcess(string filePath, out int processId);
 
+	/// <summary>
+	/// Launches <paramref name="appPath" /> with <paramref name="fileArgument" /> passed
+	/// as a single command-line argument. Returns <c>True</c> and the PID of the new
+	/// process on success; <c>False</c> with default <paramref name="processId" /> when
+	/// the process did not start.
+	/// </summary>
+	bool StartProcess(string appPath, string fileArgument, out int processId);
+
 	/// <inheritdoc cref="Process.Start(string)" />
 	Process StartProcess(string fileName);
 	#endregion

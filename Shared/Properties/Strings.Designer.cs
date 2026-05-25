@@ -907,6 +907,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open with.
+        /// </summary>
+        public static string OpenWith {
+            get {
+                return ResourceManager.GetString("OpenWith", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Options.
         /// </summary>
         public static string Options {
@@ -1092,6 +1101,15 @@ namespace Shared.Properties {
         public static string SelectAll {
             get {
                 return ResourceManager.GetString("SelectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select an application on your computer.
+        /// </summary>
+        public static string SelectApplicationOnPC {
+            get {
+                return ResourceManager.GetString("SelectApplicationOnPC", resourceCulture);
             }
         }
         

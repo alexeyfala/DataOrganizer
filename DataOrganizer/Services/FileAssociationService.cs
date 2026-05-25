@@ -1,7 +1,6 @@
 ﻿using DataOrganizer.Interfaces;
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 /*
  * Path to the "Open with" list in the registry:
@@ -11,7 +10,7 @@ using System.Text;
 namespace DataOrganizer.Services;
 
 /// <inheritdoc cref="IFileAssociationService" />
-public sealed class FileAssociationService : IFileAssociationService
+public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods
 	/// <inheritdoc />
@@ -32,14 +31,14 @@ public sealed class FileAssociationService : IFileAssociationService
 			return null;
 		}
 
-		StringBuilder builder = new((int)length);
+		char[] buffer = new char[length];
 
 		result = AssocQueryString(
 			AssocF.None,
 			AssocStr.Executable,
 			fileExtension,
 			null,
-			builder,
+			buffer,
 			ref length);
 
 		if (result != 0)
@@ -47,52 +46,47 @@ public sealed class FileAssociationService : IFileAssociationService
 			return null;
 		}
 
-		return builder.ToString();
+		int nullTerminator = Array.IndexOf(buffer, '\0');
+
+		return new string(buffer, 0, nullTerminator >= 0 ? nullTerminator : buffer.Length);
 	}
 
 	/// <inheritdoc />
 	public string? GetApplicationByPath(string absoluteFilePath)
 	{
-		StringBuilder builder = new(1024);
+		char[] buffer = new char[1024];
 
-		FindExecutable(absoluteFilePath, string.Empty, builder);
+		FindExecutable(absoluteFilePath, string.Empty, buffer);
 
-		if (builder.Length == 0)
+		int nullTerminator = Array.IndexOf(buffer, '\0');
+
+		if (nullTerminator <= 0)
 		{
 			return null;
 		}
 
-		return builder.ToString();
-	}
-
-	/// <inheritdoc />
-	public bool HasAssociatedAppByPath(string absoluteFilePath)
-	{
-		return GetApplicationByPath(absoluteFilePath) is not null;
-	}
-
-	/// <inheritdoc />
-	public bool HasAssociatedByExtension(string fileExtension)
-	{
-		return GetApplicationByExtension(fileExtension) is not null;
+		return new string(buffer, 0, nullTerminator);
 	}
 	#endregion
 
-	#region Helpers
-	[DllImport("Shlwapi.dll", EntryPoint = "AssocQueryString", CharSet = CharSet.Unicode)]
-	private static extern uint AssocQueryString(
+	#region Native
+	[LibraryImport("Shlwapi.dll", EntryPoint = "AssocQueryStringW", StringMarshalling = StringMarshalling.Utf16)]
+	private static partial uint AssocQueryString(
 		AssocF flags,
 		AssocStr str,
 		string pszAssoc,
 		string? pszExtra,
-		[Out] StringBuilder? pszOut,
+		[Out] char[]? pszOut,
 		ref uint pcchOut);
 
-	[DllImport("shell32.dll", EntryPoint = "FindExecutable", CharSet = CharSet.Unicode)]
-	private static extern long FindExecutable(string lpFile, string lpDirectory, StringBuilder lpResult);	
+	[LibraryImport("shell32.dll", EntryPoint = "FindExecutableW", StringMarshalling = StringMarshalling.Utf16)]
+	private static partial long FindExecutable(
+		string lpFile,
+		string lpDirectory,
+		[Out] char[] lpResult);
 	#endregion
 
-	#region Enums
+	#region Nested Types
 	[Flags]
 	private enum AssocF
 	{
