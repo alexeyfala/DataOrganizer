@@ -1746,7 +1746,9 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& (dto is not null || SelectedObject is not null);
+			&& (dto is not null || SelectedObject is not null)
+			&& (dto is not FileModelDto dtoFile || !dtoFile.IsOpened())
+			&& (SelectedObject is not FileModelDto selectedFile || !selectedFile.IsOpened());
 	}
 
 	/// <summary>
