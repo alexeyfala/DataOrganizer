@@ -8,7 +8,6 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:views="using:DataOrganizer.Views"
-	x:Name="Root"
 	mc:Ignorable="d">
 
 	<UserControl.Styles>
@@ -29,7 +28,7 @@
 
 	<Grid
 		ColumnDefinitions="*,Auto,Auto,Auto,Auto"
-		DataContext="{Binding #Root}">
+		DataContext="{Binding $parent[views:ClipboardTextBlock]}">
 
 		<!-- Text -->
 		<Grid
