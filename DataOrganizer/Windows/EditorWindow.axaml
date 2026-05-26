@@ -160,13 +160,6 @@
 
 							<Button
 								Classes="primary"
-								Command="{Binding RenameCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
-								                                            IconSize={StaticResource ToolBarIconSize}}"
-								ToolTip.Tip="{x:Static prop:Strings.Rename}" />
-
-							<Button
-								Classes="primary"
 								Command="{Binding DeleteCommand}"
 								Content="{materialIcons:MaterialIconTextExt Kind=DeleteOutline,
 								                                            IconSize={StaticResource ToolBarIconSize}}"

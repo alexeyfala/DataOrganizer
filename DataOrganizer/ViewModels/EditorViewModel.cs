@@ -98,7 +98,6 @@ public partial class EditorViewModel :
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
-	[NotifyCanExecuteChangedFor(nameof(RenameCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
 	public partial ExplorerModelBaseDto? SelectedObject { get; set; }
 
@@ -123,8 +122,6 @@ public partial class EditorViewModel :
 		AddCommand.NotifyCanExecuteChanged();
 
 		DeleteCommand.NotifyCanExecuteChanged();
-
-		RenameCommand.NotifyCanExecuteChanged();
 
 		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
 
@@ -1746,9 +1743,8 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& (dto is not null || SelectedObject is not null)
-			&& (dto is not FileModelDto dtoFile || !dtoFile.IsOpened())
-			&& (SelectedObject is not FileModelDto selectedFile || !selectedFile.IsOpened());
+			&& dto is not null
+			&& (dto is not FileModelDto dtoFile || !dtoFile.IsOpened());
 	}
 
 	/// <summary>
