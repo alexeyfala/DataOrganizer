@@ -94,7 +94,7 @@ public partial class EditorViewModel :
 	public partial RightSideSheetContentType RightSideSheetContent { get; set; }
 
 	/// <summary>
-	/// The selected object in <see cref="TreeView" /> from <see cref="Hierarchy" />.
+	/// The selected object in <see cref="TreeView" /> from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
@@ -708,7 +708,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Collapses all folders in <see cref="Hierarchy" />.
+	/// Collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
@@ -823,7 +823,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Expands all folders in <see cref="Hierarchy" />.
+	/// Expands all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
@@ -1085,7 +1085,7 @@ public partial class EditorViewModel :
 
 	#region Methods
 	/// <summary>
-	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="Hierarchy" />.
+	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	public async Task<ExplorerModelBaseDto?> AddAsync(
 		string name,
@@ -1192,7 +1192,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Deletes an object from the database and from <see cref="Hierarchy" />.
+	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	public async Task<bool> DeleteAsync(
 		ExplorerModelBaseDto dto,
@@ -1236,7 +1236,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Expands or collapses all folders in <see cref="Hierarchy" />.
+	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	/// <remarks>
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
@@ -1826,7 +1826,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Counts the number of objects in <see cref="Hierarchy" />.
+	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
