@@ -788,11 +788,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (isopened && dto is FileModelDto opened)
-		{
-			CloseFile(opened);
-		}
-
+		// The file is closed next.
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
