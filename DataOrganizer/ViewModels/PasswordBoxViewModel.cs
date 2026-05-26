@@ -46,19 +46,6 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
-
-	/// <summary>
-	/// Computes <see cref="IsPasswordValid" /> from the current password text passed by the view.
-	/// </summary>
-	[RelayCommand]
-	private void ValidatePassword(string? value)
-	{
-		const char space = ' ';
-
-		IsPasswordValid = !string.IsNullOrWhiteSpace(value)
-			&& !value.StartsWith(space)
-			&& !value.EndsWith(space);
-	}
 	#endregion
 
 	#region Constructors

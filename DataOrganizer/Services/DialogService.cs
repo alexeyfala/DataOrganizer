@@ -198,8 +198,8 @@ public sealed class DialogService : IDialogService
 
 				try
 				{
-					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
-						PasswordInput
+					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
+						.PasswordInput
 						.Text);
 
 					source.SetResult(secret
