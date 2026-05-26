@@ -117,7 +117,6 @@ public abstract partial class ViewModelBase :
 		_copyHistory = viewModel;
 	}
 
-
 	/// <summary>
 	/// Displays the system clipboard.
 	/// </summary>
