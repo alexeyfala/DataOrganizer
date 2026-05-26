@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 internal partial class EmbeddedFileEditorView : UserControl
 {
 	#region Constructors
-	public EmbeddedFileEditorView(EmbeddedFileEditorViewModel viewModel)
-	{
-		InitializeComponent();
+	public EmbeddedFileEditorView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public EmbeddedFileEditorView(EmbeddedFileEditorViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }
