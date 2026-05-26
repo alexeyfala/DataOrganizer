@@ -12,10 +12,6 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:AppPickerViewModel />
-	</Design.DataContext>
-
 	<Grid
 		ColumnDefinitions="*,Auto"
 		RowDefinitions="Auto,*,Auto,Auto"
