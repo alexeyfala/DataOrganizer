@@ -10,10 +10,6 @@
 	x:DataType="vm:YesNoCancelBoxViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:YesNoCancelBoxViewModel />
-	</Design.DataContext>
-
 	<Grid
 		ColumnDefinitions="*,Auto,Auto,Auto"
 		ColumnSpacing="{StaticResource ElementSpacing}"

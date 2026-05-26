@@ -19,10 +19,6 @@
 	WindowDecorations="None"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:ToastViewModel />
-	</Design.DataContext>
-
 	<Border
 		Background="{StaticResource MaterialBackgroundBrush}"
 		BorderBrush="{StaticResource NeutralBrush}"

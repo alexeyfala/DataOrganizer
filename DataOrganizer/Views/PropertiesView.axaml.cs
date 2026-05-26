@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 internal sealed partial class PropertiesView : UserControl
 {
 	#region Constructors
-	public PropertiesView(PropertiesViewModel viewModel)
-	{
-		InitializeComponent();
+	public PropertiesView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public PropertiesView(PropertiesViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

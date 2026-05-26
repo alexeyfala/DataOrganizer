@@ -11,10 +11,6 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:KeyValueInputViewModel />
-	</Design.DataContext>
-
 	<Grid
 		ColumnDefinitions="*,Auto"
 		RowDefinitions="*,*,Auto"

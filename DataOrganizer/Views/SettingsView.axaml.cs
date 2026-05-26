@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 public partial class SettingsView : CustomUserControl
 {
 	#region Constructors
-	public SettingsView(SettingsViewModel viewModel)
-	{
-		InitializeComponent();
+	public SettingsView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public SettingsView(SettingsViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

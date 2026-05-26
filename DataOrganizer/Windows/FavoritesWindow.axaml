@@ -21,10 +21,6 @@
 	WindowDecorations="None"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:FavoritesViewModel />
-	</Design.DataContext>
-
 	<Window.Resources>
 		<CornerRadius x:Key="CornerRadius">4.0</CornerRadius>
 		<Thickness x:Key="BorderThickness">4.0</Thickness>

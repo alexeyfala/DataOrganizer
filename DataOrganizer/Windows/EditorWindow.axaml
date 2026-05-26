@@ -26,10 +26,6 @@
 		or try to use like in example: https://github.com/FrankenApps/Avalonia-CustomTitleBarTemplate
 	-->
 
-	<Design.DataContext>
-		<vm:EditorViewModel />
-	</Design.DataContext>
-
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>

@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 public partial class KeyValueInputView : UserControl
 {
 	#region Constructors
-	public KeyValueInputView(KeyValueInputViewModel viewModel)
-	{
-		InitializeComponent();
+	public KeyValueInputView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public KeyValueInputView(KeyValueInputViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

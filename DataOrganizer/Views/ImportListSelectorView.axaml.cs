@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 internal sealed partial class ImportListSelectorView : UserControl
 {
 	#region Constructors
-	public ImportListSelectorView(ImportListSelectorViewModel viewModel)
-	{
-		InitializeComponent();
+	public ImportListSelectorView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public ImportListSelectorView(ImportListSelectorViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

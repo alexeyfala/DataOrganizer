@@ -11,10 +11,6 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:PropertiesViewModel />
-	</Design.DataContext>
-
 	<Grid
 		RowDefinitions="Auto,*,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">

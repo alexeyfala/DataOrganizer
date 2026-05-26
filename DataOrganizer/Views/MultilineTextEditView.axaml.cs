@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 public sealed partial class MultilineTextEditView : UserControl
 {
 	#region Constructors
-	public MultilineTextEditView(MultilineTextEditViewModel viewModel)
-	{
-		InitializeComponent();
+	public MultilineTextEditView() => InitializeComponent();
 
-		DataContext =  viewModel;
-	}
+	public MultilineTextEditView(MultilineTextEditViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

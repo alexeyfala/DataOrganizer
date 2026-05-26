@@ -16,10 +16,6 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Design.DataContext>
-		<views:ClipboardTextBlock />
-	</Design.DataContext>
-
 	<UserControl.Resources>
 		<Thickness x:Key="ElementMargin">2.0,0.0</Thickness>
 

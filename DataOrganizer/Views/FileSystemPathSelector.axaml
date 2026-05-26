@@ -8,16 +8,11 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:views="using:DataOrganizer.Views"
-	x:Name="Root"
 	mc:Ignorable="d">
-
-	<Design.DataContext>
-		<views:IconsBlock />
-	</Design.DataContext>
 
 	<Grid
 		ColumnDefinitions="*,Auto,Auto"
-		DataContext="{Binding #Root}">
+		DataContext="{Binding $parent[views:FileSystemPathSelector]}">
 		<Grid.Styles>
 			<Style Selector="Button">
 				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
