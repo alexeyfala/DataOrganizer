@@ -7,15 +7,16 @@ public sealed partial class ConsoleWindow : Window
 {
 	#region Properties
 	/// <inheritdoc cref="ConsoleViewModel" />
-	public ConsoleViewModel ViewModel { get; }
+	public ConsoleViewModel ViewModel { get; } = null!;
 	#endregion Properties
 
 	#region Constructors
-	public ConsoleWindow(ConsoleViewModel viewModel)
-	{
-		InitializeComponent();
+	/// <summary>
+	/// Parameterless ctor for the Avalonia XAML compiler / previewer.
+	/// Not used at runtime — DI always invokes the overload below.
+	/// </summary>
+	public ConsoleWindow() => InitializeComponent();
 
-		DataContext = ViewModel = viewModel;
-	}
+	public ConsoleWindow(ConsoleViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
 	#endregion
 }
