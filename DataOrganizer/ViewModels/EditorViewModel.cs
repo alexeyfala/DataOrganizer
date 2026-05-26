@@ -1240,7 +1240,7 @@ public partial class EditorViewModel :
 	/// </summary>
 	/// <remarks>
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="OnFolderIsExpandedChanged" /> message handler.
+	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
 	/// </remarks>
 	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
