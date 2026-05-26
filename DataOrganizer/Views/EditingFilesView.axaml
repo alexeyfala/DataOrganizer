@@ -9,10 +9,6 @@
 	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:EditingFilesViewModel />
-	</Design.DataContext>
-
 	<TabControl
 		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
 		AutoScrollToSelectedItem="True"

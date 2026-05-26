@@ -7,12 +7,9 @@ namespace DataOrganizer.Views;
 internal partial class DatasetEditorView : UserControl
 {
 	#region Constructors
-	public DatasetEditorView(DatasetEditorViewModel viewModel)
-	{
-		InitializeComponent();
+	public DatasetEditorView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public DatasetEditorView(DatasetEditorViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 
 	#region Event Handlers
