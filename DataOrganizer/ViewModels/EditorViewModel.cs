@@ -1679,7 +1679,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Validates <see cref="CopyContentCommand" />.
+	/// Validates <see cref="CopyContentByContextMenuCommand" />.
 	/// </summary>
 	private bool CanCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
@@ -1723,7 +1723,7 @@ public partial class EditorViewModel :
 	private bool CanExport() => !IsActionInProgress && Hierarchy.Count > 0;
 
 	/// <summary>
-	/// Validates <see cref="HideAllFilesCommand" />.
+	/// Validates <see cref="HideAllFileContentsCommand" />.
 	/// </summary>
 	private bool CanHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
