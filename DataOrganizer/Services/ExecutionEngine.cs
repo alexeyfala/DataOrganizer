@@ -609,7 +609,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// On Windows: resolves which application should open the file. Returns the user's
 	/// pick when the system association is missing or points at "OpenWith.exe", or
 	/// <c>null</c> selectedAppPath when the default shell-execute path is fine. The
-	/// bool flag is <c>false</c> only when the user cancelled the picker.
+	/// bool flag is <c>False</c> only when the user cancelled the picker.
 	/// </summary>
 	private async Task<(bool ShouldContinue, string? SelectedAppPath)> TryResolveAppPathAsync(
 		string fileName,

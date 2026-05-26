@@ -101,7 +101,7 @@ public interface IFileSystem
 	/// </summary>
 	/// <returns>
 	/// A <see cref="Stream" /> that <b>must support seeking</b> (<see cref="Stream.CanSeek" /> is
-	/// <c>true</c>). Callers may rely on <see cref="Stream.Position" />, <see cref="Stream.Seek" /> and
+	/// <c>True</c>). Callers may rely on <see cref="Stream.Position" />, <see cref="Stream.Seek" /> and
 	/// <see cref="Stream.Length" /> — for example, the file-change tracker resets the position after
 	/// computing the hash to re-read the contents. Implementations that cannot guarantee seekability
 	/// must not expose them via this method; use a separate non-seekable API instead.
@@ -133,8 +133,8 @@ public interface IFileSystem
 
 	/// <summary>
 	/// Waits until <paramref name="filePath" /> is no longer locked by another
-	/// process (or no longer exists). Returns <c>true</c> in that case, or
-	/// <c>false</c> if <paramref name="token" /> was cancelled while the file
+	/// process (or no longer exists). Returns <c>True</c> in that case, or
+	/// <c>False</c> if <paramref name="token" /> was cancelled while the file
 	/// was still locked. Never throws on cancellation.
 	/// </summary>
 	Task<bool> WaitFileUnlockedAsync(
