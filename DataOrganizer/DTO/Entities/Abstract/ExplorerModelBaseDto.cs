@@ -9,6 +9,7 @@ using Entities.Enums;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace DataOrganizer.DTO.Entities.Abstract;
@@ -22,6 +23,13 @@ namespace DataOrganizer.DTO.Entities.Abstract;
 public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 {
 	#region Properties
+	/// <summary>
+	/// Default empty for non-folder items; <see cref="FolderModelDto" /> overrides it.
+	/// Lives on the base because the TreeDataTemplate ItemsSource binding can re-evaluate
+	/// against a <see cref="FileModelDto" /> when a <c>TreeViewItem</c> is recycled.
+	/// </summary>
+	public virtual ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+
 	/// <inheritdoc cref="ExplorerModelBase.CreatedDate" />
 	public required DateTime CreatedDate { get; init; }
 

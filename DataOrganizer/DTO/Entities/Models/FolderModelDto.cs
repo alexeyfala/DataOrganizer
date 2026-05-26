@@ -8,11 +8,11 @@ using System.Collections.ObjectModel;
 namespace DataOrganizer.DTO.Entities.Models;
 
 /// <inheritdoc cref="FolderModel" />
-public sealed partial class FolderModelDto : ExplorerModelBaseDto
+public sealed class FolderModelDto : ExplorerModelBaseDto
 {
 	#region Properties
 	/// <inheritdoc cref="FolderModel.Children" />
-	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+	public override ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
 	/// <inheritdoc cref="FolderModel.EncryptedDek" />
 	public byte[]? EncryptedDek { get; set; }
