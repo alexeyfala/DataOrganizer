@@ -15,10 +15,6 @@
 	x:DataType="vm:SettingsViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:SettingsViewModel />
-	</Design.DataContext>
-
 	<Grid
 		RowDefinitions="Auto,*"
 		RowSpacing="{StaticResource ElementSpacing}">

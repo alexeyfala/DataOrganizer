@@ -12,10 +12,6 @@
 	x:DataType="vm:EmbeddedFileEditorViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:EmbeddedFileEditorViewModel />
-	</Design.DataContext>
-
 	<Grid RowDefinitions="Auto,*">
 		<StackPanel
 			Grid.Row="0"

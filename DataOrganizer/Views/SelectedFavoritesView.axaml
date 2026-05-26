@@ -10,10 +10,6 @@
 	x:DataType="vm:SelectedFavoritesViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:SelectedFavoritesViewModel />
-	</Design.DataContext>
-
 	<Interaction.Behaviors>
 		<EventTriggerBehavior EventName="SizeChanged">
 			<InvokeCommandAction

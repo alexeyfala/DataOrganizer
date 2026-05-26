@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 public partial class YesNoCancelBox : UserControl
 {
 	#region Constructors
-	public YesNoCancelBox(YesNoCancelBoxViewModel viewModel)
-	{
-		InitializeComponent();
+	public YesNoCancelBox() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public YesNoCancelBox(YesNoCancelBoxViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 public partial class HotkeysEditorView : CustomUserControl
 {
 	#region Constructors
-	public HotkeysEditorView(HotkeysEditorViewModel viewModel)
-	{
-		InitializeComponent();
+	public HotkeysEditorView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public HotkeysEditorView(HotkeysEditorViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

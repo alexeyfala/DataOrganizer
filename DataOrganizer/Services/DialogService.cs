@@ -177,17 +177,17 @@ public sealed class DialogService : IDialogService
 		{
 			try
 			{
-				BooleanAsyncResultViewModel viewModel = _viewFactory.CreateViewModel<BooleanAsyncResultViewModel>();
+				PasswordBoxViewModel viewModel = _viewFactory.CreateViewModel<PasswordBoxViewModel>();
+
+				viewModel.Header = header;
+
+				viewModel.Label = label ?? Strings.Password;
 
 				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>(viewModel);
 
-				view.Header = header;
-
-				view.Label = label ?? Strings.Password;
-
 				_handler.Watch(DialogHost.Show(view));
 
-				if (!await view
+				if (!await viewModel
 					.GetResultAsync(token)
 					.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
 				{
@@ -198,8 +198,8 @@ public sealed class DialogService : IDialogService
 
 				try
 				{
-					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view.
-						PasswordInput
+					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
+						.PasswordInput
 						.Text);
 
 					source.SetResult(secret

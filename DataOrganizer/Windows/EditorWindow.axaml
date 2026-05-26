@@ -26,10 +26,6 @@
 		or try to use like in example: https://github.com/FrankenApps/Avalonia-CustomTitleBarTemplate
 	-->
 
-	<Design.DataContext>
-		<vm:EditorViewModel />
-	</Design.DataContext>
-
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
@@ -161,13 +157,6 @@
 								Content="{materialIcons:MaterialIconTextExt Kind=Plus,
 								                                            IconSize={StaticResource ToolBarIconSize}}"
 								ToolTip.Tip="{x:Static prop:Strings.Add}" />
-
-							<Button
-								Classes="primary"
-								Command="{Binding RenameCommand}"
-								Content="{materialIcons:MaterialIconTextExt Kind=FormTextbox,
-								                                            IconSize={StaticResource ToolBarIconSize}}"
-								ToolTip.Tip="{x:Static prop:Strings.Rename}" />
 
 							<Button
 								Classes="primary"

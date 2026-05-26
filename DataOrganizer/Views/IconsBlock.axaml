@@ -8,12 +8,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:views="using:DataOrganizer.Views"
-	x:Name="Root"
 	mc:Ignorable="d">
-
-	<Design.DataContext>
-		<views:IconsBlock />
-	</Design.DataContext>
 
 	<UserControl.Resources>
 		<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
@@ -24,7 +19,7 @@
 	</UserControl.Resources>
 
 	<StackPanel
-		DataContext="{Binding #Root}"
+		DataContext="{Binding $parent[views:IconsBlock]}"
 		Orientation="Horizontal"
 		Spacing="4.0">
 		<StackPanel.Styles>

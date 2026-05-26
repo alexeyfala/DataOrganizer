@@ -94,11 +94,10 @@ public partial class EditorViewModel :
 	public partial RightSideSheetContentType RightSideSheetContent { get; set; }
 
 	/// <summary>
-	/// The selected object in <see cref="TreeView" /> from <see cref="Hierarchy" />.
+	/// The selected object in <see cref="TreeView" /> from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
-	[NotifyCanExecuteChangedFor(nameof(RenameCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
 	public partial ExplorerModelBaseDto? SelectedObject { get; set; }
 
@@ -123,8 +122,6 @@ public partial class EditorViewModel :
 		AddCommand.NotifyCanExecuteChanged();
 
 		DeleteCommand.NotifyCanExecuteChanged();
-
-		RenameCommand.NotifyCanExecuteChanged();
 
 		_messenger.Send(new EditorReadOnlyModeChangedMessage(value));
 
@@ -711,7 +708,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Collapses all folders in <see cref="Hierarchy" />.
+	/// Collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
 	private Task CollapseAllFolders() => ExpandCollapseAllFoldersAsync(false);
@@ -791,11 +788,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (isopened && dto is FileModelDto opened)
-		{
-			CloseFile(opened);
-		}
-
+		// The file is closed next.
 		await DeleteAsync(toBeDeleted).ConfigureAwait(false);
 	}
 
@@ -830,7 +823,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Expands all folders in <see cref="Hierarchy" />.
+	/// Expands all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	[RelayCommand]
 	private Task ExpandAllFolders() => ExpandCollapseAllFoldersAsync(true);
@@ -1092,7 +1085,7 @@ public partial class EditorViewModel :
 
 	#region Methods
 	/// <summary>
-	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="Hierarchy" />.
+	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	public async Task<ExplorerModelBaseDto?> AddAsync(
 		string name,
@@ -1199,7 +1192,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Deletes an object from the database and from <see cref="Hierarchy" />.
+	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	public async Task<bool> DeleteAsync(
 		ExplorerModelBaseDto dto,
@@ -1243,11 +1236,11 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Expands or collapses all folders in <see cref="Hierarchy" />.
+	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	/// <remarks>
 	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="OnFolderIsExpandedChanged" /> message handler.
+	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
 	/// </remarks>
 	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
 	{
@@ -1686,7 +1679,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Validates <see cref="CopyContentCommand" />.
+	/// Validates <see cref="CopyContentByContextMenuCommand" />.
 	/// </summary>
 	private bool CanCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
@@ -1730,7 +1723,7 @@ public partial class EditorViewModel :
 	private bool CanExport() => !IsActionInProgress && Hierarchy.Count > 0;
 
 	/// <summary>
-	/// Validates <see cref="HideAllFilesCommand" />.
+	/// Validates <see cref="HideAllFileContentsCommand" />.
 	/// </summary>
 	private bool CanHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
@@ -1746,7 +1739,8 @@ public partial class EditorViewModel :
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& (dto is not null || SelectedObject is not null);
+			&& dto is not null
+			&& (dto is not FileModelDto file || !file.IsOpened());
 	}
 
 	/// <summary>
@@ -1832,7 +1826,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Counts the number of objects in <see cref="Hierarchy" />.
+	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 

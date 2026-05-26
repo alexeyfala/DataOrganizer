@@ -1,4 +1,7 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.Messages;
 using Entities.Models;
 using Shared.Extensions;
 using System;
@@ -12,10 +15,14 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 {
 	#region Properties
 	/// <inheritdoc cref="FolderModel.Children" />
-	public ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+	public override ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
 	/// <inheritdoc cref="FolderModel.EncryptedDek" />
 	public byte[]? EncryptedDek { get; set; }
+
+	/// <inheritdoc cref="FolderModel.IsExpanded" />
+	[ObservableProperty]
+	public override partial bool IsExpanded { get; set; }
 
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
@@ -24,6 +31,23 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// Encrypted within the session DEK.
 	/// </summary>
 	public byte[]? SessionEncryptedDek { get; set; }
+	#endregion
+
+	#region Partial
+	/// <summary>
+	/// Called when <see cref="IsExpanded" /> changes.
+	/// </summary>
+	partial void OnIsExpandedChanged(bool value)
+	{
+		if (Id == default)
+		{
+			return;
+		}
+
+		WeakReferenceMessenger
+			.Default
+			.Send(new FolderExpandedChangedMessage(Id, value));
+	}
 	#endregion
 
 	#region Methods

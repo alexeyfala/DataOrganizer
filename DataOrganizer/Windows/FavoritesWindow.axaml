@@ -17,13 +17,9 @@
 	CanResize="False"
 	ShowInTaskbar="False"
 	SizeToContent="WidthAndHeight"
-	SystemDecorations="None"
 	Topmost="True"
+	WindowDecorations="None"
 	mc:Ignorable="d">
-
-	<Design.DataContext>
-		<vm:FavoritesViewModel />
-	</Design.DataContext>
 
 	<Window.Resources>
 		<CornerRadius x:Key="CornerRadius">4.0</CornerRadius>

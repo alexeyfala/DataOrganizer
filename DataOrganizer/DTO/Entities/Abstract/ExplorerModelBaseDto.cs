@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace DataOrganizer.DTO.Entities.Abstract;
@@ -22,6 +21,13 @@ namespace DataOrganizer.DTO.Entities.Abstract;
 public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 {
 	#region Properties
+	/// <summary>
+	/// Default empty for non-folder items; <see cref="FolderModelDto" /> overrides it.
+	/// Lives on the base because the TreeDataTemplate ItemsSource binding can re-evaluate
+	/// against a <see cref="FileModelDto" /> when a <c>TreeViewItem</c> is recycled.
+	/// </summary>
+	public virtual ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+
 	/// <inheritdoc cref="ExplorerModelBase.CreatedDate" />
 	public required DateTime CreatedDate { get; init; }
 
@@ -34,11 +40,11 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 	/// <inheritdoc cref="FolderModel.IsExpanded" />
 	/// <remarks>
-	/// Due to an error when binding a property to a TreeViewItem in XAML,
-	/// I have to place the property in <see cref="ExplorerModelBase" /> instead of <see cref="FolderModelDto" />.
+	/// Stays on the base as a virtual auto-property: the TreeView's TreeViewItem style binds
+	/// IsExpanded for every container, so the property must resolve against <see cref="ExplorerModelBaseDto" />.
+	/// <see cref="FolderModelDto" /> overrides it with the real observable implementation.
 	/// </remarks>
-	[ObservableProperty]
-	public partial bool IsExpanded { get; set; }
+	public virtual bool IsExpanded { get; set; }
 
 	/// <inheritdoc cref="ExplorerModelBase.IsSelected" />
 	public bool IsSelected { get; set; }
@@ -59,23 +65,6 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 	/// <inheritdoc cref="ExplorerModelBase.UpdatedDate" />
 	public required DateTime UpdatedDate { get; set; }
-	#endregion
-
-	#region Partial
-	/// <summary>
-	/// Called when <see cref="IsExpanded" /> changes.
-	/// </summary>
-	partial void OnIsExpandedChanged(bool value)
-	{
-		if (this.Id == default || this is not FolderModelDto folder)
-		{
-			return;
-		}
-
-		WeakReferenceMessenger
-			.Default
-			.Send(new FolderExpandedChangedMessage(folder.Id, folder.IsExpanded));
-	}
 	#endregion
 
 	#region Methods

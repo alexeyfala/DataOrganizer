@@ -10,10 +10,6 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:MultilineTextEditViewModel />
-	</Design.DataContext>
-
 	<Grid
 		ColumnDefinitions="*,Auto"
 		RowDefinitions="*,Auto"

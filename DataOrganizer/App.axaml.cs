@@ -295,6 +295,7 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorViewModel>();
 		services.AddTransient<KeyValueInputViewModel>();
 		services.AddTransient<MultilineTextEditViewModel>();
+		services.AddTransient<PasswordBoxViewModel>();
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();

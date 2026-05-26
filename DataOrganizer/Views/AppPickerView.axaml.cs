@@ -6,11 +6,8 @@ namespace DataOrganizer.Views;
 internal sealed partial class AppPickerView : UserControl
 {
 	#region Constructors
-	public AppPickerView(AppPickerViewModel viewModel)
-	{
-		InitializeComponent();
+	public AppPickerView() => InitializeComponent();
 
-		DataContext = viewModel;
-	}
+	public AppPickerView(AppPickerViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

@@ -11,10 +11,6 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:KeyValueInputViewModel />
-	</Design.DataContext>
-
 	<Grid
 		ColumnDefinitions="*,Auto"
 		RowDefinitions="*,*,Auto"
@@ -27,7 +23,7 @@
 			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"
 			Classes="clearButton"
 			Text="{Binding Key, Mode=TwoWay}"
-			UseFloatingWatermark="True">
+			UseFloatingPlaceholder="True">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
 				<AutoSelectBehavior />
@@ -42,7 +38,7 @@
 			Classes="clearButton"
 			IsVisible="{Binding IsValueInputVisible, Mode=OneWay}"
 			Text="{Binding Value, Mode=TwoWay}"
-			UseFloatingWatermark="True" />
+			UseFloatingPlaceholder="True" />
 
 		<UniformGrid
 			Grid.Row="2"

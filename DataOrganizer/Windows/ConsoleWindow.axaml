@@ -13,10 +13,6 @@
 	Icon="/Assets/Logo.ico"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:ConsoleViewModel />
-	</Design.DataContext>
-
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Interaction.Behaviors>
 			<behaviors:StyledElementAddFluentThemeBehavior />

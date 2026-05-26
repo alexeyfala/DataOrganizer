@@ -8,10 +8,6 @@
 	x:DataType="vm:CopyHistoryViewModel"
 	mc:Ignorable="d">
 
-	<Design.DataContext>
-		<vm:CopyHistoryViewModel />
-	</Design.DataContext>
-
 	<Grid RowDefinitions="Auto,*">
 		<TextBox
 			Grid.Row="0"

@@ -914,7 +914,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	/// <summary>
 	/// Smoothly scrolls <paramref name="scrollViewer" /> to the absolute top
-	/// (<paramref name="toEnd" /> <c>false</c>) or bottom (<c>true</c>).
+	/// (<paramref name="toEnd" /> <c>False</c>) or bottom (<c>True</c>).
 	/// </summary>
 	private static Task SmoothScrollAsync(ScrollViewer scrollViewer, bool toEnd)
 	{

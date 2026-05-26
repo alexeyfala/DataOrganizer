@@ -24,7 +24,8 @@
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
 		x:DataType="models:FolderModelDto"
-		ItemsSource="{Binding Children, Mode=OneTime}">
+		ItemsSource="{ReflectionBinding Children,
+		                                Mode=OneTime}">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
