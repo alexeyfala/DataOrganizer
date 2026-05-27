@@ -35,6 +35,17 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 
 	#region Commands
 	/// <summary>
+	/// Clears the history list. Disabled while it is empty.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanClear))]
+	private void Clear()
+	{
+		_history.Entries.Clear();
+
+		ClearCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Restores <paramref name="entry" /> back into the system clipboard.
 	/// </summary>
 	[RelayCommand]
@@ -44,5 +55,12 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 			? Task.CompletedTask
 			: _history.RestoreAsync(entry);
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="ClearCommand" />.
+	/// </summary>
+	private bool CanClear() => _history.Entries.Count > 0;
 	#endregion
 }
