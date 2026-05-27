@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Windows.SystemClipboardWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dto="clr-namespace:DataOrganizer.DTO"
 	xmlns:enums="clr-namespace:DataOrganizer.Enums"
@@ -24,6 +25,12 @@
 		<CornerRadius x:Key="PopupCornerRadius">6.0</CornerRadius>
 		<Thickness x:Key="PopupBorderThickness">1.0</Thickness>
 	</Window.Resources>
+
+	<Interaction.Behaviors>
+		<behaviors:CloseWindowOnButtonClickBehavior />
+		<behaviors:CloseWindowOnDeactivatedBehavior />
+		<behaviors:CloseWindowOnEscapeBehavior />
+	</Interaction.Behaviors>
 
 	<Border
 		Background="{StaticResource MaterialBackgroundBrush}"
