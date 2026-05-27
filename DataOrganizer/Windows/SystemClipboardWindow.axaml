@@ -27,7 +27,6 @@
 	</Window.Resources>
 
 	<Interaction.Behaviors>
-		<behaviors:CloseWindowOnButtonClickBehavior />
 		<behaviors:CloseWindowOnDeactivatedBehavior />
 		<behaviors:CloseWindowOnEscapeBehavior />
 	</Interaction.Behaviors>
@@ -53,7 +52,7 @@
 				<TextBlock
 					Grid.Column="0"
 					VerticalAlignment="Center"
-					FontWeight="SemiBold"
+					Classes="HeaderTextBlockStyle"
 					Text="{x:Static prop:Strings.SystemClipboard}" />
 
 				<Button
@@ -61,11 +60,7 @@
 					Padding="8.0,2.0"
 					Classes="primary"
 					Command="{Binding ClearCommand}"
-					Content="{x:Static prop:Strings.Clear}">
-					<Interaction.Behaviors>
-						<behaviors:StopButtonClickBubblingBehavior />
-					</Interaction.Behaviors>
-				</Button>
+					Content="{x:Static prop:Strings.Clear}" />
 			</Grid>
 
 			<ScrollViewer
@@ -82,6 +77,9 @@
 								HorizontalContentAlignment="Stretch"
 								Command="{Binding $parent[Window].((vm:SystemClipboardViewModel)DataContext).RestoreEntryCommand}"
 								CommandParameter="{Binding}">
+								<Interaction.Behaviors>
+									<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+								</Interaction.Behaviors>
 								<Panel>
 									<!-- Text entries -->
 									<TextBlock
