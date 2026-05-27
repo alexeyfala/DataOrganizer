@@ -18,6 +18,7 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
@@ -25,6 +26,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -123,6 +126,13 @@ public abstract partial class ViewModelBase :
 	[RelayCommand]
 	private void ShowSystemClipboard()
 	{
+		if (AppUtils.IsLinux)
+		{
+			_handler.Watch(TryLaunchLinuxClipboardManagerAsync());
+
+			return;
+		}
+
 		_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
 
 		_eventSimulator.SimulateKeyPress(KeyCode.VcV);
@@ -316,6 +326,93 @@ public abstract partial class ViewModelBase :
 		return typeof(SnackbarHost)
 			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
 			?.GetValue(null) is IDictionary registered && registered.Count > 0;
+	}
+
+	/// <summary>
+	/// Tries to open the UI of a known Linux clipboard manager.
+	/// Candidates are probed in order; the first one available in <c>PATH</c> wins.
+	/// </summary>
+	private async Task TryLaunchLinuxClipboardManagerAsync()
+	{
+		// Each tuple is (executable, args). Order = popularity / desktop coverage.
+		(string FileName, string[] Arguments)[] candidates =
+		[
+			("copyq", ["show"]),
+			("gpaste-client", ["ui"]),
+			("qdbus", ["org.kde.klipper", "/klipper", "showKlipperPopupMenu"]),
+			("xfce4-popup-clipman", []),
+			("diodon", []),
+		];
+
+		foreach ((string fileName, string[] arguments) in candidates)
+		{
+			if (await TryStartProcessAsync(fileName, arguments))
+			{
+				_logger.LogInformation($"System clipboard manager launched: {fileName}");
+
+				return;
+			}
+		}
+
+		_logger.LogWarning(
+			"No supported Linux clipboard manager found in PATH " +
+			"(tried copyq, gpaste-client, qdbus/klipper, xfce4-popup-clipman, diodon).");
+	}
+
+	/// <summary>
+	/// Starts <paramref name="fileName" /> with <paramref name="arguments" />.
+	/// Returns <c>true</c> if the executable is available and the call succeeded
+	/// (or the UI process is still running after a short grace period).
+	/// </summary>
+	private static async Task<bool> TryStartProcessAsync(string fileName, string[] arguments)
+	{
+		try
+		{
+			ProcessStartInfo psi = new()
+			{
+				FileName = fileName,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+			};
+
+			foreach (string arg in arguments)
+			{
+				psi.ArgumentList.Add(arg);
+			}
+
+			using Process? process = Process.Start(psi);
+
+			if (process is null)
+			{
+				return false;
+			}
+
+			// Short window: short-lived helpers (qdbus) report failure here;
+			// long-running UIs (copyq, gpaste-client) are still alive and treated as success.
+			using CancellationTokenSource cts = new(TimeSpan.FromMilliseconds(500));
+
+			try
+			{
+				await process.WaitForExitAsync(cts.Token);
+
+				return process.ExitCode == 0;
+			}
+			catch (OperationCanceledException)
+			{
+				return true;
+			}
+		}
+		catch (Win32Exception)
+		{
+			// Executable not present in PATH — try the next candidate.
+			return false;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
 	}
 
 	/// <inheritdoc cref="SaveCopyHistory()" />

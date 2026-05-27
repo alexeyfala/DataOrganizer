@@ -8,7 +8,8 @@
 		x:Key="ShowSystemClipboardButtonTheme"
 		BasedOn="{StaticResource MaterialFlatButton}"
 		TargetType="Button">
-		<Setter Property="IsVisible" Value="{OnPlatform Windows={x:True}, Default={x:False}}" />
+		<!--<Setter Property="IsVisible" Value="{OnPlatform Windows={x:True}, Default={x:False}}" />-->
+		<Setter Property="IsVisible" Value="{OnPlatform Windows={x:True}, Linux={x:True}, Default={x:False}}" />
 		<Setter Property="Content">
 			<Setter.Value>
 				<Template>
@@ -25,7 +26,8 @@
 					<ToolTip>
 						<TextBlock>
 							<Run Text="{x:Static prop:Strings.SystemClipboard}" />
-							<Run Text="(Win+V)" />
+							<!--<Run Text="(Win+V)" />-->
+							<Run Text="{OnPlatform Windows='(Win+V)', Default=''}" />
 						</TextBlock>
 					</ToolTip>
 				</Template>
