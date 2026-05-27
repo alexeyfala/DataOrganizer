@@ -49,11 +49,22 @@
 				Grid.Row="0"
 				Margin="6.0,4.0,6.0,6.0"
 				ColumnDefinitions="*,Auto">
-				<TextBlock
+				<!-- Title area doubles as the drag handle for the frameless window. -->
+				<Border
 					Grid.Column="0"
-					VerticalAlignment="Center"
-					Classes="HeaderTextBlockStyle"
-					Text="{x:Static prop:Strings.SystemClipboard}" />
+					Background="Transparent">
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="PointerPressed">
+							<InvokeCommandAction
+								Command="{Binding PointerPressedCommand}"
+								PassEventArgsToCommand="True" />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
+					<TextBlock
+						VerticalAlignment="Center"
+						Classes="HeaderTextBlockStyle"
+						Text="{x:Static prop:Strings.SystemClipboard}" />
+				</Border>
 
 				<Button
 					Grid.Column="1"

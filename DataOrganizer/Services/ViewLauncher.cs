@@ -137,6 +137,23 @@ public class ViewLauncher : IViewLauncher
 
 		_handler.Watch(SaveFavoritesSettingsAsync(window));
 	}
+
+	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="SystemClipboardWindow" />.
+	/// </summary>
+	private void SystemClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not SystemClipboardWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= SystemClipboardWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(SystemClipboardWindow)}"" and saving ""{nameof(SystemClipboardWindowSettings)}""");
+
+		SaveSystemClipboardSettings(window);
+	}
 	#endregion
 
 	#region Methods
@@ -260,21 +277,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public SystemClipboardWindow ConfigureSystemClipboardWindow(Window owner)
-	{
-		_logger.LogInformation($@"Opening ""{nameof(SystemClipboardWindow)}""");
-
-		SystemClipboardViewModel viewModel = _viewFactory.CreateViewModel<SystemClipboardViewModel>();
-
-		SystemClipboardWindow window = _viewFactory.CreateWindow<SystemClipboardWindow>(viewModel);
-
-		// Position is computed after the window is fully sized.
-		window.Opened += (_, _) => PositionAtScreenBottomRight(window, owner);
-
-		return window;
-	}
-
-	/// <inheritdoc />
 	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CurrentWindow));
@@ -293,7 +295,44 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
+	public SystemClipboardWindow ConfigureSystemClipboardWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(SystemClipboardWindow)}""");
+
+		SystemClipboardViewModel viewModel = _viewFactory.CreateViewModel<SystemClipboardViewModel>();
+
+		SystemClipboardWindow window = _viewFactory.CreateWindow<SystemClipboardWindow>(viewModel);
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(SystemClipboardWindowSettings));
+
+		SystemClipboardWindowSettings? settings = _jsonSerializer.FromFile<SystemClipboardWindowSettings>(filePath);
+
+		// window.Screens is only reliable after the window is attached to a toplevel,
+		// so both branches run in Opened.
+		window.Opened += (_, _) =>
+		{
+			if (settings is not null)
+			{
+				PixelPoint candidate = new(settings.X, settings.Y);
+
+				if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
+				{
+					window.Position = candidate;
+
+					return;
+				}
+			}
+
+			PositionAtScreenBottomRight(window, owner);
+		};
+
+		window.Closing += SystemClipboardWindow_Closing;
+
+		return window;
+	}
+
+	/// <inheritdoc />
+	public async Task SaveEditorSettingsAsync(EditorWindow window)
 	{
 		try
 		{
@@ -355,7 +394,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
+	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window)
 	{
 		try
 		{
@@ -407,6 +446,28 @@ public class ViewLauncher : IViewLauncher
 				.Dispose();
 		}
 	}
+
+	/// <inheritdoc />
+	public void SaveSystemClipboardSettings(SystemClipboardWindow window)
+	{
+		try
+		{
+			SystemClipboardWindowSettings settings = new()
+			{
+				X = window.Position.X,
+				Y = window.Position.Y,
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(SystemClipboardWindowSettings)),
+				false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
 	#endregion
 
 	#region Helpers
@@ -426,15 +487,14 @@ public class ViewLauncher : IViewLauncher
 
 		PixelRect workingArea = screen.WorkingArea;
 
-		// Window.Width / Height are DIP, Screen.WorkingArea and Position are physical pixels.
-		int widthPx  = (int)(popup.Width  * screen.Scaling);
+		int widthPx = (int)(popup.Width * screen.Scaling);
 
 		int heightPx = (int)(popup.Height * screen.Scaling);
 
-		int marginPx = (int)(marginDip    * screen.Scaling);
+		int marginPx = (int)(marginDip * screen.Scaling);
 
 		popup.Position = new PixelPoint(
-			workingArea.X + workingArea.Width  - widthPx  - marginPx,
+			workingArea.X + workingArea.Width - widthPx - marginPx,
 			workingArea.Y + workingArea.Height - heightPx - marginPx);
 	}
 

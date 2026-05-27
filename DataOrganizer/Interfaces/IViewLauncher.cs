@@ -9,7 +9,6 @@ using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -57,12 +56,17 @@ public interface IViewLauncher
 	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
-	Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default);
+	Task SaveEditorSettingsAsync(EditorWindow window);
 
 	/// <summary>
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
-	Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default);
+	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
+
+	/// <summary>
+	/// Saves <see cref="SystemClipboardWindow" /> settings to the file.
+	/// </summary>
+	void SaveSystemClipboardSettings(SystemClipboardWindow window);
 
 	/// <summary>
 	/// Checks whether <paramref name="position" /> places the window's title bar

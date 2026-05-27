@@ -1,3 +1,7 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.LogicalTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
@@ -34,6 +38,23 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	#endregion
 
 	#region Commands
+	/// <summary>
+	/// Starts native window move-drag from the title area
+	/// (the window has no system title bar of its own).
+	/// </summary>
+	[RelayCommand]
+	private static void PointerPressed(PointerPressedEventArgs? e)
+	{
+		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual).Properties.IsLeftButtonPressed)
+		{
+			return;
+		}
+
+		visual
+			.FindLogicalAncestorOfType<Window>()?
+			.BeginMoveDrag(e);
+	}
+
 	/// <summary>
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
