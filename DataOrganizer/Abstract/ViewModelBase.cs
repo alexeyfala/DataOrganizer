@@ -18,7 +18,6 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;
@@ -124,13 +123,6 @@ public abstract partial class ViewModelBase :
 	[RelayCommand]
 	private void ShowSystemClipboard()
 	{
-		if (AppUtils.IsLinux)
-		{
-			// TODO: Show custom Linux clipboard here
-
-			return;
-		}
-
 		_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
 
 		_eventSimulator.SimulateKeyPress(KeyCode.VcV);
