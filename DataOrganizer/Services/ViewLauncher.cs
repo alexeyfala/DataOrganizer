@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -305,26 +304,23 @@ public class ViewLauncher : IViewLauncher
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(SystemClipboardWindowSettings));
 
-		SystemClipboardWindowSettings? settings = _jsonSerializer.FromFile<SystemClipboardWindowSettings>(filePath);
-
-		// window.Screens is only reliable after the window is attached to a toplevel,
-		// so both branches run in Opened.
-		window.Opened += (_, _) =>
+		if (_jsonSerializer.FromFile<SystemClipboardWindowSettings>(filePath) is { } settings)
 		{
-			if (settings is not null)
+			PixelPoint candidate = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
 			{
-				PixelPoint candidate = new(settings.X, settings.Y);
-
-				if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
-				{
-					window.Position = candidate;
-
-					return;
-				}
+				window.Position = candidate;
 			}
-
+			else
+			{
+				PositionAtScreenBottomRight(window, owner);
+			}
+		}
+		else
+		{
 			PositionAtScreenBottomRight(window, owner);
-		};
+		}
 
 		window.Closing += SystemClipboardWindow_Closing;
 
@@ -472,10 +468,10 @@ public class ViewLauncher : IViewLauncher
 
 	#region Helpers
 	/// <summary>
-	/// Places <paramref name="popup" /> at the bottom-right corner of the screen
+	/// Places <paramref name="target" /> at the bottom-right corner of the screen
 	/// that <paramref name="owner" /> currently lives on.
 	/// </summary>
-	private static void PositionAtScreenBottomRight(Window popup, Window owner)
+	private static void PositionAtScreenBottomRight(Window target, Window owner)
 	{
 		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
 		{
@@ -487,13 +483,13 @@ public class ViewLauncher : IViewLauncher
 
 		PixelRect workingArea = screen.WorkingArea;
 
-		int widthPx = (int)(popup.Width * screen.Scaling);
+		int widthPx = (int)(target.Width * screen.Scaling);
 
-		int heightPx = (int)(popup.Height * screen.Scaling);
+		int heightPx = (int)(target.Height * screen.Scaling);
 
 		int marginPx = (int)(marginDip * screen.Scaling);
 
-		popup.Position = new PixelPoint(
+		target.Position = new PixelPoint(
 			workingArea.X + workingArea.Width - widthPx - marginPx,
 			workingArea.Y + workingArea.Height - heightPx - marginPx);
 	}
