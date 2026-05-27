@@ -260,6 +260,21 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public SystemClipboardWindow ConfigureSystemClipboardWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(SystemClipboardWindow)}""");
+
+		SystemClipboardViewModel viewModel = _viewFactory.CreateViewModel<SystemClipboardViewModel>();
+
+		SystemClipboardWindow window = _viewFactory.CreateWindow<SystemClipboardWindow>(viewModel);
+
+		// Position is computed after the window is fully sized.
+		window.Opened += (_, _) => PositionAtScreenBottomRight(window, owner);
+
+		return window;
+	}
+
+	/// <inheritdoc />
 	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CurrentWindow));
@@ -395,6 +410,34 @@ public class ViewLauncher : IViewLauncher
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Places <paramref name="popup" /> at the bottom-right corner of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	private static void PositionAtScreenBottomRight(Window popup, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// 16 device-independent pixels of padding from the screen edge.
+		const int marginDip = 16;
+
+		PixelRect workingArea = screen.WorkingArea;
+
+		// Window.Width / Height are DIP, Screen.WorkingArea and Position are physical pixels.
+		int widthPx  = (int)(popup.Width  * screen.Scaling);
+
+		int heightPx = (int)(popup.Height * screen.Scaling);
+
+		int marginPx = (int)(marginDip    * screen.Scaling);
+
+		popup.Position = new PixelPoint(
+			workingArea.X + workingArea.Width  - widthPx  - marginPx,
+			workingArea.Y + workingArea.Height - heightPx - marginPx);
+	}
+
 	/// <summary>
 	/// Tries to delete directory multiple times.
 	/// </summary>

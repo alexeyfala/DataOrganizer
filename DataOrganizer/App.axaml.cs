@@ -263,6 +263,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
+		services.AddSingleton<IClipboardHistoryService, ClipboardHistoryService>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
@@ -299,6 +300,7 @@ public sealed class App : Application
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
+		services.AddTransient<SystemClipboardViewModel>();
 		services.AddTransient<ToastViewModel>();
 		services.AddTransient<YesNoCancelBoxViewModel>();
 		#endregion
@@ -318,6 +320,7 @@ public sealed class App : Application
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SettingsView>();
+		services.AddTransient<SystemClipboardWindow>();
 		services.AddTransient<ToastWindow>();
 		services.AddTransient<YesNoCancelBox>();
 		#endregion

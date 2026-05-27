@@ -20,7 +20,6 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using SharpHook;
-using SharpHook.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -121,15 +120,33 @@ public abstract partial class ViewModelBase :
 	/// Displays the system clipboard.
 	/// </summary>
 	[RelayCommand]
-	private void ShowSystemClipboard()
+	private void ShowSystemClipboard(Window? owner)
 	{
-		_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
+		//_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
+		//
+		//_eventSimulator.SimulateKeyPress(KeyCode.VcV);
+		//
+		//_eventSimulator.SimulateKeyRelease(KeyCode.VcLeftMeta);
+		//
+		//_eventSimulator.SimulateKeyRelease(KeyCode.VcV);
 
-		_eventSimulator.SimulateKeyPress(KeyCode.VcV);
+		Window? anchor = owner;
 
-		_eventSimulator.SimulateKeyRelease(KeyCode.VcLeftMeta);
+		if (anchor is null)
+		{
+			_app.FindDataContext<ViewModelBase>(out anchor);
+		}
 
-		_eventSimulator.SimulateKeyRelease(KeyCode.VcV);
+		if (anchor is null)
+		{
+			return;
+		}
+
+		// The popup auto-closes on Deactivated, so by the time we get here any
+		// previous instance is already closed. No state tracking required.
+		_viewLauncher
+			.ConfigureSystemClipboardWindow(anchor)
+			.Show();
 	}
 	#endregion
 

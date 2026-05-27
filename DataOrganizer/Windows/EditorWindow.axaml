@@ -208,6 +208,7 @@
 							<Button
 								Classes="primary"
 								Command="{Binding ShowSystemClipboardCommand}"
+								CommandParameter="{Binding $parent[Window]}"
 								Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
 
 							<Panel Classes="VerticalSeparatorPanelStyle" />

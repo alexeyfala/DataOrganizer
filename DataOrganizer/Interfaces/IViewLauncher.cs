@@ -50,6 +50,11 @@ public interface IViewLauncher
 	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
+	/// Configures <see cref="SystemClipboardWindow" />.
+	/// </summary>
+	SystemClipboardWindow ConfigureSystemClipboardWindow(Window owner);
+
+	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
 	Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default);
