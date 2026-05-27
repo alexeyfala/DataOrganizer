@@ -8,7 +8,6 @@
 		x:Key="ShowSystemClipboardButtonTheme"
 		BasedOn="{StaticResource MaterialFlatButton}"
 		TargetType="Button">
-		<!--<Setter Property="IsVisible" Value="{OnPlatform Windows={x:True}, Default={x:False}}" />-->
 		<Setter Property="IsVisible" Value="{OnPlatform Windows={x:True}, Linux={x:True}, Default={x:False}}" />
 		<Setter Property="Content">
 			<Setter.Value>
