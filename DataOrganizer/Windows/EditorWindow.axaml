@@ -211,6 +211,11 @@
 								CommandParameter="{Binding $parent[Window]}"
 								Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
 
+							<Button
+								Classes="primary"
+								Command="{Binding ShowWindowsClipboardCommand}"
+								Theme="{StaticResource ShowWindowsClipboardButtonTheme}" />
+
 							<Panel Classes="VerticalSeparatorPanelStyle" />
 
 							<ToggleButton
