@@ -40,10 +40,5 @@ public interface IClipboardHistoryService
 	/// Starts background polling. Safe to call more than once.
 	/// </summary>
 	Task StartAsync(CancellationToken token = default);
-
-	/// <summary>
-	/// Stops background polling.
-	/// </summary>
-	void Stop();
 	#endregion
 }

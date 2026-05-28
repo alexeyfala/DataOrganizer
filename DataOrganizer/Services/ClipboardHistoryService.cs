@@ -26,15 +26,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	public ObservableCollection<ClipboardHistoryEntry> Entries { get; } = [];
 
 	/// <inheritdoc />
-	public bool IsRunning => _timer is not null;
+	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Polling interval. Small enough to feel responsive, large enough not to burn CPU.
-	/// </summary>
-	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
-
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -53,24 +48,20 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	private bool _isDisposed;
 
 	/// <summary>
+	/// Guards <see cref="StartAsync" /> against double-start. Loop sets this to
+	/// <c>false</c> in its finally block once it exits.
+	/// </summary>
+	private bool _isLoopRunning;
+
+	/// <summary>
 	/// Hash of the most recently observed clipboard payload.
 	/// </summary>
 	private byte[]? _lastHash;
 
 	/// <summary>
-	/// Guards against re-entrant polling if a previous tick is still in flight.
-	/// </summary>
-	private int _polling;
-
-	/// <summary>
 	/// When non-zero, the next <see cref="PollOnceAsync" /> tick skips its match check.
-	/// Set via <see cref="Interlocked.Exchange(ref int, int)" /> when we ourselves push
-	/// content into the clipboard, so our own write is not echoed as a new entry.
 	/// </summary>
 	private int _suppressEcho;
-
-	/// <inheritdoc cref="DispatcherTimer" />
-	private DispatcherTimer? _timer;
 	#endregion
 
 	#region Constructors
@@ -90,35 +81,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	}
 	#endregion
 
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="DispatcherTimer.Tick" /> handler.
-	/// </summary>
-	private void OnTick(object? sender, EventArgs e)
-	{
-		if (Interlocked.Exchange(ref _polling, 1) == 1)
-		{
-			// Previous tick still working — skip this one.
-			return;
-		}
-
-		_exceptionHandler.Watch(PollOnceAsync().ContinueWith(
-			_ => Interlocked.Exchange(ref _polling, 0),
-			TaskScheduler.Default));
-	}
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose()
-	{
-		if (Interlocked.Exchange(ref _isDisposed, true))
-		{
-			return;
-		}
-
-		Stop();
-	}
+	public void Dispose() => Interlocked.Exchange(ref _isDisposed, true);
 
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntry entry)
@@ -174,50 +139,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return Task.CompletedTask;
 		}
 
-		if (_timer is not null)
+		// Idempotent: ignore a second StartAsync while the loop is alive.
+		if (Interlocked.Exchange(ref _isLoopRunning, true))
 		{
 			return Task.CompletedTask;
 		}
 
-		// Timer must be created on the UI thread.
-		return _dispatcher.PostAsync(() =>
-		{
-			if (_timer is not null)
-			{
-				return;
-			}
-
-			_timer = new DispatcherTimer(
-				PollInterval,
-				DispatcherPriority.Background,
-				OnTick);
-
-			_timer.Start();
-
-			_logger.LogInformation(
-				$"{nameof(ClipboardHistoryService)} started (interval = {PollInterval.TotalMilliseconds:F0} ms, limit = {IClipboardHistoryService.HistoryLimit}).");
-		});
-	}
-
-	/// <inheritdoc />
-	public void Stop()
-	{
-		if (Volatile.Read(ref _isDisposed))
-		{
-			return;
-		}
-
-		DispatcherTimer? local = _timer;
-
-		if (local is null)
-		{
-			return;
-		}
-
-		_timer = null;
-
-		// DispatcherTimer must be stopped on the UI thread.
-		_dispatcher.Post(local.Stop);
+		return LoopAsync(token);
 	}
 	#endregion
 
@@ -342,6 +270,42 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		while (Entries.Count > IClipboardHistoryService.HistoryLimit)
 		{
 			Entries.RemoveAt(Entries.Count - 1);
+		}
+	}
+
+	/// <summary>
+	/// Polling loop.
+	/// </summary>
+	private async Task LoopAsync(CancellationToken token)
+	{
+		TimeSpan interval = TimeSpan.FromMilliseconds(750.0);
+
+		const ConfigureAwaitOptions awaitOptions = ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext;
+
+		_logger.LogInformation(
+			$"{nameof(ClipboardHistoryService)} loop started (interval = {interval.TotalMilliseconds:F0} ms, limit = {IClipboardHistoryService.HistoryLimit}).");
+
+		try
+		{
+			while (!Volatile.Read(ref _isDisposed) && !token.IsCancellationRequested)
+			{
+				await Task
+					.Delay(interval, token)
+					.ConfigureAwait(awaitOptions);
+
+				if (Volatile.Read(ref _isDisposed) || token.IsCancellationRequested)
+				{
+					break;
+				}
+
+				await PollOnceAsync().ConfigureAwait(true);
+			}
+		}
+		finally
+		{
+			Interlocked.Exchange(ref _isLoopRunning, false);
+
+			_logger.LogInformation($"{nameof(ClipboardHistoryService)} loop stopped.");
 		}
 	}
 
