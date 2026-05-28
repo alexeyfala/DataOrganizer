@@ -7,7 +7,6 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -21,7 +20,7 @@ using System.Reactive.Disposables.Fluent;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="CopyHistoryView" />.
+/// View model for <c>CopyHistoryView</c>.
 /// </summary>
 public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 {

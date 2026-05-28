@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Material.Colors;
 using Material.Styles.Themes.Base;
@@ -14,7 +13,7 @@ using System.Globalization;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="SettingsView" />.
+/// View model for <c>SettingsView</c>.
 /// </summary>
 public sealed partial class SettingsViewModel : ObservableObject
 {

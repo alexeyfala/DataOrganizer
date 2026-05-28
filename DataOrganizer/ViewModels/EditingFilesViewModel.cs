@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EditingFilesView" />.
+/// View model for <c>EditingFilesView</c>.
 /// </summary>
 public sealed partial class EditingFilesViewModel : ObservableObject
 {

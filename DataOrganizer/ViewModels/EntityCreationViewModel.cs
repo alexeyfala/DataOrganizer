@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Shared.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EntityCreationView" />.
+/// View model for <c>EntityCreationView</c>.
 /// </summary>
 public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewModel
 {

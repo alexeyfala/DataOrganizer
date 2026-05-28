@@ -45,7 +45,7 @@ using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EditorWindow" />.
+/// View model for <c>EditorWindow</c>.
 /// </summary>
 public partial class EditorViewModel :
 	ViewModelBase,

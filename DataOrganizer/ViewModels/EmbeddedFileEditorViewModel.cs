@@ -11,7 +11,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -30,7 +29,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EmbeddedFileEditorView" />.
+/// View model for <c>EmbeddedFileEditorView</c>.
 /// </summary>
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {

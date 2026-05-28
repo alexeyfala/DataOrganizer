@@ -4,14 +4,13 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="ImportListSelectorView" />.
+/// View model for <c>ImportListSelectorView</c>.
 /// </summary>
 internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportListVariant>
 {

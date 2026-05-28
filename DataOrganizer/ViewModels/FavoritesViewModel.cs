@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="FavoritesWindow" />.
+/// View model for <c>FavoritesWindow</c>.
 /// </summary>
 public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 {

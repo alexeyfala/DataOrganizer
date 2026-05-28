@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DialogHostAvalonia;
 using Repository.DTO;
 using Shared.Extensions;
@@ -23,7 +22,7 @@ using System.Reactive.Linq;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="HotkeysEditorView" />.
+/// View model for <c>HotkeysEditorView</c>.
 /// </summary>
 public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 {

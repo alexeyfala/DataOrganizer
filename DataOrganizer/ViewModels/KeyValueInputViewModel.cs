@@ -3,13 +3,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="KeyValueInputView" />.
+/// View model for <c>KeyValueInputView</c>.
 /// </summary>
 public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 {

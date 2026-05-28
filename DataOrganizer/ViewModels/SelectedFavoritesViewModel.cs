@@ -10,7 +10,6 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -26,7 +25,7 @@ using System.Reactive.Linq;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="SelectedFavoritesView" />.
+/// View model for <c>SelectedFavoritesView</c>.
 /// </summary>
 public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, INavigationColumnViewModel
 {
