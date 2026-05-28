@@ -364,7 +364,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		}
 		catch (Exception ex)
 		{
-			// Polling errors must never tear the timer down.
 			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
 		}
 	}
@@ -384,7 +383,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex.Message);
+			_logger.LogException(ex, isAssertDebug: false);
 
 			return null;
 		}
@@ -404,7 +403,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex.Message);
+			_logger.LogException(ex, isAssertDebug: false);
 
 			return null;
 		}
@@ -427,7 +426,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning(ex.Message);
+			_logger.LogException(ex, isAssertDebug: false);
 
 			return null;
 		}

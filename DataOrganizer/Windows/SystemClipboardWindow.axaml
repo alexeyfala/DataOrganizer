@@ -90,8 +90,10 @@
 							<Button
 								HorizontalAlignment="Stretch"
 								HorizontalContentAlignment="Stretch"
+								Background="{StaticResource MaterialDividerBrush}"
 								Command="{Binding $parent[Window].((vm:SystemClipboardViewModel)DataContext).RestoreEntryCommand}"
-								CommandParameter="{Binding}">
+								CommandParameter="{Binding}"
+								Cursor="Arrow">
 
 								<Interaction.Behaviors>
 									<ButtonClickEventTriggerBehavior>
