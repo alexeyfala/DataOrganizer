@@ -39,8 +39,7 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 
 	#region Commands
 	/// <summary>
-	/// Starts native window move-drag from the title area
-	/// (the window has no system title bar of its own).
+	/// Starts native window move-drag from any area.
 	/// </summary>
 	[RelayCommand]
 	private static void PointerPressed(PointerPressedEventArgs? e)

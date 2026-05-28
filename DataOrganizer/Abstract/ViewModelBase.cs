@@ -20,6 +20,7 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using SharpHook;
+using SharpHook.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -117,19 +118,11 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Displays the system clipboard.
+	/// Displays embedded the system clipboard.
 	/// </summary>
 	[RelayCommand]
 	private void ShowSystemClipboard(Window? owner)
 	{
-		//_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
-		//
-		//_eventSimulator.SimulateKeyPress(KeyCode.VcV);
-		//
-		//_eventSimulator.SimulateKeyRelease(KeyCode.VcLeftMeta);
-		//
-		//_eventSimulator.SimulateKeyRelease(KeyCode.VcV);
-
 		Window? anchor = owner;
 
 		if (anchor is null)
@@ -147,6 +140,23 @@ public abstract partial class ViewModelBase :
 		_viewLauncher
 			.ConfigureSystemClipboardWindow(anchor)
 			.Show();
+	}
+
+	/// <summary>
+	/// Opens the native Windows clipboard history overlay by simulating Win+V.
+	/// Bound to the dropdown item of the system-clipboard SplitButton on Windows;
+	/// not invoked from non-Windows builds.
+	/// </summary>
+	[RelayCommand]
+	private void ShowWindowsClipboard()
+	{
+		_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
+
+		_eventSimulator.SimulateKeyPress(KeyCode.VcV);
+
+		_eventSimulator.SimulateKeyRelease(KeyCode.VcLeftMeta);
+
+		_eventSimulator.SimulateKeyRelease(KeyCode.VcV);
 	}
 	#endregion
 
