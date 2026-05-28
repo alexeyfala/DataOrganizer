@@ -152,17 +152,17 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return Task.CompletedTask;
 		}
 
-		// Idempotent: ignore a second StartAsync while the loop is alive.
-		if (Interlocked.Exchange(ref _isLoopRunning, true))
-		{
-			return Task.CompletedTask;
-		}
-
 		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
 		Interlocked
 			.Exchange(ref _stopCts, cancellation)?
 			.Dispose();
+
+		// Idempotent: ignore a second StartAsync while the loop is alive.
+		if (Interlocked.Exchange(ref _isLoopRunning, true))
+		{
+			return Task.CompletedTask;
+		}
 
 		return LoopAsync(cancellation.Token);
 	}
