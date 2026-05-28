@@ -103,7 +103,7 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 		Application app,
 		IAppPickerService appPicker,
 		IFileSystemPicker fileSystemPicker,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 		_appPicker = appPicker;
 

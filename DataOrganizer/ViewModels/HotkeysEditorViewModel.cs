@@ -103,7 +103,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
-	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler handler)
+	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler exceptionHandler)
 	{
 		hook.KeyReleased += Hook_KeyReleased;
 
@@ -117,7 +117,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 
 		_hook = hook;
 
-		handler.Watch(hook.RunAsync());
+		exceptionHandler.Watch(hook.RunAsync());
 	}
 	#endregion
 

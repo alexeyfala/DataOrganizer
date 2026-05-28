@@ -165,7 +165,7 @@ public partial class EditorViewModel :
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
 		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
-			_handler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
+			_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
 		}
 
 		if (newValue is null)
@@ -173,7 +173,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
+		_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
 	}
 
 	/// <summary>
@@ -745,7 +745,7 @@ public partial class EditorViewModel :
 				return;
 			}
 
-			_handler.Watch(_clipboard.SetTextAsync(dto.Name));
+			_exceptionHandler.Watch(_clipboard.SetTextAsync(dto.Name));
 
 			FolderModelDto[] parents = [.. dto
 				.GetAllParents()
@@ -756,7 +756,7 @@ public partial class EditorViewModel :
 				return;
 			}
 
-			_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush));
+			_exceptionHandler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush));
 		}
 		catch (Exception ex)
 		{
@@ -976,7 +976,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 
 	/// <inheritdoc cref="ViewModelBase.ShowInEditorAsync" />
@@ -988,7 +988,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(ShowInEditorAsync(id, window));
+		_exceptionHandler.Watch(ShowInEditorAsync(id, window));
 	}
 
 	/// <summary>
@@ -1057,7 +1057,7 @@ public partial class EditorViewModel :
 		IMapper mapper,
 		IMessenger messenger,
 		IProcessUtils processUtils,
-		ITaskExceptionHandler handler,
+		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
@@ -1071,7 +1071,7 @@ public partial class EditorViewModel :
 			executionEngine,
 			logger,
 			messenger,
-			handler,
+			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
 	{
@@ -1291,7 +1291,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>
@@ -1442,13 +1442,13 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_handler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
+		_exceptionHandler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
 	}
 
 	/// <inheritdoc />
 	public void Receive(ShowInEditorMessage message)
 	{
-		_handler.Watch(ShowInEditorAsync(message.Id, message.Window));
+		_exceptionHandler.Watch(ShowInEditorAsync(message.Id, message.Window));
 	}
 
 	/// <inheritdoc />

@@ -100,7 +100,7 @@ public abstract partial class ViewModelBase :
 			dto.IsExecuting = false;
 		});
 
-		_handler.Watch(_executionEngine.CloseAsync(dto.Id));
+		_exceptionHandler.Watch(_executionEngine.CloseAsync(dto.Id));
 	}
 
 	/// <summary>
@@ -186,7 +186,7 @@ public abstract partial class ViewModelBase :
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler,
+		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
@@ -196,7 +196,7 @@ public abstract partial class ViewModelBase :
 			entityEncryption,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 		_dispatcher = dispatcher;
 
@@ -214,7 +214,7 @@ public abstract partial class ViewModelBase :
 
 		if (keyboardInputHook.IsValueCreated && keyboardInputHook.Value.IsRunning)
 		{
-			_handler.Watch(keyboardInputHook.Value.StopTrackingAsync());
+			_exceptionHandler.Watch(keyboardInputHook.Value.StopTrackingAsync());
 		}
 
 		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
@@ -222,7 +222,7 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		_handler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
+		_exceptionHandler.Watch(keyboardInputHook.Value.StartTrackingAsync(Hierarchy));
 	}
 	#endregion
 

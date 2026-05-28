@@ -42,7 +42,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -78,13 +78,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		Application app,
 		IDispatcher dispatcher,
 		ILogger logger,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
 		_dispatcher = dispatcher;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 	}
@@ -102,7 +102,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return;
 		}
 
-		_handler.Watch(PollOnceAsync().ContinueWith(
+		_exceptionHandler.Watch(PollOnceAsync().ContinueWith(
 			_ => Interlocked.Exchange(ref _polling, 0),
 			TaskScheduler.Default));
 	}
@@ -147,13 +147,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			{
 				case ClipboardEntryKind.Text when entry.Text is { } text:
 					await _dispatcher
-						.PostAsync(() => _handler.Watch(clipboard.SetTextAsync(text)))
+						.PostAsync(() => _exceptionHandler.Watch(clipboard.SetTextAsync(text)))
 						.ConfigureAwait(false);
 					break;
 
 				case ClipboardEntryKind.Image when entry.OriginalPng is { Length: > 0 } png:
 					await _dispatcher
-						.PostAsync(() => _handler.Watch(SetImageAsync(clipboard, png)))
+						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
 						.ConfigureAwait(false);
 					break;
 			}

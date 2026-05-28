@@ -83,7 +83,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 		_appEnvironment = appEnvironment;
 

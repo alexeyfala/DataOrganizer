@@ -17,7 +17,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	private readonly Application _app;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="TaskCompletionSource" />
 	private readonly TaskCompletionSource<TResult> _source = new();
@@ -31,11 +31,11 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	#region Constructors
 	protected AsyncResultViewModelBase(
 		Application app,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 	}
 	#endregion
 
@@ -75,7 +75,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		if (_app.IsDialogHostOpened())
 		{
-			_handler.Watch(WaitDialogCloseAsync(defaultResult, token));
+			_exceptionHandler.Watch(WaitDialogCloseAsync(defaultResult, token));
 		}
 
 		return _source.Task;

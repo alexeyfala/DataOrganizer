@@ -23,7 +23,7 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	#region Constructors
 	public MultilineTextEditViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

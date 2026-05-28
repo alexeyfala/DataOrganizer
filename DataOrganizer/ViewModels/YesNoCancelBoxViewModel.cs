@@ -110,7 +110,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	#region Constructors
 	public YesNoCancelBoxViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

@@ -17,20 +17,20 @@ public sealed class ClipboardService : IClipboardService
 	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 	#endregion
 
 	#region Constructors
 	public ClipboardService(
 		Application app,
 		IDispatcher dispatcher,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
 		_dispatcher = dispatcher;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 	}
 	#endregion
 
@@ -44,7 +44,7 @@ public sealed class ClipboardService : IClipboardService
 		}
 
 		await _dispatcher
-			.PostAsync(() => _handler.Watch(clipboard.SetTextAsync(text)))
+			.PostAsync(() => _exceptionHandler.Watch(clipboard.SetTextAsync(text)))
 			.ConfigureAwait(false);
 
 		return true;

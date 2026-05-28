@@ -200,7 +200,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -208,7 +208,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			entityEncryption,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 		_categoriesFilter = new(
 			this.FilterPredicate(x => x.CategorySearch),

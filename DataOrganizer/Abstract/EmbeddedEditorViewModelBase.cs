@@ -90,7 +90,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected readonly IDbAccess _dbAccess;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	protected readonly ITaskExceptionHandler _handler;
+	protected readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	protected readonly IJsonSerializerWrapper _jsonSerializer;
@@ -116,7 +116,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
@@ -124,7 +124,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_entityEncryption = entityEncryption;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_jsonSerializer = jsonSerializer;
 

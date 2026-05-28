@@ -39,7 +39,7 @@ public sealed class AppController : IAppController
 	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -65,7 +65,7 @@ public sealed class AppController : IAppController
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
-		ITaskExceptionHandler handler,
+		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
@@ -81,7 +81,7 @@ public sealed class AppController : IAppController
 
 		_fileSystem = fileSystem;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -140,7 +140,7 @@ public sealed class AppController : IAppController
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
 
-			_handler.Watch(_clipboardHistory.StartAsync(token));
+			_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
 		}
 		catch (Exception ex)
 		{

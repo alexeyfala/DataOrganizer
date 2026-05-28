@@ -65,7 +65,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	#region Constructors
 	public ImportListSelectorViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

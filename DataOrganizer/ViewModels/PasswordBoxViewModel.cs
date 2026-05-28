@@ -51,7 +51,7 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	#region Constructors
 	public PasswordBoxViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

@@ -25,7 +25,7 @@ public sealed class DialogService : IDialogService
 	private readonly IDispatcher _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -38,12 +38,12 @@ public sealed class DialogService : IDialogService
 	public DialogService(
 		IDispatcher dispatcher,
 		ILogger logger,
-		ITaskExceptionHandler handler,
+		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory)
 	{
 		_dispatcher = dispatcher;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -92,7 +92,7 @@ public sealed class DialogService : IDialogService
 			.Candidates
 			.AddRange(candidates);
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<AppPickerView>(viewModel)));
 
 		return await viewModel
 			.GetResultAsync(token)
@@ -106,7 +106,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
 		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
@@ -124,7 +124,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Initialize(parameters);
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<KeyValueInputView>(viewModel)));
 
 		if (!await viewModel
 			.GetResultAsync(token)
@@ -147,7 +147,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<MultilineTextEditView>(viewModel)));
 
 		if (!await viewModel
 			.GetResultAsync(token)
@@ -185,7 +185,7 @@ public sealed class DialogService : IDialogService
 
 				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>(viewModel);
 
-				_handler.Watch(DialogHost.Show(view));
+				_exceptionHandler.Watch(DialogHost.Show(view));
 
 				if (!await viewModel
 					.GetResultAsync(token)
@@ -231,7 +231,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
 		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
@@ -247,7 +247,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
 
 		YesNoCancelResult result = await viewModel
 			.GetResultAsync(YesNoCancelVariant.YesNo, token)
@@ -263,7 +263,7 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Header = Strings.ImportList;
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<ImportListSelectorView>(viewModel)));
 
 		return viewModel.GetResultAsync(token);
 	}
@@ -273,7 +273,7 @@ public sealed class DialogService : IDialogService
 	{
 		EntityCreationViewModel viewModel = _viewFactory.CreateViewModel<EntityCreationViewModel>();
 
-		_handler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<EntityCreationView>(viewModel)));
 
 		try
 		{

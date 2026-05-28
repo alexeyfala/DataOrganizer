@@ -564,14 +564,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
 			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 		_clipboard = clipboardService;
 
@@ -618,7 +618,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		_handler.Watch(SavePropertiesAsync(json));
+		_exceptionHandler.Watch(SavePropertiesAsync(json));
 	}
 	#endregion
 

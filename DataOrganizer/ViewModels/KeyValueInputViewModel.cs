@@ -69,7 +69,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	#region Constructors
 	public KeyValueInputViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion
