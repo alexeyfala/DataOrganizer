@@ -133,7 +133,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 					break;
 			}
 
-			MoveToTop(entry);
+			// Touching Entries must happen on the UI thread.
+			await _dispatcher
+				.PostAsync(() => MoveToTop(entry))
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
