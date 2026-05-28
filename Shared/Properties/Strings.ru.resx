@@ -543,4 +543,7 @@
   <data name="SelectApplicationOnPC" xml:space="preserve">
     <value>Выберите приложение на компьютере</value>
   </data>
+  <data name="WindowsClipboard" xml:space="preserve">
+    <value>Буфер обмена Windows</value>
+  </data>
 </root>

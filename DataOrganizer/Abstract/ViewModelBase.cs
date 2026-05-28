@@ -118,7 +118,7 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Displays embedded the system clipboard.
+	/// Opens the custom clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
 	private void ShowSystemClipboard(Window? owner)
@@ -135,17 +135,13 @@ public abstract partial class ViewModelBase :
 			return;
 		}
 
-		// The popup auto-closes on Deactivated, so by the time we get here any
-		// previous instance is already closed. No state tracking required.
 		_viewLauncher
 			.ConfigureSystemClipboardWindow(anchor)
 			.Show();
 	}
 
 	/// <summary>
-	/// Opens the native Windows clipboard history overlay by simulating Win+V.
-	/// Bound to the dropdown item of the system-clipboard SplitButton on Windows;
-	/// not invoked from non-Windows builds.
+	/// Opens the native Windows clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
 	private void ShowWindowsClipboard()

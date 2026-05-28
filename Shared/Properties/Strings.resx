@@ -523,4 +523,7 @@
   <data name="SelectApplicationOnPC" xml:space="preserve">
     <value>Select an application on your computer</value>
   </data>
+  <data name="WindowsClipboard" xml:space="preserve">
+    <value>Windows Clipboard</value>
+  </data>
 </root>
