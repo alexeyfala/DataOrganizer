@@ -33,15 +33,17 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IClipboardHistoryService" />
+	private readonly IClipboardHistoryService _clipboardHistory;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
-
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -62,6 +64,7 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
+		IClipboardHistoryService clipboardHistory,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
@@ -75,11 +78,13 @@ public class ViewLauncher : IViewLauncher
 
 		_appEnvironment = appEnvironment;
 
+		_clipboardHistory = clipboardHistory;
+
+		_exceptionHandler = exceptionHandler;
+
 		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
-
-		_exceptionHandler = exceptionHandler;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -563,9 +568,17 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (_keyboardInputHook.IsValueCreated)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
-			_keyboardInputHook.Value.Dispose();
+			await _keyboardInputHook
+				.Value
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
+		}
+
+		if (_clipboardHistory.IsRunning)
+		{
+			_clipboardHistory.Stop();
 		}
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))

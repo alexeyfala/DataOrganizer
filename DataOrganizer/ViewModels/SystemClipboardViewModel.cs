@@ -21,7 +21,7 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	/// <summary>
 	/// History entries to display (delegated to <see cref="IClipboardHistoryService" />).
 	/// </summary>
-	public ObservableCollection<ClipboardHistoryEntry> Entries => _history.Entries;
+	public ObservableCollection<ClipboardHistoryEntry> Entries => _clipboardHistory.Entries;
 
 	/// <inheritdoc cref="ClipboardHistoryEntry" />
 	[ObservableProperty]
@@ -30,11 +30,11 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 
 	#region Data
 	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _history;
+	private readonly IClipboardHistoryService _clipboardHistory;
 	#endregion
 
 	#region Constructors
-	public SystemClipboardViewModel(IClipboardHistoryService history) => _history = history;
+	public SystemClipboardViewModel(IClipboardHistoryService clipboardHistory) => _clipboardHistory = clipboardHistory;
 	#endregion
 
 	#region Commands
@@ -61,7 +61,7 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	[RelayCommand(CanExecute = nameof(CanClear))]
 	private void Clear()
 	{
-		_history.Entries.Clear();
+		_clipboardHistory.Entries.Clear();
 
 		ClearCommand.NotifyCanExecuteChanged();
 	}
@@ -74,7 +74,7 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	{
 		return entry is null
 			? Task.CompletedTask
-			: _history.RestoreAsync(entry);
+			: _clipboardHistory.RestoreAsync(entry);
 	}
 	#endregion
 
@@ -82,6 +82,6 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanClear() => _history.Entries.Count > 0;
+	private bool CanClear() => _clipboardHistory.Entries.Count > 0;
 	#endregion
 }
