@@ -174,7 +174,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// <summary>
 	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
 	/// </summary>
-	private static async Task<byte[]?> TryReadImagePngAsync(IClipboard clipboard)
+	private async Task<byte[]?> TryReadImagePngAsync(IClipboard clipboard)
 	{
 		Bitmap? bitmap;
 
@@ -184,8 +184,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				.TryGetBitmapAsync()
 				.ConfigureAwait(false);
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger.LogWarning(ex.Message);
+
 			return null;
 		}
 
@@ -202,8 +204,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 			return output.ToArray();
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger.LogWarning(ex.Message);
+
 			return null;
 		}
 		finally
@@ -215,7 +219,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// <summary>
 	/// Reads clipboard text if available.
 	/// </summary>
-	private static async Task<string?> TryReadTextAsync(IClipboard clipboard)
+	private async Task<string?> TryReadTextAsync(IClipboard clipboard)
 	{
 		try
 		{
@@ -223,8 +227,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				.TryGetTextAsync()
 				.ConfigureAwait(false);
 		}
-		catch
+		catch (Exception ex)
 		{
+			_logger.LogWarning(ex.Message);
+
 			return null;
 		}
 	}
@@ -354,7 +360,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 					Kind = ClipboardEntryKind.Text,
 					Text = text,
 					Hash = hash,
-					Timestamp = DateTimeOffset.Now,
+					Timestamp = DateTimeOffset.Now
 				});
 
 				return;
@@ -369,7 +375,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 					Kind = ClipboardEntryKind.Image,
 					OriginalPng = png,
 					Hash = hash,
-					Timestamp = DateTimeOffset.Now,
+					Timestamp = DateTimeOffset.Now
 				});
 			}
 		}
