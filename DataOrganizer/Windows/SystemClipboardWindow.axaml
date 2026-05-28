@@ -2,7 +2,6 @@
 	x:Class="DataOrganizer.Windows.SystemClipboardWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dto="clr-namespace:DataOrganizer.DTO"
 	xmlns:enums="clr-namespace:DataOrganizer.Enums"
@@ -22,8 +21,15 @@
 	mc:Ignorable="d">
 
 	<Interaction.Behaviors>
-		<behaviors:CloseWindowOnDeactivatedBehavior />
-		<behaviors:CloseWindowOnEscapeBehavior />
+		<EventTriggerBehavior EventName="Deactivated">
+			<CloseWindowAction />
+		</EventTriggerBehavior>
+
+		<KeyDownTrigger
+			Key="Escape"
+			EventRoutingStrategy="Bubble">
+			<CloseWindowAction />
+		</KeyDownTrigger>
 	</Interaction.Behaviors>
 
 	<Window.Styles>
@@ -86,9 +92,13 @@
 								HorizontalContentAlignment="Stretch"
 								Command="{Binding $parent[Window].((vm:SystemClipboardViewModel)DataContext).RestoreEntryCommand}"
 								CommandParameter="{Binding}">
+
 								<Interaction.Behaviors>
-									<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+									<ButtonClickEventTriggerBehavior>
+										<CloseWindowAction TargetWindow="{Binding $parent[Window]}" />
+									</ButtonClickEventTriggerBehavior>
 								</Interaction.Behaviors>
+
 								<Panel>
 									<!-- Text entries -->
 									<TextBlock
