@@ -252,7 +252,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 		try
 		{
-			bitmap = await clipboard.TryGetBitmapAsync();
+			bitmap = await clipboard
+				.TryGetBitmapAsync()
+				.ConfigureAwait(false);
 		}
 		catch
 		{
