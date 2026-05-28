@@ -169,6 +169,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clipboard.
+        /// </summary>
+        public static string Clipboard {
+            get {
+                return ResourceManager.GetString("Clipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         public static string Close {
@@ -1200,15 +1209,6 @@ namespace Shared.Properties {
         public static string System {
             get {
                 return ResourceManager.GetString("System", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to System Clipboard.
-        /// </summary>
-        public static string SystemClipboard {
-            get {
-                return ResourceManager.GetString("SystemClipboard", resourceCulture);
             }
         }
         

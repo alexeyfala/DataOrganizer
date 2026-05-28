@@ -123,20 +123,13 @@ public abstract partial class ViewModelBase :
 	[RelayCommand]
 	private void ShowSystemClipboard(Window? owner)
 	{
-		Window? anchor = owner;
-
-		if (anchor is null)
-		{
-			_app.FindDataContext<ViewModelBase>(out anchor);
-		}
-
-		if (anchor is null)
+		if (owner is null)
 		{
 			return;
 		}
 
 		_viewLauncher
-			.ConfigureSystemClipboardWindow(anchor)
+			.ConfigureSystemClipboardWindow(owner)
 			.Show();
 	}
 

@@ -15,7 +15,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <see cref="SystemClipboardWindow" />.
 /// </summary>
-public sealed partial class SystemClipboardViewModel : ObservableObject
+public sealed partial class CustomClipboardViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
@@ -34,7 +34,7 @@ public sealed partial class SystemClipboardViewModel : ObservableObject
 	#endregion
 
 	#region Constructors
-	public SystemClipboardViewModel(IClipboardHistoryService clipboardHistory) => _clipboardHistory = clipboardHistory;
+	public CustomClipboardViewModel(IClipboardHistoryService clipboardHistory) => _clipboardHistory = clipboardHistory;
 	#endregion
 
 	#region Commands

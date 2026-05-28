@@ -8,6 +8,6 @@ public sealed partial class SystemClipboardWindow : Window
 	#region Constructors
 	public SystemClipboardWindow() => InitializeComponent();
 
-	public SystemClipboardWindow(SystemClipboardViewModel viewModel) : this() => DataContext = viewModel;
+	public SystemClipboardWindow(CustomClipboardViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

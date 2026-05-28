@@ -303,7 +303,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		_logger.LogInformation($@"Opening ""{nameof(SystemClipboardWindow)}""");
 
-		SystemClipboardViewModel viewModel = _viewFactory.CreateViewModel<SystemClipboardViewModel>();
+		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
 
 		SystemClipboardWindow window = _viewFactory.CreateWindow<SystemClipboardWindow>(viewModel);
 

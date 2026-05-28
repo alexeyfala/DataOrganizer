@@ -295,8 +295,8 @@
   <data name="Favorites" xml:space="preserve">
     <value>Favorites</value>
   </data>
-  <data name="SystemClipboard" xml:space="preserve">
-    <value>System Clipboard</value>
+  <data name="Clipboard" xml:space="preserve">
+    <value>Clipboard</value>
   </data>
   <data name="ContentCopyHistory" xml:space="preserve">
     <value>Content Copy History</value>

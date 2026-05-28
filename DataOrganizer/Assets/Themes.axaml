@@ -23,7 +23,7 @@
 				<Template>
 					<ToolTip>
 						<TextBlock>
-							<Run Text="{x:Static prop:Strings.SystemClipboard}" />
+							<Run Text="{x:Static prop:Strings.Clipboard}" />
 						</TextBlock>
 					</ToolTip>
 				</Template>

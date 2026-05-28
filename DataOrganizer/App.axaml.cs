@@ -286,6 +286,7 @@ public sealed class App : Application
 		services.AddTransient<AppPickerViewModel>();
 		services.AddTransient<BooleanAsyncResultViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
+		services.AddTransient<CustomClipboardViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
@@ -300,7 +301,6 @@ public sealed class App : Application
 		services.AddTransient<PropertiesViewModel>();
 		services.AddTransient<SelectedFavoritesViewModel>();
 		services.AddTransient<SettingsViewModel>();
-		services.AddTransient<SystemClipboardViewModel>();
 		services.AddTransient<ToastViewModel>();
 		services.AddTransient<YesNoCancelBoxViewModel>();
 		#endregion
