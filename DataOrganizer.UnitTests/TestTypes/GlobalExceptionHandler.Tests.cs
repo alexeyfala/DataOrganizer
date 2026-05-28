@@ -9,12 +9,12 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ExceptionHandler)}"" type")]
-internal class ExceptionHandlerTests
+[TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
+internal class GlobalExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ExceptionHandler.HandleException" />.
+	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
 	/// </summary>
 	[Test]
 	public void HandleException_Deduplicates_Exceptions_With_Same_Message()
@@ -24,7 +24,7 @@ internal class ExceptionHandlerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
 
-		ExceptionHandler sut = mock.Create<ExceptionHandler>();
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
 
 		// Act
 		sut.HandleException(new InvalidOperationException("repeated"));
@@ -46,7 +46,7 @@ internal class ExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ExceptionHandler.HandleException" />.
+	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
 	/// </summary>
 	[Test]
 	public void HandleException_Logs_First_Occurrence_Of_Exception()
@@ -56,7 +56,7 @@ internal class ExceptionHandlerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
 
-		ExceptionHandler sut = mock.Create<ExceptionHandler>();
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
 
 		// Act
 		sut.HandleException(new InvalidOperationException("first"));
@@ -69,7 +69,7 @@ internal class ExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ExceptionHandler.HandleException" />.
+	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
 	/// </summary>
 	[Test]
 	public void HandleException_Resets_Deduplication_Set_After_Five_Unique_Exceptions()
@@ -79,7 +79,7 @@ internal class ExceptionHandlerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(logger));
 
-		ExceptionHandler sut = mock.Create<ExceptionHandler>();
+		GlobalExceptionHandler sut = mock.Create<GlobalExceptionHandler>();
 
 		// Act: feed 5 unique exceptions to fill the deduplication set, then a repeat of the first.
 		for (int i = 1; i <= 5; i++)

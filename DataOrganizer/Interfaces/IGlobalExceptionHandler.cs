@@ -5,7 +5,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Provides a means of detecting unhandled exceptions in an application.
 /// </summary>
-public interface IExceptionHandler : IDisposable
+public interface IGlobalExceptionHandler : IDisposable
 {
 	#region Methods
 	/// <summary>

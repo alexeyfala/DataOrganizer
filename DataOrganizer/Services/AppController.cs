@@ -62,8 +62,8 @@ public sealed class AppController : IAppController
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
-		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
+		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
 		ITaskExceptionHandler handler,
 		IViewLauncher viewLauncher,
@@ -91,7 +91,7 @@ public sealed class AppController : IAppController
 
 		_viewLauncher = viewLauncher;
 
-		exceptionHandler.StartMonitoring();
+		globalExceptionHandler.StartMonitoring();
 	}
 	#endregion
 
