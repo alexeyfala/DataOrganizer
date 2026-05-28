@@ -59,6 +59,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	private byte[]? _lastHash;
 
 	/// <summary>
+	/// Linked cancellation source created in <see cref="StartAsync" /> from the user token.
+	/// </summary>
+	private CancellationTokenSource? _stopCts;
+
+	/// <summary>
 	/// When non-zero, the next <see cref="PollOnceAsync" /> tick skips its match check.
 	/// </summary>
 	private int _suppressEcho;
@@ -83,7 +88,15 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose() => Interlocked.Exchange(ref _isDisposed, true);
+	public void Dispose()
+	{
+		if (Interlocked.Exchange(ref _isDisposed, true))
+		{
+			return;
+		}
+
+		Stop();
+	}
 
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntry entry)
@@ -101,9 +114,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
 		Interlocked.Exchange(ref _suppressEcho, 1);
 
-		// Pre-update last-seen hash to whatever we're about to write. Even if the
-		// suppression flag is missed (e.g. timer fires twice fast), the hash-equality
-		// check in PollOnceAsync will still skip the echo.
 		_lastHash = entry.Hash;
 
 		try
@@ -145,7 +155,37 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return Task.CompletedTask;
 		}
 
-		return LoopAsync(token);
+		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+		Interlocked
+			.Exchange(ref _stopCts, cancellation)?
+			.Dispose();
+
+		return LoopAsync(cancellation.Token);
+	}
+
+	/// <inheritdoc />
+	public void Stop()
+	{
+		CancellationTokenSource? local = Interlocked.Exchange(ref _stopCts, null);
+
+		if (local is null)
+		{
+			return;
+		}
+
+		try
+		{
+			local.Cancel();
+		}
+		catch (ObjectDisposedException)
+		{
+			// Already disposed — nothing to do.
+		}
+		finally
+		{
+			local.Dispose();
+		}
 	}
 	#endregion
 
@@ -169,70 +209,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		Bitmap bitmap = new(stream);
 
 		return clipboard.SetBitmapAsync(bitmap);
-	}
-
-	/// <summary>
-	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
-	/// </summary>
-	private async Task<byte[]?> TryReadImagePngAsync(IClipboard clipboard)
-	{
-		Bitmap? bitmap;
-
-		try
-		{
-			bitmap = await clipboard
-				.TryGetBitmapAsync()
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex.Message);
-
-			return null;
-		}
-
-		if (bitmap is null)
-		{
-			return null;
-		}
-
-		try
-		{
-			await using MemoryStream output = new();
-
-			bitmap.Save(output);
-
-			return output.ToArray();
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex.Message);
-
-			return null;
-		}
-		finally
-		{
-			bitmap.Dispose();
-		}
-	}
-
-	/// <summary>
-	/// Reads clipboard text if available.
-	/// </summary>
-	private async Task<string?> TryReadTextAsync(IClipboard clipboard)
-	{
-		try
-		{
-			return await clipboard
-				.TryGetTextAsync()
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogWarning(ex.Message);
-
-			return null;
-		}
 	}
 
 	/// <summary>
@@ -311,6 +287,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		{
 			Interlocked.Exchange(ref _isLoopRunning, false);
 
+			Interlocked
+				.Exchange(ref _stopCts, null)?
+				.Dispose();
+
 			_logger.LogInformation($"{nameof(ClipboardHistoryService)} loop stopped.");
 		}
 	}
@@ -383,6 +363,70 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		{
 			// Polling errors must never tear the timer down.
 			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
+		}
+	}
+
+	/// <summary>
+	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
+	/// </summary>
+	private async Task<byte[]?> TryReadImagePngAsync(IClipboard clipboard)
+	{
+		Bitmap? bitmap;
+
+		try
+		{
+			bitmap = await clipboard
+				.TryGetBitmapAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex.Message);
+
+			return null;
+		}
+
+		if (bitmap is null)
+		{
+			return null;
+		}
+
+		try
+		{
+			await using MemoryStream output = new();
+
+			bitmap.Save(output);
+
+			return output.ToArray();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex.Message);
+
+			return null;
+		}
+		finally
+		{
+			bitmap.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Reads clipboard text if available.
+	/// </summary>
+	private async Task<string?> TryReadTextAsync(IClipboard clipboard)
+	{
+		try
+		{
+			return await clipboard
+				.TryGetTextAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogWarning(ex.Message);
+
+			return null;
 		}
 	}
 	#endregion
