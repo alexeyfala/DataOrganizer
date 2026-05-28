@@ -121,7 +121,7 @@ public abstract partial class ViewModelBase :
 	/// Opens the custom clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
-	private void ShowSystemClipboard(Window? owner)
+	private void ShowCustomClipboard(Window? owner)
 	{
 		if (owner is null)
 		{
@@ -129,7 +129,7 @@ public abstract partial class ViewModelBase :
 		}
 
 		_viewLauncher
-			.ConfigureSystemClipboardWindow(owner)
+			.ConfigureCustomClipboardWindow(owner)
 			.Show();
 	}
 

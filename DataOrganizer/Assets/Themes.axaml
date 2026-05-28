@@ -5,7 +5,7 @@
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared">
 
 	<ControlTheme
-		x:Key="ShowSystemClipboardButtonTheme"
+		x:Key="CustomClipboardButtonTheme"
 		BasedOn="{StaticResource MaterialFlatButton}"
 		TargetType="Button">
 		<Setter Property="Content">
@@ -32,7 +32,7 @@
 	</ControlTheme>
 
 	<ControlTheme
-		x:Key="ShowWindowsClipboardButtonTheme"
+		x:Key="WindowsClipboardButtonTheme"
 		BasedOn="{StaticResource MaterialFlatButton}"
 		TargetType="Button">
 		<Setter Property="IsVisible" Value="{OnPlatform Default={x:False}, Windows={x:True}}" />

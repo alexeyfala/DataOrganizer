@@ -106,5 +106,8 @@
 		<Compile Update="Windows\FavoritesWindow.axaml.cs">
 			<DependentUpon>FavoritesWindow.axaml</DependentUpon>
 		</Compile>
+		<Compile Update="Windows\CustomClipboardWindow.axaml.cs">
+		  <DependentUpon>CustomClipboardWindow.axaml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 </Project>

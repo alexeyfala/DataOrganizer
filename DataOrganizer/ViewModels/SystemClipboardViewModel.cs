@@ -6,14 +6,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Windows;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="SystemClipboardWindow" />.
+/// View model for <c>CustomClipboardWindow</c>.
 /// </summary>
 public sealed partial class CustomClipboardViewModel : ObservableObject
 {

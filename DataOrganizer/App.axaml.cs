@@ -308,6 +308,7 @@ public sealed class App : Application
 		#region Views
 		services.AddTransient<AppPickerView>();
 		services.AddTransient<ConsoleWindow>();
+		services.AddTransient<CustomClipboardWindow>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
@@ -320,7 +321,6 @@ public sealed class App : Application
 		services.AddTransient<PasswordBox>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SettingsView>();
-		services.AddTransient<SystemClipboardWindow>();
 		services.AddTransient<ToastWindow>();
 		services.AddTransient<YesNoCancelBox>();
 		#endregion

@@ -100,6 +100,23 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="CustomClipboardWindow" />.
+	/// </summary>
+	private void CustomClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not CustomClipboardWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= CustomClipboardWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(CustomClipboardWindow)}"" and saving ""{nameof(CustomClipboardWindowSettings)}""");
+
+		SaveCustomClipboardSettings(window);
+	}
+
+	/// <summary>
 	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
 	/// </summary>
 	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -141,26 +158,43 @@ public class ViewLauncher : IViewLauncher
 
 		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
 	}
-
-	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="SystemClipboardWindow" />.
-	/// </summary>
-	private void SystemClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
-	{
-		if (sender is not SystemClipboardWindow window)
-		{
-			return;
-		}
-
-		window.Closing -= SystemClipboardWindow_Closing;
-
-		_logger.LogInformation($@"Closing ""{nameof(SystemClipboardWindow)}"" and saving ""{nameof(SystemClipboardWindowSettings)}""");
-
-		SaveSystemClipboardSettings(window);
-	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(CustomClipboardWindow)}""");
+
+		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
+
+		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings));
+
+		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
+		{
+			PixelPoint candidate = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
+			{
+				window.Position = candidate;
+			}
+			else
+			{
+				PositionAtScreenBottomRight(window, owner);
+			}
+		}
+		else
+		{
+			PositionAtScreenBottomRight(window, owner);
+		}
+
+		window.Closing += CustomClipboardWindow_Closing;
+
+		return window;
+	}
+
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -299,37 +333,25 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public SystemClipboardWindow ConfigureSystemClipboardWindow(Window owner)
+	public void SaveCustomClipboardSettings(CustomClipboardWindow window)
 	{
-		_logger.LogInformation($@"Opening ""{nameof(SystemClipboardWindow)}""");
-
-		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
-
-		SystemClipboardWindow window = _viewFactory.CreateWindow<SystemClipboardWindow>(viewModel);
-
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(SystemClipboardWindowSettings));
-
-		if (_jsonSerializer.FromFile<SystemClipboardWindowSettings>(filePath) is { } settings)
+		try
 		{
-			PixelPoint candidate = new(settings.X, settings.Y);
+			CustomClipboardWindowSettings settings = new()
+			{
+				X = window.Position.X,
+				Y = window.Position.Y,
+			};
 
-			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
-			{
-				window.Position = candidate;
-			}
-			else
-			{
-				PositionAtScreenBottomRight(window, owner);
-			}
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings)),
+				false);
 		}
-		else
+		catch (Exception ex)
 		{
-			PositionAtScreenBottomRight(window, owner);
+			_logger.LogException(ex);
 		}
-
-		window.Closing += SystemClipboardWindow_Closing;
-
-		return window;
 	}
 
 	/// <inheritdoc />
@@ -445,28 +467,6 @@ public class ViewLauncher : IViewLauncher
 			window
 				.ViewModel
 				.Dispose();
-		}
-	}
-
-	/// <inheritdoc />
-	public void SaveSystemClipboardSettings(SystemClipboardWindow window)
-	{
-		try
-		{
-			SystemClipboardWindowSettings settings = new()
-			{
-				X = window.Position.X,
-				Y = window.Position.Y,
-			};
-
-			_fileSystem.SerializeToJsonFile(
-				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(SystemClipboardWindowSettings)),
-				false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
 		}
 	}
 	#endregion
