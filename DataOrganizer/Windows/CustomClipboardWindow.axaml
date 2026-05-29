@@ -141,7 +141,7 @@
 								<Button
 									Grid.Column="1"
 									Padding="6.0"
-									VerticalAlignment="Center"
+									VerticalAlignment="Stretch"
 									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
 									CommandParameter="{Binding Url, Mode=OneTime}"
 									Content="🌐"
