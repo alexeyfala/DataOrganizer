@@ -51,7 +51,7 @@ public sealed class ClipboardHistoryEntry
 	/// <summary>
 	/// Total maximum number of lines rendered by the files-summary block.
 	/// </summary>
-	private const int FilesSummaryMaxLines = 5;
+	private const int FilesSummaryMaxLines = 7;
 
 	/// <summary>
 	/// Longest side of the cached preview in device-independent pixels.
@@ -90,7 +90,7 @@ public sealed class ClipboardHistoryEntry
 
 		if (truncated)
 		{
-			lines.Add($"+{FileSystemEntries.Count - visibleCount} more");
+			lines.Add(" ...");
 		}
 
 		return string.Join(Environment.NewLine, lines);
