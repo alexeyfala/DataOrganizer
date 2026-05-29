@@ -45,11 +45,6 @@ public sealed class ClipboardHistoryEntry
 	/// Plain text content. <c>null</c> for image entries.
 	/// </summary>
 	public string? Text { get; init; }
-
-	/// <summary>
-	/// Wall-clock time when this entry was captured.
-	/// </summary>
-	public required DateTimeOffset Timestamp { get; init; }
 	#endregion
 
 	#region Data

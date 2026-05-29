@@ -383,8 +383,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				{
 					Kind = ClipboardEntryKind.FileSystemEntries,
 					FileSystemEntries = fileSystemEntries,
-					Hash = hash,
-					Timestamp = DateTimeOffset.Now
+					Hash = hash
 				});
 
 				return;
@@ -398,8 +397,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				{
 					Kind = ClipboardEntryKind.Image,
 					OriginalPng = png,
-					Hash = hash,
-					Timestamp = DateTimeOffset.Now
+					Hash = hash
 				});
 
 				return;
@@ -413,8 +411,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				{
 					Kind = ClipboardEntryKind.Text,
 					Text = text,
-					Hash = hash,
-					Timestamp = DateTimeOffset.Now
+					Hash = hash
 				});
 			}
 		}
