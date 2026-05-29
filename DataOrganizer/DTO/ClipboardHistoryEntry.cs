@@ -62,7 +62,7 @@ public sealed class ClipboardHistoryEntry
 	/// Total maximum number of lines rendered by the files-summary tooltip
 	/// (full expanded list, capped to avoid a screen-tall tooltip).
 	/// </summary>
-	private const int FilesSummaryToolTipMaxLines = 30;
+	private const int FilesSummaryToolTipMaxLines = 22;
 
 	/// <summary>
 	/// Longest side of the cached preview in device-independent pixels.
