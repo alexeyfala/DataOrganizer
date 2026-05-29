@@ -5,8 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Cysharp.Text;
-using DataOrganizer.DTO;
-using DataOrganizer.Enums;
+using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -29,7 +28,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 {
 	#region Properties
 	/// <inheritdoc />
-	public ObservableCollection<ClipboardHistoryEntry> Entries { get; } = [];
+	public ObservableCollection<ClipboardHistoryEntryBase> Entries { get; } = [];
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
@@ -131,7 +130,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreAsync(ClipboardHistoryEntry entry)
+	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
 		if (Volatile.Read(ref _isDisposed))
 		{
@@ -150,31 +149,31 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 		try
 		{
-			switch (entry.Kind)
+			switch (entry)
 			{
-				case ClipboardEntryKind.Text when entry.Text is { } text:
+				case ClipboardTextEntry textEntry:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Text}, {text.Length} chars" +
-						$"{(entry.Html is null ? string.Empty : " + HTML")}" +
-						$"{(entry.Rtf is null ? string.Empty : " + RTF")}.");
+						$"Restoring clipboard entry: {nameof(ClipboardTextEntry)}, {textEntry.Text.Length} chars" +
+						$"{(textEntry.Html is null ? string.Empty : " + HTML")}" +
+						$"{(textEntry.Rtf is null ? string.Empty : " + RTF")}.");
 
 					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetTextWithFormatsAsync(clipboard, text, entry.Html, entry.Rtf)))
+						.PostAsync(() => _exceptionHandler.Watch(SetTextWithFormatsAsync(clipboard, textEntry.Text, textEntry.Html, textEntry.Rtf)))
 						.ConfigureAwait(false);
 					break;
 
-				case ClipboardEntryKind.Image when entry.OriginalPng is { Length: > 0 } png:
+				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Image}, {png.Length} bytes (PNG).");
+						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
 					await _dispatcher
 						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
 						.ConfigureAwait(false);
 					break;
 
-				case ClipboardEntryKind.FileSystemEntries when entry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
+				case ClipboardFilesEntry filesEntry when filesEntry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.FileSystemEntries}, {fileSystemEntries.Count} items.");
+						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
 					await _dispatcher
 						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileSystemEntries)))
@@ -415,7 +414,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// Compares <paramref name="hash" /> with <see cref="_lastHash" /> and pushes a new
 	/// entry to the top of the list when it changed.
 	/// </summary>
-	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntry> entryFactory)
+	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
 		if (Interlocked.Exchange(ref _suppressEcho, 0) == 1)
 		{
@@ -445,7 +444,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// <summary>
 	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
 	/// </summary>
-	private void InsertAtTop(ClipboardHistoryEntry entry)
+	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
 		Entries.Insert(0, entry);
 
@@ -499,7 +498,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// Moves <paramref name="entry" /> to position 0 if it is already in the collection,
 	/// otherwise inserts it.
 	/// </summary>
-	private void MoveToTop(ClipboardHistoryEntry entry)
+	private void MoveToTop(ClipboardHistoryEntryBase entry)
 	{
 		int index = Entries.IndexOf(entry);
 
@@ -534,9 +533,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
 
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
+				HandleNewPayload(hash, () => new ClipboardFilesEntry
 				{
-					Kind = ClipboardEntryKind.FileSystemEntries,
 					FileSystemEntries = fileSystemEntries,
 					Hash = hash
 				});
@@ -548,9 +546,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 			{
 				byte[] hash = ComputeHash(png);
 
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
+				HandleNewPayload(hash, () => new ClipboardImageEntry
 				{
-					Kind = ClipboardEntryKind.Image,
 					OriginalPng = png,
 					Hash = hash
 				});
@@ -568,15 +565,22 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 				string? url = TryDetectUrl(text);
 
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
-				{
-					Kind = ClipboardEntryKind.Text,
-					Text = text,
-					Html = html,
-					Rtf = rtf,
-					Url = url,
-					Hash = hash
-				});
+				HandleNewPayload(hash, () => url is null
+					? new ClipboardTextEntry
+					{
+						Text = text,
+						Html = html,
+						Rtf = rtf,
+						Hash = hash
+					}
+					: new ClipboardUrlEntry
+					{
+						Text = text,
+						Html = html,
+						Rtf = rtf,
+						Url = url,
+						Hash = hash
+					});
 			}
 		}
 		catch (Exception ex)

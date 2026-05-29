@@ -3,9 +3,10 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:dto="clr-namespace:DataOrganizer.DTO"
-	xmlns:enums="clr-namespace:DataOrganizer.Enums"
+	xmlns:dto="using:DataOrganizer.DTO"
+	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
@@ -86,6 +87,33 @@
 						<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 					</ItemsControl.Resources>
 
+					<ItemsControl.DataTemplates>
+						<DataTemplate DataType="{x:Type clipboard:ClipboardTextEntry}">
+							<TextBlock
+								MaxHeight="{StaticResource TextEntryMaxHeight}"
+								Text="{Binding Text, Mode=OneTime}"
+								TextTrimming="CharacterEllipsis"
+								TextWrapping="Wrap" />
+						</DataTemplate>
+
+						<DataTemplate DataType="{x:Type clipboard:ClipboardImageEntry}">
+							<Image
+								MaxWidth="{StaticResource ImageEntryMaxWidth}"
+								MaxHeight="{StaticResource ImageEntryMaxHeight}"
+								HorizontalAlignment="Left"
+								Source="{Binding ImagePreview, Mode=OneTime}"
+								Stretch="Uniform" />
+						</DataTemplate>
+
+						<DataTemplate DataType="{x:Type clipboard:ClipboardFilesEntry}">
+							<TextBlock
+								Text="{Binding FilesSummary, Mode=OneTime}"
+								TextTrimming="CharacterEllipsis"
+								TextWrapping="NoWrap"
+								ToolTip.Tip="{Binding FilesSummaryToolTip, Mode=OneTime}" />
+						</DataTemplate>
+					</ItemsControl.DataTemplates>
+
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
 							<StackPanel
@@ -95,7 +123,7 @@
 					</ItemsControl.ItemsPanel>
 
 					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="{x:Type dto:ClipboardHistoryEntry}">
+						<DataTemplate DataType="{x:Type clipboard:ClipboardHistoryEntryBase}">
 							<Grid ColumnDefinitions="*,Auto">
 								<Button
 									Grid.Column="0"
@@ -104,50 +132,28 @@
 									Background="{StaticResource MaterialDividerBrush}"
 									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
 									CommandParameter="{Binding}"
-									Cursor="Arrow"
-									ToolTip.Tip="{Binding FilesSummaryToolTip, Mode=OneTime}">
+									Cursor="Arrow">
 
 									<Interaction.Behaviors>
 										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
 									</Interaction.Behaviors>
 
-									<Panel>
-										<!-- Text entries -->
-										<TextBlock
-											MaxHeight="{StaticResource TextEntryMaxHeight}"
-											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Text}}"
-											Text="{Binding Text, Mode=OneTime}"
-											TextTrimming="CharacterEllipsis"
-											TextWrapping="Wrap" />
-
-										<!-- Image entries -->
-										<Image
-											MaxWidth="{StaticResource ImageEntryMaxWidth}"
-											MaxHeight="{StaticResource ImageEntryMaxHeight}"
-											HorizontalAlignment="Left"
-											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
-											Source="{Binding ImagePreview, Mode=OneTime}"
-											Stretch="Uniform" />
-
-										<TextBlock
-											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
-											Text="{Binding FilesSummary, Mode=OneTime}"
-											TextTrimming="CharacterEllipsis"
-											TextWrapping="NoWrap" />
-									</Panel>
+									<ContentControl Content="{Binding}" />
 								</Button>
 
-								<!-- Side action: open URL externally (visible only for URL-shaped text entries). -->
+								<!-- Side action: open URL externally (visible only for ClipboardUrlEntry). -->
 								<Button
 									Grid.Column="1"
 									Padding="6.0"
 									VerticalAlignment="Stretch"
 									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-									CommandParameter="{Binding Url, Mode=OneTime}"
+									CommandParameter="{ReflectionBinding Url,
+									                                     Mode=OneTime}"
 									Content="🌐"
 									Cursor="Arrow"
 									IsVisible="{Binding IsUrl}"
-									ToolTip.Tip="{Binding Url, Mode=OneTime}">
+									ToolTip.Tip="{ReflectionBinding Url,
+									                                Mode=OneTime}">
 
 									<Interaction.Behaviors>
 										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />

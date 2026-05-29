@@ -1,0 +1,26 @@
+namespace DataOrganizer.DTO.Clipboard;
+
+/// <summary>
+/// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
+/// </summary>
+public class ClipboardTextEntry : ClipboardHistoryEntryBase
+{
+	#region Properties
+	/// <summary>
+	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
+	/// source app provided one. Pushed back to the clipboard alongside plain text
+	/// on restore so paste targets can pick up the formatting.
+	/// </summary>
+	public string? Html { get; init; }
+
+	/// <summary>
+	/// RTF version of <see cref="Text" /> when the source app provided one.
+	/// </summary>
+	public string? Rtf { get; init; }
+
+	/// <summary>
+	/// Plain text content.
+	/// </summary>
+	public required string Text { get; init; }
+	#endregion
+}

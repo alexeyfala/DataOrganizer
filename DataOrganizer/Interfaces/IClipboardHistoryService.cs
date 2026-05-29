@@ -1,4 +1,4 @@
-using DataOrganizer.DTO;
+using DataOrganizer.DTO.Clipboard;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +21,7 @@ public interface IClipboardHistoryService
 	/// <summary>
 	/// History entries, newest first.
 	/// </summary>
-	ObservableCollection<ClipboardHistoryEntry> Entries { get; }
+	ObservableCollection<ClipboardHistoryEntryBase> Entries { get; }
 
 	/// <summary>
 	/// <c>True</c> while the background polling timer is active.
@@ -34,7 +34,7 @@ public interface IClipboardHistoryService
 	/// Restores <paramref name="entry" /> into the system clipboard and moves it
 	/// to the top of <see cref="Entries" />.
 	/// </summary>
-	Task RestoreAsync(ClipboardHistoryEntry entry);
+	Task RestoreAsync(ClipboardHistoryEntryBase entry);
 
 	/// <summary>
 	/// Starts background polling. Safe to call more than once.

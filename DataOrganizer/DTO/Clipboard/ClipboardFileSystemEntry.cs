@@ -1,10 +1,9 @@
-using SystemPath = System.IO.Path;
+﻿using SystemPath = System.IO.Path;
 
-namespace DataOrganizer.DTO;
+namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
-/// One filesystem item captured in a <see cref="ClipboardHistoryEntry" /> of
-/// kind <see cref="Enums.ClipboardEntryKind.FileSystemEntries" />.
+/// One filesystem item captured in a <see cref="Clipboard.ClipboardFilesEntry" />.
 /// </summary>
 /// <param name="Path">Absolute local path as reported by <c>IStorageItem.Path.LocalPath</c>.</param>
 /// <param name="IsFolder"><c>True</c> when the item is a directory.</param>
