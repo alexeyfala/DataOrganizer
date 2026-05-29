@@ -4,9 +4,11 @@ using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Cysharp.Text;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -222,20 +224,20 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// </summary>
 	private static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
-		StringBuilder sb = new();
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 
 		foreach (ClipboardFileSystemEntry entry in entries)
 		{
-			sb.Append(entry.IsFolder ? 'D' : 'F');
+			builder.Append(entry.IsFolder ? 'D' : 'F');
 
-			sb.Append('|');
+			builder.Append('|');
 
-			sb.Append(entry.Path);
+			builder.Append(entry.Path);
 
-			sb.Append('\0');
+			builder.Append('\0');
 		}
 
-		return ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+		return ComputeHash(TextHelper.Utf8Encoding.GetBytes(builder.ToString()));
 	}
 
 	/// <summary>

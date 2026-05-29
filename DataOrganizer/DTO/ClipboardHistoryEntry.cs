@@ -79,7 +79,9 @@ public sealed class ClipboardHistoryEntry
 
 		IEnumerable<string> names = FileSystemEntries.Select(entry =>
 		{
-			string trimmed = entry.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			string trimmed = entry.
+				Path.
+				TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
 			string name = Path.GetFileName(trimmed);
 
