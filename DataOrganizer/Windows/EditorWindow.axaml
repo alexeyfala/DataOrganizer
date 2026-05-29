@@ -207,8 +207,14 @@
 
 							<Button
 								Classes="primary"
-								Command="{Binding ShowSystemClipboardCommand}"
-								Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
+								Command="{Binding ShowCustomClipboardCommand}"
+								CommandParameter="{Binding $parent[Window]}"
+								Theme="{StaticResource CustomClipboardButtonTheme}" />
+
+							<Button
+								Classes="primary"
+								Command="{Binding ShowWindowsClipboardCommand}"
+								Theme="{StaticResource WindowsClipboardButtonTheme}" />
 
 							<Panel Classes="VerticalSeparatorPanelStyle" />
 
@@ -265,7 +271,7 @@
 						<StackPanel
 							Grid.Column="2"
 							Orientation="Horizontal">
-							<Grid>
+							<Panel>
 								<Button
 									Classes="primary"
 									Command="{Binding ShowExecutingFilesCommand}"
@@ -280,9 +286,9 @@
 								<TextBlock
 									Classes="CountTextBlockStyle"
 									Text="{Binding ExecutingFiles.Count, Mode=OneWay}" />
-							</Grid>
+							</Panel>
 
-							<Grid>
+							<Panel>
 								<Button
 									Classes="primary"
 									Command="{Binding ShowCopyHistoryCommand}"
@@ -294,7 +300,7 @@
 								<TextBlock
 									Classes="CountTextBlockStyle"
 									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
-							</Grid>
+							</Panel>
 						</StackPanel>
 					</Grid>
 

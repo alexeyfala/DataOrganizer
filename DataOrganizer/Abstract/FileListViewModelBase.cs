@@ -64,7 +64,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		container.SelectedItem = file;
 
-		_handler.Watch(CopyContentAsync(
+		_exceptionHandler.Watch(CopyContentAsync(
 			file: file,
 			container: container,
 			updateView: false));
@@ -155,7 +155,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		_handler.Watch(viewModel.ShowInEditorAsync(id, window));
+		_exceptionHandler.Watch(viewModel.ShowInEditorAsync(id, window));
 	}
 	#endregion
 
@@ -168,7 +168,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
 			dbAccess,
@@ -176,7 +176,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			entityEncryption,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 	}
 	#endregion

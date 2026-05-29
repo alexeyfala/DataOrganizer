@@ -12,7 +12,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Models;
-using DataOrganizer.Views;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -35,7 +34,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="DatasetEditorView" />.
+/// View model for <c>DatasetEditorView</c>.
 /// </summary>
 public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 {
@@ -564,14 +563,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
 			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 		_clipboard = clipboardService;
 
@@ -618,7 +617,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		_handler.Watch(SavePropertiesAsync(json));
+		_exceptionHandler.Watch(SavePropertiesAsync(json));
 	}
 	#endregion
 

@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Windows;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="ToastWindow" />.
+/// View model for <c>ToastWindow</c>.
 /// </summary>
 internal sealed partial class ToastViewModel : ObservableObject
 {

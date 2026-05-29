@@ -263,17 +263,18 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
+		services.AddSingleton<IClipboardHistoryService, ClipboardHistoryService>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
-		services.AddSingleton<IExceptionHandler, ExceptionHandler>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();
+		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
@@ -285,6 +286,7 @@ public sealed class App : Application
 		services.AddTransient<AppPickerViewModel>();
 		services.AddTransient<BooleanAsyncResultViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
+		services.AddTransient<CustomClipboardViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
@@ -306,6 +308,7 @@ public sealed class App : Application
 		#region Views
 		services.AddTransient<AppPickerView>();
 		services.AddTransient<ConsoleWindow>();
+		services.AddTransient<CustomClipboardWindow>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();

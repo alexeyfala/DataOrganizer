@@ -41,7 +41,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	protected readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	protected readonly ITaskExceptionHandler _handler;
+	protected readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
@@ -59,7 +59,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
@@ -71,7 +71,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		_entityEncryption = entityEncryption;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -162,7 +162,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					_handler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
+					_exceptionHandler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
 				}
 			}
 			finally

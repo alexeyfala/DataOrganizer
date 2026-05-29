@@ -169,6 +169,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clipboard.
+        /// </summary>
+        public static string Clipboard {
+            get {
+                return ResourceManager.GetString("Clipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         public static string Close {
@@ -1204,15 +1213,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to System Clipboard.
-        /// </summary>
-        public static string SystemClipboard {
-            get {
-                return ResourceManager.GetString("SystemClipboard", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The contents of the &quot;{0}&quot; have been copied to the clipboard.
         /// </summary>
         public static string TheContentsCopiedToClipboard {
@@ -1317,6 +1317,15 @@ namespace Shared.Properties {
         public static string Value {
             get {
                 return ResourceManager.GetString("Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Clipboard.
+        /// </summary>
+        public static string WindowsClipboard {
+            get {
+                return ResourceManager.GetString("WindowsClipboard", resourceCulture);
             }
         }
         

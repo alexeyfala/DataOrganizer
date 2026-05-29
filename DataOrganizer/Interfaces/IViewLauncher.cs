@@ -9,7 +9,6 @@ using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -27,6 +26,11 @@ public interface IViewLauncher
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Configures <see cref="CustomClipboardWindow" />.
+	/// </summary>
+	CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner);
+
 	/// <summary>
 	/// Configures <see cref="EditorWindow" />.
 	/// </summary>
@@ -50,14 +54,19 @@ public interface IViewLauncher
 	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
+	/// Saves <see cref="CustomClipboardWindow" /> settings to the file.
+	/// </summary>
+	void SaveCustomClipboardSettings(CustomClipboardWindow window);
+
+	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
 	/// </summary>
-	Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default);
+	Task SaveEditorSettingsAsync(EditorWindow window);
 
 	/// <summary>
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
-	Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default);
+	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
 
 	/// <summary>
 	/// Checks whether <paramref name="position" /> places the window's title bar

@@ -272,10 +272,16 @@
 
 					<Button
 						Classes="primary"
-						Command="{Binding ShowSystemClipboardCommand}"
-						Theme="{StaticResource ShowSystemClipboardButtonTheme}" />
+						Command="{Binding ShowCustomClipboardCommand}"
+						CommandParameter="{Binding $parent[Window]}"
+						Theme="{StaticResource CustomClipboardButtonTheme}" />
 
-					<Grid>
+					<Button
+						Classes="primary"
+						Command="{Binding ShowWindowsClipboardCommand}"
+						Theme="{StaticResource WindowsClipboardButtonTheme}" />
+
+					<Panel>
 						<ToggleButton
 							Classes="primary"
 							Command="{Binding ShowCopyHistoryCommand}"
@@ -286,7 +292,7 @@
 						<TextBlock
 							Classes="CountTextBlockStyle"
 							Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
-					</Grid>
+					</Panel>
 				</StackPanel>
 			</Border>
 		</Grid>

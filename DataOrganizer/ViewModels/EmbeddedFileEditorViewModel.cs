@@ -11,7 +11,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -30,7 +29,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="EmbeddedFileEditorView" />.
+/// View model for <c>EmbeddedFileEditorView</c>.
 /// </summary>
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
@@ -141,7 +140,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				//	.Subscribe(Editor_PropertyChanged)
 				//	.DisposeWith(_disposables);
 
-				_handler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
+				_exceptionHandler.Watch(Task.Run(() => ProcessSaveChannelAsync()));
 
 				_logger.LogInformation($@"Content is initialized in ""{GetType().Name}""");
 
@@ -209,14 +208,14 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ITaskExceptionHandler handler) : base(
+		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
 			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
-			handler)
+			exceptionHandler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}
@@ -235,7 +234,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_handler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySavePropertiesAsync());
 		}
 	}
 
@@ -442,7 +441,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_handler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySavePropertiesAsync());
 		}
 	}
 

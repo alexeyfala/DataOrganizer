@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using DataOrganizer.Windows;
 using System.Collections.ObjectModel;
 using System.Threading;
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="AppPickerView" />. Lets the user choose one application
+/// View model for <c>AppPickerView</c>. Lets the user choose one application
 /// from the supplied <see cref="Candidates" /> list to open a file with.
 /// </summary>
 internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<AssociatedAppInfo?>
@@ -103,7 +102,7 @@ internal sealed partial class AppPickerViewModel : AsyncResultViewModelBase<Asso
 		Application app,
 		IAppPickerService appPicker,
 		IFileSystemPicker fileSystemPicker,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 		_appPicker = appPicker;
 

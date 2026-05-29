@@ -2,13 +2,12 @@ using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="PasswordBox" />.
+/// View model for <c>PasswordBox</c>.
 /// </summary>
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 {
@@ -51,7 +50,7 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	#region Constructors
 	public PasswordBoxViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

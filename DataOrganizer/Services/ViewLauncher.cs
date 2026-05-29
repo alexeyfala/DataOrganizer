@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -34,15 +33,17 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IClipboardHistoryService" />
+	private readonly IClipboardHistoryService _clipboardHistory;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <inheritdoc cref="IExecutionEngine" />
 	private readonly IExecutionEngine _executionEngine;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
-
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 
@@ -63,12 +64,13 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
+		IClipboardHistoryService clipboardHistory,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IServiceProvider serviceProvider,
-		ITaskExceptionHandler handler,
+		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		Lazy<IKeyboardInputHook> keyboardInputHook)
 	{
@@ -76,11 +78,13 @@ public class ViewLauncher : IViewLauncher
 
 		_appEnvironment = appEnvironment;
 
+		_clipboardHistory = clipboardHistory;
+
+		_exceptionHandler = exceptionHandler;
+
 		_executionEngine = executionEngine;
 
 		_fileSystem = fileSystem;
-
-		_handler = handler;
 
 		_jsonSerializer = jsonSerializer;
 
@@ -96,6 +100,23 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
+	/// <see cref="Window.Closing" /> event handler of <see cref="CustomClipboardWindow" />.
+	/// </summary>
+	private void CustomClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
+	{
+		if (sender is not CustomClipboardWindow window)
+		{
+			return;
+		}
+
+		window.Closing -= CustomClipboardWindow_Closing;
+
+		_logger.LogInformation($@"Closing ""{nameof(CustomClipboardWindow)}"" and saving ""{nameof(CustomClipboardWindowSettings)}""");
+
+		SaveCustomClipboardSettings(window);
+	}
+
+	/// <summary>
 	/// <see cref="Window.Closing" /> event handler of <see cref="EditorWindow" />.
 	/// </summary>
 	private void EditorWindow_Closing(object? sender, WindowClosingEventArgs e)
@@ -109,7 +130,7 @@ public class ViewLauncher : IViewLauncher
 
 		_logger.LogInformation($@"Closing ""{nameof(EditorWindow)}"" and saving ""{nameof(EditorWindowSettings)}""");
 
-		_handler.Watch(SaveEditorSettingsAsync(window));
+		_exceptionHandler.Watch(SaveEditorSettingsAsync(window));
 	}
 
 	/// <summary>
@@ -135,11 +156,45 @@ public class ViewLauncher : IViewLauncher
 				.SaveContent();
 		}
 
-		_handler.Watch(SaveFavoritesSettingsAsync(window));
+		_exceptionHandler.Watch(SaveFavoritesSettingsAsync(window));
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner)
+	{
+		_logger.LogInformation($@"Opening ""{nameof(CustomClipboardWindow)}""");
+
+		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
+
+		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
+
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings));
+
+		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
+		{
+			PixelPoint candidate = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
+			{
+				window.Position = candidate;
+			}
+			else
+			{
+				PositionAtScreenBottomRight(window, owner);
+			}
+		}
+		else
+		{
+			PositionAtScreenBottomRight(window, owner);
+		}
+
+		window.Closing += CustomClipboardWindow_Closing;
+
+		return window;
+	}
+
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -171,7 +226,7 @@ public class ViewLauncher : IViewLauncher
 
 		if (showObjectId.IsNotDefault())
 		{
-			_handler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
+			_exceptionHandler.Watch(viewModel.ShowInEditorAsync(showObjectId, window));
 		}
 		else if (hierarchy.FindBy(x => x.IsSelected) is { } selected)
 		{
@@ -278,7 +333,29 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveEditorSettingsAsync(EditorWindow window, CancellationToken token = default)
+	public void SaveCustomClipboardSettings(CustomClipboardWindow window)
+	{
+		try
+		{
+			CustomClipboardWindowSettings settings = new()
+			{
+				X = window.Position.X,
+				Y = window.Position.Y,
+			};
+
+			_fileSystem.SerializeToJsonFile(
+				settings,
+				_appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings)),
+				false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task SaveEditorSettingsAsync(EditorWindow window)
 	{
 		try
 		{
@@ -340,7 +417,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window, CancellationToken token = default)
+	public async Task SaveFavoritesSettingsAsync(FavoritesWindow window)
 	{
 		try
 		{
@@ -395,6 +472,33 @@ public class ViewLauncher : IViewLauncher
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Places <paramref name="target" /> at the bottom-right corner of the screen
+	/// that <paramref name="owner" /> currently lives on.
+	/// </summary>
+	private static void PositionAtScreenBottomRight(Window target, Window owner)
+	{
+		if ((owner.Screens?.ScreenFromWindow(owner) ?? owner.Screens?.Primary) is not { } screen)
+		{
+			return;
+		}
+
+		// 16 device-independent pixels of padding from the screen edge.
+		const int marginDip = 16;
+
+		PixelRect workingArea = screen.WorkingArea;
+
+		int widthPx = (int)(target.Width * screen.Scaling);
+
+		int heightPx = (int)(target.Height * screen.Scaling);
+
+		int marginPx = (int)(marginDip * screen.Scaling);
+
+		target.Position = new PixelPoint(
+			workingArea.X + workingArea.Width - widthPx - marginPx,
+			workingArea.Y + workingArea.Height - heightPx - marginPx);
+	}
+
 	/// <summary>
 	/// Tries to delete directory multiple times.
 	/// </summary>
@@ -464,9 +568,17 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (_keyboardInputHook.IsValueCreated)
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
-			_keyboardInputHook.Value.Dispose();
+			await _keyboardInputHook
+				.Value
+				.StopTrackingAsync()
+				.ConfigureAwait(true);
+		}
+
+		if (_clipboardHistory.IsRunning)
+		{
+			_clipboardHistory.Stop();
 		}
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))

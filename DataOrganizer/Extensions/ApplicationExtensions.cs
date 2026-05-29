@@ -5,6 +5,7 @@ using Avalonia.Input.Platform;
 using Avalonia.LogicalTree;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DialogHostAvalonia;
@@ -80,6 +81,19 @@ internal static class ApplicationExtensions
 	{
 		return FindWindow<Window>(target, x => x.DataContext is ViewModelBase)
 			.FindLogicalDescendantOfType<DialogHost>();
+	}
+
+	/// <summary>
+	/// Searches for a <see cref="TopLevel.StorageProvider" /> among windows already running in the application.
+	/// </summary>
+	public static IStorageProvider? FindStorageProvider(this Application target)
+	{
+		if (HasWindows(target, out IReadOnlyList<Window> windows))
+		{
+			return windows[0].StorageProvider;
+		}
+
+		return null;
 	}
 
 	/// <summary>

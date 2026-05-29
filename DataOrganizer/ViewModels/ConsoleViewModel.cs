@@ -10,7 +10,6 @@ using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Windows;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -19,7 +18,7 @@ using System.Threading;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="ConsoleWindow" />.
+/// View model for <c>ConsoleWindow</c>.
 /// </summary>
 public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {

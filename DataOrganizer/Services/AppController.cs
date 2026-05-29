@@ -23,6 +23,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IClipboardHistoryService" />
+	private readonly IClipboardHistoryService _clipboardHistory;
+
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
@@ -34,6 +37,9 @@ public sealed class AppController : IAppController
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -52,16 +58,20 @@ public sealed class AppController : IAppController
 	public AppController(
 		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
+		IClipboardHistoryService clipboardHistory,
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
-		IExceptionHandler exceptionHandler,
 		IFileSystem fileSystem,
+		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
+		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
 		_appEnvironment = appEnvironment;
+
+		_clipboardHistory = clipboardHistory;
 
 		_consoleWindowHost = consoleWindowHost;
 
@@ -71,6 +81,8 @@ public sealed class AppController : IAppController
 
 		_fileSystem = fileSystem;
 
+		_exceptionHandler = exceptionHandler;
+
 		_logger = logger;
 
 		_options = options;
@@ -79,7 +91,7 @@ public sealed class AppController : IAppController
 
 		_viewLauncher = viewLauncher;
 
-		exceptionHandler.StartMonitoring();
+		globalExceptionHandler.StartMonitoring();
 	}
 	#endregion
 
@@ -127,6 +139,8 @@ public sealed class AppController : IAppController
 			_viewLauncher
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
+
+			_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
 		}
 		catch (Exception ex)
 		{

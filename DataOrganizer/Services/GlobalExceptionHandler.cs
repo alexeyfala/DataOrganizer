@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-/// <inheritdoc cref="IExceptionHandler" />
-internal sealed class ExceptionHandler : IExceptionHandler
+internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 {
 	#region Data
 	/// <inheritdoc cref="CompositeDisposable" />
@@ -37,7 +36,7 @@ internal sealed class ExceptionHandler : IExceptionHandler
 	#endregion
 
 	#region Constructors
-	public ExceptionHandler(ILogger logger) => _logger = logger;
+	public GlobalExceptionHandler(ILogger logger) => _logger = logger;
 	#endregion
 
 	#region Event Handlers

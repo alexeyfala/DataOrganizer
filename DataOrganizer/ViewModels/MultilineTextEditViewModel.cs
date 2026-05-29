@@ -2,13 +2,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="MultilineTextEditView" />.
+/// View model for <c>MultilineTextEditView</c>.
 /// </summary>
 public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewModel
 {
@@ -23,7 +22,7 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	#region Constructors
 	public MultilineTextEditViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

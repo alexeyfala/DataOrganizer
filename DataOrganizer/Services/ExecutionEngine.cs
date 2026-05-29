@@ -36,7 +36,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -62,7 +62,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -74,7 +74,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		_fileSystem = fileSystem;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -463,7 +463,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);
 
-				_handler.Watch(trackerTask);
+				_exceptionHandler.Watch(trackerTask);
 			}
 		}
 		catch

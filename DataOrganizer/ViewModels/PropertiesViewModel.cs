@@ -1,11 +1,10 @@
-﻿using DataOrganizer.Views;
-using Repository.DTO;
+﻿using Repository.DTO;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="PropertiesView" />.
+/// View model for <c>PropertiesView</c>.
 /// </summary>
 internal sealed class PropertiesViewModel
 {

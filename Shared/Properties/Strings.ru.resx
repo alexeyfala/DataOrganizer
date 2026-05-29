@@ -315,8 +315,8 @@
   <data name="Favorites" xml:space="preserve">
     <value>Избранное</value>
   </data>
-  <data name="SystemClipboard" xml:space="preserve">
-    <value>Системный буфер обмена</value>
+  <data name="Clipboard" xml:space="preserve">
+    <value>Буфер обмена</value>
   </data>
   <data name="ContentCopyHistory" xml:space="preserve">
     <value>История копирования содержимого</value>
@@ -542,5 +542,8 @@
   </data>
   <data name="SelectApplicationOnPC" xml:space="preserve">
     <value>Выберите приложение на компьютере</value>
+  </data>
+  <data name="WindowsClipboard" xml:space="preserve">
+    <value>Буфер обмена Windows</value>
   </data>
 </root>

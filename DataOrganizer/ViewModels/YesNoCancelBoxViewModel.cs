@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Views;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <see cref="YesNoCancelBox" />.
+/// View model for <c>YesNoCancelBox</c>.
 /// </summary>
 public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelResult>
 {
@@ -110,7 +109,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	#region Constructors
 	public YesNoCancelBoxViewModel(
 		Application app,
-		ITaskExceptionHandler handler) : base(app, handler)
+		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 	}
 	#endregion

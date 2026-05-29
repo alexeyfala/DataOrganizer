@@ -58,7 +58,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	private readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _handler;
+	private readonly ITaskExceptionHandler _exceptionHandler;
 
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
@@ -88,7 +88,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		IGlobalHook hook,
 		ILogger logger,
 		INotificationService notificationService,
-		ITaskExceptionHandler handler)
+		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
@@ -100,7 +100,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_entityEncryption = entityEncryption;
 
-		_handler = handler;
+		_exceptionHandler = exceptionHandler;
 
 		_hook = hook;
 
@@ -118,7 +118,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// </summary>
 	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
 	{
-		_handler.Watch(HandleKeyReleasedAsync(
+		_exceptionHandler.Watch(HandleKeyReleasedAsync(
 			e.RawEvent.Mask,
 			e.Data.KeyCode));
 	}
@@ -268,7 +268,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		{
 			_logger.LogInformation("Start global keyboard input tracking");
 
-			_handler.Watch(_hook.RunAsync());
+			_exceptionHandler.Watch(_hook.RunAsync());
 
 			condition = () => IsRunning;
 
@@ -279,7 +279,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 				return;
 			}
 
-			_handler.Watch(FilterFilesAsync(hierarchy, token));
+			_exceptionHandler.Watch(FilterFilesAsync(hierarchy, token));
 		}
 		catch (Exception ex)
 		{
