@@ -3,14 +3,10 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:dto="using:DataOrganizer.DTO"
-	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:system="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	Width="360.0"
 	Height="420.0"
@@ -80,40 +76,9 @@
 				Margin="0.0,10.0,0.0,0.0"
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
-				<ItemsControl ItemsSource="{Binding Entries}">
-					<ItemsControl.Resources>
-						<system:Double x:Key="TextEntryMaxHeight">80.0</system:Double>
-						<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
-						<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
-					</ItemsControl.Resources>
-
-					<ItemsControl.DataTemplates>
-						<DataTemplate DataType="{x:Type clipboard:ClipboardTextEntry}">
-							<TextBlock
-								MaxHeight="{StaticResource TextEntryMaxHeight}"
-								Text="{Binding Text, Mode=OneTime}"
-								TextTrimming="CharacterEllipsis"
-								TextWrapping="Wrap" />
-						</DataTemplate>
-
-						<DataTemplate DataType="{x:Type clipboard:ClipboardImageEntry}">
-							<Image
-								MaxWidth="{StaticResource ImageEntryMaxWidth}"
-								MaxHeight="{StaticResource ImageEntryMaxHeight}"
-								HorizontalAlignment="Left"
-								Source="{Binding ImagePreview, Mode=OneTime}"
-								Stretch="Uniform" />
-						</DataTemplate>
-
-						<DataTemplate DataType="{x:Type clipboard:ClipboardFilesEntry}">
-							<TextBlock
-								Text="{Binding FilesSummary, Mode=OneTime}"
-								TextTrimming="CharacterEllipsis"
-								TextWrapping="NoWrap"
-								ToolTip.Tip="{Binding FilesSummaryToolTip, Mode=OneTime}" />
-						</DataTemplate>
-					</ItemsControl.DataTemplates>
-
+				<ItemsControl
+					ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
+					ItemsSource="{Binding Entries}">
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
 							<StackPanel
@@ -121,47 +86,6 @@
 								Spacing="6.0" />
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
-
-					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="{x:Type clipboard:ClipboardHistoryEntryBase}">
-							<Grid ColumnDefinitions="*,Auto">
-								<Button
-									Grid.Column="0"
-									HorizontalAlignment="Stretch"
-									HorizontalContentAlignment="Stretch"
-									Background="{StaticResource MaterialDividerBrush}"
-									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
-									CommandParameter="{Binding}"
-									Cursor="Arrow">
-
-									<Interaction.Behaviors>
-										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-									</Interaction.Behaviors>
-
-									<ContentControl Content="{Binding}" />
-								</Button>
-
-								<!-- Side action: open URL externally (visible only for ClipboardUrlEntry). -->
-								<Button
-									Grid.Column="1"
-									Padding="6.0"
-									VerticalAlignment="Stretch"
-									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-									CommandParameter="{ReflectionBinding Url,
-									                                     Mode=OneTime}"
-									Content="🌐"
-									Cursor="Arrow"
-									IsVisible="{Binding IsUrl}"
-									ToolTip.Tip="{ReflectionBinding Url,
-									                                Mode=OneTime}">
-
-									<Interaction.Behaviors>
-										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-									</Interaction.Behaviors>
-								</Button>
-							</Grid>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 			</ScrollViewer>
 		</Grid>
