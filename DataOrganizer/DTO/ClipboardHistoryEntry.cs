@@ -33,6 +33,18 @@ public sealed class ClipboardHistoryEntry
 	/// </summary>
 	public required byte[] Hash { get; init; }
 
+	/// <summary>
+	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
+	/// source app provided one. Pushed back to the clipboard alongside plain text
+	/// on restore so paste targets can pick up the formatting.
+	/// </summary>
+	public string? Html { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Url" /> is set.
+	/// </summary>
+	public bool IsUrl => Url is not null;
+
 	/// <inheritdoc cref="ClipboardEntryKind" />
 	public required ClipboardEntryKind Kind { get; init; }
 
@@ -47,9 +59,20 @@ public sealed class ClipboardHistoryEntry
 	public Bitmap? Preview => field ??= BuildPreview();
 
 	/// <summary>
+	/// RTF version of <see cref="Text" /> when the source app provided one.
+	/// </summary>
+	public string? Rtf { get; init; }
+
+	/// <summary>
 	/// Plain text content. <c>null</c> for image entries.
 	/// </summary>
 	public string? Text { get; init; }
+
+	/// <summary>
+	/// Trimmed <see cref="Text" /> when it matches an absolute http(s) URL
+	/// (whole-string match). <c>null</c> for non-URL text and other kinds.
+	/// </summary>
+	public string? Url { get; init; }
 	#endregion
 
 	#region Data

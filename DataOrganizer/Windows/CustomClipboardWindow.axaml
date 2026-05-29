@@ -96,44 +96,64 @@
 
 					<ItemsControl.ItemTemplate>
 						<DataTemplate DataType="{x:Type dto:ClipboardHistoryEntry}">
-							<Button
-								HorizontalAlignment="Stretch"
-								HorizontalContentAlignment="Stretch"
-								Background="{StaticResource MaterialDividerBrush}"
-								Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
-								CommandParameter="{Binding}"
-								Cursor="Arrow"
-								ToolTip.Tip="{Binding FilesSummaryToolTip}">
+							<Grid ColumnDefinitions="*,Auto">
+								<Button
+									Grid.Column="0"
+									HorizontalAlignment="Stretch"
+									HorizontalContentAlignment="Stretch"
+									Background="{StaticResource MaterialDividerBrush}"
+									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
+									CommandParameter="{Binding}"
+									Cursor="Arrow"
+									ToolTip.Tip="{Binding FilesSummaryToolTip}">
 
-								<Interaction.Behaviors>
-									<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-								</Interaction.Behaviors>
+									<Interaction.Behaviors>
+										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+									</Interaction.Behaviors>
 
-								<Panel>
-									<!-- Text entries -->
-									<TextBlock
-										MaxHeight="{StaticResource TextEntryMaxHeight}"
-										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Text}}"
-										Text="{Binding Text}"
-										TextTrimming="CharacterEllipsis"
-										TextWrapping="Wrap" />
+									<Panel>
+										<!-- Text entries -->
+										<TextBlock
+											MaxHeight="{StaticResource TextEntryMaxHeight}"
+											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Text}}"
+											Text="{Binding Text}"
+											TextTrimming="CharacterEllipsis"
+											TextWrapping="Wrap" />
 
-									<!-- Image entries -->
-									<Image
-										MaxWidth="{StaticResource ImageEntryMaxWidth}"
-										MaxHeight="{StaticResource ImageEntryMaxHeight}"
-										HorizontalAlignment="Left"
-										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
-										Source="{Binding Preview}"
-										Stretch="Uniform" />
+										<!-- Image entries -->
+										<Image
+											MaxWidth="{StaticResource ImageEntryMaxWidth}"
+											MaxHeight="{StaticResource ImageEntryMaxHeight}"
+											HorizontalAlignment="Left"
+											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
+											Source="{Binding Preview}"
+											Stretch="Uniform" />
 
-									<TextBlock
-										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
-										Text="{Binding FilesSummary}"
-										TextTrimming="CharacterEllipsis"
-										TextWrapping="NoWrap" />
-								</Panel>
-							</Button>
+										<TextBlock
+											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
+											Text="{Binding FilesSummary}"
+											TextTrimming="CharacterEllipsis"
+											TextWrapping="NoWrap" />
+									</Panel>
+								</Button>
+
+								<!-- Side action: open URL externally (visible only for URL-shaped text entries). -->
+								<Button
+									Grid.Column="1"
+									Padding="6.0"
+									VerticalAlignment="Center"
+									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+									CommandParameter="{Binding Url}"
+									Content="🌐"
+									Cursor="Arrow"
+									IsVisible="{Binding IsUrl}"
+									ToolTip.Tip="{Binding Url}">
+
+									<Interaction.Behaviors>
+										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+									</Interaction.Behaviors>
+								</Button>
+							</Grid>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>

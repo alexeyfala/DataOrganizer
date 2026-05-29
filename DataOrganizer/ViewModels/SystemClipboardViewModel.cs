@@ -6,7 +6,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
+using Serilog;
+using Shared.Extensions;
+using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -30,10 +34,18 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	#region Data
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
+
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
-	public CustomClipboardViewModel(IClipboardHistoryService clipboardHistory) => _clipboardHistory = clipboardHistory;
+	public CustomClipboardViewModel(IClipboardHistoryService clipboardHistory, ILogger logger)
+	{
+		_clipboardHistory = clipboardHistory;
+
+		_logger = logger;
+	}
 	#endregion
 
 	#region Commands
@@ -62,6 +74,31 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 		_clipboardHistory.Entries.Clear();
 
 		ClearCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
+	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
+	/// </summary>
+	[RelayCommand]
+	private void OpenUrl(string? url)
+	{
+		if (string.IsNullOrWhiteSpace(url))
+		{
+			return;
+		}
+
+		try
+		{
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = url,
+				UseShellExecute = true,
+			});
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
 	}
 
 	/// <summary>

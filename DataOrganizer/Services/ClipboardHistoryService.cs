@@ -11,6 +11,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
+using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -18,13 +19,13 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposable
+public sealed partial class ClipboardHistoryService : IClipboardHistoryService, IDisposable
 {
 	#region Properties
 	/// <inheritdoc />
@@ -35,6 +36,32 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// HTML format used on Linux / macOS, where Avalonia's string clipboard path is UTF-8 native.
+	/// </summary>
+	private static readonly DataFormat<string>? UnixHtmlFormat = GetUnixHtmlFormat();
+
+	/// <summary>
+	/// RTF format used on Linux / macOS.
+	/// </summary>
+	private static readonly DataFormat<string>? UnixRtfFormat = GetUnixRtfFormat();
+
+	/// <summary>
+	/// Strict whole-string http(s) URL matcher (applied after <see cref="string.Trim()" />).
+	/// </summary>
+	private static readonly Regex UrlRegex = GetUrlRegex();
+
+	/// <summary>
+	/// Windows-only byte[] format for CF_HTML. We manage UTF-8 ourselves so the
+	/// byte offsets baked into the CF_HTML header stay valid for paste targets.
+	/// </summary>
+	private static readonly DataFormat<byte[]>? WindowsHtmlFormat = GetWindowsHtmlFormat();
+
+	/// <summary>
+	/// Windows-only byte[] format for "Rich Text Format" — same reason as <see cref="WindowsHtmlFormat" />.
+	/// </summary>
+	private static readonly DataFormat<byte[]>? WindowsRtfFormat = GetWindowsRtfFormat();
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -54,7 +81,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 	/// <summary>
 	/// Guards <see cref="StartAsync" /> against double-start. Loop sets this to
-	/// <c>false</c> in its finally block once it exits.
+	/// <c>False</c> in its finally block once it exits.
 	/// </summary>
 	private bool _isLoopRunning;
 
@@ -127,10 +154,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			{
 				case ClipboardEntryKind.Text when entry.Text is { } text:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Text}, {text.Length} chars.");
+						$"Restoring clipboard entry: {ClipboardEntryKind.Text}, {text.Length} chars" +
+						$"{(entry.Html is null ? string.Empty : " + HTML")}" +
+						$"{(entry.Rtf is null ? string.Empty : " + RTF")}.");
 
 					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(clipboard.SetTextAsync(text)))
+						.PostAsync(() => _exceptionHandler.Watch(SetTextWithFormatsAsync(clipboard, text, entry.Html, entry.Rtf)))
 						.ConfigureAwait(false);
 					break;
 
@@ -214,9 +243,92 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 	#region Helpers
 	/// <summary>
+	/// Attaches a formatted-text payload (HTML / RTF) to <paramref name="item" />.
+	/// </summary>
+	private static void AttachFormattedText(
+		DataTransferItem item,
+		string payload,
+		DataFormat<byte[]>? windowsFormat,
+		DataFormat<string>? unixFormat)
+	{
+		if (AppUtils.IsWindows && windowsFormat is not null)
+		{
+			item.Set(windowsFormat, TextHelper.Utf8Encoding.GetBytes(payload));
+
+			return;
+		}
+
+		if (unixFormat is not null)
+		{
+			item.Set(unixFormat, payload);
+		}
+	}
+
+	/// <summary>
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
+
+	/// <summary>
+	/// Returns value for <see cref="UnixHtmlFormat" />.
+	/// </summary>
+	private static DataFormat<string>? GetUnixHtmlFormat()
+	{
+		if (AppUtils.IsWindows)
+		{
+			return null;
+		}
+		else if (AppUtils.IsMacOs)
+		{
+			return DataFormat.CreateStringPlatformFormat("public.html");
+		}
+		else
+		{
+			return DataFormat.CreateStringPlatformFormat("text/html");
+		}
+	}
+
+	/// <summary>
+	/// Returns value for <see cref="UnixRtfFormat" />.
+	/// </summary>
+	private static DataFormat<string>? GetUnixRtfFormat()
+	{
+		if (AppUtils.IsWindows)
+		{
+			return null;
+		}
+		else if (AppUtils.IsMacOs)
+		{
+			return DataFormat.CreateStringPlatformFormat("public.rtf");
+		}
+		else
+		{
+			return DataFormat.CreateStringPlatformFormat("text/rtf");
+		}
+	}
+
+	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
+	private static partial Regex GetUrlRegex();
+
+	/// <summary>
+	/// Returns value for <see cref="WindowsHtmlFormat" />.
+	/// </summary>
+	private static DataFormat<byte[]>? GetWindowsHtmlFormat()
+	{
+		return AppUtils.IsWindows
+			? DataFormat.CreateBytesPlatformFormat("HTML Format")
+			: null;
+	}
+
+	/// <summary>
+	/// Returns value for <see cref="WindowsRtfFormat" />.
+	/// </summary>
+	private static DataFormat<byte[]>? GetWindowsRtfFormat()
+	{
+		return AppUtils.IsWindows
+			? DataFormat.CreateBytesPlatformFormat("Rich Text Format")
+			: null;
+	}
 
 	/// <summary>
 	/// Hashes the file list, including kind marker so a folder and a file with the same
@@ -254,6 +366,49 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		Bitmap bitmap = new(stream);
 
 		return clipboard.SetBitmapAsync(bitmap);
+	}
+
+	/// <summary>
+	/// Writes <paramref name="text" /> together with optional <paramref name="html" />
+	/// and <paramref name="rtf" /> payloads as a single <see cref="DataTransfer" />,
+	/// so paste targets pick whichever format they support.
+	/// </summary>
+	private static Task SetTextWithFormatsAsync(
+		IClipboard clipboard,
+		string text,
+		string? html,
+		string? rtf)
+	{
+		DataTransferItem item = new();
+
+		item.SetText(text);
+
+		if (html is not null)
+		{
+			AttachFormattedText(item, html, WindowsHtmlFormat, UnixHtmlFormat);
+		}
+
+		if (rtf is not null)
+		{
+			AttachFormattedText(item, rtf, WindowsRtfFormat, UnixRtfFormat);
+		}
+
+		DataTransfer transfer = new();
+
+		transfer.Add(item);
+
+		return clipboard.SetDataAsync(transfer);
+	}
+
+	/// <summary>
+	/// Returns the trimmed value of <paramref name="text" /> when it matches an
+	/// absolute http(s) URL (whole-string match); otherwise <c>null</c>.
+	/// </summary>
+	private static string? TryDetectUrl(string text)
+	{
+		string trimmed = text.Trim();
+
+		return UrlRegex.IsMatch(trimmed) ? trimmed : null;
 	}
 
 	/// <summary>
@@ -405,12 +560,21 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
-				byte[] hash = ComputeHash(Encoding.UTF8.GetBytes(text));
+				byte[] hash = ComputeHash(TextHelper.Utf8Encoding.GetBytes(text));
+
+				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
+
+				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
+
+				string? url = TryDetectUrl(text);
 
 				HandleNewPayload(hash, () => new ClipboardHistoryEntry
 				{
 					Kind = ClipboardEntryKind.Text,
 					Text = text,
+					Html = html,
+					Rtf = rtf,
+					Url = url,
 					Hash = hash
 				});
 			}
@@ -482,7 +646,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// </summary>
 	private async Task<IReadOnlyList<ClipboardFileSystemEntry>?> TryReadFilesAsync(IClipboard clipboard)
 	{
-		IReadOnlyList<IStorageItem>? items;
+		IStorageItem[]? items;
 
 		try
 		{
@@ -497,12 +661,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return null;
 		}
 
-		if (items is null || items.Count == 0)
+		if (items is null || items.Length == 0)
 		{
 			return null;
 		}
 
-		List<ClipboardFileSystemEntry> result = new(items.Count);
+		List<ClipboardFileSystemEntry> result = new(items.Length);
 
 		foreach (IStorageItem item in items)
 		{
@@ -527,16 +691,63 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		}
 
 		// Stable order: folders first, then files; alphabetical within each group.
-		result.Sort(static (a, b) =>
+		result.Sort(static (x, y) =>
 		{
-			int byKind = b.IsFolder.CompareTo(a.IsFolder);
+			int byKind = y.IsFolder.CompareTo(x.IsFolder);
 
 			return byKind != 0
 				? byKind
-				: string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+				: string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
 		});
 
 		return result;
+	}
+
+	/// <summary>
+	/// Reads a formatted-text payload (HTML / RTF).
+	/// </summary>
+	private async Task<string?> TryReadFormattedTextAsync(
+		IClipboard clipboard,
+		DataFormat<byte[]>? windowsFormat,
+		DataFormat<string>? unixFormat)
+	{
+		try
+		{
+			if (AppUtils.IsWindows && windowsFormat is not null)
+			{
+				byte[]? bytes = await clipboard
+					.TryGetValueAsync(windowsFormat)
+					.ConfigureAwait(false);
+
+				return bytes is null
+					? null
+					: TextHelper.Utf8Encoding.GetString(bytes);
+			}
+
+			if (unixFormat is not null)
+			{
+				return await clipboard
+					.TryGetValueAsync(unixFormat)
+					.ConfigureAwait(false);
+			}
+
+			return null;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+
+			return null;
+		}
+	}
+
+	/// <summary>Reads the HTML payload from the clipboard.</summary>
+	private Task<string?> TryReadHtmlAsync(IClipboard clipboard)
+	{
+		return TryReadFormattedTextAsync(
+			clipboard,
+			WindowsHtmlFormat,
+			UnixHtmlFormat);
 	}
 
 	/// <summary>
@@ -582,6 +793,15 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 		{
 			bitmap.Dispose();
 		}
+	}
+
+	/// <summary>Reads the RTF payload from the clipboard.</summary>
+	private Task<string?> TryReadRtfAsync(IClipboard clipboard)
+	{
+		return TryReadFormattedTextAsync(
+			clipboard,
+			WindowsRtfFormat,
+			UnixRtfFormat);
 	}
 
 	/// <summary>
