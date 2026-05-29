@@ -95,9 +95,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	private CancellationTokenSource? _stopCts;
 
 	/// <summary>
-	/// When non-zero, the next <see cref="PollOnceAsync" /> tick skips its match check.
+	/// When <c>True</c>, the next <see cref="PollOnceAsync" /> tick skips its match check.
 	/// </summary>
-	private int _suppressEcho;
+	private bool _suppressEcho;
 	#endregion
 
 	#region Constructors
@@ -143,7 +143,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		}
 
 		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
-		Interlocked.Exchange(ref _suppressEcho, 1);
+		Interlocked.Exchange(ref _suppressEcho, true);
 
 		_lastHash = entry.Hash;
 
@@ -416,7 +416,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// </summary>
 	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, 0) == 1)
+		if (Interlocked.Exchange(ref _suppressEcho, false))
 		{
 			_lastHash = hash;
 
