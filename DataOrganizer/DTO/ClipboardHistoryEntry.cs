@@ -14,12 +14,12 @@ public sealed class ClipboardHistoryEntry
 {
 	#region Properties
 	/// <summary>
-	/// File / folder items captured for kind <see cref="ClipboardEntryKind.Files" />. <c>null</c> for other kinds.
+	/// File / folder items captured for kind <see cref="ClipboardEntryKind.FileSystemEntries" />. <c>null</c> for other kinds.
 	/// </summary>
-	public IReadOnlyList<ClipboardFileEntry>? FileEntries { get; init; }
+	public IReadOnlyList<ClipboardFileSystemEntry>? FileSystemEntries { get; init; }
 
 	/// <summary>
-	/// Pre-computed display line for kind <see cref="ClipboardEntryKind.Files" /> —
+	/// Pre-computed display line for kind <see cref="ClipboardEntryKind.FileSystemEntries" /> —
 	/// "N entries: name1, name2, ...". <c>null</c> for other kinds.
 	/// </summary>
 	public string? FilesSummary => _filesSummary ??= BuildFilesSummary();
@@ -68,16 +68,16 @@ public sealed class ClipboardHistoryEntry
 
 	#region Helpers
 	/// <summary>
-	/// Builds the display line "N entries: name1, name2, ..." from <see cref="FileEntries" />.
+	/// Builds the display line "N entries: name1, name2, ..." from <see cref="FileSystemEntries" />.
 	/// </summary>
 	private string? BuildFilesSummary()
 	{
-		if (Kind != ClipboardEntryKind.Files || FileEntries is not { Count: > 0 })
+		if (Kind != ClipboardEntryKind.FileSystemEntries || FileSystemEntries is not { Count: > 0 })
 		{
 			return null;
 		}
 
-		IEnumerable<string> names = FileEntries.Select(entry =>
+		IEnumerable<string> names = FileSystemEntries.Select(entry =>
 		{
 			string trimmed = entry.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
@@ -86,7 +86,7 @@ public sealed class ClipboardHistoryEntry
 			return string.IsNullOrEmpty(name) ? trimmed : name;
 		});
 
-		return $"{FileEntries.Count} entries: {string.Join(", ", names)}";
+		return $"{FileSystemEntries.Count} entries: {string.Join(", ", names)}";
 	}
 
 	/// <summary>

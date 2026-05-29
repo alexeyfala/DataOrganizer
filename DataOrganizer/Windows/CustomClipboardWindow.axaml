@@ -121,7 +121,7 @@
 
 									<!-- File / folder entries -->
 									<StackPanel
-										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Files}}"
+										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
 										Orientation="Horizontal"
 										Spacing="6.0">
 										<materialIcons:MaterialIcon

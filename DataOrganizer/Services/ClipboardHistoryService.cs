@@ -141,12 +141,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 						.ConfigureAwait(false);
 					break;
 
-				case ClipboardEntryKind.Files when entry.FileEntries is { Count: > 0 } fileEntries:
+				case ClipboardEntryKind.FileSystemEntries when entry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Files}, {fileEntries.Count} items.");
+						$"Restoring clipboard entry: {ClipboardEntryKind.FileSystemEntries}, {fileSystemEntries.Count} items.");
 
 					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileEntries)))
+						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileSystemEntries)))
 						.ConfigureAwait(false);
 					break;
 			}
@@ -220,11 +220,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// Hashes the file list, including kind marker so a folder and a file with the same
 	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
 	/// </summary>
-	private static byte[] HashFiles(IReadOnlyList<ClipboardFileEntry> entries)
+	private static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
 		StringBuilder sb = new();
 
-		foreach (ClipboardFileEntry entry in entries)
+		foreach (ClipboardFileSystemEntry entry in entries)
 		{
 			sb.Append(entry.IsFolder ? 'D' : 'F');
 
@@ -373,14 +373,14 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				return;
 			}
 
-			if (await TryReadFilesAsync(clipboard) is { Count: > 0 } fileEntries)
+			if (await TryReadFilesAsync(clipboard) is { Count: > 0 } fileSystemEntries)
 			{
-				byte[] hash = HashFiles(fileEntries);
+				byte[] hash = HashFiles(fileSystemEntries);
 
 				HandleNewPayload(hash, () => new ClipboardHistoryEntry
 				{
-					Kind = ClipboardEntryKind.Files,
-					FileEntries = fileEntries,
+					Kind = ClipboardEntryKind.FileSystemEntries,
+					FileSystemEntries = fileSystemEntries,
 					Hash = hash,
 					Timestamp = DateTimeOffset.Now
 				});
@@ -427,7 +427,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// application's <see cref="IStorageProvider" /> and pushes them onto the clipboard.
 	/// Missing items are silently dropped (best-effort restore).
 	/// </summary>
-	private async Task SetFilesAsync(IClipboard clipboard, IReadOnlyList<ClipboardFileEntry> entries)
+	private async Task SetFilesAsync(IClipboard clipboard, IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
 		if (_app.FindStorageProvider() is not { } provider)
 		{
@@ -436,7 +436,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 		List<IStorageItem> resolved = new(entries.Count);
 
-		foreach (ClipboardFileEntry entry in entries)
+		foreach (ClipboardFileSystemEntry entry in entries)
 		{
 			if (string.IsNullOrWhiteSpace(entry.Path))
 			{
@@ -479,9 +479,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 
 	/// <summary>
 	/// Reads file/folder items from the clipboard, if any, and projects them into
-	/// <see cref="ClipboardFileEntry" /> records. Items without a local path are skipped.
+	/// <see cref="ClipboardFileSystemEntry" /> records. Items without a local path are skipped.
 	/// </summary>
-	private async Task<IReadOnlyList<ClipboardFileEntry>?> TryReadFilesAsync(IClipboard clipboard)
+	private async Task<IReadOnlyList<ClipboardFileSystemEntry>?> TryReadFilesAsync(IClipboard clipboard)
 	{
 		IReadOnlyList<IStorageItem>? items;
 
@@ -503,7 +503,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			return null;
 		}
 
-		List<ClipboardFileEntry> result = new(items.Count);
+		List<ClipboardFileSystemEntry> result = new(items.Count);
 
 		foreach (IStorageItem item in items)
 		{
@@ -519,7 +519,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				continue;
 			}
 
-			result.Add(new ClipboardFileEntry(path, IsFolder: item is IStorageFolder));
+			result.Add(new ClipboardFileSystemEntry(path, IsFolder: item is IStorageFolder));
 		}
 
 		return result.Count == 0 ? null : result;

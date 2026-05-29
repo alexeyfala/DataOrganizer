@@ -7,5 +7,5 @@ public enum ClipboardEntryKind
 {
 	Text,
 	Image,
-	Files
+	FileSystemEntries
 }
