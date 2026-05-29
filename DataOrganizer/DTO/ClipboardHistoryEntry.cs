@@ -79,16 +79,18 @@ public sealed class ClipboardHistoryEntry
 
 		const string fileGlyph = "📄";
 
-		yield return $"{folderGlyph} {folderCount}   {fileGlyph} {entries.Count - folderCount}";
+		const string bulletGlyph = "·";
+
+		yield return $"{folderGlyph} {folderCount}  {fileGlyph} {entries.Count - folderCount}";
 
 		foreach (ClipboardFileSystemEntry entry in entries.Take(visibleCount))
 		{
-			yield return $"{(entry.IsFolder ? folderGlyph : fileGlyph)}  {entry.Name}";
+			yield return $"{bulletGlyph}  {(entry.IsFolder ? folderGlyph : fileGlyph)}  {entry.Name}";
 		}
 
 		if (truncated)
 		{
-			yield return " ...";
+			yield return "...";
 		}
 	}
 
