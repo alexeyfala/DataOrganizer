@@ -61,39 +61,42 @@ public sealed class ClipboardHistoryEntry
 
 	#region Helpers
 	/// <summary>
-	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
+	/// Enumerates the lines of the files-summary block on demand.
 	/// </summary>
-	private string? BuildFilesSummary()
+	private static IEnumerable<string> EnumerateFilesSummaryLines(IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
-		if (Kind != ClipboardEntryKind.FileSystemEntries || FileSystemEntries is not { Count: > 0 })
-		{
-			return null;
-		}
-
 		const int headerLines = 1;
 
 		const int maxItemLines = FilesSummaryMaxLines - headerLines;
 
-		bool truncated = FileSystemEntries.Count > maxItemLines;
+		bool truncated = entries.Count > maxItemLines;
 
-		int visibleCount = truncated ? maxItemLines - 1 : FileSystemEntries.Count;
+		int visibleCount = truncated ? maxItemLines - 1 : entries.Count;
 
-		List<string> lines = new(FilesSummaryMaxLines)
+		yield return $"{entries.Count} entries:";
+
+		foreach (ClipboardFileSystemEntry entry in entries.Take(visibleCount))
 		{
-			$"{FileSystemEntries.Count} entries:",
-		};
-
-		foreach (ClipboardFileSystemEntry entry in FileSystemEntries.Take(visibleCount))
-		{
-			lines.Add($"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}");
+			yield return $"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}";
 		}
 
 		if (truncated)
 		{
-			lines.Add(" ...");
+			yield return " ...";
+		}
+	}
+
+	/// <summary>
+	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
+	/// </summary>
+	private string? BuildFilesSummary()
+	{
+		if (Kind != ClipboardEntryKind.FileSystemEntries || FileSystemEntries is not { Count: > 0 } entries)
+		{
+			return null;
 		}
 
-		return string.Join(Environment.NewLine, lines);
+		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(entries));
 	}
 
 	/// <summary>
