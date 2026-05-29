@@ -1,6 +1,8 @@
 using Avalonia;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
@@ -9,6 +11,7 @@ using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -131,6 +134,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
 						.ConfigureAwait(false);
 					break;
+
+				case ClipboardEntryKind.Files when entry.FileEntries is { Count: > 0 } fileEntries:
+					await _dispatcher
+						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileEntries)))
+						.ConfigureAwait(false);
+					break;
 			}
 
 			// Touching Entries must happen on the UI thread.
@@ -197,6 +206,28 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
+
+	/// <summary>
+	/// Hashes the file list, including kind marker so a folder and a file with the same
+	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
+	/// </summary>
+	private static byte[] HashFiles(IReadOnlyList<ClipboardFileEntry> entries)
+	{
+		StringBuilder sb = new();
+
+		foreach (ClipboardFileEntry entry in entries)
+		{
+			sb.Append(entry.IsFolder ? 'D' : 'F');
+
+			sb.Append('|');
+
+			sb.Append(entry.Path);
+
+			sb.Append('\0');
+		}
+
+		return ComputeHash(Encoding.UTF8.GetBytes(sb.ToString()));
+	}
 
 	/// <summary>
 	/// Decodes <paramref name="png" /> bytes into an Avalonia <see cref="Bitmap" />
@@ -333,15 +364,17 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				return;
 			}
 
-			// Text first — overwhelmingly the common case.
-			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
+			// Files first — when the user copies files in Explorer/Finder the clipboard
+			// usually also carries text with paths; we want to record this as a Files
+			// entry, not as text, so files-first wins over text.
+			if (await TryReadFilesAsync(clipboard) is { Count: > 0 } fileEntries)
 			{
-				byte[] hash = ComputeHash(Encoding.UTF8.GetBytes(text));
+				byte[] hash = HashFiles(fileEntries);
 
 				HandleNewPayload(hash, () => new ClipboardHistoryEntry
 				{
-					Kind = ClipboardEntryKind.Text,
-					Text = text,
+					Kind = ClipboardEntryKind.Files,
+					FileEntries = fileEntries,
 					Hash = hash,
 					Timestamp = DateTimeOffset.Now
 				});
@@ -360,12 +393,130 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 					Hash = hash,
 					Timestamp = DateTimeOffset.Now
 				});
+
+				return;
+			}
+
+			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
+			{
+				byte[] hash = ComputeHash(Encoding.UTF8.GetBytes(text));
+
+				HandleNewPayload(hash, () => new ClipboardHistoryEntry
+				{
+					Kind = ClipboardEntryKind.Text,
+					Text = text,
+					Hash = hash,
+					Timestamp = DateTimeOffset.Now
+				});
 			}
 		}
 		catch (Exception ex)
 		{
 			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
 		}
+	}
+
+	/// <summary>
+	/// Resolves stored paths back into <see cref="IStorageItem" /> instances via the
+	/// application's <see cref="IStorageProvider" /> and pushes them onto the clipboard.
+	/// Missing items are silently dropped (best-effort restore).
+	/// </summary>
+	private async Task SetFilesAsync(IClipboard clipboard, IReadOnlyList<ClipboardFileEntry> entries)
+	{
+		if (_app.FindStorageProvider() is not { } provider)
+		{
+			return;
+		}
+
+		List<IStorageItem> resolved = new(entries.Count);
+
+		foreach (ClipboardFileEntry entry in entries)
+		{
+			if (string.IsNullOrWhiteSpace(entry.Path))
+			{
+				continue;
+			}
+
+			try
+			{
+				IStorageItem? item = entry.IsFolder
+					? await provider.TryGetFolderFromPathAsync(entry.Path).ConfigureAwait(false)
+					: await provider.TryGetFileFromPathAsync(entry.Path).ConfigureAwait(false);
+
+				if (item is not null)
+				{
+					resolved.Add(item);
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex, isAssertDebug: false);
+			}
+		}
+
+		if (resolved.Count == 0)
+		{
+			return;
+		}
+
+		DataTransfer transfer = new();
+
+		foreach (IStorageItem item in resolved)
+		{
+			transfer.Add(DataTransferItem.CreateFile(item));
+		}
+
+		await clipboard
+			.SetDataAsync(transfer)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Reads file/folder items from the clipboard, if any, and projects them into
+	/// <see cref="ClipboardFileEntry" /> records. Items without a local path are skipped.
+	/// </summary>
+	private async Task<IReadOnlyList<ClipboardFileEntry>?> TryReadFilesAsync(IClipboard clipboard)
+	{
+		IReadOnlyList<IStorageItem>? items;
+
+		try
+		{
+			items = await clipboard
+				.TryGetFilesAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+
+			return null;
+		}
+
+		if (items is null || items.Count == 0)
+		{
+			return null;
+		}
+
+		List<ClipboardFileEntry> result = new(items.Count);
+
+		foreach (IStorageItem item in items)
+		{
+			if (item.Path is not { IsAbsoluteUri: true } uri)
+			{
+				continue;
+			}
+
+			string path = uri.LocalPath;
+
+			if (string.IsNullOrEmpty(path))
+			{
+				continue;
+			}
+
+			result.Add(new ClipboardFileEntry(path, IsFolder: item is IStorageFolder));
+		}
+
+		return result.Count == 0 ? null : result;
 	}
 
 	/// <summary>

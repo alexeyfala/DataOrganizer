@@ -6,5 +6,6 @@ namespace DataOrganizer.Enums;
 public enum ClipboardEntryKind
 {
 	Text,
-	Image
+	Image,
+	Files
 }

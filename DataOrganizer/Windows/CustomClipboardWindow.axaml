@@ -2,9 +2,11 @@
 	x:Class="DataOrganizer.Windows.CustomClipboardWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dto="clr-namespace:DataOrganizer.DTO"
 	xmlns:enums="clr-namespace:DataOrganizer.Enums"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -96,9 +98,7 @@
 								Cursor="Arrow">
 
 								<Interaction.Behaviors>
-									<ButtonClickEventTriggerBehavior>
-										<CloseWindowAction TargetWindow="{Binding $parent[Window]}" />
-									</ButtonClickEventTriggerBehavior>
+									<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
 								</Interaction.Behaviors>
 
 								<Panel>
@@ -109,6 +109,7 @@
 										Text="{Binding Text}"
 										TextTrimming="CharacterEllipsis"
 										TextWrapping="Wrap" />
+
 									<!-- Image entries -->
 									<Image
 										MaxWidth="160.0"
@@ -117,6 +118,23 @@
 										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
 										Source="{Binding Preview}"
 										Stretch="Uniform" />
+
+									<!-- File / folder entries -->
+									<StackPanel
+										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Files}}"
+										Orientation="Horizontal"
+										Spacing="6.0">
+										<materialIcons:MaterialIcon
+											Width="{StaticResource ToolBarIconSize}"
+											Height="{StaticResource ToolBarIconSize}"
+											VerticalAlignment="Center"
+											Kind="FolderFileOutline" />
+
+										<TextBlock
+											VerticalAlignment="Center"
+											Text="{Binding FilesSummary}"
+											TextTrimming="CharacterEllipsis" />
+									</StackPanel>
 								</Panel>
 							</Button>
 						</DataTemplate>
