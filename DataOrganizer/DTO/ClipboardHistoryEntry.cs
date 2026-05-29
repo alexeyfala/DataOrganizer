@@ -65,6 +65,10 @@ public sealed class ClipboardHistoryEntry
 	/// </summary>
 	private static IEnumerable<string> EnumerateFilesSummaryLines(IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
+		const string folderGlyph = "📁";
+
+		const string fileGlyph = "📄";
+
 		const int headerLines = 1;
 
 		const int maxItemLines = FilesSummaryMaxLines - headerLines;
@@ -73,11 +77,13 @@ public sealed class ClipboardHistoryEntry
 
 		int visibleCount = truncated ? maxItemLines - 1 : entries.Count;
 
-		yield return $"{entries.Count} entries:";
+		int folderCount = entries.Count(e => e.IsFolder);
+
+		yield return $"{folderGlyph} {folderCount}   {fileGlyph} {entries.Count - folderCount}";
 
 		foreach (ClipboardFileSystemEntry entry in entries.Take(visibleCount))
 		{
-			yield return $"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}";
+			yield return $"{(entry.IsFolder ? folderGlyph : fileGlyph)}  {entry.Name}";
 		}
 
 		if (truncated)
