@@ -14,15 +14,14 @@ public sealed class ClipboardHistoryEntry
 {
 	#region Properties
 	/// <summary>
+	/// Pre-computed display line for kind <see cref="ClipboardEntryKind.FileSystemEntries" />.
+	/// </summary>
+	public string? FilesSummary => field ??= BuildFilesSummary();
+
+	/// <summary>
 	/// File / folder items captured for kind <see cref="ClipboardEntryKind.FileSystemEntries" />. <c>null</c> for other kinds.
 	/// </summary>
 	public IReadOnlyList<ClipboardFileSystemEntry>? FileSystemEntries { get; init; }
-
-	/// <summary>
-	/// Pre-computed display line for kind <see cref="ClipboardEntryKind.FileSystemEntries" /> —
-	/// "N entries: name1, name2, ...". <c>null</c> for other kinds.
-	/// </summary>
-	public string? FilesSummary => _filesSummary ??= BuildFilesSummary();
 
 	/// <summary>
 	/// SHA-256 of the source data; used for change detection and deduplication.
@@ -40,7 +39,7 @@ public sealed class ClipboardHistoryEntry
 	/// <summary>
 	/// Lazily-built downscaled bitmap for display. <c>null</c> for text entries.
 	/// </summary>
-	public Bitmap? Preview => _preview ??= BuildPreview();
+	public Bitmap? Preview => field ??= BuildPreview();
 
 	/// <summary>
 	/// Plain text content. <c>null</c> for image entries.
@@ -58,17 +57,11 @@ public sealed class ClipboardHistoryEntry
 	/// Longest side of the cached preview in device-independent pixels.
 	/// </summary>
 	private const int PreviewMaxSide = 160;
-
-	/// <inheritdoc cref="FilesSummary" />
-	private string? _filesSummary;
-
-	/// <inheritdoc cref="Preview" />
-	private Bitmap? _preview;
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Builds the display line "N entries: name1, name2, ..." from <see cref="FileSystemEntries" />.
+	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
 	private string? BuildFilesSummary()
 	{
@@ -77,18 +70,13 @@ public sealed class ClipboardHistoryEntry
 			return null;
 		}
 
-		IEnumerable<string> names = FileSystemEntries.Select(entry =>
-		{
-			string trimmed = entry.
-				Path.
-				TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		string[] lines =
+		[
+			$"{FileSystemEntries.Count} entries:",
+			.. FileSystemEntries.Select(entry => $"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}"),
+		];
 
-			string name = Path.GetFileName(trimmed);
-
-			return string.IsNullOrEmpty(name) ? trimmed : name;
-		});
-
-		return $"{FileSystemEntries.Count} entries: {string.Join(", ", names)}";
+		return string.Join(Environment.NewLine, lines);
 	}
 
 	/// <summary>

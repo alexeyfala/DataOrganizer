@@ -9,6 +9,7 @@
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:system="clr-namespace:System;assembly=netstandard"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	Width="360.0"
 	Height="420.0"
@@ -79,6 +80,13 @@
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
 				<ItemsControl ItemsSource="{Binding Entries}">
+					<ItemsControl.Resources>
+						<system:Double x:Key="TextEntryMaxHeight">80.0</system:Double>
+						<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
+						<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
+						<system:Double x:Key="FileSystemEntriesMaxHeight">80.0</system:Double>
+					</ItemsControl.Resources>
+
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
 							<StackPanel
@@ -104,7 +112,7 @@
 								<Panel>
 									<!-- Text entries -->
 									<TextBlock
-										MaxHeight="80.0"
+										MaxHeight="{StaticResource TextEntryMaxHeight}"
 										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Text}}"
 										Text="{Binding Text}"
 										TextTrimming="CharacterEllipsis"
@@ -112,29 +120,20 @@
 
 									<!-- Image entries -->
 									<Image
-										MaxWidth="160.0"
-										MaxHeight="120.0"
+										MaxWidth="{StaticResource ImageEntryMaxWidth}"
+										MaxHeight="{StaticResource ImageEntryMaxHeight}"
 										HorizontalAlignment="Left"
 										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
 										Source="{Binding Preview}"
 										Stretch="Uniform" />
 
-									<!-- File / folder entries -->
-									<StackPanel
+									<!-- File / folder entries — single multi-line TextBlock with glyph prefixes -->
+									<TextBlock
+										MaxHeight="{StaticResource FileSystemEntriesMaxHeight}"
 										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
-										Orientation="Horizontal"
-										Spacing="6.0">
-										<materialIcons:MaterialIcon
-											Width="{StaticResource ToolBarIconSize}"
-											Height="{StaticResource ToolBarIconSize}"
-											VerticalAlignment="Center"
-											Kind="FolderFileOutline" />
-
-										<TextBlock
-											VerticalAlignment="Center"
-											Text="{Binding FilesSummary}"
-											TextTrimming="CharacterEllipsis" />
-									</StackPanel>
+										Text="{Binding FilesSummary}"
+										TextTrimming="CharacterEllipsis"
+										TextWrapping="NoWrap" />
 								</Panel>
 							</Button>
 						</DataTemplate>

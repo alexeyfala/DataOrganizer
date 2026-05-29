@@ -524,7 +524,22 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			result.Add(new ClipboardFileSystemEntry(path, IsFolder: item is IStorageFolder));
 		}
 
-		return result.Count == 0 ? null : result;
+		if (result.Count == 0)
+		{
+			return null;
+		}
+
+		// Stable order: folders first, then files; alphabetical within each group.
+		result.Sort(static (a, b) =>
+		{
+			int byKind = b.IsFolder.CompareTo(a.IsFolder);
+
+			return byKind != 0
+				? byKind
+				: string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+		});
+
+		return result;
 	}
 
 	/// <summary>
