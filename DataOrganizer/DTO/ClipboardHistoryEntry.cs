@@ -19,6 +19,11 @@ public sealed class ClipboardHistoryEntry
 	public string? FilesSummary => field ??= BuildFilesSummary();
 
 	/// <summary>
+	/// Pre-computed expanded list shown as a tooltip when <see cref="FilesSummary" /> is truncated.
+	/// </summary>
+	public string? FilesSummaryToolTip => field ??= BuildFilesSummaryToolTip();
+
+	/// <summary>
 	/// File / folder items captured for kind <see cref="ClipboardEntryKind.FileSystemEntries" />. <c>null</c> for other kinds.
 	/// </summary>
 	public IReadOnlyList<ClipboardFileSystemEntry>? FileSystemEntries { get; init; }
@@ -54,6 +59,12 @@ public sealed class ClipboardHistoryEntry
 	private const int FilesSummaryMaxLines = 7;
 
 	/// <summary>
+	/// Total maximum number of lines rendered by the files-summary tooltip
+	/// (full expanded list, capped to avoid a screen-tall tooltip).
+	/// </summary>
+	private const int FilesSummaryToolTipMaxLines = 30;
+
+	/// <summary>
 	/// Longest side of the cached preview in device-independent pixels.
 	/// </summary>
 	private const int PreviewMaxSide = 160;
@@ -63,11 +74,13 @@ public sealed class ClipboardHistoryEntry
 	/// <summary>
 	/// Enumerates the lines of the files-summary block on demand.
 	/// </summary>
-	private static IEnumerable<string> EnumerateFilesSummaryLines(IReadOnlyList<ClipboardFileSystemEntry> entries)
+	private static IEnumerable<string> EnumerateFilesSummaryLines(
+		IReadOnlyList<ClipboardFileSystemEntry> entries,
+		int maxLines)
 	{
 		const int headerLines = 1;
 
-		const int maxItemLines = FilesSummaryMaxLines - headerLines;
+		int maxItemLines = maxLines - headerLines;
 
 		bool truncated = entries.Count > maxItemLines;
 
@@ -99,12 +112,33 @@ public sealed class ClipboardHistoryEntry
 	/// </summary>
 	private string? BuildFilesSummary()
 	{
-		if (Kind != ClipboardEntryKind.FileSystemEntries || FileSystemEntries is not { Count: > 0 } entries)
+		if (GetSummaryEntries() is not { } entries)
 		{
 			return null;
 		}
 
-		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(entries));
+		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(entries, FilesSummaryMaxLines));
+	}
+
+	/// <summary>
+	/// Builds the expanded tooltip version of <see cref="FilesSummary" />.
+	/// </summary>
+	private string? BuildFilesSummaryToolTip()
+	{
+		if (GetSummaryEntries() is not { } entries)
+		{
+			return null;
+		}
+
+		// Show the tooltip only when the visible block was truncated.
+		const int headerLines = 1;
+
+		if (entries.Count <= FilesSummaryMaxLines - headerLines)
+		{
+			return null;
+		}
+
+		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(entries, FilesSummaryToolTipMaxLines));
 	}
 
 	/// <summary>
@@ -130,6 +164,14 @@ public sealed class ClipboardHistoryEntry
 		{
 			return null;
 		}
+	}
+
+	/// <summary>Non-empty <see cref="FileSystemEntries" /> or <c>null</c>.</summary>
+	private IReadOnlyList<ClipboardFileSystemEntry>? GetSummaryEntries()
+	{
+		return Kind == ClipboardEntryKind.FileSystemEntries && FileSystemEntries is { Count: > 0 } entries
+			? entries
+			: null;
 	}
 	#endregion
 }
