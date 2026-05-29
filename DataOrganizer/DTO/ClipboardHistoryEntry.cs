@@ -54,6 +54,11 @@ public sealed class ClipboardHistoryEntry
 
 	#region Data
 	/// <summary>
+	/// Total maximum number of lines rendered by the files-summary block.
+	/// </summary>
+	private const int FilesSummaryMaxLines = 5;
+
+	/// <summary>
 	/// Longest side of the cached preview in device-independent pixels.
 	/// </summary>
 	private const int PreviewMaxSide = 160;
@@ -70,11 +75,28 @@ public sealed class ClipboardHistoryEntry
 			return null;
 		}
 
-		string[] lines =
-		[
+		const int headerLines = 1;
+
+		const int maxItemLines = FilesSummaryMaxLines - headerLines;
+
+		bool truncated = FileSystemEntries.Count > maxItemLines;
+
+		int visibleCount = truncated ? maxItemLines - 1 : FileSystemEntries.Count;
+
+		List<string> lines = new(FilesSummaryMaxLines)
+		{
 			$"{FileSystemEntries.Count} entries:",
-			.. FileSystemEntries.Select(entry => $"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}"),
-		];
+		};
+
+		foreach (ClipboardFileSystemEntry entry in FileSystemEntries.Take(visibleCount))
+		{
+			lines.Add($"{(entry.IsFolder ? "📁" : "📄")}  {entry.Name}");
+		}
+
+		if (truncated)
+		{
+			lines.Add($"+{FileSystemEntries.Count - visibleCount} more");
+		}
 
 		return string.Join(Environment.NewLine, lines);
 	}

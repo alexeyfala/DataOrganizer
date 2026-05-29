@@ -84,7 +84,6 @@
 						<system:Double x:Key="TextEntryMaxHeight">80.0</system:Double>
 						<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 						<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
-						<system:Double x:Key="FileSystemEntriesMaxHeight">80.0</system:Double>
 					</ItemsControl.Resources>
 
 					<ItemsControl.ItemsPanel>
@@ -127,9 +126,7 @@
 										Source="{Binding Preview}"
 										Stretch="Uniform" />
 
-									<!-- File / folder entries — single multi-line TextBlock with glyph prefixes -->
 									<TextBlock
-										MaxHeight="{StaticResource FileSystemEntriesMaxHeight}"
 										IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
 										Text="{Binding FilesSummary}"
 										TextTrimming="CharacterEllipsis"
