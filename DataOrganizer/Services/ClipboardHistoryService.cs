@@ -124,18 +124,27 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 			switch (entry.Kind)
 			{
 				case ClipboardEntryKind.Text when entry.Text is { } text:
+					_logger.LogInformation(
+						$"Restoring clipboard entry: {ClipboardEntryKind.Text}, {text.Length} chars.");
+
 					await _dispatcher
 						.PostAsync(() => _exceptionHandler.Watch(clipboard.SetTextAsync(text)))
 						.ConfigureAwait(false);
 					break;
 
 				case ClipboardEntryKind.Image when entry.OriginalPng is { Length: > 0 } png:
+					_logger.LogInformation(
+						$"Restoring clipboard entry: {ClipboardEntryKind.Image}, {png.Length} bytes (PNG).");
+
 					await _dispatcher
 						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
 						.ConfigureAwait(false);
 					break;
 
 				case ClipboardEntryKind.Files when entry.FileEntries is { Count: > 0 } fileEntries:
+					_logger.LogInformation(
+						$"Restoring clipboard entry: {ClipboardEntryKind.Files}, {fileEntries.Count} items.");
+
 					await _dispatcher
 						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileEntries)))
 						.ConfigureAwait(false);
@@ -364,9 +373,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService, IDisposa
 				return;
 			}
 
-			// Files first — when the user copies files in Explorer/Finder the clipboard
-			// usually also carries text with paths; we want to record this as a Files
-			// entry, not as text, so files-first wins over text.
 			if (await TryReadFilesAsync(clipboard) is { Count: > 0 } fileEntries)
 			{
 				byte[] hash = HashFiles(fileEntries);
