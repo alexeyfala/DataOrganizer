@@ -105,7 +105,7 @@
 									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
 									CommandParameter="{Binding}"
 									Cursor="Arrow"
-									ToolTip.Tip="{Binding FilesSummaryToolTip}">
+									ToolTip.Tip="{Binding FilesSummaryToolTip, Mode=OneTime}">
 
 									<Interaction.Behaviors>
 										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
@@ -116,7 +116,7 @@
 										<TextBlock
 											MaxHeight="{StaticResource TextEntryMaxHeight}"
 											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Text}}"
-											Text="{Binding Text}"
+											Text="{Binding Text, Mode=OneTime}"
 											TextTrimming="CharacterEllipsis"
 											TextWrapping="Wrap" />
 
@@ -126,12 +126,12 @@
 											MaxHeight="{StaticResource ImageEntryMaxHeight}"
 											HorizontalAlignment="Left"
 											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.Image}}"
-											Source="{Binding Preview}"
+											Source="{Binding ImagePreview, Mode=OneTime}"
 											Stretch="Uniform" />
 
 										<TextBlock
 											IsVisible="{Binding Kind, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:ClipboardEntryKind.FileSystemEntries}}"
-											Text="{Binding FilesSummary}"
+											Text="{Binding FilesSummary, Mode=OneTime}"
 											TextTrimming="CharacterEllipsis"
 											TextWrapping="NoWrap" />
 									</Panel>
@@ -143,11 +143,11 @@
 									Padding="6.0"
 									VerticalAlignment="Center"
 									Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-									CommandParameter="{Binding Url}"
+									CommandParameter="{Binding Url, Mode=OneTime}"
 									Content="🌐"
 									Cursor="Arrow"
 									IsVisible="{Binding IsUrl}"
-									ToolTip.Tip="{Binding Url}">
+									ToolTip.Tip="{Binding Url, Mode=OneTime}">
 
 									<Interaction.Behaviors>
 										<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />

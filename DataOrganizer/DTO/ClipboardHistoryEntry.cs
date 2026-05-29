@@ -41,6 +41,11 @@ public sealed class ClipboardHistoryEntry
 	public string? Html { get; init; }
 
 	/// <summary>
+	/// Lazily-built downscaled bitmap for display. <c>null</c> for text entries.
+	/// </summary>
+	public Bitmap? ImagePreview => field ??= BuildImagePreview();
+
+	/// <summary>
 	/// <c>True</c> when <see cref="Url" /> is set.
 	/// </summary>
 	public bool IsUrl => Url is not null;
@@ -52,11 +57,6 @@ public sealed class ClipboardHistoryEntry
 	/// Original full-size PNG bytes. <c>null</c> for text entries.
 	/// </summary>
 	public byte[]? OriginalPng { get; init; }
-
-	/// <summary>
-	/// Lazily-built downscaled bitmap for display. <c>null</c> for text entries.
-	/// </summary>
-	public Bitmap? Preview => field ??= BuildPreview();
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
@@ -167,7 +167,7 @@ public sealed class ClipboardHistoryEntry
 	/// <summary>
 	/// Decodes <see cref="OriginalPng" /> into a downscaled <see cref="Bitmap" />.
 	/// </summary>
-	private Bitmap? BuildPreview()
+	private Bitmap? BuildImagePreview()
 	{
 		if (Kind != ClipboardEntryKind.Image
 			|| OriginalPng is null
