@@ -73,7 +73,9 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	[RelayCommand(CanExecute = nameof(CanClear))]
 	private void Clear()
 	{
-		_clipboardHistory.Entries.Clear();
+		_clipboardHistory
+			.Entries
+			.Clear();
 
 		ClearCommand.NotifyCanExecuteChanged();
 	}
