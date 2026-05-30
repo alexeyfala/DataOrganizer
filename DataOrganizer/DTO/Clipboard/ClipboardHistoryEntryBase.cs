@@ -7,6 +7,11 @@ public abstract class ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <summary>
+	/// Content for the entry's hover tooltip; <c>null</c> shows none. Overridden where needed.
+	/// </summary>
+	public virtual string? ContentToolTip => null;
+
+	/// <summary>
 	/// SHA-256 of the source data; used for change detection and deduplication.
 	/// </summary>
 	public required byte[] Hash { get; init; }

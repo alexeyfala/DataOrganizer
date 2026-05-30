@@ -9,6 +9,9 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 {
 	#region Properties
 	/// <inheritdoc />
+	public override string? ContentToolTip => field ??= Url;
+
+	/// <inheritdoc />
 	public override bool IsUrl => true;
 
 	/// <inheritdoc />

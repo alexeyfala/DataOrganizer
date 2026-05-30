@@ -11,15 +11,13 @@ namespace DataOrganizer.DTO.Clipboard;
 public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
+	/// <inheritdoc />
+	public override string? ContentToolTip => field ??= BuildFilesSummaryToolTip();
+
 	/// <summary>
 	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
 	public string? FilesSummary => field ??= BuildFilesSummary();
-
-	/// <summary>
-	/// Pre-computed expanded list shown as a tooltip when <see cref="FilesSummary" /> is truncated.
-	/// </summary>
-	public string? FilesSummaryToolTip => field ??= BuildFilesSummaryToolTip();
 
 	/// <summary>
 	/// File / folder items captured for this entry.

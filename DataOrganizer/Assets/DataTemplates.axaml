@@ -672,8 +672,7 @@
 		<TextBlock
 			Text="{Binding FilesSummary, Mode=OneTime}"
 			TextTrimming="CharacterEllipsis"
-			TextWrapping="NoWrap"
-			ToolTip.Tip="{Binding FilesSummaryToolTip, Mode=OneTime}" />
+			TextWrapping="NoWrap" />
 	</DataTemplate>
 
 	<!-- ClipboardEntryItemTemplate -->
@@ -688,7 +687,8 @@
 				Background="{StaticResource MaterialDividerBrush}"
 				Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
 				CommandParameter="{Binding}"
-				Cursor="Arrow">
+				Cursor="Arrow"
+				ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
 
 				<Interaction.Behaviors>
 					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
@@ -735,9 +735,7 @@
 				                                     Mode=OneTime}"
 				Content="🌐"
 				Cursor="Arrow"
-				IsVisible="{Binding IsUrl}"
-				ToolTip.Tip="{ReflectionBinding Url,
-				                                Mode=OneTime}">
+				IsVisible="{Binding IsUrl}">
 
 				<Interaction.Behaviors>
 					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
