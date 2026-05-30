@@ -670,7 +670,7 @@
 		x:Key="ClipboardFilesEntryTemplate"
 		x:DataType="clipboard:ClipboardFilesEntry">
 		<TextBlock
-			Text="{Binding FilesSummary, Mode=OneTime}"
+			Text="{Binding EntriesSummary, Mode=OneTime}"
 			TextTrimming="CharacterEllipsis"
 			TextWrapping="NoWrap" />
 	</DataTemplate>

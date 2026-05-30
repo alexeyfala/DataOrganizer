@@ -6,18 +6,18 @@ using System.Linq;
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
-/// Clipboard entry holding a captured list of filesystem items.
+/// Clipboard entry holding a captured list of filesystem entries.
 /// </summary>
 public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <inheritdoc />
-	public override string? ContentToolTip => field ??= BuildFilesSummaryToolTip();
+	public override string? ContentToolTip => field ??= BuildEntriesSummaryToolTip();
 
 	/// <summary>
 	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
-	public string? FilesSummary => field ??= BuildFilesSummary();
+	public string? EntriesSummary => field ??= BuildEntriesSummary();
 
 	/// <summary>
 	/// File / folder items captured for this entry.
@@ -33,22 +33,22 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 
 	#region Data
 	/// <summary>
-	/// Total maximum number of lines rendered by the files-summary block.
-	/// </summary>
-	private const int FilesSummaryMaxLines = 7;
-
-	/// <summary>
-	/// Total maximum number of lines rendered by the files-summary tooltip
+	/// Total maximum number of lines rendered by the entries-summary tooltip
 	/// (full expanded list, capped to avoid a screen-tall tooltip).
 	/// </summary>
-	private const int FilesSummaryToolTipMaxLines = 22;
+	private const int ContentToolTipMaxLines = 22;
+
+	/// <summary>
+	/// Total maximum number of lines rendered by the entries-summary block.
+	/// </summary>
+	private const int EntriesSummaryMaxLines = 7;
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Enumerates the lines of the files-summary block on demand.
+	/// Enumerates the lines of the entries-summary block on demand.
 	/// </summary>
-	private static IEnumerable<string> EnumerateFilesSummaryLines(
+	private static IEnumerable<string> EnumerateEntriesSummaryLines(
 		IReadOnlyList<ClipboardFileSystemEntry> entries,
 		int maxLines)
 	{
@@ -84,25 +84,25 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
-	private string BuildFilesSummary()
+	private string BuildEntriesSummary()
 	{
-		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(FileSystemEntries, FilesSummaryMaxLines));
+		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, EntriesSummaryMaxLines));
 	}
 
 	/// <summary>
-	/// Builds the expanded tooltip version of <see cref="FilesSummary" />.
+	/// Builds the expanded tooltip version of <see cref="EntriesSummary" />.
 	/// </summary>
-	private string? BuildFilesSummaryToolTip()
+	private string? BuildEntriesSummaryToolTip()
 	{
 		// Show the tooltip only when the visible block was truncated.
 		const int headerLines = 1;
 
-		if (FileSystemEntries.Count <= FilesSummaryMaxLines - headerLines)
+		if (FileSystemEntries.Count <= EntriesSummaryMaxLines - headerLines)
 		{
 			return null;
 		}
 
-		return string.Join(Environment.NewLine, EnumerateFilesSummaryLines(FileSystemEntries, FilesSummaryToolTipMaxLines));
+		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, ContentToolTipMaxLines));
 	}
 	#endregion
 }
