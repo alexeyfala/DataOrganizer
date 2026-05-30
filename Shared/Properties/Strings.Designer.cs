@@ -916,6 +916,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open in browser.
+        /// </summary>
+        public static string OpenInBrowser {
+            get {
+                return ResourceManager.GetString("OpenInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open In Editor.
         /// </summary>
         public static string OpenInEditor {

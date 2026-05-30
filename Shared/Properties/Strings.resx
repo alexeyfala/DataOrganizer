@@ -538,4 +538,7 @@
   <data name="Hyperlink" xml:space="preserve">
     <value>Hyperlink</value>
   </data>
+  <data name="OpenInBrowser" xml:space="preserve">
+    <value>Open in browser</value>
+  </data>
 </root>

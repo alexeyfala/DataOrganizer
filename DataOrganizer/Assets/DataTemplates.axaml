@@ -725,7 +725,8 @@
 							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							IsVisible="{Binding IsUrl}">
+							IsVisible="{Binding IsUrl}"
+							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}">
 
 							<Interaction.Behaviors>
 								<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
