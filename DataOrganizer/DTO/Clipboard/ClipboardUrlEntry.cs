@@ -1,3 +1,5 @@
+using Shared.Properties;
+
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
@@ -13,7 +15,7 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 	public override string TypeGlyph => "🔗";
 
 	/// <inheritdoc />
-	public override string TypeToolTip => "URL";
+	public override string TypeToolTip => Strings.Hyperlink;
 
 	/// <summary>
 	/// Trimmed http(s) URL (whole-string match) used by the "open externally" action.

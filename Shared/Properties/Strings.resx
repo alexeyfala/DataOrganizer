@@ -526,4 +526,16 @@
   <data name="WindowsClipboard" xml:space="preserve">
     <value>Windows Clipboard</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="PlainText" xml:space="preserve">
+    <value>Plain text</value>
+  </data>
+  <data name="FormattedText" xml:space="preserve">
+    <value>Formatted text</value>
+  </data>
+  <data name="Hyperlink" xml:space="preserve">
+    <value>Hyperlink</value>
+  </data>
 </root>

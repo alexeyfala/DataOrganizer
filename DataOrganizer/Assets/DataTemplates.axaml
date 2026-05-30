@@ -715,12 +715,12 @@
 						Background="{StaticResource MaterialCardBackgroundBrush}"
 						BorderBrush="{StaticResource MaterialDividerBrush}"
 						BorderThickness="1.0"
-						CornerRadius="4.0">
+						CornerRadius="4.0"
+						ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
 						<TextBlock
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							Text="{Binding TypeGlyph, Mode=OneTime}"
-							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}" />
+							Text="{Binding TypeGlyph, Mode=OneTime}" />
 					</Border>
 				</Panel>
 			</Button>

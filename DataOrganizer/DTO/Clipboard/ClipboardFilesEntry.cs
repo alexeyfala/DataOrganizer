@@ -1,3 +1,4 @@
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	public override string TypeGlyph => "🗂️";
 
 	/// <inheritdoc />
-	public override string TypeToolTip => "Files";
+	public override string TypeToolTip => $"{Strings.Folders} - {Strings.Files}";
 	#endregion
 
 	#region Data

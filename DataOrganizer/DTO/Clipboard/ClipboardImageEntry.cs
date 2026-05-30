@@ -1,4 +1,5 @@
 using Avalonia.Media.Imaging;
+using Shared.Properties;
 using System.IO;
 
 namespace DataOrganizer.DTO.Clipboard;
@@ -23,7 +24,7 @@ public sealed class ClipboardImageEntry : ClipboardHistoryEntryBase
 	public override string TypeGlyph => "🖼️";
 
 	/// <inheritdoc />
-	public override string TypeToolTip => "Image";
+	public override string TypeToolTip => Strings.Image;
 	#endregion
 
 	#region Data

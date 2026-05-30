@@ -1,3 +1,5 @@
+using Shared.Properties;
+
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
@@ -24,13 +26,20 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	public required string Text { get; init; }
 
 	/// <inheritdoc />
-	public override string TypeGlyph => Html is not null || Rtf is not null
+	public override string TypeGlyph => IsFormattedText()
 		? "🅱️"
 		: "🔤";
 
 	/// <inheritdoc />
-	public override string TypeToolTip => Html is not null || Rtf is not null
-		? "Formatted text"
-		: "Plain text";
+	public override string TypeToolTip => IsFormattedText()
+		? Strings.FormattedText
+		: Strings.PlainText;
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns <c>True</c> if <see cref="Text" /> is formatted text.
+	/// </summary>
+	private bool IsFormattedText() => Html is not null || Rtf is not null;
 	#endregion
 }
