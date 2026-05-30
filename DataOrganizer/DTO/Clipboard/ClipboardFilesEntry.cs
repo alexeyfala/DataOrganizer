@@ -24,6 +24,12 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	/// File / folder items captured for this entry.
 	/// </summary>
 	public required IReadOnlyList<ClipboardFileSystemEntry> FileSystemEntries { get; init; }
+
+	/// <inheritdoc />
+	public override string TypeGlyph => "🗂️";
+
+	/// <inheritdoc />
+	public override string TypeToolTip => "Files";
 	#endregion
 
 	#region Data

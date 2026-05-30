@@ -22,5 +22,15 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// Plain text content.
 	/// </summary>
 	public required string Text { get; init; }
+
+	/// <inheritdoc />
+	public override string TypeGlyph => Html is not null || Rtf is not null
+		? "🅱️"
+		: "🔤";
+
+	/// <inheritdoc />
+	public override string TypeToolTip => Html is not null || Rtf is not null
+		? "Formatted text"
+		: "Plain text";
 	#endregion
 }

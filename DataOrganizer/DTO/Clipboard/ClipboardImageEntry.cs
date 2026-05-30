@@ -18,6 +18,12 @@ public sealed class ClipboardImageEntry : ClipboardHistoryEntryBase
 	/// Original full-size PNG bytes.
 	/// </summary>
 	public required byte[] OriginalPng { get; init; }
+
+	/// <inheritdoc />
+	public override string TypeGlyph => "🖼️";
+
+	/// <inheritdoc />
+	public override string TypeToolTip => "Image";
 	#endregion
 
 	#region Data

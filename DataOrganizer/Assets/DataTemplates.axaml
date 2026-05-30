@@ -694,18 +694,35 @@
 					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
 				</Interaction.Behaviors>
 
-				<!-- Body is selected by the entry's runtime type. -->
-				<ContentControl Content="{Binding}">
-					<ContentControl.ContentTemplate>
-						<helpers:ClipboardEntryTemplateSelector>
-							<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
+				<!-- Body is selected by the entry's runtime type; the type badge is overlaid top-right. -->
+				<Panel>
+					<ContentControl Content="{Binding}">
+						<ContentControl.ContentTemplate>
+							<helpers:ClipboardEntryTemplateSelector>
+								<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
 
-							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
+								<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
-							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
-						</helpers:ClipboardEntryTemplateSelector>
-					</ContentControl.ContentTemplate>
-				</ContentControl>
+								<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
+							</helpers:ClipboardEntryTemplateSelector>
+						</ContentControl.ContentTemplate>
+					</ContentControl>
+
+					<Border
+						Padding="3.0"
+						HorizontalAlignment="Right"
+						VerticalAlignment="Bottom"
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0">
+						<TextBlock
+							FontFamily="Segoe UI Emoji"
+							FontSize="12.0"
+							Text="{Binding TypeGlyph, Mode=OneTime}"
+							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}" />
+					</Border>
+				</Panel>
 			</Button>
 
 			<!-- Side action: open URL externally (visible only for ClipboardUrlEntry). -->

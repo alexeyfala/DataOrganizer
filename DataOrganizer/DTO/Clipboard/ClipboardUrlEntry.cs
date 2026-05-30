@@ -9,6 +9,12 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 	/// <inheritdoc />
 	public override bool IsUrl => true;
 
+	/// <inheritdoc />
+	public override string TypeGlyph => "🔗";
+
+	/// <inheritdoc />
+	public override string TypeToolTip => "URL";
+
 	/// <summary>
 	/// Trimmed http(s) URL (whole-string match) used by the "open externally" action.
 	/// </summary>
