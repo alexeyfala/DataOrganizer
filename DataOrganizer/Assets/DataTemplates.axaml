@@ -694,7 +694,6 @@
 					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
 				</Interaction.Behaviors>
 
-				<!-- Body is selected by the entry's runtime type; the type badge is overlaid top-right. -->
 				<Panel>
 					<ContentControl Content="{Binding}">
 						<ContentControl.ContentTemplate>
@@ -708,38 +707,46 @@
 						</ContentControl.ContentTemplate>
 					</ContentControl>
 
-					<Border
-						Padding="3.0"
+					<Grid
 						HorizontalAlignment="Right"
-						VerticalAlignment="Bottom"
-						Background="{StaticResource MaterialCardBackgroundBrush}"
-						BorderBrush="{StaticResource MaterialDividerBrush}"
-						BorderThickness="1.0"
-						CornerRadius="4.0"
-						ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
-						<TextBlock
+						VerticalAlignment="Stretch"
+						RowDefinitions="Auto,*,Auto"
+						RowSpacing="2.0">
+
+						<Button
+							Grid.Row="0"
+							Padding="3.0"
+							HorizontalAlignment="Right"
+							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+							CommandParameter="{ReflectionBinding Url,
+							                                     Mode=OneTime}"
+							Content="🌐"
+							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							Text="{Binding TypeGlyph, Mode=OneTime}" />
-					</Border>
+							IsVisible="{Binding IsUrl}">
+
+							<Interaction.Behaviors>
+								<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+							</Interaction.Behaviors>
+						</Button>
+
+						<Border
+							Grid.Row="2"
+							Padding="3.0"
+							HorizontalAlignment="Right"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							BorderBrush="{StaticResource MaterialDividerBrush}"
+							BorderThickness="1.0"
+							CornerRadius="4.0"
+							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+							<TextBlock
+								FontFamily="Segoe UI Emoji"
+								FontSize="12.0"
+								Text="{Binding TypeGlyph, Mode=OneTime}" />
+						</Border>
+					</Grid>
 				</Panel>
-			</Button>
-
-			<!-- Side action: open URL externally (visible only for ClipboardUrlEntry). -->
-			<Button
-				Grid.Column="1"
-				Padding="6.0"
-				VerticalAlignment="Stretch"
-				Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-				CommandParameter="{ReflectionBinding Url,
-				                                     Mode=OneTime}"
-				Content="🌐"
-				Cursor="Arrow"
-				IsVisible="{Binding IsUrl}">
-
-				<Interaction.Behaviors>
-					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-				</Interaction.Behaviors>
 			</Button>
 		</Grid>
 	</DataTemplate>
