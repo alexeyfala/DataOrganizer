@@ -12,7 +12,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <inheritdoc />
-	public override string? ContentToolTip => field ??= BuildEntriesSummaryToolTip();
+	public override string? ContentToolTip => field ??= BuildContentToolTip();
 
 	/// <summary>
 	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
@@ -92,7 +92,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// Builds the expanded tooltip version of <see cref="EntriesSummary" />.
 	/// </summary>
-	private string? BuildEntriesSummaryToolTip()
+	private string? BuildContentToolTip()
 	{
 		// Show the tooltip only when the visible block was truncated.
 		const int headerLines = 1;

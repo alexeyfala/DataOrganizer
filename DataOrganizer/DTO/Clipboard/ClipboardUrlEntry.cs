@@ -11,7 +11,7 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 {
 	#region Properties
 	/// <inheritdoc />
-	public override string? ContentToolTip => field ??= BuildUrlToolTip();
+	public override string? ContentToolTip => field ??= BuildContentToolTip();
 
 	/// <inheritdoc />
 	public override bool IsUrl => true;
@@ -71,6 +71,6 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 	/// <summary>
 	/// Builds the wrapped, length-capped tooltip for <see cref="Url" />.
 	/// </summary>
-	private string BuildUrlToolTip() => string.Join(Environment.NewLine, EnumerateToolTipLines(Url));
+	private string BuildContentToolTip() => string.Join(Environment.NewLine, EnumerateToolTipLines(Url));
 	#endregion
 }
