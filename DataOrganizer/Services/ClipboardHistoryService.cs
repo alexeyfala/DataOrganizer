@@ -36,10 +36,21 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Data
 	/// <summary>
+	/// Maximum number of entries kept in history. Matches the Windows
+	/// system clipboard (Win+V) limit of 25 records.
+	/// </summary>
+	private const int HistoryLimit = 25;
+
+	/// <summary>
 	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
 	/// byte[] — not string — so the custom MIME round-trips on the X11 clipboard when served to other apps.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
+
+	/// <summary>
+	/// Interval between clipboard polls.
+	/// </summary>
+	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
 
 	/// <summary>
 	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
@@ -189,27 +200,25 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 						$"{(textEntry.Html is null ? string.Empty : " + HTML")}" +
 						$"{(textEntry.Rtf is null ? string.Empty : " + RTF")}.");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetTextWithFormatsAsync(clipboard, textEntry.Text, textEntry.Html, textEntry.Rtf)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetTextWithFormatsAsync(
+						clipboard,
+						textEntry.Text,
+						textEntry.Html,
+						textEntry.Rtf)).ConfigureAwait(false);
 					break;
 
 				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetImageAsync(clipboard, png)).ConfigureAwait(false);
 					break;
 
 				case ClipboardFilesEntry filesEntry when filesEntry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileSystemEntries)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetFilesAsync(clipboard, fileSystemEntries)).ConfigureAwait(false);
 					break;
 			}
 
@@ -290,6 +299,31 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
+	/// </summary>
+	private static ClipboardHistoryEntryBase BuildTextEntry(string text, string? html, string? rtf, byte[] hash)
+	{
+		string? url = TryDetectUrl(text);
+
+		return url is null
+			? new ClipboardTextEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Hash = hash
+			}
+			: new ClipboardUrlEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Url = url,
+				Hash = hash
+			};
+	}
+
+	/// <summary>
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
@@ -334,6 +368,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
 	private static partial Regex GetUrlRegex();
+
+	/// <summary>
+	/// Returns <c>True</c> when two payload hashes are byte-equal.
+	/// </summary>
+	private static bool HashEquals(byte[] left, byte[] right) => left.AsSpan().SequenceEqual(right);
 
 	/// <summary>
 	/// Hashes the file list, including kind marker so a folder and a file with the same
@@ -417,6 +456,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Posts <paramref name="operation" /> to the UI thread, wrapped by the exception handler.
+	/// </summary>
+	private Task DispatchWatchedAsync(Func<Task> operation)
+	{
+		return _dispatcher.PostAsync(() => _exceptionHandler.Watch(operation()));
+	}
+
+	/// <summary>
 	/// Compares <paramref name="hash" /> with <see cref="_lastHash" /> and pushes a new
 	/// entry to the top of the list when it changed.
 	/// </summary>
@@ -429,7 +476,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			return;
 		}
 
-		if (_lastHash is { } prev && prev.AsSpan().SequenceEqual(hash))
+		if (_lastHash is { } prev && HashEquals(prev, hash))
 		{
 			return;
 		}
@@ -437,7 +484,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		_lastHash = hash;
 
 		// If the same payload is somewhere down the list — move it up, don't duplicate.
-		if (Entries.FirstOrDefault(x => x.Hash.AsSpan().SequenceEqual(hash)) is { } existing)
+		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
 		{
 			MoveToTop(existing);
 
@@ -454,7 +501,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		Entries.Insert(0, entry);
 
-		while (Entries.Count > IClipboardHistoryService.HistoryLimit)
+		while (Entries.Count > HistoryLimit)
 		{
 			Entries.RemoveAt(Entries.Count - 1);
 		}
@@ -465,19 +512,17 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private async Task LoopAsync(CancellationToken token)
 	{
-		TimeSpan interval = TimeSpan.FromMilliseconds(750.0);
-
 		const ConfigureAwaitOptions awaitOptions = ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext;
 
 		_logger.LogInformation(
-			$"{nameof(ClipboardHistoryService)} loop started (interval = {interval.TotalMilliseconds:F0} ms, limit = {IClipboardHistoryService.HistoryLimit}).");
+			$"{nameof(ClipboardHistoryService)} loop started (interval = {PollInterval.TotalMilliseconds:F0} ms, limit = {HistoryLimit}).");
 
 		try
 		{
 			while (!Volatile.Read(ref _isDisposed) && !token.IsCancellationRequested)
 			{
 				await Task
-					.Delay(interval, token)
+					.Delay(PollInterval, token)
 					.ConfigureAwait(awaitOptions);
 
 				if (Volatile.Read(ref _isDisposed) || token.IsCancellationRequested)
@@ -573,24 +618,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
 
-				string? url = TryDetectUrl(text);
-
-				HandleNewPayload(hash, () => url is null
-					? new ClipboardTextEntry
-					{
-						Text = text,
-						Html = html,
-						Rtf = rtf,
-						Hash = hash
-					}
-					: new ClipboardUrlEntry
-					{
-						Text = text,
-						Html = html,
-						Rtf = rtf,
-						Url = url,
-						Hash = hash
-					});
+				HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash));
 			}
 		}
 		catch (Exception ex)

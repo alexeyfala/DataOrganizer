@@ -14,12 +14,6 @@ public interface IClipboardHistoryService : IAsyncDisposable
 {
 	#region Properties
 	/// <summary>
-	/// Maximum number of entries kept in history. Matches the Windows
-	/// system clipboard (Win+V) limit of 25 records.
-	/// </summary>
-	static int HistoryLimit { get; } = 25;
-
-	/// <summary>
 	/// History entries, newest first.
 	/// </summary>
 	ObservableCollection<ClipboardHistoryEntryBase> Entries { get; }
