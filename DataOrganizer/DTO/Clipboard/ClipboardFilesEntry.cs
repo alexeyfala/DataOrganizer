@@ -28,7 +28,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	public override string TypeGlyph => "🗂️";
 
 	/// <inheritdoc />
-	public override string TypeToolTip => $"{Strings.Folders} - {Strings.Files}";
+	public override string TypeToolTip => field ??= BuildTypeToolTip();
 	#endregion
 
 	#region Data
@@ -68,7 +68,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 
 		const string bulletGlyph = "·";
 
-		yield return $"{folderGlyph} {folderCount}  {fileGlyph} {entries.Count - folderCount}";
+		yield return $"{folderGlyph}: {folderCount}  {fileGlyph}: {entries.Count - folderCount}  Σ: {entries.Count}";
 
 		foreach (ClipboardFileSystemEntry entry in entries.Take(visibleCount))
 		{
@@ -79,14 +79,6 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 		{
 			yield return "...";
 		}
-	}
-
-	/// <summary>
-	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
-	/// </summary>
-	private string BuildEntriesSummary()
-	{
-		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, EntriesSummaryMaxLines));
 	}
 
 	/// <summary>
@@ -103,6 +95,27 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 		}
 
 		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, ContentToolTipMaxLines));
+	}
+
+	/// <summary>
+	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
+	/// </summary>
+	private string BuildEntriesSummary()
+	{
+		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, EntriesSummaryMaxLines));
+	}
+
+	/// <summary>
+	/// Builds the type badge tooltip with folder and file counts.
+	/// </summary>
+	private string BuildTypeToolTip()
+	{
+		int folderCount = FileSystemEntries.Count(static x => x.IsFolder);
+
+		return
+			$"{Strings.Folders}: {folderCount}{Environment.NewLine}" +
+			$"{Strings.Files}: {FileSystemEntries.Count - folderCount}{Environment.NewLine}" +
+			$"Σ: {FileSystemEntries.Count}";
 	}
 	#endregion
 }
