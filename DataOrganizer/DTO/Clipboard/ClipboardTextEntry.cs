@@ -26,20 +26,47 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	public required string Text { get; init; }
 
 	/// <inheritdoc />
-	public override string TypeGlyph => IsFormattedText()
-		? "🅱️"
-		: "🔤";
+	public override string TypeGlyph => BuildTypeGlyph();
 
 	/// <inheritdoc />
-	public override string TypeToolTip => IsFormattedText()
-		? Strings.FormattedText
-		: Strings.PlainText;
+	public override string TypeToolTip => field ??= BuildTypeToolTip();
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Text" /> is formatted text.
+	/// Builds the type badge glyph.
 	/// </summary>
-	private bool IsFormattedText() => Html is not null || Rtf is not null;
+	private string BuildTypeGlyph()
+	{
+		bool hasHtml = Html is not null;
+
+		bool hasRtf = Rtf is not null;
+
+		return (hasHtml, hasRtf) switch
+		{
+			(true, true) => "</> 🅱️",
+			(true, false) => "</>",
+			(false, true) => "🅱️",
+			_ => "🔤"
+		};
+	}
+
+	/// <summary>
+	/// Builds the type badge tooltip matching <see cref="BuildTypeGlyph" />.
+	/// </summary>
+	private string BuildTypeToolTip()
+	{
+		bool hasHtml = Html is not null;
+
+		bool hasRtf = Rtf is not null;
+
+		return (hasHtml, hasRtf) switch
+		{
+			(true, true) => $"HTML + {Strings.FormattedText}",
+			(true, false) => "HTML",
+			(false, true) => Strings.FormattedText,
+			_ => Strings.PlainText
+		};
+	}
 	#endregion
 }
