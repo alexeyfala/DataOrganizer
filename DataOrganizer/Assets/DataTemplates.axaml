@@ -756,6 +756,13 @@
 							BorderThickness="1.0"
 							CornerRadius="4.0"
 							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+
+							<Border.Styles>
+								<Style Selector="Border:pointerover">
+									<Setter Property="Opacity" Value="0.5" />
+								</Style>
+							</Border.Styles>
+
 							<TextBlock
 								FontFamily="Segoe UI Emoji"
 								FontSize="12.0"
