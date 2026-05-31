@@ -659,18 +659,13 @@
 	<DataTemplate
 		x:Key="ClipboardFormattedTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<Border
-			Padding="4.0"
+		<html:HtmlLabel
+			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			AutoSize="False"
+			AutoSizeHeightOnly="True"
 			Background="White"
-			CornerRadius="3.0">
-			<html:HtmlLabel
-				MaxHeight="{StaticResource TextEntryMaxHeight}"
-				AutoSize="False"
-				AutoSizeHeightOnly="True"
-				Background="White"
-				IsHitTestVisible="False"
-				Text="{Binding FormattedTextPreview, Mode=OneTime}" />
-		</Border>
+			IsHitTestVisible="False"
+			Text="{Binding FormattedTextPreview, Mode=OneTime}" />
 	</DataTemplate>
 
 	<DataTemplate
