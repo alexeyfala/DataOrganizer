@@ -36,14 +36,15 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Data
 	/// <summary>
-	/// HTML format used on Linux / macOS, where Avalonia's string clipboard path is UTF-8 native.
+	/// HTML format on Linux / macOS as byte[] (UTF-8). byte[] — not string — so it round-trips on the
+	/// X11 clipboard, where a requested custom MIME atom is mapped back to a byte[] format on serve.
 	/// </summary>
-	private static readonly DataFormat<string>? UnixHtmlFormat = GetUnixHtmlFormat();
+	private static readonly DataFormat<byte[]>? UnixHtmlFormat = GetUnixHtmlFormat();
 
 	/// <summary>
-	/// RTF format used on Linux / macOS.
+	/// RTF format on Linux / macOS as byte[] (UTF-8). See <see cref="UnixHtmlFormat" />.
 	/// </summary>
-	private static readonly DataFormat<string>? UnixRtfFormat = GetUnixRtfFormat();
+	private static readonly DataFormat<byte[]>? UnixRtfFormat = GetUnixRtfFormat();
 
 	/// <summary>
 	/// Strict whole-string http(s) URL matcher (applied after <see cref="string.Trim()" />).
@@ -290,19 +291,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		DataTransferItem item,
 		string payload,
 		DataFormat<byte[]>? windowsFormat,
-		DataFormat<string>? unixFormat)
+		DataFormat<byte[]>? unixFormat)
 	{
-		if (AppUtils.IsWindows && windowsFormat is not null)
-		{
-			item.Set(windowsFormat, TextHelper.Utf8Encoding.GetBytes(payload));
+		DataFormat<byte[]>? format = AppUtils.IsWindows ? windowsFormat : unixFormat;
 
+		if (format is null)
+		{
 			return;
 		}
 
-		if (unixFormat is not null)
-		{
-			item.Set(unixFormat, payload);
-		}
+		item.Set(format, TextHelper.Utf8Encoding.GetBytes(payload));
 	}
 
 	/// <summary>
@@ -313,7 +311,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Returns value for <see cref="UnixHtmlFormat" />.
 	/// </summary>
-	private static DataFormat<string>? GetUnixHtmlFormat()
+	private static DataFormat<byte[]>? GetUnixHtmlFormat()
 	{
 		if (AppUtils.IsWindows)
 		{
@@ -321,18 +319,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		}
 		else if (AppUtils.IsMacOs)
 		{
-			return DataFormat.CreateStringPlatformFormat("public.html");
+			return DataFormat.CreateBytesPlatformFormat("public.html");
 		}
 		else
 		{
-			return DataFormat.CreateStringPlatformFormat("text/html");
+			return DataFormat.CreateBytesPlatformFormat("text/html");
 		}
 	}
 
 	/// <summary>
 	/// Returns value for <see cref="UnixRtfFormat" />.
 	/// </summary>
-	private static DataFormat<string>? GetUnixRtfFormat()
+	private static DataFormat<byte[]>? GetUnixRtfFormat()
 	{
 		if (AppUtils.IsWindows)
 		{
@@ -340,11 +338,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		}
 		else if (AppUtils.IsMacOs)
 		{
-			return DataFormat.CreateStringPlatformFormat("public.rtf");
+			return DataFormat.CreateBytesPlatformFormat("public.rtf");
 		}
 		else
 		{
-			return DataFormat.CreateStringPlatformFormat("text/rtf");
+			return DataFormat.CreateBytesPlatformFormat("text/rtf");
 		}
 	}
 
@@ -763,29 +761,24 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private async Task<string?> TryReadFormattedTextAsync(
 		IClipboard clipboard,
 		DataFormat<byte[]>? windowsFormat,
-		DataFormat<string>? unixFormat)
+		DataFormat<byte[]>? unixFormat)
 	{
 		try
 		{
-			if (AppUtils.IsWindows && windowsFormat is not null)
-			{
-				byte[]? bytes = await clipboard
-					.TryGetValueAsync(windowsFormat)
-					.ConfigureAwait(false);
+			DataFormat<byte[]>? format = AppUtils.IsWindows ? windowsFormat : unixFormat;
 
-				return bytes is null
-					? null
-					: TextHelper.Utf8Encoding.GetString(bytes);
+			if (format is null)
+			{
+				return null;
 			}
 
-			if (unixFormat is not null)
-			{
-				return await clipboard
-					.TryGetValueAsync(unixFormat)
-					.ConfigureAwait(false);
-			}
+			byte[]? bytes = await clipboard
+				.TryGetValueAsync(format)
+				.ConfigureAwait(false);
 
-			return null;
+			return bytes is null
+				? null
+				: TextHelper.Utf8Encoding.GetString(bytes);
 		}
 		catch (Exception ex)
 		{
