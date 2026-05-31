@@ -40,7 +40,7 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	{
 		const string htmlGlyph = "</>";
 
-		const string formattedGlyph = "🅱️";
+		const string formattedTextGlyph = "🅱️";
 
 		const string plainTextGlyph = "🔤";
 
@@ -50,7 +50,7 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 
 		return (hasHtml, hasRtf) switch
 		{
-			(true, true) => $"{htmlGlyph} {formattedGlyph}",
+			(true, true) => $"{htmlGlyph} {formattedTextGlyph}",
 			(true, false) => htmlGlyph,
 			(false, true) => "🅱️",
 			_ => plainTextGlyph
