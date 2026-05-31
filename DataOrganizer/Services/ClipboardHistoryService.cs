@@ -314,7 +314,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		return string.Join('\n', items.Select(static item => item.Path.AbsoluteUri).Prepend("copy"));
 	}
 
-
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
