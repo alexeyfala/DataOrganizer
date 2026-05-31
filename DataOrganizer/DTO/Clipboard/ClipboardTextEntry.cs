@@ -38,16 +38,22 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// </summary>
 	private string BuildTypeGlyph()
 	{
+		const string htmlGlyph = "</>";
+
+		const string formattedGlyph = "🅱️";
+
+		const string plainTextGlyph = "🔤";
+
 		bool hasHtml = Html is not null;
 
 		bool hasRtf = Rtf is not null;
 
 		return (hasHtml, hasRtf) switch
 		{
-			(true, true) => "</> 🅱️",
-			(true, false) => "</>",
+			(true, true) => $"{htmlGlyph} {formattedGlyph}",
+			(true, false) => htmlGlyph,
 			(false, true) => "🅱️",
-			_ => "🔤"
+			_ => plainTextGlyph
 		};
 	}
 
