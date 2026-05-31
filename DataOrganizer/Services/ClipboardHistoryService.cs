@@ -46,7 +46,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// first line is the operation ("copy"), then one file:// URI per line. Avalonia only advertises
 	/// text/uri-list, which file managers ignore for paste — so we add this format ourselves.
 	/// </summary>
-	private static readonly DataFormat<byte[]>? GnomeCopiedFilesFormat = GetGnomeCopiedFilesFormat();
+	private static readonly Lazy<DataFormat<byte[]>?> GnomeCopiedFilesFormat = new(GetGnomeCopiedFilesFormat);
 
 	/// <summary>
 	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
@@ -716,7 +716,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		// On Linux file managers paste files from x-special/gnome-copied-files, not from the
 		// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
-		if (GnomeCopiedFilesFormat is { } gnomeFormat)
+		if (GnomeCopiedFilesFormat.Value is { } gnomeFormat)
 		{
 			DataTransferItem gnomeItem = new();
 
