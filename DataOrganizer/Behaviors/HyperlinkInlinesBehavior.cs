@@ -42,9 +42,9 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 	private const string UrlTrailingTrim = ".,;:!?)]}>'\"";
 
 	/// <summary>
-	/// Matches absolute http/https URLs in plain text.
+	/// Finds http(s) URL substrings anywhere within the text (each match becomes a hyperlink inline).
 	/// </summary>
-	private static readonly Regex UrlRegex = GetUrlRegex();
+	private static readonly Regex InTextUrlRegex = GetInTextUrlRegex();
 
 	/// <inheritdoc cref="CompositeDisposable" />
 	private readonly CompositeDisposable _disposables = [];
@@ -84,8 +84,11 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 	#endregion
 
 	#region Helpers
-	[GeneratedRegex(@"\bhttps?://[^\s<>""]+", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
-	private static partial Regex GetUrlRegex();
+	/// <summary>
+	/// Returns value for <see cref="InTextUrlRegex" />: finds http(s) URL substrings within text.
+	/// </summary>
+	[GeneratedRegex(@"\bhttps?://[^\s<>""]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+	private static partial Regex GetInTextUrlRegex();
 
 	/// <summary>
 	/// Strips common trailing punctuation that does not belong to a URL.
@@ -116,7 +119,7 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 		{
 			int lastIndex = 0;
 
-			foreach (Match match in UrlRegex.Matches(text))
+			foreach (Match match in InTextUrlRegex.Matches(text))
 			{
 				string url = TrimTrailingPunctuation(match.Value);
 

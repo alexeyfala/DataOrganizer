@@ -58,9 +58,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
 
 	/// <summary>
-	/// Strict whole-string http(s) URL matcher (applied after <see cref="string.Trim()" />).
+	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
+	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
 	/// </summary>
-	private static readonly Regex UrlRegex = GetUrlRegex();
+	private static readonly Regex WholeStringUrlRegex = GetWholeStringUrlRegex();
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -366,8 +367,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		}
 	}
 
-	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
-	private static partial Regex GetUrlRegex();
+	/// <summary>
+	/// Returns value for <see cref="WholeStringUrlRegex" />: matches when the entire input is an http(s) URL.
+	/// </summary>
+	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+	private static partial Regex GetWholeStringUrlRegex();
 
 	/// <summary>
 	/// Returns <c>True</c> when two payload hashes are byte-equal.
@@ -452,7 +456,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		string trimmed = text.Trim();
 
-		return UrlRegex.IsMatch(trimmed) ? trimmed : null;
+		return WholeStringUrlRegex.IsMatch(trimmed) ? trimmed : null;
 	}
 
 	/// <summary>
