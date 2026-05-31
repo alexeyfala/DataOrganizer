@@ -6,6 +6,7 @@
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:markup="using:DataOrganizer.Markup"
@@ -641,7 +642,7 @@
 	</DataTemplate>
 
 	<!--#region Clipboard history-->
-	<system:Double x:Key="TextEntryMaxHeight">80.0</system:Double>
+	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
@@ -653,6 +654,23 @@
 			Text="{Binding Text, Mode=OneTime}"
 			TextTrimming="CharacterEllipsis"
 			TextWrapping="Wrap" />
+	</DataTemplate>
+
+	<DataTemplate
+		x:Key="ClipboardFormattedTextEntryTemplate"
+		x:DataType="clipboard:ClipboardTextEntry">
+		<Border
+			Padding="4.0"
+			Background="White"
+			CornerRadius="3.0">
+			<html:HtmlLabel
+				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				AutoSize="False"
+				AutoSizeHeightOnly="True"
+				Background="White"
+				IsHitTestVisible="False"
+				Text="{Binding FormattedTextPreview, Mode=OneTime}" />
+		</Border>
 	</DataTemplate>
 
 	<DataTemplate
@@ -697,8 +715,9 @@
 				<Panel>
 					<ContentControl Content="{Binding}">
 						<ContentControl.ContentTemplate>
-							<helpers:ClipboardEntryTemplateSelector>
-								<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
+							<helpers:ClipboardEntryTemplateSelector
+								FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
+								PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
 
 								<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 

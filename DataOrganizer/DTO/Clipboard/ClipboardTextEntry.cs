@@ -1,4 +1,5 @@
 using Shared.Properties;
+using System;
 
 namespace DataOrganizer.DTO.Clipboard;
 
@@ -9,11 +10,21 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <summary>
+	/// Renderable HTML fragment for formatted entries.
+	/// </summary>
+	public string? FormattedTextPreview => field ??= BuildFormattedTextPreview();
+
+	/// <summary>
 	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
 	/// source app provided one. Pushed back to the clipboard alongside plain text
 	/// on restore so paste targets can pick up the formatting.
 	/// </summary>
 	public required string? Html { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when <see cref="IsHtml" /> == <c>True</c> or <see cref="IsRtf" /> == <c>True</c>.
+	/// </summary>
+	public bool IsFormattedText => IsHtml || IsRtf;
 
 	/// <summary>
 	/// <c>True</c> when <see cref="Html" /> is not null.
@@ -43,6 +54,59 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Strips the Windows CF_HTML descriptor header, returning just the fragment markup.
+	/// </summary>
+	private static string ExtractHtmlFragment(string html)
+	{
+		const string startMarker = "<!--StartFragment-->";
+
+		const string endMarker = "<!--EndFragment-->";
+
+		int start = html.IndexOf(startMarker, StringComparison.OrdinalIgnoreCase);
+
+		int end = html.IndexOf(endMarker, StringComparison.OrdinalIgnoreCase);
+
+		if (start >= 0 && end > start)
+		{
+			return html[(start + startMarker.Length)..end];
+		}
+
+		// No CF_HTML markers (non-Windows, or already a bare fragment): drop any
+		// leading descriptor header by returning from the first tag onward.
+		int firstTag = html.IndexOf('<');
+
+		return firstTag > 0
+			? html[firstTag..]
+			: html;
+	}
+
+	/// <summary>
+	/// Backing builder for <see cref="FormattedTextPreview" />.
+	/// </summary>
+	private string? BuildFormattedTextPreview()
+	{
+		if (Html is { } html)
+		{
+			return ExtractHtmlFragment(html);
+		}
+
+		if (Rtf is { } rtf)
+		{
+			try
+			{
+				return RtfPipe.Rtf.ToHtml(rtf);
+			}
+			catch
+			{
+				// Conversion failed -> entry stays on the plain-text template.
+				return null;
+			}
+		}
+
+		return null;
+	}
+
 	/// <summary>
 	/// Builds the type badge glyph.
 	/// </summary>
