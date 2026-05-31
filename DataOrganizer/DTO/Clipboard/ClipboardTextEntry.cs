@@ -1,12 +1,13 @@
 using Shared.Properties;
 using System;
+using System.Text.RegularExpressions;
 
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public class ClipboardTextEntry : ClipboardHistoryEntryBase
+public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <summary>
@@ -69,17 +70,48 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 
 		if (start >= 0 && end > start)
 		{
-			return html[(start + startMarker.Length)..end];
+			return NormalizePreBlocks(html[(start + startMarker.Length)..end]);
 		}
 
 		// No CF_HTML markers (non-Windows, or already a bare fragment): drop any
 		// leading descriptor header by returning from the first tag onward.
 		int firstTag = html.IndexOf('<');
 
-		return firstTag > 0
+		return NormalizePreBlocks(firstTag > 0
 			? html[firstTag..]
-			: html;
+			: html);
 	}
+
+	/// <summary>
+	/// Makes preformatted blocks (e.g. Visual Studio code copies) render multi-line by
+	/// turning their literal newlines/tabs into explicit breaks the HTML engine honors.
+	/// </summary>
+	private static string NormalizePreBlocks(string html)
+	{
+		if (html.IndexOf("<pre", StringComparison.OrdinalIgnoreCase) < 0)
+		{
+			return html;
+		}
+
+		return PreBlockRegex()
+			.Replace(html, static match =>
+			{
+				string inner = match
+					.Groups[2]
+					.Value
+					.Replace("\r\n", "<br>")
+					.Replace("\n", "<br>")
+					.Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+
+				return match.Groups[1].Value + inner + match.Groups[3].Value;
+			});
+	}
+
+	/// <summary>
+	/// Source-generated matcher for a single preformatted block: open tag, inner content, close tag.
+	/// </summary>
+	[GeneratedRegex(@"(<pre\b[^>]*>)(.*?)(</pre>)", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+	private static partial Regex PreBlockRegex();
 
 	/// <summary>
 	/// Backing builder for <see cref="FormattedTextPreview" />.
