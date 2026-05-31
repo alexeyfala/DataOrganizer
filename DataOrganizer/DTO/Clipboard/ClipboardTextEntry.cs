@@ -93,18 +93,17 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 			return html;
 		}
 
-		return PreBlockRegex()
-			.Replace(html, static match =>
-			{
-				string inner = match
-					.Groups[2]
-					.Value
-					.Replace("\r\n", "<br>")
-					.Replace("\n", "<br>")
-					.Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+		return PreBlockRegex().Replace(html, static match =>
+		{
+			string inner = match
+				.Groups[2]
+				.Value
+				.Replace("\r\n", "<br>")
+				.Replace("\n", "<br>")
+				.Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
 
-				return match.Groups[1].Value + inner + match.Groups[3].Value;
-			});
+			return match.Groups[1].Value + inner + match.Groups[3].Value;
+		});
 	}
 
 	/// <summary>
