@@ -71,11 +71,11 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanClear))]
-	private void Clear()
+	private async Task Clear()
 	{
-		_clipboardHistory
-			.Entries
-			.Clear();
+		await _clipboardHistory
+			.ClearAsync()
+			.ConfigureAwait(true);
 
 		ClearCommand.NotifyCanExecuteChanged();
 	}

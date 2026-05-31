@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed partial class ClipboardHistoryService : IClipboardHistoryService, IDisposable
+public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 {
 	#region Properties
 	/// <inheritdoc />
@@ -63,6 +63,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
+
+	/// <summary>
+	/// Serializes <see cref="PollOnceAsync" /> against <see cref="ClearAsync" /> so a poll
+	/// tick cannot insert an entry while the history / clipboard is being cleared.
+	/// </summary>
+	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
@@ -119,7 +125,37 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose()
+	public async Task ClearAsync()
+	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(true);
+
+		try
+		{
+			Entries.Clear();
+
+			_lastHash = null;
+
+			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
+			// by the next poll tick (it only reappears on a genuine new copy).
+			if (_app.FindClipboard() is not { } clipboard)
+			{
+				return;
+			}
+
+			await clipboard
+				.ClearAsync()
+				.ConfigureAwait(false);
+		}
+		finally
+		{
+			_clearGate.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async ValueTask DisposeAsync()
 	{
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
@@ -127,6 +163,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		}
 
 		Stop();
+
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		_clearGate.Dispose();
 	}
 
 	/// <inheritdoc />
@@ -522,6 +564,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// </summary>
 	private async Task PollOnceAsync()
 	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(true);
+
 		try
 		{
 			if (_app.FindClipboard() is not { } clipboard)
@@ -586,6 +632,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		catch (Exception ex)
 		{
 			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
