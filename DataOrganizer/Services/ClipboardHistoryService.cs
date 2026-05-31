@@ -205,8 +205,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				case ClipboardTextEntry textEntry:
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardTextEntry)}, {textEntry.Text.Length} chars" +
-						$"{(textEntry.Html is null ? string.Empty : " + HTML")}" +
-						$"{(textEntry.Rtf is null ? string.Empty : " + RTF")}.");
+						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
+						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
 					await DispatchWatchedAsync(() => SetTextWithFormatsAsync(
 						clipboard,
@@ -317,7 +317,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
-	private static ClipboardHistoryEntryBase BuildTextEntry(string text, string? html, string? rtf, byte[] hash)
+	private static ClipboardHistoryEntryBase BuildTextEntry(
+		string text,
+		string? html,
+		string? rtf,
+		byte[] hash)
 	{
 		string? url = TryDetectUrl(text);
 

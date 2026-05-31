@@ -13,12 +13,22 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// source app provided one. Pushed back to the clipboard alongside plain text
 	/// on restore so paste targets can pick up the formatting.
 	/// </summary>
-	public string? Html { get; init; }
+	public required string? Html { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Html" /> is not null.
+	/// </summary>
+	public bool IsHtml => Html is not null;
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Rtf" /> is not null.
+	/// </summary>
+	public bool IsRtf => Rtf is not null;
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
 	/// </summary>
-	public string? Rtf { get; init; }
+	public required string? Rtf { get; init; }
 
 	/// <summary>
 	/// Plain text content.
@@ -44,11 +54,7 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 
 		const string plainTextGlyph = "🔤";
 
-		bool hasHtml = Html is not null;
-
-		bool hasRtf = Rtf is not null;
-
-		return (hasHtml, hasRtf) switch
+		return (IsHtml, IsRtf) switch
 		{
 			(true, true) => $"{htmlGlyph} {formattedTextGlyph}",
 			(true, false) => htmlGlyph,
@@ -60,19 +66,12 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// Builds the type badge tooltip matching <see cref="BuildTypeGlyph" />.
 	/// </summary>
-	private string BuildTypeToolTip()
+	private string BuildTypeToolTip() => (IsHtml, IsRtf) switch
 	{
-		bool hasHtml = Html is not null;
-
-		bool hasRtf = Rtf is not null;
-
-		return (hasHtml, hasRtf) switch
-		{
-			(true, true) => $"HTML + {Strings.FormattedText}",
-			(true, false) => "HTML",
-			(false, true) => Strings.FormattedText,
-			_ => Strings.PlainText
-		};
-	}
+		(true, true) => $"HTML + {Strings.FormattedText}",
+		(true, false) => "HTML",
+		(false, true) => Strings.FormattedText,
+		_ => Strings.PlainText
+	};
 	#endregion
 }
