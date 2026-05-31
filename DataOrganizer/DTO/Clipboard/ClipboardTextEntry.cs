@@ -52,7 +52,7 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 		{
 			(true, true) => $"{htmlGlyph} {formattedTextGlyph}",
 			(true, false) => htmlGlyph,
-			(false, true) => "🅱️",
+			(false, true) => formattedTextGlyph,
 			_ => plainTextGlyph
 		};
 	}
