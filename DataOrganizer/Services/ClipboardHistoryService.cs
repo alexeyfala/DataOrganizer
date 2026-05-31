@@ -397,7 +397,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="WholeStringUrlRegex" />: matches when the entire input is an http(s) URL.
+	/// Matches when the entire input is an http(s) URL.
 	/// </summary>
 	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
 	private static partial Regex GetWholeStringUrlRegex();

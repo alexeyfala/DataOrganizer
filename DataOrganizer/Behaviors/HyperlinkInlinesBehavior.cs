@@ -85,7 +85,7 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 
 	#region Helpers
 	/// <summary>
-	/// Returns value for <see cref="InTextUrlRegex" />: finds http(s) URL substrings within text.
+	/// Finds http(s) URL substrings within text.
 	/// </summary>
 	[GeneratedRegex(@"\bhttps?://[^\s<>""]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
 	private static partial Regex GetInTextUrlRegex();

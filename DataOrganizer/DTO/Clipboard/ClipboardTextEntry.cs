@@ -108,7 +108,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	}
 
 	/// <summary>
-	/// Source-generated matcher for a single preformatted block: open tag, inner content, close tag.
+	/// Matches for a single preformatted block: open tag, inner content, close tag.
 	/// </summary>
 	[GeneratedRegex(@"(<pre\b[^>]*>)(.*?)(</pre>)", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
 	private static partial Regex PreBlockRegex();
