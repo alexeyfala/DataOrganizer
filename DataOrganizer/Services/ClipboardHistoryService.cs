@@ -36,31 +36,20 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Data
 	/// <summary>
-	/// HTML format on Linux / macOS as byte[] (UTF-8). byte[] — not string — so it round-trips on the
-	/// X11 clipboard, where a requested custom MIME atom is mapped back to a byte[] format on serve.
+	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
+	/// byte[] — not string — so the custom MIME round-trips on the X11 clipboard when served to other apps.
 	/// </summary>
-	private static readonly DataFormat<byte[]>? UnixHtmlFormat = GetUnixHtmlFormat();
+	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
 
 	/// <summary>
-	/// RTF format on Linux / macOS as byte[] (UTF-8). See <see cref="UnixHtmlFormat" />.
+	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
 	/// </summary>
-	private static readonly DataFormat<byte[]>? UnixRtfFormat = GetUnixRtfFormat();
+	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
 
 	/// <summary>
 	/// Strict whole-string http(s) URL matcher (applied after <see cref="string.Trim()" />).
 	/// </summary>
 	private static readonly Regex UrlRegex = GetUrlRegex();
-
-	/// <summary>
-	/// Windows-only byte[] format for CF_HTML. We manage UTF-8 ourselves so the
-	/// byte offsets baked into the CF_HTML header stay valid for paste targets.
-	/// </summary>
-	private static readonly DataFormat<byte[]>? WindowsHtmlFormat = GetWindowsHtmlFormat();
-
-	/// <summary>
-	/// Windows-only byte[] format for "Rich Text Format" — same reason as <see cref="WindowsHtmlFormat" />.
-	/// </summary>
-	private static readonly DataFormat<byte[]>? WindowsRtfFormat = GetWindowsRtfFormat();
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -290,11 +279,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static void AttachFormattedText(
 		DataTransferItem item,
 		string payload,
-		DataFormat<byte[]>? windowsFormat,
-		DataFormat<byte[]>? unixFormat)
+		DataFormat<byte[]>? format)
 	{
-		DataFormat<byte[]>? format = AppUtils.IsWindows ? windowsFormat : unixFormat;
-
 		if (format is null)
 		{
 			return;
@@ -309,13 +295,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
 
 	/// <summary>
-	/// Returns value for <see cref="UnixHtmlFormat" />.
+	/// Returns value for <see cref="HtmlFormat" />.
 	/// </summary>
-	private static DataFormat<byte[]>? GetUnixHtmlFormat()
+	private static DataFormat<byte[]>? GetHtmlFormat()
 	{
 		if (AppUtils.IsWindows)
 		{
-			return null;
+			return DataFormat.CreateBytesPlatformFormat("HTML Format");
 		}
 		else if (AppUtils.IsMacOs)
 		{
@@ -328,13 +314,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="UnixRtfFormat" />.
+	/// Returns value for <see cref="RtfFormat" />.
 	/// </summary>
-	private static DataFormat<byte[]>? GetUnixRtfFormat()
+	private static DataFormat<byte[]>? GetRtfFormat()
 	{
 		if (AppUtils.IsWindows)
 		{
-			return null;
+			return DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 		}
 		else if (AppUtils.IsMacOs)
 		{
@@ -348,26 +334,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
 	private static partial Regex GetUrlRegex();
-
-	/// <summary>
-	/// Returns value for <see cref="WindowsHtmlFormat" />.
-	/// </summary>
-	private static DataFormat<byte[]>? GetWindowsHtmlFormat()
-	{
-		return AppUtils.IsWindows
-			? DataFormat.CreateBytesPlatformFormat("HTML Format")
-			: null;
-	}
-
-	/// <summary>
-	/// Returns value for <see cref="WindowsRtfFormat" />.
-	/// </summary>
-	private static DataFormat<byte[]>? GetWindowsRtfFormat()
-	{
-		return AppUtils.IsWindows
-			? DataFormat.CreateBytesPlatformFormat("Rich Text Format")
-			: null;
-	}
 
 	/// <summary>
 	/// Hashes the file list, including kind marker so a folder and a file with the same
@@ -424,12 +390,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		if (html is not null)
 		{
-			AttachFormattedText(item, html, WindowsHtmlFormat, UnixHtmlFormat);
+			AttachFormattedText(item, html, HtmlFormat);
 		}
 
 		if (rtf is not null)
 		{
-			AttachFormattedText(item, rtf, WindowsRtfFormat, UnixRtfFormat);
+			AttachFormattedText(item, rtf, RtfFormat);
 		}
 
 		DataTransfer transfer = new();
@@ -760,18 +726,15 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private async Task<string?> TryReadFormattedTextAsync(
 		IClipboard clipboard,
-		DataFormat<byte[]>? windowsFormat,
-		DataFormat<byte[]>? unixFormat)
+		DataFormat<byte[]>? format)
 	{
+		if (format is null)
+		{
+			return null;
+		}
+
 		try
 		{
-			DataFormat<byte[]>? format = AppUtils.IsWindows ? windowsFormat : unixFormat;
-
-			if (format is null)
-			{
-				return null;
-			}
-
 			byte[]? bytes = await clipboard
 				.TryGetValueAsync(format)
 				.ConfigureAwait(false);
@@ -789,13 +752,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>Reads the HTML payload from the clipboard.</summary>
-	private Task<string?> TryReadHtmlAsync(IClipboard clipboard)
-	{
-		return TryReadFormattedTextAsync(
-			clipboard,
-			WindowsHtmlFormat,
-			UnixHtmlFormat);
-	}
+	private Task<string?> TryReadHtmlAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, HtmlFormat);
 
 	/// <summary>
 	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
@@ -843,13 +800,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>Reads the RTF payload from the clipboard.</summary>
-	private Task<string?> TryReadRtfAsync(IClipboard clipboard)
-	{
-		return TryReadFormattedTextAsync(
-			clipboard,
-			WindowsRtfFormat,
-			UnixRtfFormat);
-	}
+	private Task<string?> TryReadRtfAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, RtfFormat);
 
 	/// <summary>
 	/// Reads clipboard text if available.
