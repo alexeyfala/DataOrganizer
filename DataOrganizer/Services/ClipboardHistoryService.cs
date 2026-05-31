@@ -42,6 +42,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private const int HistoryLimit = 25;
 
 	/// <summary>
+	/// Linux-only byte[] format that file managers (GNOME/Nautilus and most DEs) require to paste files:
+	/// first line is the operation ("copy"), then one file:// URI per line. Avalonia only advertises
+	/// text/uri-list, which file managers ignore for paste — so we add this format ourselves.
+	/// </summary>
+	private static readonly DataFormat<byte[]>? GnomeCopiedFilesFormat = GetGnomeCopiedFilesFormat();
+
+	/// <summary>
 	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
 	/// byte[] — not string — so the custom MIME round-trips on the X11 clipboard when served to other apps.
 	/// </summary>
@@ -300,6 +307,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Builds the <c>x-special/gnome-copied-files</c> payload: "copy" then one file:// URI per line.
+	/// </summary>
+	private static string BuildGnomeCopiedFiles(IEnumerable<IStorageItem> items)
+	{
+		return string.Join('\n', items.Select(static item => item.Path.AbsoluteUri).Prepend("copy"));
+	}
+
+	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
 	private static ClipboardHistoryEntryBase BuildTextEntry(string text, string? html, string? rtf, byte[] hash)
@@ -328,6 +343,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
+
+	/// <summary>
+	/// Returns value for <see cref="GnomeCopiedFilesFormat" />.
+	/// </summary>
+	private static DataFormat<byte[]>? GetGnomeCopiedFilesFormat()
+	{
+		return AppUtils.IsLinux
+			? DataFormat.CreateBytesPlatformFormat("x-special/gnome-copied-files")
+			: null;
+	}
 
 	/// <summary>
 	/// Returns value for <see cref="HtmlFormat" />.
@@ -683,6 +708,17 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		foreach (IStorageItem item in resolved)
 		{
 			transfer.Add(DataTransferItem.CreateFile(item));
+		}
+
+		// On Linux file managers paste files from x-special/gnome-copied-files, not from the
+		// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
+		if (GnomeCopiedFilesFormat is { } gnomeFormat)
+		{
+			DataTransferItem gnomeItem = new();
+
+			gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
+
+			transfer.Add(gnomeItem);
 		}
 
 		await clipboard
