@@ -26,12 +26,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="12.0.3" />
+		<PackageReference Include="Avalonia" Version="12.0.4" />
 		<PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.3" />
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
 		<!-- Managed HTML engine for the clipboard history formatted-text preview (HtmlLabel). -->
 		<PackageReference Include="Avalonia.HtmlRenderer" Version="12.0.0" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.3" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
 		<PackageReference Include="Baksteen.Extensions.DeepCopy" Version="1.0.5" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
