@@ -5,8 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Cysharp.Text;
-using DataOrganizer.DTO;
-using DataOrganizer.Enums;
+using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -25,11 +24,11 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed partial class ClipboardHistoryService : IClipboardHistoryService, IDisposable
+public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 {
 	#region Properties
 	/// <inheritdoc />
-	public ObservableCollection<ClipboardHistoryEntry> Entries { get; } = [];
+	public ObservableCollection<ClipboardHistoryEntryBase> Entries { get; } = [];
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
@@ -37,33 +36,48 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 	#region Data
 	/// <summary>
-	/// HTML format used on Linux / macOS, where Avalonia's string clipboard path is UTF-8 native.
+	/// Maximum number of entries kept in history. Matches the Windows
+	/// system clipboard (Win+V) limit of 25 records.
 	/// </summary>
-	private static readonly DataFormat<string>? UnixHtmlFormat = GetUnixHtmlFormat();
+	private const int HistoryLimit = 25;
 
 	/// <summary>
-	/// RTF format used on Linux / macOS.
+	/// Linux-only byte[] format that file managers (GNOME/Nautilus and most DEs) require to paste files:
+	/// first line is the operation ("copy"), then one file:// URI per line. Avalonia only advertises
+	/// text/uri-list, which file managers ignore for paste — so we add this format ourselves.
 	/// </summary>
-	private static readonly DataFormat<string>? UnixRtfFormat = GetUnixRtfFormat();
+	private static readonly Lazy<DataFormat<byte[]>?> GnomeCopiedFilesFormat = new(GetGnomeCopiedFilesFormat);
 
 	/// <summary>
-	/// Strict whole-string http(s) URL matcher (applied after <see cref="string.Trim()" />).
+	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
+	/// byte[] — not string — so the custom MIME round-trips on the X11 clipboard when served to other apps.
 	/// </summary>
-	private static readonly Regex UrlRegex = GetUrlRegex();
+	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
 
 	/// <summary>
-	/// Windows-only byte[] format for CF_HTML. We manage UTF-8 ourselves so the
-	/// byte offsets baked into the CF_HTML header stay valid for paste targets.
+	/// Interval between clipboard polls.
 	/// </summary>
-	private static readonly DataFormat<byte[]>? WindowsHtmlFormat = GetWindowsHtmlFormat();
+	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
 
 	/// <summary>
-	/// Windows-only byte[] format for "Rich Text Format" — same reason as <see cref="WindowsHtmlFormat" />.
+	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
 	/// </summary>
-	private static readonly DataFormat<byte[]>? WindowsRtfFormat = GetWindowsRtfFormat();
+	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
+
+	/// <summary>
+	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
+	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
+	/// </summary>
+	private static readonly Regex WholeStringUrlRegex = GetWholeStringUrlRegex();
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
+
+	/// <summary>
+	/// Serializes <see cref="PollOnceAsync" /> against <see cref="ClearAsync" /> so a poll
+	/// tick cannot insert an entry while the history / clipboard is being cleared.
+	/// </summary>
+	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
 	/// <inheritdoc cref="IDispatcher" />
 	private readonly IDispatcher _dispatcher;
@@ -96,9 +110,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	private CancellationTokenSource? _stopCts;
 
 	/// <summary>
-	/// When non-zero, the next <see cref="PollOnceAsync" /> tick skips its match check.
+	/// When <c>True</c>, the next <see cref="PollOnceAsync" /> tick skips its match check.
 	/// </summary>
-	private int _suppressEcho;
+	private bool _suppressEcho;
 	#endregion
 
 	#region Constructors
@@ -120,7 +134,37 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose()
+	public async Task ClearAsync()
+	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(true);
+
+		try
+		{
+			Entries.Clear();
+
+			_lastHash = null;
+
+			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
+			// by the next poll tick (it only reappears on a genuine new copy).
+			if (_app.FindClipboard() is not { } clipboard)
+			{
+				return;
+			}
+
+			await clipboard
+				.ClearAsync()
+				.ConfigureAwait(false);
+		}
+		finally
+		{
+			_clearGate.Release();
+		}
+	}
+
+	/// <inheritdoc />
+	public async ValueTask DisposeAsync()
 	{
 		if (Interlocked.Exchange(ref _isDisposed, true))
 		{
@@ -128,10 +172,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		}
 
 		Stop();
+
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		_clearGate.Dispose();
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreAsync(ClipboardHistoryEntry entry)
+	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
 		if (Volatile.Read(ref _isDisposed))
 		{
@@ -144,41 +194,39 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		}
 
 		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
-		Interlocked.Exchange(ref _suppressEcho, 1);
+		Interlocked.Exchange(ref _suppressEcho, true);
 
 		_lastHash = entry.Hash;
 
 		try
 		{
-			switch (entry.Kind)
+			switch (entry)
 			{
-				case ClipboardEntryKind.Text when entry.Text is { } text:
+				case ClipboardTextEntry textEntry:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Text}, {text.Length} chars" +
-						$"{(entry.Html is null ? string.Empty : " + HTML")}" +
-						$"{(entry.Rtf is null ? string.Empty : " + RTF")}.");
+						$"Restoring clipboard entry: {nameof(ClipboardTextEntry)}, {textEntry.Text.Length} chars" +
+						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
+						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetTextWithFormatsAsync(clipboard, text, entry.Html, entry.Rtf)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetTextWithFormatsAsync(
+						clipboard,
+						textEntry.Text,
+						textEntry.Html,
+						textEntry.Rtf)).ConfigureAwait(false);
 					break;
 
-				case ClipboardEntryKind.Image when entry.OriginalPng is { Length: > 0 } png:
+				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.Image}, {png.Length} bytes (PNG).");
+						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetImageAsync(clipboard, png)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetImageAsync(clipboard, png)).ConfigureAwait(false);
 					break;
 
-				case ClipboardEntryKind.FileSystemEntries when entry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
+				case ClipboardFilesEntry filesEntry when filesEntry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
 					_logger.LogInformation(
-						$"Restoring clipboard entry: {ClipboardEntryKind.FileSystemEntries}, {fileSystemEntries.Count} items.");
+						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
-					await _dispatcher
-						.PostAsync(() => _exceptionHandler.Watch(SetFilesAsync(clipboard, fileSystemEntries)))
-						.ConfigureAwait(false);
+					await DispatchWatchedAsync(() => SetFilesAsync(clipboard, fileSystemEntries)).ConfigureAwait(false);
 					break;
 			}
 
@@ -248,20 +296,51 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	private static void AttachFormattedText(
 		DataTransferItem item,
 		string payload,
-		DataFormat<byte[]>? windowsFormat,
-		DataFormat<string>? unixFormat)
+		DataFormat<byte[]>? format)
 	{
-		if (AppUtils.IsWindows && windowsFormat is not null)
+		if (format is null)
 		{
-			item.Set(windowsFormat, TextHelper.Utf8Encoding.GetBytes(payload));
-
 			return;
 		}
 
-		if (unixFormat is not null)
-		{
-			item.Set(unixFormat, payload);
-		}
+		item.Set(format, TextHelper.Utf8Encoding.GetBytes(payload));
+	}
+
+	/// <summary>
+	/// Builds the <c>x-special/gnome-copied-files</c> payload: "copy" then one file:// URI per line.
+	/// </summary>
+	private static string BuildGnomeCopiedFiles(IEnumerable<IStorageItem> items)
+	{
+		return string.Join('\n', items.Select(static item => item.Path.AbsoluteUri).Prepend("copy"));
+	}
+
+	/// <summary>
+	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
+	/// </summary>
+	private static ClipboardHistoryEntryBase BuildTextEntry(
+		string text,
+		string? html,
+		string? rtf,
+		byte[] hash)
+	{
+		string? url = TryDetectUrl(text);
+
+		return url is null
+			? new ClipboardTextEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Hash = hash
+			}
+			: new ClipboardUrlEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Url = url,
+				Hash = hash
+			};
 	}
 
 	/// <summary>
@@ -270,65 +349,63 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
 
 	/// <summary>
-	/// Returns value for <see cref="UnixHtmlFormat" />.
+	/// Returns value for <see cref="GnomeCopiedFilesFormat" />.
 	/// </summary>
-	private static DataFormat<string>? GetUnixHtmlFormat()
+	private static DataFormat<byte[]>? GetGnomeCopiedFilesFormat()
 	{
-		if (AppUtils.IsWindows)
-		{
-			return null;
-		}
-		else if (AppUtils.IsMacOs)
-		{
-			return DataFormat.CreateStringPlatformFormat("public.html");
-		}
-		else
-		{
-			return DataFormat.CreateStringPlatformFormat("text/html");
-		}
-	}
-
-	/// <summary>
-	/// Returns value for <see cref="UnixRtfFormat" />.
-	/// </summary>
-	private static DataFormat<string>? GetUnixRtfFormat()
-	{
-		if (AppUtils.IsWindows)
-		{
-			return null;
-		}
-		else if (AppUtils.IsMacOs)
-		{
-			return DataFormat.CreateStringPlatformFormat("public.rtf");
-		}
-		else
-		{
-			return DataFormat.CreateStringPlatformFormat("text/rtf");
-		}
-	}
-
-	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ru-RU")]
-	private static partial Regex GetUrlRegex();
-
-	/// <summary>
-	/// Returns value for <see cref="WindowsHtmlFormat" />.
-	/// </summary>
-	private static DataFormat<byte[]>? GetWindowsHtmlFormat()
-	{
-		return AppUtils.IsWindows
-			? DataFormat.CreateBytesPlatformFormat("HTML Format")
+		return AppUtils.IsLinux
+			? DataFormat.CreateBytesPlatformFormat("x-special/gnome-copied-files")
 			: null;
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="WindowsRtfFormat" />.
+	/// Returns value for <see cref="HtmlFormat" />.
 	/// </summary>
-	private static DataFormat<byte[]>? GetWindowsRtfFormat()
+	private static DataFormat<byte[]>? GetHtmlFormat()
 	{
-		return AppUtils.IsWindows
-			? DataFormat.CreateBytesPlatformFormat("Rich Text Format")
-			: null;
+		if (AppUtils.IsWindows)
+		{
+			return DataFormat.CreateBytesPlatformFormat("HTML Format");
+		}
+		else if (AppUtils.IsMacOs)
+		{
+			return DataFormat.CreateBytesPlatformFormat("public.html");
+		}
+		else
+		{
+			return DataFormat.CreateBytesPlatformFormat("text/html");
+		}
 	}
+
+	/// <summary>
+	/// Returns value for <see cref="RtfFormat" />.
+	/// </summary>
+	private static DataFormat<byte[]>? GetRtfFormat()
+	{
+		if (AppUtils.IsWindows)
+		{
+			return DataFormat.CreateBytesPlatformFormat("Rich Text Format");
+		}
+		else if (AppUtils.IsMacOs)
+		{
+			return DataFormat.CreateBytesPlatformFormat("public.rtf");
+		}
+		else
+		{
+			return DataFormat.CreateBytesPlatformFormat("text/rtf");
+		}
+	}
+
+	/// <summary>
+	/// Matches when the entire input is an http(s) URL.
+	/// </summary>
+	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+	private static partial Regex GetWholeStringUrlRegex();
+
+	/// <summary>
+	/// Returns <c>True</c> when two payload hashes are byte-equal.
+	/// </summary>
+	private static bool HashEquals(byte[] left, byte[] right) => left.AsSpan().SequenceEqual(right);
 
 	/// <summary>
 	/// Hashes the file list, including kind marker so a folder and a file with the same
@@ -385,12 +462,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 		if (html is not null)
 		{
-			AttachFormattedText(item, html, WindowsHtmlFormat, UnixHtmlFormat);
+			AttachFormattedText(item, html, HtmlFormat);
 		}
 
 		if (rtf is not null)
 		{
-			AttachFormattedText(item, rtf, WindowsRtfFormat, UnixRtfFormat);
+			AttachFormattedText(item, rtf, RtfFormat);
 		}
 
 		DataTransfer transfer = new();
@@ -408,23 +485,31 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	{
 		string trimmed = text.Trim();
 
-		return UrlRegex.IsMatch(trimmed) ? trimmed : null;
+		return WholeStringUrlRegex.IsMatch(trimmed) ? trimmed : null;
+	}
+
+	/// <summary>
+	/// Posts <paramref name="operation" /> to the UI thread, wrapped by the exception handler.
+	/// </summary>
+	private Task DispatchWatchedAsync(Func<Task> operation)
+	{
+		return _dispatcher.PostAsync(() => _exceptionHandler.Watch(operation()));
 	}
 
 	/// <summary>
 	/// Compares <paramref name="hash" /> with <see cref="_lastHash" /> and pushes a new
 	/// entry to the top of the list when it changed.
 	/// </summary>
-	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntry> entryFactory)
+	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, 0) == 1)
+		if (Interlocked.Exchange(ref _suppressEcho, false))
 		{
 			_lastHash = hash;
 
 			return;
 		}
 
-		if (_lastHash is { } prev && prev.AsSpan().SequenceEqual(hash))
+		if (_lastHash is { } prev && HashEquals(prev, hash))
 		{
 			return;
 		}
@@ -432,7 +517,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		_lastHash = hash;
 
 		// If the same payload is somewhere down the list — move it up, don't duplicate.
-		if (Entries.FirstOrDefault(x => x.Hash.AsSpan().SequenceEqual(hash)) is { } existing)
+		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
 		{
 			MoveToTop(existing);
 
@@ -445,11 +530,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// <summary>
 	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
 	/// </summary>
-	private void InsertAtTop(ClipboardHistoryEntry entry)
+	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
 		Entries.Insert(0, entry);
 
-		while (Entries.Count > IClipboardHistoryService.HistoryLimit)
+		while (Entries.Count > HistoryLimit)
 		{
 			Entries.RemoveAt(Entries.Count - 1);
 		}
@@ -460,19 +545,17 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// </summary>
 	private async Task LoopAsync(CancellationToken token)
 	{
-		TimeSpan interval = TimeSpan.FromMilliseconds(750.0);
-
 		const ConfigureAwaitOptions awaitOptions = ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext;
 
 		_logger.LogInformation(
-			$"{nameof(ClipboardHistoryService)} loop started (interval = {interval.TotalMilliseconds:F0} ms, limit = {IClipboardHistoryService.HistoryLimit}).");
+			$"{nameof(ClipboardHistoryService)} loop started (interval = {PollInterval.TotalMilliseconds:F0} ms, limit = {HistoryLimit}).");
 
 		try
 		{
 			while (!Volatile.Read(ref _isDisposed) && !token.IsCancellationRequested)
 			{
 				await Task
-					.Delay(interval, token)
+					.Delay(PollInterval, token)
 					.ConfigureAwait(awaitOptions);
 
 				if (Volatile.Read(ref _isDisposed) || token.IsCancellationRequested)
@@ -499,7 +582,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// Moves <paramref name="entry" /> to position 0 if it is already in the collection,
 	/// otherwise inserts it.
 	/// </summary>
-	private void MoveToTop(ClipboardHistoryEntry entry)
+	private void MoveToTop(ClipboardHistoryEntryBase entry)
 	{
 		int index = Entries.IndexOf(entry);
 
@@ -523,6 +606,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// </summary>
 	private async Task PollOnceAsync()
 	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(true);
+
 		try
 		{
 			if (_app.FindClipboard() is not { } clipboard)
@@ -534,9 +621,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
 
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
+				HandleNewPayload(hash, () => new ClipboardFilesEntry
 				{
-					Kind = ClipboardEntryKind.FileSystemEntries,
 					FileSystemEntries = fileSystemEntries,
 					Hash = hash
 				});
@@ -548,9 +634,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 			{
 				byte[] hash = ComputeHash(png);
 
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
+				HandleNewPayload(hash, () => new ClipboardImageEntry
 				{
-					Kind = ClipboardEntryKind.Image,
 					OriginalPng = png,
 					Hash = hash
 				});
@@ -566,22 +651,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 
 				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
 
-				string? url = TryDetectUrl(text);
-
-				HandleNewPayload(hash, () => new ClipboardHistoryEntry
-				{
-					Kind = ClipboardEntryKind.Text,
-					Text = text,
-					Html = html,
-					Rtf = rtf,
-					Url = url,
-					Hash = hash
-				});
+				HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash));
 			}
 		}
 		catch (Exception ex)
 		{
 			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
@@ -633,6 +712,17 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 		foreach (IStorageItem item in resolved)
 		{
 			transfer.Add(DataTransferItem.CreateFile(item));
+		}
+
+		// On Linux file managers paste files from x-special/gnome-copied-files, not from the
+		// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
+		if (GnomeCopiedFilesFormat.Value is { } gnomeFormat)
+		{
+			DataTransferItem gnomeItem = new();
+
+			gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
+
+			transfer.Add(gnomeItem);
 		}
 
 		await clipboard
@@ -708,30 +798,22 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	/// </summary>
 	private async Task<string?> TryReadFormattedTextAsync(
 		IClipboard clipboard,
-		DataFormat<byte[]>? windowsFormat,
-		DataFormat<string>? unixFormat)
+		DataFormat<byte[]>? format)
 	{
+		if (format is null)
+		{
+			return null;
+		}
+
 		try
 		{
-			if (AppUtils.IsWindows && windowsFormat is not null)
-			{
-				byte[]? bytes = await clipboard
-					.TryGetValueAsync(windowsFormat)
-					.ConfigureAwait(false);
+			byte[]? bytes = await clipboard
+				.TryGetValueAsync(format)
+				.ConfigureAwait(false);
 
-				return bytes is null
-					? null
-					: TextHelper.Utf8Encoding.GetString(bytes);
-			}
-
-			if (unixFormat is not null)
-			{
-				return await clipboard
-					.TryGetValueAsync(unixFormat)
-					.ConfigureAwait(false);
-			}
-
-			return null;
+			return bytes is null
+				? null
+				: TextHelper.Utf8Encoding.GetString(bytes);
 		}
 		catch (Exception ex)
 		{
@@ -742,13 +824,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	}
 
 	/// <summary>Reads the HTML payload from the clipboard.</summary>
-	private Task<string?> TryReadHtmlAsync(IClipboard clipboard)
-	{
-		return TryReadFormattedTextAsync(
-			clipboard,
-			WindowsHtmlFormat,
-			UnixHtmlFormat);
-	}
+	private Task<string?> TryReadHtmlAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, HtmlFormat);
 
 	/// <summary>
 	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
@@ -796,13 +872,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService, 
 	}
 
 	/// <summary>Reads the RTF payload from the clipboard.</summary>
-	private Task<string?> TryReadRtfAsync(IClipboard clipboard)
-	{
-		return TryReadFormattedTextAsync(
-			clipboard,
-			WindowsRtfFormat,
-			UnixRtfFormat);
-	}
+	private Task<string?> TryReadRtfAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, RtfFormat);
 
 	/// <summary>
 	/// Reads clipboard text if available.

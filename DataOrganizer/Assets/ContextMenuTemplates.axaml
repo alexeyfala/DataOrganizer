@@ -4,9 +4,9 @@
 	xmlns:abstract="using:DataOrganizer.Abstract"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:localModels="using:DataOrganizer.Models"
-	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
-	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
+	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 

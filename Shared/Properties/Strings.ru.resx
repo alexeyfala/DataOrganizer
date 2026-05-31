@@ -546,4 +546,19 @@
   <data name="WindowsClipboard" xml:space="preserve">
     <value>Буфер обмена Windows</value>
   </data>
+  <data name="Image" xml:space="preserve">
+    <value>Изображение</value>
+  </data>
+  <data name="PlainText" xml:space="preserve">
+    <value>Обычный текст</value>
+  </data>
+  <data name="FormattedText" xml:space="preserve">
+    <value>Форматированный текст</value>
+  </data>
+  <data name="Hyperlink" xml:space="preserve">
+    <value>Гиперссылка</value>
+  </data>
+  <data name="OpenInBrowser" xml:space="preserve">
+    <value>Открыть в браузере</value>
+  </data>
 </root>

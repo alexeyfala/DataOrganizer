@@ -2,11 +2,11 @@
 	x:Class="DataOrganizer.App"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:common="clr-namespace:Shared.Common;assembly=Shared"
-	xmlns:dialogHostAvalonia="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
-	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-	xmlns:system="clr-namespace:System;assembly=mscorlib"
-	xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
+	xmlns:common="using:Shared.Common"
+	xmlns:dialogHostAvalonia="using:DialogHostAvalonia"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:system="using:System"
+	xmlns:themes="using:Material.Styles.Themes"
 	Name="{x:Static common:AppUtils.AppName}">
 
 	<Application.Resources>

@@ -1,8 +1,8 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
-	xmlns:system="clr-namespace:System;assembly=netstandard">
+	xmlns:icons="using:Material.Icons"
+	xmlns:system="using:System">
 
 	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
 

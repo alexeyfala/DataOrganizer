@@ -3,15 +3,18 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:abstract="using:DataOrganizer.Abstract"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:markup="using:DataOrganizer.Markup"
-	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
-	xmlns:prop="clr-namespace:Shared.Properties;assembly=Shared"
-	xmlns:repositoryDto="clr-namespace:Repository.DTO;assembly=Repository"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:repositoryDto="using:Repository.DTO"
+	xmlns:system="using:System"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
@@ -637,4 +640,133 @@
 			</Interaction.Behaviors>
 		</views:SelectedFavoritesView>
 	</DataTemplate>
+
+	<!--#region Clipboard history-->
+	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
+	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
+	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
+
+	<DataTemplate
+		x:Key="ClipboardTextEntryTemplate"
+		x:DataType="clipboard:ClipboardTextEntry">
+		<TextBlock
+			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			Text="{Binding Text, Mode=OneTime}"
+			TextTrimming="CharacterEllipsis"
+			TextWrapping="Wrap" />
+	</DataTemplate>
+
+	<DataTemplate
+		x:Key="ClipboardFormattedTextEntryTemplate"
+		x:DataType="clipboard:ClipboardTextEntry">
+		<html:HtmlLabel
+			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			AutoSize="False"
+			AutoSizeHeightOnly="True"
+			Background="White"
+			IsHitTestVisible="False"
+			Text="{Binding FormattedTextPreview, Mode=OneTime}" />
+	</DataTemplate>
+
+	<DataTemplate
+		x:Key="ClipboardImageEntryTemplate"
+		x:DataType="clipboard:ClipboardImageEntry">
+		<Image
+			MaxWidth="{StaticResource ImageEntryMaxWidth}"
+			MaxHeight="{StaticResource ImageEntryMaxHeight}"
+			HorizontalAlignment="Left"
+			Source="{Binding ImagePreview, Mode=OneTime}"
+			Stretch="Uniform" />
+	</DataTemplate>
+
+	<DataTemplate
+		x:Key="ClipboardFilesEntryTemplate"
+		x:DataType="clipboard:ClipboardFilesEntry">
+		<TextBlock
+			Text="{Binding EntriesSummary, Mode=OneTime}"
+			TextTrimming="CharacterEllipsis"
+			TextWrapping="NoWrap" />
+	</DataTemplate>
+
+	<!-- ClipboardEntryItemTemplate -->
+	<DataTemplate
+		x:Key="ClipboardEntryItemTemplate"
+		x:DataType="clipboard:ClipboardHistoryEntryBase">
+		<Grid ColumnDefinitions="*,Auto">
+			<Button
+				Grid.Column="0"
+				HorizontalAlignment="Stretch"
+				HorizontalContentAlignment="Stretch"
+				Background="{StaticResource MaterialDividerBrush}"
+				Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
+				CommandParameter="{Binding}"
+				Cursor="Arrow"
+				ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
+
+				<Interaction.Behaviors>
+					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+				</Interaction.Behaviors>
+
+				<Panel>
+					<ContentControl Content="{Binding}">
+						<ContentControl.ContentTemplate>
+							<helpers:ClipboardEntryTemplateSelector
+								FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
+								PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
+
+								<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
+
+								<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
+							</helpers:ClipboardEntryTemplateSelector>
+						</ContentControl.ContentTemplate>
+					</ContentControl>
+
+					<Grid
+						HorizontalAlignment="Right"
+						VerticalAlignment="Stretch"
+						RowDefinitions="Auto,*,Auto"
+						RowSpacing="2.0">
+
+						<Button
+							Grid.Row="0"
+							Padding="3.0"
+							HorizontalAlignment="Right"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+							CommandParameter="{ReflectionBinding Url,
+							                                     Mode=OneTime}"
+							Content="🌎"
+							Cursor="Hand"
+							FontFamily="Segoe UI Emoji"
+							FontSize="12.0"
+							IsVisible="{Binding IsUrl}"
+							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
+
+						<Border
+							Grid.Row="2"
+							Padding="3.0"
+							HorizontalAlignment="Right"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							BorderBrush="{StaticResource MaterialDividerBrush}"
+							BorderThickness="1.0"
+							CornerRadius="4.0"
+							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+
+							<Border.Styles>
+								<Style Selector="Border:pointerover">
+									<Setter Property="Opacity" Value="0.5" />
+								</Style>
+							</Border.Styles>
+
+							<TextBlock
+								FontFamily="Segoe UI Emoji"
+								FontSize="12.0"
+								Text="{Binding TypeGlyph, Mode=OneTime}" />
+						</Border>
+					</Grid>
+				</Panel>
+			</Button>
+		</Grid>
+	</DataTemplate>
+	<!--#endregion-->
 </ResourceDictionary>

@@ -48,6 +48,16 @@ internal readonly struct FilesFoldersNumberPair
 
 		builder.Append(Files);
 
+		builder.Append("  ");
+
+		builder.Append('Σ');
+
+		builder.Append(':');
+
+		builder.Append(' ');
+
+		builder.Append(Folders + Files);
+
 		return builder.ToString();
 	}
 	#endregion

@@ -9,10 +9,10 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:converters="clr-namespace:Material.Styles.Converters;assembly=Material.Styles"
-	xmlns:materialControls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
-	xmlns:parameters="clr-namespace:Material.Styles.Converters.Parameters;assembly=Material.Styles"
-	xmlns:system="clr-namespace:System;assembly=netstandard">
+	xmlns:converters="using:Material.Styles.Converters"
+	xmlns:materialControls="using:Material.Styles.Controls"
+	xmlns:parameters="using:Material.Styles.Converters.Parameters"
+	xmlns:system="using:System">
 
 	<SineEaseInOut x:Key="DataOrganizerSideSheetEasing" />
 	

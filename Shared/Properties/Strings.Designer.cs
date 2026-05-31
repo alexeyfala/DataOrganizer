@@ -637,6 +637,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Formatted text.
+        /// </summary>
+        public static string FormattedText {
+            get {
+                return ResourceManager.GetString("FormattedText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to General.
         /// </summary>
         public static string General {
@@ -718,11 +727,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hyperlink.
+        /// </summary>
+        public static string Hyperlink {
+            get {
+                return ResourceManager.GetString("Hyperlink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Identical names.
         /// </summary>
         public static string IdenticalNames {
             get {
                 return ResourceManager.GetString("IdenticalNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image.
+        /// </summary>
+        public static string Image {
+            get {
+                return ResourceManager.GetString("Image", resourceCulture);
             }
         }
         
@@ -889,6 +916,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open in browser.
+        /// </summary>
+        public static string OpenInBrowser {
+            get {
+                return ResourceManager.GetString("OpenInBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Open In Editor.
         /// </summary>
         public static string OpenInEditor {
@@ -957,6 +993,15 @@ namespace Shared.Properties {
         public static string Pause {
             get {
                 return ResourceManager.GetString("Pause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plain text.
+        /// </summary>
+        public static string PlainText {
+            get {
+                return ResourceManager.GetString("PlainText", resourceCulture);
             }
         }
         

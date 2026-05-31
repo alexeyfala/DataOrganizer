@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.DTO;
+using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -24,11 +24,11 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// <summary>
 	/// History entries to display (delegated to <see cref="IClipboardHistoryService" />).
 	/// </summary>
-	public ObservableCollection<ClipboardHistoryEntry> Entries => _clipboardHistory.Entries;
+	public ObservableCollection<ClipboardHistoryEntryBase> Entries => _clipboardHistory.Entries;
 
-	/// <inheritdoc cref="ClipboardHistoryEntry" />
+	/// <inheritdoc cref="ClipboardHistoryEntryBase" />
 	[ObservableProperty]
-	public partial ClipboardHistoryEntry? SelectedEntry { get; set; }
+	public partial ClipboardHistoryEntryBase? SelectedEntry { get; set; }
 	#endregion
 
 	#region Data
@@ -55,7 +55,9 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	[RelayCommand]
 	private static void PointerPressed(PointerPressedEventArgs? e)
 	{
-		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual).Properties.IsLeftButtonPressed)
+		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual)
+			.Properties
+			.IsLeftButtonPressed)
 		{
 			return;
 		}
@@ -69,9 +71,11 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanClear))]
-	private void Clear()
+	private async Task Clear()
 	{
-		_clipboardHistory.Entries.Clear();
+		await _clipboardHistory
+			.ClearAsync()
+			.ConfigureAwait(true);
 
 		ClearCommand.NotifyCanExecuteChanged();
 	}
@@ -105,7 +109,7 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// Restores <paramref name="entry" /> back into the system clipboard.
 	/// </summary>
 	[RelayCommand]
-	private Task RestoreEntry(ClipboardHistoryEntry? entry)
+	private Task RestoreEntry(ClipboardHistoryEntryBase? entry)
 	{
 		return entry is null
 			? Task.CompletedTask
