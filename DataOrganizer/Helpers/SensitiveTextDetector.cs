@@ -55,6 +55,9 @@ public static partial class SensitiveTextDetector
 		if (Guid.TryParse(candidate, out _)
 			|| IsHexHash(candidate)
 			|| EmailRegex().IsMatch(candidate)
+			|| candidate.Contains('\\')
+			|| PathRootRegex().IsMatch(candidate)
+			|| EnvironmentVariableRegex().IsMatch(candidate)
 			|| candidate.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
 			|| candidate.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
 		{
@@ -126,6 +129,12 @@ public static partial class SensitiveTextDetector
 	private static partial Regex EmailRegex();
 
 	/// <summary>
+	/// Matches a Windows environment-variable expansion such as <c>%Temp%</c> or <c>%ProgramFiles(x86)%</c>.
+	/// </summary>
+	[GeneratedRegex(@"%[^%\s]+%", RegexOptions.CultureInvariant)]
+	private static partial Regex EnvironmentVariableRegex();
+
+	/// <summary>
 	/// Returns <c>True</c> for canonical MD5 / SHA-1 / SHA-256 hex digests (32 / 40 / 64 hex chars).
 	/// </summary>
 	private static bool IsHexHash(ReadOnlySpan<char> value)
@@ -145,6 +154,13 @@ public static partial class SensitiveTextDetector
 
 		return true;
 	}
+
+	/// <summary>
+	/// Matches a file-system path root: a drive (<c>C:\</c> / <c>C:/</c>), a UNC prefix (<c>\\</c>)
+	/// or a home shortcut (<c>~/</c> / <c>~\</c>). Backslash paths are also caught by a separate check.
+	/// </summary>
+	[GeneratedRegex(@"^([A-Za-z]:[\\/]|\\\\|~[\\/])", RegexOptions.CultureInvariant)]
+	private static partial Regex PathRootRegex();
 
 	/// <summary>
 	/// Shannon entropy of <paramref name="value" /> in bits per character. Length is within <see cref="MaxLength" />.
