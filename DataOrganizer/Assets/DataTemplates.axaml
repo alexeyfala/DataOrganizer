@@ -650,6 +650,18 @@
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
 		<Panel>
+			<Panel.Styles>
+				<Style Selector="ToggleButton#RevealPlainText">
+					<Setter Property="Opacity" Value="0.0" />
+					<Setter Property="IsHitTestVisible" Value="False" />
+				</Style>
+
+				<Style Selector="Panel:pointerover ToggleButton#RevealPlainText">
+					<Setter Property="Opacity" Value="1.0" />
+					<Setter Property="IsHitTestVisible" Value="True" />
+				</Style>
+			</Panel.Styles>
+
 			<TextBlock
 				MaxHeight="{StaticResource TextEntryMaxHeight}"
 				Classes.revealed="{Binding #RevealPlainText.IsChecked, Mode=OneWay}"
@@ -670,12 +682,12 @@
 				x:Name="RevealPlainText"
 				Padding="3.0"
 				HorizontalAlignment="Left"
-				VerticalAlignment="Top"
+				VerticalAlignment="Bottom"
 				Background="{StaticResource MaterialCardBackgroundBrush}"
 				Cursor="Hand"
 				IsVisible="{Binding IsSensitive, Mode=OneTime}"
 				Theme="{StaticResource MaterialFlatButton}">
-				
+
 				<ToggleButton.Styles>
 					<Style Selector="ToggleButton:not(:checked)">
 						<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
