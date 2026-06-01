@@ -784,6 +784,11 @@
 								<Binding
 									Path="IsPointerOver"
 									RelativeSource="{RelativeSource AncestorType=Button}" />
+
+								<!-- Hide the eye while the pointer is over the type-glyph badge. -->
+								<Binding
+									ElementName="TypeGlyphBadge"
+									Path="!IsPointerOver" />
 							</MultiBinding>
 						</ToggleButton.IsVisible>
 
@@ -815,6 +820,7 @@
 					</ToggleButton>
 
 					<Border
+						x:Name="TypeGlyphBadge"
 						Grid.Row="2"
 						Grid.Column="1"
 						Padding="3.0"
