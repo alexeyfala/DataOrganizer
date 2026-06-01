@@ -78,7 +78,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		ClipboardSensitivityMarkers.NsPasteboardConcealedType
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
-
 	/// <summary>
 	/// Sensitivity marker formats written back to the clipboard when restoring a sensitive entry,
 	/// so other clipboard managers / Win+V skip it. Platform-specific; empty on unsupported platforms.
