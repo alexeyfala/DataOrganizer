@@ -80,6 +80,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
+	/// Sensitivity marker formats written back to the clipboard when restoring a sensitive entry,
+	/// so other clipboard managers / Win+V skip it. Platform-specific; empty on unsupported platforms.
+	/// </summary>
+	private static readonly (DataFormat<byte[]> Format, byte[] Value)[] SensitivityMarkersToWrite = BuildSensitivityMarkersToWrite();
+
+	/// <summary>
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
 	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
 	/// </summary>
@@ -227,7 +233,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 						clipboard,
 						textEntry.Text,
 						textEntry.Html,
-						textEntry.Rtf)).ConfigureAwait(false);
+						textEntry.Rtf,
+						textEntry.IsSensitive)).ConfigureAwait(false);
 					break;
 
 				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
@@ -322,6 +329,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Attaches the sensitivity markers to <paramref name="item" /> so other clipboard managers /
+	/// Win+V skip the restored content (see <see cref="SensitivityMarkersToWrite" />).
+	/// </summary>
+	private static void AttachSensitivityMarkers(DataTransferItem item)
+	{
+		foreach ((DataFormat<byte[]> format, byte[] value) in SensitivityMarkersToWrite)
+		{
+			item.Set(format, value);
+		}
+	}
+
+	/// <summary>
 	/// Builds the <c>x-special/gnome-copied-files</c> payload: "copy" then one file:// URI per line.
 	/// </summary>
 	private static string BuildGnomeCopiedFiles(IEnumerable<IStorageItem> items)
@@ -329,6 +348,39 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		return string.Join('\n', items.Select(static item => item.Path.AbsoluteUri).Prepend("copy"));
 	}
 
+	/// <summary>
+	/// Builds the platform-specific sensitivity markers written on restore (see <see cref="SensitivityMarkersToWrite" />).
+	/// </summary>
+	private static (DataFormat<byte[]> Format, byte[] Value)[] BuildSensitivityMarkersToWrite()
+	{
+		// Presence is enough for most markers; the Cloud Clipboard ones expect a DWORD 0.
+		byte[] present = [0];
+
+		byte[] dwordZero = [0, 0, 0, 0];
+
+		if (AppUtils.IsWindows)
+		{
+			return
+			[
+				(DataFormat.CreateBytesPlatformFormat("ExcludeClipboardContentFromMonitorProcessing"), present),
+				(DataFormat.CreateBytesPlatformFormat("CanIncludeInClipboardHistory"), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat("CanUploadToCloudClipboard"), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat("Clipboard Viewer Ignore"), present)
+			];
+		}
+
+		if (AppUtils.IsLinux)
+		{
+			return [(DataFormat.CreateBytesPlatformFormat("x-kde-passwordManagerHint"), TextHelper.Utf8Encoding.GetBytes("secret"))];
+		}
+
+		if (AppUtils.IsMacOs)
+		{
+			return [(DataFormat.CreateBytesPlatformFormat("org.nspasteboard.ConcealedType"), present)];
+		}
+
+		return [];
+	}
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
@@ -469,7 +521,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		IClipboard clipboard,
 		string text,
 		string? html,
-		string? rtf)
+		string? rtf,
+		bool isSensitive)
 	{
 		DataTransferItem item = new();
 
@@ -483,6 +536,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		if (rtf is not null)
 		{
 			AttachFormattedText(item, rtf, RtfFormat);
+		}
+
+		if (isSensitive)
+		{
+			AttachSensitivityMarkers(item);
 		}
 
 		DataTransfer transfer = new();

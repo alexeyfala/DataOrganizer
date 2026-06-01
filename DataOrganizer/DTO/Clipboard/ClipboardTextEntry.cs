@@ -39,9 +39,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	public bool IsRtf => Rtf is not null;
 
 	/// <summary>
-	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token,
-	/// telling the clipboard journal to blur the preview. Computed on demand from <see cref="Text" />.
-	/// Formatted (HTML / RTF) entries are intentionally excluded for now.
+	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
 	/// </summary>
 	public bool IsSensitive => !IsFormattedText && SensitiveTextDetector.LooksLikeSecret(Text);
 
