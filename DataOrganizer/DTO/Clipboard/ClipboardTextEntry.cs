@@ -41,7 +41,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
 	/// </summary>
-	public bool IsSensitive => !IsFormattedText && SensitiveTextDetector.LooksLikeSecret(Text);
+	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
