@@ -73,7 +73,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing,
 		ClipboardSensitivityMarkers.CanIncludeInClipboardHistory,
-		ClipboardSensitivityMarkers.CanUploadToCloudClipboard,
 		ClipboardSensitivityMarkers.ClipboardViewerIgnore,
 		ClipboardSensitivityMarkers.KdePasswordManagerHint,
 		ClipboardSensitivityMarkers.NsPasteboardConcealedType
