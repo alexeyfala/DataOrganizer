@@ -11,10 +11,6 @@ public sealed partial class ConsoleWindow : Window
 	#endregion Properties
 
 	#region Constructors
-	/// <summary>
-	/// Parameterless ctor for the Avalonia XAML compiler / previewer.
-	/// Not used at runtime — DI always invokes the overload below.
-	/// </summary>
 	public ConsoleWindow() => InitializeComponent();
 
 	public ConsoleWindow(ConsoleViewModel viewModel) : this() => DataContext = ViewModel = viewModel;

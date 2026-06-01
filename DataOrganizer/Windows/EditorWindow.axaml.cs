@@ -17,10 +17,6 @@ public sealed partial class EditorWindow : Window
 	#endregion Properties
 
 	#region Constructors
-	/// <summary>
-	/// Parameterless ctor for the Avalonia XAML compiler / previewer.
-	/// Not used at runtime — DI always invokes the overload below.
-	/// </summary>
 	public EditorWindow() => InitializeComponent();
 
 	public EditorWindow(EditorViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
