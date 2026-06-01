@@ -416,6 +416,28 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
 
 	/// <summary>
+	/// Hashes a text payload together with whether it carries companion formats, so the same text
+	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
+	/// </summary>
+	private static byte[] ComputeTextEntryHash(
+		string text,
+		string? html,
+		string? rtf)
+	{
+		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+		hash.AppendData(TextHelper
+			.Utf8Encoding
+			.GetBytes(text));
+
+		// Only the presence of companion formats — not their payloads, which Office can re-render
+		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
+		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
+
+		return hash.GetHashAndReset();
+	}
+
+	/// <summary>
 	/// Returns value for <see cref="GnomeCopiedFilesFormat" />.
 	/// </summary>
 	private static DataFormat<byte[]>? GetGnomeCopiedFilesFormat()
@@ -775,9 +797,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
-				byte[] hash = ComputeHash(TextHelper
-					.Utf8Encoding
-					.GetBytes(text));
+				// Read companion formats up front so the hash reflects them: the same text copied as
+				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
+				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
+
+				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
+
+				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
 				if (IsEchoOrUnchanged(hash))
 				{
@@ -791,10 +817,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 					return;
 				}
-
-				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
-
-				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
 
 				InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash));
 			}
