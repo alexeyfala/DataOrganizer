@@ -50,8 +50,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly Lazy<DataFormat<byte[]>?> GnomeCopiedFilesFormat = new(GetGnomeCopiedFilesFormat);
 
 	/// <summary>
-	/// Platform byte[] format for HTML ("HTML Format" / "public.html" / "text/html"), UTF-8 managed by us.
-	/// byte[] — not string — so the custom MIME round-trips on the X11 clipboard when served to other apps.
+	/// Platform byte[] format for HTML.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
 
@@ -61,7 +60,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
 
 	/// <summary>
-	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
+	/// Platform byte[] format for RTF, see <see cref="HtmlFormat" />.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
 
