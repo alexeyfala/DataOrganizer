@@ -2,6 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:abstract="using:DataOrganizer.Abstract"
+	xmlns:adc="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
@@ -651,6 +652,7 @@
 		x:DataType="clipboard:ClipboardTextEntry">
 		<TextBlock
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			VerticalAlignment="Center"
 			Text="{Binding Text, Mode=OneTime}"
 			TextTrimming="CharacterEllipsis"
 			TextWrapping="Wrap" />
@@ -692,81 +694,158 @@
 	<DataTemplate
 		x:Key="ClipboardEntryItemTemplate"
 		x:DataType="clipboard:ClipboardHistoryEntryBase">
-		<Grid ColumnDefinitions="*,Auto">
-			<Button
-				Grid.Column="0"
-				HorizontalAlignment="Stretch"
-				HorizontalContentAlignment="Stretch"
-				Background="{StaticResource MaterialDividerBrush}"
-				Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
-				CommandParameter="{Binding}"
-				Cursor="Arrow"
-				ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
+		<Button
+			HorizontalAlignment="Stretch"
+			HorizontalContentAlignment="Stretch"
+			Background="{StaticResource MaterialDividerBrush}"
+			Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
+			CommandParameter="{Binding}"
+			Cursor="Arrow"
+			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
 
-				<Interaction.Behaviors>
-					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-				</Interaction.Behaviors>
+			<Interaction.Behaviors>
+				<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
 
-				<Panel>
-					<ContentControl Content="{Binding}">
-						<ContentControl.ContentTemplate>
-							<helpers:ClipboardEntryTemplateSelector
-								FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
-								PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
+			<Panel>
+				<ContentControl
+					Classes.revealed="{Binding #RevealEye.IsChecked, Mode=OneWay}"
+					Classes.sensitive="{ReflectionBinding IsSensitive,
+					                                      Mode=OneTime}"
+					Content="{Binding}">
+					<ContentControl.Styles>
+						<Style Selector="ContentControl.sensitive:not(.revealed)">
+							<Setter Property="Effect">
+								<BlurEffect Radius="6.0" />
+							</Setter>
+						</Style>
+					</ContentControl.Styles>
 
-								<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
+					<ContentControl.ContentTemplate>
+						<helpers:ClipboardEntryTemplateSelector
+							FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
+							PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
 
-								<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
-							</helpers:ClipboardEntryTemplateSelector>
-						</ContentControl.ContentTemplate>
-					</ContentControl>
+							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
-					<Grid
+							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
+						</helpers:ClipboardEntryTemplateSelector>
+					</ContentControl.ContentTemplate>
+				</ContentControl>
+
+				<Grid
+					HorizontalAlignment="Right"
+					VerticalAlignment="Stretch"
+					ColumnDefinitions="Auto,Auto"
+					ColumnSpacing="2.0"
+					RowDefinitions="Auto,*,Auto"
+					RowSpacing="2.0">
+
+					<Button
+						Grid.Row="0"
+						Grid.Column="1"
+						Padding="3.0"
 						HorizontalAlignment="Right"
-						VerticalAlignment="Stretch"
-						RowDefinitions="Auto,*,Auto"
-						RowSpacing="2.0">
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+						CommandParameter="{ReflectionBinding Url,
+						                                     Mode=OneTime}"
+						Content="🌎"
+						Cursor="Hand"
+						FontFamily="Segoe UI Emoji"
+						FontSize="12.0"
+						IsVisible="{Binding IsUrl}"
+						ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
 
-						<Button
-							Grid.Row="0"
-							Padding="3.0"
-							HorizontalAlignment="Right"
-							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-							CommandParameter="{ReflectionBinding Url,
-							                                     Mode=OneTime}"
-							Content="🌎"
-							Cursor="Hand"
+					<ToggleButton
+						x:Name="RevealEye"
+						Grid.Row="2"
+						Grid.Column="0"
+						Padding="3.0"
+						VerticalAlignment="Center"
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						Cursor="Hand"
+						Theme="{StaticResource MaterialFlatButton}">
+
+						<ToggleButton.IsVisible>
+							<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
+								<ReflectionBinding
+									Mode="OneTime"
+									Path="IsSensitive">
+									<!--
+										Real bool fallback for entries without IsSensitive (image / files); UnsetValue would be
+										dropped by BoolConverters.And and leak the eye onto them.
+									-->
+									<ReflectionBinding.FallbackValue>
+										<system:Boolean>False</system:Boolean>
+									</ReflectionBinding.FallbackValue>
+								</ReflectionBinding>
+
+								<Binding
+									Path="IsPointerOver"
+									RelativeSource="{RelativeSource AncestorType=Button}" />
+
+								<!-- Hide the eye while the pointer is over the type-glyph badge. -->
+								<Binding
+									ElementName="TypeGlyphBadge"
+									Path="!IsPointerOver" />
+							</MultiBinding>
+						</ToggleButton.IsVisible>
+
+						<Interaction.Behaviors>
+							<behaviors:HandleClickBehavior />
+						</Interaction.Behaviors>
+
+						<ToggleButton.Styles>
+							<Style Selector="ToggleButton:not(:checked)">
+								<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
+							</Style>
+
+							<Style Selector="ToggleButton:checked">
+								<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
+							</Style>
+
+							<Style Selector="ToggleButton:not(:checked) materialIcons|MaterialIcon">
+								<Setter Property="Kind" Value="EyeOutline" />
+							</Style>
+
+							<Style Selector="ToggleButton:checked materialIcons|MaterialIcon">
+								<Setter Property="Kind" Value="EyeOffOutline" />
+							</Style>
+						</ToggleButton.Styles>
+
+						<materialIcons:MaterialIcon
+							Width="12.5"
+							Height="12.5" />
+					</ToggleButton>
+
+					<Border
+						x:Name="TypeGlyphBadge"
+						Grid.Row="2"
+						Grid.Column="1"
+						Padding="3.0"
+						HorizontalAlignment="Right"
+						VerticalAlignment="Center"
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0"
+						ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+
+						<Border.Styles>
+							<Style Selector="Border:pointerover">
+								<Setter Property="Opacity" Value="0.5" />
+							</Style>
+						</Border.Styles>
+
+						<TextBlock
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							IsVisible="{Binding IsUrl}"
-							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
-
-						<Border
-							Grid.Row="2"
-							Padding="3.0"
-							HorizontalAlignment="Right"
-							Background="{StaticResource MaterialCardBackgroundBrush}"
-							BorderBrush="{StaticResource MaterialDividerBrush}"
-							BorderThickness="1.0"
-							CornerRadius="4.0"
-							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
-
-							<Border.Styles>
-								<Style Selector="Border:pointerover">
-									<Setter Property="Opacity" Value="0.5" />
-								</Style>
-							</Border.Styles>
-
-							<TextBlock
-								FontFamily="Segoe UI Emoji"
-								FontSize="12.0"
-								Text="{Binding TypeGlyph, Mode=OneTime}" />
-						</Border>
-					</Grid>
-				</Panel>
-			</Button>
-		</Grid>
+							Text="{Binding TypeGlyph, Mode=OneTime}" />
+					</Border>
+				</Grid>
+			</Panel>
+		</Button>
 	</DataTemplate>
 	<!--#endregion-->
 </ResourceDictionary>

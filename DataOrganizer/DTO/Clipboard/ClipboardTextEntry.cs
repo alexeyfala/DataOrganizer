@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Text.RegularExpressions;
@@ -36,6 +37,11 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// <c>True</c> when <see cref="Rtf" /> is not null.
 	/// </summary>
 	public bool IsRtf => Rtf is not null;
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
+	/// </summary>
+	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.

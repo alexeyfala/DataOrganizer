@@ -13,6 +13,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -63,6 +64,25 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
+
+	/// <summary>
+	/// Clipboard format identifiers (Windows / Linux / macOS) that password managers set to flag
+	/// content as sensitive; presence of any makes us skip the entry, like the Windows Win+V history.
+	/// </summary>
+	private static readonly FrozenSet<string> SensitivityMarkerIdentifiers = new[]
+	{
+		ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing,
+		ClipboardSensitivityMarkers.CanIncludeInClipboardHistory,
+		ClipboardSensitivityMarkers.ClipboardViewerIgnore,
+		ClipboardSensitivityMarkers.KdePasswordManagerHint,
+		ClipboardSensitivityMarkers.NsPasteboardConcealedType
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>
+	/// Sensitivity marker formats written back to the clipboard when restoring a sensitive entry,
+	/// so other clipboard managers / Win+V skip it. Platform-specific; empty on unsupported platforms.
+	/// </summary>
+	private static readonly (DataFormat<byte[]> Format, byte[] Value)[] SensitivityMarkersToWrite = BuildSensitivityMarkersToWrite();
 
 	/// <summary>
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
@@ -212,7 +232,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 						clipboard,
 						textEntry.Text,
 						textEntry.Html,
-						textEntry.Rtf)).ConfigureAwait(false);
+						textEntry.Rtf,
+						textEntry.IsSensitive)).ConfigureAwait(false);
 					break;
 
 				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
@@ -307,6 +328,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Attaches the sensitivity markers to <paramref name="item" /> so other clipboard managers /
+	/// Win+V skip the restored content (see <see cref="SensitivityMarkersToWrite" />).
+	/// </summary>
+	private static void AttachSensitivityMarkers(DataTransferItem item)
+	{
+		foreach ((DataFormat<byte[]> format, byte[] value) in SensitivityMarkersToWrite)
+		{
+			item.Set(format, value);
+		}
+	}
+
+	/// <summary>
 	/// Builds the <c>x-special/gnome-copied-files</c> payload: "copy" then one file:// URI per line.
 	/// </summary>
 	private static string BuildGnomeCopiedFiles(IEnumerable<IStorageItem> items)
@@ -314,6 +347,39 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		return string.Join('\n', items.Select(static item => item.Path.AbsoluteUri).Prepend("copy"));
 	}
 
+	/// <summary>
+	/// Builds the platform-specific sensitivity markers written on restore (see <see cref="SensitivityMarkersToWrite" />).
+	/// </summary>
+	private static (DataFormat<byte[]> Format, byte[] Value)[] BuildSensitivityMarkersToWrite()
+	{
+		// Presence is enough for most markers; the Cloud Clipboard ones expect a DWORD 0.
+		byte[] present = [0];
+
+		byte[] dwordZero = [0, 0, 0, 0];
+
+		if (AppUtils.IsWindows)
+		{
+			return
+			[
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing), present),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanUploadToCloudClipboard), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardViewerIgnore), present)
+			];
+		}
+
+		if (AppUtils.IsLinux)
+		{
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextHelper.Utf8Encoding.GetBytes("secret"))];
+		}
+
+		if (AppUtils.IsMacOs)
+		{
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.NsPasteboardConcealedType), present)];
+		}
+
+		return [];
+	}
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
@@ -347,6 +413,28 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
+
+	/// <summary>
+	/// Hashes a text payload together with whether it carries companion formats, so the same text
+	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
+	/// </summary>
+	private static byte[] ComputeTextEntryHash(
+		string text,
+		string? html,
+		string? rtf)
+	{
+		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+		hash.AppendData(TextHelper
+			.Utf8Encoding
+			.GetBytes(text));
+
+		// Only the presence of companion formats — not their payloads, which Office can re-render
+		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
+		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
+
+		return hash.GetHashAndReset();
+	}
 
 	/// <summary>
 	/// Returns value for <see cref="GnomeCopiedFilesFormat" />.
@@ -454,7 +542,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		IClipboard clipboard,
 		string text,
 		string? html,
-		string? rtf)
+		string? rtf,
+		bool isSensitive)
 	{
 		DataTransferItem item = new();
 
@@ -468,6 +557,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		if (rtf is not null)
 		{
 			AttachFormattedText(item, rtf, RtfFormat);
+		}
+
+		if (isSensitive)
+		{
+			AttachSensitivityMarkers(item);
 		}
 
 		DataTransfer transfer = new();
@@ -489,6 +583,36 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> when the clipboard advertises any sensitivity marker format
+	/// (see <see cref="SensitivityMarkerIdentifiers" />), i.e. a password manager flagged the copy.
+	/// </summary>
+	private async Task<bool> ContainsSensitivityMarkerAsync(IClipboard clipboard)
+	{
+		try
+		{
+			IReadOnlyList<DataFormat> formats = await clipboard
+				.GetDataFormatsAsync()
+				.ConfigureAwait(false);
+
+			foreach (DataFormat format in formats)
+			{
+				if (SensitivityMarkerIdentifiers.Contains(format.Identifier))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+
+			return false;
+		}
+	}
+
+	/// <summary>
 	/// Posts <paramref name="operation" /> to the UI thread, wrapped by the exception handler.
 	/// </summary>
 	private Task DispatchWatchedAsync(Func<Task> operation)
@@ -497,34 +621,17 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Compares <paramref name="hash" /> with <see cref="_lastHash" /> and pushes a new
-	/// entry to the top of the list when it changed.
+	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
+	/// moves an existing matching entry to the top or inserts a new one.
 	/// </summary>
 	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, false))
-		{
-			_lastHash = hash;
-
-			return;
-		}
-
-		if (_lastHash is { } prev && HashEquals(prev, hash))
+		if (IsEchoOrUnchanged(hash))
 		{
 			return;
 		}
 
-		_lastHash = hash;
-
-		// If the same payload is somewhere down the list — move it up, don't duplicate.
-		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
-		{
-			MoveToTop(existing);
-
-			return;
-		}
-
-		InsertAtTop(entryFactory());
+		InsertOrMoveToTop(hash, entryFactory);
 	}
 
 	/// <summary>
@@ -538,6 +645,50 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Entries.RemoveAt(Entries.Count - 1);
 		}
+	}
+
+	/// <summary>
+	/// Moves an existing entry with the same <paramref name="hash" /> to the top, otherwise inserts a new one.
+	/// </summary>
+	private void InsertOrMoveToTop(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	{
+		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
+		{
+			_logger.LogDebug($"Moving existing clipboard entry to top: {existing.GetType().Name}.");
+
+			MoveToTop(existing);
+
+			return;
+		}
+
+		ClipboardHistoryEntryBase entry = entryFactory();
+
+		_logger.LogDebug($"Captured new clipboard entry: {entry.GetType().Name}.");
+
+		InsertAtTop(entry);
+	}
+
+	/// <summary>
+	/// Returns <c>True</c> when <paramref name="hash" /> is a self-echo (from our own restore) or
+	/// matches the last observed payload.
+	/// </summary>
+	private bool IsEchoOrUnchanged(byte[] hash)
+	{
+		if (Interlocked.Exchange(ref _suppressEcho, false))
+		{
+			_lastHash = hash;
+
+			return true;
+		}
+
+		if (_lastHash is { } prev && HashEquals(prev, hash))
+		{
+			return true;
+		}
+
+		_lastHash = hash;
+
+		return false;
 	}
 
 	/// <summary>
@@ -645,13 +796,28 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
-				byte[] hash = ComputeHash(TextHelper.Utf8Encoding.GetBytes(text));
-
+				// Read companion formats up front so the hash reflects them: the same text copied as
+				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
 				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
 
 				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
 
-				HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash));
+				byte[] hash = ComputeTextEntryHash(text, html, rtf);
+
+				if (IsEchoOrUnchanged(hash))
+				{
+					return;
+				}
+
+				if (await ContainsSensitivityMarkerAsync(clipboard).ConfigureAwait(false))
+				{
+					_logger.LogWarning(
+						$"Skipping clipboard text entry ({text.Length} chars): a sensitivity marker was detected.");
+
+					return;
+				}
+
+				InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash));
 			}
 		}
 		catch (Exception ex)
