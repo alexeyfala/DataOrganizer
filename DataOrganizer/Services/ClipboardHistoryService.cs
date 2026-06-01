@@ -13,6 +13,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -63,6 +64,20 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Platform byte[] format for RTF ("Rich Text Format" / "public.rtf" / "text/rtf"). See <see cref="HtmlFormat" />.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
+
+	/// <summary>
+	/// Clipboard format identifiers (Windows / Linux / macOS) that password managers set to flag
+	/// content as sensitive; presence of any makes us skip the entry, like the Windows Win+V history.
+	/// </summary>
+	private static readonly FrozenSet<string> SensitivityMarkerIdentifiers = new[]
+	{
+		"ExcludeClipboardContentFromMonitorProcessing",
+		"CanIncludeInClipboardHistory",
+		"CanUploadToCloudClipboard",
+		"Clipboard Viewer Ignore",
+		"x-kde-passwordManagerHint",
+		"org.nspasteboard.ConcealedType"
+	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
@@ -489,6 +504,36 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Returns <c>True</c> when the clipboard advertises any sensitivity marker format
+	/// (see <see cref="SensitivityMarkerIdentifiers" />), i.e. a password manager flagged the copy.
+	/// </summary>
+	private async Task<bool> ContainsSensitivityMarkerAsync(IClipboard clipboard)
+	{
+		try
+		{
+			IReadOnlyList<DataFormat> formats = await clipboard
+				.GetDataFormatsAsync()
+				.ConfigureAwait(false);
+
+			foreach (DataFormat format in formats)
+			{
+				if (SensitivityMarkerIdentifiers.Contains(format.Identifier))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+
+			return false;
+		}
+	}
+
+	/// <summary>
 	/// Posts <paramref name="operation" /> to the UI thread, wrapped by the exception handler.
 	/// </summary>
 	private Task DispatchWatchedAsync(Func<Task> operation)
@@ -645,6 +690,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
+				// Skip copies a password manager flagged as sensitive, mirroring the Windows
+				// clipboard history (Win+V), which never stores such content.
+				if (await ContainsSensitivityMarkerAsync(clipboard).ConfigureAwait(false))
+				{
+					return;
+				}
+
 				byte[] hash = ComputeHash(TextHelper.Utf8Encoding.GetBytes(text));
 
 				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
