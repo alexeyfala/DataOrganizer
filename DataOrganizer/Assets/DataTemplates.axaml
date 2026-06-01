@@ -743,93 +743,90 @@
 	<DataTemplate
 		x:Key="ClipboardEntryItemTemplate"
 		x:DataType="clipboard:ClipboardHistoryEntryBase">
-		<Grid ColumnDefinitions="*,Auto">
-			<Button
-				Grid.Column="0"
-				HorizontalAlignment="Stretch"
-				HorizontalContentAlignment="Stretch"
-				Background="{StaticResource MaterialDividerBrush}"
-				Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
-				CommandParameter="{Binding}"
-				Cursor="Arrow"
-				ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
+		<Button
+			HorizontalAlignment="Stretch"
+			HorizontalContentAlignment="Stretch"
+			Background="{StaticResource MaterialDividerBrush}"
+			Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
+			CommandParameter="{Binding}"
+			Cursor="Arrow"
+			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
 
-				<Interaction.Behaviors>
-					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
-				</Interaction.Behaviors>
+			<Interaction.Behaviors>
+				<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
 
-				<Button.Styles>
-					<Style Selector="ToggleButton.revealEye">
-						<Setter Property="Opacity" Value="0.0" />
-						<Setter Property="IsHitTestVisible" Value="False" />
-					</Style>
+			<Button.Styles>
+				<Style Selector="ToggleButton.revealEye">
+					<Setter Property="Opacity" Value="0.0" />
+					<Setter Property="IsHitTestVisible" Value="False" />
+				</Style>
 
-					<Style Selector="Button:pointerover ToggleButton.revealEye">
-						<Setter Property="Opacity" Value="1.0" />
-						<Setter Property="IsHitTestVisible" Value="True" />
-					</Style>
-				</Button.Styles>
+				<Style Selector="Button:pointerover ToggleButton.revealEye">
+					<Setter Property="Opacity" Value="1.0" />
+					<Setter Property="IsHitTestVisible" Value="True" />
+				</Style>
+			</Button.Styles>
 
-				<Panel>
-					<ContentControl Content="{Binding}">
-						<ContentControl.ContentTemplate>
-							<helpers:ClipboardEntryTemplateSelector
-								FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
-								PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
+			<Panel>
+				<ContentControl Content="{Binding}">
+					<ContentControl.ContentTemplate>
+						<helpers:ClipboardEntryTemplateSelector
+							FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
+							PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
 
-								<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
+							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
-								<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
-							</helpers:ClipboardEntryTemplateSelector>
-						</ContentControl.ContentTemplate>
-					</ContentControl>
+							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
+						</helpers:ClipboardEntryTemplateSelector>
+					</ContentControl.ContentTemplate>
+				</ContentControl>
 
-					<Grid
+				<Grid
+					HorizontalAlignment="Right"
+					VerticalAlignment="Stretch"
+					RowDefinitions="Auto,*,Auto"
+					RowSpacing="2.0">
+
+					<Button
+						Grid.Row="0"
+						Padding="3.0"
 						HorizontalAlignment="Right"
-						VerticalAlignment="Stretch"
-						RowDefinitions="Auto,*,Auto"
-						RowSpacing="2.0">
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+						CommandParameter="{ReflectionBinding Url,
+						                                     Mode=OneTime}"
+						Content="🌎"
+						Cursor="Hand"
+						FontFamily="Segoe UI Emoji"
+						FontSize="12.0"
+						IsVisible="{Binding IsUrl}"
+						ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
 
-						<Button
-							Grid.Row="0"
-							Padding="3.0"
-							HorizontalAlignment="Right"
-							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-							CommandParameter="{ReflectionBinding Url,
-							                                     Mode=OneTime}"
-							Content="🌎"
-							Cursor="Hand"
+					<Border
+						Grid.Row="2"
+						Padding="3.0"
+						HorizontalAlignment="Right"
+						Background="{StaticResource MaterialCardBackgroundBrush}"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
+						BorderThickness="1.0"
+						CornerRadius="4.0"
+						ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+
+						<Border.Styles>
+							<Style Selector="Border:pointerover">
+								<Setter Property="Opacity" Value="0.5" />
+							</Style>
+						</Border.Styles>
+
+						<TextBlock
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							IsVisible="{Binding IsUrl}"
-							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
-
-						<Border
-							Grid.Row="2"
-							Padding="3.0"
-							HorizontalAlignment="Right"
-							Background="{StaticResource MaterialCardBackgroundBrush}"
-							BorderBrush="{StaticResource MaterialDividerBrush}"
-							BorderThickness="1.0"
-							CornerRadius="4.0"
-							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
-
-							<Border.Styles>
-								<Style Selector="Border:pointerover">
-									<Setter Property="Opacity" Value="0.5" />
-								</Style>
-							</Border.Styles>
-
-							<TextBlock
-								FontFamily="Segoe UI Emoji"
-								FontSize="12.0"
-								Text="{Binding TypeGlyph, Mode=OneTime}" />
-						</Border>
-					</Grid>
-				</Panel>
-			</Button>
-		</Grid>
+							Text="{Binding TypeGlyph, Mode=OneTime}" />
+					</Border>
+				</Grid>
+			</Panel>
+		</Button>
 	</DataTemplate>
 	<!--#endregion-->
 </ResourceDictionary>
