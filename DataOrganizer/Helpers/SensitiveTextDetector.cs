@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Helpers;
@@ -37,12 +36,9 @@ public static partial class SensitiveTextDetector
 	/// </summary>
 	public static bool LooksLikeSecret(string? text)
 	{
-		if (string.IsNullOrWhiteSpace(text))
-		{
-			return false;
-		}
-
-		string candidate = text.Trim();
+		ReadOnlySpan<char> candidate = text
+			.AsSpan()
+			.Trim();
 
 		// A secret is a single token within a sane length window.
 		if (candidate.Length is < MinLength or > MaxLength)
@@ -74,7 +70,7 @@ public static partial class SensitiveTextDetector
 	/// <summary>
 	/// Returns <c>True</c> when <paramref name="value" /> contains any whitespace character.
 	/// </summary>
-	private static bool ContainsWhitespace(string value)
+	private static bool ContainsWhitespace(ReadOnlySpan<char> value)
 	{
 		foreach (char c in value)
 		{
@@ -90,7 +86,7 @@ public static partial class SensitiveTextDetector
 	/// <summary>
 	/// Counts how many of the four classes (lower / upper / digit / other) occur in <paramref name="value" />.
 	/// </summary>
-	private static int CountCharacterClasses(string value)
+	private static int CountCharacterClasses(ReadOnlySpan<char> value)
 	{
 		bool hasLower = false;
 
@@ -132,7 +128,7 @@ public static partial class SensitiveTextDetector
 	/// <summary>
 	/// Returns <c>True</c> for canonical MD5 / SHA-1 / SHA-256 hex digests (32 / 40 / 64 hex chars).
 	/// </summary>
-	private static bool IsHexHash(string value)
+	private static bool IsHexHash(ReadOnlySpan<char> value)
 	{
 		if (value.Length is not (32 or 40 or 64))
 		{
@@ -151,24 +147,41 @@ public static partial class SensitiveTextDetector
 	}
 
 	/// <summary>
-	/// Shannon entropy of <paramref name="value" /> in bits per character.
+	/// Shannon entropy of <paramref name="value" /> in bits per character. Length is within <see cref="MaxLength" />.
 	/// </summary>
-	private static double ShannonBitsPerChar(string value)
+	private static double ShannonBitsPerChar(ReadOnlySpan<char> value)
 	{
-		Dictionary<char, int> counts = new(value.Length);
+		Span<char> chars = stackalloc char[MaxLength];
+
+		Span<int> counts = stackalloc int[MaxLength];
+
+		int distinct = 0;
 
 		foreach (char c in value)
 		{
-			counts[c] = counts.TryGetValue(c, out int existing) ? existing + 1 : 1;
+			int index = chars[..distinct].IndexOf(c);
+
+			if (index < 0)
+			{
+				chars[distinct] = c;
+
+				counts[distinct] = 1;
+
+				distinct++;
+			}
+			else
+			{
+				counts[index]++;
+			}
 		}
 
 		double entropy = 0.0;
 
 		double length = value.Length;
 
-		foreach (int count in counts.Values)
+		for (int i = 0; i < distinct; i++)
 		{
-			double probability = count / length;
+			double probability = counts[i] / length;
 
 			entropy -= probability * Math.Log2(probability);
 		}
