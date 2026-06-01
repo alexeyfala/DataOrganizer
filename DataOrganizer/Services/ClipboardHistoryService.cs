@@ -600,25 +600,37 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Compares <paramref name="hash" /> with <see cref="_lastHash" /> and pushes a new
-	/// entry to the top of the list when it changed.
+	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
+	/// moves an existing matching entry to the top or inserts a new one.
 	/// </summary>
 	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, false))
-		{
-			_lastHash = hash;
-
-			return;
-		}
-
-		if (_lastHash is { } prev && HashEquals(prev, hash))
+		if (IsEchoOrUnchanged(hash))
 		{
 			return;
 		}
 
-		_lastHash = hash;
+		InsertOrMoveToTop(hash, entryFactory);
+	}
 
+	/// <summary>
+	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
+	/// </summary>
+	private void InsertAtTop(ClipboardHistoryEntryBase entry)
+	{
+		Entries.Insert(0, entry);
+
+		while (Entries.Count > HistoryLimit)
+		{
+			Entries.RemoveAt(Entries.Count - 1);
+		}
+	}
+
+	/// <summary>
+	/// Moves an existing entry with the same <paramref name="hash" /> to the top, otherwise inserts a new one.
+	/// </summary>
+	private void InsertOrMoveToTop(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	{
 		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
 		{
 			_logger.LogDebug($"Moving existing clipboard entry to top: {existing.GetType().Name}.");
@@ -636,16 +648,26 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
+	/// Returns <c>True</c> when <paramref name="hash" /> is a self-echo (from our own restore) or
+	/// matches the last observed payload.
 	/// </summary>
-	private void InsertAtTop(ClipboardHistoryEntryBase entry)
+	private bool IsEchoOrUnchanged(byte[] hash)
 	{
-		Entries.Insert(0, entry);
-
-		while (Entries.Count > HistoryLimit)
+		if (Interlocked.Exchange(ref _suppressEcho, false))
 		{
-			Entries.RemoveAt(Entries.Count - 1);
+			_lastHash = hash;
+
+			return true;
 		}
+
+		if (_lastHash is { } prev && HashEquals(prev, hash))
+		{
+			return true;
+		}
+
+		_lastHash = hash;
+
+		return false;
 	}
 
 	/// <summary>
@@ -753,6 +775,15 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
+				byte[] hash = ComputeHash(TextHelper
+					.Utf8Encoding
+					.GetBytes(text));
+
+				if (IsEchoOrUnchanged(hash))
+				{
+					return;
+				}
+
 				if (await ContainsSensitivityMarkerAsync(clipboard).ConfigureAwait(false))
 				{
 					_logger.LogWarning(
@@ -761,13 +792,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					return;
 				}
 
-				byte[] hash = ComputeHash(TextHelper.Utf8Encoding.GetBytes(text));
-
 				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
 
 				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
 
-				HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash));
+				InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash));
 			}
 		}
 		catch (Exception ex)
