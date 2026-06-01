@@ -561,15 +561,20 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		_lastHash = hash;
 
-		// If the same payload is somewhere down the list — move it up, don't duplicate.
 		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
 		{
+			_logger.LogDebug($"Moving existing clipboard entry to top: {existing.GetType().Name}.");
+
 			MoveToTop(existing);
 
 			return;
 		}
 
-		InsertAtTop(entryFactory());
+		ClipboardHistoryEntryBase entry = entryFactory();
+
+		_logger.LogDebug($"Captured new clipboard entry: {entry.GetType().Name}.");
+
+		InsertAtTop(entry);
 	}
 
 	/// <summary>

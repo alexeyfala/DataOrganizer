@@ -111,8 +111,6 @@ public class ViewLauncher : IViewLauncher
 
 		window.Closing -= CustomClipboardWindow_Closing;
 
-		_logger.LogInformation($@"Closing ""{nameof(CustomClipboardWindow)}"" and saving ""{nameof(CustomClipboardWindowSettings)}""");
-
 		SaveCustomClipboardSettings(window);
 	}
 
