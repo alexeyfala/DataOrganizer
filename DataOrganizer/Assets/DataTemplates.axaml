@@ -771,7 +771,15 @@
 							<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
 								<ReflectionBinding
 									Mode="OneTime"
-									Path="IsSensitive" />
+									Path="IsSensitive">
+									<!--
+										Real bool fallback for entries without IsSensitive (image / files); UnsetValue would be
+										dropped by BoolConverters.And and leak the eye onto them.
+									-->
+									<ReflectionBinding.FallbackValue>
+										<system:Boolean>False</system:Boolean>
+									</ReflectionBinding.FallbackValue>
+								</ReflectionBinding>
 
 								<Binding
 									Path="IsPointerOver"
