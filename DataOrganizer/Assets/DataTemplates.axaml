@@ -675,6 +675,7 @@
 				Cursor="Hand"
 				IsVisible="{Binding IsSensitive, Mode=OneTime}"
 				Theme="{StaticResource MaterialFlatButton}">
+				
 				<ToggleButton.Styles>
 					<Style Selector="ToggleButton:not(:checked)">
 						<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
@@ -692,6 +693,10 @@
 						<Setter Property="Kind" Value="EyeOffOutline" />
 					</Style>
 				</ToggleButton.Styles>
+
+				<Interaction.Behaviors>
+					<behaviors:HandleClickBehavior />
+				</Interaction.Behaviors>
 
 				<materialIcons:MaterialIcon
 					Width="16.0"
