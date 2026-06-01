@@ -71,12 +71,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private static readonly FrozenSet<string> SensitivityMarkerIdentifiers = new[]
 	{
-		"ExcludeClipboardContentFromMonitorProcessing",
-		"CanIncludeInClipboardHistory",
-		"CanUploadToCloudClipboard",
-		"Clipboard Viewer Ignore",
-		"x-kde-passwordManagerHint",
-		"org.nspasteboard.ConcealedType"
+		ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing,
+		ClipboardSensitivityMarkers.CanIncludeInClipboardHistory,
+		ClipboardSensitivityMarkers.CanUploadToCloudClipboard,
+		ClipboardSensitivityMarkers.ClipboardViewerIgnore,
+		ClipboardSensitivityMarkers.KdePasswordManagerHint,
+		ClipboardSensitivityMarkers.NsPasteboardConcealedType
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
@@ -362,21 +362,21 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			return
 			[
-				(DataFormat.CreateBytesPlatformFormat("ExcludeClipboardContentFromMonitorProcessing"), present),
-				(DataFormat.CreateBytesPlatformFormat("CanIncludeInClipboardHistory"), dwordZero),
-				(DataFormat.CreateBytesPlatformFormat("CanUploadToCloudClipboard"), dwordZero),
-				(DataFormat.CreateBytesPlatformFormat("Clipboard Viewer Ignore"), present)
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing), present),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanUploadToCloudClipboard), dwordZero),
+				(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardViewerIgnore), present)
 			];
 		}
 
 		if (AppUtils.IsLinux)
 		{
-			return [(DataFormat.CreateBytesPlatformFormat("x-kde-passwordManagerHint"), TextHelper.Utf8Encoding.GetBytes("secret"))];
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextHelper.Utf8Encoding.GetBytes("secret"))];
 		}
 
 		if (AppUtils.IsMacOs)
 		{
-			return [(DataFormat.CreateBytesPlatformFormat("org.nspasteboard.ConcealedType"), present)];
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.NsPasteboardConcealedType), present)];
 		}
 
 		return [];
