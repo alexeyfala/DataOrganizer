@@ -764,7 +764,8 @@
 						Padding="3.0"
 						VerticalAlignment="Center"
 						Background="{StaticResource MaterialCardBackgroundBrush}"
-						Cursor="Hand">
+						Cursor="Hand"
+						Theme="{StaticResource MaterialFlatButton}">
 
 						<ToggleButton.IsVisible>
 							<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
