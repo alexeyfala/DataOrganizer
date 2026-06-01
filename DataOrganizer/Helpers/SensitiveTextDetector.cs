@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Helpers;
@@ -15,6 +16,16 @@ public static partial class SensitiveTextDetector
 	private const int MaxLength = 64;
 
 	/// <summary>
+	/// Maximum run of consecutive same-class characters; longer runs mark words / hex literals.
+	/// </summary>
+	private const int MaxSameClassRun = 4;
+
+	/// <summary>
+	/// Maximum allowed structural separators; 2+ mark a token as structured data, not a password.
+	/// </summary>
+	private const int MaxStructuralSeparators = 1;
+
+	/// <summary>
 	/// Minimum distinct character classes (lower / upper / digit / other) for a secret.
 	/// </summary>
 	private const int MinCharacterClasses = 3;
@@ -26,8 +37,15 @@ public static partial class SensitiveTextDetector
 
 	/// <summary>
 	/// Minimum Shannon entropy (bits per character) separating random strings from words.
+	/// At length 8 the maximum possible entropy is 3.0, so raising this would drop short passwords.
 	/// </summary>
 	private const double MinShannonBitsPerChar = 3.0;
+
+	/// <summary>
+	/// Segmenting punctuation; 2+ occurrences mark a token as structured data (version, MAC, date,
+	/// path, identifier). Password-common symbols (@ # ! $ % * + = ?) are intentionally excluded.
+	/// </summary>
+	private static readonly SearchValues<char> StructuralSeparators = SearchValues.Create("-._:/,;()[]{}<>");
 	#endregion
 
 	#region Methods
@@ -64,8 +82,12 @@ public static partial class SensitiveTextDetector
 			return false;
 		}
 
-		// Positive signals: character-class variety plus high per-character entropy.
-		return CountCharacterClasses(candidate) >= MinCharacterClasses && ShannonBitsPerChar(candidate) >= MinShannonBitsPerChar;
+		// Positive signals: a password is a short, unstructured, high-entropy soup — several character
+		// classes, no long single-class runs, and no separator-segmented structure.
+		return CountCharacterClasses(candidate) >= MinCharacterClasses
+			&& LongestSameClassRun(candidate) <= MaxSameClassRun
+			&& CountStructuralSeparators(candidate) <= MaxStructuralSeparators
+			&& ShannonBitsPerChar(candidate) >= MinShannonBitsPerChar;
 	}
 	#endregion
 
@@ -123,6 +145,24 @@ public static partial class SensitiveTextDetector
 	}
 
 	/// <summary>
+	/// Counts structural separators in <paramref name="value" /> (see <see cref="StructuralSeparators" />).
+	/// </summary>
+	private static int CountStructuralSeparators(ReadOnlySpan<char> value)
+	{
+		int count = 0;
+
+		foreach (char c in value)
+		{
+			if (StructuralSeparators.Contains(c))
+			{
+				count++;
+			}
+		}
+
+		return count;
+	}
+
+	/// <summary>
 	/// Matches a whole-string e-mail address (no surrounding whitespace).
 	/// </summary>
 	[GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.CultureInvariant)]
@@ -133,6 +173,29 @@ public static partial class SensitiveTextDetector
 	/// </summary>
 	[GeneratedRegex(@"%[^%\s]+%", RegexOptions.CultureInvariant)]
 	private static partial Regex EnvironmentVariableRegex();
+
+	/// <summary>
+	/// Classifies <paramref name="c" /> as 0 = lower, 1 = upper, 2 = digit, 3 = other.
+	/// </summary>
+	private static int GetCharClass(char c)
+	{
+		if (char.IsLower(c))
+		{
+			return 0;
+		}
+
+		if (char.IsUpper(c))
+		{
+			return 1;
+		}
+
+		if (char.IsDigit(c))
+		{
+			return 2;
+		}
+
+		return 3;
+	}
 
 	/// <summary>
 	/// Returns <c>True</c> for canonical MD5 / SHA-1 / SHA-256 hex digests (32 / 40 / 64 hex chars).
@@ -153,6 +216,35 @@ public static partial class SensitiveTextDetector
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Length of the longest run of consecutive same-class characters. Words and hex literals have
+	/// long runs; random passwords interleave classes and keep runs short.
+	/// </summary>
+	private static int LongestSameClassRun(ReadOnlySpan<char> value)
+	{
+		int longest = 0;
+
+		int current = 0;
+
+		int previousClass = -1;
+
+		foreach (char c in value)
+		{
+			int charClass = GetCharClass(c);
+
+			current = charClass == previousClass ? current + 1 : 1;
+
+			previousClass = charClass;
+
+			if (current > longest)
+			{
+				longest = current;
+			}
+		}
+
+		return longest;
 	}
 
 	/// <summary>
