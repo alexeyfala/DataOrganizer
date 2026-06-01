@@ -650,20 +650,9 @@
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
 		<Panel>
-			<Panel.Styles>
-				<Style Selector="ToggleButton#RevealPlainText">
-					<Setter Property="Opacity" Value="0.0" />
-					<Setter Property="IsHitTestVisible" Value="False" />
-				</Style>
-
-				<Style Selector="Panel:pointerover ToggleButton#RevealPlainText">
-					<Setter Property="Opacity" Value="1.0" />
-					<Setter Property="IsHitTestVisible" Value="True" />
-				</Style>
-			</Panel.Styles>
-
 			<TextBlock
 				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				VerticalAlignment="Center"
 				Classes.revealed="{Binding #RevealPlainText.IsChecked, Mode=OneWay}"
 				Classes.sensitive="{Binding IsSensitive, Mode=OneTime}"
 				Text="{Binding Text, Mode=OneTime}"
@@ -684,6 +673,7 @@
 				HorizontalAlignment="Left"
 				VerticalAlignment="Bottom"
 				Background="{StaticResource MaterialCardBackgroundBrush}"
+				Classes="revealEye"
 				Cursor="Hand"
 				IsVisible="{Binding IsSensitive, Mode=OneTime}"
 				Theme="{StaticResource MaterialFlatButton}">
@@ -767,6 +757,18 @@
 				<Interaction.Behaviors>
 					<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
 				</Interaction.Behaviors>
+
+				<Button.Styles>
+					<Style Selector="ToggleButton.revealEye">
+						<Setter Property="Opacity" Value="0.0" />
+						<Setter Property="IsHitTestVisible" Value="False" />
+					</Style>
+
+					<Style Selector="Button:pointerover ToggleButton.revealEye">
+						<Setter Property="Opacity" Value="1.0" />
+						<Setter Property="IsHitTestVisible" Value="True" />
+					</Style>
+				</Button.Styles>
 
 				<Panel>
 					<ContentControl Content="{Binding}">
