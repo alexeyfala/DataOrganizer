@@ -690,10 +690,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
 			{
-				// Skip copies a password manager flagged as sensitive, mirroring the Windows
-				// clipboard history (Win+V), which never stores such content.
 				if (await ContainsSensitivityMarkerAsync(clipboard).ConfigureAwait(false))
 				{
+					_logger.LogWarning(
+						$"Skipping clipboard text entry ({text.Length} chars): a sensitivity marker was detected.");
+
 					return;
 				}
 
