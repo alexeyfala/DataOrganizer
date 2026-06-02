@@ -2,6 +2,7 @@
 	x:Class="DataOrganizer.Windows.CustomClipboardWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -41,6 +42,12 @@
 	</Window.Styles>
 
 	<Panel>
+		<Panel.Styles>
+			<Style Selector="Border.resizeGrip">
+				<Setter Property="Background" Value="Transparent" />
+			</Style>
+		</Panel.Styles>
+
 		<Border
 			Padding="12.0"
 			Background="{StaticResource MaterialBackgroundBrush}"
@@ -49,11 +56,7 @@
 			CornerRadius="6.0">
 
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding PointerPressedCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:MoveWindowBehavior Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 
 			<Grid RowDefinitions="Auto,*">
@@ -112,14 +115,12 @@
 			Margin="6.0,0.0"
 			HorizontalAlignment="Stretch"
 			VerticalAlignment="Top"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="TopSide">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByTopCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="North"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -128,14 +129,12 @@
 			Margin="6.0,0.0"
 			HorizontalAlignment="Stretch"
 			VerticalAlignment="Bottom"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="BottomSide">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByBottomCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="South"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -144,14 +143,12 @@
 			Margin="0.0,6.0"
 			HorizontalAlignment="Left"
 			VerticalAlignment="Stretch"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="LeftSide">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByLeftCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="West"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -160,14 +157,12 @@
 			Margin="0.0,6.0"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Stretch"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="RightSide">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByRightCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="East"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -176,14 +171,12 @@
 			Height="6.0"
 			HorizontalAlignment="Left"
 			VerticalAlignment="Top"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="TopLeftCorner">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByTopLeftCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="NorthWest"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -192,14 +185,12 @@
 			Height="6.0"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Top"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="TopRightCorner">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByTopRightCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="NorthEast"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -208,14 +199,12 @@
 			Height="6.0"
 			HorizontalAlignment="Left"
 			VerticalAlignment="Bottom"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="BottomLeftCorner">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByBottomLeftCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="SouthWest"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 
@@ -224,14 +213,12 @@
 			Height="6.0"
 			HorizontalAlignment="Right"
 			VerticalAlignment="Bottom"
-			Background="Transparent"
+			Classes="resizeGrip"
 			Cursor="BottomRightCorner">
 			<Interaction.Behaviors>
-				<EventTriggerBehavior EventName="PointerPressed">
-					<InvokeCommandAction
-						Command="{Binding ResizeByBottomRightCommand}"
-						PassEventArgsToCommand="True" />
-				</EventTriggerBehavior>
+				<behaviors:ResizeWindowBehavior
+					Edge="SouthEast"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 		</Border>
 	</Panel>

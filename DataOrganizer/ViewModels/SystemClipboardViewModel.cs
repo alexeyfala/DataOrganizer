@@ -1,7 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.LogicalTree;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Clipboard;
@@ -49,72 +45,6 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	#endregion
 
 	#region Commands
-	/// <summary>
-	/// Starts native window move-drag from any area.
-	/// </summary>
-	[RelayCommand]
-	private static void PointerPressed(PointerPressedEventArgs? e)
-	{
-		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual)
-			.Properties
-			.IsLeftButtonPressed)
-		{
-			return;
-		}
-
-		visual
-			.FindLogicalAncestorOfType<Window>()?
-			.BeginMoveDrag(e);
-	}
-
-	/// <summary>
-	/// Starts native window resize-drag from the bottom edge.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByBottom(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.South);
-
-	/// <summary>
-	/// Starts native window resize-drag from the bottom-left corner.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByBottomLeft(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.SouthWest);
-
-	/// <summary>
-	/// Starts native window resize-drag from the bottom-right corner.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByBottomRight(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.SouthEast);
-
-	/// <summary>
-	/// Starts native window resize-drag from the left edge.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByLeft(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.West);
-
-	/// <summary>
-	/// Starts native window resize-drag from the right edge.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByRight(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.East);
-
-	/// <summary>
-	/// Starts native window resize-drag from the top edge.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByTop(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.North);
-
-	/// <summary>
-	/// Starts native window resize-drag from the top-left corner.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByTopLeft(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.NorthWest);
-
-	/// <summary>
-	/// Starts native window resize-drag from the top-right corner.
-	/// </summary>
-	[RelayCommand]
-	private static void ResizeByTopRight(PointerPressedEventArgs? e) => BeginResize(e, WindowEdge.NorthEast);
-
 	/// <summary>
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
@@ -166,23 +96,6 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Starts a native window resize-drag towards <paramref name="edge" />. Left button only.
-	/// </summary>
-	private static void BeginResize(PointerPressedEventArgs? e, WindowEdge edge)
-	{
-		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual)
-			.Properties
-			.IsLeftButtonPressed)
-		{
-			return;
-		}
-
-		visual
-			.FindLogicalAncestorOfType<Window>()?
-			.BeginResizeDrag(edge, e);
-	}
-
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
