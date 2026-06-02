@@ -172,6 +172,13 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
 		{
+			if (settings.Size.Width > 0 && settings.Size.Height > 0)
+			{
+				window.Width = settings.Size.Width;
+
+				window.Height = settings.Size.Height;
+			}
+
 			PixelPoint candidate = new(settings.X, settings.Y);
 
 			if (IViewLauncher.IsWindowPositionOnScreen(window, candidate))
@@ -337,6 +344,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			CustomClipboardWindowSettings settings = new()
 			{
+				Size = new((int)window.Width, (int)window.Height),
 				X = window.Position.X,
 				Y = window.Position.Y,
 			};

@@ -3,14 +3,18 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	Width="360.0"
 	Height="420.0"
+	MinWidth="280.0"
+	MinHeight="220.0"
 	x:DataType="vm:CustomClipboardViewModel"
 	Background="Transparent"
-	CanResize="False"
+	CanMaximize="False"
+	CanMinimize="False"
 	ShowActivated="True"
 	ShowInTaskbar="False"
 	Topmost="True"
@@ -36,56 +40,199 @@
 		</Style>
 	</Window.Styles>
 
-	<Border
-		Padding="12.0"
-		Background="{StaticResource MaterialBackgroundBrush}"
-		BorderBrush="{StaticResource MaterialDividerBrush}"
-		BorderThickness="1.0"
-		CornerRadius="6.0">
+	<Panel>
+		<Border
+			Padding="12.0"
+			Background="{StaticResource MaterialBackgroundBrush}"
+			BorderBrush="{StaticResource MaterialDividerBrush}"
+			BorderThickness="1.0"
+			CornerRadius="6.0">
 
-		<Interaction.Behaviors>
-			<EventTriggerBehavior EventName="PointerPressed">
-				<InvokeCommandAction
-					Command="{Binding PointerPressedCommand}"
-					PassEventArgsToCommand="True" />
-			</EventTriggerBehavior>
-		</Interaction.Behaviors>
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding PointerPressedCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
 
-		<Grid RowDefinitions="Auto,*">
-			<Grid
-				Grid.Row="0"
-				ColumnDefinitions="*,Auto">
-				<TextBlock
-					Grid.Column="0"
-					VerticalAlignment="Center"
-					Classes="HeaderTextBlockStyle"
-					Text="{x:Static prop:Strings.Clipboard}" />
+			<Grid RowDefinitions="Auto,*">
+				<Grid
+					Grid.Row="0"
+					ColumnDefinitions="*,Auto,Auto">
+					<TextBlock
+						Grid.Column="0"
+						VerticalAlignment="Center"
+						Classes="HeaderTextBlockStyle"
+						Text="{x:Static prop:Strings.Clipboard}" />
 
-				<Button
-					Grid.Column="1"
-					Padding="8.0,2.0"
-					Classes="primary"
-					Command="{Binding ClearCommand}"
-					Content="{x:Static prop:Strings.Clear}" />
+					<Button
+						Grid.Column="1"
+						Padding="8.0,2.0"
+						Classes="primary"
+						Command="{Binding ClearCommand}"
+						Content="{x:Static prop:Strings.Clear}" />
+
+					<Button
+						Grid.Column="2"
+						Margin="4.0,0.0,0.0,0.0"
+						Padding="6.0,2.0"
+						Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+						ToolTip.Tip="{x:Static prop:Strings.Close}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="Click">
+								<CloseWindowAction />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Button>
+				</Grid>
+
+				<ScrollViewer
+					Grid.Row="1"
+					Margin="0.0,10.0,0.0,0.0"
+					HorizontalScrollBarVisibility="Disabled"
+					VerticalScrollBarVisibility="Auto">
+					<ItemsControl
+						ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
+						ItemsSource="{Binding Entries}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel
+									Orientation="Vertical"
+									Spacing="6.0" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+					</ItemsControl>
+				</ScrollViewer>
 			</Grid>
+		</Border>
 
-			<ScrollViewer
-				Grid.Row="1"
-				Margin="0.0,10.0,0.0,0.0"
-				HorizontalScrollBarVisibility="Disabled"
-				VerticalScrollBarVisibility="Auto">
-				<ItemsControl
-					ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
-					ItemsSource="{Binding Entries}">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel
-								Orientation="Vertical"
-								Spacing="6.0" />
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-				</ItemsControl>
-			</ScrollViewer>
-		</Grid>
-	</Border>
+		<Border
+			Height="6.0"
+			Margin="6.0,0.0"
+			HorizontalAlignment="Stretch"
+			VerticalAlignment="Top"
+			Background="Transparent"
+			Cursor="TopSide">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByTopCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Height="6.0"
+			Margin="6.0,0.0"
+			HorizontalAlignment="Stretch"
+			VerticalAlignment="Bottom"
+			Background="Transparent"
+			Cursor="BottomSide">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByBottomCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Margin="0.0,6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Stretch"
+			Background="Transparent"
+			Cursor="LeftSide">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByLeftCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Margin="0.0,6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Stretch"
+			Background="Transparent"
+			Cursor="RightSide">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByRightCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Top"
+			Background="Transparent"
+			Cursor="TopLeftCorner">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByTopLeftCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Top"
+			Background="Transparent"
+			Cursor="TopRightCorner">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByTopRightCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Bottom"
+			Background="Transparent"
+			Cursor="BottomLeftCorner">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByBottomLeftCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Bottom"
+			Background="Transparent"
+			Cursor="BottomRightCorner">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="PointerPressed">
+					<InvokeCommandAction
+						Command="{Binding ResizeByBottomRightCommand}"
+						PassEventArgsToCommand="True" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Border>
+	</Panel>
 </Window>
