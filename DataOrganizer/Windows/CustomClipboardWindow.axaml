@@ -62,22 +62,27 @@
 			<Grid RowDefinitions="Auto,*">
 				<Grid
 					Grid.Row="0"
-					ColumnDefinitions="*,Auto,Auto">
-					<TextBlock
+					ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+					<Image
 						Grid.Column="0"
+						Classes="AppImageStyle" />
+
+					<TextBlock
+						Grid.Column="1"
+						Margin="4.0,0.0"
 						VerticalAlignment="Center"
 						Classes="HeaderTextBlockStyle"
 						Text="{x:Static prop:Strings.Clipboard}" />
 
 					<Button
-						Grid.Column="1"
+						Grid.Column="3"
 						Padding="8.0,2.0"
 						Classes="primary"
 						Command="{Binding ClearCommand}"
 						Content="{x:Static prop:Strings.Clear}" />
 
 					<Button
-						Grid.Column="2"
+						Grid.Column="4"
 						Margin="4.0,0.0,0.0,0.0"
 						Padding="6.0,2.0"
 						Content="{materialIcons:MaterialIconTextExt Kind=Close}"
