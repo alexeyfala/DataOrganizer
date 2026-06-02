@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
@@ -21,6 +22,70 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class ViewLauncherTests
 {
 	#region Methods
+	/// <summary>
+	/// Test of <see cref="ViewLauncher.ConfigureCustomClipboardWindow" />.
+	/// </summary>
+	[AvaloniaTest]
+	public void ConfigureCustomClipboardWindow_Applies_Saved_Settings()
+	{
+		// Arrange
+		int positiveValue = TestUtils.CreateRandomInt(100, 300);
+
+		CustomClipboardWindowSettings settings = new()
+		{
+			Size = new(positiveValue, positiveValue),
+			X = 10,
+			Y = 10
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
+
+			CustomClipboardWindow clipboardWindow = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.FromFile<CustomClipboardWindowSettings>(Arg.Any<string>())
+				.Returns(settings);
+
+			viewFactory
+				.CreateViewModel<CustomClipboardViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<CustomClipboardWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(serializer);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		CustomClipboardWindow window = sut.ConfigureCustomClipboardWindow(new Window());
+
+		// Assert
+		window.Width
+			.Should()
+			.Be(positiveValue);
+
+		window.Height
+			.Should()
+			.Be(positiveValue);
+
+		window.Position
+			.Should()
+			.Be(new PixelPoint(settings.X, settings.Y));
+	}
+
 	/// <summary>
 	/// Test of <see cref="ViewLauncher.ConfigureEditorWindow" />.
 	/// </summary>
@@ -366,6 +431,30 @@ internal class ViewLauncherTests
 		window
 			.Should()
 			.BeOfType<FavoritesWindow>();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ViewLauncher.SaveCustomClipboardSettings" />.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Saves_Settings()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		ViewLauncher sut = mock.Create<ViewLauncher>(
+			TypedParameter.From(fileSystem));
+
+		// Act
+		sut.SaveCustomClipboardSettings(mock.Create<CustomClipboardWindow>());
+
+		// Assert
+		fileSystem.Received().SerializeToJsonFile(
+			Arg.Any<CustomClipboardWindowSettings>(),
+			Arg.Any<string>(),
+			Arg.Any<bool>());
 	}
 
 	/// <summary>
