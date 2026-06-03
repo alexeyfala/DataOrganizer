@@ -92,6 +92,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
+	/// <inheritdoc cref="IClipboardAccessor" />
+	private readonly IClipboardAccessor _clipboard;
+
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
@@ -138,11 +141,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	#region Constructors
 	public ClipboardHistoryService(
 		Application app,
+		IClipboardAccessor clipboard,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
+
+		_clipboard = clipboard;
 
 		_dispatcher = dispatcher;
 
@@ -158,7 +164,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		await _clearGate
 			.WaitAsync()
-			.ConfigureAwait(true);
+			.ConfigureAwait(false);
 
 		try
 		{
@@ -166,16 +172,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			await _dispatcher
 				.PostAsync(() => _lastHash = null)
-				.ConfigureAwait(true);
+				.ConfigureAwait(false);
 
 			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
-			// by the next poll tick (it only reappears on a genuine new copy).
-			if (_app.FindClipboard() is not { } clipboard)
-			{
-				return;
-			}
-
-			await clipboard
+			// by the next poll tick (it only reappears on a genuine new copy).			
+			await _clipboard
 				.ClearAsync()
 				.ConfigureAwait(false);
 		}

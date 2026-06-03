@@ -35,6 +35,21 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 
 	#region Methods
 	/// <inheritdoc />
+	public async Task<bool> ClearAsync()
+	{
+		if (_app.FindClipboard() is not { } clipboard)
+		{
+			return false;
+		}
+
+		await _dispatcher
+			.PostAsync(clipboard.ClearAsync)
+			.ConfigureAwait(false);
+
+		return true;
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> SetTextAsync(string text)
 	{
 		if (_app.FindClipboard() is not { } clipboard)
