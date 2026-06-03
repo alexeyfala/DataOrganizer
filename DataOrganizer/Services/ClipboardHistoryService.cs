@@ -115,6 +115,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <summary>
 	/// Hash of the most recently observed clipboard payload.
+	/// Accessed on the UI thread only.
 	/// </summary>
 	private byte[]? _lastHash;
 
@@ -158,7 +159,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Entries.Clear();
 
-			_lastHash = null;
+			await _dispatcher
+				.PostAsync(() => _lastHash = null)
+				.ConfigureAwait(true);
 
 			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
 			// by the next poll tick (it only reappears on a genuine new copy).
@@ -210,7 +213,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
 		Interlocked.Exchange(ref _suppressEcho, true);
 
-		_lastHash = entry.Hash;
+		await _dispatcher
+			.PostAsync(() => _lastHash = entry.Hash)
+			.ConfigureAwait(false);
 
 		try
 		{
