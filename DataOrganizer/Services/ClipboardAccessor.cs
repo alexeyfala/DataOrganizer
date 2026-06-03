@@ -35,9 +35,6 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 
 	#region Methods
 	/// <inheritdoc />
-	public IClipboard? FindClipboard() => _app.FindClipboard();
-
-	/// <inheritdoc />
 	public async Task<bool> SetTextAsync(string text)
 	{
 		if (_app.FindClipboard() is not { } clipboard)

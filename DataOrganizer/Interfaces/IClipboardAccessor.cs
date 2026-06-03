@@ -1,5 +1,4 @@
-﻿using Avalonia.Input.Platform;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
 
@@ -10,11 +9,8 @@ public interface IClipboardAccessor
 {
 	#region Methods
 	/// <summary>
-	/// Searches for a clipboard among windows already running in the application.
+	/// Places a text on the clipboard in the UI thread.
 	/// </summary>
-	IClipboard? FindClipboard();
-
-	/// <inheritdoc cref="ClipboardExtensions.SetTextAsync" />
 	Task<bool> SetTextAsync(string text);
 	#endregion
 }
