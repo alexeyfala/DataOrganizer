@@ -1,5 +1,4 @@
-﻿using Avalonia.Threading;
-using DataOrganizer.DTO;
+﻿using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -21,8 +20,8 @@ namespace DataOrganizer.Services;
 public sealed class DialogService : IDialogService
 {
 	#region Data
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -36,7 +35,7 @@ public sealed class DialogService : IDialogService
 
 	#region Constructors
 	public DialogService(
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory)

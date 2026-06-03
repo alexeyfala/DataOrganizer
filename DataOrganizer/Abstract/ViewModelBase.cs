@@ -150,8 +150,8 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDispatcher" />
-	protected readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	protected readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="IExecutionEngine" />
 	protected readonly IExecutionEngine _executionEngine;
@@ -179,7 +179,7 @@ public abstract partial class ViewModelBase :
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,

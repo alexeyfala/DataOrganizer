@@ -195,7 +195,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IClipboardService clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,

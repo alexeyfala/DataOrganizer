@@ -543,8 +543,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <summary>
 	/// Cached reference to the records <see cref="ItemsRepeater" />.
@@ -558,7 +558,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,

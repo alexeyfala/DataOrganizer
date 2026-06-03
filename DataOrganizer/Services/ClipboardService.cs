@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Input.Platform;
-using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System.Threading.Tasks;
@@ -13,8 +12,8 @@ public sealed class ClipboardService : IClipboardService
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -23,7 +22,7 @@ public sealed class ClipboardService : IClipboardService
 	#region Constructors
 	public ClipboardService(
 		Application app,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;

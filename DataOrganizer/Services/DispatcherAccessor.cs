@@ -1,5 +1,4 @@
 ﻿using Avalonia.Threading;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -18,6 +17,9 @@ public sealed class DispatcherAccessor : IDispatcherAccessor
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void Post(Action action, DispatcherPriority priority = default) => _dispatcher.Post(action, priority);
+
 	/// <inheritdoc />
 	public Task PostAsync(Action action, DispatcherPriority priority = default)
 	{
@@ -63,9 +65,7 @@ public sealed class DispatcherAccessor : IDispatcherAccessor
 	/// <inheritdoc />
 	public Task<TResult> PostAsync<TResult>(Func<Task<TResult>> func, DispatcherPriority priority = default)
 	{
-		return _dispatcher
-			.PostAsync<Task<TResult>>(func, priority)
-			.Unwrap();
+		return PostAsync<Task<TResult>>(func, priority).Unwrap();
 	}
 	#endregion
 }

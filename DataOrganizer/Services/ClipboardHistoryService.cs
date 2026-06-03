@@ -3,7 +3,6 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using Cysharp.Text;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Extensions;
@@ -93,8 +92,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -139,7 +138,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	#region Constructors
 	public ClipboardHistoryService(
 		Application app,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		ITaskExceptionHandler exceptionHandler)
 	{

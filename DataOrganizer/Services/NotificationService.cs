@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.Threading;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -18,8 +17,8 @@ public sealed class NotificationService : INotificationService
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -31,7 +30,7 @@ public sealed class NotificationService : INotificationService
 	#region Constructors
 	public NotificationService(
 		Application app,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IViewFactory viewFactory)
 	{
@@ -47,63 +46,60 @@ public sealed class NotificationService : INotificationService
 
 	#region Methods
 	/// <inheritdoc />
-	public void ShowToast(string message)
+	public void ShowToast(string message) => _dispatcher.Post(async () =>
 	{
-		_dispatcher.Post(async () =>
+		try
 		{
-			try
+			_app
+				.FindWindow<ToastWindow>()?
+				.Close();
+
+			ToastViewModel viewModel = _viewFactory.CreateViewModel<ToastViewModel>();
+
+			ToastWindow window = _viewFactory.CreateWindow<ToastWindow>(viewModel);
+
+			viewModel.Title = AppUtils.AppName;
+
+			viewModel.Message = message;
+
+			if (window
+				.Screens
+				.Primary is not { } screen)
 			{
-				_app
-					.FindWindow<ToastWindow>()?
-					.Close();
+				return;
+			}
 
-				ToastViewModel viewModel = _viewFactory.CreateViewModel<ToastViewModel>();
+			window.Show();
 
-				ToastWindow window = _viewFactory.CreateWindow<ToastWindow>(viewModel);
+			PixelSize screenSize = screen
+				.WorkingArea
+				.Size;
 
-				viewModel.Title = AppUtils.AppName;
+			PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
 
-				viewModel.Message = message;
+			const int margin = 10;
 
-				if (window
-					.Screens
-					.Primary is not { } screen)
-				{
-					return;
-				}
+			window.Position = new PixelPoint(
+				screenSize.Width - (windowSize.Width + margin),
+				screenSize.Height - (windowSize.Height + margin));
 
-				window.Show();
+			await Task
+				.Delay(TimeSpan.FromSeconds(3))
+				.ConfigureAwait(true);
 
-				PixelSize screenSize = screen
-					.WorkingArea
-					.Size;
-
-				PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
-
-				const int margin = 10;
-
-				window.Position = new PixelPoint(
-					screenSize.Width - (windowSize.Width + margin),
-					screenSize.Height - (windowSize.Height + margin));
-
+			while (window.IsPointerOver)
+			{
 				await Task
-					.Delay(TimeSpan.FromSeconds(3))
+					.Delay(TimeSpan.FromSeconds(1))
 					.ConfigureAwait(true);
-
-				while (window.IsPointerOver)
-				{
-					await Task
-						.Delay(TimeSpan.FromSeconds(1))
-						.ConfigureAwait(true);
-				}
-
-				window.Close();
 			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
-		});
-	}
+
+			window.Close();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	});
 	#endregion
 }

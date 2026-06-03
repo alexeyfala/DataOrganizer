@@ -10,6 +10,9 @@ namespace DataOrganizer.Interfaces;
 public interface IDispatcherAccessor
 {
 	#region Methods
+	/// <inheritdoc cref="IDispatcher.Post(Action, DispatcherPriority)" />
+	void Post(Action action, DispatcherPriority priority = default);
+
 	/// <summary>
 	/// Posts an action that will be invoked on the dispatcher thread asynchronously
 	/// at the specified <paramref name="priority"/>.

@@ -133,8 +133,8 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
@@ -156,7 +156,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	#region Constructors
 	public ConsoleViewModel(
 		IAppEnvironment appEnvironment,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IProcessUtils processUtils)
 	{
 		_appEnvironment = appEnvironment;

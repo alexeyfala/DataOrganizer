@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -51,8 +50,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="IEntityEncryption" />
 	private readonly IEntityEncryption _entityEncryption;
@@ -83,7 +82,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		Application app,
 		IClipboardService clipboardService,
 		IDbAccess dbAccess,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IGlobalHook hook,
 		ILogger logger,
