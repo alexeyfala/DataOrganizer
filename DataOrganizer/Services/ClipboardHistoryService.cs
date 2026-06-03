@@ -791,7 +791,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				return;
 			}
 
-			if (await TryReadFilesAsync(clipboard) is { Count: > 0 } fileSystemEntries)
+			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
 
@@ -925,14 +925,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Reads file/folder items from the clipboard, if any, and projects them into
 	/// <see cref="ClipboardFileSystemEntry" /> records. Items without a local path are skipped.
 	/// </summary>
-	private async Task<IReadOnlyList<ClipboardFileSystemEntry>?> TryReadFilesAsync(IClipboard clipboard)
+	private async Task<IReadOnlyList<ClipboardFileSystemEntry>?> TryReadFilesAsync()
 	{
 		IStorageItem[]? items;
 
 		try
 		{
-			items = await _dispatcher
-				.PostAsync(clipboard.TryGetFilesAsync)
+			items = await _clipboard
+				.TryGetFilesAsync()
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)

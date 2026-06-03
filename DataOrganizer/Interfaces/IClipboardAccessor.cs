@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Avalonia.Platform.Storage;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
 
@@ -17,5 +18,10 @@ public interface IClipboardAccessor
 	/// Places a text on the clipboard in the UI thread.
 	/// </summary>
 	Task<bool> SetTextAsync(string text);
+
+	/// <summary>
+	/// Returns a list of files, if available, from the clipboard in the UI thread.
+	/// </summary>
+	Task<IStorageItem[]?> TryGetFilesAsync();
 	#endregion
 }
