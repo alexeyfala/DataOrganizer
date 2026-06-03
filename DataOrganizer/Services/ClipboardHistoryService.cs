@@ -269,19 +269,19 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			return Task.CompletedTask;
 		}
 
-		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
-
-		Interlocked
-			.Exchange(ref _stopCts, cancellation)?
-			.Dispose();
-
 		// Idempotent: ignore a second StartAsync while the loop is alive.
 		if (Interlocked.Exchange(ref _isLoopRunning, true))
 		{
 			return Task.CompletedTask;
 		}
 
-		return LoopAsync(cancellation.Token);
+		CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+		Interlocked
+			.Exchange(ref _stopCts, cancellation)?
+			.Dispose();
+
+		return LoopAsync(cancellation);
 	}
 
 	/// <inheritdoc />
@@ -693,8 +693,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Polling loop.
 	/// </summary>
-	private async Task LoopAsync(CancellationToken token)
+	// private async Task LoopAsync(CancellationToken token)
+	private async Task LoopAsync(CancellationTokenSource cts)
 	{
+		// The loop owns its CTS so it can retire exactly its own source on exit.
+		CancellationToken token = cts.Token;
+
 		const ConfigureAwaitOptions awaitOptions = ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext;
 
 		_logger.LogInformation(
@@ -720,9 +724,15 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Interlocked.Exchange(ref _isLoopRunning, false);
 
-			Interlocked
-				.Exchange(ref _stopCts, null)?
-				.Dispose();
+			// Detach only if the field still points to our CTS; a concurrent StartAsync
+			// may have already installed a new one for the next loop.
+			// Interlocked
+			// 	.Exchange(ref _stopCts, null)?
+			// 	.Dispose();
+			Interlocked.CompareExchange(ref _stopCts, null, cts);
+
+			// Always dispose our own CTS (Dispose is idempotent, so a racing Stop() is safe).
+			cts.Dispose();
 
 			_logger.LogInformation($"{nameof(ClipboardHistoryService)} loop stopped.");
 		}
