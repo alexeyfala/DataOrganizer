@@ -55,7 +55,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
 
 	/// <summary>
-	/// Platform byte[] format for RTF, see <see cref="HtmlFormat" />.
+	/// Platform byte[] format for RTF.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
 
@@ -88,8 +88,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private readonly Application _app;
 
 	/// <summary>
-	/// Serializes <see cref="PollOnceAsync" /> against <see cref="ClearAsync" /> so a poll
-	/// tick cannot insert an entry while the history / clipboard is being cleared.
+	/// Serializes a poll tick against a clear operation so a poll tick cannot
+	/// insert an entry while the history / clipboard is being cleared.
 	/// </summary>
 	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
@@ -108,7 +108,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private bool _isDisposed;
 
 	/// <summary>
-	/// Guards <see cref="StartAsync" /> against double-start. Loop sets this to
+	/// Guards the service against a double start. The loop sets this to
 	/// <c>False</c> in its finally block once it exits.
 	/// </summary>
 	private bool _isLoopRunning;
@@ -120,12 +120,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private byte[]? _lastHash;
 
 	/// <summary>
-	/// Linked cancellation source created in <see cref="StartAsync" /> from the user token.
+	/// The running polling loop task, awaited on dispose so the loop has fully
+	/// stopped before shared state is disposed.
+	/// </summary>
+	private Task? _loopTask;
+
+	/// <summary>
+	/// Linked cancellation source created on start from the user token.
 	/// </summary>
 	private CancellationTokenSource? _stopCts;
 
 	/// <summary>
-	/// When <c>True</c>, the next <see cref="PollOnceAsync" /> tick skips its match check.
+	/// When <c>True</c>, the next poll tick skips its match check.
 	/// </summary>
 	private bool _suppressEcho;
 	#endregion
@@ -189,6 +195,19 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Stop();
+
+		// Wait for the polling loop to fully unwind before disposing shared state.
+		if (_loopTask is not null)
+		{
+			try
+			{
+				await _loopTask.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogDebug($"Clipboard loop ended with an error during dispose: {ex.Message}");
+			}
+		}
 
 		await _clearGate
 			.WaitAsync()
@@ -264,13 +283,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public Task StartAsync(CancellationToken token = default)
 	{
-		if (Volatile.Read(ref _isDisposed))
-		{
-			return Task.CompletedTask;
-		}
-
-		// Idempotent: ignore a second StartAsync while the loop is alive.
-		if (Interlocked.Exchange(ref _isLoopRunning, true))
+		if (Volatile.Read(ref _isDisposed) || Interlocked.Exchange(ref _isLoopRunning, true))
 		{
 			return Task.CompletedTask;
 		}
@@ -281,7 +294,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			.Exchange(ref _stopCts, cancellation)?
 			.Dispose();
 
-		return LoopAsync(cancellation);
+		Task loopTask = LoopAsync(cancellation);
+
+		_loopTask = loopTask;
+
+		return loopTask;
 	}
 
 	/// <inheritdoc />
@@ -328,7 +345,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <summary>
 	/// Attaches the sensitivity markers to <paramref name="item" /> so other clipboard managers /
-	/// Win+V skip the restored content (see <see cref="SensitivityMarkersToWrite" />).
+	/// Win+V skip the restored content.
 	/// </summary>
 	private static void AttachSensitivityMarkers(DataTransferItem item)
 	{
@@ -347,7 +364,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Builds the platform-specific sensitivity markers written on restore (see <see cref="SensitivityMarkersToWrite" />).
+	/// Builds the platform-specific sensitivity markers written on restore.
 	/// </summary>
 	private static (DataFormat<byte[]> Format, byte[] Value)[] BuildSensitivityMarkersToWrite()
 	{
@@ -436,7 +453,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="GnomeCopiedFilesFormat" />.
+	/// Builds the Linux GNOME copied-files platform format; <c>null</c> on non-Linux platforms.
 	/// </summary>
 	private static DataFormat<byte[]>? GetGnomeCopiedFilesFormat()
 	{
@@ -446,7 +463,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="HtmlFormat" />.
+	/// Builds the platform-specific HTML byte[] format.
 	/// </summary>
 	private static DataFormat<byte[]>? GetHtmlFormat()
 	{
@@ -465,7 +482,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns value for <see cref="RtfFormat" />.
+	/// Builds the platform-specific RTF byte[] format.
 	/// </summary>
 	private static DataFormat<byte[]>? GetRtfFormat()
 	{
@@ -582,8 +599,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> when the clipboard advertises any sensitivity marker format
-	/// (see <see cref="SensitivityMarkerIdentifiers" />), i.e. a password manager flagged the copy.
+	/// Returns <c>True</c> when the clipboard advertises any sensitivity marker format,
+	/// i.e. a password manager flagged the copy.
 	/// </summary>
 	private async Task<bool> ContainsSensitivityMarkerAsync(IClipboard clipboard)
 	{
