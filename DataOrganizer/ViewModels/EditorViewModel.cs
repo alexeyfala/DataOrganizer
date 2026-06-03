@@ -1660,7 +1660,7 @@ public partial class EditorViewModel :
 	private bool CanAdd() => !IsReadOnly && !IsActionInProgress;
 
 	/// <summary>
-	/// Returns <c>True</c> if file can be edited or executed.
+	/// <c>True</c> when file can be edited or executed.
 	/// </summary>
 	private bool CanBeEditedOrExecuted(FileModelDto? dto)
 	{

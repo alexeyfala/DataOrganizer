@@ -19,7 +19,7 @@ public interface IProcessUtils
 	Process[] GetChildProcesses(int parentProcessId);
 
 	/// <summary>
-	/// Returns <c>True</c> if the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
+	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
 	/// </summary>
 	bool IsProcessExists(int processId);
 

@@ -50,7 +50,7 @@ public static partial class SensitiveTextDetector
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> when <paramref name="text" /> heuristically looks like a password / secret token.
+	/// <c>True</c> when <paramref name="text" /> heuristically looks like a password / secret token.
 	/// </summary>
 	public static bool LooksLikeSecret(string? text)
 	{
@@ -93,7 +93,7 @@ public static partial class SensitiveTextDetector
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> when <paramref name="value" /> contains any whitespace character.
+	/// <c>True</c> when <paramref name="value" /> contains any whitespace character.
 	/// </summary>
 	private static bool ContainsWhitespace(ReadOnlySpan<char> value)
 	{
@@ -198,7 +198,7 @@ public static partial class SensitiveTextDetector
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> for canonical MD5 / SHA-1 / SHA-256 hex digests (32 / 40 / 64 hex chars).
+	/// <c>True</c> for canonical MD5 / SHA-1 / SHA-256 hex digests (32 / 40 / 64 hex chars).
 	/// </summary>
 	private static bool IsHexHash(ReadOnlySpan<char> value)
 	{

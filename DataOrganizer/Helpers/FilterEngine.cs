@@ -109,7 +109,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public void Clear() => _source.Clear();
 
 	/// <summary>
-	/// Returns <c>True</c> if <paramref name="item"/> is present in the source.
+	/// <c>True</c> when <paramref name="item"/> is present in the source.
 	/// </summary>
 	public bool Contains(TModel item) => _source.Items.Contains(item);
 

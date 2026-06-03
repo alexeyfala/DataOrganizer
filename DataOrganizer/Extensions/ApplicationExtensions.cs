@@ -179,7 +179,7 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Application.ApplicationLifetime" /> is <see cref="IClassicDesktopStyleApplicationLifetime" />.
+	/// <c>True</c> when <see cref="Application.ApplicationLifetime" /> is <see cref="IClassicDesktopStyleApplicationLifetime" />.
 	/// </summary>
 	public static bool IsDesktop(
 		this Application target,
@@ -198,7 +198,7 @@ internal static class ApplicationExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if there is opened <see cref="DialogHost" /> dialog.
+	/// <c>True</c> when any <see cref="DialogHost" /> dialog is opened.
 	/// </summary>
 	public static bool IsDialogHostOpened(this Application target)
 	{

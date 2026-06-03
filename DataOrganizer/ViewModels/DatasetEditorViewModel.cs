@@ -891,7 +891,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child objects.
+	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
 	private static bool HasChildren(RecordsGroup? group)
 	{
@@ -901,7 +901,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
+	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
 	/// </summary>
 	private static bool HasGroups(RecordsGroup? group)
 	{
@@ -1199,12 +1199,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Records" /> has elements.
+	/// <c>True</c> when <see cref="Records" /> has elements.
 	/// </summary>
 	private bool IsAnyRecords() => Records.Any();
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
+	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
 	/// </summary>
 	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
 

@@ -18,7 +18,7 @@ public static class EnumerableExtensions
 {
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if all elements in the hierarchy satisfy a certain condition.
+	/// <c>True</c> when all elements in the hierarchy satisfy a certain condition.
 	/// </summary>
 	public static bool AllBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -48,7 +48,7 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
+	/// <c>True</c> when the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -78,7 +78,7 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
+	/// <c>True</c> when the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsFileBy(
 		this IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -108,7 +108,7 @@ public static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the hierarchy contains an object with the given identifier.
+	/// <c>True</c> when the hierarchy contains an object with the given identifier.
 	/// </summary>
 	public static bool ContainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, Guid id)
 	{

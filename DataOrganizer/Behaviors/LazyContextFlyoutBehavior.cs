@@ -155,10 +155,9 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 
 	#region Helpers
 	/// <summary>
-	/// Builds the flyout from <see cref="ContentTemplate" /> and assigns it as
-	/// <see cref="Control.ContextFlyout" /> on <see cref="AssociatedObject" />.
-	/// Returns <c>True</c> if the flyout is ready (either freshly built or already cached).
+	/// Builds the flyout from and assigns it as <see cref="Control.ContextFlyout" /> on <see cref="AssociatedObject" />.
 	/// </summary>
+	/// <returns><c>True</c> when the flyout is ready (either freshly built or already cached).</returns>
 	private bool EnsureFlyout()
 	{
 		if (_flyout is not null)

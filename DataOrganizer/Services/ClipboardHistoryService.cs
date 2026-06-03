@@ -507,7 +507,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static partial Regex GetWholeStringUrlRegex();
 
 	/// <summary>
-	/// Returns <c>True</c> when two payload hashes are byte-equal.
+	/// <c>True</c> when two payload hashes are byte-equal.
 	/// </summary>
 	private static bool HashEquals(byte[] left, byte[] right) => left.AsSpan().SequenceEqual(right);
 
@@ -599,7 +599,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> when the clipboard advertises any sensitivity marker format,
+	/// <c>True</c> when the clipboard advertises any sensitivity marker format,
 	/// i.e. a password manager flagged the copy.
 	/// </summary>
 	private async Task<bool> ContainsSensitivityMarkerAsync(IClipboard clipboard)
@@ -685,7 +685,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> when <paramref name="hash" /> is a self-echo (from our own restore) or
+	/// <c>True</c> when <paramref name="hash" /> is a self-echo (from our own restore) or
 	/// matches the last observed payload.
 	/// </summary>
 	private bool IsEchoOrUnchanged(byte[] hash)

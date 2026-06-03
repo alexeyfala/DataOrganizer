@@ -325,7 +325,7 @@ public abstract partial class ViewModelBase :
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
+	/// <c>True</c> when at least one <see cref="SnackbarHost" /> is registered in the application.
 	/// </summary>
 	private static bool IsSnackbarHostLoaded()
 	{
