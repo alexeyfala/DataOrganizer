@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using NSubstitute;
 using System;
@@ -20,7 +21,7 @@ internal class DialogServiceTests
 	public void RequestPasswordAsync_Posts_Work_To_Dispatcher_And_Returns_Pending_Task()
 	{
 		// Arrange
-		IDispatcher dispatcher = Substitute.For<IDispatcher>();
+		IDispatcherAccessor dispatcher = Substitute.For<IDispatcherAccessor>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dispatcher));
 
@@ -36,7 +37,7 @@ internal class DialogServiceTests
 
 		dispatcher
 			.Received(1)
-			.Post(Arg.Any<Action>());
+			.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>());
 	}
 
 	/// <summary>
