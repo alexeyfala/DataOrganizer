@@ -231,7 +231,7 @@ public sealed class App : Application
 
 		#region Transients
 		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
-		services.AddTransient<IClipboardService, ClipboardService>();
+		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();

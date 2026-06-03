@@ -176,7 +176,7 @@ public abstract partial class ViewModelBase :
 	protected ViewModelBase(
 		Application app,
 		IAppSettingsManager settingsManager,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,

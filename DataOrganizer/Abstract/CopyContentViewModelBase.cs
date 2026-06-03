@@ -28,8 +28,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="Application" />
 	protected readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardService" />
-	protected readonly IClipboardService _clipboard;
+	/// <inheritdoc cref="IClipboardAccessor" />
+	protected readonly IClipboardAccessor _clipboard;
 
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
@@ -53,7 +53,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	#region Constructors
 	protected CopyContentViewModelBase(
 		Application app,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,

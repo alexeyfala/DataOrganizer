@@ -192,7 +192,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,

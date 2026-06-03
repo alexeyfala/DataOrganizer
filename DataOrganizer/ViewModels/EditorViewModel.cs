@@ -1044,7 +1044,7 @@ public partial class EditorViewModel :
 	public EditorViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,

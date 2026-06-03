@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces;
 
 /// <summary>
-/// Provides methods to interact with Avalonia's UI dispatcher.
+/// Provides means to interact with Avalonia's UI dispatcher.
 /// </summary>
 public interface IDispatcherAccessor
 {

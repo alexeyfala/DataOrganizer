@@ -537,8 +537,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboard;
+	/// <inheritdoc cref="IClipboardAccessor" />
+	private readonly IClipboardAccessor _clipboard;
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -555,7 +555,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	#region Constructors
 	public DatasetEditorViewModel(
 		Application app,
-		IClipboardService clipboardService,
+		IClipboardAccessor clipboardService,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,

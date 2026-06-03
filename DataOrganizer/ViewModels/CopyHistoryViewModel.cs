@@ -71,7 +71,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed class ClipboardService : IClipboardService
+public sealed class ClipboardAccessor : IClipboardAccessor
 {
 	#region Data
 	/// <inheritdoc cref="Application" />
@@ -20,7 +20,7 @@ public sealed class ClipboardService : IClipboardService
 	#endregion
 
 	#region Constructors
-	public ClipboardService(
+	public ClipboardAccessor(
 		Application app,
 		IDispatcherAccessor dispatcher,
 		ITaskExceptionHandler exceptionHandler)
@@ -34,6 +34,9 @@ public sealed class ClipboardService : IClipboardService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public IClipboard? FindClipboard() => _app.FindClipboard();
+
 	/// <inheritdoc />
 	public async Task<bool> SetTextAsync(string text)
 	{

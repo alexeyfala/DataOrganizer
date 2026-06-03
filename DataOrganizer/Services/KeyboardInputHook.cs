@@ -44,8 +44,8 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboard;
+	/// <inheritdoc cref="IClipboardAccessor" />
+	private readonly IClipboardAccessor _clipboard;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
@@ -80,7 +80,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardService clipboardService,
+		IClipboardAccessor clipboardService,
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
