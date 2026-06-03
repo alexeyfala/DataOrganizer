@@ -55,11 +55,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly DataFormat<byte[]>? HtmlFormat = GetHtmlFormat();
 
 	/// <summary>
-	/// Interval between clipboard polls.
-	/// </summary>
-	private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(750.0);
-
-	/// <summary>
 	/// Platform byte[] format for RTF, see <see cref="HtmlFormat" />.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
@@ -693,24 +688,22 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Polling loop.
 	/// </summary>
-	// private async Task LoopAsync(CancellationToken token)
-	private async Task LoopAsync(CancellationTokenSource cts)
+	private async Task LoopAsync(CancellationTokenSource cancellation)
 	{
-		// The loop owns its CTS so it can retire exactly its own source on exit.
-		CancellationToken token = cts.Token;
+		CancellationToken token = cancellation.Token;
 
-		const ConfigureAwaitOptions awaitOptions = ConfigureAwaitOptions.SuppressThrowing | ConfigureAwaitOptions.ContinueOnCapturedContext;
+		TimeSpan pollInterval = TimeSpan.FromMilliseconds(750.0);
 
 		_logger.LogInformation(
-			$"{nameof(ClipboardHistoryService)} loop started (interval = {PollInterval.TotalMilliseconds:F0} ms, limit = {HistoryLimit}).");
+			$"{nameof(ClipboardHistoryService)} loop started (interval = {pollInterval.TotalMilliseconds:F0} ms, limit = {HistoryLimit}).");
 
 		try
 		{
 			while (!Volatile.Read(ref _isDisposed) && !token.IsCancellationRequested)
 			{
 				await Task
-					.Delay(PollInterval, token)
-					.ConfigureAwait(awaitOptions);
+					.Delay(pollInterval, token)
+					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
 				if (Volatile.Read(ref _isDisposed) || token.IsCancellationRequested)
 				{
@@ -724,15 +717,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Interlocked.Exchange(ref _isLoopRunning, false);
 
-			// Detach only if the field still points to our CTS; a concurrent StartAsync
-			// may have already installed a new one for the next loop.
-			// Interlocked
-			// 	.Exchange(ref _stopCts, null)?
-			// 	.Dispose();
-			Interlocked.CompareExchange(ref _stopCts, null, cts);
+			Interlocked.CompareExchange(ref _stopCts, null, cancellation);
 
-			// Always dispose our own CTS (Dispose is idempotent, so a racing Stop() is safe).
-			cts.Dispose();
+			cancellation.Dispose();
 
 			_logger.LogInformation($"{nameof(ClipboardHistoryService)} loop stopped.");
 		}
