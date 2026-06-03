@@ -234,6 +234,7 @@ public sealed class App : Application
 		services.AddTransient<IClipboardService, ClipboardService>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
+		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
