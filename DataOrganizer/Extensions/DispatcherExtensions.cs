@@ -60,5 +60,19 @@ internal static class DispatcherExtensions
 
 		return source.Task;
 	}
+
+	/// <summary>
+	/// Posts an asynchronous <paramref name="func"/> that is started on the dispatcher thread
+	/// at the specified <paramref name="priority"/> and returns its unwrapped result.
+	/// </summary>
+	public static Task<TResult> PostAsync<TResult>(
+		this IDispatcher target,
+		Func<Task<TResult>> func,
+		DispatcherPriority priority = default)
+	{
+		return target
+			.PostAsync<Task<TResult>>(func, priority)
+			.Unwrap();
+	}
 	#endregion
 }

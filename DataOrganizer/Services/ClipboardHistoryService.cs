@@ -589,7 +589,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			IReadOnlyList<DataFormat> formats = await InvokeOnUiAsync(clipboard.GetDataFormatsAsync).ConfigureAwait(false);
+			IReadOnlyList<DataFormat> formats = await _dispatcher
+				.PostAsync(clipboard.GetDataFormatsAsync)
+				.ConfigureAwait(false);
 
 			foreach (DataFormat format in formats)
 			{
@@ -663,16 +665,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		_logger.LogDebug($"Captured new clipboard entry: {entry.GetType().Name}.");
 
 		InsertAtTop(entry);
-	}
-
-	/// <summary>
-	/// Starts <paramref name="operation" /> on the UI thread and awaits its result.
-	/// </summary>
-	private Task<TResult> InvokeOnUiAsync<TResult>(Func<Task<TResult>> operation)
-	{
-		return _dispatcher
-			.PostAsync(operation)
-			.Unwrap();
 	}
 
 	/// <summary>
@@ -915,7 +907,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			items = await InvokeOnUiAsync(clipboard.TryGetFilesAsync).ConfigureAwait(false);
+			items = await _dispatcher
+				.PostAsync(clipboard.TryGetFilesAsync)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -980,7 +974,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			byte[]? bytes = await InvokeOnUiAsync(() => clipboard.TryGetValueAsync(format)).ConfigureAwait(false);
+			byte[]? bytes = await _dispatcher
+				.PostAsync(() => clipboard.TryGetValueAsync(format))
+				.ConfigureAwait(false);
 
 			return bytes is null
 				? null
@@ -1006,7 +1002,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			bitmap = await InvokeOnUiAsync(clipboard.TryGetBitmapAsync).ConfigureAwait(false);
+			bitmap = await _dispatcher
+				.PostAsync(clipboard.TryGetBitmapAsync)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -1050,7 +1048,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			return await InvokeOnUiAsync(clipboard.TryGetTextAsync).ConfigureAwait(false);
+			return await _dispatcher
+				.PostAsync(clipboard.TryGetTextAsync)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
