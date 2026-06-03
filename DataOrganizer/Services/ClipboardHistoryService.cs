@@ -219,12 +219,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
-		if (Volatile.Read(ref _isDisposed))
-		{
-			return;
-		}
-
-		if (_app.FindClipboard() is not { } clipboard)
+		if (IsDisposed() || _app.FindClipboard() is not { } clipboard)
 		{
 			return;
 		}
@@ -283,7 +278,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public Task StartAsync(CancellationToken token = default)
 	{
-		if (Volatile.Read(ref _isDisposed) || Interlocked.Exchange(ref _isLoopRunning, true))
+		if (IsDisposed() || Interlocked.Exchange(ref _isLoopRunning, true))
 		{
 			return Task.CompletedTask;
 		}
@@ -685,6 +680,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// <c>True</c> while the service is not disposed and the operation is not cancelled.
+	/// </summary>
+	private bool IsActive(CancellationToken token) => !IsDisposed() && !token.IsCancellationRequested;
+
+	/// <summary>
+	/// <c>True</c> after the service has been disposed.
+	/// </summary>
+	private bool IsDisposed() => Volatile.Read(ref _isDisposed);
+
+	/// <summary>
 	/// <c>True</c> when <paramref name="hash" /> is a self-echo (from our own restore) or
 	/// matches the last observed payload.
 	/// </summary>
@@ -721,13 +726,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			while (!Volatile.Read(ref _isDisposed) && !token.IsCancellationRequested)
+			while (IsActive(token))
 			{
 				await Task
 					.Delay(pollInterval, token)
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
-				if (Volatile.Read(ref _isDisposed) || token.IsCancellationRequested)
+				if (!IsActive(token))
 				{
 					break;
 				}

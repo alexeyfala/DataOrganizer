@@ -26,6 +26,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IFileChangeTracker" />
 	private readonly IFileChangeTracker _changeTracker;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <inheritdoc cref="ConcurrentDictionary{TKey, TValue}" />
 	private readonly ConcurrentDictionary<Guid, ExecutingFileInfo> _executingFiles = [];
 
@@ -34,10 +37,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
-
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -86,7 +85,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task CloseAsync(Guid id, CancellationToken token = default)
 	{
-		if (Volatile.Read(ref _isDisposed))
+		if (IsDisposed())
 		{
 			return;
 		}
@@ -111,7 +110,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		try
 		{
-			if (Volatile.Read(ref _isDisposed))
+			if (IsDisposed())
 			{
 				return;
 			}
@@ -257,7 +256,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
-		if (Volatile.Read(ref _isDisposed))
+		if (IsDisposed())
 		{
 			return false;
 		}
@@ -310,7 +309,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		try
 		{
-			if (Volatile.Read(ref _isDisposed))
+			if (IsDisposed())
 			{
 				return false;
 			}
@@ -358,7 +357,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				return false;
 			}
 
-			if (Volatile.Read(ref _isDisposed))
+			if (IsDisposed())
 			{
 				_executingFiles.TryRemove(parameters.File.Id, out _);
 
@@ -402,6 +401,11 @@ public sealed class ExecutionEngine : IExecutionEngine
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// <c>True</c> after the service has been disposed.
+	/// </summary>
+	private bool IsDisposed() => Volatile.Read(ref _isDisposed);
+
 	/// <summary>
 	/// Creates the sandbox directory and writes the file, applies the read-only
 	/// flag, and registers rollback actions on <paramref name="scope" /> to undo
