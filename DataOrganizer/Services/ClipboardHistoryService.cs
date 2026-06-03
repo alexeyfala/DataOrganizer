@@ -589,9 +589,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			IReadOnlyList<DataFormat> formats = await clipboard
-				.GetDataFormatsAsync()
-				.ConfigureAwait(false);
+			IReadOnlyList<DataFormat> formats = await InvokeOnUiAsync(clipboard.GetDataFormatsAsync).ConfigureAwait(false);
 
 			foreach (DataFormat format in formats)
 			{
@@ -665,6 +663,16 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		_logger.LogDebug($"Captured new clipboard entry: {entry.GetType().Name}.");
 
 		InsertAtTop(entry);
+	}
+
+	/// <summary>
+	/// Starts <paramref name="operation" /> on the UI thread and awaits its result.
+	/// </summary>
+	private Task<TResult> InvokeOnUiAsync<TResult>(Func<Task<TResult>> operation)
+	{
+		return _dispatcher
+			.PostAsync(operation)
+			.Unwrap();
 	}
 
 	/// <summary>
@@ -758,7 +766,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		await _clearGate
 			.WaitAsync()
-			.ConfigureAwait(true);
+			.ConfigureAwait(false);
 
 		try
 		{
@@ -771,11 +779,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
 
-				HandleNewPayload(hash, () => new ClipboardFilesEntry
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
 				{
 					FileSystemEntries = fileSystemEntries,
 					Hash = hash
-				});
+				})).ConfigureAwait(false);
 
 				return;
 			}
@@ -784,11 +792,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			{
 				byte[] hash = ComputeHash(png);
 
-				HandleNewPayload(hash, () => new ClipboardImageEntry
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
 				{
 					OriginalPng = png,
 					Hash = hash
-				});
+				})).ConfigureAwait(false);
 
 				return;
 			}
@@ -803,7 +811,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
-				if (IsEchoOrUnchanged(hash))
+				if (await _dispatcher.PostAsync(() => IsEchoOrUnchanged(hash)).ConfigureAwait(false))
 				{
 					return;
 				}
@@ -816,7 +824,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					return;
 				}
 
-				InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash));
+				await _dispatcher
+					.PostAsync(() => InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex)
@@ -905,9 +915,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			items = await clipboard
-				.TryGetFilesAsync()
-				.ConfigureAwait(false);
+			items = await InvokeOnUiAsync(clipboard.TryGetFilesAsync).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -972,9 +980,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			byte[]? bytes = await clipboard
-				.TryGetValueAsync(format)
-				.ConfigureAwait(false);
+			byte[]? bytes = await InvokeOnUiAsync(() => clipboard.TryGetValueAsync(format)).ConfigureAwait(false);
 
 			return bytes is null
 				? null
@@ -1000,9 +1006,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			bitmap = await clipboard
-				.TryGetBitmapAsync()
-				.ConfigureAwait(false);
+			bitmap = await InvokeOnUiAsync(clipboard.TryGetBitmapAsync).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -1046,9 +1050,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			return await clipboard
-				.TryGetTextAsync()
-				.ConfigureAwait(false);
+			return await InvokeOnUiAsync(clipboard.TryGetTextAsync).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

@@ -20,9 +20,42 @@ internal static class DispatcherExtensions
 
 		target.Post(() =>
 		{
-			action();
+			try
+			{
+				action();
 
-			source.SetResult();
+				source.SetResult();
+			}
+			catch (Exception ex)
+			{
+				source.SetException(ex);
+			}
+		}, priority);
+
+		return source.Task;
+	}
+
+	/// <summary>
+	/// Posts a function that will be invoked on the dispatcher thread asynchronously
+	/// at the specified <paramref name="priority"/> and returns its result.
+	/// </summary>
+	public static Task<TResult> PostAsync<TResult>(
+		this IDispatcher target,
+		Func<TResult> func,
+		DispatcherPriority priority = default)
+	{
+		TaskCompletionSource<TResult> source = new();
+
+		target.Post(() =>
+		{
+			try
+			{
+				source.SetResult(func());
+			}
+			catch (Exception ex)
+			{
+				source.SetException(ex);
+			}
 		}, priority);
 
 		return source.Task;
