@@ -50,9 +50,9 @@
 
 		<Border
 			Padding="12.0"
-			Background="{StaticResource MaterialBackgroundBrush}"
-			BorderBrush="{StaticResource MaterialDividerBrush}"
-			BorderThickness="1.0"
+			Background="{StaticResource MaterialPaperBrush}"
+			BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
+			BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 			CornerRadius="6.0">
 
 			<Interaction.Behaviors>

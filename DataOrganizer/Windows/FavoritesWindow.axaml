@@ -24,12 +24,11 @@
 
 	<Window.Resources>
 		<CornerRadius x:Key="CornerRadius">4.0</CornerRadius>
-		<Thickness x:Key="BorderThickness">4.0</Thickness>
 	</Window.Resources>
 
 	<Border
 		BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
-		BorderThickness="{StaticResource BorderThickness}"
+		BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 		CornerRadius="{StaticResource CornerRadius}">
 
 		<Interaction.Behaviors>
@@ -128,7 +127,7 @@
 						Grid.ColumnSpan="3"
 						Background="{StaticResource MaterialPrimaryMidBrush}"
 						BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
-						BorderThickness="{StaticResource BorderThickness}"
+						BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 						CornerRadius="{StaticResource CornerRadius}">
 						<Border
 							Background="{StaticResource MaterialPaperBrush}"
@@ -292,4 +291,3 @@
 		</Grid>
 	</Border>
 </Window>
-
