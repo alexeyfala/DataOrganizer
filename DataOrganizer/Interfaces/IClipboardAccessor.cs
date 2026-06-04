@@ -29,5 +29,10 @@ public interface IClipboardAccessor
 	/// Returns a list of files, if available, from the clipboard in the UI thread.
 	/// </summary>
 	Task<IStorageItem[]?> TryGetFilesAsync();
+
+	/// <summary>
+	/// Returns a text, if available, from the clipboard in the UI thread.
+	/// </summary>
+	Task<string?> TryGetTextAsync();
 	#endregion
 }

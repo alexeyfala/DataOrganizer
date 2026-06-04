@@ -817,7 +817,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				return;
 			}
 
-			if (await TryReadTextAsync(clipboard) is { Length: > 0 } text)
+			if (await TryReadTextAsync() is { Length: > 0 } text)
 			{
 				// Read companion formats up front so the hash reflects them: the same text copied as
 				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
@@ -1068,12 +1068,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Reads clipboard text if available.
 	/// </summary>
-	private async Task<string?> TryReadTextAsync(IClipboard clipboard)
+	private async Task<string?> TryReadTextAsync()
 	{
 		try
 		{
-			return await _dispatcher
-				.PostAsync(clipboard.TryGetTextAsync)
+			return await _clipboard
+				.TryGetTextAsync()
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
