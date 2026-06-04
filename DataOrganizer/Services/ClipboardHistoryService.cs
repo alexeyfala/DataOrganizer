@@ -429,6 +429,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Hashes a text payload together with whether it carries companion formats, so the same text
 	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
+	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
 	/// </summary>
 	private static byte[] ComputeTextEntryHash(
 		string text,
