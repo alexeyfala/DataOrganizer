@@ -1,4 +1,5 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia.Input;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
 
@@ -34,5 +35,10 @@ public interface IClipboardAccessor
 	/// Returns a text, if available, from the clipboard in the UI thread.
 	/// </summary>
 	Task<string?> TryGetTextAsync();
+
+	/// <summary>
+	/// Tries to get a value for a given format from the clipboard in the UI thread.
+	/// </summary>
+	Task<T?> TryGetValueAsync<T>(DataFormat<T> format) where T : class;
 	#endregion
 }

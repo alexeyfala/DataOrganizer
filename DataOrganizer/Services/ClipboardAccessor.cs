@@ -99,5 +99,16 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 
 		return _dispatcher.PostAsync(clipboard.TryGetTextAsync);
 	}
+
+	/// <inheritdoc />
+	public Task<T?> TryGetValueAsync<T>(DataFormat<T> format) where T : class
+	{
+		if (_app.FindClipboard() is not { } clipboard)
+		{
+			return Task.FromResult(default(T));
+		}
+
+		return _dispatcher.PostAsync(() => clipboard.TryGetValueAsync(format));
+	}
 	#endregion
 }

@@ -821,9 +821,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			{
 				// Read companion formats up front so the hash reflects them: the same text copied as
 				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
-				string? html = await TryReadHtmlAsync(clipboard).ConfigureAwait(false);
+				string? html = await TryReadFormattedTextAsync(HtmlFormat).ConfigureAwait(false);
 
-				string? rtf = await TryReadRtfAsync(clipboard).ConfigureAwait(false);
+				string? rtf = await TryReadFormattedTextAsync(RtfFormat).ConfigureAwait(false);
 
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
@@ -987,9 +987,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Reads a formatted-text payload (HTML / RTF).
 	/// </summary>
-	private async Task<string?> TryReadFormattedTextAsync(
-		IClipboard clipboard,
-		DataFormat<byte[]>? format)
+	private async Task<string?> TryReadFormattedTextAsync(DataFormat<byte[]>? format)
 	{
 		if (format is null)
 		{
@@ -998,8 +996,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			byte[]? bytes = await _dispatcher
-				.PostAsync(() => clipboard.TryGetValueAsync(format))
+			byte[]? bytes = await _clipboard
+				.TryGetValueAsync(format)
 				.ConfigureAwait(false);
 
 			return bytes is null
@@ -1013,9 +1011,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			return null;
 		}
 	}
-
-	/// <summary>Reads the HTML payload from the clipboard.</summary>
-	private Task<string?> TryReadHtmlAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, HtmlFormat);
 
 	/// <summary>
 	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
@@ -1061,9 +1056,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			bitmap.Dispose();
 		}
 	}
-
-	/// <summary>Reads the RTF payload from the clipboard.</summary>
-	private Task<string?> TryReadRtfAsync(IClipboard clipboard) => TryReadFormattedTextAsync(clipboard, RtfFormat);
 
 	/// <summary>
 	/// Reads clipboard text if available.
