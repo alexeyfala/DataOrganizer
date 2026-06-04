@@ -597,12 +597,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <c>True</c> when the clipboard advertises any sensitivity marker format,
 	/// i.e. a password manager flagged the copy.
 	/// </summary>
-	private async Task<bool> ContainsSensitivityMarkerAsync(IClipboard clipboard)
+	private async Task<bool> ContainsSensitivityMarkerAsync()
 	{
 		try
 		{
-			IReadOnlyList<DataFormat> formats = await _dispatcher
-				.PostAsync(clipboard.GetDataFormatsAsync)
+			IReadOnlyList<DataFormat> formats = await _clipboard
+				.GetDataFormatsAsync()
 				.ConfigureAwait(false);
 
 			foreach (DataFormat format in formats)
@@ -832,7 +832,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					return;
 				}
 
-				if (await ContainsSensitivityMarkerAsync(clipboard).ConfigureAwait(false))
+				if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
 				{
 					_logger.LogWarning(
 						$"Skipping clipboard text entry ({text.Length} chars): a sensitivity marker was detected.");

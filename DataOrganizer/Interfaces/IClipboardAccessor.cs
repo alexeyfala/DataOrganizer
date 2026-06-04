@@ -1,6 +1,7 @@
 ﻿using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
@@ -15,6 +16,11 @@ public interface IClipboardAccessor
 	/// Clears any data from the system clipboard in the UI thread.
 	/// </summary>
 	Task<bool> ClearAsync();
+
+	/// <summary>
+	/// Gets a list containing the formats currently available from the clipboard in the UI thread.
+	/// </summary>
+	Task<IReadOnlyList<DataFormat>> GetDataFormatsAsync();
 
 	/// <summary>
 	/// Places a text on the clipboard in the UI thread.

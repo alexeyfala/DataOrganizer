@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
@@ -50,6 +51,17 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			.ConfigureAwait(false);
 
 		return true;
+	}
+
+	/// <inheritdoc />
+	public Task<IReadOnlyList<DataFormat>> GetDataFormatsAsync()
+	{
+		if (_app.FindClipboard() is not { } clipboard)
+		{
+			return Task.FromResult<IReadOnlyList<DataFormat>>([]);
+		}
+
+		return _dispatcher.PostAsync(clipboard.GetDataFormatsAsync);
 	}
 
 	/// <inheritdoc />
