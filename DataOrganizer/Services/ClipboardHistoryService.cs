@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Cysharp.Text;
@@ -219,11 +218,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
-		if (IsDisposed() || _app.FindClipboard() is not { } clipboard)
-		{
-			return;
-		}
-
 		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
 		Interlocked.Exchange(ref _suppressEcho, true);
 
@@ -252,7 +246,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardImageEntry)}, {png.Length} bytes (PNG).");
 
-					await DispatchWatchedAsync(() => SetImageAsync(clipboard, png)).ConfigureAwait(false);
+					await SetImageAsync(png).ConfigureAwait(false);
 					break;
 
 				case ClipboardFilesEntry filesEntry when filesEntry.FileSystemEntries is { Count: > 0 } fileSystemEntries:
@@ -528,22 +522,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Decodes <paramref name="png" /> bytes into an Avalonia <see cref="Bitmap" />
-	/// and pushes it back to the system clipboard.
-	/// </summary>
-	private static Task SetImageAsync(IClipboard clipboard, byte[] png)
-	{
-		MemoryStream stream = new(png);
-
-		// Bitmap reads the stream eagerly during construction, but Avalonia may
-		// retain a reference for the lifetime of the clipboard write. We let the
-		// bitmap (and its underlying buffer) be reclaimed by GC after the write.
-		Bitmap bitmap = new(stream);
-
-		return clipboard.SetBitmapAsync(bitmap);
-	}
-
-	/// <summary>
 	/// Returns the trimmed value of <paramref name="text" /> when it matches an
 	/// absolute http(s) URL (whole-string match); otherwise <c>null</c>.
 	/// </summary>
@@ -582,14 +560,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			return false;
 		}
-	}
-
-	/// <summary>
-	/// Posts <paramref name="operation" /> to the UI thread, wrapped by the exception handler.
-	/// </summary>
-	private Task DispatchWatchedAsync(Func<Task> operation)
-	{
-		return _dispatcher.PostAsync(() => _exceptionHandler.Watch(operation()));
 	}
 
 	/// <summary>
@@ -876,6 +846,31 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 			await _clipboard
 				.SetDataAsync(transfer)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
+	}
+
+	/// <summary>
+	/// Decodes <paramref name="png" /> bytes into an Avalonia <see cref="Bitmap" />
+	/// and pushes it back to the system clipboard.
+	/// </summary>
+	private async Task SetImageAsync(byte[] png)
+	{
+		try
+		{
+			MemoryStream stream = new(png);
+
+			// Bitmap reads the stream eagerly during construction, but Avalonia may
+			// retain a reference for the lifetime of the clipboard write. We let the
+			// bitmap (and its underlying buffer) be reclaimed by GC after the write.
+			Bitmap bitmap = new(stream);
+
+			await _clipboard
+				.SetBitmapAsync(bitmap)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
