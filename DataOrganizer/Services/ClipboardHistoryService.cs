@@ -287,11 +287,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			.Exchange(ref _stopCts, cancellation)?
 			.Dispose();
 
-		Task loopTask = LoopAsync(cancellation);
+		// Kick off the loop and return once polling has started; the loop runs until Stop/Dispose.
+		_loopTask = LoopAsync(cancellation);
 
-		_loopTask = loopTask;
-
-		return loopTask;
+		return Task.CompletedTask;
 	}
 
 	/// <inheritdoc />
