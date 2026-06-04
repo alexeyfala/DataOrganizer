@@ -860,11 +860,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			MemoryStream stream = new(png);
+			await using MemoryStream stream = new(png);
 
-			// Bitmap reads the stream eagerly during construction, but Avalonia may
-			// retain a reference for the lifetime of the clipboard write. We let the
-			// bitmap (and its underlying buffer) be reclaimed by GC after the write.
+			// Do NOT dispose the bitmap (or wrap it in using): on Windows the clipboard uses
+			// delayed rendering — Avalonia hands the pixels to a consumer only when it actually
+			// pastes, so the bitmap must stay alive past this call. Disposing here yields an
+			// empty paste. We let GC reclaim the bitmap once clipboard ownership changes.
 			Bitmap bitmap = new(stream);
 
 			await _clipboard
