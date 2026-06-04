@@ -23,6 +23,12 @@ public interface IClipboardAccessor
 	Task<IReadOnlyList<DataFormat>> GetDataFormatsAsync();
 
 	/// <summary>
+	/// Places a data object on the clipboard in the UI thread.
+	/// The data object is responsible for providing supported formats and data upon request.
+	/// </summary>
+	Task SetDataAsync(DataTransfer transfer);
+
+	/// <summary>
 	/// Places a text on the clipboard in the UI thread.
 	/// </summary>
 	Task<bool> SetTextAsync(string text);

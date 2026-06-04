@@ -65,6 +65,17 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
+	public Task SetDataAsync(DataTransfer transfer)
+	{
+		if (_app.FindClipboard() is not { } clipboard)
+		{
+			return Task.CompletedTask;
+		}
+
+		return _dispatcher.PostAsync(() => clipboard.SetDataAsync(transfer));
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> SetTextAsync(string text)
 	{
 		if (_app.FindClipboard() is not { } clipboard)

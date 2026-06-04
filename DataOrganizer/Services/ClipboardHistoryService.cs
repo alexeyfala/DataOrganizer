@@ -241,12 +241,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
 						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
 
-					await DispatchWatchedAsync(() => SetTextWithFormatsAsync(
-						clipboard,
+					await SetTextWithFormatsAsync(
 						textEntry.Text,
 						textEntry.Html,
 						textEntry.Rtf,
-						textEntry.IsSensitive)).ConfigureAwait(false);
+						textEntry.IsSensitive).ConfigureAwait(false);
 					break;
 
 				case ClipboardImageEntry imageEntry when imageEntry.OriginalPng is { Length: > 0 } png:
@@ -260,7 +259,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					_logger.LogInformation(
 						$"Restoring clipboard entry: {nameof(ClipboardFilesEntry)}, {fileSystemEntries.Count} items.");
 
-					await DispatchWatchedAsync(() => SetFilesAsync(clipboard, fileSystemEntries)).ConfigureAwait(false);
+					await SetFilesAsync(fileSystemEntries).ConfigureAwait(false);
 					break;
 			}
 
@@ -545,44 +544,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Writes <paramref name="text" /> together with optional <paramref name="html" />
-	/// and <paramref name="rtf" /> payloads as a single <see cref="DataTransfer" />,
-	/// so paste targets pick whichever format they support.
-	/// </summary>
-	private static Task SetTextWithFormatsAsync(
-		IClipboard clipboard,
-		string text,
-		string? html,
-		string? rtf,
-		bool isSensitive)
-	{
-		DataTransferItem item = new();
-
-		item.SetText(text);
-
-		if (html is not null)
-		{
-			AttachFormattedText(item, html, HtmlFormat);
-		}
-
-		if (rtf is not null)
-		{
-			AttachFormattedText(item, rtf, RtfFormat);
-		}
-
-		if (isSensitive)
-		{
-			AttachSensitivityMarkers(item);
-		}
-
-		DataTransfer transfer = new();
-
-		transfer.Add(item);
-
-		return clipboard.SetDataAsync(transfer);
-	}
-
-	/// <summary>
 	/// Returns the trimmed value of <paramref name="text" /> when it matches an
 	/// absolute http(s) URL (whole-string match); otherwise <c>null</c>.
 	/// </summary>
@@ -786,11 +747,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			if (_app.FindClipboard() is not { } clipboard)
-			{
-				return;
-			}
-
 			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
@@ -860,65 +816,118 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// application's <see cref="IStorageProvider" /> and pushes them onto the clipboard.
 	/// Missing items are silently dropped (best-effort restore).
 	/// </summary>
-	private async Task SetFilesAsync(IClipboard clipboard, IReadOnlyList<ClipboardFileSystemEntry> entries)
+	private async Task SetFilesAsync(IReadOnlyList<ClipboardFileSystemEntry> entries)
 	{
-		if (_app.FindStorageProvider() is not { } provider)
+		try
 		{
-			return;
-		}
-
-		List<IStorageItem> resolved = new(entries.Count);
-
-		foreach (ClipboardFileSystemEntry entry in entries)
-		{
-			if (string.IsNullOrWhiteSpace(entry.Path))
+			if (_app.FindStorageProvider() is not { } provider)
 			{
-				continue;
+				return;
 			}
 
-			try
-			{
-				IStorageItem? item = entry.IsFolder
-					? await provider.TryGetFolderFromPathAsync(entry.Path).ConfigureAwait(false)
-					: await provider.TryGetFileFromPathAsync(entry.Path).ConfigureAwait(false);
+			List<IStorageItem> resolved = new(entries.Count);
 
-				if (item is not null)
+			foreach (ClipboardFileSystemEntry entry in entries)
+			{
+				if (string.IsNullOrWhiteSpace(entry.Path))
 				{
-					resolved.Add(item);
+					continue;
+				}
+
+				try
+				{
+					IStorageItem? item = entry.IsFolder
+						? await provider.TryGetFolderFromPathAsync(entry.Path).ConfigureAwait(false)
+						: await provider.TryGetFileFromPathAsync(entry.Path).ConfigureAwait(false);
+
+					if (item is not null)
+					{
+						resolved.Add(item);
+					}
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex, isAssertDebug: false);
 				}
 			}
-			catch (Exception ex)
+
+			if (resolved.Count == 0)
 			{
-				_logger.LogException(ex, isAssertDebug: false);
+				return;
 			}
-		}
 
-		if (resolved.Count == 0)
+			DataTransfer transfer = new();
+
+			foreach (IStorageItem item in resolved)
+			{
+				transfer.Add(DataTransferItem.CreateFile(item));
+			}
+
+			// On Linux file managers paste files from x-special/gnome-copied-files, not from the
+			// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
+			if (GnomeCopiedFilesFormat.Value is { } gnomeFormat)
+			{
+				DataTransferItem gnomeItem = new();
+
+				gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
+
+				transfer.Add(gnomeItem);
+			}
+
+			await _clipboard
+				.SetDataAsync(transfer)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
 		{
-			return;
+			_logger.LogException(ex, isAssertDebug: false);
 		}
+	}
 
-		DataTransfer transfer = new();
-
-		foreach (IStorageItem item in resolved)
+	/// <summary>
+	/// Writes <paramref name="text" /> together with optional <paramref name="html" />
+	/// and <paramref name="rtf" /> payloads as a single <see cref="DataTransfer" />,
+	/// so paste targets pick whichever format they support.
+	/// </summary>
+	private async Task SetTextWithFormatsAsync(
+		string text,
+		string? html,
+		string? rtf,
+		bool isSensitive)
+	{
+		try
 		{
-			transfer.Add(DataTransferItem.CreateFile(item));
-		}
+			DataTransferItem item = new();
 
-		// On Linux file managers paste files from x-special/gnome-copied-files, not from the
-		// text/uri-list that Avalonia advertises — add it explicitly so Ctrl+V works there.
-		if (GnomeCopiedFilesFormat.Value is { } gnomeFormat)
+			item.SetText(text);
+
+			if (html is not null)
+			{
+				AttachFormattedText(item, html, HtmlFormat);
+			}
+
+			if (rtf is not null)
+			{
+				AttachFormattedText(item, rtf, RtfFormat);
+			}
+
+			if (isSensitive)
+			{
+				AttachSensitivityMarkers(item);
+			}
+
+			DataTransfer transfer = new();
+
+			transfer.Add(item);
+
+			await _clipboard
+				.SetDataAsync(transfer)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
 		{
-			DataTransferItem gnomeItem = new();
-
-			gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
-
-			transfer.Add(gnomeItem);
+			_logger.LogException(ex, isAssertDebug: false);
 		}
-
-		await clipboard
-			.SetDataAsync(transfer)
-			.ConfigureAwait(false);
 	}
 
 	/// <summary>
