@@ -214,11 +214,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
-		// Mark next poll tick as a self-echo so we don't insert a duplicate entry.
-		Interlocked.Exchange(ref _suppressEcho, true);
-
-		await _dispatcher
-			.PostAsync(() => _lastHash = entry.Hash)
+		await _clearGate
+			.WaitAsync()
 			.ConfigureAwait(false);
 
 		try
@@ -253,6 +250,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					break;
 			}
 
+			// Suppress the self-echo only after a successful write: the next tick is skipped
+			// by the stored hash, with the one-shot flag covering a platform-repacked payload.
+			Interlocked.Exchange(ref _suppressEcho, true);
+
+			await _dispatcher
+				.PostAsync(() => _lastHash = entry.Hash)
+				.ConfigureAwait(false);
+
 			// Touching Entries must happen on the UI thread.
 			await _dispatcher
 				.PostAsync(() => MoveToTop(entry))
@@ -261,6 +266,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		catch (Exception ex)
 		{
 			_logger.LogWarning($"Restore from clipboard history failed: {ex.Message}");
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
