@@ -804,7 +804,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				return;
 			}
 
-			if (await TryReadImagePngAsync(clipboard) is { Length: > 0 } png)
+			if (await TryReadImagePngAsync() is { Length: > 0 } png)
 			{
 				byte[] hash = ComputeHash(png);
 
@@ -1020,14 +1020,14 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <summary>
 	/// Reads a clipboard bitmap (if any) and re-encodes it to PNG bytes.
 	/// </summary>
-	private async Task<byte[]?> TryReadImagePngAsync(IClipboard clipboard)
+	private async Task<byte[]?> TryReadImagePngAsync()
 	{
 		Bitmap? bitmap;
 
 		try
 		{
-			bitmap = await _dispatcher
-				.PostAsync(clipboard.TryGetBitmapAsync)
+			bitmap = await _clipboard
+				.TryGetBitmapAsync()
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)

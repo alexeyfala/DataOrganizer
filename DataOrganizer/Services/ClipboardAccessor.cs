@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -64,6 +65,17 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 			.ConfigureAwait(false);
 
 		return true;
+	}
+
+	/// <inheritdoc />
+	public Task<Bitmap?> TryGetBitmapAsync()
+	{
+		if (_app.FindClipboard() is not { } clipboard)
+		{
+			return Task.FromResult(default(Bitmap));
+		}
+
+		return _dispatcher.PostAsync(clipboard.TryGetBitmapAsync);
 	}
 
 	/// <inheritdoc />
