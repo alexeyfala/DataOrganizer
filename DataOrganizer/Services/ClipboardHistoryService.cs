@@ -21,7 +21,6 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-
 public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 {
 	#region Properties
