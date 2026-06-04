@@ -32,7 +32,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	public partial string? HistorySearch { get; set; }
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="Items" /> is empty.
+	/// <c>True</c> when <see cref="Items" /> is empty.
 	/// </summary>
 	public bool IsEmpty => _filter.IsSourceEmpty;
 
@@ -71,7 +71,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	#region Constructors
 	public CopyHistoryViewModel(
 		Application app,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,

@@ -150,8 +150,8 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IDispatcher" />
-	protected readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	protected readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="IExecutionEngine" />
 	protected readonly IExecutionEngine _executionEngine;
@@ -176,10 +176,10 @@ public abstract partial class ViewModelBase :
 	protected ViewModelBase(
 		Application app,
 		IAppSettingsManager settingsManager,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
@@ -325,7 +325,7 @@ public abstract partial class ViewModelBase :
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> if at least one <see cref="SnackbarHost" /> is registered in the application.
+	/// <c>True</c> when at least one <see cref="SnackbarHost" /> is registered in the application.
 	/// </summary>
 	private static bool IsSnackbarHostLoaded()
 	{

@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
@@ -45,14 +44,14 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IClipboardService" />
-	private readonly IClipboardService _clipboard;
+	/// <inheritdoc cref="IClipboardAccessor" />
+	private readonly IClipboardAccessor _clipboard;
 
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
-	/// <inheritdoc cref="IDispatcher" />
-	private readonly IDispatcher _dispatcher;
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="IEntityEncryption" />
 	private readonly IEntityEncryption _entityEncryption;
@@ -81,9 +80,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	#region Constructors
 	public KeyboardInputHook(
 		Application app,
-		IClipboardService clipboardService,
+		IClipboardAccessor clipboardService,
 		IDbAccess dbAccess,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IGlobalHook hook,
 		ILogger logger,
@@ -224,9 +223,16 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
-				await _clipboard
-					.SetTextAsync(text)
-					.ConfigureAwait(false);
+				try
+				{
+					await _clipboard
+						.SetTextAsync(text)
+						.ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+				}
 
 				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 

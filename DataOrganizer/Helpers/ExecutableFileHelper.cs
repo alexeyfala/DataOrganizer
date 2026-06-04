@@ -95,7 +95,7 @@ internal static class ExecutableFileHelper
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> when <paramref name="fileName" /> has an extension that the OS treats as
+	/// <c>True</c> when <paramref name="fileName" /> has an extension that the OS treats as
 	/// directly runnable. Files without an extension return <c>False</c> — that case
 	/// is handled separately by the caller.
 	/// </summary>

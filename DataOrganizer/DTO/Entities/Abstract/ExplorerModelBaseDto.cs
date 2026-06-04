@@ -69,7 +69,7 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if any parent satisfies the condition.
+	/// <c>True</c> when any parent satisfies the condition.
 	/// </summary>
 	public bool AnyParent(Predicate<FolderModelDto> condition)
 	{

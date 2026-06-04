@@ -790,7 +790,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> if the contents are valid.
+	/// <c>True</c> when the contents are valid.
 	/// </summary>
 	private static bool AreContentsValid(ContentsIsValidPair[] contents, int shouldBe)
 	{
@@ -800,7 +800,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the loaded from database contents are valid.
+	/// <c>True</c> when the loaded from database contents are valid.
 	/// </summary>
 	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
 	{

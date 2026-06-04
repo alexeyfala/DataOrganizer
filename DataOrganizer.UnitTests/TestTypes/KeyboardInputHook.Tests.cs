@@ -85,7 +85,7 @@ internal class KeyboardInputHookTests
 			.Hotkeys
 			.AddRange(pairs.ToHotkeyModelsDto());
 
-		IClipboardService clipboard = Substitute.For<IClipboardService>();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
 		INotificationService notificationService = Substitute.For<INotificationService>();
 

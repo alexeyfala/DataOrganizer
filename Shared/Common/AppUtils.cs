@@ -189,7 +189,7 @@ public static class AppUtils
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the application is in release mode.
+	/// <c>True</c> when the application is in release mode.
 	/// </summary>
 	private static bool IsReleaseMode()
 	{

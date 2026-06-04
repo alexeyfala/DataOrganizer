@@ -2,7 +2,6 @@
 using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
-using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
@@ -164,7 +163,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(entityEncryption);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -203,7 +202,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(
 			TypedParameter.From(engine),
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+			TypedParameter.From<IDispatcherAccessor>(new InlineDispatcherAccessor()));
 
 		sut
 			.ExecutingFiles
@@ -244,7 +243,7 @@ internal class EditorViewModelTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		EditorViewModel sut = mock.Create<EditorViewModel>(
-			TypedParameter.From(Substitute.For<IDispatcher>().RunPostInline()));
+			TypedParameter.From<IDispatcherAccessor>(new InlineDispatcherAccessor()));
 
 		// Act
 		sut.CloseFiles(editingFiles, executingFiles);
@@ -316,7 +315,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(entityEncryption);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -372,7 +371,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -521,7 +520,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(entityEncryption);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -797,7 +796,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -838,7 +837,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -895,7 +894,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(entityEncryption);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
@@ -1503,7 +1502,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(entityEncryption);
 
-			builder.RegisterInstance(Substitute.For<IDispatcher>().RunPostInline());
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();

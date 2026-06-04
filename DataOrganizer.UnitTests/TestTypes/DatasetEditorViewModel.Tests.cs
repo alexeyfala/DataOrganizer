@@ -1,11 +1,12 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Abstract;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Models;
+using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -521,17 +522,11 @@ internal class DatasetEditorViewModelTests
 				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
 				.Returns(AppUtils.CreateRandomString(10));
 
-			IDispatcher dispatcher = Substitute.For<IDispatcher>();
-
-			dispatcher
-				.When(x => x.Post(Arg.Any<Action>(), Arg.Any<DispatcherPriority>()))
-				.Do(call => call.Arg<Action>().Invoke());
-
 			builder.RegisterInstance(serializer);
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(dispatcher);
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
 		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();

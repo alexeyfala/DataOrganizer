@@ -52,7 +52,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if any child satisfies the condition.
+	/// <c>True</c> when any child satisfies the condition.
 	/// </summary>
 	public bool AnyChild(Predicate<ExplorerModelBaseDto> condition)
 	{
@@ -80,7 +80,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if any child file satisfies the condition.
+	/// <c>True</c> when any child file satisfies the condition.
 	/// </summary>
 	public bool AnyFile(Predicate<FileModelDto> condition)
 	{
@@ -171,7 +171,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="EncryptedDek" />, <see cref="PasswordHash" /> have values.
+	/// <c>True</c> when <see cref="EncryptedDek" />, <see cref="PasswordHash" /> have values.
 	/// </summary>
 	public bool IsPasswordKeeper()
 	{

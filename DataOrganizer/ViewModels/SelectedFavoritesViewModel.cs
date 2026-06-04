@@ -193,7 +193,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	#region Constructors
 	public SelectedFavoritesViewModel(
 		Application app,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,

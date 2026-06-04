@@ -20,9 +20,9 @@
 	mc:Ignorable="d">
 
 	<Border
-		Background="{StaticResource MaterialBackgroundBrush}"
-		BorderBrush="{StaticResource NeutralBrush}"
-		BorderThickness="1.0"
+		Background="{StaticResource MaterialPaperBrush}"
+		BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
+		BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
 		CornerRadius="8.0">
 		<Grid
 			ColumnDefinitions="Auto,*"

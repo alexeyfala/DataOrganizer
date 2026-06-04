@@ -213,7 +213,7 @@ public static class GenericExtensions
 	}
 
 	/// <summary>
-	/// Returns <c>True</c> if the value is the default value for its type.
+	/// <c>True</c> when the value is the default value for its type.
 	/// </summary>
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
@@ -221,7 +221,7 @@ public static class GenericExtensions
 	public static bool IsDefault<T>([NotNullWhen(false)] this T argument) => EqualityComparer<T>.Default.Equals(argument, default);
 
 	/// <summary>
-	/// Returns <c>True</c> if the value is not the default value for its type.
+	/// <c>True</c> when the value is not the default value for its type.
 	/// </summary>
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs

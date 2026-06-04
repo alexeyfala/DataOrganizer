@@ -1,8 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
-using Avalonia.Input;
-using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -139,28 +136,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	}
 
 	/// <summary>
-	/// Closes window.
-	/// </summary>
-	[RelayCommand]
-	private static void Close(Window? window) => window?.Close();
-
-	/// <summary>
-	/// <see cref="InputElement.PointerPressed" /> event handler of <see cref="Border" />.
-	/// </summary>
-	[RelayCommand]
-	private static void PointerPressed(PointerPressedEventArgs? e)
-	{
-		if (e?.Source is not Visual visual || !e.GetCurrentPoint(visual).Properties.IsLeftButtonPressed)
-		{
-			return;
-		}
-
-		visual
-			.FindLogicalAncestorOfType<Window>()?
-			.BeginMoveDrag(e);
-	}
-
-	/// <summary>
 	/// Handles the display of the favorites.
 	/// </summary>
 	[RelayCommand]
@@ -175,120 +150,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			FavoritesSettings.OrderedCategories,
 			FavoritesSettings.SelectedPairs);
 	}
-
-	/// <summary>
-	/// Handles <see cref="Thumb.DragDelta" /> event on left side of the popup.
-	/// </summary>
-	[RelayCommand]
-	private void ResizePopupByLeft(VectorEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		double width = PopupWidth - e.Vector.X;
-
-		if (width <= MinimumPopupSize)
-		{
-			return;
-		}
-
-		PopupWidth = width;
-	}
-
-	/// <summary>
-	/// Handles <see cref="Thumb.DragDelta" /> event on top right side of the popup.
-	/// </summary>
-	[RelayCommand]
-	private void ResizePopupByRight(VectorEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		double width = PopupWidth + e.Vector.X;
-
-		if (width <= MinimumPopupSize)
-		{
-			return;
-		}
-
-		PopupWidth = width;
-	}
-
-	/// <summary>
-	/// Handles <see cref="Thumb.DragDelta" /> event on top side of the popup.
-	/// </summary>
-	[RelayCommand]
-	private void ResizePopupByTop(VectorEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		double height = PopupHeight - e.Vector.Y;
-
-		if (height <= MinimumPopupSize)
-		{
-			return;
-		}
-
-		PopupHeight = height;
-	}
-
-	/// <summary>
-	/// Handles <see cref="Thumb.DragDelta" /> event on top left corner of the popup.
-	/// </summary>
-	[RelayCommand]
-	private void ResizePopupByTopLeftCorner(VectorEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		double width = PopupWidth - e.Vector.X;
-
-		double height = PopupHeight - e.Vector.Y;
-
-		if (width <= MinimumPopupSize || height <= MinimumPopupSize)
-		{
-			return;
-		}
-
-		PopupWidth = width;
-
-		PopupHeight = height;
-	}
-
-	/// <summary>
-	/// Handles <see cref="Thumb.DragDelta" /> event on top right corner of the popup.
-	/// </summary>
-	[RelayCommand]
-	private void ResizePopupByTopRightCorner(VectorEventArgs? e)
-	{
-		if (e is null)
-		{
-			return;
-		}
-
-		double width = PopupWidth + e.Vector.X;
-
-		double height = PopupHeight - e.Vector.Y;
-
-		if (width <= MinimumPopupSize || height <= MinimumPopupSize)
-		{
-			return;
-		}
-
-		PopupWidth = width;
-
-		PopupHeight = height;
-	}
-
 	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
@@ -318,11 +179,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Minimum size of the popup.
-	/// </summary>
-	private const double MinimumPopupSize = 100.0;
-
 	/// <inheritdoc cref="SelectedFavoritesViewModel" />
 	private SelectedFavoritesViewModel? _favorites;
 
@@ -336,10 +192,10 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	public FavoritesViewModel(
 		Application app,
 		IAppSettingsManager settingsManager,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IDispatcher dispatcher,
+		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
 		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,

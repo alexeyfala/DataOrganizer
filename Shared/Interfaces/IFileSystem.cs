@@ -90,7 +90,7 @@ public interface IFileSystem
 	bool IsFileExists([NotNullWhen(true)] string? filePath);
 
 	/// <summary>
-	/// Returns <c>True</c> if the file is locked by another process. <br />
+	/// <c>True</c> when the file is locked by another process. <br />
 	/// <see href="https://code-maze.com/csharp-how-to-check-if-a-file-is-in-use" />
 	/// </summary>
 	bool IsFileLocked(string filePath);

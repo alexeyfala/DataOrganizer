@@ -162,7 +162,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	#region Constructors
 	protected FileListViewModelBase(
 		Application app,
-		IClipboardService clipboard,
+		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEntityEncryption entityEncryption,

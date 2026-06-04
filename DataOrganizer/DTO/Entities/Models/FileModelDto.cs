@@ -44,7 +44,7 @@ public partial class FileModelDto : ExplorerModelBaseDto
 
 	#region Methods
 	/// <summary>
-	/// Returns <c>True</c> if <see cref="IsEditing" /> == <c>True</c> or <see cref="IsExecuting" /> == <c>True</c>.
+	/// <c>True</c> when <see cref="IsEditing" /> == <c>True</c> or <see cref="IsExecuting" /> == <c>True</c>.
 	/// </summary>
 	public bool IsOpened() => IsEditing || IsExecuting;
 

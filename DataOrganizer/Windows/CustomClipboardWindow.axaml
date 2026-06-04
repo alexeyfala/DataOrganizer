@@ -2,15 +2,20 @@
 	x:Class="DataOrganizer.Windows.CustomClipboardWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	Width="360.0"
 	Height="420.0"
+	MinWidth="280.0"
+	MinHeight="220.0"
 	x:DataType="vm:CustomClipboardViewModel"
 	Background="Transparent"
-	CanResize="False"
+	CanMaximize="False"
+	CanMinimize="False"
 	ShowActivated="True"
 	ShowInTaskbar="False"
 	Topmost="True"
@@ -36,56 +41,190 @@
 		</Style>
 	</Window.Styles>
 
-	<Border
-		Padding="12.0"
-		Background="{StaticResource MaterialBackgroundBrush}"
-		BorderBrush="{StaticResource MaterialDividerBrush}"
-		BorderThickness="1.0"
-		CornerRadius="6.0">
+	<Panel>
+		<Panel.Styles>
+			<Style Selector="Border.resizeGrip">
+				<Setter Property="Background" Value="Transparent" />
+			</Style>
+		</Panel.Styles>
 
-		<Interaction.Behaviors>
-			<EventTriggerBehavior EventName="PointerPressed">
-				<InvokeCommandAction
-					Command="{Binding PointerPressedCommand}"
-					PassEventArgsToCommand="True" />
-			</EventTriggerBehavior>
-		</Interaction.Behaviors>
+		<Border
+			Padding="12.0"
+			Background="{StaticResource MaterialPaperBrush}"
+			BorderBrush="{StaticResource MaterialPrimaryMidBrush}"
+			BorderThickness="{StaticResource ChromelessWindowBorderThickness}"
+			CornerRadius="6.0">
 
-		<Grid RowDefinitions="Auto,*">
-			<Grid
-				Grid.Row="0"
-				ColumnDefinitions="*,Auto">
-				<TextBlock
-					Grid.Column="0"
-					VerticalAlignment="Center"
-					Classes="HeaderTextBlockStyle"
-					Text="{x:Static prop:Strings.Clipboard}" />
+			<Interaction.Behaviors>
+				<behaviors:MoveWindowBehavior Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
 
-				<Button
-					Grid.Column="1"
-					Padding="8.0,2.0"
-					Classes="primary"
-					Command="{Binding ClearCommand}"
-					Content="{x:Static prop:Strings.Clear}" />
+			<Grid RowDefinitions="Auto,*">
+				<Grid
+					Grid.Row="0"
+					ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+					<Image
+						Grid.Column="0"
+						Classes="AppImageStyle" />
+
+					<TextBlock
+						Grid.Column="1"
+						Margin="4.0,0.0"
+						VerticalAlignment="Center"
+						Classes="HeaderTextBlockStyle"
+						Text="{x:Static prop:Strings.Clipboard}" />
+
+					<Button
+						Grid.Column="3"
+						Padding="8.0,2.0"
+						Classes="primary"
+						Command="{Binding ClearCommand}"
+						Content="{x:Static prop:Strings.Clear}" />
+
+					<Button
+						Grid.Column="4"
+						Margin="4.0,0.0,0.0,0.0"
+						Padding="6.0,2.0"
+						Content="{materialIcons:MaterialIconTextExt Kind=Close}"
+						ToolTip.Tip="{x:Static prop:Strings.Close}">
+						<Interaction.Behaviors>
+							<EventTriggerBehavior EventName="Click">
+								<CloseWindowAction />
+							</EventTriggerBehavior>
+						</Interaction.Behaviors>
+					</Button>
+				</Grid>
+
+				<ScrollViewer
+					Grid.Row="1"
+					Margin="0.0,10.0,0.0,0.0"
+					HorizontalScrollBarVisibility="Disabled"
+					VerticalScrollBarVisibility="Auto">
+					<ItemsControl
+						ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
+						ItemsSource="{Binding Entries}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel
+									Orientation="Vertical"
+									Spacing="6.0" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+					</ItemsControl>
+				</ScrollViewer>
 			</Grid>
+		</Border>
 
-			<ScrollViewer
-				Grid.Row="1"
-				Margin="0.0,10.0,0.0,0.0"
-				HorizontalScrollBarVisibility="Disabled"
-				VerticalScrollBarVisibility="Auto">
-				<ItemsControl
-					ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
-					ItemsSource="{Binding Entries}">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel
-								Orientation="Vertical"
-								Spacing="6.0" />
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-				</ItemsControl>
-			</ScrollViewer>
-		</Grid>
-	</Border>
+		<Border
+			Height="6.0"
+			Margin="6.0,0.0"
+			HorizontalAlignment="Stretch"
+			VerticalAlignment="Top"
+			Classes="resizeGrip"
+			Cursor="TopSide">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="North"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Height="6.0"
+			Margin="6.0,0.0"
+			HorizontalAlignment="Stretch"
+			VerticalAlignment="Bottom"
+			Classes="resizeGrip"
+			Cursor="BottomSide">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="South"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Margin="0.0,6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Stretch"
+			Classes="resizeGrip"
+			Cursor="LeftSide">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="West"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Margin="0.0,6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Stretch"
+			Classes="resizeGrip"
+			Cursor="RightSide">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="East"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Top"
+			Classes="resizeGrip"
+			Cursor="TopLeftCorner">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="NorthWest"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Top"
+			Classes="resizeGrip"
+			Cursor="TopRightCorner">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="NorthEast"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Left"
+			VerticalAlignment="Bottom"
+			Classes="resizeGrip"
+			Cursor="BottomLeftCorner">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="SouthWest"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+
+		<Border
+			Width="6.0"
+			Height="6.0"
+			HorizontalAlignment="Right"
+			VerticalAlignment="Bottom"
+			Classes="resizeGrip"
+			Cursor="BottomRightCorner">
+			<Interaction.Behaviors>
+				<behaviors:ResizeWindowBehavior
+					Edge="SouthEast"
+					Window="{Binding $parent[Window]}" />
+			</Interaction.Behaviors>
+		</Border>
+	</Panel>
 </Window>

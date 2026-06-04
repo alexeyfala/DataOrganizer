@@ -125,7 +125,7 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 
 	#region Helpers
 	/// <summary>
-	/// Returns <c>True</c> if the aggregated exception is exclusively composed of DBus failures
+	/// <c>True</c> when the aggregated exception is exclusively composed of DBus failures
 	/// caused by the missing "com.canonical.AppMenu.Registrar" service on Linux.
 	/// </summary>
 	private static bool IsBenignDBusAppMenuFailure(AggregateException aggregate)
