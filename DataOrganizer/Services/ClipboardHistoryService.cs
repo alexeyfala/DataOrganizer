@@ -1,10 +1,8 @@
-using Avalonia;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Cysharp.Text;
 using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
@@ -82,9 +80,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private static readonly Regex WholeStringUrlRegex = GetWholeStringUrlRegex();
 
-	/// <inheritdoc cref="Application" />
-	private readonly Application _app;
-
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
 	/// insert an entry while the history / clipboard is being cleared.
@@ -97,11 +92,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IStorageAccessor" />
+	private readonly IStorageAccessor _storage;
 
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
@@ -139,21 +134,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Constructors
 	public ClipboardHistoryService(
-		Application app,
 		IClipboardAccessor clipboard,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		ITaskExceptionHandler exceptionHandler)
+		IStorageAccessor storage)
 	{
-		_app = app;
-
 		_clipboard = clipboard;
 
 		_dispatcher = dispatcher;
 
-		_exceptionHandler = exceptionHandler;
-
 		_logger = logger;
+
+		_storage = storage;
 	}
 	#endregion
 
@@ -790,11 +782,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	{
 		try
 		{
-			if (_app.FindStorageProvider() is not { } provider)
-			{
-				return;
-			}
-
 			List<IStorageItem> resolved = new(entries.Count);
 
 			foreach (ClipboardFileSystemEntry entry in entries)
@@ -807,8 +794,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				try
 				{
 					IStorageItem? item = entry.IsFolder
-						? await provider.TryGetFolderFromPathAsync(entry.Path).ConfigureAwait(false)
-						: await provider.TryGetFileFromPathAsync(entry.Path).ConfigureAwait(false);
+						? await _storage.TryGetFolderFromPathAsync(entry.Path).ConfigureAwait(false)
+						: await _storage.TryGetFileFromPathAsync(entry.Path).ConfigureAwait(false);
 
 					if (item is not null)
 					{

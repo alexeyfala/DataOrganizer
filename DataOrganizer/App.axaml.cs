@@ -245,6 +245,7 @@ public sealed class App : Application
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
+		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
