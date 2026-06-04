@@ -159,6 +159,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
+			_logger.LogInformation(
+				$"Clearing clipboard history ({Entries.Count} entries) and emptying the system clipboard.");
+
 			Entries.Clear();
 
 			await _dispatcher
@@ -388,6 +391,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		return [];
 	}
+
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
@@ -764,13 +768,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
-				if (await _dispatcher.PostAsync(() => IsEchoOrUnchanged(hash)).ConfigureAwait(false))
-				{
-					return;
-				}
-
 				await _dispatcher
-					.PostAsync(() => InsertOrMoveToTop(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
 					.ConfigureAwait(false);
 			}
 		}
