@@ -171,6 +171,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				.ClearAsync()
 				.ConfigureAwait(false);
 		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
 		finally
 		{
 			_clearGate.Release();

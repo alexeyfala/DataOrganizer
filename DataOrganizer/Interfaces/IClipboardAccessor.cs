@@ -15,7 +15,7 @@ public interface IClipboardAccessor
 	/// <summary>
 	/// Clears any data from the system clipboard in the UI thread.
 	/// </summary>
-	Task<bool> ClearAsync();
+	Task ClearAsync();
 
 	/// <summary>
 	/// Gets a list containing the formats currently available from the clipboard in the UI thread.
