@@ -713,6 +713,13 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
+			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
+			{
+				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+
+				return;
+			}
+
 			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
 				byte[] hash = HashFiles(fileSystemEntries);
@@ -751,14 +758,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 				if (await _dispatcher.PostAsync(() => IsEchoOrUnchanged(hash)).ConfigureAwait(false))
 				{
-					return;
-				}
-
-				if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
-				{
-					_logger.LogWarning(
-						$"Skipping clipboard text entry ({text.Length} chars): a sensitivity marker was detected.");
-
 					return;
 				}
 
