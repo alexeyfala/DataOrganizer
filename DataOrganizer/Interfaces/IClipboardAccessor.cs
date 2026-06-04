@@ -36,7 +36,7 @@ public interface IClipboardAccessor
 	/// <summary>
 	/// Places a text on the clipboard in the UI thread.
 	/// </summary>
-	Task<bool> SetTextAsync(string text);
+	Task SetTextAsync(string text);
 
 	/// <summary>
 	/// Returns a bitmap, if available, from the clipboard in the UI thread.

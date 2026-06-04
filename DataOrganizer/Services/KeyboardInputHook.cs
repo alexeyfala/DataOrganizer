@@ -223,9 +223,16 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 					return;
 				}
 
-				await _clipboard
-					.SetTextAsync(text)
-					.ConfigureAwait(false);
+				try
+				{
+					await _clipboard
+						.SetTextAsync(text)
+						.ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+				}
 
 				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 

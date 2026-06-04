@@ -18,22 +18,16 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
-
-	/// <inheritdoc cref="ITaskExceptionHandler" />
-	private readonly ITaskExceptionHandler _exceptionHandler;
 	#endregion
 
 	#region Constructors
 	public ClipboardAccessor(
 		Application app,
-		IDispatcherAccessor dispatcher,
-		ITaskExceptionHandler exceptionHandler)
+		IDispatcherAccessor dispatcher)
 	{
 		_app = app;
 
 		_dispatcher = dispatcher;
-
-		_exceptionHandler = exceptionHandler;
 	}
 	#endregion
 
@@ -83,18 +77,14 @@ public sealed class ClipboardAccessor : IClipboardAccessor
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> SetTextAsync(string text)
+	public Task SetTextAsync(string text)
 	{
 		if (_app.FindClipboard() is not { } clipboard)
 		{
-			return false;
+			return Task.CompletedTask;
 		}
 
-		await _dispatcher
-			.PostAsync(() => _exceptionHandler.Watch(clipboard.SetTextAsync(text)))
-			.ConfigureAwait(false);
-
-		return true;
+		return _dispatcher.PostAsync(() => clipboard.SetTextAsync(text));
 	}
 
 	/// <inheritdoc />

@@ -154,9 +154,16 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					viewModel.InsertToCopyHistory(file, updateView);
 				}
 
-				await _clipboard
-					.SetTextAsync(text)
-					.ConfigureAwait(true);
+				try
+				{
+					await _clipboard
+						.SetTextAsync(text)
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogException(ex);
+				}
 
 				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
 

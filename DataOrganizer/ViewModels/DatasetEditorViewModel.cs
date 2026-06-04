@@ -233,10 +233,21 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand]
 	private async Task CopyKeyValueToClipboard(KeyValueRecord? record)
 	{
-		if (record is null || !await _clipboard
-			.SetTextAsync($"{record.Key}    {record.Value}")
-			.ConfigureAwait(true))
+		if (record is null)
 		{
+			return;
+		}
+
+		try
+		{
+			await _clipboard
+				.SetTextAsync($"{record.Key}    {record.Value}")
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
 			return;
 		}
 
