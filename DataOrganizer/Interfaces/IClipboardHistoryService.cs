@@ -19,7 +19,7 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	ObservableCollection<ClipboardHistoryEntryBase> Entries { get; }
 
 	/// <summary>
-	/// <c>True</c> while the background polling timer is active.
+	/// <c>True</c> while the background polling is active.
 	/// </summary>
 	bool IsRunning { get; }
 	#endregion

@@ -153,20 +153,27 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public async Task ClearAsync()
 	{
+		if (IsDisposed())
+		{
+			return;
+		}
+
 		await _clearGate
 			.WaitAsync()
 			.ConfigureAwait(false);
 
 		try
 		{
-			_logger.LogInformation(
-				$"Clearing clipboard history ({Entries.Count} entries) and emptying the system clipboard.");
+			// Touching Entries (and reading Count for the log) must happen on the UI thread.
+			await _dispatcher.PostAsync(() =>
+			{
+				_logger.LogInformation(
+					$"Clearing clipboard history ({Entries.Count} entries) and emptying the system clipboard.");
 
-			Entries.Clear();
+				Entries.Clear();
 
-			await _dispatcher
-				.PostAsync(() => _lastHash = null)
-				.ConfigureAwait(false);
+				_lastHash = null;
+			}).ConfigureAwait(false);
 
 			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
 			// by the next poll tick (it only reappears on a genuine new copy).			
@@ -217,6 +224,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
 	{
+		if (IsDisposed())
+		{
+			return;
+		}
+
 		await _clearGate
 			.WaitAsync()
 			.ConfigureAwait(false);
@@ -824,6 +836,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				return;
 			}
 
+			// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
 			DataTransfer transfer = new();
 
 			foreach (IStorageItem item in resolved)
@@ -862,10 +875,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			await using MemoryStream stream = new(png);
 
-			// Do NOT dispose the bitmap (or wrap it in using): on Windows the clipboard uses
-			// delayed rendering — Avalonia hands the pixels to a consumer only when it actually
-			// pastes, so the bitmap must stay alive past this call. Disposing here yields an
-			// empty paste. We let GC reclaim the bitmap once clipboard ownership changes.
+			// Do NOT dispose: ownership passes to the clipboard (delayed rendering) — disposing
+			// here yields an empty paste. GC reclaims it once clipboard ownership changes.
 			Bitmap bitmap = new(stream);
 
 			await _clipboard
@@ -910,6 +921,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 				AttachSensitivityMarkers(item);
 			}
 
+			// Do NOT dispose: ownership of the DataTransfer passes to the clipboard (delayed rendering).
 			DataTransfer transfer = new();
 
 			transfer.Add(item);
