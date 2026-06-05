@@ -541,4 +541,10 @@
   <data name="OpenInBrowser" xml:space="preserve">
     <value>Open in browser</value>
   </data>
+  <data name="EnableClipboardHistoryTracking" xml:space="preserve">
+    <value>Enable clipboard history tracking</value>
+  </data>
+  <data name="DescriptionOfUseClipboard" xml:space="preserve">
+    <value>Used to keep a history of the system clipboard and to access it via the custom clipboard window</value>
+  </data>
 </root>

@@ -267,6 +267,7 @@
 						Classes="primary"
 						Command="{Binding ShowCustomClipboardCommand}"
 						CommandParameter="{Binding $parent[Window]}"
+						IsVisible="{Binding IsClipboardHistoryEnabled}"
 						Theme="{StaticResource CustomClipboardButtonTheme}" />
 
 					<Button

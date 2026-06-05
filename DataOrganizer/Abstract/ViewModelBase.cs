@@ -55,6 +55,12 @@ public abstract partial class ViewModelBase :
 	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
 
 	/// <summary>
+	/// <c>True</c> when clipboard history tracking is enabled in settings.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsClipboardHistoryEnabled { get; set; }
+
+	/// <summary>
 	/// <c>True</c> when initialization has completed.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }
@@ -208,6 +214,8 @@ public abstract partial class ViewModelBase :
 		_settingsManager = settingsManager;
 
 		_viewLauncher = viewLauncher;
+
+		IsClipboardHistoryEnabled = settingsManager.Settings is { TrackClipboardHistory: true };
 
 		messenger.RegisterAll(this);
 

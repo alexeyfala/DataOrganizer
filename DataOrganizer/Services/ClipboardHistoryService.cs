@@ -151,45 +151,10 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ClearAsync()
-	{
-		if (IsDisposed())
-		{
-			return;
-		}
+	public Task ClearAsync() => ClearCoreAsync(clearSystem: true);
 
-		await _clearGate
-			.WaitAsync()
-			.ConfigureAwait(false);
-
-		try
-		{
-			// Touching Entries (and reading Count for the log) must happen on the UI thread.
-			await _dispatcher.PostAsync(() =>
-			{
-				_logger.LogInformation(
-					$"Clearing clipboard history ({Entries.Count} entries) and emptying the system clipboard.");
-
-				Entries.Clear();
-
-				_lastHash = null;
-			}).ConfigureAwait(false);
-
-			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
-			// by the next poll tick (it only reappears on a genuine new copy).			
-			await _clipboard
-				.ClearAsync()
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, isAssertDebug: false);
-		}
-		finally
-		{
-			_clearGate.Release();
-		}
-	}
+	/// <inheritdoc />
+	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false);
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -291,6 +256,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public Task StartAsync(CancellationToken token = default)
 	{
+		_logger.LogInformation($"{nameof(ClipboardHistoryService)}.{nameof(StartAsync)} requested.");
+
 		if (IsDisposed() || Interlocked.Exchange(ref _isLoopRunning, true))
 		{
 			return Task.CompletedTask;
@@ -311,6 +278,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Stop()
 	{
+		_logger.LogInformation($"{nameof(ClipboardHistoryService)}.{nameof(Stop)} requested.");
+
 		CancellationTokenSource? local = Interlocked.Exchange(ref _stopCts, null);
 
 		if (local is null)
@@ -551,6 +520,56 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		string trimmed = text.Trim();
 
 		return WholeStringUrlRegex.IsMatch(trimmed) ? trimmed : null;
+	}
+
+	/// <summary>
+	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally
+	/// emptying the system clipboard so cleared content is not re-captured until a new copy.
+	/// </summary>
+	private async Task ClearCoreAsync(bool clearSystem)
+	{
+		if (IsDisposed())
+		{
+			return;
+		}
+
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		try
+		{
+			// Touching Entries (and reading Count for the log) must happen on the UI thread.
+			await _dispatcher.PostAsync(() =>
+			{
+				_logger.LogInformation(
+					$"Clearing clipboard history ({Entries.Count} entries)" +
+					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
+
+				Entries.Clear();
+
+				_lastHash = null;
+			}).ConfigureAwait(false);
+
+			if (!clearSystem)
+			{
+				return;
+			}
+
+			// Emptying the OS clipboard too, so the just-cleared content is not re-captured
+			// by the next poll tick (it only reappears on a genuine new copy).
+			await _clipboard
+				.ClearAsync()
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
+		finally
+		{
+			_clearGate.Release();
+		}
 	}
 
 	/// <summary>

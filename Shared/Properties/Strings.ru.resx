@@ -561,4 +561,10 @@
   <data name="OpenInBrowser" xml:space="preserve">
     <value>Открыть в браузере</value>
   </data>
+  <data name="EnableClipboardHistoryTracking" xml:space="preserve">
+    <value>Включить отслеживание истории буфера обмена</value>
+  </data>
+  <data name="DescriptionOfUseClipboard" xml:space="preserve">
+    <value>Используется для ведения истории буфера обмена системы и доступа к ней через кастомное окно буфера обмена</value>
+  </data>
 </root>

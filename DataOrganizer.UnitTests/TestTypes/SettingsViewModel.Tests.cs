@@ -143,6 +143,39 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="SettingsViewModel.TrackClipboardHistory" />.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_TrackClipboardHistory()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.TrackClipboardHistory = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsManager);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.TrackClipboardHistory = true;
+
+		// Assert
+		sut.CurrentSettings.TrackClipboardHistory
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// Test of <see cref="SettingsViewModel.TrackHotkeys" />.
 	/// </summary>
 	[Test]
@@ -218,6 +251,10 @@ internal class SettingsViewModelTests
 		sut.CurrentSettings.TrackHotkeys
 			.Should()
 			.Be(settings.TrackHotkeys);
+
+		sut.CurrentSettings.TrackClipboardHistory
+			.Should()
+			.Be(settings.TrackClipboardHistory);
 	}
 
 	/// <summary>
