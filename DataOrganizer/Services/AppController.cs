@@ -35,11 +35,11 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IEntityLoader" />
 	private readonly IEntityLoader _entityLoader;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
+
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -140,7 +140,10 @@ public sealed class AppController : IAppController
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
 
-			_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+			if (_settingsManager.Settings.TrackClipboardHistory)
+			{
+				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+			}
 		}
 		catch (Exception ex)
 		{

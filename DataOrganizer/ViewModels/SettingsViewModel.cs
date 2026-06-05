@@ -73,6 +73,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial SecondaryColor SecondaryColor { get; set; }
 
+	/// <inheritdoc cref="AppSettings.TrackClipboardHistory" />
+	[ObservableProperty]
+	public partial bool TrackClipboardHistory { get; set; }
+
 	/// <inheritdoc cref="AppSettings.TrackHotkeys" />
 	[ObservableProperty]
 	public partial bool TrackHotkeys { get; set; }
@@ -191,6 +195,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="TrackClipboardHistory" /> changes.
+	/// </summary>
+	partial void OnTrackClipboardHistoryChanged(bool value)
+	{
+		CurrentSettings.TrackClipboardHistory = value;
+
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Called when <see cref="TrackHotkeys" /> changes.
 	/// </summary>
 	partial void OnTrackHotkeysChanged(bool value)
@@ -232,6 +246,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		_settingsManager = settingsManager;
 
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
+
+		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
 
 		TrackHotkeys = CurrentSettings.TrackHotkeys;
 

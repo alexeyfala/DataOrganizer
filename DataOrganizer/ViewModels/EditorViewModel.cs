@@ -1025,6 +1025,9 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IClipboardHistoryService" />
+	private readonly IClipboardHistoryService _clipboardHistory;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1045,6 +1048,7 @@ public partial class EditorViewModel :
 		Application app,
 		IAppSettingsManager settingsManager,
 		IClipboardAccessor clipboard,
+		IClipboardHistoryService clipboardHistory,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -1074,6 +1078,8 @@ public partial class EditorViewModel :
 			viewLauncher,
 			keyboardInputHook)
 	{
+		_clipboardHistory = clipboardHistory;
+
 		_dataExchange = dataExchange;
 
 		_mapper = mapper;
@@ -1276,6 +1282,15 @@ public partial class EditorViewModel :
 		{
 			_settingsManager.ApplyMaterialTheme();
 		}
+
+		if (!isSave)
+		{
+			return;
+		}
+
+		await ApplyClipboardHistorySettingAsync(
+			settings.TrackClipboardHistory,
+			token).ConfigureAwait(false);
 
 		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
@@ -1582,6 +1597,34 @@ public partial class EditorViewModel :
 		await BrushExtensions.ApplyLimeGreenColorAnimation(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
+	/// dropping the in-memory history when disabled.
+	/// </summary>
+	private async Task ApplyClipboardHistorySettingAsync(bool isEnabled, CancellationToken token)
+	{
+		IsClipboardHistoryEnabled = isEnabled;
+
+		if (isEnabled)
+		{
+			if (!_clipboardHistory.IsRunning)
+			{
+				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+			}
+
+			return;
+		}
+
+		if (_clipboardHistory.IsRunning)
+		{
+			_clipboardHistory.Stop();
+		}
+
+		await _clipboardHistory
+			.ClearEntriesAsync()
+			.ConfigureAwait(false);
 	}
 	#endregion
 

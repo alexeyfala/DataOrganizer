@@ -33,7 +33,7 @@
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Auto">
 			<Grid
-				RowDefinitions="*,*,*"
+				RowDefinitions="*,*,*,*"
 				RowSpacing="{StaticResource ElementSpacing}">
 
 				<Grid.Resources>
@@ -143,6 +143,27 @@
 
 				<Grid
 					Grid.Row="2"
+					ColumnDefinitions="*,Auto"
+					ColumnSpacing="{StaticResource ElementSpacing}">
+					<HeaderedContentControl
+						Grid.Column="0"
+						Classes="ClassicGroupBoxStyle"
+						Header="Clipboard">
+						<CheckBox
+							Margin="10.0"
+							Content="{x:Static prop:Strings.EnableClipboardHistoryTracking}"
+							IsChecked="{Binding TrackClipboardHistory, Mode=TwoWay}" />
+					</HeaderedContentControl>
+
+					<Border
+						Grid.Column="1"
+						Margin="0.0,9.0,0.0,0.0"
+						Classes="HelpIconBorderStyle"
+						ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
+				</Grid>
+
+				<Grid
+					Grid.Row="3"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
 					<HeaderedContentControl

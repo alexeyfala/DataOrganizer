@@ -33,6 +33,11 @@ public record AppSettings
 	public required BaseThemeMode Theme { get; set; }
 
 	/// <summary>
+	/// Indicates whether clipboard history tracking should be enabled.
+	/// </summary>
+	public bool TrackClipboardHistory { get; set; }
+
+	/// <summary>
 	/// Indicates whether hotkey tracking should be enabled.
 	/// </summary>
 	public bool TrackHotkeys { get; set; }

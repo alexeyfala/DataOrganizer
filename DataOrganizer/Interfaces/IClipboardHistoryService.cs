@@ -32,6 +32,12 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	Task ClearAsync();
 
 	/// <summary>
+	/// Clears <see cref="Entries" /> and forgets the last observed payload, without
+	/// touching the system clipboard.
+	/// </summary>
+	Task ClearEntriesAsync();
+
+	/// <summary>
 	/// Restores <paramref name="entry" /> into the system clipboard and moves it
 	/// to the top of <see cref="Entries" />.
 	/// </summary>

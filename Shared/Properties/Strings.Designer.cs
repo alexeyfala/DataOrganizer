@@ -367,6 +367,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Used to keep a history of the system clipboard and to access it via the custom clipboard window.
+        /// </summary>
+        public static string DescriptionOfUseClipboard {
+            get {
+                return ResourceManager.GetString("DescriptionOfUseClipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Used to copy the contents of a file in text form to the system clipboard using the hotkeys assigned to it..
         /// </summary>
         public static string DescriptionOfUseHotkeys {
@@ -399,6 +408,15 @@ namespace Shared.Properties {
         public static string Editor {
             get {
                 return ResourceManager.GetString("Editor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable clipboard history tracking.
+        /// </summary>
+        public static string EnableClipboardHistoryTracking {
+            get {
+                return ResourceManager.GetString("EnableClipboardHistoryTracking", resourceCulture);
             }
         }
         
