@@ -132,6 +132,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private bool _suppressEcho;
 	#endregion
 
+
 	#region Constructors
 	public ClipboardHistoryService(
 		IClipboardAccessor clipboard,
