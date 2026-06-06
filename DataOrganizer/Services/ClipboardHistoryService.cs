@@ -13,7 +13,6 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -149,12 +148,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private CancellationTokenSource? _stopCts;
 
 	/// <summary>
-	/// When <c>True</c>, <see cref="Entries" /> changes do not schedule a save (used while
-	/// merging on unlock and while clearing).
-	/// </summary>
-	private bool _suppressAutosave;
-
-	/// <summary>
 	/// When <c>True</c>, the next poll tick skips its match check.
 	/// </summary>
 	private bool _suppressEcho;
@@ -180,8 +173,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		_storage = storage;
 
 		_store = store;
-
-		Entries.CollectionChanged += OnEntriesChanged;
 	}
 	#endregion
 
@@ -222,8 +213,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				_logger.LogDebug($"Clipboard loop ended with an error during dispose: {ex.Message}");
 			}
 		}
-
-		Entries.CollectionChanged -= OnEntriesChanged;
 
 		// Persist any changes still within the debounce window before shutting down.
 		CancelPendingSave();
@@ -371,21 +360,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			return result.Status;
 		}
 
-		// Merge previous-session entries on the UI thread; suppress autosave so the bulk
-		// insertion does not schedule a save per item (a single explicit save follows).
-		await _dispatcher.PostAsync(() =>
-		{
-			_suppressAutosave = true;
-
-			try
-			{
-				MergeLoaded(result.Entries);
-			}
-			finally
-			{
-				_suppressAutosave = false;
-			}
-		}).ConfigureAwait(false);
+		// Merge previous-session entries on the UI thread. MergeLoaded uses Entries.Add directly
+		// (it does not schedule per-item saves); a single explicit save follows.
+		await _dispatcher
+			.PostAsync(() => MergeLoaded(result.Entries))
+			.ConfigureAwait(false);
 
 		await SaveSnapshotAsync(token).ConfigureAwait(false);
 
@@ -641,8 +620,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			// Drop any scheduled save and suppress the one the upcoming clear would trigger,
-			// so the just-erased journal is not immediately rewritten with an empty payload.
+			// Drop any scheduled save so the just-erased journal is not rewritten with an empty payload.
 			CancelPendingSave();
 
 			// Touching Entries (and reading Count for the log) must happen on the UI thread.
@@ -652,16 +630,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					$"Clearing clipboard history ({Entries.Count} entries)" +
 					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
 
-				_suppressAutosave = true;
-
-				try
-				{
-					Entries.Clear();
-				}
-				finally
-				{
-					_suppressAutosave = false;
-				}
+				Entries.Clear();
 
 				_lastHash = null;
 			}).ConfigureAwait(false);
@@ -761,6 +730,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Entries.RemoveAt(Entries.Count - 1);
 		}
+
+		ScheduleSaveIfUnlocked();
 	}
 
 	/// <summary>
@@ -900,19 +871,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Entries.Move(index, 0);
-	}
 
-	/// <summary>
-	/// Schedules a debounced save when a change occurs after persistence is unlocked.
-	/// </summary>
-	private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
-	{
-		if (IsDisposed() || _suppressAutosave || !_store.IsUnlocked)
-		{
-			return;
-		}
-
-		ScheduleSave();
+		ScheduleSaveIfUnlocked();
 	}
 
 	/// <summary>
@@ -1046,6 +1006,19 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		_ = RunDebouncedSaveAsync(cancellation);
 	}
 
+	/// <summary>
+	/// Schedules a debounced save after a content change, but only once persistence is unlocked.
+	/// Called from the collection-mutating helpers (UI-thread only).
+	/// </summary>
+	private void ScheduleSaveIfUnlocked()
+	{
+		if (IsDisposed() || !_store.IsUnlocked)
+		{
+			return;
+		}
+
+		ScheduleSave();
+	}
 	/// <summary>
 	/// Resolves stored paths back into <see cref="IStorageItem" /> instances via the
 	/// application's <see cref="IStorageProvider" /> and pushes them onto the clipboard.
