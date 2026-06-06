@@ -51,6 +51,37 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.ClearEntriesAsync" />: the journal is kept
+	/// (a tracking toggle must not erase the saved history).
+	/// </summary>
+	[Test]
+	public async Task ClearEntriesAsync_When_Unlocked_Keeps_History()
+	{
+		// Arrange
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(true);
+
+		using AutoMock mock = CreateMock(store, persist: true);
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		sut.Entries.Add(TextEntry("a", [1]));
+
+		// Act
+		await sut.ClearEntriesAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+
+		store
+			.DidNotReceive()
+			.EraseHistory();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryService.DisablePersistence" />.
 	/// </summary>
 	[Test]

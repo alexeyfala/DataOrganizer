@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -127,16 +127,14 @@ public abstract partial class ViewModelBase :
 	/// Opens the custom clipboard history overlay.
 	/// </summary>
 	[RelayCommand]
-	private void ShowCustomClipboard(Window? owner)
+	private Task ShowCustomClipboard(Window? owner)
 	{
 		if (owner is null)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
-		_viewLauncher
-			.ConfigureCustomClipboardWindow(owner)
-			.Show();
+		return _viewLauncher.ShowCustomClipboardWindowAsync(owner);
 	}
 
 	/// <summary>

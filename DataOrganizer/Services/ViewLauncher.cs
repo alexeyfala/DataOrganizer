@@ -6,6 +6,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -18,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -35,6 +37,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
+
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -65,6 +70,7 @@ public class ViewLauncher : IViewLauncher
 		Application app,
 		IAppEnvironment appEnvironment,
 		IClipboardHistoryService clipboardHistory,
+		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
@@ -79,6 +85,8 @@ public class ViewLauncher : IViewLauncher
 		_appEnvironment = appEnvironment;
 
 		_clipboardHistory = clipboardHistory;
+
+		_dialogService = dialogService;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -198,6 +206,14 @@ public class ViewLauncher : IViewLauncher
 		window.Closing += CustomClipboardWindow_Closing;
 
 		return window;
+	}
+
+	/// <inheritdoc />
+	public async Task ShowCustomClipboardWindowAsync(Window owner)
+	{
+		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
+
+		ConfigureCustomClipboardWindow(owner).Show();
 	}
 
 	/// <inheritdoc />
@@ -478,6 +494,55 @@ public class ViewLauncher : IViewLauncher
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
+	/// saved history. Cancelling the prompt leaves the session in-memory only; a wrong password re-prompts.
+	/// </summary>
+	private async Task UnlockClipboardHistoryIfRequiredAsync()
+	{
+		const string header = "Clipboard history";
+
+		string label = "Enter the password to load saved history (or cancel to keep this session in memory only)";
+
+		while (_clipboardHistory.RequiresUnlock)
+		{
+			char[] password = await _dialogService
+				.RequestPasswordAsync(header, label)
+				.ConfigureAwait(true);
+
+			if (password.IsEmpty())
+			{
+				return;
+			}
+
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
+
+			try
+			{
+				ClipboardHistoryUnlockStatus status = await _clipboardHistory
+					.TryUnlockAndMergeAsync(passwordBytes)
+					.ConfigureAwait(true);
+
+				if (status == ClipboardHistoryUnlockStatus.Unlocked)
+				{
+					return;
+				}
+
+				label = "Incorrect password. Try again (or cancel to keep this session in memory only)";
+			}
+			finally
+			{
+				passwordBytes.ZeroMemory();
+
+				MemoryMarshal
+					.AsBytes(password.AsSpan())
+					.ZeroMemory();
+			}
+		}
+	}
+
 	/// <summary>
 	/// Places <paramref name="target" /> at the bottom-right corner of the screen
 	/// that <paramref name="owner" /> currently lives on.

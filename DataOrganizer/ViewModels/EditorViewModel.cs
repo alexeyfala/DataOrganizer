@@ -1272,6 +1272,11 @@ public partial class EditorViewModel :
 		AppSettings settings,
 		CancellationToken token = default)
 	{
+		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
+		bool wasPersistingClipboard = _settingsManager
+			.Settings
+			.PersistClipboardHistory;
+
 		if (isSave)
 		{
 			_settingsManager.OverwriteSettings(settings);
@@ -1291,6 +1296,12 @@ public partial class EditorViewModel :
 		await ApplyClipboardHistorySettingAsync(
 			settings.TrackClipboardHistory,
 			token).ConfigureAwait(false);
+
+		// Persistence was turned off: erase the on-disk journal and key and forget the session key.
+		if (wasPersistingClipboard && !settings.PersistClipboardHistory)
+		{
+			_clipboardHistory.DisablePersistence();
+		}
 
 		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform;
@@ -67,6 +67,12 @@ public interface IViewLauncher
 	/// Saves <see cref="FavoritesWindow" /> settings to the file.
 	/// </summary>
 	Task SaveFavoritesSettingsAsync(FavoritesWindow window);
+
+	/// <summary>
+	/// Prompts to unlock the persisted clipboard history when required, then opens
+	/// <see cref="CustomClipboardWindow" />.
+	/// </summary>
+	Task ShowCustomClipboardWindowAsync(Window owner);
 
 	/// <summary>
 	/// Checks whether <paramref name="position" /> places the window's title bar

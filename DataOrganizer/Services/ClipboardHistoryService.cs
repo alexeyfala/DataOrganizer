@@ -178,10 +178,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync() => ClearCoreAsync(clearSystem: true);
+	public Task ClearAsync() => ClearCoreAsync(clearSystem: true, eraseJournal: true);
 
 	/// <inheritdoc />
-	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false);
+	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false, eraseJournal: false);
 
 	/// <inheritdoc />
 	public void DisablePersistence()
@@ -604,10 +604,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally
-	/// emptying the system clipboard so cleared content is not re-captured until a new copy.
+	/// Clears <see cref="Entries" /> and forgets the last observed payload. Optionally empties the
+	/// system clipboard (<paramref name="clearSystem" />) and erases the on-disk journal
+	/// (<paramref name="eraseJournal" />, an explicit user "clear" rather than a tracking toggle).
 	/// </summary>
-	private async Task ClearCoreAsync(bool clearSystem)
+	private async Task ClearCoreAsync(bool clearSystem, bool eraseJournal)
 	{
 		if (IsDisposed())
 		{
@@ -620,7 +621,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			// Drop any scheduled save so the just-erased journal is not rewritten with an empty payload.
+			// Drop any scheduled save so the cleared in-memory state is not written to the journal.
 			CancelPendingSave();
 
 			// Touching Entries (and reading Count for the log) must happen on the UI thread.
@@ -635,8 +636,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				_lastHash = null;
 			}).ConfigureAwait(false);
 
-			// The on-disk journal is cleared too (the wrapped key is kept so the session keeps persisting).
-			if (_store.IsUnlocked)
+			// Only an explicit clear erases the on-disk journal (the wrapped key is kept so the
+			// session keeps persisting); a tracking toggle leaves the saved history intact.
+			if (eraseJournal && _store.IsUnlocked)
 			{
 				_store.EraseHistory();
 			}
