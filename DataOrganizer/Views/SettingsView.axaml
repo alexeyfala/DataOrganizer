@@ -160,7 +160,7 @@
 							<CheckBox
 								Content="{x:Static prop:Strings.PersistHistoryBetweenSessions}"
 								IsChecked="{Binding PersistClipboardHistory, Mode=TwoWay}"
-								IsEnabled="{Binding TrackClipboardHistory}" />
+								IsEnabled="{Binding TrackClipboardHistory, Mode=OneWay}" />
 						</StackPanel>
 					</HeaderedContentControl>
 
