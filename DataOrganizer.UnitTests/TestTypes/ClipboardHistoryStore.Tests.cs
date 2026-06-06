@@ -1,13 +1,15 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
-using Moq;
-using Serilog;
+using NSubstitute;
+using Shared.Interfaces;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -29,21 +31,25 @@ internal class ClipboardHistoryStoreTests
 	public async Task EraseAll_Removes_Both_Files_And_Locks()
 	{
 		// Arrange
-		(ClipboardHistoryStore store, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
 
-		await store.TryUnlockAsync(Password("pw"));
+		using AutoMock mock = CreateMock(files);
 
-		await store.SaveAsync([TextEntry("data")]);
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		await sut.SaveAsync([TextEntry("data")]);
 
 		// Act
-		store.EraseAll();
+		sut.EraseAll();
 
 		// Assert
-		store.IsUnlocked
+		sut.IsUnlocked
 			.Should()
 			.BeFalse();
 
-		store.KeyFileExists
+		sut.KeyFileExists
 			.Should()
 			.BeFalse();
 
@@ -59,17 +65,21 @@ internal class ClipboardHistoryStoreTests
 	public async Task EraseHistory_Removes_Journal_But_Keeps_Key()
 	{
 		// Arrange
-		(ClipboardHistoryStore store, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
 
-		await store.TryUnlockAsync(Password("pw"));
+		using AutoMock mock = CreateMock(files);
 
-		await store.SaveAsync([TextEntry("data")]);
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		await sut.SaveAsync([TextEntry("data")]);
 
 		// Act
-		store.EraseHistory();
+		sut.EraseHistory();
 
 		// Assert
-		store.IsUnlocked
+		sut.IsUnlocked
 			.Should()
 			.BeTrue();
 
@@ -89,16 +99,23 @@ internal class ClipboardHistoryStoreTests
 	public async Task Save_Then_Unlock_In_New_Session_Restores_Entries()
 	{
 		// Arrange
-		(ClipboardHistoryStore first, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
 
-		await first.TryUnlockAsync(Password("pw"));
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
 
-		await first.SaveAsync([TextEntry("secret")]);
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("secret")]);
+		}
 
 		// Act
-		(ClipboardHistoryStore second, _) = CreateStore(files);
+		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryUnlockResult result = await second.TryUnlockAsync(Password("pw"));
+		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+
+		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -126,10 +143,14 @@ internal class ClipboardHistoryStoreTests
 	public async Task Save_Without_Unlock_Writes_Nothing()
 	{
 		// Arrange
-		(ClipboardHistoryStore store, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
 
 		// Act
-		await store.SaveAsync([TextEntry("data")]);
+		await sut.SaveAsync([TextEntry("data")]);
 
 		// Assert
 		files.Files
@@ -144,10 +165,14 @@ internal class ClipboardHistoryStoreTests
 	public async Task TryUnlock_Creates_Key_When_None_Exists()
 	{
 		// Arrange
-		(ClipboardHistoryStore store, _) = CreateStore();
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
 
 		// Act
-		ClipboardHistoryUnlockResult result = await store.TryUnlockAsync(Password("pw"));
+		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -158,11 +183,11 @@ internal class ClipboardHistoryStoreTests
 			.Should()
 			.BeEmpty();
 
-		store.IsUnlocked
+		sut.IsUnlocked
 			.Should()
 			.BeTrue();
 
-		store.KeyFileExists
+		sut.KeyFileExists
 			.Should()
 			.BeTrue();
 	}
@@ -174,18 +199,25 @@ internal class ClipboardHistoryStoreTests
 	public async Task TryUnlock_With_Corrupt_Journal_Returns_Empty()
 	{
 		// Arrange
-		(ClipboardHistoryStore first, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
 
-		await first.TryUnlockAsync(Password("pw"));
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
 
-		await first.SaveAsync([TextEntry("data")]);
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("data")]);
+		}
 
 		files.Files[BinPath] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 		// Act
-		(ClipboardHistoryStore second, _) = CreateStore(files);
+		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryUnlockResult result = await second.TryUnlockAsync(Password("pw"));
+		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+
+		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -204,21 +236,28 @@ internal class ClipboardHistoryStoreTests
 	public async Task TryUnlock_With_Wrong_Password_Returns_WrongPassword()
 	{
 		// Arrange
-		(ClipboardHistoryStore first, InMemoryFileSystem files) = CreateStore();
+		InMemoryFileSystem files = new();
 
-		await first.TryUnlockAsync(Password("right"));
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+
+			await writer.TryUnlockAsync(Password("right"));
+		}
 
 		// Act
-		(ClipboardHistoryStore second, _) = CreateStore(files);
+		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryUnlockResult result = await second.TryUnlockAsync(Password("wrong"));
+		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+
+		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("wrong"));
 
 		// Assert
 		result.Status
 			.Should()
 			.Be(ClipboardHistoryUnlockStatus.WrongPassword);
 
-		second.IsUnlocked
+		reader.IsUnlocked
 			.Should()
 			.BeFalse();
 	}
@@ -226,33 +265,35 @@ internal class ClipboardHistoryStoreTests
 
 	#region Helpers
 	/// <summary>
-	/// Builds a store backed by an in-memory file system and a real encryption service.
+	/// Builds an auto-mock container backed by the supplied in-memory file system and a real
+	/// <see cref="EncryptionService" /> (its logger is auto-mocked).
 	/// </summary>
-	private static (ClipboardHistoryStore Store, InMemoryFileSystem Files) CreateStore(InMemoryFileSystem? files = null)
+	private static AutoMock CreateMock(InMemoryFileSystem files)
 	{
-		files ??= new InMemoryFileSystem();
+		return AutoMock.GetLoose(builder =>
+		{
+			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
-		Mock<IAppEnvironment> appEnvironment = new();
+			appEnvironment
+				.GetClipboardHistoryFilePath(Arg.Any<string>())
+				.Returns(call => Path.Combine("clip", call.Arg<string>()));
 
-		appEnvironment
-			.Setup(x => x.GetClipboardHistoryFilePath(It.IsAny<string>()))
-			.Returns<string>(name => Path.Combine("clip", name));
+			builder.RegisterInstance(appEnvironment);
 
-		EncryptionService encryption = new(Mock.Of<ILogger>());
+			builder
+				.RegisterInstance(files)
+				.As<IFileSystem>();
 
-		ClipboardHistoryStore store = new(
-			appEnvironment.Object,
-			encryption,
-			files,
-			Mock.Of<ILogger>());
-
-		return (store, files);
+			builder
+				.RegisterType<EncryptionService>()
+				.As<IEncryptionService>();
+		});
 	}
 
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
-	private static byte[] Password(string value) => Encoding.UTF8.GetBytes(value);
+	private static byte[] Password(string value) => TextHelper.Utf8Encoding.GetBytes(value);
 
 	/// <summary>
 	/// A minimal text entry.
