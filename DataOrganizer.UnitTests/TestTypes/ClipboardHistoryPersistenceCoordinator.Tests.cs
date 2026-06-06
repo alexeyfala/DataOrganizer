@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
@@ -69,7 +71,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		// Arrange
 		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		sut.DisablePersistence();
@@ -95,7 +99,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		service.Entries.Returns([TextEntry("a", [1])]);
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), service, store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		await sut.DisposeAsync();
@@ -117,7 +123,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
@@ -139,7 +147,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedForStop));
@@ -161,9 +171,13 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(false);
 
-		ClipboardHistoryPersistenceCoordinator unlockable = CreateSut(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+		using AutoMock unlockableMock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
 
-		ClipboardHistoryPersistenceCoordinator persistenceOff = CreateSut(Settings(persist: false), Substitute.For<IClipboardHistoryService>(), store);
+		ClipboardHistoryPersistenceCoordinator unlockable = unlockableMock.Create<ClipboardHistoryPersistenceCoordinator>();
+
+		using AutoMock persistenceOffMock = CreateMock(Settings(persist: false), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator persistenceOff = persistenceOffMock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act, Assert
 		unlockable.RequiresUnlock
@@ -190,12 +204,13 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		// Arrange (a real messenger would throw on a duplicate registration).
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(
+		using AutoMock mock = CreateMock(
 			Settings(persist: true),
 			Substitute.For<IClipboardHistoryService>(),
 			Substitute.For<IClipboardHistoryStore>(),
-			messenger,
-			SaveDebounce);
+			messenger);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		Action act = () =>
@@ -232,7 +247,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		service.Entries.Returns([]);
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), service, store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		ClipboardHistoryUnlockStatus status = await sut.TryUnlockAndMergeAsync(Password("pw"));
@@ -266,7 +283,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), service, store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		ClipboardHistoryUnlockStatus status = await sut.TryUnlockAndMergeAsync(Password("wrong"));
@@ -296,12 +315,9 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(false);
 
-		ClipboardHistoryPersistenceCoordinator sut = CreateSut(
-			Settings(persist: true),
-			Substitute.For<IClipboardHistoryService>(),
-			store,
-			new WeakReferenceMessenger(),
-			SaveDebounce);
+		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
 
 		// Act
 		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
@@ -359,24 +375,40 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	private static readonly TimeSpan SaveSettleDelay = TimeSpan.FromMilliseconds(250.0);
 
 	/// <summary>
-	/// Builds a coordinator with the supplied collaborators, a synchronous dispatcher and substituted logger / messenger.
+	/// Builds an auto-mock container with the supplied collaborators, a synchronous dispatcher and an
+	/// optional messenger (a substitute when none is supplied); the logger is auto-mocked.
 	/// </summary>
-	private static ClipboardHistoryPersistenceCoordinator CreateSut(
+	private static AutoMock CreateMock(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService service,
-		IClipboardHistoryStore store)
+		IClipboardHistoryStore store,
+		IMessenger? messenger = null)
 	{
-		return new ClipboardHistoryPersistenceCoordinator(
-			settingsManager,
-			service,
-			store,
-			new InlineDispatcherAccessor(),
-			Substitute.For<ILogger>(),
-			Substitute.For<IMessenger>());
+		return AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(settingsManager);
+
+			builder.RegisterInstance(service);
+
+			builder.RegisterInstance(store);
+
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger ?? Substitute.For<IMessenger>());
+
+			// The coordinator is IAsyncDisposable; let the test own its lifetime so AutoMock's
+			// synchronous scope disposal does not try (and fail) to dispose it.
+			builder
+				.RegisterType<ClipboardHistoryPersistenceCoordinator>()
+				.ExternallyOwned();
+		});
 	}
 
 	/// <summary>
-	/// Builds a coordinator with an explicit messenger and debounce delay (for Start / timing tests).
+	/// Builds a coordinator directly with an explicit messenger and debounce delay (for the timing tests,
+	/// where AutoMock cannot inject a custom debounce through the public constructor).
 	/// </summary>
 	private static ClipboardHistoryPersistenceCoordinator CreateSut(
 		IAppSettingsManager settingsManager,
