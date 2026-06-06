@@ -547,4 +547,7 @@
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
     <value>Used to keep a history of the system clipboard and to access it via the custom clipboard window</value>
   </data>
+  <data name="PersistHistoryBetweenSessions" xml:space="preserve">
+    <value>Persist history between sessions (encrypted)</value>
+  </data>
 </root>

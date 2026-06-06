@@ -1015,6 +1015,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Persist history between sessions (encrypted).
+        /// </summary>
+        public static string PersistHistoryBetweenSessions {
+            get {
+                return ResourceManager.GetString("PersistHistoryBetweenSessions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Plain text.
         /// </summary>
         public static string PlainText {

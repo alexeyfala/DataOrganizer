@@ -148,11 +148,20 @@
 					<HeaderedContentControl
 						Grid.Column="0"
 						Classes="ClassicGroupBoxStyle"
-						Header="Clipboard">
-						<CheckBox
+						Header="{x:Static prop:Strings.Clipboard}">
+						<StackPanel
 							Margin="10.0"
-							Content="{x:Static prop:Strings.EnableClipboardHistoryTracking}"
-							IsChecked="{Binding TrackClipboardHistory, Mode=TwoWay}" />
+							Orientation="Vertical"
+							Spacing="{StaticResource ElementSpacing}">
+							<CheckBox
+								Content="{x:Static prop:Strings.EnableClipboardHistoryTracking}"
+								IsChecked="{Binding TrackClipboardHistory, Mode=TwoWay}" />
+
+							<CheckBox
+								Content="{x:Static prop:Strings.PersistHistoryBetweenSessions}"
+								IsChecked="{Binding PersistClipboardHistory, Mode=TwoWay}"
+								IsEnabled="{Binding TrackClipboardHistory}" />
+						</StackPanel>
 					</HeaderedContentControl>
 
 					<Border

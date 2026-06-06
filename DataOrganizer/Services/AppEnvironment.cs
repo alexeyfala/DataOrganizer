@@ -55,6 +55,15 @@ public sealed class AppEnvironment : IAppEnvironment
 	}
 
 	/// <inheritdoc />
+	public string GetClipboardHistoryFilePath(string fileName)
+	{
+		return Path.Combine(
+			AppDataDirectoryPath,
+			"ClipboardHistory",
+			fileName);
+	}
+
+	/// <inheritdoc />
 	public string GetSettingsFilePath(string fileName)
 	{
 		return Path.Combine(

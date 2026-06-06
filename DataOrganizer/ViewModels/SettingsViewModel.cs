@@ -65,6 +65,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial CultureInfo? Language { get; set; }
 
+	/// <inheritdoc cref="AppSettings.PersistClipboardHistory" />
+	[ObservableProperty]
+	public partial bool PersistClipboardHistory { get; set; }
+
 	/// <inheritdoc cref="AppSettings.PrimaryColor" />
 	[ObservableProperty]
 	public partial PrimaryColor PrimaryColor { get; set; }
@@ -165,6 +169,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="PersistClipboardHistory" /> changes.
+	/// </summary>
+	partial void OnPersistClipboardHistoryChanged(bool value)
+	{
+		CurrentSettings.PersistClipboardHistory = value;
+
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Called when <see cref="PrimaryColor" /> changes.
 	/// </summary>
 	partial void OnPrimaryColorChanged(PrimaryColor value)
@@ -248,6 +262,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
 
 		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
+
+		PersistClipboardHistory = CurrentSettings.PersistClipboardHistory;
 
 		TrackHotkeys = CurrentSettings.TrackHotkeys;
 

@@ -43,6 +43,11 @@ public interface IAppEnvironment
 	string GetAppInstanceName();
 
 	/// <summary>
+	/// Returns the path to a clipboard history file (e.g. the encrypted journal or its wrapped key).
+	/// </summary>
+	string GetClipboardHistoryFilePath(string fileName);
+
+	/// <summary>
 	/// Returns path to the file with settings.
 	/// </summary>
 	string GetSettingsFilePath(string fileName);

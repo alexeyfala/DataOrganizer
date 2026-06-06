@@ -18,6 +18,11 @@ public record AppSettings
 	public required string Language { get; set; }
 
 	/// <summary>
+	/// Indicates whether the clipboard history should be persisted (encrypted) between sessions.
+	/// </summary>
+	public bool PersistClipboardHistory { get; set; }
+
+	/// <summary>
 	/// Material design primary color.
 	/// </summary>
 	public required PrimaryColor PrimaryColor { get; set; }
