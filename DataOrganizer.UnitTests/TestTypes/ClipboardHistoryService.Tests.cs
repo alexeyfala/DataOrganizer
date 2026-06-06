@@ -1,14 +1,19 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Input;
+using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
+using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,6 +85,175 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.DisposeAsync" />: disposing twice is safe.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Is_Idempotent()
+	{
+		// Arrange
+		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+
+		await sut.DisposeAsync();
+
+		// Act
+		Func<Task> act = async () => await sut.DisposeAsync();
+
+		// Assert
+		await act
+			.Should()
+			.NotThrowAsync();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: capture enforces the history cap.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Enforces_History_Cap()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		for (int i = 0; i < 25; i++)
+		{
+			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
+		}
+
+		// Act
+		sut.HandleNewPayload([99], () => TextEntry("new", [99]));
+
+		// Assert
+		sut.Entries
+			.Should()
+			.HaveCount(25);
+
+		sut.Entries[0]
+			.Hash
+			.Should()
+			.Equal("c"u8.ToArray());
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: an unchanged payload is ignored.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Ignores_Unchanged_Payload()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		sut.HandleNewPayload([1], () => TextEntry("a", [1]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act (same hash as the last observed payload).
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle();
+
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: a new payload is inserted at the top.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Inserts_New_Entry_At_Top()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		// Act
+		sut.HandleNewPayload([1], () => entry);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(entry);
+
+		received
+			.Should()
+			.Equal(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: a matching hash moves the existing entry up.
+	/// </summary>
+	[Test]
+	public void HandleNewPayload_Moves_Existing_Entry_To_Top()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		ClipboardTextEntry target = TextEntry("target", [1]);
+
+		sut.Entries.Add(TextEntry("top", [9]));
+
+		sut.Entries.Add(target);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act (the factory must not run — the entry already exists).
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+
+		// Assert
+		sut.Entries
+			.Should()
+			.HaveCount(2);
+
+		sut.Entries[0]
+			.Should()
+			.Be(target);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.StartAsync" /> / <see cref="ClipboardHistoryService.DisposeAsync" />:
+	/// the running flag toggles around the loop's lifetime.
+	/// </summary>
+	[Test]
+	public async Task IsRunning_Toggles_With_Start_And_Dispose()
+	{
+		// Arrange
+		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+
+		// Act, Assert
+		await sut.StartAsync();
+
+		sut.IsRunning
+			.Should()
+			.BeTrue();
+
+		await sut.DisposeAsync();
+
+		sut.IsRunning
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryService.Merge" />: appends below current, dedupes by hash, no message.
 	/// </summary>
 	[Test]
@@ -146,6 +320,193 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: files are captured with folders sorted first.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_Files_Entry_Folders_First()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+
+		IStorageFile file = Substitute.For<IStorageFile>();
+
+		file.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+
+		IStorageFolder folder = Substitute.For<IStorageFolder>();
+
+		folder.Path.Returns(new Uri("file:///C:/dir/sub"));
+
+		clipboard
+			.TryGetFilesAsync()
+			.Returns([file, folder]);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		ClipboardFilesEntry entry = sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardFilesEntry>()
+			.Subject;
+
+		entry.FileSystemEntries
+			.Should()
+			.HaveCount(2);
+
+		entry.FileSystemEntries[0]
+			.IsFolder
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: plain text is captured as a text entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_Text_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("hello");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Which
+			.Text
+			.Should()
+			.Be("hello");
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: a sensitivity marker skips the entry.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Skips_Sensitive_Content()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing)]);
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("super-secret");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of the re-baseline path: a restored entry whose hash changed on the next capture is replaced.
+	/// </summary>
+	[Test]
+	public async Task Restore_Then_Differing_Capture_Rebaselines_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		ClipboardTextEntry original = TextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+
+		// Act (the clipboard handed back a different representation -> different hash).
+		sut.HandleNewPayload([2], () => rebaselined);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of the re-baseline path: a restored entry observed with the same hash is left untouched.
+	/// </summary>
+	[Test]
+	public async Task Restore_Then_Same_Capture_Keeps_Entry()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		ClipboardTextEntry original = TextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		bool built = false;
+
+		// Act (same hash as the restored entry — nothing to re-baseline).
+		sut.HandleNewPayload([1], () =>
+		{
+			built = true;
+
+			return TextEntry("x", [1]);
+		});
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(original);
+
+		built
+			.Should()
+			.BeFalse();
+
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
 	/// </summary>
 	[Test]
@@ -177,6 +538,44 @@ internal class ClipboardHistoryServiceTests
 		received
 			.Should()
 			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
+	/// </summary>
+	[Test]
+	public async Task StartAsync_After_Dispose_Does_Not_Run()
+	{
+		// Arrange
+		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+
+		await sut.DisposeAsync();
+
+		// Act
+		await sut.StartAsync();
+
+		// Assert
+		sut.IsRunning
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.Stop" />: stopping without a running loop is a no-op.
+	/// </summary>
+	[Test]
+	public void Stop_Without_Start_Is_NoOp()
+	{
+		// Arrange
+		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+
+		// Act
+		Action act = sut.Stop;
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
 	}
 	#endregion
 
@@ -212,6 +611,28 @@ internal class ClipboardHistoryServiceTests
 
 			builder.RegisterInstance(messenger);
 		});
+	}
+
+	/// <summary>
+	/// Builds a service via its constructor with a synchronous dispatcher and substituted collaborators,
+	/// returning the clipboard accessor for per-test setup.
+	/// </summary>
+	private static (ClipboardHistoryService Sut, IClipboardAccessor Clipboard) NewService(IMessenger messenger)
+	{
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		ClipboardHistoryService sut = new(
+			clipboard,
+			new InlineDispatcherAccessor(),
+			Substitute.For<ILogger>(),
+			messenger,
+			Substitute.For<IStorageAccessor>());
+
+		return (sut, clipboard);
 	}
 
 	/// <summary>

@@ -10,8 +10,8 @@ using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Serilog;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,6 +21,45 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class ClipboardHistoryPersistenceCoordinatorTests
 {
 	#region Methods
+	/// <summary>
+	/// Test that an explicit clear cancels a pending debounced save and erases the journal.
+	/// </summary>
+	[Test]
+	public async Task ClearedByUser_Cancels_Pending_Save()
+	{
+		// Arrange
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(true);
+
+		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
+
+		service.Entries.Returns([TextEntry("a", [1])]);
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(
+			Settings(persist: true),
+			service,
+			store,
+			new WeakReferenceMessenger(),
+			SaveDebounce);
+
+		// Act
+		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
+
+		await Task.Delay(SaveSettleDelay);
+
+		// Assert
+		await store
+			.DidNotReceive()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+
+		store
+			.Received()
+			.EraseHistory();
+	}
+
 	/// <summary>
 	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />.
 	/// </summary>
@@ -54,7 +93,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
 
-		service.Entries.Returns(new ObservableCollection<ClipboardHistoryEntryBase> { TextEntry("a", [1]) });
+		service.Entries.Returns([TextEntry("a", [1])]);
 
 		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store);
 
@@ -143,6 +182,36 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.Start" />: calling it twice does not re-subscribe.
+	/// </summary>
+	[Test]
+	public void Start_Is_Idempotent()
+	{
+		// Arrange (a real messenger would throw on a duplicate registration).
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(
+			Settings(persist: true),
+			Substitute.For<IClipboardHistoryService>(),
+			Substitute.For<IClipboardHistoryStore>(),
+			messenger,
+			SaveDebounce);
+
+		// Act
+		Action act = () =>
+		{
+			sut.Start();
+
+			sut.Start();
+		};
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.TryUnlockAndMergeAsync" />: merges and saves.
 	/// </summary>
 	[Test]
@@ -161,7 +230,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 
 		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
 
-		service.Entries.Returns(new ObservableCollection<ClipboardHistoryEntryBase>());
+		service.Entries.Returns([]);
 
 		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store);
 
@@ -215,9 +284,80 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 			.DidNotReceive()
 			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
 	}
+
+	/// <summary>
+	/// Test that a change notification, while locked, schedules no save.
+	/// </summary>
+	[Test]
+	public async Task Updated_When_Locked_Does_Not_Save()
+	{
+		// Arrange
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(false);
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(
+			Settings(persist: true),
+			Substitute.For<IClipboardHistoryService>(),
+			store,
+			new WeakReferenceMessenger(),
+			SaveDebounce);
+
+		// Act
+		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		await Task.Delay(SaveSettleDelay);
+
+		// Assert
+		await store
+			.DidNotReceive()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// Test that a change notification, while unlocked, triggers a debounced save through the messenger.
+	/// </summary>
+	[Test]
+	public async Task Updated_When_Unlocked_Saves_After_Debounce()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(true);
+
+		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
+
+		service.Entries.Returns([TextEntry("a", [1])]);
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store, messenger, SaveDebounce);
+
+		sut.Start();
+
+		// Act
+		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		await Task.Delay(SaveSettleDelay);
+
+		// Assert
+		await store
+			.Received()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+	}
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Short debounce used by timing-sensitive tests so a scheduled save fires quickly.
+	/// </summary>
+	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(30.0);
+
+	/// <summary>
+	/// Wait long enough for a debounced save to either fire or be proven cancelled.
+	/// </summary>
+	private static readonly TimeSpan SaveSettleDelay = TimeSpan.FromMilliseconds(250.0);
+
 	/// <summary>
 	/// Builds a coordinator with the supplied collaborators, a synchronous dispatcher and substituted logger / messenger.
 	/// </summary>
@@ -233,6 +373,26 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 			new InlineDispatcherAccessor(),
 			Substitute.For<ILogger>(),
 			Substitute.For<IMessenger>());
+	}
+
+	/// <summary>
+	/// Builds a coordinator with an explicit messenger and debounce delay (for Start / timing tests).
+	/// </summary>
+	private static ClipboardHistoryPersistenceCoordinator CreateSut(
+		IAppSettingsManager settingsManager,
+		IClipboardHistoryService service,
+		IClipboardHistoryStore store,
+		IMessenger messenger,
+		TimeSpan saveDebounce)
+	{
+		return new ClipboardHistoryPersistenceCoordinator(
+			settingsManager,
+			service,
+			store,
+			new InlineDispatcherAccessor(),
+			Substitute.For<ILogger>(),
+			messenger,
+			saveDebounce);
 	}
 
 	/// <summary>

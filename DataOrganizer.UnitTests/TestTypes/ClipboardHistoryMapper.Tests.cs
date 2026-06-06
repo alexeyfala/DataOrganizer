@@ -63,6 +63,55 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryMapper.ToDomain" />: URL detection trims surrounding whitespace.
+	/// </summary>
+	[Test]
+	public void RoundTrip_Detects_Url_With_Surrounding_Whitespace()
+	{
+		// Arrange
+		ClipboardTextEntry entry = new()
+		{
+			Text = "  https://example.com/x  ",
+			Html = null,
+			Rtf = null,
+			Hash = [5]
+		};
+
+		// Act
+		ClipboardHistoryEntryBase result = RoundTrip(entry);
+
+		// Assert
+		result
+			.Should()
+			.BeOfType<ClipboardUrlEntry>()
+			.Subject
+			.Url
+			.Should()
+			.Be("https://example.com/x");
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
+	/// an empty history maps to a versioned, empty container and back to no entries.
+	/// </summary>
+	[Test]
+	public void RoundTrip_Empty_History_Yields_No_Entries()
+	{
+		// Act
+		PersistedClipboardHistory persisted = ClipboardHistoryMapper.ToPersisted([]);
+
+		// Assert
+		persisted.Version
+			.Should()
+			.Be(PersistedClipboardHistory.CurrentVersion);
+
+		ClipboardHistoryMapper
+			.ToDomain(persisted)
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
 	/// </summary>
 	[Test]

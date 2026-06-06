@@ -137,6 +137,48 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: a later save replaces the previous journal.
+	/// </summary>
+	[Test]
+	public async Task Save_Twice_Overwrites_Previous_Journal()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("old")]);
+
+			await writer.SaveAsync([TextEntry("new")]);
+		}
+
+		// Act
+		using AutoMock second = CreateMock(files);
+
+		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+
+		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		ClipboardTextEntry restored = result
+			.Entries
+			.Should()
+			.ContainSingle()
+			.Subject
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Subject;
+
+		restored.Text
+			.Should()
+			.Be("new");
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
