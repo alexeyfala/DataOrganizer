@@ -18,10 +18,10 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 {
 	#region Data
 	/// <summary>
-	/// How long after the last change to wait before writing the encrypted journal,
+	/// Default delay after the last change before writing the encrypted journal,
 	/// coalescing bursts of clipboard activity into a single save.
 	/// </summary>
-	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(1500.0);
+	private static readonly TimeSpan DefaultSaveDebounce = TimeSpan.FromMilliseconds(1500.0);
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -31,6 +31,11 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <summary>
+	/// Effective debounce delay for this instance (overridable in tests).
+	/// </summary>
+	private readonly TimeSpan _saveDebounce;
 
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
@@ -59,7 +64,28 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		IClipboardHistoryStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger) : this(
+			  settingsManager,
+			  сlipboardHistory,
+			  store,
+			  dispatcher,
+			  logger,
+			  messenger,
+			  DefaultSaveDebounce)
+	{
+	}
+
+	/// <summary>
+	/// Test constructor that allows overriding the debounce delay.
+	/// </summary>
+	internal ClipboardHistoryPersistenceCoordinator(
+		IAppSettingsManager settingsManager,
+		IClipboardHistoryService сlipboardHistory,
+		IClipboardHistoryStore store,
+		IDispatcherAccessor dispatcher,
+		ILogger logger,
+		IMessenger messenger,
+		TimeSpan saveDebounce)
 	{
 		_dispatcher = dispatcher;
 
@@ -72,6 +98,8 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		_store = store;
 
 		_сlipboardHistory = сlipboardHistory;
+
+		_saveDebounce = saveDebounce;
 	}
 	#endregion
 
@@ -209,7 +237,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		try
 		{
 			await Task
-				.Delay(SaveDebounce, cancellation.Token)
+				.Delay(_saveDebounce, cancellation.Token)
 				.ConfigureAwait(false);
 
 			await SaveSnapshotAsync(cancellation.Token).ConfigureAwait(false);

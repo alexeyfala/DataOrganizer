@@ -196,6 +196,34 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		_clearGate.Dispose();
 	}
 
+	/// <summary>
+	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
+	/// moves an existing matching entry to the top or inserts a new one.
+	/// </summary>
+	internal void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	{
+		if (_restoredEntry is { } restored)
+		{
+			_restoredEntry = null;
+
+			_lastHash = hash;
+
+			if (!HashEquals(restored.Hash, hash))
+			{
+				RebaselineRestored(restored, entryFactory());
+			}
+
+			return;
+		}
+
+		if (IsEchoOrUnchanged(hash))
+		{
+			return;
+		}
+
+		InsertOrMoveToTop(hash, entryFactory);
+	}
+
 	/// <inheritdoc />
 	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
 	{
@@ -214,6 +242,75 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			}
 
 			Entries.Add(entry);
+		}
+	}
+
+	/// <summary>
+	/// Reads the clipboard once and inserts a new entry if the content changed.
+	/// </summary>
+	internal async Task PollOnceAsync()
+	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		try
+		{
+			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
+			{
+				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+
+				return;
+			}
+
+			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
+			{
+				byte[] hash = HashFiles(fileSystemEntries);
+
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
+				{
+					FileSystemEntries = fileSystemEntries,
+					Hash = hash
+				})).ConfigureAwait(false);
+
+				return;
+			}
+
+			if (await TryReadImagePngAsync() is { Length: > 0 } png)
+			{
+				byte[] hash = ComputeHash(png);
+
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
+				{
+					OriginalPng = png,
+					Hash = hash
+				})).ConfigureAwait(false);
+
+				return;
+			}
+
+			if (await TryReadTextAsync() is { Length: > 0 } text)
+			{
+				// Read companion formats up front so the hash reflects them: the same text copied as
+				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
+				string? html = await TryReadFormattedTextAsync(HtmlFormat).ConfigureAwait(false);
+
+				string? rtf = await TryReadFormattedTextAsync(RtfFormat).ConfigureAwait(false);
+
+				byte[] hash = ComputeTextEntryHash(text, html, rtf);
+
+				await _dispatcher
+					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.ConfigureAwait(false);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
@@ -330,7 +427,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			local.Dispose();
 		}
 	}
-
 	#endregion
 
 	#region Helpers
@@ -631,34 +727,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
-	/// moves an existing matching entry to the top or inserts a new one.
-	/// </summary>
-	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
-	{
-		if (_restoredEntry is { } restored)
-		{
-			_restoredEntry = null;
-
-			_lastHash = hash;
-
-			if (!HashEquals(restored.Hash, hash))
-			{
-				RebaselineRestored(restored, entryFactory());
-			}
-
-			return;
-		}
-
-		if (IsEchoOrUnchanged(hash))
-		{
-			return;
-		}
-
-		InsertOrMoveToTop(hash, entryFactory);
-	}
-
-	/// <summary>
 	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
@@ -789,75 +857,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// Publishes a <see cref="ClipboardHistoryChangedMessage" /> so listeners can react to a change.
 	/// </summary>
 	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardHistoryChangedMessage(kind));
-
-	/// <summary>
-	/// Reads the clipboard once and inserts a new entry if the content changed.
-	/// </summary>
-	private async Task PollOnceAsync()
-	{
-		await _clearGate
-			.WaitAsync()
-			.ConfigureAwait(false);
-
-		try
-		{
-			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
-			{
-				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
-
-				return;
-			}
-
-			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
-			{
-				byte[] hash = HashFiles(fileSystemEntries);
-
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
-				{
-					FileSystemEntries = fileSystemEntries,
-					Hash = hash
-				})).ConfigureAwait(false);
-
-				return;
-			}
-
-			if (await TryReadImagePngAsync() is { Length: > 0 } png)
-			{
-				byte[] hash = ComputeHash(png);
-
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
-				{
-					OriginalPng = png,
-					Hash = hash
-				})).ConfigureAwait(false);
-
-				return;
-			}
-
-			if (await TryReadTextAsync() is { Length: > 0 } text)
-			{
-				// Read companion formats up front so the hash reflects them: the same text copied as
-				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
-				string? html = await TryReadFormattedTextAsync(HtmlFormat).ConfigureAwait(false);
-
-				string? rtf = await TryReadFormattedTextAsync(RtfFormat).ConfigureAwait(false);
-
-				byte[] hash = ComputeTextEntryHash(text, html, rtf);
-
-				await _dispatcher
-					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
-					.ConfigureAwait(false);
-			}
-		}
-		catch (Exception ex)
-		{
-			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
-		}
-		finally
-		{
-			_clearGate.Release();
-		}
-	}
 
 	/// <summary>
 	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />
