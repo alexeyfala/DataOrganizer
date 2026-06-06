@@ -128,14 +128,15 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private Task? _loopTask;
 
 	/// <summary>
+	/// The entry just restored to the system clipboard, awaiting re-baseline to the clipboard's
+	/// actual representation on the next poll tick. UI-thread only.
+	/// </summary>
+	private ClipboardHistoryEntryBase? _restoredEntry;
+
+	/// <summary>
 	/// Linked cancellation source created on start from the user token.
 	/// </summary>
 	private CancellationTokenSource? _stopCts;
-
-	/// <summary>
-	/// When <c>True</c>, the next poll tick skips its match check.
-	/// </summary>
-	private bool _suppressEcho;
 	#endregion
 
 	#region Constructors
@@ -260,13 +261,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					break;
 			}
 
-			// Suppress the self-echo only after a successful write: the next tick is skipped
-			// by the stored hash, with the one-shot flag covering a platform-repacked payload.
-			Interlocked.Exchange(ref _suppressEcho, true);
+			await _dispatcher.PostAsync(() =>
+				{
+					_lastHash = entry.Hash;
 
-			await _dispatcher
-				.PostAsync(() => _lastHash = entry.Hash)
-				.ConfigureAwait(false);
+					_restoredEntry = entry;
+				}).ConfigureAwait(false);
 
 			// Touching Entries must happen on the UI thread.
 			await _dispatcher
@@ -636,6 +636,20 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
 	{
+		if (_restoredEntry is { } restored)
+		{
+			_restoredEntry = null;
+
+			_lastHash = hash;
+
+			if (!HashEquals(restored.Hash, hash))
+			{
+				RebaselineRestored(restored, entryFactory());
+			}
+
+			return;
+		}
+
 		if (IsEchoOrUnchanged(hash))
 		{
 			return;
@@ -696,13 +710,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private bool IsEchoOrUnchanged(byte[] hash)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, false))
-		{
-			_lastHash = hash;
-
-			return true;
-		}
-
 		if (_lastHash is { } prev && HashEquals(prev, hash))
 		{
 			return true;
@@ -850,6 +857,29 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		{
 			_clearGate.Release();
 		}
+	}
+
+	/// <summary>
+	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />
+	/// (the content as the clipboard handed it back), so its persisted hash matches what a future
+	/// session will capture for the same content. UI-thread only.
+	/// </summary>
+	private void RebaselineRestored(ClipboardHistoryEntryBase restored, ClipboardHistoryEntryBase rebaselined)
+	{
+		int index = Entries.IndexOf(restored);
+
+		if (index < 0)
+		{
+			InsertAtTop(rebaselined);
+
+			return;
+		}
+
+		Entries[index] = rebaselined;
+
+		_logger.LogDebug($"Re-baselined restored clipboard entry: {rebaselined.GetType().Name}.");
+
+		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
