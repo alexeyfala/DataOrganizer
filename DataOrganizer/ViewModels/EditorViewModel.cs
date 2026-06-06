@@ -1303,8 +1303,7 @@ public partial class EditorViewModel :
 			settings.TrackClipboardHistory,
 			token).ConfigureAwait(false);
 
-		// Persistence was turned off: erase the on-disk journal and key and forget the session key.
-		if (wasPersistingClipboard && !settings.PersistClipboardHistory)
+		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
 		{
 			_clipboardHistoryPersistence.DisablePersistence();
 		}

@@ -115,6 +115,8 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 
 		TryEraseFile(_keyFilePath);
 
+		TryEraseDirectory();
+
 		Dispose();
 	}
 
@@ -291,7 +293,25 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 	}
 
 	/// <summary>
-	/// Erases a file if present, swallowing and logging any error.
+	/// Removes the clipboard history directory if present.
+	/// </summary>
+	private void TryEraseDirectory()
+	{
+		try
+		{
+			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.IsDirectoryExists(directory))
+			{
+				_fileSystem.DeleteDirectory(directory);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
+	}
+
+	/// <summary>
+	/// Erases a file if present.
 	/// </summary>
 	private void TryEraseFile(string filePath)
 	{
