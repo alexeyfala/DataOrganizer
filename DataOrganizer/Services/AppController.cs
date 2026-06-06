@@ -146,10 +146,7 @@ public sealed class AppController : IAppController
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
 
-			// Touch the persistence coordinator so it is constructed and subscribed to the
-			// clipboard history change notifications for the whole application lifetime.
-			_logger.LogDebug(
-				$"{nameof(IClipboardHistoryPersistenceCoordinator)} ready (RequiresUnlock = {_clipboardHistoryPersistence.RequiresUnlock}).");
+			_clipboardHistoryPersistence.Start();
 
 			if (_settingsManager.Settings.TrackClipboardHistory)
 			{

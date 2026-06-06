@@ -27,6 +27,12 @@ public interface IClipboardHistoryPersistenceCoordinator : IAsyncDisposable
 	void DisablePersistence();
 
 	/// <summary>
+	/// Subscribes to clipboard history change notifications for the application lifetime.
+	/// Call once at startup.
+	/// </summary>
+	void Start();
+
+	/// <summary>
 	/// Unlocks (or creates) the on-disk history with <paramref name="password" />, merges the
 	/// loaded entries into the service and enables persistence for the session.
 	/// </summary>

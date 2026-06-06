@@ -42,6 +42,11 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	private readonly IClipboardHistoryService _сlipboardHistory;
 
 	/// <summary>
+	/// <c>True</c> once <see cref="Start" /> has subscribed to change notifications.
+	/// </summary>
+	private bool _isStarted;
+
+	/// <summary>
 	/// Cancellation source for the pending debounced save.
 	/// </summary>
 	private CancellationTokenSource? _pendingSaveCts;
@@ -67,8 +72,6 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		_store = store;
 
 		_сlipboardHistory = сlipboardHistory;
-
-		_messenger.RegisterAll(this);
 	}
 	#endregion
 
@@ -123,6 +126,22 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 				CancelPendingSave();
 				break;
 		}
+	}
+
+	/// <inheritdoc />
+	public void Start()
+	{
+		if (_isStarted)
+		{
+			return;
+		}
+
+		_isStarted = true;
+
+		_messenger.RegisterAll(this);
+
+		_logger.LogInformation(
+			$"{nameof(ClipboardHistoryPersistenceCoordinator)} started ({nameof(RequiresUnlock)} = {RequiresUnlock}).");
 	}
 
 	/// <inheritdoc />
