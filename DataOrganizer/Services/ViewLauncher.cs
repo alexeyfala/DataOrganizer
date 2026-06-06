@@ -38,6 +38,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
 
+	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
+	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
 
@@ -70,6 +73,7 @@ public class ViewLauncher : IViewLauncher
 		Application app,
 		IAppEnvironment appEnvironment,
 		IClipboardHistoryService clipboardHistory,
+		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
 		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
@@ -85,6 +89,8 @@ public class ViewLauncher : IViewLauncher
 		_appEnvironment = appEnvironment;
 
 		_clipboardHistory = clipboardHistory;
+
+		_clipboardHistoryPersistence = clipboardHistoryPersistence;
 
 		_dialogService = dialogService;
 
@@ -206,14 +212,6 @@ public class ViewLauncher : IViewLauncher
 		window.Closing += CustomClipboardWindow_Closing;
 
 		return window;
-	}
-
-	/// <inheritdoc />
-	public async Task ShowCustomClipboardWindowAsync(Window owner)
-	{
-		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
-
-		ConfigureCustomClipboardWindow(owner).Show();
 	}
 
 	/// <inheritdoc />
@@ -491,58 +489,17 @@ public class ViewLauncher : IViewLauncher
 				.Dispose();
 		}
 	}
+
+	/// <inheritdoc />
+	public async Task ShowCustomClipboardWindowAsync(Window owner)
+	{
+		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
+
+		ConfigureCustomClipboardWindow(owner).Show();
+	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
-	/// saved history. Cancelling the prompt leaves the session in-memory only; a wrong password re-prompts.
-	/// </summary>
-	private async Task UnlockClipboardHistoryIfRequiredAsync()
-	{
-		const string header = "Clipboard history";
-
-		string label = "Enter the password to load saved history (or cancel to keep this session in memory only)";
-
-		while (_clipboardHistory.RequiresUnlock)
-		{
-			char[] password = await _dialogService
-				.RequestPasswordAsync(header, label)
-				.ConfigureAwait(true);
-
-			if (password.IsEmpty())
-			{
-				return;
-			}
-
-			byte[] passwordBytes = TextHelper
-				.Utf8Encoding
-				.GetBytes(password);
-
-			try
-			{
-				ClipboardHistoryUnlockStatus status = await _clipboardHistory
-					.TryUnlockAndMergeAsync(passwordBytes)
-					.ConfigureAwait(true);
-
-				if (status == ClipboardHistoryUnlockStatus.Unlocked)
-				{
-					return;
-				}
-
-				label = "Incorrect password. Try again (or cancel to keep this session in memory only)";
-			}
-			finally
-			{
-				passwordBytes.ZeroMemory();
-
-				MemoryMarshal
-					.AsBytes(password.AsSpan())
-					.ZeroMemory();
-			}
-		}
-	}
-
 	/// <summary>
 	/// Places <paramref name="target" /> at the bottom-right corner of the screen
 	/// that <paramref name="owner" /> currently lives on.
@@ -717,6 +674,55 @@ public class ViewLauncher : IViewLauncher
 			await asyncDisposable
 				.DisposeAsync()
 				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
+	/// saved history. Cancelling the prompt leaves the session in-memory only; a wrong password re-prompts.
+	/// </summary>
+	private async Task UnlockClipboardHistoryIfRequiredAsync()
+	{
+		const string header = "Clipboard history";
+
+		string label = "Enter the password to load saved history (or cancel to keep this session in memory only)";
+
+		while (_clipboardHistoryPersistence.RequiresUnlock)
+		{
+			char[] password = await _dialogService
+				.RequestPasswordAsync(header, label)
+				.ConfigureAwait(true);
+
+			if (password.IsEmpty())
+			{
+				return;
+			}
+
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
+
+			try
+			{
+				ClipboardHistoryUnlockStatus status = await _clipboardHistoryPersistence
+					.TryUnlockAndMergeAsync(passwordBytes)
+					.ConfigureAwait(true);
+
+				if (status == ClipboardHistoryUnlockStatus.Unlocked)
+				{
+					return;
+				}
+
+				label = "Incorrect password. Try again (or cancel to keep this session in memory only)";
+			}
+			finally
+			{
+				passwordBytes.ZeroMemory();
+
+				MemoryMarshal
+					.AsBytes(password.AsSpan())
+					.ZeroMemory();
+			}
 		}
 	}
 	#endregion

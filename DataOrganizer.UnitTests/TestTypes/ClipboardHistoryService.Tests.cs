@@ -1,17 +1,16 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -21,21 +20,21 @@ internal class ClipboardHistoryServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ClearAsync" />: the journal is erased when unlocked.
+	/// Test of <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
-	public async Task ClearAsync_When_Unlocked_Erases_History()
+	public async Task ClearAsync_Raises_ClearedByUser()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IMessenger messenger = new WeakReferenceMessenger();
 
-		store.IsUnlocked.Returns(true);
-
-		using AutoMock mock = CreateMock(store, persist: true);
+		using AutoMock mock = CreateMock(messenger);
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		sut.Entries.Add(TextEntry("a", [1]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.ClearAsync();
@@ -45,28 +44,27 @@ internal class ClipboardHistoryServiceTests
 			.Should()
 			.BeEmpty();
 
-		store
-			.Received()
-			.EraseHistory();
+		received
+			.Should()
+			.Equal(ClipboardHistoryChangeKind.ClearedByUser);
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ClearEntriesAsync" />: the journal is kept
-	/// (a tracking toggle must not erase the saved history).
+	/// Test of <see cref="ClipboardHistoryService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
 	/// </summary>
 	[Test]
-	public async Task ClearEntriesAsync_When_Unlocked_Keeps_History()
+	public async Task ClearEntriesAsync_Raises_ClearedForStop()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IMessenger messenger = new WeakReferenceMessenger();
 
-		store.IsUnlocked.Returns(true);
-
-		using AutoMock mock = CreateMock(store, persist: true);
+		using AutoMock mock = CreateMock(messenger);
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		sut.Entries.Add(TextEntry("a", [1]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.ClearEntriesAsync();
@@ -76,198 +74,134 @@ internal class ClipboardHistoryServiceTests
 			.Should()
 			.BeEmpty();
 
-		store
-			.DidNotReceive()
-			.EraseHistory();
+		received
+			.Should()
+			.Equal(ClipboardHistoryChangeKind.ClearedForStop);
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.DisablePersistence" />.
+	/// Test of <see cref="ClipboardHistoryService.Merge" />: appends below current, dedupes by hash, no message.
 	/// </summary>
 	[Test]
-	public void DisablePersistence_Erases_All()
+	public void Merge_Appends_Below_Current_Skipping_Duplicates()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(store, persist: true);
+		using AutoMock mock = CreateMock(messenger);
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
-		// Act
-		sut.DisablePersistence();
-
-		// Assert
-		store
-			.Received()
-			.EraseAll();
-	}
-
-	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.DisposeAsync" />: a final save flushes when unlocked.
-	/// </summary>
-	[Test]
-	public async Task DisposeAsync_When_Unlocked_Flushes()
-	{
-		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
-
-		store.IsUnlocked.Returns(true);
-
-		using AutoMock mock = CreateMock(store, persist: true);
-
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
-
-		sut.Entries.Add(TextEntry("a", [1]));
-
-		// Act
-		await sut.DisposeAsync();
-
-		// Assert
-		await store
-			.Received()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
-	}
-
-	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.RequiresUnlock" />.
-	/// </summary>
-	[Test]
-	public void RequiresUnlock_Reflects_Settings_And_Store_State()
-	{
-		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
-
-		store.IsUnlocked.Returns(false);
-
-		using AutoMock enabled = CreateMock(store, persist: true);
-
-		ClipboardHistoryService unlockable = enabled.Create<ClipboardHistoryService>();
-
-		using AutoMock disabled = CreateMock(store, persist: false);
-
-		ClipboardHistoryService persistenceOff = disabled.Create<ClipboardHistoryService>();
-
-		// Act, Assert
-		unlockable.RequiresUnlock
-			.Should()
-			.BeTrue();
-
-		persistenceOff.RequiresUnlock
-			.Should()
-			.BeFalse();
-
-		store.IsUnlocked.Returns(true);
-
-		unlockable.RequiresUnlock
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.TryUnlockAndMergeAsync" />: merges, dedupes and saves.
-	/// </summary>
-	[Test]
-	public async Task TryUnlockAndMerge_Merges_Dedupes_And_Saves()
-	{
-		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
-
-		store.IsUnlocked.Returns(true);
-
-		ClipboardHistoryEntryBase[] loaded = [TextEntry("A", [1]), TextEntry("B", [2])];
-
-		store
-			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardHistoryUnlockResult(ClipboardHistoryUnlockStatus.Unlocked, loaded));
-
-		using AutoMock mock = CreateMock(store, persist: true);
-
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
-
-		// Current session entries: "C" duplicates loaded "B" by hash [2].
 		sut.Entries.Add(TextEntry("C", [2]));
 
 		sut.Entries.Add(TextEntry("D", [9]));
 
-		// Act
-		ClipboardHistoryUnlockStatus status = await sut.TryUnlockAndMergeAsync(Password("pw"));
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act ("B" duplicates current "C" by hash [2] and is skipped).
+		sut.Merge([TextEntry("A", [1]), TextEntry("B", [2])]);
 
 		// Assert
-		status
-			.Should()
-			.Be(ClipboardHistoryUnlockStatus.Unlocked);
-
 		sut.Entries
 			.Cast<ClipboardTextEntry>()
 			.Select(x => x.Text)
 			.Should()
 			.Equal("C", "D", "A");
 
-		await store
-			.Received()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+		received
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.TryUnlockAndMergeAsync" />: a wrong password is a no-op.
+	/// Test of <see cref="ClipboardHistoryService.Merge" />: the history cap is enforced.
 	/// </summary>
 	[Test]
-	public async Task TryUnlockAndMerge_Wrong_Password_Does_Not_Merge_Or_Save()
+	public void Merge_Enforces_History_Cap()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IMessenger messenger = new WeakReferenceMessenger();
 
-		store.IsUnlocked.Returns(false);
-
-		store
-			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardHistoryUnlockResult(ClipboardHistoryUnlockStatus.WrongPassword, []));
-
-		using AutoMock mock = CreateMock(store, persist: true);
+		using AutoMock mock = CreateMock(messenger);
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
-		sut.Entries.Add(TextEntry("E", [5]));
+		for (int i = 0; i < 25; i++)
+		{
+			sut.Entries.Add(TextEntry($"cur{i}", [(byte)i]));
+		}
 
 		// Act
-		ClipboardHistoryUnlockStatus status = await sut.TryUnlockAndMergeAsync(Password("wrong"));
+		sut.Merge([TextEntry("overflow", [200])]);
 
 		// Assert
-		status
-			.Should()
-			.Be(ClipboardHistoryUnlockStatus.WrongPassword);
-
 		sut.Entries
 			.Should()
-			.ContainSingle();
+			.HaveCount(25);
 
-		await store
-			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+		sut.Entries
+			.Cast<ClipboardTextEntry>()
+			.Should()
+			.NotContain(x => x.Text == "overflow");
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Moves_To_Top_And_Raises_Updated()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = CreateMock(messenger);
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry target = TextEntry("target", [2]);
+
+		sut.Entries.Add(TextEntry("other", [1]));
+
+		sut.Entries.Add(target);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act
+		await sut.RestoreAsync(target);
+
+		// Assert
+		sut.Entries[0]
+			.Should()
+			.Be(target);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Builds an auto-mock container wiring the supplied store, a synchronous dispatcher and a
-	/// settings manager whose <see cref="AppSettings.PersistClipboardHistory" /> equals <paramref name="persist" />.
+	/// Records the kinds of every <see cref="ClipboardHistoryChangedMessage" /> sent on <paramref name="messenger" />.
 	/// </summary>
-	private static AutoMock CreateMock(IClipboardHistoryStore store, bool persist)
+	private static List<ClipboardHistoryChangeKind> Capture(IMessenger messenger)
+	{
+		List<ClipboardHistoryChangeKind> received = [];
+
+		messenger.Register<ClipboardHistoryChangedMessage>(
+			received,
+			static (recipient, message) => ((List<ClipboardHistoryChangeKind>)recipient).Add(message.Kind));
+
+		return received;
+	}
+
+	/// <summary>
+	/// Builds an auto-mock container with a synchronous dispatcher and the supplied messenger.
+	/// </summary>
+	private static AutoMock CreateMock(IMessenger messenger)
 	{
 		return AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
-
-			settingsManager.Settings.Returns(new AppSettings
-			{
-				Language = "en-us",
-				PrimaryColor = default,
-				SecondaryColor = default,
-				Theme = default,
-				PersistClipboardHistory = persist
-			});
-
 			builder
 				.RegisterInstance(new InlineDispatcherAccessor())
 				.As<IDispatcherAccessor>();
@@ -276,16 +210,9 @@ internal class ClipboardHistoryServiceTests
 
 			builder.RegisterInstance(Substitute.For<IStorageAccessor>());
 
-			builder.RegisterInstance(settingsManager);
-
-			builder.RegisterInstance(store);
+			builder.RegisterInstance(messenger);
 		});
 	}
-
-	/// <summary>
-	/// UTF-8 password bytes.
-	/// </summary>
-	private static byte[] Password(string value) => TextHelper.Utf8Encoding.GetBytes(value);
 
 	/// <summary>
 	/// A minimal text entry with the given hash.

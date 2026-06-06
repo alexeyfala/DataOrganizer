@@ -26,6 +26,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
 
+	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
+	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
 
@@ -59,6 +62,7 @@ public sealed class AppController : IAppController
 		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService clipboardHistory,
+		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
@@ -72,6 +76,8 @@ public sealed class AppController : IAppController
 		_appEnvironment = appEnvironment;
 
 		_clipboardHistory = clipboardHistory;
+
+		_clipboardHistoryPersistence = clipboardHistoryPersistence;
 
 		_consoleWindowHost = consoleWindowHost;
 
@@ -139,6 +145,11 @@ public sealed class AppController : IAppController
 			_viewLauncher
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
+
+			// Touch the persistence coordinator so it is constructed and subscribed to the
+			// clipboard history change notifications for the whole application lifetime.
+			_logger.LogDebug(
+				$"{nameof(IClipboardHistoryPersistenceCoordinator)} ready (RequiresUnlock = {_clipboardHistoryPersistence.RequiresUnlock}).");
 
 			if (_settingsManager.Settings.TrackClipboardHistory)
 			{
