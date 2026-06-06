@@ -9,7 +9,7 @@ namespace DataOrganizer.DTO.Clipboard.Persistence;
 [JsonDerivedType(typeof(PersistedTextEntry), "text")]
 [JsonDerivedType(typeof(PersistedImageEntry), "image")]
 [JsonDerivedType(typeof(PersistedFilesEntry), "files")]
-public abstract class PersistedClipboardEntry
+public abstract class PersistedClipboardEntryBase
 {
 	#region Properties
 	/// <summary>

@@ -4,7 +4,7 @@ namespace DataOrganizer.DTO.Clipboard.Persistence;
 /// Persisted plain-text entry, optionally carrying HTML / RTF companion formats.
 /// The URL vs. plain-text distinction is re-derived on load, so it is not stored.
 /// </summary>
-public sealed class PersistedTextEntry : PersistedClipboardEntry
+public sealed class PersistedTextEntry : PersistedClipboardEntryBase
 {
 	#region Properties
 	/// <summary>

@@ -225,6 +225,12 @@ public sealed class FileSystem : IFileSystem
 		options: FileOptions.Asynchronous | FileOptions.SequentialScan);
 
 	/// <inheritdoc />
+	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
+	{
+		return File.ReadAllBytesAsync(filePath, token);
+	}
+
+	/// <inheritdoc />
 	public string ReadAllText(string filePath) => File.ReadAllText(filePath);
 
 	/// <inheritdoc />

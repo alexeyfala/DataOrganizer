@@ -18,7 +18,7 @@ public sealed class PersistedClipboardHistory
 	/// <summary>
 	/// History entries, newest first.
 	/// </summary>
-	public List<PersistedClipboardEntry> Entries { get; set; } = [];
+	public List<PersistedClipboardEntryBase> Entries { get; set; } = [];
 
 	/// <summary>
 	/// Payload schema version (see <see cref="CurrentVersion" />).

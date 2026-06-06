@@ -5,7 +5,7 @@ namespace DataOrganizer.DTO.Clipboard.Persistence;
 /// <summary>
 /// Persisted entry holding a captured list of filesystem items.
 /// </summary>
-public sealed class PersistedFilesEntry : PersistedClipboardEntry
+public sealed class PersistedFilesEntry : PersistedClipboardEntryBase
 {
 	#region Properties
 	/// <summary>

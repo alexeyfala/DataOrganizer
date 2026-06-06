@@ -20,7 +20,7 @@ public static partial class ClipboardHistoryMapper
 	{
 		List<ClipboardHistoryEntryBase> result = new(history.Entries.Count);
 
-		foreach (PersistedClipboardEntry entry in history.Entries)
+		foreach (PersistedClipboardEntryBase entry in history.Entries)
 		{
 			if (ToDomainEntry(entry) is { } domain)
 			{
@@ -88,7 +88,7 @@ public static partial class ClipboardHistoryMapper
 	/// <summary>
 	/// Maps a single persisted entry to its domain counterpart; <c>null</c> for unknown types.
 	/// </summary>
-	private static ClipboardHistoryEntryBase? ToDomainEntry(PersistedClipboardEntry entry) => entry switch
+	private static ClipboardHistoryEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
 	{
 		PersistedImageEntry image => new ClipboardImageEntry
 		{
@@ -107,7 +107,7 @@ public static partial class ClipboardHistoryMapper
 	/// <summary>
 	/// Maps a single domain entry to its persisted counterpart; <c>null</c> for unknown types.
 	/// </summary>
-	private static PersistedClipboardEntry? ToPersistedEntry(ClipboardHistoryEntryBase entry) => entry switch
+	private static PersistedClipboardEntryBase? ToPersistedEntry(ClipboardHistoryEntryBase entry) => entry switch
 	{
 		ClipboardImageEntry image => new PersistedImageEntry
 		{
