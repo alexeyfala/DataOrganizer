@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Cysharp.Text;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -29,6 +31,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
+
+	/// <inheritdoc />
+	public bool RequiresUnlock => _settingsManager.Settings.PersistClipboardHistory && !_store.IsUnlocked;
 	#endregion
 
 	#region Data
@@ -54,6 +59,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// Platform byte[] format for RTF.
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
+
+	/// <summary>
+	/// How long after the last change to wait before writing the encrypted journal,
+	/// coalescing bursts of clipboard activity into a single save.
+	/// </summary>
+	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(1500.0);
 
 	/// <summary>
 	/// Clipboard format identifiers (Windows / Linux / macOS) that password managers set to flag
@@ -95,8 +106,14 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IAppSettingsManager" />
+	private readonly IAppSettingsManager _settingsManager;
+
 	/// <inheritdoc cref="IStorageAccessor" />
 	private readonly IStorageAccessor _storage;
+
+	/// <inheritdoc cref="IClipboardHistoryStore" />
+	private readonly IClipboardHistoryStore _store;
 
 	/// <summary>
 	/// <c>True</c> when the service has already been disposed.
@@ -122,9 +139,20 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private Task? _loopTask;
 
 	/// <summary>
+	/// Cancellation source for the pending debounced save; accessed on the UI thread only.
+	/// </summary>
+	private CancellationTokenSource? _pendingSaveCts;
+
+	/// <summary>
 	/// Linked cancellation source created on start from the user token.
 	/// </summary>
 	private CancellationTokenSource? _stopCts;
+
+	/// <summary>
+	/// When <c>True</c>, <see cref="Entries" /> changes do not schedule a save (used while
+	/// merging on unlock and while clearing).
+	/// </summary>
+	private bool _suppressAutosave;
 
 	/// <summary>
 	/// When <c>True</c>, the next poll tick skips its match check.
@@ -137,7 +165,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		IClipboardAccessor clipboard,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IStorageAccessor storage)
+		IAppSettingsManager settingsManager,
+		IStorageAccessor storage,
+		IClipboardHistoryStore store)
 	{
 		_clipboard = clipboard;
 
@@ -145,7 +175,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		_logger = logger;
 
+		_settingsManager = settingsManager;
+
 		_storage = storage;
+
+		_store = store;
+
+		Entries.CollectionChanged += OnEntriesChanged;
 	}
 	#endregion
 
@@ -155,6 +191,14 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc />
 	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false);
+
+	/// <inheritdoc />
+	public void DisablePersistence()
+	{
+		CancelPendingSave();
+
+		_store.EraseAll();
+	}
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -178,6 +222,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				_logger.LogDebug($"Clipboard loop ended with an error during dispose: {ex.Message}");
 			}
 		}
+
+		Entries.CollectionChanged -= OnEntriesChanged;
+
+		// Persist any changes still within the debounce window before shutting down.
+		CancelPendingSave();
+
+		await FlushAsync().ConfigureAwait(false);
 
 		await _clearGate
 			.WaitAsync()
@@ -299,6 +350,46 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		{
 			local.Dispose();
 		}
+	}
+
+	/// <inheritdoc />
+	public async Task<ClipboardHistoryUnlockStatus> TryUnlockAndMergeAsync(
+		byte[] password,
+		CancellationToken token = default)
+	{
+		if (IsDisposed())
+		{
+			return ClipboardHistoryUnlockStatus.Failed;
+		}
+
+		ClipboardHistoryUnlockResult result = await _store
+			.TryUnlockAsync(password, token)
+			.ConfigureAwait(false);
+
+		if (result.Status != ClipboardHistoryUnlockStatus.Unlocked)
+		{
+			return result.Status;
+		}
+
+		// Merge previous-session entries on the UI thread; suppress autosave so the bulk
+		// insertion does not schedule a save per item (a single explicit save follows).
+		await _dispatcher.PostAsync(() =>
+		{
+			_suppressAutosave = true;
+
+			try
+			{
+				MergeLoaded(result.Entries);
+			}
+			finally
+			{
+				_suppressAutosave = false;
+			}
+		}).ConfigureAwait(false);
+
+		await SaveSnapshotAsync(token).ConfigureAwait(false);
+
+		return ClipboardHistoryUnlockStatus.Unlocked;
 	}
 	#endregion
 
@@ -517,6 +608,23 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Cancels the pending debounced save, if any. UI-thread only.
+	/// </summary>
+	private void CancelPendingSave()
+	{
+		CancellationTokenSource? pending = Interlocked.Exchange(ref _pendingSaveCts, null);
+
+		try
+		{
+			pending?.Cancel();
+		}
+		catch (ObjectDisposedException)
+		{
+			// Already completed and disposed — nothing to do.
+		}
+	}
+
+	/// <summary>
 	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally
 	/// emptying the system clipboard so cleared content is not re-captured until a new copy.
 	/// </summary>
@@ -533,6 +641,10 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
+			// Drop any scheduled save and suppress the one the upcoming clear would trigger,
+			// so the just-erased journal is not immediately rewritten with an empty payload.
+			CancelPendingSave();
+
 			// Touching Entries (and reading Count for the log) must happen on the UI thread.
 			await _dispatcher.PostAsync(() =>
 			{
@@ -540,10 +652,25 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					$"Clearing clipboard history ({Entries.Count} entries)" +
 					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
 
-				Entries.Clear();
+				_suppressAutosave = true;
+
+				try
+				{
+					Entries.Clear();
+				}
+				finally
+				{
+					_suppressAutosave = false;
+				}
 
 				_lastHash = null;
 			}).ConfigureAwait(false);
+
+			// The on-disk journal is cleared too (the wrapped key is kept so the session keeps persisting).
+			if (_store.IsUnlocked)
+			{
+				_store.EraseHistory();
+			}
 
 			if (!clearSystem)
 			{
@@ -594,6 +721,19 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 			return false;
 		}
+	}
+
+	/// <summary>
+	/// Forces an immediate save of the current entries when persistence is unlocked.
+	/// </summary>
+	private async Task FlushAsync()
+	{
+		if (!_store.IsUnlocked)
+		{
+			return;
+		}
+
+		await SaveSnapshotAsync(CancellationToken.None).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -718,6 +858,28 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Appends previous-session <paramref name="loaded" /> entries below the current ones,
+	/// skipping hash duplicates and enforcing the history cap. UI-thread only.
+	/// </summary>
+	private void MergeLoaded(IReadOnlyList<ClipboardHistoryEntryBase> loaded)
+	{
+		foreach (ClipboardHistoryEntryBase entry in loaded)
+		{
+			if (Entries.Count >= HistoryLimit)
+			{
+				break;
+			}
+
+			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			{
+				continue;
+			}
+
+			Entries.Add(entry);
+		}
+	}
+
+	/// <summary>
 	/// Moves <paramref name="entry" /> to position 0 if it is already in the collection,
 	/// otherwise inserts it.
 	/// </summary>
@@ -738,6 +900,19 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Entries.Move(index, 0);
+	}
+
+	/// <summary>
+	/// Schedules a debounced save when a change occurs after persistence is unlocked.
+	/// </summary>
+	private void OnEntriesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+	{
+		if (IsDisposed() || _suppressAutosave || !_store.IsUnlocked)
+		{
+			return;
+		}
+
+		ScheduleSave();
 	}
 
 	/// <summary>
@@ -807,6 +982,68 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		{
 			_clearGate.Release();
 		}
+	}
+
+	/// <summary>
+	/// Runs the debounce delay, then saves; cancellation (a newer change or clear) drops the save.
+	/// </summary>
+	private async Task RunDebouncedSaveAsync(CancellationTokenSource cancellation)
+	{
+		try
+		{
+			await Task
+				.Delay(SaveDebounce, cancellation.Token)
+				.ConfigureAwait(false);
+
+			await SaveSnapshotAsync(cancellation.Token).ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			// Superseded by a newer change or cancelled by clear / dispose.
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, isAssertDebug: false);
+		}
+		finally
+		{
+			Interlocked.CompareExchange(ref _pendingSaveCts, null, cancellation);
+
+			cancellation.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Snapshots <see cref="Entries" /> on the UI thread and writes the encrypted journal.
+	/// </summary>
+	private async Task SaveSnapshotAsync(CancellationToken token)
+	{
+		if (!_store.IsUnlocked)
+		{
+			return;
+		}
+
+		ClipboardHistoryEntryBase[] snapshot = await _dispatcher
+			.PostAsync(() => Entries.ToArray())
+			.ConfigureAwait(false);
+
+		await _store
+			.SaveAsync(snapshot, token)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Cancels any pending save and starts a fresh debounced one. UI-thread only.
+	/// </summary>
+	private void ScheduleSave()
+	{
+		CancelPendingSave();
+
+		CancellationTokenSource cancellation = new();
+
+		_pendingSaveCts = cancellation;
+
+		_ = RunDebouncedSaveAsync(cancellation);
 	}
 
 	/// <summary>

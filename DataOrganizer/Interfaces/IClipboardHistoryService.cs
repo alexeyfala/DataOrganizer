@@ -1,4 +1,5 @@
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Enums;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
@@ -22,6 +23,12 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// <c>True</c> while the background polling is active.
 	/// </summary>
 	bool IsRunning { get; }
+
+	/// <summary>
+	/// <c>True</c> when persistence is enabled in settings but the on-disk history has not
+	/// been unlocked yet this session (the caller should prompt for a password).
+	/// </summary>
+	bool RequiresUnlock { get; }
 	#endregion
 
 	#region Methods
@@ -30,6 +37,12 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// system clipboard, so cleared content is not re-captured until a new copy occurs.
 	/// </summary>
 	Task ClearAsync();
+
+	/// <summary>
+	/// Disables on-disk persistence: erases the stored journal and key and forgets the
+	/// in-session key. Called when the user turns persistence off.
+	/// </summary>
+	void DisablePersistence();
 
 	/// <summary>
 	/// Clears <see cref="Entries" /> and forgets the last observed payload, without
@@ -47,6 +60,12 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// Starts background polling. Safe to call more than once.
 	/// </summary>
 	Task StartAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Unlocks (or creates) the on-disk history with <paramref name="password" />, merges the
+	/// loaded entries into <see cref="Entries" /> and enables persistence for the session.
+	/// </summary>
+	Task<ClipboardHistoryUnlockStatus> TryUnlockAndMergeAsync(byte[] password, CancellationToken token = default);
 
 	/// <summary>
 	/// Stops background polling without disposing the service.
