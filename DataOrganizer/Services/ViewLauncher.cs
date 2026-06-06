@@ -15,6 +15,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -679,18 +680,16 @@ public class ViewLauncher : IViewLauncher
 
 	/// <summary>
 	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
-	/// saved history. Cancelling the prompt leaves the session in-memory only; a wrong password re-prompts.
+	/// saved history. Cancelling the prompt leaves the session in-memory only.
 	/// </summary>
 	private async Task UnlockClipboardHistoryIfRequiredAsync()
 	{
-		const string header = "Clipboard history";
-
-		string label = "Enter the password to load saved history (or cancel to keep this session in memory only)";
+		string label = $"{Strings.EnterThePasswordToLoadSavedHistory} ({Strings.OrCancelToKeepSessionInMemory})";
 
 		while (_clipboardHistoryPersistence.RequiresUnlock)
 		{
 			char[] password = await _dialogService
-				.RequestPasswordAsync(header, label)
+				.RequestPasswordAsync(Strings.ClipboardHistory, label)
 				.ConfigureAwait(true);
 
 			if (password.IsEmpty())
@@ -713,7 +712,7 @@ public class ViewLauncher : IViewLauncher
 					return;
 				}
 
-				label = "Incorrect password. Try again (or cancel to keep this session in memory only)";
+				label = $"{Strings.IncorrectPassword}. {Strings.TryAgain} ({Strings.OrCancelToKeepSessionInMemory})";
 			}
 			finally
 			{

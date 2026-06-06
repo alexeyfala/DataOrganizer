@@ -550,4 +550,16 @@
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
     <value>Persist history between sessions (encrypted)</value>
   </data>
+  <data name="ClipboardHistory" xml:space="preserve">
+    <value>Clipboard history</value>
+  </data>
+  <data name="OrCancelToKeepSessionInMemory" xml:space="preserve">
+    <value>or cancel to keep this session in memory only</value>
+  </data>
+  <data name="EnterThePasswordToLoadSavedHistory" xml:space="preserve">
+    <value>Enter the password to load saved history</value>
+  </data>
+  <data name="TryAgain" xml:space="preserve">
+    <value>Try again</value>
+  </data>
 </root>
