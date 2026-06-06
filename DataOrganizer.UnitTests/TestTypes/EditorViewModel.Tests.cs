@@ -744,6 +744,14 @@ internal class EditorViewModelTests
 		// Assert
 		if (isSave)
 		{
+			await hook
+				.Received()
+				.StopTrackingAsync();
+
+			await hook
+				.Received()
+				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+
 			settingsManager
 				.Received()
 				.OverwriteSettings(Arg.Any<AppSettings>());
@@ -759,14 +767,6 @@ internal class EditorViewModelTests
 				.ApplyMaterialTheme();
 
 		}
-
-		await hook
-			.Received()
-			.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
-
-		await hook
-			.Received()
-			.StopTrackingAsync();
 	}
 
 	/// <summary>

@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed partial class ClipboardHistoryService : IClipboardHistoryService
+public sealed class ClipboardHistoryService : IClipboardHistoryService
 {
 	#region Properties
 	/// <inheritdoc />
@@ -78,7 +78,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
 	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
 	/// </summary>
-	private static readonly Regex WholeStringUrlRegex = GetWholeStringUrlRegex();
+	private static readonly Regex WholeStringUrlRegex = ClipboardHistoryMapper.WholeStringUrlRegex();
 
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
@@ -477,12 +477,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			return DataFormat.CreateBytesPlatformFormat("text/rtf");
 		}
 	}
-
-	/// <summary>
-	/// Matches when the entire input is an http(s) URL.
-	/// </summary>
-	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
-	private static partial Regex GetWholeStringUrlRegex();
 
 	/// <summary>
 	/// <c>True</c> when two payload hashes are byte-equal.
