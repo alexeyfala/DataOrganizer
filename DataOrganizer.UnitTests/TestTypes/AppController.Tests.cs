@@ -7,7 +7,6 @@ using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -35,6 +34,12 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(IAppSettingsManager.CreateDefaultSettings());
+
 			options
 				.PrintHelp
 				.Returns(true);
@@ -48,6 +53,8 @@ internal class AppControllerTests
 			builder.RegisterInstance(viewLauncher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(settingsManager);
 		});
 
 		AppController sut = mock.Create<AppController>();
