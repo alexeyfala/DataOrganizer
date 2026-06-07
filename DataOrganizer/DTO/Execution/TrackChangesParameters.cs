@@ -1,6 +1,4 @@
-﻿using DataOrganizer.Abstract;
-
-namespace DataOrganizer.DTO;
+﻿namespace DataOrganizer.DTO.Execution;
 
 public sealed class TrackChangesParameters : ExecuteFileParametersBase
 {

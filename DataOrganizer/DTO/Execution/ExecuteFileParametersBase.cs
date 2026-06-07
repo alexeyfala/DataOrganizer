@@ -1,6 +1,6 @@
 ﻿using DataOrganizer.DTO.Entities.Models;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.DTO.Execution;
 
 public abstract class ExecuteFileParametersBase
 {
