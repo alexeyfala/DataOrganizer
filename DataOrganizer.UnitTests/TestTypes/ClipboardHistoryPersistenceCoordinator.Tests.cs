@@ -63,6 +63,42 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
+	/// Test that a burst of change notifications is coalesced by the debounce into a single save.
+	/// </summary>
+	[Test]
+	public async Task Debounce_Coalesces_Burst_Into_Single_Save()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(true);
+
+		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
+
+		service.Entries.Returns([TextEntry("a", [1])]);
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store, messenger, SaveDebounce);
+
+		sut.Start();
+
+		// Act (three rapid changes — each cancels the previous pending save).
+		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		await Task.Delay(SaveSettleDelay);
+
+		// Assert
+		await store
+			.Received(1)
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />.
 	/// </summary>
 	[Test]
@@ -82,6 +118,65 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		store
 			.Received()
 			.EraseAll();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: it unsubscribes, so a later
+	/// change raises no further save (the only save is the dispose-time flush).
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_Unsubscribes_From_Further_Changes()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(true);
+
+		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
+
+		service.Entries.Returns([TextEntry("a", [1])]);
+
+		ClipboardHistoryPersistenceCoordinator sut = CreateSut(Settings(persist: true), service, store, messenger, SaveDebounce);
+
+		sut.Start();
+
+		await sut.DisposeAsync();
+
+		// Act (a change after dispose must not be handled).
+		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+
+		await Task.Delay(SaveSettleDelay);
+
+		// Assert (the single save is the dispose-time flush; the post-dispose change added none).
+		await store
+			.Received(1)
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: a locked store is not saved on flush.
+	/// </summary>
+	[Test]
+	public async Task DisposeAsync_When_Locked_Does_Not_Save()
+	{
+		// Arrange
+		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+
+		store.IsUnlocked.Returns(false);
+
+		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
+
+		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
+
+		// Act
+		await sut.DisposeAsync();
+
+		// Assert
+		await store
+			.DidNotReceive()
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
