@@ -1,11 +1,10 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
-using DataOrganizer.Models;
+using DataOrganizer.Models.Dataset;
 using Repository.DTO;
 using Shared.Common;
 using SharpHook.Data;

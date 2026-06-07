@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using DataOrganizer.Models;
+using DataOrganizer.Models.Dataset;
 using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Views;

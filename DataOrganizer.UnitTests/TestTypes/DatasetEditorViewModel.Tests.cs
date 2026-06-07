@@ -2,10 +2,9 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Models;
+using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using Entities.Models;

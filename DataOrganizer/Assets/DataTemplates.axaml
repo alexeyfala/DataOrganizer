@@ -1,21 +1,20 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:abstract="using:DataOrganizer.Abstract"
 	xmlns:adc="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:dataset="using:DataOrganizer.Models.Dataset"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:localDto="using:DataOrganizer.DTO"
-	xmlns:localModels="using:DataOrganizer.Models"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
 	xmlns:system="using:System"
+	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
@@ -234,7 +233,7 @@
 	<!-- KeyValueRecordTemplate -->
 	<DataTemplate
 		x:Key="KeyValueRecordTemplate"
-		x:DataType="localModels:KeyValueRecord">
+		x:DataType="dataset:KeyValueRecord">
 		<Grid
 			Classes="PointerOverBackgroundStyle"
 			ColumnDefinitions="Auto,*">
@@ -271,7 +270,7 @@
 	<!-- ValueRecordTemplate -->
 	<DataTemplate
 		x:Key="ValueRecordTemplate"
-		x:DataType="localModels:ValueRecord">
+		x:DataType="dataset:ValueRecord">
 		<Grid Classes="PointerOverBackgroundStyle">
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -296,7 +295,7 @@
 	<!-- RecordsGroupTemplate -->
 	<DataTemplate
 		x:Key="RecordsGroupTemplate"
-		x:DataType="localModels:RecordsGroup">
+		x:DataType="dataset:RecordsGroup">
 		<!-- BorderBrush="{StaticResource MaterialDividerBrush}" -->
 		<Border
 			Padding="4.0"
@@ -322,7 +321,7 @@
 				</Expander.Styles>
 
 				<Expander.HeaderTemplate>
-					<DataTemplate x:DataType="localModels:RecordsGroup">
+					<DataTemplate x:DataType="dataset:RecordsGroup">
 						<Grid
 							Classes="PointerOverBackgroundStyle"
 							ColumnDefinitions="Auto,*">
@@ -359,13 +358,13 @@
 					<DataTemplate>
 						<ItemsControl ItemsSource="{Binding Mode=OneTime}">
 							<ItemsControl.ItemTemplate>
-								<helpers:DatasetRecordTemplateSelector>
+								<templateSelectors:DatasetRecordTemplateSelector>
 									<StaticResource ResourceKey="KeyValueRecordTemplate" />
 
 									<StaticResource ResourceKey="RecordsGroupTemplate" />
 
 									<StaticResource ResourceKey="ValueRecordTemplate" />
-								</helpers:DatasetRecordTemplateSelector>
+								</templateSelectors:DatasetRecordTemplateSelector>
 							</ItemsControl.ItemTemplate>
 
 							<ItemsControl.ItemContainerTheme>
@@ -431,7 +430,7 @@
 							Text="{Binding Name, Mode=OneTime}" />
 
 						<wrappers:FlyoutButton
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 							CommandParameter="{Binding Id}"
 							Header="{x:Static prop:Strings.ShowInEditor}"
 							Icon="FileTree" />
@@ -455,7 +454,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -484,7 +483,7 @@
 			<Button
 				Grid.Column="0"
 				Classes="primary"
-				Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).CopyContentCommand}"
+				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).CopyContentCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ContentCopy}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.CopyContent}">
@@ -519,13 +518,13 @@
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="PointerEntered">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 
 					<EventTriggerBehavior EventName="PointerExited">
 						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerExitedCommand}"
 							CommandParameter="{Binding #Icon}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
@@ -550,7 +549,7 @@
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -615,7 +614,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((abstract:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
+						Command="{Binding $parent[Window].((vm:ViewModelBase)DataContext).CopyHistoryDisplayedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -722,14 +721,14 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<helpers:ClipboardEntryTemplateSelector
+						<templateSelectors:ClipboardEntryTemplateSelector
 							FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
 							PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
 
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
-						</helpers:ClipboardEntryTemplateSelector>
+						</templateSelectors:ClipboardEntryTemplateSelector>
 					</ContentControl.ContentTemplate>
 				</ContentControl>
 

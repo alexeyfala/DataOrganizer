@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;

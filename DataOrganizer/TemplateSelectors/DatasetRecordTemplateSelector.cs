@@ -1,10 +1,11 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Templates;
-using DataOrganizer.Abstract;
+using DataOrganizer.Helpers;
+using DataOrganizer.Models.Dataset;
 using System.Linq;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.TemplateSelectors;
 
 internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDataTemplate
 {

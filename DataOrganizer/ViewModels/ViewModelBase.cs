@@ -13,7 +13,6 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
-using DataOrganizer.ViewModels;
 using Material.Styles.Controls;
 using Material.Styles.Models;
 using Repository.Interfaces;
@@ -30,7 +29,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// Base view model.

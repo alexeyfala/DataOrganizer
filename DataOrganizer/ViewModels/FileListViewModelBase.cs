@@ -23,7 +23,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
 public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 {

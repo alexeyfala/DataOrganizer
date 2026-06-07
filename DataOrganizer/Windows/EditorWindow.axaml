@@ -8,11 +8,11 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
@@ -377,11 +377,11 @@
 							SideSheetPadding="4.0"
 							Theme="{StaticResource ScrollableSideSheet}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
-								<helpers:RightSideSheetContentTemplateSelector>
+								<templateSelectors:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 									<StaticResource ResourceKey="ExecutingFilesTemplate" />
-								</helpers:RightSideSheetContentTemplateSelector>
+								</templateSelectors:RightSideSheetContentTemplateSelector>
 							</materialControls:SideSheet.SideSheetContentTemplate>
 						</materialControls:SideSheet>
 

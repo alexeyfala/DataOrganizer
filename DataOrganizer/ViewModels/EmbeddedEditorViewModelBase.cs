@@ -20,7 +20,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
 public abstract partial class EmbeddedEditorViewModelBase :
 	ObservableDisposableBase,

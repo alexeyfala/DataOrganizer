@@ -1,6 +1,5 @@
-﻿using DataOrganizer.Abstract;
-using DataOrganizer.Helpers;
-using DataOrganizer.Models;
+﻿using DataOrganizer.Helpers;
+using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Repository.DTO;
 using Repository.Interfaces;

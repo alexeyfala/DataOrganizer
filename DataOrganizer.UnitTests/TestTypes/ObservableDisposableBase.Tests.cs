@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Abstract;
+using DataOrganizer.ViewModels;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;

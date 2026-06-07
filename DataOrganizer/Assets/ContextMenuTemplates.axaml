@@ -1,9 +1,8 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:abstract="using:DataOrganizer.Abstract"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:localModels="using:DataOrganizer.Models"
+	xmlns:dataset="using:DataOrganizer.Models.Dataset"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
@@ -17,7 +16,7 @@
 	<!-- KeyValueRecordContextMenuTemplate -->
 	<DataTemplate
 		x:Key="KeyValueRecordContextMenuTemplate"
-		x:DataType="localModels:KeyValueRecord">
+		x:DataType="dataset:KeyValueRecord">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -62,7 +61,7 @@
 	<!-- ValueRecordContextMenuTemplate -->
 	<DataTemplate
 		x:Key="ValueRecordContextMenuTemplate"
-		x:DataType="localModels:ValueRecord">
+		x:DataType="dataset:ValueRecord">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -101,7 +100,7 @@
 	<!-- RecordsGroupContextMenuTemplate -->
 	<DataTemplate
 		x:Key="RecordsGroupContextMenuTemplate"
-		x:DataType="localModels:RecordsGroup">
+		x:DataType="dataset:RecordsGroup">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -476,7 +475,7 @@
 				Text="{Binding Name, Mode=OneTime}" />
 
 			<wrappers:FlyoutButton
-				Command="{Binding $parent[UserControl].((abstract:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+				Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
 				CommandParameter="{Binding Id}"
 				Header="{x:Static prop:Strings.ShowInEditor}"
 				Icon="FileTree" />

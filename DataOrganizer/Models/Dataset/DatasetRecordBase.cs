@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Models;
 using System.Text.Json.Serialization;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.Models.Dataset;
 
-[JsonDerivedType(typeof(KeyValueRecord), typeDiscriminator: nameof(KeyValueRecord))]
-[JsonDerivedType(typeof(RecordsGroup), typeDiscriminator: nameof(RecordsGroup))]
-[JsonDerivedType(typeof(ValueRecord), typeDiscriminator: nameof(ValueRecord))]
+[JsonDerivedType(typeof(KeyValueRecord), "KeyValue")]
+[JsonDerivedType(typeof(RecordsGroup), "Group")]
+[JsonDerivedType(typeof(ValueRecord), "Value")]
 public abstract partial class DatasetRecordBase : ObservableObject
 {
 	#region Properties

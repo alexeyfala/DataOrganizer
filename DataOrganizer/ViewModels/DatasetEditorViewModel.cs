@@ -11,7 +11,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Models;
+using DataOrganizer.Models.Dataset;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;

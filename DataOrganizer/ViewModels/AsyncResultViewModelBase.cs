@@ -8,7 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
 public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 {

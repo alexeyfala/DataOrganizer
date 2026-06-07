@@ -1,9 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.TemplateSelectors;
 
 internal sealed class RightSideSheetContentTemplateSelector : TemplateSelectorBase, IDataTemplate
 {

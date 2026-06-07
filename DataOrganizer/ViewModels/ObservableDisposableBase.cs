@@ -3,7 +3,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Threading;
 
-namespace DataOrganizer.Abstract;
+namespace DataOrganizer.ViewModels;
 
 public abstract class ObservableDisposableBase : ObservableObject, IDisposable
 {

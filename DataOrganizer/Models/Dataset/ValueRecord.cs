@@ -1,8 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Abstract;
 using System.Diagnostics;
 
-namespace DataOrganizer.Models;
+namespace DataOrganizer.Models.Dataset;
 
 [DebuggerDisplay($"{nameof(Type)} = {{{nameof(Type)}}}, {nameof(Value)} = {{{nameof(Value)}}}")]
 public partial class ValueRecord : DatasetRecordBase
