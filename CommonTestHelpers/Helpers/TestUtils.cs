@@ -1,5 +1,5 @@
-﻿using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
+﻿using DataOrganizer.DTO.Entities;
+using DataOrganizer.DTO.Favorites;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using Entities.Enums;

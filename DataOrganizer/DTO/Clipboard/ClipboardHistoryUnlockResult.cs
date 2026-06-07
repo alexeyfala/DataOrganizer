@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Clipboard;
 using System.Collections.Generic;
 
 namespace DataOrganizer.DTO.Clipboard;

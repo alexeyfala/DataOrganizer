@@ -1,5 +1,5 @@
 ﻿using DataOrganizer.DTO.Dataset;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using Entities.Enums;
 using Repository.DTO;
 using Repository.Interfaces;

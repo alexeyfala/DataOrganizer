@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 

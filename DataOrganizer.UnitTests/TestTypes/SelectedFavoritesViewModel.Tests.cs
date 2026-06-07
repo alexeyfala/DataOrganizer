@@ -1,7 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
+using DataOrganizer.DTO.Favorites;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;

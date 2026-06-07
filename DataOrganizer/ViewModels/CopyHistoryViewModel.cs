@@ -6,6 +6,8 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Encryption;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;

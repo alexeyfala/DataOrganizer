@@ -8,6 +8,7 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;

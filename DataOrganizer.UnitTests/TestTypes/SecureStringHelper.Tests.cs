@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;
 
@@ -60,7 +60,7 @@ internal class SecureStringHelperTests
 	public void WipeString_Does_Nothing_For_Empty_String()
 	{
 		// Arrange
-		string source = new(Array.Empty<char>());
+		string source = new([]);
 
 		// Act
 		Action act = () => SecureStringHelper.WipeString(source);

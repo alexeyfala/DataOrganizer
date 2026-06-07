@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using Serilog.Events;
 using System;

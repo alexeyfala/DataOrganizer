@@ -1,6 +1,6 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;

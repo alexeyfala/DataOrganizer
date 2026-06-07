@@ -5,7 +5,7 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.DTO;

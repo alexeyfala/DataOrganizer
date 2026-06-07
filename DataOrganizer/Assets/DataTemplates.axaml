@@ -7,8 +7,8 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
-	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
@@ -400,7 +400,7 @@
 	<!-- FavoriteCategoryTemplate -->
 	<DataTemplate
 		x:Key="FavoriteCategoryTemplate"
-		x:DataType="localDto:FavoriteCategory">
+		x:DataType="favorites:FavoriteCategory">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">

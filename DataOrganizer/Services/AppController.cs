@@ -2,6 +2,7 @@ using Cysharp.Text;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using OSVersionExtension;
 using Repository.Interfaces;
 using Serilog;
@@ -16,7 +17,6 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-/// <inheritdoc cref="IAppController" />
 public sealed class AppController : IAppController
 {
 	#region Data

@@ -1,7 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Services;
+using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Encryption;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 

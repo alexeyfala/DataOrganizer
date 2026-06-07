@@ -7,6 +7,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Models;

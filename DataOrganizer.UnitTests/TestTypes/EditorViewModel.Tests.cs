@@ -10,6 +10,8 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
