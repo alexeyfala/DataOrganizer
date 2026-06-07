@@ -25,6 +25,54 @@ internal class ClipboardHistoryServiceTests
 {
 	#region Methods
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.BuildTextEntry" />: plain text becomes a text entry.
+	/// </summary>
+	[Test]
+	public void BuildTextEntry_Builds_Text_Entry_For_Plain_Text()
+	{
+		// Act
+		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
+
+		// Assert
+		ClipboardTextEntry text = entry
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Subject;
+
+		text.Text
+			.Should()
+			.Be("just text");
+
+		text.Html
+			.Should()
+			.Be("<b>x</b>");
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
+	/// </summary>
+	[Test]
+	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
+	{
+		// Act
+		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry("  https://example.com/x  ", null, null, [1]);
+
+		// Assert
+		ClipboardUrlEntry url = entry
+			.Should()
+			.BeOfType<ClipboardUrlEntry>()
+			.Subject;
+
+		url.Url
+			.Should()
+			.Be("https://example.com/x");
+
+		url.Text
+			.Should()
+			.Be("  https://example.com/x  ");
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
@@ -82,6 +130,54 @@ internal class ClipboardHistoryServiceTests
 		received
 			.Should()
 			.Equal(ClipboardHistoryChangeKind.ClearedForStop);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: plain and formatted text hash differently.
+	/// </summary>
+	[Test]
+	public void ComputeTextEntryHash_Differs_Between_Plain_And_Formatted()
+	{
+		// Arrange
+		byte[] plain = ClipboardHistoryService.ComputeTextEntryHash("t", null, null);
+
+		byte[] withHtml = ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null);
+
+		byte[] withRtf = ClipboardHistoryService.ComputeTextEntryHash("t", null, @"{\rtf1 x}");
+
+		// Act, Assert
+		plain
+			.Should()
+			.NotEqual(withHtml);
+
+		plain
+			.Should()
+			.NotEqual(withRtf);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: only the presence of companion
+	/// formats matters, not their (delayed-rendered) payloads.
+	/// </summary>
+	[Test]
+	public void ComputeTextEntryHash_Ignores_Companion_Payload_Differences()
+	{
+		// Act, Assert
+		ClipboardHistoryService.ComputeTextEntryHash("t", "<a>one</a>", null)
+			.Should()
+			.Equal(ClipboardHistoryService.ComputeTextEntryHash("t", "<b>two</b>", null));
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: the same inputs hash identically.
+	/// </summary>
+	[Test]
+	public void ComputeTextEntryHash_Is_Deterministic()
+	{
+		// Act, Assert
+		ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null)
+			.Should()
+			.Equal(ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null));
 	}
 
 	/// <summary>
@@ -227,6 +323,55 @@ internal class ClipboardHistoryServiceTests
 		received
 			.Should()
 			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: same path as a folder vs a file hashes differently.
+	/// </summary>
+	[Test]
+	public void HashFiles_Distinguishes_Folder_From_File()
+	{
+		// Arrange
+		byte[] asFolder = ClipboardHistoryService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: true)]);
+
+		byte[] asFile = ClipboardHistoryService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: false)]);
+
+		// Act, Assert
+		asFolder
+			.Should()
+			.NotEqual(asFile);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: the same list hashes identically.
+	/// </summary>
+	[Test]
+	public void HashFiles_Is_Deterministic()
+	{
+		// Arrange
+		ClipboardFileSystemEntry[] list = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
+
+		// Act, Assert
+		ClipboardHistoryService.HashFiles(list)
+			.Should()
+			.Equal(ClipboardHistoryService.HashFiles(list));
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: ordering of the items affects the hash.
+	/// </summary>
+	[Test]
+	public void HashFiles_Is_Order_Sensitive()
+	{
+		// Arrange
+		ClipboardFileSystemEntry a = new("C:\\a", IsFolder: false);
+
+		ClipboardFileSystemEntry b = new("C:\\b", IsFolder: false);
+
+		// Act, Assert
+		ClipboardHistoryService.HashFiles([a, b])
+			.Should()
+			.NotEqual(ClipboardHistoryService.HashFiles([b, a]));
 	}
 
 	/// <summary>
@@ -396,6 +541,50 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+
+		IStorageFile valid = Substitute.For<IStorageFile>();
+
+		valid.Path.Returns(new Uri("file:///C:/dir/a.txt"));
+
+		IStorageFile relative = Substitute.For<IStorageFile>();
+
+		relative.Path.Returns(new Uri("a.txt", UriKind.Relative));
+
+		clipboard
+			.TryGetFilesAsync()
+			.Returns([valid, relative]);
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		ClipboardFilesEntry entry = sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardFilesEntry>()
+			.Subject;
+
+		entry.FileSystemEntries
+			.Should()
+			.ContainSingle()
+			.Which
+			.IsFolder
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: a sensitivity marker skips the entry.
 	/// </summary>
 	[Test]
@@ -421,6 +610,79 @@ internal class ClipboardHistoryServiceTests
 		sut.Entries
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// Test of the re-baseline path when the restored entry is no longer present: it is inserted at the top.
+	/// </summary>
+	[Test]
+	public async Task Restore_Of_Missing_Entry_Then_Differing_Capture_Inserts_Rebaselined()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		ClipboardTextEntry original = TextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		// The restored entry is gone by the time the next capture arrives.
+		sut.Entries.Clear();
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+
+		// Act
+		sut.HandleNewPayload([2], () => rebaselined);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryService.RestoreAsync" />: restoring the top entry raises no notification.
+	/// </summary>
+	[Test]
+	public async Task Restore_Of_Top_Entry_Raises_No_Notification()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		(ClipboardHistoryService sut, _) = NewService(messenger);
+
+		ClipboardTextEntry top = TextEntry("top", [1]);
+
+		sut.Entries.Add(top);
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act (the entry is already at index 0).
+		await sut.RestoreAsync(top);
+
+		// Assert
+		received
+			.Should()
+			.BeEmpty();
+
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(top);
 	}
 
 	/// <summary>
