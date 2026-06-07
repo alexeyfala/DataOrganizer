@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;

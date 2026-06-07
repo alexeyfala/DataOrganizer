@@ -5,7 +5,6 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;

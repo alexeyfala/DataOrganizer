@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
 using DataOrganizer.Extensions;
 using DataOrganizer.ViewModels;
 using Repository.DTO;

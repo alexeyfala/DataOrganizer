@@ -5,7 +5,6 @@ using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
