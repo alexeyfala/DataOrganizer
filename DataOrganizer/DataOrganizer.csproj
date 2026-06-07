@@ -17,40 +17,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AvaloniaXaml Remove="Assets\ContextMenuTemplates.axaml" />
-		<AvaloniaXaml Remove="Assets\DataTemplates.axaml" />
-		<AvaloniaXaml Remove="Assets\Resources.axaml" />
-		<AvaloniaXaml Remove="Assets\SideSheetControlTheme.axaml" />
-		<AvaloniaXaml Remove="Assets\Styles.axaml" />
-		<AvaloniaXaml Remove="Assets\Themes.axaml" />
 		<AvaloniaXaml Remove="Templates\ClipboardHistoryTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\DataTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaXaml Remove="Styling\Resources.axaml" />
+		<AvaloniaXaml Remove="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaXaml Remove="Styling\Styles.axaml" />
+		<AvaloniaXaml Remove="Styling\Themes.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AvaloniaResource Include="Styling\Resources.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
-	  <AvaloniaResource Include="Styling\SideSheetControlTheme.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
-	  <AvaloniaResource Include="Styling\Styles.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
-	  <AvaloniaResource Include="Styling\Themes.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
+	  <AvaloniaResource Include="Styling\Resources.axaml" />
+	  <AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
+	  <AvaloniaResource Include="Styling\Styles.axaml" />
+	  <AvaloniaResource Include="Styling\Themes.axaml" />
 	  <AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\ContextMenuTemplates.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
+	  <AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\DataTemplates.axaml">
-	    <SubType>Designer</SubType>
-	  </AvaloniaResource>
+	  <AvaloniaResource Include="Templates\DataTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
