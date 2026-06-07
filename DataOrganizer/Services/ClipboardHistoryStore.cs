@@ -177,6 +177,56 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 			return new(ClipboardHistoryUnlockStatus.Failed, []);
 		}
 	}
+
+	/// <summary>
+	/// Decrypts and maps the journal with the current key; empty on missing / corrupt / unknown-version data.
+	/// </summary>
+	internal async Task<IReadOnlyList<ClipboardHistoryEntryBase>> LoadEntriesAsync(byte[] dek, CancellationToken token)
+	{
+		if (!_fileSystem.IsFileExists(_historyFilePath))
+		{
+			return [];
+		}
+
+		byte[] ciphertext = await _fileSystem
+			.ReadAllBytesAsync(_historyFilePath, token)
+			.ConfigureAwait(false);
+
+		if (_encryption.DecryptWithDek(ciphertext, dek) is not { } plaintext)
+		{
+			_logger.LogWarning("Clipboard history journal could not be decrypted; treating as empty.");
+
+			return [];
+		}
+
+		try
+		{
+			if (JsonSerializer.Deserialize<PersistedClipboardHistory>(plaintext) is not { } history)
+			{
+				return [];
+			}
+
+			if (history.Version != PersistedClipboardHistory.CurrentVersion)
+			{
+				_logger.LogWarning(
+					$"Clipboard history version {history.Version} is not supported (expected {PersistedClipboardHistory.CurrentVersion}); treating as empty.");
+
+				return [];
+			}
+
+			return ClipboardHistoryMapper.ToDomain(history);
+		}
+		catch (JsonException ex)
+		{
+			_logger.LogWarning($"Clipboard history journal is malformed; treating as empty: {ex.Message}");
+
+			return [];
+		}
+		finally
+		{
+			plaintext.ZeroMemory();
+		}
+	}
 	#endregion
 
 	#region Helpers
@@ -226,56 +276,6 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 		lock (_keyLock)
 		{
 			return _dek;
-		}
-	}
-
-	/// <summary>
-	/// Decrypts and maps the journal with the current key; empty on missing / corrupt / unknown-version data.
-	/// </summary>
-	private async Task<IReadOnlyList<ClipboardHistoryEntryBase>> LoadEntriesAsync(byte[] dek, CancellationToken token)
-	{
-		if (!_fileSystem.IsFileExists(_historyFilePath))
-		{
-			return [];
-		}
-
-		byte[] ciphertext = await _fileSystem
-			.ReadAllBytesAsync(_historyFilePath, token)
-			.ConfigureAwait(false);
-
-		if (_encryption.DecryptWithDek(ciphertext, dek) is not { } plaintext)
-		{
-			_logger.LogWarning("Clipboard history journal could not be decrypted; treating as empty.");
-
-			return [];
-		}
-
-		try
-		{
-			if (JsonSerializer.Deserialize<PersistedClipboardHistory>(plaintext) is not { } history)
-			{
-				return [];
-			}
-
-			if (history.Version != PersistedClipboardHistory.CurrentVersion)
-			{
-				_logger.LogWarning(
-					$"Clipboard history version {history.Version} is not supported (expected {PersistedClipboardHistory.CurrentVersion}); treating as empty.");
-
-				return [];
-			}
-
-			return ClipboardHistoryMapper.ToDomain(history);
-		}
-		catch (JsonException ex)
-		{
-			_logger.LogWarning($"Clipboard history journal is malformed; treating as empty: {ex.Message}");
-
-			return [];
-		}
-		finally
-		{
-			plaintext.ZeroMemory();
 		}
 	}
 

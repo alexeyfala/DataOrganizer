@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.DTO.Clipboard.Persistence;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -9,7 +10,9 @@ using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Shared.Interfaces;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -90,6 +93,39 @@ internal class ClipboardHistoryStoreTests
 		files.Files
 			.Should()
 			.NotContainKey(BinPath);
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
+	/// </summary>
+	[Test]
+	public async Task LoadEntries_With_Unsupported_Version_Returns_Empty()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+
+		IEncryptionService encryption = mock.Create<IEncryptionService>();
+
+		byte[] dek = encryption.CreateRandomDek();
+
+		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardHistory
+		{
+			Version = PersistedClipboardHistory.CurrentVersion + 1
+		});
+
+		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek)!;
+
+		// Act
+		IReadOnlyList<ClipboardHistoryEntryBase> result = await sut.LoadEntriesAsync(dek, default);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>
@@ -179,6 +215,46 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
+	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: an encryption failure writes no journal.
+	/// </summary>
+	[Test]
+	public async Task Save_When_Encryption_Fails_Writes_Nothing()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.CreateRandomDek()
+			.Returns(new byte[32]);
+
+		// Wrapping the key succeeds (so the store unlocks)...
+		encryption
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Returns([1, 2, 3]);
+
+		// ...but encrypting the journal fails.
+		encryption
+			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Returns((byte[]?)null);
+
+		using AutoMock mock = CreateMock(files, encryption);
+
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		// Act
+		await sut.SaveAsync([TextEntry("data")]);
+
+		// Assert
+		files.Files
+			.Should()
+			.NotContainKey(BinPath);
+	}
+
+	/// <summary>
 	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
@@ -232,6 +308,46 @@ internal class ClipboardHistoryStoreTests
 		sut.KeyFileExists
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// Test of <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_Key_Wrap_Fails_Returns_Failed()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.CreateRandomDek()
+			.Returns(new byte[32]);
+
+		encryption
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Returns((byte[]?)null);
+
+		using AutoMock mock = CreateMock(files, encryption);
+
+		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+
+		// Act
+		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardHistoryUnlockStatus.Failed);
+
+		sut.IsUnlocked
+			.Should()
+			.BeFalse();
+
+		files.Files
+			.Should()
+			.NotContainKey(KeyPath);
 	}
 
 	/// <summary>
@@ -310,7 +426,7 @@ internal class ClipboardHistoryStoreTests
 	/// Builds an auto-mock container backed by the supplied in-memory file system and a real
 	/// <see cref="EncryptionService" /> (its logger is auto-mocked).
 	/// </summary>
-	private static AutoMock CreateMock(InMemoryFileSystem files)
+	private static AutoMock CreateMock(InMemoryFileSystem files, IEncryptionService? encryption = null)
 	{
 		return AutoMock.GetLoose(builder =>
 		{
@@ -326,9 +442,16 @@ internal class ClipboardHistoryStoreTests
 				.RegisterInstance(files)
 				.As<IFileSystem>();
 
-			builder
-				.RegisterType<EncryptionService>()
-				.As<IEncryptionService>();
+			if (encryption is null)
+			{
+				builder
+					.RegisterType<EncryptionService>()
+					.As<IEncryptionService>();
+			}
+			else
+			{
+				builder.RegisterInstance(encryption);
+			}
 		});
 	}
 
