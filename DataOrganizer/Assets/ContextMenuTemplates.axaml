@@ -9,10 +9,6 @@
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
 
-	<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="EntityTypeToExecuteFileMenuItemVisibilityConverter" />
-	<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
-	<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
-
 	<!-- KeyValueRecordContextMenuTemplate -->
 	<DataTemplate
 		x:Key="KeyValueRecordContextMenuTemplate"
@@ -334,6 +330,13 @@
 		x:Key="FileInTreeViewContextMenuTemplate"
 		x:DataType="entities:FileModelDto">
 		<StackPanel Orientation="Vertical">
+			<StackPanel.Resources>
+				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
+				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="EntityTypeToExecuteFileMenuItemVisibilityConverter" />
+				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
+				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
+			</StackPanel.Resources>
+
 			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />

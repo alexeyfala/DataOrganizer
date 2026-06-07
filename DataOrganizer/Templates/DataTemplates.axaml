@@ -1,25 +1,15 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:adc="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
-	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
-	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
-	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers">
-
-	<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
+	xmlns:vm="using:DataOrganizer.ViewModels">
 
 	<!-- RightSideSheetHeaderTemplate -->
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
