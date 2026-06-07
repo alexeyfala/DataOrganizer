@@ -19,6 +19,7 @@ namespace Entities.Abstract;
 [JsonDerivedType(typeof(FolderModel), "Folder")]
 [JsonDerivedType(typeof(FileModel), "File")]
 
+[XmlType(TypeName = "Entry")]
 [XmlInclude(typeof(FolderModel))]
 [XmlInclude(typeof(FileModel))]
 public abstract class ExplorerModelBase : EntityModelBase
