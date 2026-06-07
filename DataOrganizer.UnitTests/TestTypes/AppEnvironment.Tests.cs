@@ -51,7 +51,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// <see cref="AppEnvironment" /> constructor for the second running instance.
+	/// <see cref="AppEnvironment" /> constructor when second running instance.
 	/// </summary>
 	[Test]
 	public void Constructor_Suffixes_Paths_With_Instance_Number_When_Multiple_Instances()
@@ -63,7 +63,7 @@ internal class AppEnvironmentTests
 
 			processUtils
 				.GetAppProcessesCount()
-				.Returns(3);
+				.Returns(2);
 
 			builder.RegisterInstance(processUtils);
 		});
@@ -76,11 +76,11 @@ internal class AppEnvironmentTests
 
 		sut.AppDataDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (3)"));
+			.Be(Path.Combine(root, "Data (2)"));
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (3)", "Database"));
+			.Be(Path.Combine(root, "Data (2)", "Database"));
 	}
 
 	/// <summary>
