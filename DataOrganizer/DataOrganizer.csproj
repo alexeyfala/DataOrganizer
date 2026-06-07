@@ -23,11 +23,13 @@
 		<AvaloniaXaml Remove="Assets\SideSheetControlTheme.axaml" />
 		<AvaloniaXaml Remove="Assets\Styles.axaml" />
 		<AvaloniaXaml Remove="Assets\Themes.axaml" />
+		<AvaloniaXaml Remove="Templates\ClipboardHistoryTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\DataTemplates.axaml">
 	    <SubType>Designer</SubType>
