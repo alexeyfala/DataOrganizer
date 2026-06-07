@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.DTO.Clipboard.Persistence;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Clipboard;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -63,7 +63,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToDomain" />: URL detection trims surrounding whitespace.
+	/// <see cref="ClipboardHistoryMapper.ToDomain" />: URL detection trims surrounding whitespace.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Detects_Url_With_Surrounding_Whitespace()
@@ -91,7 +91,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
+	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
 	/// an empty history maps to a versioned, empty container and back to no entries.
 	/// </summary>
 	[Test]
@@ -112,7 +112,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Files_Entry()
@@ -159,7 +159,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Image_Entry()
@@ -190,7 +190,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Text_Entry()
@@ -231,7 +231,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryMapper.ToDomain" />: a whole-string URL becomes a URL entry.
+	/// <see cref="ClipboardHistoryMapper.ToDomain" />: a whole-string URL becomes a URL entry.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Rebuilds_Url_Entry_From_Url_Text()

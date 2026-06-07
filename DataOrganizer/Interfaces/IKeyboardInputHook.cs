@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading;

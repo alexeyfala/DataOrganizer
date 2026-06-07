@@ -3,10 +3,12 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.DTO.Clipboard.Persistence;
-using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Services.Clipboard;
+using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Shared.Interfaces;
@@ -28,7 +30,7 @@ internal class ClipboardHistoryStoreTests
 
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.EraseAll" />.
+	/// <see cref="ClipboardHistoryStore.EraseAll" />: removes both journal and key files and locks the store.
 	/// </summary>
 	[Test]
 	public async Task EraseAll_Removes_Both_Files_And_Locks()
@@ -62,7 +64,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.EraseHistory" />.
+	/// <see cref="ClipboardHistoryStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
 	/// </summary>
 	[Test]
 	public async Task EraseHistory_Removes_Journal_But_Keeps_Key()
@@ -96,7 +98,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
+	/// <see cref="ClipboardHistoryStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
 	/// </summary>
 	[Test]
 	public async Task LoadEntries_With_Unsupported_Version_Returns_Empty()
@@ -129,7 +131,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" /> / <see cref="ClipboardHistoryStore.TryUnlockAsync" />.
+	/// <see cref="ClipboardHistoryStore.SaveAsync" /> / <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
 	public async Task Save_Then_Unlock_In_New_Session_Restores_Entries()
@@ -173,7 +175,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: a later save replaces the previous journal.
+	/// <see cref="ClipboardHistoryStore.SaveAsync" />: a later save replaces the previous journal.
 	/// </summary>
 	[Test]
 	public async Task Save_Twice_Overwrites_Previous_Journal()
@@ -215,7 +217,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: an encryption failure writes no journal.
+	/// <see cref="ClipboardHistoryStore.SaveAsync" />: an encryption failure writes no journal.
 	/// </summary>
 	[Test]
 	public async Task Save_When_Encryption_Fails_Writes_Nothing()
@@ -255,7 +257,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" />: writes nothing while locked.
+	/// <see cref="ClipboardHistoryStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
 	public async Task Save_Without_Unlock_Writes_Nothing()
@@ -277,7 +279,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a new key is created when none exists.
+	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a new key is created when none exists.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_Creates_Key_When_None_Exists()
@@ -311,7 +313,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
+	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_When_Key_Wrap_Fails_Returns_Failed()
@@ -351,7 +353,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a corrupt journal yields no entries.
+	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a corrupt journal yields no entries.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_With_Corrupt_Journal_Returns_Empty()
@@ -388,7 +390,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a wrong password is rejected.
+	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a wrong password is rejected.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_With_Wrong_Password_Returns_WrongPassword()

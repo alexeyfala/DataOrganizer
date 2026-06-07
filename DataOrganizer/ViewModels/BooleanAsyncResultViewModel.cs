@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using DataOrganizer.Abstract;
 using DataOrganizer.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;

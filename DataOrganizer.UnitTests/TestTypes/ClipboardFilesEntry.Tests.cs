@@ -11,7 +11,7 @@ internal class ClipboardFilesEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardFilesEntry.ContentToolTip" />: a short list shows no expanded tooltip.
+	/// <see cref="ClipboardFilesEntry.ContentToolTip" />: a short list shows no expanded tooltip.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Is_Null_When_Not_Truncated()
@@ -27,7 +27,7 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardFilesEntry.EntriesSummary" />: a short list is shown in full with a header.
+	/// <see cref="ClipboardFilesEntry.EntriesSummary" />: a short list is shown in full with a header.
 	/// </summary>
 	[Test]
 	public void EntriesSummary_Lists_Header_And_All_Items_When_Short()
@@ -57,7 +57,7 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardFilesEntry.EntriesSummary" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
+	/// <see cref="ClipboardFilesEntry.EntriesSummary" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
 	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
 	/// </summary>
 	[Test]
@@ -81,7 +81,7 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardFilesEntry.TypeToolTip" />: folder / file / total counts are reported.
+	/// <see cref="ClipboardFilesEntry.TypeToolTip" />: folder / file / total counts are reported.
 	/// </summary>
 	[Test]
 	public void TypeToolTip_Reports_Folder_And_File_Counts()

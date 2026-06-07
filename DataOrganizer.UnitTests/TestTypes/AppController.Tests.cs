@@ -1,13 +1,12 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -17,7 +16,7 @@ internal class AppControllerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppController.LaunchAppAsync(CancellationToken)" />.
+	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities and configures the main window.
 	/// </summary>
 	[Test]
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()
@@ -35,6 +34,12 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+
+			settingsManager
+				.Settings
+				.Returns(IAppSettingsManager.CreateDefaultSettings());
+
 			options
 				.PrintHelp
 				.Returns(true);
@@ -48,6 +53,8 @@ internal class AppControllerTests
 			builder.RegisterInstance(viewLauncher);
 
 			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(settingsManager);
 		});
 
 		AppController sut = mock.Create<AppController>();

@@ -1,6 +1,5 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Repository.Abstract;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

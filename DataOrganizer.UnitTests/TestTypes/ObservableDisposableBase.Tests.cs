@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Abstract;
+using DataOrganizer.ViewModels;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -9,7 +9,7 @@ internal class ObservableDisposableBaseTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ObservableDisposableBase.Dispose" />.
+	/// <see cref="ObservableDisposableBase.Dispose" />: the first call invokes AfterDispose once and marks the instance disposed.
 	/// </summary>
 	[Test]
 	public void Dispose_Calls_AfterDispose_Once_On_First_Call()
@@ -31,7 +31,7 @@ internal class ObservableDisposableBaseTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ObservableDisposableBase.Dispose" />.
+	/// <see cref="ObservableDisposableBase.Dispose" />: repeated calls do not throw and invoke AfterDispose only once.
 	/// </summary>
 	[Test]
 	public void Dispose_Is_Idempotent()

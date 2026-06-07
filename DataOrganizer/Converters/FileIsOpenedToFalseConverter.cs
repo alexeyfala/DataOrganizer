@@ -1,5 +1,5 @@
 ﻿using Avalonia.Data.Converters;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using System;
 using System.Globalization;
 

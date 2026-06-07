@@ -27,7 +27,7 @@ public sealed class AppEnvironment : IAppEnvironment
 	#region Constructors
 	public AppEnvironment(IProcessUtils processUtils)
 	{
-		const string directoryName = "Data";
+		const string directoryName = "Instance";
 
 		_appCount = processUtils.GetAppProcessesCount();
 

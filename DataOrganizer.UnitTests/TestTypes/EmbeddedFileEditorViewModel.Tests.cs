@@ -5,7 +5,7 @@ using AvaloniaEdit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.DTO;
@@ -22,7 +22,7 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />.
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored properties (font size, word wrap).
 	/// </summary>
 	[AvaloniaTest]
 	public async Task EditorLoaded_Loads_Text_To_Editor()

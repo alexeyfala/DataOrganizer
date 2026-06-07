@@ -6,12 +6,12 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System"
+	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
 	Background="Transparent"
@@ -142,11 +142,11 @@
 									SnackbarHorizontalAlignment="Center">
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
-											<helpers:FavoritesPopupContentTemplateSelector>
+											<templateSelectors:FavoritesPopupContentTemplateSelector>
 												<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
-											</helpers:FavoritesPopupContentTemplateSelector>
+											</templateSelectors:FavoritesPopupContentTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>

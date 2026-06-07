@@ -1,7 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
-using DataOrganizer.Services;
+using DataOrganizer.Helpers.Text;
+using DataOrganizer.Services.Encryption;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -10,7 +10,7 @@ internal class EncryptionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EncryptionService.CreateRandomDek" />.
+	/// <see cref="EncryptionService.CreateRandomDek" />: returns a non-empty DEK.
 	/// </summary>
 	[Test]
 	public void CreateRandomDek_Does_Work()
@@ -30,7 +30,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.Decrypt" />.
+	/// <see cref="EncryptionService.Decrypt" />: returns null when decrypting with a wrong password.
 	/// </summary>
 	[Test]
 	public void Decrypt_Cannot_Decrypt_With_Wrong_Password()
@@ -63,7 +63,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.Decrypt" />.
+	/// <see cref="EncryptionService.Decrypt" />: returns null on malformed input.
 	/// </summary>
 	[Test]
 	public void Decrypt_Returns_Null_On_Malformed_Input()
@@ -87,7 +87,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.DecryptWithDek" />.
+	/// <see cref="EncryptionService.DecryptWithDek" />: returns null when decrypting with a wrong DEK.
 	/// </summary>
 	[Test]
 	public void DecryptWithDek_Cannot_Decrypt_With_Wrong_Dek()
@@ -121,7 +121,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.DecryptWithDek" />.
+	/// <see cref="EncryptionService.DecryptWithDek" />: returns null on malformed input.
 	/// </summary>
 	[Test]
 	public void DecryptWithDek_Returns_Null_On_Malformed_Input()
@@ -143,7 +143,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.Decrypt" />.
+	/// <see cref="EncryptionService.Encrypt" />, <see cref="EncryptionService.Decrypt" />: a round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
 	public void Encrypt_Decrypt_Checking_Functionality()
@@ -184,7 +184,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />.
+	/// <see cref="EncryptionService.EncryptWithDek" />, <see cref="EncryptionService.DecryptWithDek" />: a DEK round-trip restores the original plaintext while the ciphertext differs from it.
 	/// </summary>
 	[Test]
 	public void EncryptWithDek_DecryptWithDek_Checking_Functionality()
@@ -223,7 +223,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.HashPassword" />.
+	/// <see cref="EncryptionService.HashPassword" />: returns a hash that differs from the original password.
 	/// </summary>
 	[Test]
 	public void HashPassword_Returns_Hash_That_Different_From_Original_Password()
@@ -247,7 +247,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EncryptionService.VerifyPassword" />.
+	/// <see cref="EncryptionService.VerifyPassword" />: verifies the same password against two distinct hashes.
 	/// </summary>
 	[Test]
 	public void VerifyPassword_Verified_Same_Passwords_With_Different_Hashes()

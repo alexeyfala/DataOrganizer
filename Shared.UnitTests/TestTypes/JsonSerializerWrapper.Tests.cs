@@ -9,7 +9,7 @@ internal class JsonSerializerWrapperTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.Deserialize{T}" />.
+	/// <see cref="JsonSerializerWrapper.Deserialize{T}" />: parses a JSON string into the expected object.
 	/// </summary>
 	[Test]
 	public void Deserialize_Returns_Object_From_Json_String()
@@ -39,7 +39,7 @@ internal class JsonSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.Serialize{T}" />.
+	/// <see cref="JsonSerializerWrapper.Serialize{T}" />: produces a JSON string containing the object's properties.
 	/// </summary>
 	[Test]
 	public void Serialize_Returns_Json_String_From_Object()
@@ -65,7 +65,7 @@ internal class JsonSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.Serialize{T}" /> + <see cref="JsonSerializerWrapper.Deserialize{T}" />.
+	/// <see cref="JsonSerializerWrapper.Serialize{T}" /> + <see cref="JsonSerializerWrapper.Deserialize{T}" />: a serialize/deserialize round-trip yields an equivalent object.
 	/// </summary>
 	[Test]
 	public void Serialize_Then_Deserialize_Returns_Equivalent_Object()
@@ -89,7 +89,7 @@ internal class JsonSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.ToReadableJson{T}" />.
+	/// <see cref="JsonSerializerWrapper.ToReadableJson{T}" />: includes the type name and JSON body for a non-null value.
 	/// </summary>
 	[Test]
 	public void ToReadableJson_Includes_Type_Name_And_Json_Body_For_Non_Null_Value()
@@ -119,7 +119,7 @@ internal class JsonSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="JsonSerializerWrapper.ToReadableJson{T}" />.
+	/// <see cref="JsonSerializerWrapper.ToReadableJson{T}" />: includes the type name and a null marker for a null reference.
 	/// </summary>
 	[Test]
 	public void ToReadableJson_Returns_Null_Marker_For_Null_Reference()

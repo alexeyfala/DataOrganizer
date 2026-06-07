@@ -1,4 +1,4 @@
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 using System;
 using System.Text.RegularExpressions;

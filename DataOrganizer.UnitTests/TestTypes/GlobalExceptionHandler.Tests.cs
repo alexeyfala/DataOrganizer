@@ -14,7 +14,7 @@ internal class GlobalExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
+	/// <see cref="GlobalExceptionHandler.HandleException" />: a repeated exception with the same message is not logged twice.
 	/// </summary>
 	[Test]
 	public void HandleException_Deduplicates_Exceptions_With_Same_Message()
@@ -46,7 +46,7 @@ internal class GlobalExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
+	/// <see cref="GlobalExceptionHandler.HandleException" />: the first occurrence of an exception is logged.
 	/// </summary>
 	[Test]
 	public void HandleException_Logs_First_Occurrence_Of_Exception()
@@ -69,7 +69,7 @@ internal class GlobalExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GlobalExceptionHandler.HandleException" />.
+	/// <see cref="GlobalExceptionHandler.HandleException" />: after five unique exceptions the deduplication set resets, so a previously seen exception is logged again.
 	/// </summary>
 	[Test]
 	public void HandleException_Resets_Deduplication_Set_After_Five_Unique_Exceptions()

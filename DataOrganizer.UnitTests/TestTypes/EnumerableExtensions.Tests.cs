@@ -1,11 +1,9 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
 using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Dataset;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
-using DataOrganizer.Models;
 using Repository.DTO;
 using Shared.Common;
 using SharpHook.Data;
@@ -21,7 +19,7 @@ internal class EnumerableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.AllBy" />.
+	/// <see cref="EnumerableExtensions.AllBy" />: returns false when any item in the hierarchy fails the condition.
 	/// </summary>
 	[Test]
 	public void AllBy_Returns_False_If_Any_Item_Does_Not_Satisfy_Condition()
@@ -45,7 +43,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.AllBy" />.
+	/// <see cref="EnumerableExtensions.AllBy" />: returns true when every item in the hierarchy satisfies the condition.
 	/// </summary>
 	[Test]
 	public void AllBy_Returns_True_When_All_Items_Match_Condition()
@@ -69,7 +67,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsBy" />.
+	/// <see cref="EnumerableExtensions.ContainsBy" />: returns false when no item in the hierarchy matches the predicate.
 	/// </summary>
 	[Test]
 	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
@@ -87,7 +85,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsFileBy" />.
+	/// <see cref="EnumerableExtensions.ContainsFileBy" />: returns true when a matching file exists deep in the hierarchy.
 	/// </summary>
 	[Test]
 	public void ContainsFileBy_File_Predicate_Returns_True_When_Matching_File_Exists_Deep()
@@ -115,7 +113,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsId" />.
+	/// <see cref="EnumerableExtensions.ContainsId" />: returns false when no object with the given id is present.
 	/// </summary>
 	[Test]
 	public void ContainsId_Returns_False_When_No_Object_With_Given_Id()
@@ -133,7 +131,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ContainsId" />.
+	/// <see cref="EnumerableExtensions.ContainsId" />: returns true when the hierarchy contains an object with the given id.
 	/// </summary>
 	[Test]
 	public void ContainsId_Returns_True_When_Hierarchy_Contains_Object_With_Given_Id()
@@ -157,7 +155,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FilterBy" />.
+	/// <see cref="EnumerableExtensions.FilterBy" />: returns a flat sequence of all items satisfying the condition.
 	/// </summary>
 	[Test]
 	public void FilterBy_Returns_Flat_Sequence_Of_Items_Satisfying_Condition()
@@ -189,7 +187,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FilterFilesById" />.
+	/// <see cref="EnumerableExtensions.FilterFilesById" />: returns only the files whose identifiers are in the given set.
 	/// </summary>
 	[Test]
 	public void FilterFilesById_Returns_Files_With_Matching_Identifiers()
@@ -219,7 +217,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FindBy" />.
+	/// <see cref="EnumerableExtensions.FindBy" />: returns the matching item located in a nested folder.
 	/// </summary>
 	[Test]
 	public void FindBy_Returns_Matching_Item_From_Nested_Folder()
@@ -247,7 +245,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FindBy" />.
+	/// <see cref="EnumerableExtensions.FindBy" />: returns null when no item satisfies the condition.
 	/// </summary>
 	[Test]
 	public void FindBy_Returns_Null_When_No_Item_Satisfies_Condition()
@@ -265,7 +263,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FindById" />.
+	/// <see cref="EnumerableExtensions.FindById" />: finds an item by its id via the underlying FindBy lookup.
 	/// </summary>
 	[Test]
 	public void FindById_Delegates_To_FindBy()
@@ -289,7 +287,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FindFileBy" />.
+	/// <see cref="EnumerableExtensions.FindFileBy" />: returns the first file matching the condition.
 	/// </summary>
 	[Test]
 	public void FindFileBy_Returns_First_File_Matching_Condition()
@@ -315,7 +313,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.FindFolderBy" />.
+	/// <see cref="EnumerableExtensions.FindFolderBy" />: returns the first folder matching the condition.
 	/// </summary>
 	[Test]
 	public void FindFolderBy_Returns_First_Folder_Matching_Condition()
@@ -339,7 +337,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.Flatten" />.
+	/// <see cref="EnumerableExtensions.Flatten" />: returns every record including nested group children.
 	/// </summary>
 	[Test]
 	public void Flatten_Returns_Every_Record_Including_Nested_Group_Children()
@@ -375,7 +373,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetCount(IEnumerable{DatasetRecordBase})" />.
+	/// <see cref="EnumerableExtensions.GetCount(IEnumerable{DatasetRecordBase})" />: returns the total record count including children.
 	/// </summary>
 	[Test]
 	public void GetCount_For_DatasetRecord_Returns_Total_Count_Including_Children()
@@ -399,7 +397,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetCount(IEnumerable{ExplorerModelBaseDto})" />.
+	/// <see cref="EnumerableExtensions.GetCount(IEnumerable{ExplorerModelBaseDto})" />: counts files and folders across the hierarchy separately.
 	/// </summary>
 	[Test]
 	public void GetCount_For_Hierarchy_Counts_Files_And_Folders()
@@ -433,7 +431,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetFiles" />.
+	/// <see cref="EnumerableExtensions.GetFiles" />: returns files from all levels of the hierarchy.
 	/// </summary>
 	[Test]
 	public void GetFiles_Returns_Files_From_All_Levels_Of_Hierarchy()
@@ -469,7 +467,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetFilesBy" />.
+	/// <see cref="EnumerableExtensions.GetFilesBy" />: returns only the files matching the condition.
 	/// </summary>
 	[Test]
 	public void GetFilesBy_Returns_Files_Matching_Condition()
@@ -500,7 +498,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetFolders" />.
+	/// <see cref="EnumerableExtensions.GetFolders" />: returns all folders including nested ones.
 	/// </summary>
 	[Test]
 	public void GetFolders_Returns_All_Folders_Including_Nested()
@@ -530,7 +528,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetFoldersBy" />.
+	/// <see cref="EnumerableExtensions.GetFoldersBy" />: returns only the folders matching the condition.
 	/// </summary>
 	[Test]
 	public void GetFoldersBy_Returns_Folders_Matching_Condition()
@@ -557,7 +555,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetHotkeysPresentation" />.
+	/// <see cref="EnumerableExtensions.GetHotkeysPresentation" />: includes the mask prefix when it is not the default value.
 	/// </summary>
 	[Test]
 	public void GetHotkeysPresentation_Includes_Mask_When_Not_Default()
@@ -583,7 +581,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetHotkeysPresentation" />.
+	/// <see cref="EnumerableExtensions.GetHotkeysPresentation" />: returns an empty string for an empty sequence.
 	/// </summary>
 	[Test]
 	public void GetHotkeysPresentation_Returns_Empty_String_For_Empty_Sequence()
@@ -601,7 +599,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.GetHotkeysPresentation" />.
+	/// <see cref="EnumerableExtensions.GetHotkeysPresentation" />: omits the mask prefix when it is the default value.
 	/// </summary>
 	[Test]
 	public void GetHotkeysPresentation_Skips_Mask_When_Default()
@@ -623,7 +621,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.Sort" />.
+	/// <see cref="EnumerableExtensions.Sort" />: sorts groups, key-value records, and values in the specified direction.
 	/// </summary>
 	[Test]
 	public void Sort_Sorts_Groups_KeyValues_And_Values_In_Specified_Direction([Values] ListSortDirection direction)
@@ -690,7 +688,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.SortByIndexRecursively" />.
+	/// <see cref="EnumerableExtensions.SortByIndexRecursively" />: sorts top-level items and nested children by their index.
 	/// </summary>
 	[Test]
 	public void SortByIndexRecursively_Sorts_Top_Level_And_Nested_Children_By_Index()
@@ -732,7 +730,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.SortChildrenByIndexRecursively" />.
+	/// <see cref="EnumerableExtensions.SortChildrenByIndexRecursively" />: returns without throwing for an empty folder.
 	/// </summary>
 	[Test]
 	public void SortChildrenByIndexRecursively_Returns_Without_Action_For_Empty_Folder()
@@ -754,7 +752,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ToCodeMaskPairs" />.
+	/// <see cref="EnumerableExtensions.ToCodeMaskPairs" />: maps each hotkey to a code-mask pair preserving code and mask.
 	/// </summary>
 	[Test]
 	public void ToCodeMaskPairs_Maps_HotkeyModelDto_To_CodeMaskPair()
@@ -783,7 +781,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ToHierarchical" />.
+	/// <see cref="EnumerableExtensions.ToHierarchical" />: builds parent-child links and yields the root items.
 	/// </summary>
 	[Test]
 	public void ToHierarchical_Builds_Parent_Child_Links_And_Yields_Roots()
@@ -831,7 +829,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EnumerableExtensions.ToHotkeyModelsDto" />.
+	/// <see cref="EnumerableExtensions.ToHotkeyModelsDto" />: maps pairs to hotkey models with sequential indexes and shared ids.
 	/// </summary>
 	[Test]
 	public void ToHotkeyModelsDto_Maps_Pairs_With_Sequential_Indexes()

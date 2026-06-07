@@ -2,8 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Services;
 using Entities.Models;
 using Mapster;
@@ -21,7 +20,7 @@ internal class EntityLoaderTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />.
+	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: loads folders and files and returns a hierarchy containing all of them.
 	/// </summary>
 	[Test]
 	public async Task LoadFromEmbeddedDbAsync_Does_Work()

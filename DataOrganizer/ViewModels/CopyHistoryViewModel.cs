@@ -1,12 +1,13 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Encryption;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;

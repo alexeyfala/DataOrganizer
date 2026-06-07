@@ -6,8 +6,8 @@ using Avalonia.LogicalTree;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
-using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
+using DataOrganizer.ViewModels;
 using DialogHostAvalonia;
 using System;
 using System.Collections.Generic;
@@ -141,7 +141,7 @@ internal static class ApplicationExtensions
 	/// </summary>
 	public static Stream GetAppIconAsStream()
 	{
-		return AssetLoader.Open(new Uri($"avares://DataOrganizer/Assets/Logo.ico"));
+		return AssetLoader.Open(new Uri("avares://DataOrganizer/Assets/Logo.ico"));
 	}
 
 	/// <summary>

@@ -1,7 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -11,7 +11,7 @@ internal class EditingFilesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EditingFilesViewModel.CloseTab" />.
+	/// <see cref="EditingFilesViewModel.CloseTab" />: removes the tab from the control and clears the file's editing flag.
 	/// </summary>
 	[Test]
 	public void CloseTab_Removes_Tab_From_TabControl()
@@ -39,7 +39,7 @@ internal class EditingFilesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditingFilesViewModel.OpenInEditor" />.
+	/// <see cref="EditingFilesViewModel.OpenInEditor" />: a file already being edited is not added again.
 	/// </summary>
 	[Test]
 	public void OpenInEditor_Cannot_Open_File_Twice()
@@ -63,7 +63,7 @@ internal class EditingFilesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditingFilesViewModel.OpenInEditor" />.
+	/// <see cref="EditingFilesViewModel.OpenInEditor" />: adds the file as a tab, sets its editing flag and selects it.
 	/// </summary>
 	[Test]
 	public void OpenInEditor_Opens_File_In_Built_In_Editor()

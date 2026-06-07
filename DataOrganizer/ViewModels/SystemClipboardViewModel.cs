@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;

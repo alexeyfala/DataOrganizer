@@ -10,7 +10,7 @@ internal class FileSystemPathSelectorTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// <see cref="FileSystemPathSelector.ClearCommand" />: the command can execute when a non-empty path is set.
 	/// </summary>
 	[AvaloniaTest]
 	public void ClearCommand_Can_Execute_When_Path_Is_Set()
@@ -29,7 +29,7 @@ internal class FileSystemPathSelectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// <see cref="FileSystemPathSelector.ClearCommand" />: the command cannot execute after it has cleared the path.
 	/// </summary>
 	[AvaloniaTest]
 	public void ClearCommand_Cannot_Execute_After_Path_Has_Been_Cleared()
@@ -52,7 +52,7 @@ internal class FileSystemPathSelectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// <see cref="FileSystemPathSelector.ClearCommand" />: the command cannot execute when the path is an empty string.
 	/// </summary>
 	[AvaloniaTest]
 	public void ClearCommand_Cannot_Execute_When_Path_Is_Empty_String()
@@ -71,7 +71,7 @@ internal class FileSystemPathSelectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileSystemPathSelector.ClearCommand" />.
+	/// <see cref="FileSystemPathSelector.ClearCommand" />: the command cannot execute when the path is null.
 	/// </summary>
 	[AvaloniaTest]
 	public void ClearCommand_Cannot_Execute_When_Path_Is_Null()

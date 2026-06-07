@@ -5,11 +5,12 @@ using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Serilog;
@@ -25,7 +26,7 @@ internal class ClipboardHistoryServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.BuildTextEntry" />: plain text becomes a text entry.
+	/// <see cref="ClipboardHistoryService.BuildTextEntry" />: plain text becomes a text entry.
 	/// </summary>
 	[Test]
 	public void BuildTextEntry_Builds_Text_Entry_For_Plain_Text()
@@ -49,7 +50,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
+	/// <see cref="ClipboardHistoryService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
 	/// </summary>
 	[Test]
 	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
@@ -73,7 +74,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
+	/// <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
 	public async Task ClearAsync_Raises_ClearedByUser()
@@ -103,7 +104,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
+	/// <see cref="ClipboardHistoryService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
 	/// </summary>
 	[Test]
 	public async Task ClearEntriesAsync_Raises_ClearedForStop()
@@ -133,7 +134,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: plain and formatted text hash differently.
+	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: plain and formatted text hash differently.
 	/// </summary>
 	[Test]
 	public void ComputeTextEntryHash_Differs_Between_Plain_And_Formatted()
@@ -156,7 +157,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: only the presence of companion
+	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: only the presence of companion
 	/// formats matters, not their (delayed-rendered) payloads.
 	/// </summary>
 	[Test]
@@ -169,7 +170,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: the same inputs hash identically.
+	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: the same inputs hash identically.
 	/// </summary>
 	[Test]
 	public void ComputeTextEntryHash_Is_Deterministic()
@@ -181,7 +182,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.DisposeAsync" />: disposing twice is safe.
+	/// <see cref="ClipboardHistoryService.DisposeAsync" />: disposing twice is safe.
 	/// </summary>
 	[Test]
 	public async Task DisposeAsync_Is_Idempotent()
@@ -201,7 +202,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: capture enforces the history cap.
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: capture enforces the history cap.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Enforces_History_Cap()
@@ -231,7 +232,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: an unchanged payload is ignored.
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: an unchanged payload is ignored.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Ignores_Unchanged_Payload()
@@ -259,7 +260,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: a new payload is inserted at the top.
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: a new payload is inserted at the top.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Inserts_New_Entry_At_Top()
@@ -290,7 +291,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HandleNewPayload" />: a matching hash moves the existing entry up.
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: a matching hash moves the existing entry up.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Moves_Existing_Entry_To_Top()
@@ -326,7 +327,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: same path as a folder vs a file hashes differently.
+	/// <see cref="ClipboardHistoryService.HashFiles" />: same path as a folder vs a file hashes differently.
 	/// </summary>
 	[Test]
 	public void HashFiles_Distinguishes_Folder_From_File()
@@ -343,7 +344,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: the same list hashes identically.
+	/// <see cref="ClipboardHistoryService.HashFiles" />: the same list hashes identically.
 	/// </summary>
 	[Test]
 	public void HashFiles_Is_Deterministic()
@@ -358,7 +359,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.HashFiles" />: ordering of the items affects the hash.
+	/// <see cref="ClipboardHistoryService.HashFiles" />: ordering of the items affects the hash.
 	/// </summary>
 	[Test]
 	public void HashFiles_Is_Order_Sensitive()
@@ -375,7 +376,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.StartAsync" /> / <see cref="ClipboardHistoryService.DisposeAsync" />:
+	/// <see cref="ClipboardHistoryService.StartAsync" /> / <see cref="ClipboardHistoryService.DisposeAsync" />:
 	/// the running flag toggles around the loop's lifetime.
 	/// </summary>
 	[Test]
@@ -399,7 +400,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.Merge" />: appends below current, dedupes by hash, no message.
+	/// <see cref="ClipboardHistoryService.Merge" />: appends below current, dedupes by hash, no message.
 	/// </summary>
 	[Test]
 	public void Merge_Appends_Below_Current_Skipping_Duplicates()
@@ -433,7 +434,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.Merge" />: the history cap is enforced.
+	/// <see cref="ClipboardHistoryService.Merge" />: the history cap is enforced.
 	/// </summary>
 	[Test]
 	public void Merge_Enforces_History_Cap()
@@ -465,7 +466,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: files are captured with folders sorted first.
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files are captured with folders sorted first.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Captures_Files_Entry_Folders_First()
@@ -510,7 +511,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: plain text is captured as a text entry.
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: plain text is captured as a text entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Captures_Text_Entry()
@@ -541,7 +542,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
@@ -585,7 +586,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.PollOnceAsync" />: a sensitivity marker skips the entry.
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: a sensitivity marker skips the entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Skips_Sensitive_Content()
@@ -653,7 +654,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.RestoreAsync" />: restoring the top entry raises no notification.
+	/// <see cref="ClipboardHistoryService.RestoreAsync" />: restoring the top entry raises no notification.
 	/// </summary>
 	[Test]
 	public async Task Restore_Of_Top_Entry_Raises_No_Notification()
@@ -769,7 +770,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
+	/// <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
 	/// </summary>
 	[Test]
 	public async Task RestoreAsync_Moves_To_Top_And_Raises_Updated()
@@ -803,7 +804,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
+	/// <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
 	/// </summary>
 	[Test]
 	public async Task StartAsync_After_Dispose_Does_Not_Run()
@@ -823,7 +824,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryService.Stop" />: stopping without a running loop is a no-op.
+	/// <see cref="ClipboardHistoryService.Stop" />: stopping without a running loop is a no-op.
 	/// </summary>
 	[Test]
 	public void Stop_Without_Start_Is_NoOp()

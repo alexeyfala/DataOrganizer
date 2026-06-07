@@ -2,17 +2,17 @@
 	x:Class="DataOrganizer.Windows.EditorWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:abstract="using:DataOrganizer.DTO.Entities.Abstract"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
-	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
@@ -30,7 +30,7 @@
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceInclude Source="/Assets/SideSheetControlTheme.axaml" />
+				<ResourceInclude Source="/Styling/SideSheetControlTheme.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 
 			<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
@@ -339,7 +339,7 @@
 
 							<TreeView.Styles>
 								<Style
-									x:DataType="abstract:ExplorerModelBaseDto"
+									x:DataType="entities:ExplorerModelBaseDto"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -377,11 +377,11 @@
 							SideSheetPadding="4.0"
 							Theme="{StaticResource ScrollableSideSheet}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
-								<helpers:RightSideSheetContentTemplateSelector>
+								<templateSelectors:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 									<StaticResource ResourceKey="ExecutingFilesTemplate" />
-								</helpers:RightSideSheetContentTemplateSelector>
+								</templateSelectors:RightSideSheetContentTemplateSelector>
 							</materialControls:SideSheet.SideSheetContentTemplate>
 						</materialControls:SideSheet>
 

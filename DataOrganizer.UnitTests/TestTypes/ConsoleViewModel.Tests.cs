@@ -13,7 +13,7 @@ internal class ConsoleViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.ClearCommand" />.
+	/// <see cref="ConsoleViewModel.ClearCommand" />: does not throw when the editor is null.
 	/// </summary>
 	[Test]
 	public void ClearCommand_Does_Nothing_When_Editor_Is_Null()
@@ -33,7 +33,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel" /> constructor.
+	/// <see cref="ConsoleViewModel" /> constructor.
 	/// </summary>
 	[Test]
 	public void Constructor_Initializes_Default_Property_Values()
@@ -67,7 +67,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.EditorLoadedCommand" />.
+	/// <see cref="ConsoleViewModel.EditorLoadedCommand" />: does not throw when the editor is null.
 	/// </summary>
 	[Test]
 	public void EditorLoadedCommand_Does_Nothing_When_Editor_Is_Null()
@@ -87,7 +87,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />.
+	/// <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />: does not throw with default substitutes.
 	/// </summary>
 	[Test]
 	public void OpenAppDirectoryCommand_Does_Not_Throw_With_Default_Substitute()
@@ -107,7 +107,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />.
+	/// <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />: invokes process utils to open the app directory.
 	/// </summary>
 	[Test]
 	public void OpenAppDirectoryCommand_Invokes_Process_Utils_When_Reference_Is_Injected()
@@ -129,7 +129,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.OpenDatabaseDirectoryCommand" />.
+	/// <see cref="ConsoleViewModel.OpenDatabaseDirectoryCommand" />: opens the configured database directory.
 	/// </summary>
 	[Test]
 	public void OpenDatabaseDirectoryCommand_Opens_Database_Directory_When_References_Are_Injected()
@@ -164,7 +164,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.IsPaused" /> change handler.
+	/// <see cref="ConsoleViewModel.IsPaused" /> change handler.
 	/// </summary>
 	[Test]
 	public void Setting_IsPaused_To_False_Does_Not_Throw_When_Editor_Is_Null()
@@ -190,7 +190,7 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ConsoleViewModel.WriteCallback" />.
+	/// <see cref="ConsoleViewModel.WriteCallback" />: buffers the value without throwing when the editor is null.
 	/// </summary>
 	[Test]
 	public void WriteCallback_Buffers_Value_When_Editor_Is_Null_Without_Throwing()

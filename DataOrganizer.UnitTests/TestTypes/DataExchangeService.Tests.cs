@@ -4,12 +4,11 @@ using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
-using Entities.Abstract;
 using Entities.Models;
 using NSubstitute;
 using Repository.DTO;
@@ -32,7 +31,7 @@ internal class DataExchangeServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.AppendFromSQLiteAsync" />.
+	/// <see cref="DataExchangeService.AppendFromSQLiteAsync" />: appends entities from a SQLite source and maps them via the entity loader.
 	/// </summary>
 	[Test]
 	public async Task AppendFromSQLiteAsync_Does_Work()
@@ -84,7 +83,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// <see cref="DataExchangeService.ExportDataAsync" />: serializes data to a JSON file via the serializer.
 	/// </summary>
 	[Test]
 	public async Task ExportDataAsync_Exports_To_Json()
@@ -131,7 +130,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// <see cref="DataExchangeService.ExportDataAsync" />: backs up the database when exporting to a SQLite file.
 	/// </summary>
 	[Test]
 	public async Task ExportDataAsync_Exports_To_Sqlite()
@@ -164,7 +163,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ExportDataAsync" />.
+	/// <see cref="DataExchangeService.ExportDataAsync" />: serializes data to an XML file via the serializer.
 	/// </summary>
 	[Test]
 	public async Task ExportDataAsync_Exports_To_Xml()
@@ -209,7 +208,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns null and restores the backup when JSON deserialization yields no data.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Cannot_Import_From_Json()
@@ -266,7 +265,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns null and restores the backup when the SQLite source is invalid.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Cannot_Import_From_SQLite()
@@ -307,7 +306,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns null and restores the backup when XML deserialization yields no data.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Cannot_Import_From_Xml()
@@ -364,7 +363,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from a JSON file.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Imports_From_Json()
@@ -423,7 +422,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from a valid SQLite file.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Imports_From_SQLite()
@@ -468,7 +467,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportDataAsync" />.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from an XML file.
 	/// </summary>
 	[Test]
 	public async Task ImportDataAsync_Imports_From_Xml()
@@ -525,7 +524,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ImportEntitiesAsync" />.
+	/// <see cref="DataExchangeService.ImportEntitiesAsync" />: imports entities, stamps their dates, and maps them via the entity loader for both append and replace variants.
 	/// </summary>
 	[TestCase(ImportListVariant.Append)]
 	[TestCase(ImportListVariant.Replace)]
@@ -588,7 +587,7 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />.
+	/// <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />: replaces data from an embedded SQLite source, clearing the hierarchy.
 	/// </summary>
 	[Test]
 	public async Task ReplaceFromSQLiteAsync_Does_Work()

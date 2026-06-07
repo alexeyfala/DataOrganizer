@@ -28,7 +28,7 @@ internal class ClipboardImageEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardImageEntry.ContentToolTip" />: malformed bytes yield no size.
+	/// <see cref="ClipboardImageEntry.ContentToolTip" />: malformed bytes yield no size.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Is_Null_For_Malformed_Png()
@@ -43,7 +43,7 @@ internal class ClipboardImageEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardImageEntry.ContentToolTip" />: the size is read from the PNG IHDR header.
+	/// <see cref="ClipboardImageEntry.ContentToolTip" />: the size is read from the PNG IHDR header.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Reports_Png_Pixel_Size()
@@ -58,7 +58,7 @@ internal class ClipboardImageEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardImageEntry.ImagePreview" />: empty bytes produce no preview.
+	/// <see cref="ClipboardImageEntry.ImagePreview" />: empty bytes produce no preview.
 	/// </summary>
 	[Test]
 	public void ImagePreview_Is_Null_For_Empty_Bytes()

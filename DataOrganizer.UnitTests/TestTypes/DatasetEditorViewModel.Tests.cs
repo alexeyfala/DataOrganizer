@@ -2,10 +2,9 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
+using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Models;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -29,7 +28,7 @@ internal class DatasetEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddGroupAsync" />.
+	/// <see cref="DatasetEditorViewModel.AddGroupAsync" />: adds a group to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
 	public async Task AddGroupAsync_Adds_Group([Values] bool addToGroup)
@@ -92,7 +91,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddKeyValueAsync" />.
+	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: adds a key-value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
 	public async Task AddKeyValueAsync_Adds_Key_And_Value_Record([Values] bool addToGroup)
@@ -157,7 +156,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.AddValueAsync" />.
+	/// <see cref="DatasetEditorViewModel.AddValueAsync" />: adds a value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
 	public async Task AddValueAsync_Adds_Value_Record([Values] bool addToGroup)
@@ -220,7 +219,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ContainerLoaded" />.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: deserializes the file contents and populates the records, marking the view model initialized.
 	/// </summary>
 	[Test]
 	public async Task ContainerLoaded_Adds_Records()
@@ -269,7 +268,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ContainerLoaded" />.
+	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: does not attempt deserialization when the file contents are empty, but still marks the view model initialized.
 	/// </summary>
 	[Test]
 	public async Task ContainerLoaded_Shoud_Not_Tries_Add_Records_If_File_Content_Is_Empty()
@@ -312,7 +311,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.DeleteRecordAsync" />.
+	/// <see cref="DatasetEditorViewModel.DeleteRecordAsync" />: removes the given record from the collection and persists the change.
 	/// </summary>
 	[Test]
 	public async Task DeleteRecordAsync_Deletes_Record()
@@ -357,7 +356,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditKeyValueAsync" />.
+	/// <see cref="DatasetEditorViewModel.EditKeyValueAsync" />: updates the record's key and value, persisting only when the values actually changed.
 	/// </summary>
 	[Test]
 	public async Task EditKeyValueAsync_Edits_Record([Values] bool isSameValue)
@@ -411,7 +410,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditNoteAsync" />.
+	/// <see cref="DatasetEditorViewModel.EditNoteAsync" />: updates the record's note and persists the change.
 	/// </summary>
 	[Test]
 	public async Task EditNoteAsync_Edits_Note_Of_Record()
@@ -452,7 +451,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.EditValueAsync" />.
+	/// <see cref="DatasetEditorViewModel.EditValueAsync" />: updates the record's value, persisting only when the value actually changed.
 	/// </summary>
 	[Test]
 	public async Task EditValueAsync_Edits_Record([Values] bool isSameValue)
@@ -498,7 +497,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />.
+	/// <see cref="DatasetEditorViewModel.ExpandCollapseAsync" />: sets the expanded state of all groups (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
 	public async Task ExpandCollapseAsync_Tests(
@@ -577,7 +576,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.IsHiddenChanged" />.
+	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: persists the content only when not read-only.
 	/// </summary>
 	[Test]
 	public async Task IsHiddenChanged_Saves_Content_Or_Not([Values] bool isReadOnly)
@@ -612,7 +611,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.RenameGroupAsync" />.
+	/// <see cref="DatasetEditorViewModel.RenameGroupAsync" />: updates the group's name, persisting only when the name actually changed.
 	/// </summary>
 	[Test]
 	public async Task RenameGroupAsync_Renames_Group([Values] bool isSameValue)
@@ -658,7 +657,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.ShowHideAsync" />.
+	/// <see cref="DatasetEditorViewModel.ShowHideAsync" />: sets the hidden state of all records (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
 	public async Task ShowHideAsync_Tests(
@@ -738,7 +737,7 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DatasetEditorViewModel.SortAsync" />.
+	/// <see cref="DatasetEditorViewModel.SortAsync" />: sorts values, key-values and groups in the given direction (in a group or at the root) and persists only when not read-only.
 	/// </summary>
 	[Test]
 	public async Task SortAsync(

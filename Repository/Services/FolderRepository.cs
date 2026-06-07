@@ -1,7 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;

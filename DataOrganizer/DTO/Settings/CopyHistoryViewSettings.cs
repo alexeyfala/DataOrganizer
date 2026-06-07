@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
+﻿using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using Shared.Extensions;
 using System;

@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Abstract;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using System.Threading;

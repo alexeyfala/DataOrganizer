@@ -13,7 +13,7 @@ internal class XmlSerializerWrapperTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="XmlSerializerWrapper.Deserialize{T}" />.
+	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: parses an XML string into the expected object.
 	/// </summary>
 	[Test]
 	public void Deserialize_Returns_Object_From_Xml_String()
@@ -49,7 +49,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="XmlSerializerWrapper.Deserialize{T}" />.
+	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
 	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
@@ -83,7 +83,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="XmlSerializerWrapper.Serialize{T}" />.
+	/// <see cref="XmlSerializerWrapper.Serialize{T}" />: produces an XML string containing the object's properties.
 	/// </summary>
 	[Test]
 	public void Serialize_Returns_Xml_String_From_Object()
@@ -109,7 +109,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="XmlSerializerWrapper.Serialize{T}" /> + <see cref="XmlSerializerWrapper.Deserialize{T}" />.
+	/// <see cref="XmlSerializerWrapper.Serialize{T}" /> + <see cref="XmlSerializerWrapper.Deserialize{T}" />: a serialize/deserialize round-trip yields an equivalent object.
 	/// </summary>
 	[Test]
 	public void Serialize_Then_Deserialize_Returns_Equivalent_Object()

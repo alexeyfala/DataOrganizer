@@ -17,7 +17,7 @@ internal class SettingsViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.Language" />.
+	/// <see cref="SettingsViewModel.Language" />: setting the language updates the current settings language.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_Language()
@@ -39,7 +39,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.PrimaryColor" />.
+	/// <see cref="SettingsViewModel.PrimaryColor" />: setting the primary color applies it and triggers a material theme update.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_PrimaryColor()
@@ -68,7 +68,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.SecondaryColor" />.
+	/// <see cref="SettingsViewModel.SecondaryColor" />: setting the secondary color applies it and triggers a material theme update.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_SecondaryColor()
@@ -97,7 +97,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.IsInheritTheme" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />.
+	/// <see cref="SettingsViewModel.IsInheritTheme" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_Theme([Values] BaseThemeMode theme)
@@ -143,7 +143,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.TrackClipboardHistory" />.
+	/// <see cref="SettingsViewModel.TrackClipboardHistory" />: enabling the flag updates the current settings value.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_TrackClipboardHistory()
@@ -176,7 +176,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.TrackHotkeys" />.
+	/// <see cref="SettingsViewModel.TrackHotkeys" />: enabling the flag updates the current settings value.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_TrackHotkeys()
@@ -209,7 +209,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.CurrentSettings" />.
+	/// <see cref="SettingsViewModel.CurrentSettings" />: current settings are initialized from the settings manager values.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Initialization()
@@ -258,7 +258,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.Languages" />.
+	/// <see cref="SettingsViewModel.Languages" />: the collection contains the supported languages.
 	/// </summary>
 	[Test]
 	public void Languages_Have_Certain_Values()
@@ -270,7 +270,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.PrimaryColors" />.
+	/// <see cref="SettingsViewModel.PrimaryColors" />: the collection contains all primary color enum values.
 	/// </summary>
 	[Test]
 	public void PrimaryColors_Have_Certain_Values()
@@ -282,7 +282,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.SaveAndClose" />.
+	/// <see cref="SettingsViewModel.SaveAndClose" />: invoking it sets the IsSaved property to true.
 	/// </summary>
 	[Test]
 	public void SaveAndClose_Sets_Property()
@@ -302,7 +302,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
+	/// <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
 	/// </summary>
 	[Test]
 	public void SaveAndCloseCommand_CanExecute_Returns_False_When_Settings_Not_Changed()
@@ -333,7 +333,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
+	/// <see cref="SettingsViewModel.SaveAndCloseCommand" /> CanExecute.
 	/// </summary>
 	[Test]
 	public void SaveAndCloseCommand_CanExecute_Returns_True_After_Settings_Are_Changed()
@@ -368,7 +368,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SettingsViewModel.SecondaryColors" />.
+	/// <see cref="SettingsViewModel.SecondaryColors" />: the collection contains all secondary color enum values.
 	/// </summary>
 	[Test]
 	public void SecondaryColors_Have_Certain_Values()

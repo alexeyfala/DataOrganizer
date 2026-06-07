@@ -55,7 +55,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.FormattedTextPreview" />: a CF_HTML payload yields its fragment.
+	/// <see cref="ClipboardTextEntry.FormattedTextPreview" />: a CF_HTML payload yields its fragment.
 	/// </summary>
 	[Test]
 	public void FormattedTextPreview_Extracts_Html_Fragment()
@@ -73,7 +73,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.FormattedTextPreview" />: plain text has no preview.
+	/// <see cref="ClipboardTextEntry.FormattedTextPreview" />: plain text has no preview.
 	/// </summary>
 	[Test]
 	public void FormattedTextPreview_Is_Null_For_Plain_Text()
@@ -88,7 +88,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.IsSensitive" />: ordinary prose is not flagged.
+	/// <see cref="ClipboardTextEntry.IsSensitive" />: ordinary prose is not flagged.
 	/// </summary>
 	[Test]
 	public void IsSensitive_Is_False_For_Plain_Prose()
@@ -103,7 +103,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.IsSensitive" />: a high-entropy token is flagged.
+	/// <see cref="ClipboardTextEntry.IsSensitive" />: a high-entropy token is flagged.
 	/// </summary>
 	[Test]
 	public void IsSensitive_Is_True_For_Secret_Like_Token()
@@ -118,7 +118,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.TypeGlyph" /> across format combinations.
+	/// <see cref="ClipboardTextEntry.TypeGlyph" /> across format combinations.
 	/// </summary>
 	[Test]
 	public void TypeGlyph_Reflects_Format_Combination()
@@ -142,7 +142,7 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardTextEntry.TypeToolTip" /> for a plain-text entry.
+	/// <see cref="ClipboardTextEntry.TypeToolTip" /> for a plain-text entry.
 	/// </summary>
 	[Test]
 	public void TypeToolTip_Is_PlainText_For_Plain_Text()

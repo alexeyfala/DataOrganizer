@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Clipboard;
 
 namespace DataOrganizer.Messages;
 

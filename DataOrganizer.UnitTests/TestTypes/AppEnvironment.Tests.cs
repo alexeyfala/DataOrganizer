@@ -12,9 +12,16 @@ namespace DataOrganizer.UnitTests.TestTypes;
 [TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
 internal class AppEnvironmentTests
 {
+	#region Data
+	/// <summary>
+	/// Default directory name.
+	/// </summary>
+	private const string DefaultDirectoryName = "Instance";
+	#endregion
+
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppEnvironment" /> constructor for the first running instance.
+	/// <see cref="AppEnvironment" /> constructor when first running instance.
 	/// </summary>
 	[Test]
 	public void Constructor_Builds_Paths_For_First_Instance()
@@ -39,19 +46,19 @@ internal class AppEnvironmentTests
 
 		sut.AppDataDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data"));
+			.Be(Path.Combine(root, DefaultDirectoryName));
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data", "Database"));
+			.Be(Path.Combine(root, DefaultDirectoryName, "Database"));
 
 		sut.SandboxDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data", "Sandbox"));
+			.Be(Path.Combine(root, DefaultDirectoryName, "Sandbox"));
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment" /> constructor for the second running instance.
+	/// <see cref="AppEnvironment" /> constructor when second running instance.
 	/// </summary>
 	[Test]
 	public void Constructor_Suffixes_Paths_With_Instance_Number_When_Multiple_Instances()
@@ -63,7 +70,7 @@ internal class AppEnvironmentTests
 
 			processUtils
 				.GetAppProcessesCount()
-				.Returns(3);
+				.Returns(2);
 
 			builder.RegisterInstance(processUtils);
 		});
@@ -76,15 +83,15 @@ internal class AppEnvironmentTests
 
 		sut.AppDataDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (3)"));
+			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)"));
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (3)", "Database"));
+			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)", "Database"));
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />.
+	/// <see cref="AppEnvironment.GetAppInstanceName" />: returns the plain application name for a single instance.
 	/// </summary>
 	[Test]
 	public void GetAppInstanceName_Returns_Plain_Name_For_Single_Instance()
@@ -113,7 +120,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />.
+	/// <see cref="AppEnvironment.GetAppInstanceName" />: suffixes the name with the instance number when multiple instances run.
 	/// </summary>
 	[Test]
 	public void GetAppInstanceName_Suffixes_Name_With_Instance_Number_When_Multiple_Instances()
@@ -142,7 +149,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetSettingsFilePath" />.
+	/// <see cref="AppEnvironment.GetSettingsFilePath" />: combines the app data path with the Settings folder and a .json extension.
 	/// </summary>
 	[Test]
 	public void GetSettingsFilePath_Combines_Paths_Adds_Settings_Folder_And_Json_Extension()

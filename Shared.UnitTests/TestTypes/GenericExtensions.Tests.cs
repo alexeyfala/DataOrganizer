@@ -9,7 +9,7 @@ internal class GenericExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string[])" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string[])" />: returns a new instance copying all properties except the ignored ones.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_Returns_New_Instance_With_All_Properties_Except_Ignored_Array()
@@ -39,7 +39,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string)" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, string)" />: returns a new instance copying all properties except the single ignored one.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_Returns_New_Instance_With_All_Properties_Except_Single_Ignored()
@@ -65,7 +65,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: copies all writable properties from source to target of the same type.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_Same_Type_Copies_All_Writable_Properties()
@@ -85,7 +85,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: does nothing and does not throw when the source is null.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_Same_Type_Does_Nothing_When_Source_Is_Null()
@@ -109,7 +109,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{T}(T, T)" />: does nothing and does not throw when the target is null.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_Same_Type_Does_Nothing_When_Target_Is_Null()
@@ -129,7 +129,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />: copies only the named properties to the target, leaving the rest untouched.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_With_Names_Copies_Only_Specified_Properties()
@@ -157,7 +157,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />: is a no-op leaving the target unchanged when no names are given.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_With_Names_Is_NoOp_When_Names_Empty()
@@ -185,7 +185,7 @@ internal class GenericExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />.
+	/// <see cref="GenericExtensions.CopyPropertiesTo{TSource, TTarget}(TSource, TTarget, string[])" />: skips read-only target properties without throwing.
 	/// </summary>
 	[Test]
 	public void CopyPropertiesTo_With_Names_Skips_Read_Only_Target_Properties()

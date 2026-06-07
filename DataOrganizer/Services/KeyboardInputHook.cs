@@ -1,12 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.Abstract;
-using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.ViewModels;
 using Repository.DTO;
 using Repository.Interfaces;

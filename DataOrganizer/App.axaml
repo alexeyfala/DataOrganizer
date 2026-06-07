@@ -12,13 +12,23 @@
 	<Application.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceInclude Source="/Assets/Resources.axaml" />
+				<ResourceInclude Source="/Styling/Resources.axaml" />
 
-				<ResourceInclude Source="/Assets/Themes.axaml" />
-
-				<ResourceInclude Source="/Assets/DataTemplates.axaml" />
-
-				<ResourceInclude Source="/Assets/ContextMenuTemplates.axaml" />
+				<ResourceInclude Source="/Styling/Themes.axaml" />
+				
+				<ResourceInclude Source="/Templates/ClipboardHistoryTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/ContextMenuTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/DatasetTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/DataTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/EditorTreeViewTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/FavoritesTemplates.axaml" />
+				
+				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 
@@ -42,6 +52,6 @@
 		<!-- https://github.com/SKProCH/Material.Icons -->
 		<materialIcons:MaterialIconStyles />
 
-		<StyleInclude Source="/Assets/Styles.axaml" />
+		<StyleInclude Source="/Styling/Styles.axaml" />
 	</Application.Styles>
 </Application>

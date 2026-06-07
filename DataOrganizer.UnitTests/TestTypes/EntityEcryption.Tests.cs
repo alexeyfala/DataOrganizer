@@ -3,10 +3,11 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Services.Encryption;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -28,7 +29,7 @@ internal class EntityEncryptionTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.ChangePasswordAsync" />.
+	/// <see cref="EntityEncryption.ChangePasswordAsync" />: rewraps the DEK and updates the password hash on the folder.
 	/// </summary>
 	[Test]
 	public async Task ChangePasswordAsync_Does_Work()
@@ -95,7 +96,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.DecryptFolderAsync" />.
+	/// <see cref="EntityEncryption.DecryptFolderAsync" />: decrypts the folder and persists the updated file properties.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolderAsync_Does_Work()
@@ -160,7 +161,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
+	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns null when the DEK cannot be decrypted.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Cannot_Decrypt_Binary()
@@ -203,7 +204,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
+	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns null when the encrypted DEK cannot be decrypted.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Cannot_Decrypt_Encrypted_Password()
@@ -238,7 +239,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.DecryptSessionContents" />.
+	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns non-empty decrypted contents on success.
 	/// </summary>
 	[Test]
 	public void DecryptSessionContents_Does_Work()
@@ -273,7 +274,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.EncryptFolderAsync" />.
+	/// <see cref="EntityEncryption.EncryptFolderAsync" />: encrypts the folder and persists the updated file properties.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolderAsync_Does_Work()
@@ -330,7 +331,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
+	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns null and never encrypts when the DEK cannot be decrypted.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Cannot_Decrypt_Encrypted_Password()
@@ -365,7 +366,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
+	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns null when encrypting with the DEK fails.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Cannot_Encrypt_Binary()
@@ -408,7 +409,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.EncryptSessionContents" />.
+	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns non-empty encrypted contents on success.
 	/// </summary>
 	[Test]
 	public void EncryptSessionContents_Does_Work()
@@ -443,7 +444,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.GetSessionId" />.
+	/// <see cref="EntityEncryption.GetSessionId" />: yields a different value after the session id is reset.
 	/// </summary>
 	[Test]
 	public void GetSessionId_Returns_Different_Values_Between_Sessions()
@@ -467,7 +468,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.GetSessionId" />.
+	/// <see cref="EntityEncryption.GetSessionId" />: returns the same value on repeated calls within a session.
 	/// </summary>
 	[Test]
 	public void GetSessionId_Returns_Same_Value_During_Session()
@@ -490,7 +491,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.HideFolderContents" />.
+	/// <see cref="EntityEncryption.HideFolderContents" />: clears the session DEK and marks the folder and all children as encrypted.
 	/// </summary>
 	[Test]
 	public void HideFolderContents_Does_Work()
@@ -526,7 +527,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.ShowFileContentsAsync" />.
+	/// <see cref="EntityEncryption.ShowFileContentsAsync" />: sets the session DEK and marks the file as decrypted, returning true.
 	/// </summary>
 	[Test]
 	public async Task ShowFileContentsAsync_Does_Work()
@@ -593,7 +594,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.ShowFolderContentsAsync" />.
+	/// <see cref="EntityEncryption.ShowFolderContentsAsync" />: marks the folder and all children as decrypted and sets the session DEK.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContentsAsync_Does_Work()
@@ -656,7 +657,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.TryToDecrypt" />.
+	/// <see cref="EntityEncryption.TryToDecrypt" />: returns non-empty contents that differ from the input.
 	/// </summary>
 	[Test]
 	public void TryToDecrypt_Does_Work()
@@ -711,7 +712,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: decrypts using the session DEK when the file is already decrypted.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
@@ -766,7 +767,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: prompts for the password and decrypts when the file is encrypted.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
@@ -831,7 +832,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.TryToDecryptContentsAsync" />.
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: returns the input unchanged when the file is not encrypted.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
@@ -856,7 +857,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
+	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: returns FailedToSaveContentsInDb and restores the backup and erases the file on failure.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_Contents_In_Database()
@@ -901,7 +902,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
+	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: returns FailedToSaveFolderPropertiesInDb and restores the backup and erases the file on failure.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Properties_In_Database()
@@ -953,7 +954,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityEncryption.UpdateDatabaseAsync" />.
+	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: returns Done and applies the new status to the folder and all files.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)

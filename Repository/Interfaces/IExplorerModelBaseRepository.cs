@@ -1,5 +1,4 @@
-﻿using Entities.Abstract;
-using Repository.Abstract;
+﻿using Entities.Models;
 using System;
 using System.Linq.Expressions;
 using System.Threading;

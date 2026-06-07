@@ -1,14 +1,18 @@
-﻿using DataOrganizer.Abstract;
-using Repository.DTO;
+﻿using Repository.DTO;
 
 namespace DataOrganizer.DTO;
 
 /// <summary>
 /// Result of editing hotkeys.
 /// </summary>
-public sealed class EditingHotkeysResult : IsSavedBase
+public sealed class EditingHotkeysResult
 {
 	#region Properties
+	/// <summary>
+	/// <c>True</c> when the hotkeys were saved.
+	/// </summary>
+	public required bool IsSaved { get; init; }
+
 	/// <summary>
 	/// New hotkeys.
 	/// </summary>

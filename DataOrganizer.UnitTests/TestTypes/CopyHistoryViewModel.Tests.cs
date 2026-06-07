@@ -1,7 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.ViewModels;
 using System;
 using System.Linq;
@@ -14,7 +14,7 @@ internal class CopyHistoryViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.Clear" />.
+	/// <see cref="CopyHistoryViewModel.Clear" />: clears items, search text and selection.
 	/// </summary>
 	[Test]
 	public void Clear_Clears_History()
@@ -48,7 +48,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel" /> constructor.
+	/// <see cref="CopyHistoryViewModel" /> constructor.
 	/// </summary>
 	[Test]
 	public void Constructor_Initializes_Empty_History()
@@ -78,7 +78,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.Dispose" />.
+	/// <see cref="CopyHistoryViewModel.Dispose" />: clears items and selection.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()
@@ -106,7 +106,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.GetIdentifiers" />.
+	/// <see cref="CopyHistoryViewModel.GetIdentifiers" />: returns the ids of all items in history.
 	/// </summary>
 	[Test]
 	public void GetIdentifiers_Returns_Identifiers_Of_Objects_In_History()
@@ -129,7 +129,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.Initialize" />.
+	/// <see cref="CopyHistoryViewModel.Initialize" />: populates history and selects the given item.
 	/// </summary>
 	[Test]
 	public void Initialize_Initializes_Properties()
@@ -157,7 +157,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />.
+	/// <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />: inserts a new item into the history.
 	/// </summary>
 	[Test]
 	public void InsertOrMoveToTop_Inserts_New_Item_At_Top()
@@ -185,7 +185,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />.
+	/// <see cref="CopyHistoryViewModel.InsertOrMoveToTop" />: moves an existing item without duplicating it.
 	/// </summary>
 	[Test]
 	public void InsertOrMoveToTop_Moves_Existing_Item_Without_Duplication()
@@ -217,7 +217,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.Remove" />.
+	/// <see cref="CopyHistoryViewModel.Remove" />: returns false when the item is not in history.
 	/// </summary>
 	[Test]
 	public void Remove_Returns_False_When_Item_Is_Not_Present()
@@ -237,7 +237,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CopyHistoryViewModel.Remove" />.
+	/// <see cref="CopyHistoryViewModel.Remove" />: returns true and removes the item from history.
 	/// </summary>
 	[Test]
 	public void Remove_Returns_True_And_Removes_Item_From_History()

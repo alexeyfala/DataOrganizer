@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Helpers;
 using System;
 using System.Linq;
@@ -14,7 +14,7 @@ internal class FilterEngineTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsSourceEmpty" />.
+	/// <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsSourceEmpty" />: added items populate both the source and the visible sequence.
 	/// </summary>
 	[Test]
 	public void AddRange_Populates_Source_And_Visible_Sequence()
@@ -38,7 +38,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Clear" />.
+	/// <see cref="FilterEngine{TModel}.Clear" />: clearing empties both the source and the visible sequence.
 	/// </summary>
 	[Test]
 	public void Clear_Empties_The_Source()
@@ -62,7 +62,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Contains" />.
+	/// <see cref="FilterEngine{TModel}.Contains" />: returns true for an existing item and false for an unknown one.
 	/// </summary>
 	[Test]
 	public void Contains_Returns_True_For_Existing_Item()
@@ -85,7 +85,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Dispose" />.
+	/// <see cref="FilterEngine{TModel}.Dispose" />: disposing twice does not throw and clears the source.
 	/// </summary>
 	[Test]
 	public void Dispose_Is_Idempotent_And_Clears_Source()
@@ -110,7 +110,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />.
+	/// <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />: returns the source item matching the predicate.
 	/// </summary>
 	[Test]
 	public void FirstOrDefaultFromSource_Returns_Matching_Item()
@@ -134,7 +134,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />.
+	/// <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />: returns null when no source item matches the predicate.
 	/// </summary>
 	[Test]
 	public void FirstOrDefaultFromSource_Returns_Null_If_No_Item_Matches()
@@ -154,7 +154,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.InsertAndRebuild" />.
+	/// <see cref="FilterEngine{TModel}.InsertAndRebuild" />: an already present item is not re-inserted and order is preserved.
 	/// </summary>
 	[Test]
 	public void InsertAndRebuild_Does_Nothing_When_Item_Already_Present()
@@ -182,7 +182,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.InsertAndRebuild" />.
+	/// <see cref="FilterEngine{TModel}.InsertAndRebuild" />: a new item is placed at the specified visible index.
 	/// </summary>
 	[Test]
 	public void InsertAndRebuild_Places_Item_At_Specified_Visible_Index()
@@ -204,7 +204,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.PostToUi" />.
+	/// <see cref="FilterEngine{TModel}.PostToUi" />: the action runs inline when no synchronization context is set.
 	/// </summary>
 	[Test]
 	public void PostToUi_Executes_Action_Inline_When_No_Context()
@@ -226,7 +226,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Remove" />.
+	/// <see cref="FilterEngine{TModel}.Remove" />: removing an item returns true and drops it from the source.
 	/// </summary>
 	[Test]
 	public void Remove_Removes_Item_From_Source()
@@ -252,7 +252,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.Reorder" />.
+	/// <see cref="FilterEngine{TModel}.Reorder" />: an item is moved to the specified visible index.
 	/// </summary>
 	[Test]
 	public void Reorder_Moves_Item_To_Specified_Visible_Index()
@@ -274,7 +274,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FilterEngine{TModel}.SelectFromSource" />.
+	/// <see cref="FilterEngine{TModel}.SelectFromSource" />: projects each source item through the selector.
 	/// </summary>
 	[Test]
 	public void SelectFromSource_Projects_Source_Items()

@@ -1,9 +1,7 @@
-﻿using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+﻿using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using Entities.Abstract;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;

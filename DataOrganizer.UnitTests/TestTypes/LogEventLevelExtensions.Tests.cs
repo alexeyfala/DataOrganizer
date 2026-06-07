@@ -10,7 +10,7 @@ internal class LogEventLevelExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="LogEventLevelExtensions.ToBrush" />.
+	/// <see cref="LogEventLevelExtensions.ToBrush" />: each level maps to its expected brush.
 	/// </summary>
 	[Test]
 	public void ToBrush_Returns_Expected_Brush_For_Level([Values] LogEventLevel level)
@@ -34,7 +34,7 @@ internal class LogEventLevelExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="LogEventLevelExtensions.ToShort" />.
+	/// <see cref="LogEventLevelExtensions.ToShort" />: each level maps to its expected short text.
 	/// </summary>
 	[TestCase(LogEventLevel.Verbose, "[VERBOSE]")]
 	[TestCase(LogEventLevel.Debug, "[DBG]")]

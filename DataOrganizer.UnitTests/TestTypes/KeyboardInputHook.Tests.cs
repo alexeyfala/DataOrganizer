@@ -2,10 +2,12 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services;
 using NSubstitute;
 using Repository.DTO;
@@ -25,7 +27,7 @@ internal class KeyboardInputHookTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.Dispose" />.
+	/// <see cref="KeyboardInputHook.Dispose" />: the underlying hook is disposed and the files and input stack are cleared.
 	/// </summary>
 	[Test]
 	public void Dispose_Disposes_Hook()
@@ -63,7 +65,7 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />.
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a matching hotkey copies the decrypted contents to the clipboard and shows a toast.
 	/// </summary>
 	[Test]
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
@@ -140,7 +142,7 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.StopTrackingAsync" />.
+	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the files and input stack are cleared.
 	/// </summary>
 	[Test]
 	public async Task StopTrackingAsync_Stops_Hook()

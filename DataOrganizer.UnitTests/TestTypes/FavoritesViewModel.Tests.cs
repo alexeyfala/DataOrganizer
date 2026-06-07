@@ -4,9 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.Abstract;
-using DataOrganizer.DTO.Entities.Abstract;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -25,7 +23,7 @@ internal class FavoritesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.AddHierarchy" />.
+	/// <see cref="FavoritesViewModel.AddHierarchy" />: adds the given objects to the hierarchy.
 	/// </summary>
 	[Test]
 	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
@@ -47,7 +45,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.ClosePopupByEsc" />.
+	/// <see cref="FavoritesViewModel.ClosePopupByEsc" />: unfixes and closes the popup.
 	/// </summary>
 	[Test]
 	public void ClosePopupByEsc_Closes_Popup()
@@ -75,7 +73,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.Dispose" />.
+	/// <see cref="FavoritesViewModel.Dispose" />: clears favorites and copy-history settings collections.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()
@@ -131,7 +129,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.Initialize" />.
+	/// <see cref="FavoritesViewModel.Initialize" />: applies window, favorites and copy-history settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void Initialize_Initializes_Properties()
@@ -221,7 +219,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewModelBase.InsertToCopyHistory" />.
+	/// <see cref="ViewModelBase.InsertToCopyHistory" />: inserts the new value at the top of copy history.
 	/// </summary>
 	[Test]
 	public void InsertToCopyHistory_Inserts_New_Value_To_Top()
@@ -248,7 +246,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FavoritesViewModel.ShowInEditorAsync" />.
+	/// <see cref="FavoritesViewModel.ShowInEditorAsync" />: configures and shows the editor window.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task ShowInEditorAsync_Shows_Editor_Window()

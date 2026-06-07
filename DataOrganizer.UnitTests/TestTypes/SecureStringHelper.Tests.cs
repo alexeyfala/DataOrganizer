@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;
 
@@ -10,7 +10,7 @@ internal class SecureStringHelperTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="SecureStringHelper.CaptureAndWipe" />.
+	/// <see cref="SecureStringHelper.CaptureAndWipe" />: the returned pinned secret has the same length and content as the source.
 	/// </summary>
 	[Test]
 	public void CaptureAndWipe_Copies_Content_Into_Pinned_Secret_With_Same_Length()
@@ -35,7 +35,7 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SecureStringHelper.CaptureAndWipe" />.
+	/// <see cref="SecureStringHelper.CaptureAndWipe" />: the original source string is zeroed out after capture.
 	/// </summary>
 	[Test]
 	public void CaptureAndWipe_Wipes_Original_String_Memory()
@@ -54,13 +54,13 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SecureStringHelper.WipeString" />.
+	/// <see cref="SecureStringHelper.WipeString" />: an empty string is left untouched and no exception is thrown.
 	/// </summary>
 	[Test]
 	public void WipeString_Does_Nothing_For_Empty_String()
 	{
 		// Arrange
-		string source = new(Array.Empty<char>());
+		string source = new([]);
 
 		// Act
 		Action act = () => SecureStringHelper.WipeString(source);
@@ -76,7 +76,7 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SecureStringHelper.WipeString" />.
+	/// <see cref="SecureStringHelper.WipeString" />: every character of the string is replaced with the null character.
 	/// </summary>
 	[Test]
 	public void WipeString_Replaces_All_Characters_With_Null()

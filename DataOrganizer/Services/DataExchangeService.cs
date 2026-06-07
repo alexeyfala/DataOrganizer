@@ -1,12 +1,11 @@
 ﻿using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
-using Entities.Abstract;
 using Entities.Models;
 using Repository.DTO;
 using Repository.Enums;
