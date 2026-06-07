@@ -42,6 +42,10 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
+			windowMock.Mock<IClipboardHistoryService>()
+				.SetupGet(x => x.Entries)
+				.Returns([]);
+
 			CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
 
 			CustomClipboardWindow clipboardWindow = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
@@ -443,6 +447,10 @@ internal class ViewLauncherTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		using AutoMock mock = AutoMock.GetLoose();
+
+		mock.Mock<IClipboardHistoryService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>(
 			TypedParameter.From(fileSystem));
