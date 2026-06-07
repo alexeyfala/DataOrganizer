@@ -1,5 +1,5 @@
 ﻿using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using System.Collections.Generic;
 using System.Threading;

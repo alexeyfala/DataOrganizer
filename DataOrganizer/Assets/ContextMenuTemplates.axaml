@@ -3,8 +3,8 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
+	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">
@@ -227,7 +227,7 @@
 	<!-- FolderInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FolderInTreeViewContextMenuTemplate"
-		x:DataType="models:FolderModelDto">
+		x:DataType="entities:FolderModelDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -332,7 +332,7 @@
 	<!-- FileInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewContextMenuTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -461,7 +461,7 @@
 	<!-- FileInListContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInListContextMenuTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">

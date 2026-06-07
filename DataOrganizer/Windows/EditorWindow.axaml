@@ -7,10 +7,10 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -339,7 +339,7 @@
 
 							<TreeView.Styles>
 								<Style
-									x:DataType="models:ExplorerModelBaseDto"
+									x:DataType="entities:ExplorerModelBaseDto"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

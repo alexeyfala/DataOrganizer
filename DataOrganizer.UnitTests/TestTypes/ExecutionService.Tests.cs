@@ -2,7 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities.Models;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;

@@ -6,11 +6,11 @@
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
+	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
 	xmlns:system="using:System"
@@ -26,7 +26,7 @@
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
-		x:DataType="models:FolderModelDto"
+		x:DataType="entities:FolderModelDto"
 		ItemsSource="{ReflectionBinding Children,
 		                                Mode=OneTime}">
 		<Grid
@@ -66,7 +66,7 @@
 	<!-- FileInTreeViewTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -137,7 +137,7 @@
 	<!-- ExecutingFileTemplate -->
 	<DataTemplate
 		x:Key="ExecutingFileTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -200,7 +200,7 @@
 	<!-- EditingFileTabControlHeaderTemplate -->
 	<DataTemplate
 		x:Key="EditingFileTabControlHeaderTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<StackPanel
 			Orientation="Horizontal"
 			Spacing="10.0">
@@ -464,7 +464,7 @@
 	<!-- FileInListTemplate -->
 	<DataTemplate
 		x:Key="FileInListTemplate"
-		x:DataType="models:FileModelDto">
+		x:DataType="entities:FileModelDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">

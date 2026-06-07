@@ -6,7 +6,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.DTO.Entities.Models;
+namespace DataOrganizer.DTO.Entities;
 
 /// <inheritdoc cref="FileModel" />
 public partial class FileModelDto : ExplorerModelBaseDto

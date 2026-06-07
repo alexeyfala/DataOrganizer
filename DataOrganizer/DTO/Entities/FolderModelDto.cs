@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.DTO.Entities.Models;
+namespace DataOrganizer.DTO.Entities;
 
 /// <inheritdoc cref="FolderModel" />
 public sealed partial class FolderModelDto : ExplorerModelBaseDto
