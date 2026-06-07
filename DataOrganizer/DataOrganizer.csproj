@@ -31,6 +31,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AvaloniaResource Include="Styling\Resources.axaml">
+	    <SubType>Designer</SubType>
+	  </AvaloniaResource>
+	  <AvaloniaResource Include="Styling\SideSheetControlTheme.axaml">
+	    <SubType>Designer</SubType>
+	  </AvaloniaResource>
+	  <AvaloniaResource Include="Styling\Styles.axaml">
+	    <SubType>Designer</SubType>
+	  </AvaloniaResource>
+	  <AvaloniaResource Include="Styling\Themes.axaml">
+	    <SubType>Designer</SubType>
+	  </AvaloniaResource>
 	  <AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\ContextMenuTemplates.axaml">
 	    <SubType>Designer</SubType>
@@ -84,21 +96,6 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<AvaloniaResource Update="Assets\Resources.axaml">
-			<SubType>Designer</SubType>
-		</AvaloniaResource>
-		<AvaloniaResource Update="Assets\SideSheetControlTheme.axaml">
-		  <SubType>Designer</SubType>
-		</AvaloniaResource>
-		<AvaloniaResource Update="Assets\Styles.axaml">
-			<SubType>Designer</SubType>
-		</AvaloniaResource>
-		<AvaloniaResource Update="Assets\Themes.axaml">
-			<SubType>Designer</SubType>
-		</AvaloniaResource>
 	</ItemGroup>
 
 	<ItemGroup>

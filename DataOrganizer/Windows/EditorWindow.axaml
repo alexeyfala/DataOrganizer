@@ -30,7 +30,7 @@
 	<Window.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceInclude Source="/Assets/SideSheetControlTheme.axaml" />
+				<ResourceInclude Source="/Styling/SideSheetControlTheme.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 
 			<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
