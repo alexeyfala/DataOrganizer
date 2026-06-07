@@ -34,7 +34,7 @@ public interface IAppEnvironment
 	{
 		return Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			$"{(AppUtils.IsDebug ? AppUtils.AppNameAsOneWord + "_Debug" : string.Empty)}");
+			$"{(AppUtils.IsDebug ? AppUtils.AppNameAsOneWord + "_Debug" : AppUtils.AppNameAsOneWord)}");
 	}
 
 	/// <summary>
