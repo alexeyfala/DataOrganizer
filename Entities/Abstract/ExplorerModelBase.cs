@@ -14,8 +14,11 @@ namespace Entities.Abstract;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
-[JsonDerivedType(typeof(FolderModel), typeDiscriminator: nameof(FolderModel))]
-[JsonDerivedType(typeof(FileModel), typeDiscriminator: nameof(FileModel))]
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(FolderModel), "folder")]
+[JsonDerivedType(typeof(FileModel), "file")]
+
 [XmlInclude(typeof(FolderModel))]
 [XmlInclude(typeof(FileModel))]
 public abstract class ExplorerModelBase : EntityModelBase
