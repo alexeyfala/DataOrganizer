@@ -3,7 +3,6 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using Entities.Abstract;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;

@@ -1,11 +1,10 @@
 ﻿using Entities.Enums;
-using Entities.Models;
 using System;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 
-namespace Entities.Abstract;
+namespace Entities.Models;
 
 /// <summary>
 /// The base model for virtual file system objects.

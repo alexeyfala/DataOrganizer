@@ -1,7 +1,7 @@
 ﻿using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Enums;
-using Entities.Abstract;
+using Entities.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;

@@ -1,4 +1,4 @@
-﻿using Entities.Abstract;
+﻿using Entities.Models;
 using Repository.Abstract;
 using System;
 using System.Linq.Expressions;

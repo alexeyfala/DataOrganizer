@@ -2,7 +2,6 @@
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using Entities.Abstract;
 using Entities.Enums;
 using Entities.Models;
 using System;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Entities.Abstract;
+namespace Entities.Models;
 
 /// <summary>
 /// The base model for all entities.
