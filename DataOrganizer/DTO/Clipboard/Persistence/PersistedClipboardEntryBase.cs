@@ -6,9 +6,9 @@ namespace DataOrganizer.DTO.Clipboard.Persistence;
 /// Base type for a single clipboard history entry persisted to disk.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(PersistedTextEntry), "text")]
-[JsonDerivedType(typeof(PersistedImageEntry), "image")]
-[JsonDerivedType(typeof(PersistedFilesEntry), "files")]
+[JsonDerivedType(typeof(PersistedTextEntry), "Text")]
+[JsonDerivedType(typeof(PersistedImageEntry), "Image")]
+[JsonDerivedType(typeof(PersistedFilesEntry), "Files")]
 public abstract class PersistedClipboardEntryBase
 {
 	#region Properties

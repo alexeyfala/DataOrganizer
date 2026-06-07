@@ -16,8 +16,8 @@ namespace Entities.Abstract;
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(FolderModel), "folder")]
-[JsonDerivedType(typeof(FileModel), "file")]
+[JsonDerivedType(typeof(FolderModel), "Folder")]
+[JsonDerivedType(typeof(FileModel), "File")]
 
 [XmlInclude(typeof(FolderModel))]
 [XmlInclude(typeof(FileModel))]
