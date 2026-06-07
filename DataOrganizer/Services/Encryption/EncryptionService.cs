@@ -12,40 +12,6 @@ using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services.Encryption;
 
-/// <summary>
-/// <inheritdoc cref="IEncryptionService" />
-/// </summary>
-/// <remarks>
-/// <para>
-/// <b>Ciphertext format versioning.</b> Every ciphertext produced by this service starts with a
-/// single version byte (see <see cref="FormatVersionPasswordV1" /> and <see cref="FormatVersionDekV1" />).
-/// The version byte tells the decryptor how to interpret the remaining bytes — which algorithm,
-/// which parameters, which layout. Without it, a future change in format (different AEAD, different
-/// salt size, different KDF parameters, etc.) would silently break decryption of existing data,
-/// because raw bytes are indistinguishable between formats.
-/// </para>
-/// <para>
-/// <b>Current format layout:</b>
-/// <list type="bullet">
-///   <item><c>0x01</c> — password path: <c>[0x01][salt 16][nonce 24][ciphertext+tag]</c></item>
-///   <item><c>0x02</c> — DEK path:      <c>[0x02][nonce 24][ciphertext+tag]</c></item>
-/// </list>
-/// Different version codes between paths also prevent accidental cross-use: a password-path blob
-/// fed to <see cref="DecryptWithDek" /> returns <c>null</c> instead of attempting decryption.
-/// </para>
-/// <para>
-/// <b>Rules when changing the format:</b>
-/// <list type="number">
-///   <item>Allocate a new version constant (e.g. <c>0x03</c>) — do not reuse existing ones.</item>
-///   <item>Add the new layout / algorithm under the new code; keep the old branch readable so existing
-///         data can still be decrypted.</item>
-///   <item>Bump the version constant only in the <i>encryption</i> path; decryption should accept
-///         all known versions and dispatch by the first byte.</item>
-///   <item>Unknown version → return <c>null</c> (already enforced by the guards). Never fall back
-///         to "try a different format" — that's a downgrade vector.</item>
-/// </list>
-/// </para>
-/// </remarks>
 public sealed class EncryptionService : IEncryptionService
 {
 	#region Data
