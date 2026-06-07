@@ -28,7 +28,7 @@
 
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
 
-				<ResourceInclude Source="/Assets/ContextMenuTemplates.axaml" />
+				<ResourceInclude Source="/Templates/ContextMenuTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 
