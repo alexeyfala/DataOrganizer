@@ -178,6 +178,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clipboard history.
+        /// </summary>
+        public static string ClipboardHistory {
+            get {
+                return ResourceManager.GetString("ClipboardHistory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         public static string Close {
@@ -444,6 +453,15 @@ namespace Shared.Properties {
         public static string Encryption {
             get {
                 return ResourceManager.GetString("Encryption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the password to load saved history.
+        /// </summary>
+        public static string EnterThePasswordToLoadSavedHistory {
+            get {
+                return ResourceManager.GetString("EnterThePasswordToLoadSavedHistory", resourceCulture);
             }
         }
         
@@ -988,6 +1006,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to or cancel to keep this session in memory only.
+        /// </summary>
+        public static string OrCancelToKeepSessionInMemory {
+            get {
+                return ResourceManager.GetString("OrCancelToKeepSessionInMemory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
         public static string Password {
@@ -1011,6 +1038,15 @@ namespace Shared.Properties {
         public static string Pause {
             get {
                 return ResourceManager.GetString("Pause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Persist history between sessions (encrypted).
+        /// </summary>
+        public static string PersistHistoryBetweenSessions {
+            get {
+                return ResourceManager.GetString("PersistHistoryBetweenSessions", resourceCulture);
             }
         }
         
@@ -1344,6 +1380,15 @@ namespace Shared.Properties {
         public static string Topmost {
             get {
                 return ResourceManager.GetString("Topmost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try again.
+        /// </summary>
+        public static string TryAgain {
+            get {
+                return ResourceManager.GetString("TryAgain", resourceCulture);
             }
         }
         

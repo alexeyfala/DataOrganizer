@@ -1,5 +1,6 @@
 using DataOrganizer.DTO.Clipboard;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,12 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// touching the system clipboard.
 	/// </summary>
 	Task ClearEntriesAsync();
+
+	/// <summary>
+	/// Merges <paramref name="entries" /> into <see cref="Entries" /> below the current ones,
+	/// skipping hash duplicates and enforcing the history cap. Raises no change notification.
+	/// </summary>
+	void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries);
 
 	/// <summary>
 	/// Restores <paramref name="entry" /> into the system clipboard and moves it

@@ -567,4 +567,19 @@
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
     <value>Используется для ведения истории буфера обмена системы и доступа к ней через кастомное окно буфера обмена</value>
   </data>
+  <data name="PersistHistoryBetweenSessions" xml:space="preserve">
+    <value>Сохранять историю между сессиями (в зашифрованном виде)</value>
+  </data>
+  <data name="ClipboardHistory" xml:space="preserve">
+    <value>История буфера обмена</value>
+  </data>
+  <data name="OrCancelToKeepSessionInMemory" xml:space="preserve">
+    <value>или отмените, чтобы сохранить эту сессию только в памяти</value>
+  </data>
+  <data name="EnterThePasswordToLoadSavedHistory" xml:space="preserve">
+    <value>Введите пароль для загрузки сохраненной истории</value>
+  </data>
+  <data name="TryAgain" xml:space="preserve">
+    <value>Попробуйте снова</value>
+  </data>
 </root>

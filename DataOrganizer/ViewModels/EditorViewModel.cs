@@ -1028,6 +1028,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
 
+	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
+	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
@@ -1049,6 +1052,7 @@ public partial class EditorViewModel :
 		IAppSettingsManager settingsManager,
 		IClipboardAccessor clipboard,
 		IClipboardHistoryService clipboardHistory,
+		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -1079,6 +1083,8 @@ public partial class EditorViewModel :
 			keyboardInputHook)
 	{
 		_clipboardHistory = clipboardHistory;
+
+		_clipboardHistoryPersistence = clipboardHistoryPersistence;
 
 		_dataExchange = dataExchange;
 
@@ -1272,6 +1278,11 @@ public partial class EditorViewModel :
 		AppSettings settings,
 		CancellationToken token = default)
 	{
+		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
+		bool wasPersistingClipboard = _settingsManager
+			.Settings
+			.PersistClipboardHistory;
+
 		if (isSave)
 		{
 			_settingsManager.OverwriteSettings(settings);
@@ -1291,6 +1302,11 @@ public partial class EditorViewModel :
 		await ApplyClipboardHistorySettingAsync(
 			settings.TrackClipboardHistory,
 			token).ConfigureAwait(false);
+
+		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
+		{
+			_clipboardHistoryPersistence.DisablePersistence();
+		}
 
 		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{

@@ -113,6 +113,9 @@ public interface IFileSystem
 	/// </summary>
 	Stream OpenSequentialRead(string filePath);
 
+	/// <inheritdoc cref="File.ReadAllBytesAsync(string, CancellationToken)" />
+	Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default);
+
 	/// <inheritdoc cref="File.ReadAllText(string)" />
 	string ReadAllText(string filePath);
 

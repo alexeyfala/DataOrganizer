@@ -6,6 +6,7 @@ using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -14,10 +15,12 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -35,6 +38,12 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
+
+	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
+	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+
+	/// <inheritdoc cref="IDialogService" />
+	private readonly IDialogService _dialogService;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
@@ -65,6 +74,8 @@ public class ViewLauncher : IViewLauncher
 		Application app,
 		IAppEnvironment appEnvironment,
 		IClipboardHistoryService clipboardHistory,
+		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
+		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
@@ -79,6 +90,10 @@ public class ViewLauncher : IViewLauncher
 		_appEnvironment = appEnvironment;
 
 		_clipboardHistory = clipboardHistory;
+
+		_clipboardHistoryPersistence = clipboardHistoryPersistence;
+
+		_dialogService = dialogService;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -475,6 +490,14 @@ public class ViewLauncher : IViewLauncher
 				.Dispose();
 		}
 	}
+
+	/// <inheritdoc />
+	public async Task ShowCustomClipboardWindowAsync(Window owner)
+	{
+		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
+
+		ConfigureCustomClipboardWindow(owner).Show();
+	}
 	#endregion
 
 	#region Helpers
@@ -652,6 +675,53 @@ public class ViewLauncher : IViewLauncher
 			await asyncDisposable
 				.DisposeAsync()
 				.ConfigureAwait(false);
+		}
+	}
+
+	/// <summary>
+	/// Prompts for the clipboard-history password while one is required, unlocking and merging the
+	/// saved history. Cancelling the prompt leaves the session in-memory only.
+	/// </summary>
+	private async Task UnlockClipboardHistoryIfRequiredAsync()
+	{
+		string label = $"{Strings.EnterThePasswordToLoadSavedHistory} ({Strings.OrCancelToKeepSessionInMemory})";
+
+		while (_clipboardHistoryPersistence.RequiresUnlock)
+		{
+			char[] password = await _dialogService
+				.RequestPasswordAsync(Strings.ClipboardHistory, label)
+				.ConfigureAwait(true);
+
+			if (password.IsEmpty())
+			{
+				return;
+			}
+
+			byte[] passwordBytes = TextHelper
+				.Utf8Encoding
+				.GetBytes(password);
+
+			try
+			{
+				ClipboardHistoryUnlockStatus status = await _clipboardHistoryPersistence
+					.TryUnlockAndMergeAsync(passwordBytes)
+					.ConfigureAwait(true);
+
+				if (status == ClipboardHistoryUnlockStatus.Unlocked)
+				{
+					return;
+				}
+
+				label = $"{Strings.IncorrectPassword}. {Strings.TryAgain} ({Strings.OrCancelToKeepSessionInMemory})";
+			}
+			finally
+			{
+				passwordBytes.ZeroMemory();
+
+				MemoryMarshal
+					.AsBytes(password.AsSpan())
+					.ZeroMemory();
+			}
 		}
 	}
 	#endregion

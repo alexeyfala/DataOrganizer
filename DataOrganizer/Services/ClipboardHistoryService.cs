@@ -1,10 +1,13 @@
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Text;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -21,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed partial class ClipboardHistoryService : IClipboardHistoryService
+public sealed class ClipboardHistoryService : IClipboardHistoryService
 {
 	#region Properties
 	/// <inheritdoc />
@@ -78,7 +81,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
 	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
 	/// </summary>
-	private static readonly Regex WholeStringUrlRegex = GetWholeStringUrlRegex();
+	private static readonly Regex WholeStringUrlRegex = ClipboardHistoryMapper.WholeStringUrlRegex();
 
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
@@ -94,6 +97,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 
 	/// <inheritdoc cref="IStorageAccessor" />
 	private readonly IStorageAccessor _storage;
@@ -122,14 +128,15 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	private Task? _loopTask;
 
 	/// <summary>
+	/// The entry just restored to the system clipboard, awaiting re-baseline to the clipboard's
+	/// actual representation on the next poll tick. UI-thread only.
+	/// </summary>
+	private ClipboardHistoryEntryBase? _restoredEntry;
+
+	/// <summary>
 	/// Linked cancellation source created on start from the user token.
 	/// </summary>
 	private CancellationTokenSource? _stopCts;
-
-	/// <summary>
-	/// When <c>True</c>, the next poll tick skips its match check.
-	/// </summary>
-	private bool _suppressEcho;
 	#endregion
 
 	#region Constructors
@@ -137,6 +144,7 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		IClipboardAccessor clipboard,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
+		IMessenger messenger,
 		IStorageAccessor storage)
 	{
 		_clipboard = clipboard;
@@ -145,16 +153,18 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 		_logger = logger;
 
+		_messenger = messenger;
+
 		_storage = storage;
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync() => ClearCoreAsync(clearSystem: true);
+	public Task ClearAsync() => ClearCoreAsync(clearSystem: true, ClipboardHistoryChangeKind.ClearedByUser);
 
 	/// <inheritdoc />
-	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false);
+	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false, ClipboardHistoryChangeKind.ClearedForStop);
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -184,6 +194,27 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 			.ConfigureAwait(false);
 
 		_clearGate.Dispose();
+	}
+
+	/// <inheritdoc />
+	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
+	{
+		// Appends entries below the current ones, skipping hash duplicates and enforcing the cap.
+		// Does not raise a change notification — the caller decides whether to persist.
+		foreach (ClipboardHistoryEntryBase entry in entries)
+		{
+			if (Entries.Count >= HistoryLimit)
+			{
+				break;
+			}
+
+			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			{
+				continue;
+			}
+
+			Entries.Add(entry);
+		}
 	}
 
 	/// <inheritdoc />
@@ -230,13 +261,12 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 					break;
 			}
 
-			// Suppress the self-echo only after a successful write: the next tick is skipped
-			// by the stored hash, with the one-shot flag covering a platform-repacked payload.
-			Interlocked.Exchange(ref _suppressEcho, true);
+			await _dispatcher.PostAsync(() =>
+				{
+					_lastHash = entry.Hash;
 
-			await _dispatcher
-				.PostAsync(() => _lastHash = entry.Hash)
-				.ConfigureAwait(false);
+					_restoredEntry = entry;
+				}).ConfigureAwait(false);
 
 			// Touching Entries must happen on the UI thread.
 			await _dispatcher
@@ -298,6 +328,177 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		finally
 		{
 			local.Dispose();
+		}
+	}
+
+	/// <summary>
+	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
+	/// </summary>
+	internal static ClipboardHistoryEntryBase BuildTextEntry(
+		string text,
+		string? html,
+		string? rtf,
+		byte[] hash)
+	{
+		string? url = TryDetectUrl(text);
+
+		return url is null
+			? new ClipboardTextEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Hash = hash
+			}
+			: new ClipboardUrlEntry
+			{
+				Text = text,
+				Html = html,
+				Rtf = rtf,
+				Url = url,
+				Hash = hash
+			};
+	}
+
+	/// <summary>
+	/// Hashes a text payload together with whether it carries companion formats, so the same text
+	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
+	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
+	/// </summary>
+	internal static byte[] ComputeTextEntryHash(
+		string text,
+		string? html,
+		string? rtf)
+	{
+		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+		hash.AppendData(TextHelper
+			.Utf8Encoding
+			.GetBytes(text));
+
+		// Only the presence of companion formats — not their payloads, which Office can re-render
+		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
+		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
+
+		return hash.GetHashAndReset();
+	}
+
+	/// <summary>
+	/// Hashes the file list, including kind marker so a folder and a file with the same
+	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
+	/// </summary>
+	internal static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
+	{
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		foreach (ClipboardFileSystemEntry entry in entries)
+		{
+			builder.Append(entry.IsFolder ? 'D' : 'F');
+
+			builder.Append('|');
+
+			builder.Append(entry.Path);
+
+			builder.Append('\0');
+		}
+
+		return ComputeHash(TextHelper.Utf8Encoding.GetBytes(builder.ToString()));
+	}
+
+	/// <summary>
+	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
+	/// moves an existing matching entry to the top or inserts a new one.
+	/// </summary>
+	internal void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	{
+		if (_restoredEntry is { } restored)
+		{
+			_restoredEntry = null;
+
+			_lastHash = hash;
+
+			if (!HashEquals(restored.Hash, hash))
+			{
+				RebaselineRestored(restored, entryFactory());
+			}
+
+			return;
+		}
+
+		if (IsEchoOrUnchanged(hash))
+		{
+			return;
+		}
+
+		InsertOrMoveToTop(hash, entryFactory);
+	}
+
+	/// <summary>
+	/// Reads the clipboard once and inserts a new entry if the content changed.
+	/// </summary>
+	internal async Task PollOnceAsync()
+	{
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		try
+		{
+			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
+			{
+				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+
+				return;
+			}
+
+			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
+			{
+				byte[] hash = HashFiles(fileSystemEntries);
+
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
+				{
+					FileSystemEntries = fileSystemEntries,
+					Hash = hash
+				})).ConfigureAwait(false);
+
+				return;
+			}
+
+			if (await TryReadImagePngAsync() is { Length: > 0 } png)
+			{
+				byte[] hash = ComputeHash(png);
+
+				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
+				{
+					OriginalPng = png,
+					Hash = hash
+				})).ConfigureAwait(false);
+
+				return;
+			}
+
+			if (await TryReadTextAsync() is { Length: > 0 } text)
+			{
+				// Read companion formats up front so the hash reflects them: the same text copied as
+				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
+				string? html = await TryReadFormattedTextAsync(HtmlFormat).ConfigureAwait(false);
+
+				string? rtf = await TryReadFormattedTextAsync(RtfFormat).ConfigureAwait(false);
+
+				byte[] hash = ComputeTextEntryHash(text, html, rtf);
+
+				await _dispatcher
+					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.ConfigureAwait(false);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 	#endregion
@@ -374,61 +575,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
-	/// </summary>
-	private static ClipboardHistoryEntryBase BuildTextEntry(
-		string text,
-		string? html,
-		string? rtf,
-		byte[] hash)
-	{
-		string? url = TryDetectUrl(text);
-
-		return url is null
-			? new ClipboardTextEntry
-			{
-				Text = text,
-				Html = html,
-				Rtf = rtf,
-				Hash = hash
-			}
-			: new ClipboardUrlEntry
-			{
-				Text = text,
-				Html = html,
-				Rtf = rtf,
-				Url = url,
-				Hash = hash
-			};
-	}
-
-	/// <summary>
 	/// Computes SHA-256 of <paramref name="data" />.
 	/// </summary>
 	private static byte[] ComputeHash(ReadOnlySpan<byte> data) => SHA256.HashData(data);
-
-	/// <summary>
-	/// Hashes a text payload together with whether it carries companion formats, so the same text
-	/// copied as plain (e.g. Notepad) and as formatted (e.g. Word) is treated as two distinct entries.
-	/// Trade-off: identical text with only different HTML/RTF formatting hashes the same and is deduped.
-	/// </summary>
-	private static byte[] ComputeTextEntryHash(
-		string text,
-		string? html,
-		string? rtf)
-	{
-		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-
-		hash.AppendData(TextHelper
-			.Utf8Encoding
-			.GetBytes(text));
-
-		// Only the presence of companion formats — not their payloads, which Office can re-render
-		// non-deterministically per read (delayed rendering) and would change the hash every poll tick.
-		hash.AppendData([(byte)((html is null ? 0 : 1) | (rtf is null ? 0 : 2))]);
-
-		return hash.GetHashAndReset();
-	}
 
 	/// <summary>
 	/// Builds the Linux GNOME copied-files platform format; <c>null</c> on non-Linux platforms.
@@ -479,37 +628,9 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Matches when the entire input is an http(s) URL.
-	/// </summary>
-	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
-	private static partial Regex GetWholeStringUrlRegex();
-
-	/// <summary>
 	/// <c>True</c> when two payload hashes are byte-equal.
 	/// </summary>
 	private static bool HashEquals(byte[] left, byte[] right) => left.AsSpan().SequenceEqual(right);
-
-	/// <summary>
-	/// Hashes the file list, including kind marker so a folder and a file with the same
-	/// path don't collide. Order-sensitive — selection order is preserved by the OS.
-	/// </summary>
-	private static byte[] HashFiles(IReadOnlyList<ClipboardFileSystemEntry> entries)
-	{
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		foreach (ClipboardFileSystemEntry entry in entries)
-		{
-			builder.Append(entry.IsFolder ? 'D' : 'F');
-
-			builder.Append('|');
-
-			builder.Append(entry.Path);
-
-			builder.Append('\0');
-		}
-
-		return ComputeHash(TextHelper.Utf8Encoding.GetBytes(builder.ToString()));
-	}
 
 	/// <summary>
 	/// Returns the trimmed value of <paramref name="text" /> when it matches an
@@ -523,10 +644,11 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally
-	/// emptying the system clipboard so cleared content is not re-captured until a new copy.
+	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally emptying the
+	/// system clipboard (<paramref name="clearSystem" />). Raises a change notification of
+	/// <paramref name="clearKind" /> so listeners (e.g. persistence) can react.
 	/// </summary>
-	private async Task ClearCoreAsync(bool clearSystem)
+	private async Task ClearCoreAsync(bool clearSystem, ClipboardHistoryChangeKind clearKind)
 	{
 		if (IsDisposed())
 		{
@@ -550,6 +672,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 
 				_lastHash = null;
 			}).ConfigureAwait(false);
+
+			NotifyChanged(clearKind);
 
 			if (!clearSystem)
 			{
@@ -603,20 +727,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
-	/// moves an existing matching entry to the top or inserts a new one.
-	/// </summary>
-	private void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
-	{
-		if (IsEchoOrUnchanged(hash))
-		{
-			return;
-		}
-
-		InsertOrMoveToTop(hash, entryFactory);
-	}
-
-	/// <summary>
 	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
@@ -627,6 +737,8 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		{
 			Entries.RemoveAt(Entries.Count - 1);
 		}
+
+		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -666,13 +778,6 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private bool IsEchoOrUnchanged(byte[] hash)
 	{
-		if (Interlocked.Exchange(ref _suppressEcho, false))
-		{
-			_lastHash = hash;
-
-			return true;
-		}
-
 		if (_lastHash is { } prev && HashEquals(prev, hash))
 		{
 			return true;
@@ -744,75 +849,36 @@ public sealed partial class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Entries.Move(index, 0);
+
+		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
-	/// Reads the clipboard once and inserts a new entry if the content changed.
+	/// Publishes a <see cref="ClipboardHistoryChangedMessage" /> so listeners can react to a change.
 	/// </summary>
-	private async Task PollOnceAsync()
+	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardHistoryChangedMessage(kind));
+
+	/// <summary>
+	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />
+	/// (the content as the clipboard handed it back), so its persisted hash matches what a future
+	/// session will capture for the same content. UI-thread only.
+	/// </summary>
+	private void RebaselineRestored(ClipboardHistoryEntryBase restored, ClipboardHistoryEntryBase rebaselined)
 	{
-		await _clearGate
-			.WaitAsync()
-			.ConfigureAwait(false);
+		int index = Entries.IndexOf(restored);
 
-		try
+		if (index < 0)
 		{
-			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
-			{
-				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+			InsertAtTop(rebaselined);
 
-				return;
-			}
-
-			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
-			{
-				byte[] hash = HashFiles(fileSystemEntries);
-
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardFilesEntry
-				{
-					FileSystemEntries = fileSystemEntries,
-					Hash = hash
-				})).ConfigureAwait(false);
-
-				return;
-			}
-
-			if (await TryReadImagePngAsync() is { Length: > 0 } png)
-			{
-				byte[] hash = ComputeHash(png);
-
-				await _dispatcher.PostAsync(() => HandleNewPayload(hash, () => new ClipboardImageEntry
-				{
-					OriginalPng = png,
-					Hash = hash
-				})).ConfigureAwait(false);
-
-				return;
-			}
-
-			if (await TryReadTextAsync() is { Length: > 0 } text)
-			{
-				// Read companion formats up front so the hash reflects them: the same text copied as
-				// plain (Notepad) vs formatted (Word) is genuinely different and must not be deduped.
-				string? html = await TryReadFormattedTextAsync(HtmlFormat).ConfigureAwait(false);
-
-				string? rtf = await TryReadFormattedTextAsync(RtfFormat).ConfigureAwait(false);
-
-				byte[] hash = ComputeTextEntryHash(text, html, rtf);
-
-				await _dispatcher
-					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
-					.ConfigureAwait(false);
-			}
+			return;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogDebug($"Clipboard poll failed: {ex.Message}");
-		}
-		finally
-		{
-			_clearGate.Release();
-		}
+
+		Entries[index] = rebaselined;
+
+		_logger.LogDebug($"Re-baselined restored clipboard entry: {rebaselined.GetType().Name}.");
+
+		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>

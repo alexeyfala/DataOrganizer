@@ -1,11 +1,13 @@
 ﻿using Entities.Abstract;
 using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace Entities.Models;
 
 /// <summary>
 /// File model in a virtual file system.
 /// </summary>
+[XmlType(TypeName = File)]
 public sealed class FileModel : ExplorerModelBase
 {
 	#region Properties

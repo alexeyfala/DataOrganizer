@@ -14,8 +14,12 @@ namespace Entities.Abstract;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
-[JsonDerivedType(typeof(FolderModel), typeDiscriminator: nameof(FolderModel))]
-[JsonDerivedType(typeof(FileModel), typeDiscriminator: nameof(FileModel))]
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(FolderModel), Folder)]
+[JsonDerivedType(typeof(FileModel), File)]
+
+[XmlType(TypeName = "Entry")]
 [XmlInclude(typeof(FolderModel))]
 [XmlInclude(typeof(FileModel))]
 public abstract class ExplorerModelBase : EntityModelBase
@@ -66,5 +70,17 @@ public abstract class ExplorerModelBase : EntityModelBase
 	[JsonIgnore]
 	[XmlIgnore]
 	public DateTime UpdatedDate { get; set; }
+	#endregion
+
+	#region Data
+	/// <summary>
+	/// String literal for <see cref="FileModel" /> derived type.
+	/// </summary>
+	public const string File = "File";
+
+	/// <summary>
+	/// String literal for <see cref="FolderModel" /> derived type.
+	/// </summary>
+	public const string Folder = "Folder";
 	#endregion
 }

@@ -265,7 +265,9 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
+		services.AddSingleton<IClipboardHistoryPersistenceCoordinator, ClipboardHistoryPersistenceCoordinator>();
 		services.AddSingleton<IClipboardHistoryService, ClipboardHistoryService>();
+		services.AddSingleton<IClipboardHistoryStore, ClipboardHistoryStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();

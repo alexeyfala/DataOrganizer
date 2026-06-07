@@ -14,6 +14,8 @@ namespace Entities.Models;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(Code)} = {{{nameof(Code)}}}, " +
 	$"{nameof(Mask)} = {{{nameof(Mask)}}}")]
+
+[XmlType(TypeName = "Hotkey")]
 public sealed class HotkeyModel : EntityModelBase
 {
 	#region Properties
