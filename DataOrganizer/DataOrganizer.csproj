@@ -24,6 +24,7 @@
 		<AvaloniaXaml Remove="Assets\Styles.axaml" />
 		<AvaloniaXaml Remove="Assets\Themes.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -31,6 +32,7 @@
 	  <AvaloniaResource Include="Templates\DataTemplates.axaml">
 	    <SubType>Designer</SubType>
 	  </AvaloniaResource>
+	  <AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
