@@ -14,7 +14,7 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
+	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers">

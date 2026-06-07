@@ -12,7 +12,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
+	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"

@@ -5,7 +5,7 @@ using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Helpers;
 using System.Linq;
 
-namespace DataOrganizer.TemplateSelectors;
+namespace DataOrganizer.Templates.TemplateSelectors;
 
 internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDataTemplate
 {

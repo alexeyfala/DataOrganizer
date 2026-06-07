@@ -2,7 +2,7 @@
 using Avalonia.Metadata;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.TemplateSelectors;
+namespace DataOrganizer.Templates.TemplateSelectors;
 
 internal abstract class TemplateSelectorBase
 {

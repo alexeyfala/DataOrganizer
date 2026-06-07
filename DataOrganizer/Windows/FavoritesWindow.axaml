@@ -11,7 +11,7 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
+	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
 	Background="Transparent"

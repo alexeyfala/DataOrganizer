@@ -3,7 +3,7 @@ using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Templates;
 using DataOrganizer.DTO.Clipboard;
 
-namespace DataOrganizer.TemplateSelectors;
+namespace DataOrganizer.Templates.TemplateSelectors;
 
 /// <summary>
 /// Picks the content template for a clipboard entry by its runtime type.
