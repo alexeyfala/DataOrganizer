@@ -9,7 +9,7 @@ internal class SpanExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="SpanExtensions.ZeroMemory" />: does not throw for an empty span.
+	/// <see cref="SpanExtensions.ZeroMemory" />: does not throw for an empty span.
 	/// </summary>
 	[Test]
 	public void ZeroMemory_Does_Nothing_For_Empty_Span()
@@ -29,7 +29,7 @@ internal class SpanExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SpanExtensions.ZeroMemory" />: sets every byte of the span to zero.
+	/// <see cref="SpanExtensions.ZeroMemory" />: sets every byte of the span to zero.
 	/// </summary>
 	[Test]
 	public void ZeroMemory_Sets_All_Bytes_To_Zero()

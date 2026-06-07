@@ -28,7 +28,7 @@ internal class FileChangeTrackerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FileChangeTracker.TrackChangesAsync" />: the file is not updated when the content hash is unchanged.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the file is not updated when the content hash is unchanged.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Does_Not_Update_When_Contents_Did_Not_Change()
@@ -88,7 +88,7 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a session DEK is provided.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a session DEK is provided.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Encrypts_Contents_When_Session_Dek_Is_Provided()
@@ -177,7 +177,7 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileChangeTracker.TrackChangesAsync" />: exits without throwing and without updating when the file no longer exists.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: exits without throwing and without updating when the file no longer exists.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Exits_Gracefully_When_File_Disappears()
@@ -235,7 +235,7 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Shows_Error_And_Stops_When_Encryption_Fails()
@@ -330,7 +330,7 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileChangeTracker.TrackChangesAsync" />: the file is updated and its UpdatedDate refreshed when contents change.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the file is updated and its UpdatedDate refreshed when contents change.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Updates_File_When_Contents_Changed()

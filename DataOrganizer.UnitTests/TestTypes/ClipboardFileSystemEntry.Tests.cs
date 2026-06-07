@@ -8,7 +8,7 @@ internal class ClipboardFileSystemEntryTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardFileSystemEntry.Name" />: a trailing separator is ignored.
+	/// <see cref="ClipboardFileSystemEntry.Name" />: a trailing separator is ignored.
 	/// </summary>
 	[Test]
 	public void Name_Ignores_Trailing_Separator()
@@ -23,7 +23,7 @@ internal class ClipboardFileSystemEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardFileSystemEntry.Name" />: a file path yields its file name.
+	/// <see cref="ClipboardFileSystemEntry.Name" />: a file path yields its file name.
 	/// </summary>
 	[Test]
 	public void Name_Of_File_Is_File_Name()
@@ -38,7 +38,7 @@ internal class ClipboardFileSystemEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardFileSystemEntry.Name" />: a directory path yields its directory name.
+	/// <see cref="ClipboardFileSystemEntry.Name" />: a directory path yields its directory name.
 	/// </summary>
 	[Test]
 	public void Name_Of_Folder_Is_Directory_Name()

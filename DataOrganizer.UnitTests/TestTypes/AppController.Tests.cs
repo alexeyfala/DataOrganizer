@@ -17,7 +17,7 @@ internal class AppControllerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppController.LaunchAppAsync(CancellationToken)" />: connects to the database, loads entities and configures the main window.
+	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities and configures the main window.
 	/// </summary>
 	[Test]
 	public async Task LaunchAppAsync_Loads_Entities_From_Database_And_Configures_Main_Window()

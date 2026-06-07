@@ -13,7 +13,7 @@ internal class CommandLineOptionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="CommandLineOptions" />: the constructor initializes properties from the parsed command-line arguments.
+	/// <see cref="CommandLineOptions" />: the constructor initializes properties from the parsed command-line arguments.
 	/// </summary>
 	[Test]
 	public void CommandLineOptions_Inializes_Properties_From_Arguments_Through_Constructor()

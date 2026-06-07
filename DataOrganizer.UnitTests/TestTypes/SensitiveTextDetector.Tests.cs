@@ -8,7 +8,7 @@ internal class SensitiveTextDetectorTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: values caught by the negative
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: values caught by the negative
 	/// filters (GUID, hex hash, e-mail, URL, path, environment variable) are never secrets.
 	/// </summary>
 	[TestCase("550e8400-e29b-41d4-a716-446655440000")]
@@ -35,7 +35,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: a few character classes or low
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: a few character classes or low
 	/// entropy (e.g. plain words, repeated patterns) are not secrets.
 	/// </summary>
 	[TestCase("alllowercaseonly")]
@@ -53,7 +53,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: null, empty or whitespace-only
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: null, empty or whitespace-only
 	/// input (including interior whitespace) is never a secret.
 	/// </summary>
 	[TestCase(null)]
@@ -72,7 +72,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: structured / technical tokens
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: structured / technical tokens
 	/// (paths, versions, identifiers, network addresses, dates, keys) must stay readable.
 	/// </summary>
 	[TestCase("/usr/local/bin/python3.11")]
@@ -113,7 +113,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: tokens longer than the maximum
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: tokens longer than the maximum
 	/// length are treated as free text, not secrets.
 	/// </summary>
 	[Test]
@@ -132,7 +132,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: tokens shorter than the minimum
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: tokens shorter than the minimum
 	/// length are not treated as secrets.
 	/// </summary>
 	[TestCase("aB3#")]
@@ -149,7 +149,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: bare base64 / JWT fragments have
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: bare base64 / JWT fragments have
 	/// no separators and no long runs, so they read as random soup. Blurring them is acceptable.
 	/// </summary>
 	[TestCase("SGVsbG8gV29ybGQh==")]
@@ -166,7 +166,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: high-entropy password-like tokens are detected as secrets.
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: high-entropy password-like tokens are detected as secrets.
 	/// </summary>
 	[TestCase("Xk7#pQ2!mZ")]
 	[TestCase("Tr0ub4dor&3")]
@@ -185,7 +185,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: surrounding whitespace is trimmed
+	/// <see cref="SensitiveTextDetector.LooksLikeSecret" />: surrounding whitespace is trimmed
 	/// before evaluation.
 	/// </summary>
 	[Test]

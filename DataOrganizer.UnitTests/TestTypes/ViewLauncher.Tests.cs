@@ -23,7 +23,7 @@ internal class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureCustomClipboardWindow" />: saved size and position settings are applied to the window.
+	/// <see cref="ViewLauncher.ConfigureCustomClipboardWindow" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureCustomClipboardWindow_Applies_Saved_Settings()
@@ -87,7 +87,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureEditorWindow" />: default size, centered location and navigation column width are used on first launch.
+	/// <see cref="ViewLauncher.ConfigureEditorWindow" />: default size, centered location and navigation column width are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureEditorView_Creates_Window_With_Default_Settings_For_The_First_Launch()
@@ -138,7 +138,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureEditorWindow" />: the editor view model is initialized from saved settings.
+	/// <see cref="ViewLauncher.ConfigureEditorWindow" />: the editor view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureEditorView_ViewModel_Should_Be_Initialized()
@@ -197,7 +197,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
+	/// <see cref="ViewLauncher.ConfigureFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureFavoritesWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
@@ -252,7 +252,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureFavoritesWindow" />: the favorites view model is initialized from saved settings.
+	/// <see cref="ViewLauncher.ConfigureFavoritesWindow" />: the favorites view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureFavoritesWindow_ViewModel_Should_Be_Initialized()
@@ -309,7 +309,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created as the main window.
+	/// <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created as the main window.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureMainWindow_Configures_Editor()
@@ -348,7 +348,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created when no saved window setting exists.
+	/// <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created when no saved window setting exists.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureMainWindow_Configures_Editor_If_No_Settings()
@@ -387,7 +387,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.ConfigureMainWindow" />: a favorites window is created when the saved window setting is Favorites.
+	/// <see cref="ViewLauncher.ConfigureMainWindow" />: a favorites window is created when the saved window setting is Favorites.
 	/// </summary>
 	[AvaloniaTest]
 	public void ConfigureMainWindow_Configures_Favorites()
@@ -434,7 +434,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.SaveCustomClipboardSettings" />: clipboard window settings are serialized to a JSON file.
+	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: clipboard window settings are serialized to a JSON file.
 	/// </summary>
 	[AvaloniaTest]
 	public void SaveCustomClipboardSettings_Saves_Settings()
@@ -458,7 +458,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.SaveEditorSettingsAsync" />: editor settings and the current window kind are serialized to JSON files.
+	/// <see cref="ViewLauncher.SaveEditorSettingsAsync" />: editor settings and the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task SaveEditorSettingsAsync_Saves_Settings()
@@ -487,7 +487,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ViewLauncher.SaveFavoritesSettingsAsync" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
+	/// <see cref="ViewLauncher.SaveFavoritesSettingsAsync" />: favorites collections are cleared and settings with the current window kind are serialized to JSON files.
 	/// </summary>
 	[AvaloniaTest]
 	public async Task SaveFavoritesSettingsAsync_Saves_Settings()

@@ -11,7 +11,7 @@ internal class ImportListSelectorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Append result when AddToList is selected.
+	/// <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Append result when AddToList is selected.
 	/// </summary>
 	[Test]
 	public async Task ApplyCommand_Sets_Append_Result_When_AddToList_Is_Selected()
@@ -37,7 +37,7 @@ internal class ImportListSelectorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the None result when no option is selected.
+	/// <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the None result when no option is selected.
 	/// </summary>
 	[Test]
 	public async Task ApplyCommand_Sets_None_Result_When_Nothing_Is_Selected()
@@ -63,7 +63,7 @@ internal class ImportListSelectorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Replace result when Replace is selected.
+	/// <see cref="ImportListSelectorViewModel.ApplyCommand" />: yields the Replace result when Replace is selected.
 	/// </summary>
 	[Test]
 	public async Task ApplyCommand_Sets_Replace_Result_When_Replace_Is_Selected()
@@ -87,7 +87,7 @@ internal class ImportListSelectorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ImportListSelectorViewModel.CancelCommand" />: yields the None result.
+	/// <see cref="ImportListSelectorViewModel.CancelCommand" />: yields the None result.
 	/// </summary>
 	[Test]
 	public async Task CancelCommand_Sets_None_Result()

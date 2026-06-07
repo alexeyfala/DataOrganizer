@@ -21,7 +21,7 @@ internal class EntityLoaderTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: loads folders and files and returns a hierarchy containing all of them.
+	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: loads folders and files and returns a hierarchy containing all of them.
 	/// </summary>
 	[Test]
 	public async Task LoadFromEmbeddedDbAsync_Does_Work()

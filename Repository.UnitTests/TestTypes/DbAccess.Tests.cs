@@ -26,7 +26,7 @@ internal class DbAccessTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
+	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
 	/// </summary>
 	[Test]
 	public async Task AddEntityAsync_Returns_Entity([Values] EntityType type)
@@ -108,7 +108,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository, saves changes and returns true.
+	/// <see cref="DbAccess.AddFilesAsync" />: adds the files via the repository, saves changes and returns true.
 	/// </summary>
 	[Test]
 	public async Task AddFilesAsync_Adds_Files_To_Database()
@@ -144,7 +144,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository, saves changes and returns true.
+	/// <see cref="DbAccess.AddFoldersAsync" />: adds the folders via the repository, saves changes and returns true.
 	/// </summary>
 	[Test]
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
@@ -180,7 +180,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per pair owned by the given file and saves changes.
+	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per pair owned by the given file and saves changes.
 	/// </summary>
 	[Test]
 	public async Task AddHotkeysAsync_Adds_Hotkeys_To_Database_And_Returns_Created_Models()
@@ -222,7 +222,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.ClearDatabaseAsync" />: deletes the database and recreates it via migrations or creation depending on migration support.
+	/// <see cref="DbAccess.ClearDatabaseAsync" />: deletes the database and recreates it via migrations or creation depending on migration support.
 	/// </summary>
 	[Test]
 	public async Task ClearDatabaseAsync_Recreates_Database([Values] bool useMigrations)
@@ -268,7 +268,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.ConnectAsync" />: migrates or creates the database depending on migration support.
+	/// <see cref="DbAccess.ConnectAsync" />: migrates or creates the database depending on migration support.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Connects_To_Database([Values] bool useMigrations)
@@ -306,7 +306,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.CountOfAsync" />: returns the count of entities matching the predicate.
+	/// <see cref="DbAccess.CountOfAsync" />: returns the count of entities matching the predicate.
 	/// </summary>
 	[Test]
 	public async Task CountOfAsync_Returns_Count_Of_Matching_Entities()
@@ -337,7 +337,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteFileAsync" />: removes the file's hotkeys and the file itself, returning true.
+	/// <see cref="DbAccess.DeleteFileAsync" />: removes the file's hotkeys and the file itself, returning true.
 	/// </summary>
 	[Test]
 	public async Task DeleteFileAsync_Deletes_File_From_Database()
@@ -378,7 +378,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteFolderAsync" />: removes an empty folder without touching file or hotkey repositories.
+	/// <see cref="DbAccess.DeleteFolderAsync" />: removes an empty folder without touching file or hotkey repositories.
 	/// </summary>
 	[Test]
 	public async Task DeleteFolderAsync_Deletes_Folder_From_Database()
@@ -439,7 +439,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteFolderAsync" />: removes the whole subtree including nested folders, files and their hotkeys.
+	/// <see cref="DbAccess.DeleteFolderAsync" />: removes the whole subtree including nested folders, files and their hotkeys.
 	/// </summary>
 	[Test]
 	public async Task DeleteFolderAsync_Removes_Folder_With_Nested_Folders_And_Files()
@@ -510,7 +510,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteFolderAsync" />: returns false when no folder rows are removed.
+	/// <see cref="DbAccess.DeleteFolderAsync" />: returns false when no folder rows are removed.
 	/// </summary>
 	[Test]
 	public async Task DeleteFolderAsync_Returns_False_When_Folder_Does_Not_Exist()
@@ -552,7 +552,7 @@ internal class DbAccessTests
 			.BeFalse();
 	}
 	/// <summary>
-	/// Test of <see cref="DbAccess.DeleteHotkeysAsync" />: removes all hotkeys owned by the given id and returns true.
+	/// <see cref="DbAccess.DeleteHotkeysAsync" />: removes all hotkeys owned by the given id and returns true.
 	/// </summary>
 	[Test]
 	public async Task DeleteHotkeysAsync_Deletes_Hotkeys_From_Database()
@@ -585,7 +585,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.Dispose" />: calling it twice does not throw.
+	/// <see cref="DbAccess.Dispose" />: calling it twice does not throw.
 	/// </summary>
 	[Test]
 	public void Dispose_Is_Idempotent()
@@ -610,7 +610,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.GetAllFilesAsync" />: returns all files from the repository.
+	/// <see cref="DbAccess.GetAllFilesAsync" />: returns all files from the repository.
 	/// </summary>
 	[Test]
 	public async Task GetAllFilesAsync_Returns_Files()
@@ -641,7 +641,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.GetAllFoldersAsync" />: returns all folders from the repository.
+	/// <see cref="DbAccess.GetAllFoldersAsync" />: returns all folders from the repository.
 	/// </summary>
 	[Test]
 	public async Task GetAllFoldersAsync_Returns_Folders()
@@ -672,7 +672,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.GetFileContentsAsync" />: returns a valid pair with the file's id and contents.
+	/// <see cref="DbAccess.GetFileContentsAsync" />: returns a valid pair with the file's id and contents.
 	/// </summary>
 	[Test]
 	public async Task GetFileContentsAsync_Returns_File_Contents()
@@ -711,7 +711,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.GetFilePropertiesAsync" />: returns the file's properties string.
+	/// <see cref="DbAccess.GetFilePropertiesAsync" />: returns the file's properties string.
 	/// </summary>
 	[Test]
 	public async Task GetFilePropertiesAsync_Returns_File_Properties()
@@ -742,7 +742,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.GetFilesContentsAsync" />: yields a valid contents pair for each requested identifier.
+	/// <see cref="DbAccess.GetFilesContentsAsync" />: yields a valid contents pair for each requested identifier.
 	/// </summary>
 	[Test]
 	public async Task GetFilesContentsAsync_Yields_Pair_For_Each_Identifier()
@@ -785,7 +785,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.IsExistsAsync" />: returns true when an entity matches the id.
+	/// <see cref="DbAccess.IsExistsAsync" />: returns true when an entity matches the id.
 	/// </summary>
 	[Test]
 	public async Task IsExistsAsync_Returns_True_When_Entity_Exists()
@@ -816,7 +816,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
@@ -850,7 +850,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns false when the file does not exist.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns false when the file does not exist.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_False_When_File_Does_Not_Exist()
@@ -886,7 +886,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
@@ -925,7 +925,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the file was updated.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the file was updated.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_True_When_File_Was_Updated()
@@ -967,7 +967,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns false when the folder does not exist.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns false when the folder does not exist.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Folder_Does_Not_Exist()
@@ -1003,7 +1003,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns true and forwards the setters when the folder was updated.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns true and forwards the setters when the folder was updated.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Folder_Was_Updated()

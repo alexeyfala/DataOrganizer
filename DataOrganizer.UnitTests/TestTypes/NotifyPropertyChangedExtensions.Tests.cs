@@ -11,7 +11,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: with a null search the initial predicate matches every item.
+	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: with a null search the initial predicate matches every item.
 	/// </summary>
 	[Test]
 	public void FilterPredicate_Initial_Predicate_Matches_Every_Item_When_Search_Is_Null()
@@ -32,7 +32,7 @@ internal partial class NotifyPropertyChangedExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: the predicate matches items whose name contains the search text and rejects the rest.
+	/// <see cref="NotifyPropertyChangedExtensions.FilterPredicate{T}" />: the predicate matches items whose name contains the search text and rejects the rest.
 	/// </summary>
 	[Test]
 	public void FilterPredicate_Predicate_Matches_Item_By_Name_When_Search_Is_Provided()

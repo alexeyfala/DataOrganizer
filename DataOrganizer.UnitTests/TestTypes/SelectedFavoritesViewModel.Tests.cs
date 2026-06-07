@@ -14,7 +14,7 @@ internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="SelectedFavoritesViewModel.Dispose" />: it clears all collections and selection properties.
+	/// <see cref="SelectedFavoritesViewModel.Dispose" />: it clears all collections and selection properties.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()
@@ -70,7 +70,7 @@ internal class SelectedFavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SelectedFavoritesViewModel.Initialize" />: it populates the collections and selection properties from the supplied data.
+	/// <see cref="SelectedFavoritesViewModel.Initialize" />: it populates the collections and selection properties from the supplied data.
 	/// </summary>
 	[Test]
 	public void Initialize_Initializes_Properties()

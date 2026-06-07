@@ -18,7 +18,7 @@ internal class AppSettingsManagerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.ApplyMaterialTheme" />: does not throw when running under NUnit.
+	/// <see cref="AppSettingsManager.ApplyMaterialTheme" />: does not throw when running under NUnit.
 	/// </summary>
 	[Test]
 	public void ApplyMaterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
@@ -38,7 +38,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager" />: settings default to the created default settings when no file is present.
+	/// <see cref="AppSettingsManager" />: settings default to the created default settings when no file is present.
 	/// </summary>
 	[Test]
 	public void Obtained_Default_Settings()
@@ -56,7 +56,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.OverwriteSettings" />: replaces the current settings with the provided ones.
+	/// <see cref="AppSettingsManager.OverwriteSettings" />: replaces the current settings with the provided ones.
 	/// </summary>
 	[Test]
 	public void OverwriteSettings_Overwrites_Settings()
@@ -78,7 +78,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.SaveSettingsInFile" />: serializes the settings to a JSON file.
+	/// <see cref="AppSettingsManager.SaveSettingsInFile" />: serializes the settings to a JSON file.
 	/// </summary>
 	[Test]
 	public void SaveSettingsInFile_Saves_Settings_In_File()
@@ -101,7 +101,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.SaveSettingsInFile" />: uses the settings file path obtained from the app environment.
+	/// <see cref="AppSettingsManager.SaveSettingsInFile" />: uses the settings file path obtained from the app environment.
 	/// </summary>
 	[Test]
 	public void SaveSettingsInFile_Uses_Path_From_AppEnvironment()
@@ -136,7 +136,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager.SetAppMaterialTheme" />: is a no-op and does not throw when running under NUnit.
+	/// <see cref="AppSettingsManager.SetAppMaterialTheme" />: is a no-op and does not throw when running under NUnit.
 	/// </summary>
 	[Test]
 	public void SetAppMaterialTheme_Is_NoOp_When_Running_Under_NUnit()
@@ -159,7 +159,7 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppSettingsManager" />: settings are loaded from the deserialized settings file.
+	/// <see cref="AppSettingsManager" />: settings are loaded from the deserialized settings file.
 	/// </summary>
 	[Test]
 	public void Settings_Obtained_From_File()

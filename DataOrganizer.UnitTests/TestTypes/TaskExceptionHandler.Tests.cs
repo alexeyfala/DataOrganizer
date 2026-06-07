@@ -15,7 +15,7 @@ internal class TaskExceptionHandlerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="TaskExceptionHandler.Watch" />: nothing is logged when the watched task completes successfully.
+	/// <see cref="TaskExceptionHandler.Watch" />: nothing is logged when the watched task completes successfully.
 	/// </summary>
 	[Test]
 	public async Task Watch_Does_Not_Log_When_Task_Completes_Successfully()
@@ -42,7 +42,7 @@ internal class TaskExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="TaskExceptionHandler.Watch" />: watching a faulted task does not throw.
+	/// <see cref="TaskExceptionHandler.Watch" />: watching a faulted task does not throw.
 	/// </summary>
 	[Test]
 	public void Watch_Does_Not_Throw_For_Faulted_Task()
@@ -64,7 +64,7 @@ internal class TaskExceptionHandlerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="TaskExceptionHandler.Watch" />: the exception of a faulted task is logged.
+	/// <see cref="TaskExceptionHandler.Watch" />: the exception of a faulted task is logged.
 	/// </summary>
 	[Test]
 	public async Task Watch_Logs_Exception_When_Task_Is_Faulted()

@@ -34,7 +34,7 @@ internal class ClipboardUrlEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardUrlEntry.ContentToolTip" />: a very long URL is capped with an ellipsis.
+	/// <see cref="ClipboardUrlEntry.ContentToolTip" />: a very long URL is capped with an ellipsis.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Truncates_Very_Long_Url()
@@ -61,7 +61,7 @@ internal class ClipboardUrlEntryTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardUrlEntry.ContentToolTip" />: a long URL wraps into multiple lines.
+	/// <see cref="ClipboardUrlEntry.ContentToolTip" />: a long URL wraps into multiple lines.
 	/// </summary>
 	[Test]
 	public void ContentToolTip_Wraps_Long_Url()

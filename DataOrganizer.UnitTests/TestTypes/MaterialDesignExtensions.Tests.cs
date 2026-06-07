@@ -10,7 +10,7 @@ internal class MaterialDesignExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="MaterialDesignExtensions.GetBrush(PrimaryColor)" />: returns a non-null solid color brush with the color mapped from the primary color.
+	/// <see cref="MaterialDesignExtensions.GetBrush(PrimaryColor)" />: returns a non-null solid color brush with the color mapped from the primary color.
 	/// </summary>
 	[Test]
 	public void GetBrush_For_PrimaryColor_Returns_SolidColorBrush_With_Mapped_Color([Values] PrimaryColor primary)
@@ -29,7 +29,7 @@ internal class MaterialDesignExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="MaterialDesignExtensions.GetBrush(SecondaryColor)" />: returns a non-null solid color brush with the color mapped from the secondary color.
+	/// <see cref="MaterialDesignExtensions.GetBrush(SecondaryColor)" />: returns a non-null solid color brush with the color mapped from the secondary color.
 	/// </summary>
 	[Test]
 	public void GetBrush_For_SecondaryColor_Returns_SolidColorBrush_With_Mapped_Color([Values] SecondaryColor secondary)

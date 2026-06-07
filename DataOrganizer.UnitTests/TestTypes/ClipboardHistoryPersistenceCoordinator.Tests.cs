@@ -99,7 +99,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />: it erases all persisted state.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />: it erases all persisted state.
 	/// </summary>
 	[Test]
 	public void DisablePersistence_Erases_All()
@@ -121,7 +121,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: it unsubscribes, so a later
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: it unsubscribes, so a later
 	/// change raises no further save (the only save is the dispose-time flush).
 	/// </summary>
 	[Test]
@@ -156,7 +156,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: a locked store is not saved on flush.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: a locked store is not saved on flush.
 	/// </summary>
 	[Test]
 	public async Task DisposeAsync_When_Locked_Does_Not_Save()
@@ -180,7 +180,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: a final save flushes when unlocked.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.DisposeAsync" />: a final save flushes when unlocked.
 	/// </summary>
 	[Test]
 	public async Task DisposeAsync_When_Unlocked_Flushes()
@@ -208,7 +208,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.Receive" />: an explicit clear erases the journal.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.Receive" />: an explicit clear erases the journal.
 	/// </summary>
 	[Test]
 	public void Receive_ClearedByUser_Erases_History()
@@ -232,7 +232,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.Receive" />: a tracking-off clear keeps the journal.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.Receive" />: a tracking-off clear keeps the journal.
 	/// </summary>
 	[Test]
 	public void Receive_ClearedForStop_Keeps_History()
@@ -256,7 +256,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.RequiresUnlock" />: it is true only when persistence is on and the store is locked.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.RequiresUnlock" />: it is true only when persistence is on and the store is locked.
 	/// </summary>
 	[Test]
 	public void RequiresUnlock_Reflects_Settings_And_Store_State()
@@ -291,7 +291,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.Start" />: calling it twice does not re-subscribe.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.Start" />: calling it twice does not re-subscribe.
 	/// </summary>
 	[Test]
 	public void Start_Is_Idempotent()
@@ -322,7 +322,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.TryUnlockAndMergeAsync" />: merges and saves.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.TryUnlockAndMergeAsync" />: merges and saves.
 	/// </summary>
 	[Test]
 	public async Task TryUnlockAndMerge_Merges_And_Saves()
@@ -364,7 +364,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.TryUnlockAndMergeAsync" />: wrong password is a no-op.
+	/// <see cref="ClipboardHistoryPersistenceCoordinator.TryUnlockAndMergeAsync" />: wrong password is a no-op.
 	/// </summary>
 	[Test]
 	public async Task TryUnlockAndMerge_Wrong_Password_Does_Not_Merge_Or_Save()

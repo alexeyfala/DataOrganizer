@@ -12,7 +12,7 @@ internal class ObservableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context and context is not ignored.
+	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns the source unchanged when there is no sync context and context is not ignored.
 	/// </summary>
 	[Test]
 	public void SetDelay_Returns_Source_When_No_Sync_Context_And_Not_Ignoring_Context()
@@ -32,7 +32,7 @@ internal class ObservableExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns a new throttled sequence when context is ignored.
+	/// <see cref="ObservableExtensions.SetDelay{TEventArgs}" />: returns a new throttled sequence when context is ignored.
 	/// </summary>
 	[Test]
 	public void SetDelay_Returns_Throttled_Sequence_When_Ignoring_Context()

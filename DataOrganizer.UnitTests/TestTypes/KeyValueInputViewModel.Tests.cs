@@ -11,7 +11,7 @@ internal class KeyValueInputViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="KeyValueInputViewModel.CancelCommand" />: executing the command yields a false result.
+	/// <see cref="KeyValueInputViewModel.CancelCommand" />: executing the command yields a false result.
 	/// </summary>
 	[Test]
 	public async Task CancelCommand_Sets_False_Result()
@@ -33,7 +33,7 @@ internal class KeyValueInputViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyValueInputViewModel.DefaultPressedCommand" />: executing the command with a key set yields a true result.
+	/// <see cref="KeyValueInputViewModel.DefaultPressedCommand" />: executing the command with a key set yields a true result.
 	/// </summary>
 	[Test]
 	public async Task DefaultPressedCommand_Sets_True_Result_When_Key_Is_Provided()
@@ -57,7 +57,7 @@ internal class KeyValueInputViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyValueInputViewModel.Initialize" />: all view-model properties are set from the provided data.
+	/// <see cref="KeyValueInputViewModel.Initialize" />: all view-model properties are set from the provided data.
 	/// </summary>
 	[Test]
 	public void Initialize_Initializes_Properties()

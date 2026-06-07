@@ -37,7 +37,7 @@ internal class EditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddAsync" />: a new entity is created and, when a parent is given, linked to it and the parent is expanded.
+	/// <see cref="EditorViewModel.AddAsync" />: a new entity is created and, when a parent is given, linked to it and the parent is expanded.
 	/// </summary>
 	[Test]
 	public async Task AddAsync_Returns_Entity(
@@ -107,7 +107,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.AddHierarchy" />: the supplied objects are added to the Hierarchy property.
+	/// <see cref="EditorViewModel.AddHierarchy" />: the supplied objects are added to the Hierarchy property.
 	/// </summary>
 	[Test]
 	public void AddHierarchy_Adds_Objects_To_Hierarchy_Property()
@@ -129,7 +129,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
+	/// <see cref="EditorViewModel.ChangePassword" />: open files are closed and the folder password is changed.
 	/// </summary>
 	[Test]
 	public async Task ChangePassword_Does_Work()
@@ -186,7 +186,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
+	/// <see cref="EditorViewModel.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
 	/// </summary>
 	[Test]
 	public void CloseExecutingFile_Closes_File()
@@ -226,7 +226,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.CloseFiles" />: both editing and executing files are unmarked.
+	/// <see cref="EditorViewModel.CloseFiles" />: both editing and executing files are unmarked.
 	/// </summary>
 	[Test]
 	public void CloseFiles_Closes_Editing_And_Executing_Files()
@@ -259,7 +259,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DecryptFolder" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.DecryptFolder" />: nothing happens when the folder has no files to close.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolder_Does_Nothing_If_Missing_Files()
@@ -281,7 +281,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DecryptFolder" />: open files are closed and the folder is decrypted.
+	/// <see cref="EditorViewModel.DecryptFolder" />: open files are closed and the folder is decrypted.
 	/// </summary>
 	[Test]
 	public async Task DecryptFolder_Does_Work()
@@ -338,7 +338,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync" />: on success the entity is removed from the hierarchy and from executing files.
+	/// <see cref="EditorViewModel.DeleteAsync" />: on success the entity is removed from the hierarchy and from executing files.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -410,7 +410,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.DeleteAsync" />: when the database delete fails the entity stays in the hierarchy.
+	/// <see cref="EditorViewModel.DeleteAsync" />: when the database delete fails the entity stays in the hierarchy.
 	/// </summary>
 	[TestCase(EntityType.Folder)]
 	[TestCase(EntityType.File)]
@@ -464,7 +464,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFolder" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.EncryptFolder" />: nothing happens when the folder has no files to close.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolder_Does_Nothing_If_Missing_Files()
@@ -486,7 +486,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.EncryptFolder" />: open files are closed and the folder is encrypted.
+	/// <see cref="EditorViewModel.EncryptFolder" />: open files are closed and the folder is encrypted.
 	/// </summary>
 	[Test]
 	public async Task EncryptFolder_Does_Work()
@@ -543,7 +543,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile" />: contents are not loaded when the file is already executing.
+	/// <see cref="EditorViewModel.ExecuteFile" />: contents are not loaded when the file is already executing.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Contents_Should_Not_Be_Loaded_If_It_Is_Already_Opened()
@@ -576,7 +576,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExecuteFile" />: the file is marked executing, added to executing files, and executed by the engine.
+	/// <see cref="EditorViewModel.ExecuteFile" />: the file is marked executing, added to executing files, and executed by the engine.
 	/// </summary>
 	[Test]
 	public async Task ExecuteFile_Does_Work()
@@ -629,7 +629,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.Exit" />: the application is shut down.
+	/// <see cref="EditorViewModel.Exit" />: the application is shut down.
 	/// </summary>
 	[Test]
 	public void Exit_Shutdowns_The_Application()
@@ -649,7 +649,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />: all folders are expanded or collapsed, and the selection is kept on expand and reset on collapse.
+	/// <see cref="EditorViewModel.ExpandCollapseAllFoldersAsync" />: all folders are expanded or collapsed, and the selection is kept on expand and reset on collapse.
 	/// </summary>
 	[Test]
 	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders([Values] bool isExpandAll)
@@ -709,7 +709,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HandleChangeSettingsAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
+	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
 	/// </summary>
 	[Test]
 	public async Task HandleChangeSettingsAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
@@ -770,7 +770,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideAllFileContents" />: all open files are closed and their contents re-encrypted.
+	/// <see cref="EditorViewModel.HideAllFileContents" />: all open files are closed and their contents re-encrypted.
 	/// </summary>
 	[Test]
 	public async Task HideAllFileContents_Does_Work()
@@ -817,7 +817,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFileContents" />: the file is closed and its contents marked encrypted.
+	/// <see cref="EditorViewModel.HideFileContents" />: the file is closed and its contents marked encrypted.
 	/// </summary>
 	[Test]
 	public async Task HideFileContents_Does_Work([Values] bool isEditing)
@@ -860,7 +860,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.HideFolderContents" />: the folder's open files are closed and its contents hidden.
+	/// <see cref="EditorViewModel.HideFolderContents" />: the folder's open files are closed and its contents hidden.
 	/// </summary>
 	[Test]
 	public async Task HideFolderContents_Does_Work()
@@ -917,7 +917,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.Import" />: the current hierarchy is passed to the data exchange service for import.
+	/// <see cref="EditorViewModel.Import" />: the current hierarchy is passed to the data exchange service for import.
 	/// </summary>
 	[Test]
 	public async Task Import_Does_Work()
@@ -966,7 +966,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.Initialize" />: window position/size/state and view-model properties are set from the supplied settings.
+	/// <see cref="EditorViewModel.Initialize" />: window position/size/state and view-model properties are set from the supplied settings.
 	/// </summary>
 	[AvaloniaTest]
 	public void Initialize_Initializes_Properties()
@@ -1045,7 +1045,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.NavigationColumnWidth" />: the width is clamped to less than the view width when the view shrinks.
+	/// <see cref="EditorViewModel.NavigationColumnWidth" />: the width is clamped to less than the view width when the view shrinks.
 	/// </summary>
 	[Test]
 	public void NavigationColumnWidth_Should_Be_Less_Than_The_Window_Width()
@@ -1071,7 +1071,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: an empty sequence clears the file's hotkeys, deletes them in the database, and returns EmptySequence.
+	/// <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: an empty sequence clears the file's hotkeys, deletes them in the database, and returns EmptySequence.
 	/// </summary>
 	[Test]
 	public async Task OverwriteFileHotkeysAsync_Deletes_Hotkeys_In_Database_And_Returns_EmptySequence()
@@ -1107,7 +1107,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: hotkeys already used by another file return AlreadyInUse.
+	/// <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: hotkeys already used by another file return AlreadyInUse.
 	/// </summary>
 	[Test]
 	public async Task OverwriteFileHotkeysAsync_Returns_AlreadyInUse()
@@ -1139,7 +1139,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: new hotkeys are saved to the database, the tooltip is set, and Rewritten is returned.
+	/// <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: new hotkeys are saved to the database, the tooltip is set, and Rewritten is returned.
 	/// </summary>
 	[Test]
 	public async Task OverwriteFileHotkeysAsync_Returns_Rewritten()
@@ -1188,7 +1188,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: passing the file's existing hotkeys returns SameHotkeys.
+	/// <see cref="EditorViewModel.OverwriteFileHotkeysAsync" />: passing the file's existing hotkeys returns SameHotkeys.
 	/// </summary>
 	[Test]
 	public async Task OverwriteFileHotkeysAsync_Returns_SameHotkeys()
@@ -1216,7 +1216,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync" />: the dto name and updated date are changed and persisted in the database.
+	/// <see cref="EditorViewModel.RenameAsync" />: the dto name and updated date are changed and persisted in the database.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
@@ -1262,7 +1262,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
+	/// <see cref="EditorViewModel.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
 	/// </summary>
 	[Test]
 	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
@@ -1294,7 +1294,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ResetSelectedObject" />: SelectedObject is cleared and the object's IsSelected is reset.
+	/// <see cref="EditorViewModel.ResetSelectedObject" />: SelectedObject is cleared and the object's IsSelected is reset.
 	/// </summary>
 	[Test]
 	public void ResetSelectedObject_Resets_IsSelected_Property_And_Resets_SelectedObject()
@@ -1324,7 +1324,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.RestartApplication" />: the application is shut down and a new process is started.
+	/// <see cref="EditorViewModel.RestartApplication" />: the application is shut down and a new process is started.
 	/// </summary>
 	[Test]
 	public void RestartApplication_Restarts_The_Application()
@@ -1350,7 +1350,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and persisted in the database.
+	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and persisted in the database.
 	/// </summary>
 	[Test]
 	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database([Values] bool initialValue)
@@ -1380,7 +1380,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.SetSelectedObject" />: the object's IsSelected is set to true and it becomes the SelectedObject.
+	/// <see cref="EditorViewModel.SetSelectedObject" />: the object's IsSelected is set to true and it becomes the SelectedObject.
 	/// </summary>
 	[Test]
 	public void SetSelectedObject_Sets_Object_IsSelected_Property_To_True_And_SelectedObject()
@@ -1408,7 +1408,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowFavorites" />: the favorites window is configured and shown without shutting down the application.
+	/// <see cref="EditorViewModel.ShowFavorites" />: the favorites window is configured and shown without shutting down the application.
 	/// </summary>
 	[AvaloniaTest]
 	public void ShowFavorites_Shows_Favorites_Window()
@@ -1446,7 +1446,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowFolderContents" />: nothing happens when the folder has no files to close.
+	/// <see cref="EditorViewModel.ShowFolderContents" />: nothing happens when the folder has no files to close.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContents_Does_Nothing_If_Missing_Files()
@@ -1468,7 +1468,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EditorViewModel.ShowFolderContents" />: open files are closed and the folder's contents are shown.
+	/// <see cref="EditorViewModel.ShowFolderContents" />: open files are closed and the folder's contents are shown.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContents_Does_Work()
