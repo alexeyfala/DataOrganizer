@@ -1,0 +1,128 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:markup="using:DataOrganizer.Markup"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers">
+
+	<!-- ExecutingFileTemplate -->
+	<DataTemplate
+		x:Key="ExecutingFileTemplate"
+		x:DataType="entities:FileModelDto">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*,Auto">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+							CommandParameter="{Binding Id}"
+							Foreground="{StaticResource MaterialBodyBrush}"
+							Header="{x:Static prop:Strings.ShowInList}"
+							Icon="FileTree"
+							Theme="{StaticResource MaterialFlatButton}" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<TextBlock
+				Grid.Column="0"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<Button
+				Grid.Column="2"
+				Padding="0.0"
+				Classes="primary"
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
+				CommandParameter="{Binding}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
+				Foreground="{StaticResource WarningBrush}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- EditingFileTabControlHeaderTemplate -->
+	<DataTemplate
+		x:Key="EditingFileTabControlHeaderTemplate"
+		x:DataType="entities:FileModelDto">
+		<StackPanel
+			Orientation="Horizontal"
+			Spacing="10.0">
+			<TextBlock
+				Margin="10.0,0.0,0.0,0.0"
+				VerticalAlignment="Center"
+				Text="{Binding Name, Mode=OneWay}" />
+
+			<materialIcons:MaterialIcon
+				Background="Transparent"
+				Foreground="{StaticResource WarningBrush}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
+				Kind="LockOpenVariantOutline"
+				ToolTip.Tip="{x:Static prop:Strings.ContentIsDecrypted}" />
+
+			<Button
+				Margin="0.0,0.0,10.0,0.0"
+				Padding="0.0"
+				Classes="primary"
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
+				CommandParameter="{Binding}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource SmallButtonIconSize}}"
+				Foreground="{StaticResource WarningBrush}"
+				Theme="{StaticResource MaterialFlatButton}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+		</StackPanel>
+	</DataTemplate>
+
+	<!-- EditingFilesTemplate -->
+	<DataTemplate x:Key="EditingFilesTemplate">
+		<views:EditingFilesView
+			x:Name="View"
+			DataContext="{markup:Resolve {x:Type vm:EditingFilesViewModel}}">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:EditingFilesView>
+	</DataTemplate>
+
+	<!-- ExecutingFilesTemplate -->
+	<DataTemplate x:Key="ExecutingFilesTemplate">
+		<views:ExecutingFilesView />
+	</DataTemplate>
+</ResourceDictionary>

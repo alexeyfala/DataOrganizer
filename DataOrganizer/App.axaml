@@ -23,8 +23,10 @@
 				<ResourceInclude Source="/Templates/EditorTreeViewTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/ClipboardHistoryTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/FavoritesTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
 
 				<ResourceInclude Source="/Assets/ContextMenuTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>

@@ -27,6 +27,7 @@
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\OpenedFilesTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -37,6 +38,7 @@
 	  </AvaloniaResource>
 	  <AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
 	  <AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
+	  <AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
