@@ -31,17 +31,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AvaloniaResource Include="Styling\Resources.axaml" />
-	  <AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
-	  <AvaloniaResource Include="Styling\Styles.axaml" />
-	  <AvaloniaResource Include="Styling\Themes.axaml" />
-	  <AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\DataTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
-	  <AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
+		<AvaloniaResource Include="Styling\Resources.axaml" />
+		<AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
+		<AvaloniaResource Include="Styling\Styles.axaml" />
+		<AvaloniaResource Include="Styling\Themes.axaml" />
+		<AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
+		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
+		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
+		<AvaloniaResource Include="Templates\DataTemplates.axaml" />
+		<AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
+		<AvaloniaResource Include="Templates\OpenedFilesTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -84,32 +84,5 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="DataOrganizer.UnitTests" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Update="Views\EditingFilesView.axaml.cs">
-			<DependentUpon>EditingFilesView.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Views\EmbeddedFileEditorView.axaml.cs">
-			<DependentUpon>EmbeddedFileEditorView.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Views\ExecutingFilesView.axaml.cs">
-		  <DependentUpon>ExecutingFilesView.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Views\ImportListSelectorView.axaml.cs">
-		  <DependentUpon>ImportListSelectorView.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Windows\ConsoleWindow.axaml.cs">
-			<DependentUpon>ConsoleWindow.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Windows\EditorWindow.axaml.cs">
-			<DependentUpon>EditorWindow.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Windows\FavoritesWindow.axaml.cs">
-			<DependentUpon>FavoritesWindow.axaml</DependentUpon>
-		</Compile>
-		<Compile Update="Windows\CustomClipboardWindow.axaml.cs">
-		  <DependentUpon>CustomClipboardWindow.axaml</DependentUpon>
-		</Compile>
 	</ItemGroup>
 </Project>
