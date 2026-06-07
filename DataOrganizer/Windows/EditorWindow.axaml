@@ -2,7 +2,6 @@
 	x:Class="DataOrganizer.Windows.EditorWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:abstract="using:DataOrganizer.DTO.Entities.Abstract"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
@@ -11,6 +10,7 @@
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:templateSelectors="using:DataOrganizer.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -339,7 +339,7 @@
 
 							<TreeView.Styles>
 								<Style
-									x:DataType="abstract:ExplorerModelBaseDto"
+									x:DataType="models:ExplorerModelBaseDto"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

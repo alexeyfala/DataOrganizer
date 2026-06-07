@@ -4,7 +4,7 @@ using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;

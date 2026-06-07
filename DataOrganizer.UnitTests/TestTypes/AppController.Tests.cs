@@ -1,6 +1,6 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using NSubstitute;

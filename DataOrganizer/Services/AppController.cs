@@ -1,5 +1,5 @@
 using Cysharp.Text;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using OSVersionExtension;

@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Extensions;
 using Entities.Models;
 using Repository.DTO;

@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Entities.Enums;
@@ -9,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace DataOrganizer.DTO.Entities.Abstract;
+namespace DataOrganizer.DTO.Entities.Models;
 
 /// <inheritdoc cref="ExplorerModelBase" />
 [ObservableObject]

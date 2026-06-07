@@ -1,5 +1,5 @@
 ﻿using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities.Abstract;
+using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Enums;
 using Entities.Models;
 using System.Collections.Generic;

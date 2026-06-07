@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities.Abstract;
 using DataOrganizer.Messages;
 using Entities.Models;
 using Shared.Extensions;

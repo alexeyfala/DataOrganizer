@@ -1,7 +1,7 @@
 ﻿using Entities.Models;
 using System;
 
-namespace DataOrganizer.DTO.Entities.Abstract;
+namespace DataOrganizer.DTO.Entities.Models;
 
 /// <inheritdoc cref="EntityModelBase" />
 public abstract class EntityModelBaseDto
