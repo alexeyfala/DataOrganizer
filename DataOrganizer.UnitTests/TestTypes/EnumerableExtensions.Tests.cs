@@ -1,9 +1,9 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
+using DataOrganizer.DTO.Dataset;
 using DataOrganizer.DTO.Entities.Models;
 using DataOrganizer.Extensions;
-using DataOrganizer.Models.Dataset;
 using Repository.DTO;
 using Shared.Common;
 using SharpHook.Data;

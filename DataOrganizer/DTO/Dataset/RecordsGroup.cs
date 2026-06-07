@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.Models.Dataset;
+namespace DataOrganizer.DTO.Dataset;
 
 public sealed partial class RecordsGroup : DatasetRecordBase
 {

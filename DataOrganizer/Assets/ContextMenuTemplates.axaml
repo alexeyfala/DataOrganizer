@@ -2,7 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dataset="using:DataOrganizer.Models.Dataset"
+	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:models="using:DataOrganizer.DTO.Entities.Models"
 	xmlns:prop="using:Shared.Properties"

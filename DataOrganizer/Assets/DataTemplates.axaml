@@ -5,7 +5,7 @@
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dataset="using:DataOrganizer.Models.Dataset"
+	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:localDto="using:DataOrganizer.DTO"
 	xmlns:markup="using:DataOrganizer.Markup"

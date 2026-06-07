@@ -1,4 +1,4 @@
-namespace DataOrganizer.DTO;
+namespace DataOrganizer.DTO.Dataset;
 
 internal readonly struct DatasetProperties
 {

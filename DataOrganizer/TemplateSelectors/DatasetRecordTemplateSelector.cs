@@ -1,8 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml.Templates;
+using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Helpers;
-using DataOrganizer.Models.Dataset;
 using System.Linq;
 
 namespace DataOrganizer.TemplateSelectors;

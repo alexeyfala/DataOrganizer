@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace DataOrganizer.Models.Dataset;
+namespace DataOrganizer.DTO.Dataset;
 
 [JsonDerivedType(typeof(KeyValueRecord), "KeyValue")]
 [JsonDerivedType(typeof(RecordsGroup), "Group")]

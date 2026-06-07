@@ -4,7 +4,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using System.Text.Json.Serialization;
 
-namespace DataOrganizer.Models.Dataset;
+namespace DataOrganizer.DTO.Dataset;
 
 [DebuggerDisplay(
 	$"{nameof(Type)} = {{{nameof(Type)}}}, " +
