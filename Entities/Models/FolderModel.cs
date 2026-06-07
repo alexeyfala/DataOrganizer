@@ -8,7 +8,7 @@ namespace Entities.Models;
 /// <summary>
 /// Folder model in a virtual file system.
 /// </summary>
-[XmlType(TypeName = "Folder")]
+[XmlType(TypeName = Folder)]
 public sealed class FolderModel : ExplorerModelBase
 {
 	#region Properties

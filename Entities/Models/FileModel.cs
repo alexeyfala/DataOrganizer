@@ -7,7 +7,7 @@ namespace Entities.Models;
 /// <summary>
 /// File model in a virtual file system.
 /// </summary>
-[XmlType(TypeName = "File")]
+[XmlType(TypeName = File)]
 public sealed class FileModel : ExplorerModelBase
 {
 	#region Properties
