@@ -1,7 +1,6 @@
 ﻿using Entities.Models;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
-using Repository.Abstract;
 using Repository.Enums;
 using System;
 using System.Collections.Generic;

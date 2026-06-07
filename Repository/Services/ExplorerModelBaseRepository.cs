@@ -1,5 +1,4 @@
 ﻿using Entities.Models;
-using Repository.Abstract;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;

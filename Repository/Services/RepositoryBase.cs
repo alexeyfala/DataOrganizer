@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Abstract;
+namespace Repository.Services;
 
 /// <summary>
 /// Base repository for entities.
