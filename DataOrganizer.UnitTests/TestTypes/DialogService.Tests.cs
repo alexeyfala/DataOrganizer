@@ -15,7 +15,7 @@ internal class DialogServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="DialogService.RequestPasswordAsync" />.
+	/// Test of <see cref="DialogService.RequestPasswordAsync" />: posts the work to the dispatcher and returns a task that is still pending.
 	/// </summary>
 	[Test]
 	public void RequestPasswordAsync_Posts_Work_To_Dispatcher_And_Returns_Pending_Task()
@@ -41,7 +41,7 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="DialogService.RequestPasswordAsync" />.
+	/// Test of <see cref="DialogService.RequestPasswordAsync" />: each call returns an independent task instance.
 	/// </summary>
 	/// <remarks>
 	/// Guards against a regression where the underlying <see cref="TaskCompletionSource{TResult}" />

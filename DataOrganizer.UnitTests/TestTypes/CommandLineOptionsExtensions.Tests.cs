@@ -8,7 +8,7 @@ internal class CommandLineOptionsExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="CommandLineOptionsExtensions.AddConsoleArg" />.
+	/// Test of <see cref="CommandLineOptionsExtensions.AddConsoleArg" />: appends the "--console" argument.
 	/// </summary>
 	[Test]
 	public void AddConsoleArg_Appends_Console_Argument()
@@ -30,7 +30,7 @@ internal class CommandLineOptionsExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CommandLineOptionsExtensions.AddConsoleArg" />.
+	/// Test of <see cref="CommandLineOptionsExtensions.AddConsoleArg" />: returns a new array without mutating the original.
 	/// </summary>
 	[Test]
 	public void AddConsoleArg_Does_Not_Mutate_Original_Array()
@@ -52,7 +52,7 @@ internal class CommandLineOptionsExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CommandLineOptionsExtensions.AddDebugArg" />.
+	/// Test of <see cref="CommandLineOptionsExtensions.AddDebugArg" />: appends the "--debug" argument.
 	/// </summary>
 	[Test]
 	public void AddDebugArg_Appends_Debug_Argument()
@@ -73,7 +73,7 @@ internal class CommandLineOptionsExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CommandLineOptionsExtensions.AddFillObjectsArg" />.
+	/// Test of <see cref="CommandLineOptionsExtensions.AddFillObjectsArg" />: appends the "--fillobjects" argument.
 	/// </summary>
 	[Test]
 	public void AddFillObjectsArg_Appends_FillObjects_Argument()
@@ -94,7 +94,7 @@ internal class CommandLineOptionsExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="CommandLineOptionsExtensions.AddHelpArg" />.
+	/// Test of <see cref="CommandLineOptionsExtensions.AddHelpArg" />: appends the "--help" argument.
 	/// </summary>
 	[Test]
 	public void AddHelpArg_Appends_Help_Argument()

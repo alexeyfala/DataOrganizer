@@ -28,7 +28,7 @@ internal class ClipboardHistoryStoreTests
 
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.EraseAll" />.
+	/// Test of <see cref="ClipboardHistoryStore.EraseAll" />: removes both journal and key files and locks the store.
 	/// </summary>
 	[Test]
 	public async Task EraseAll_Removes_Both_Files_And_Locks()
@@ -62,7 +62,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.EraseHistory" />.
+	/// Test of <see cref="ClipboardHistoryStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
 	/// </summary>
 	[Test]
 	public async Task EraseHistory_Removes_Journal_But_Keeps_Key()
@@ -129,7 +129,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" /> / <see cref="ClipboardHistoryStore.TryUnlockAsync" />.
+	/// Test of <see cref="ClipboardHistoryStore.SaveAsync" /> / <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
 	public async Task Save_Then_Unlock_In_New_Session_Restores_Entries()

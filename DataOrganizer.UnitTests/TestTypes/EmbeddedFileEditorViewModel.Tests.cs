@@ -22,7 +22,7 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />.
+	/// Test of <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored properties (font size, word wrap).
 	/// </summary>
 	[AvaloniaTest]
 	public async Task EditorLoaded_Loads_Text_To_Editor()

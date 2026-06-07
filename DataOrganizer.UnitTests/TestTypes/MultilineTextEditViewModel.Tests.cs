@@ -10,7 +10,7 @@ internal class MultilineTextEditViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="MultilineTextEditViewModel.CancelCommand" />.
+	/// Test of <see cref="MultilineTextEditViewModel.CancelCommand" />: executing it resolves the result as false.
 	/// </summary>
 	[Test]
 	public async Task CancelCommand_Sets_False_Result()
@@ -32,7 +32,7 @@ internal class MultilineTextEditViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="MultilineTextEditViewModel.SaveCommand" />.
+	/// Test of <see cref="MultilineTextEditViewModel.SaveCommand" />: executing it resolves the result as true.
 	/// </summary>
 	[Test]
 	public async Task SaveCommand_Sets_True_Result()

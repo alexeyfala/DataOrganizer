@@ -15,7 +15,7 @@ internal class EntityCreationViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel.CancelCommand" />.
+	/// Test of <see cref="EntityCreationViewModel.CancelCommand" />: executing it completes the result with <c>false</c>.
 	/// </summary>
 	[Test]
 	public async Task CancelCommand_Sets_False_Result()
@@ -37,7 +37,7 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel" />.
+	/// Test of <see cref="EntityCreationViewModel" />: the constructor initializes its properties from the loaded settings.
 	/// </summary>
 	[Test]
 	public void Initializes_Properties_In_Constructor()
@@ -84,7 +84,7 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel.SaveSettingsInFile" />.
+	/// Test of <see cref="EntityCreationViewModel.SaveSettingsInFile" />: serializes the settings to a JSON file.
 	/// </summary>
 	[Test]
 	public void SaveSettingsInFile_Saves_Settings()
@@ -107,7 +107,7 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EntityCreationViewModel" />.
+	/// Test of <see cref="EntityCreationViewModel" />: the constructor selects the folder option when the loaded settings have nothing selected.
 	/// </summary>
 	[Test]
 	public void Selects_Folder_If_Nothing_Selected_In_Constructor()

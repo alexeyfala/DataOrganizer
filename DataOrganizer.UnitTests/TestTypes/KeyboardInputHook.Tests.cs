@@ -25,7 +25,7 @@ internal class KeyboardInputHookTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.Dispose" />.
+	/// Test of <see cref="KeyboardInputHook.Dispose" />: the underlying hook is disposed and the files and input stack are cleared.
 	/// </summary>
 	[Test]
 	public void Dispose_Disposes_Hook()
@@ -63,7 +63,7 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />.
+	/// Test of <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: a matching hotkey copies the decrypted contents to the clipboard and shows a toast.
 	/// </summary>
 	[Test]
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
@@ -140,7 +140,7 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="KeyboardInputHook.StopTrackingAsync" />.
+	/// Test of <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the files and input stack are cleared.
 	/// </summary>
 	[Test]
 	public async Task StopTrackingAsync_Stops_Hook()

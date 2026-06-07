@@ -21,7 +21,7 @@ internal class HotkeysEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.Clear" />.
+	/// Test of <see cref="HotkeysEditorViewModel.Clear" />: empties the buffer.
 	/// </summary>
 	[Test]
 	public void Clear_Clears_The_Buffer()
@@ -45,7 +45,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ObservableDisposableBase.Dispose" />.
+	/// Test of <see cref="ObservableDisposableBase.Dispose" />: clears the buffer and disposes the hook.
 	/// </summary>
 	[Test]
 	public void Dispose_Disposes_Hook()
@@ -76,7 +76,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: adds the code-mask pair to the buffer when a modifier mask is active.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Adds_Pair_To_Buffer_When_Mask_Is_Active()
@@ -104,7 +104,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: never adds more pairs than the maximum hotkey count.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
@@ -130,7 +130,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: does nothing when the mask is empty.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Does_Nothing_When_Mask_Is_Empty()
@@ -150,7 +150,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: ignores standalone modifier keys.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Ignores_Modifier_Keys()
@@ -170,7 +170,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />.
+	/// Test of <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: strips the NumLock flag from the stored mask.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Strips_NumLock_From_Mask()
@@ -194,7 +194,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when the event args are null.
 	/// </summary>
 	[Test]
 	public void KeyUp_Does_Nothing_When_Args_Is_Null()
@@ -214,7 +214,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when the pressed key is not Enter.
 	/// </summary>
 	[Test]
 	public void KeyUp_Does_Nothing_When_Key_Is_Not_Enter()
@@ -238,7 +238,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />: does nothing when a modifier is set alongside Enter.
 	/// </summary>
 	[Test]
 	public void KeyUp_Does_Nothing_When_Modifier_Is_Set()
@@ -262,7 +262,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />.
+	/// Test of <see cref="HotkeysEditorViewModel.KeyUp" />: saves the hotkeys when Enter is pressed without modifiers.
 	/// </summary>
 	[Test]
 	public void KeyUp_Saves_Hotkeys_By_Enter_Key_Pressed()
@@ -286,7 +286,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.MakePreview" />.
+	/// Test of <see cref="HotkeysEditorViewModel.MakePreview" />: shows the hotkeys presentation when the buffer is non-empty, otherwise the assigning placeholder.
 	/// </summary>
 	[Test]
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
@@ -315,7 +315,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="HotkeysEditorViewModel.SaveAndClose" />.
+	/// Test of <see cref="HotkeysEditorViewModel.SaveAndClose" />: sets the saved flag.
 	/// </summary>
 	[Test]
 	public void SaveAndClose_Sets_Property()

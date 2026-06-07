@@ -166,7 +166,7 @@ internal class SensitiveTextDetectorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />.
+	/// Test of <see cref="SensitiveTextDetector.LooksLikeSecret" />: high-entropy password-like tokens are detected as secrets.
 	/// </summary>
 	[TestCase("Xk7#pQ2!mZ")]
 	[TestCase("Tr0ub4dor&3")]

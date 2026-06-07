@@ -12,7 +12,7 @@ internal class YesNoCancelBoxViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="YesNoCancelBoxViewModel.GetResultAsync" />.
+	/// Test of <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: each variant shows the expected buttons and cancel flags.
 	/// </summary>
 	[Test]
 	public async Task GetResultAsync_Controls_Buttons([Values] YesNoCancelVariant variant)
@@ -70,7 +70,7 @@ internal class YesNoCancelBoxViewModelTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="YesNoCancelBoxViewModel.GetResultAsync" />.
+	/// Test of <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: the pressed button determines the returned result.
 	/// </summary>
 	[Test]
 	public async Task GetResultAsync_Does_Work([Values] YesNoCancelResult expected)

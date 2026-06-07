@@ -84,7 +84,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />.
+	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />: returns the plain application name for a single instance.
 	/// </summary>
 	[Test]
 	public void GetAppInstanceName_Returns_Plain_Name_For_Single_Instance()
@@ -113,7 +113,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />.
+	/// Test of <see cref="AppEnvironment.GetAppInstanceName" />: suffixes the name with the instance number when multiple instances run.
 	/// </summary>
 	[Test]
 	public void GetAppInstanceName_Suffixes_Name_With_Instance_Number_When_Multiple_Instances()
@@ -142,7 +142,7 @@ internal class AppEnvironmentTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="AppEnvironment.GetSettingsFilePath" />.
+	/// Test of <see cref="AppEnvironment.GetSettingsFilePath" />: combines the app data path with the Settings folder and a .json extension.
 	/// </summary>
 	[Test]
 	public void GetSettingsFilePath_Combines_Paths_Adds_Settings_Folder_And_Json_Extension()

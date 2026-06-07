@@ -9,7 +9,7 @@ internal class EventMaskExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />.
+	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />: the specified flag is cleared while other flags remain.
 	/// </summary>
 	[Test]
 	public void RemoveFlag_Removes_Flag_From_Source()
@@ -27,7 +27,7 @@ internal class EventMaskExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />.
+	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />: removing the only set flag yields <see cref="EventMask.None" />.
 	/// </summary>
 	[Test]
 	public void RemoveFlag_Returns_None_When_All_Flags_Removed()
@@ -45,7 +45,7 @@ internal class EventMaskExtensionsTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />.
+	/// Test of <see cref="EventMaskExtensions.RemoveFlag" />: the source is returned unchanged when the flag is absent.
 	/// </summary>
 	[Test]
 	public void RemoveFlag_Returns_Source_Unchanged_When_Flag_Is_Not_Present()

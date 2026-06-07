@@ -21,7 +21,7 @@ internal class ExecutionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.CloseAsync" />.
+	/// Test of <see cref="ExecutionEngine.CloseAsync" />: kills the process, clears the read-only flag, erases the file and deletes its directory.
 	/// </summary>
 	[Test]
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
@@ -106,7 +106,7 @@ internal class ExecutionServiceTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ExecutionEngine.ExecuteAsync" />.
+	/// Test of <see cref="ExecutionEngine.ExecuteAsync" />: writes the file, starts the process and tracks changes only for editable (non-read-only) files.
 	/// </summary>
 	[Test]
 	public async Task ExecuteAsync_Executes_File([Values] bool isReadOnly)

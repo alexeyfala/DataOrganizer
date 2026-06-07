@@ -99,7 +99,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />.
+	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.DisablePersistence" />: it erases all persisted state.
 	/// </summary>
 	[Test]
 	public void DisablePersistence_Erases_All()
@@ -256,7 +256,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.RequiresUnlock" />.
+	/// Test of <see cref="ClipboardHistoryPersistenceCoordinator.RequiresUnlock" />: it is true only when persistence is on and the store is locked.
 	/// </summary>
 	[Test]
 	public void RequiresUnlock_Reflects_Settings_And_Store_State()

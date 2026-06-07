@@ -12,7 +12,7 @@ internal class FileSystemPickerTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="FileSystemPicker.SaveFileAsync{T}" />.
+	/// Test of <see cref="FileSystemPicker.SaveFileAsync{T}" />: returns null when no window of the required type is open.
 	/// </summary>
 	[Test]
 	public async Task SaveFileAsync_Returns_Null_When_Application_Has_No_Window_Of_Required_Type()
@@ -32,7 +32,7 @@ internal class FileSystemPickerTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="FileSystemPicker.SelectFilesAsync{T}" />.
+	/// Test of <see cref="FileSystemPicker.SelectFilesAsync{T}" />: returns an empty array when no window of the required type is open.
 	/// </summary>
 	[Test]
 	public async Task SelectFilesAsync_Returns_Empty_Array_When_Application_Has_No_Window_Of_Required_Type()

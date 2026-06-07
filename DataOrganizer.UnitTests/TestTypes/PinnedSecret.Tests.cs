@@ -9,7 +9,7 @@ internal class PinnedSecretTests
 {
 	#region Methods
 	/// <summary>
-	/// Test of <see cref="PinnedSecret.AsSpan" /> + <see cref="PinnedSecret.AsReadOnlySpan" />.
+	/// Test of <see cref="PinnedSecret.AsSpan" /> + <see cref="PinnedSecret.AsReadOnlySpan" />: data written through the span round-trips when read back through the read-only span.
 	/// </summary>
 	[Test]
 	public void AsSpan_Allows_Writing_And_Reading_Through_AsReadOnlySpan()
@@ -30,7 +30,7 @@ internal class PinnedSecretTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="PinnedSecret.Dispose" />.
+	/// Test of <see cref="PinnedSecret.Dispose" />: calling Dispose twice does not throw.
 	/// </summary>
 	[Test]
 	public void Dispose_Is_Idempotent()
@@ -53,7 +53,7 @@ internal class PinnedSecretTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="PinnedSecret.Dispose" />.
+	/// Test of <see cref="PinnedSecret.Dispose" />: disposing zeroes the underlying buffer.
 	/// </summary>
 	[Test]
 	public void Dispose_Zeroes_The_Buffer()
@@ -77,7 +77,7 @@ internal class PinnedSecretTests
 	}
 
 	/// <summary>
-	/// Test of <see cref="PinnedSecret.Length" />.
+	/// Test of <see cref="PinnedSecret.Length" />: the length reflects the size passed to the constructor.
 	/// </summary>
 	[Test]
 	public void Length_Reflects_Constructor_Argument()
