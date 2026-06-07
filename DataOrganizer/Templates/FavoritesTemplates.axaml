@@ -1,0 +1,91 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
+	xmlns:markup="using:DataOrganizer.Markup"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers">
+
+	<!-- FavoriteCategoryTemplate -->
+	<DataTemplate
+		x:Key="FavoriteCategoryTemplate"
+		x:DataType="favorites:FavoriteCategory">
+		<Grid
+			Background="Transparent"
+			ColumnDefinitions="Auto,*,Auto">
+
+			<Grid.Styles>
+				<Style Selector="FlyoutPresenter">
+					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
+				</Style>
+			</Grid.Styles>
+
+			<Interaction.Behaviors>
+				<behaviors:DisableRightClickSelectionBehavior />
+			</Interaction.Behaviors>
+
+			<Grid.ContextFlyout>
+				<Flyout OverlayDismissEventPassThrough="True">
+					<StackPanel Orientation="Vertical">
+						<StackPanel.Styles>
+							<Style Selector="Button">
+								<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+								<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+							</Style>
+						</StackPanel.Styles>
+
+						<TextBlock
+							Classes="NameInFlyoutTextBlockStyle"
+							Text="{Binding Name, Mode=OneTime}" />
+
+						<wrappers:FlyoutButton
+							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+							CommandParameter="{Binding Id}"
+							Header="{x:Static prop:Strings.ShowInEditor}"
+							Icon="FileTree" />
+					</StackPanel>
+				</Flyout>
+			</Grid.ContextFlyout>
+
+			<materialIcons:MaterialIcon
+				Grid.Column="0"
+				Classes="FolderIconStyle" />
+
+			<TextBlock
+				Grid.Column="1"
+				Classes="DtoNameTextBlockStyle"
+				Text="{Binding Name, Mode=OneTime}" />
+
+			<views:IconsBlock
+				Grid.Column="2"
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}" />
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="DoubleTapped">
+					<InvokeCommandAction
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).ShowInEditorCommand}"
+						CommandParameter="{Binding Id}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</Grid>
+	</DataTemplate>
+
+	<!-- SelectedFavoritesViewTemplate -->
+	<DataTemplate x:Key="SelectedFavoritesViewTemplate">
+		<views:SelectedFavoritesView
+			x:Name="View"
+			DataContext="{markup:Resolve {x:Type vm:SelectedFavoritesViewModel}}">
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Loaded">
+					<InvokeCommandAction
+						Command="{Binding $parent[Window].((vm:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
+						CommandParameter="{Binding #View.DataContext}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+		</views:SelectedFavoritesView>
+	</DataTemplate>
+</ResourceDictionary>

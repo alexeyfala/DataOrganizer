@@ -26,6 +26,7 @@
 		<AvaloniaXaml Remove="Templates\ClipboardHistoryTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\EditorTreeViewTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\FavoritesTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -35,6 +36,7 @@
 	    <SubType>Designer</SubType>
 	  </AvaloniaResource>
 	  <AvaloniaResource Include="Templates\EditorTreeViewTemplates.axaml" />
+	  <AvaloniaResource Include="Templates\FavoritesTemplates.axaml" />
 	</ItemGroup>
 
 	<ItemGroup>
