@@ -36,7 +36,7 @@ Folders can be protected with password-based encryption. Passwords are hashed wi
 Represents structured records with key-value pairs. The built-in dataset editor lets you manage, group, and edit records.
 
 ### Clipboard History
-Every copy of entire file contents operation is tracked. Browse, search, and restore previous clipboard entries from the history panel.
+A built-in, cross-platform clipboard journal that automatically captures what you copy — plain text, formatted text (HTML/RTF), URLs, images, and files/folders. Browse, search, and restore any past entry from a dedicated window; duplicates are merged and the list is capped to the most recent items. Entries flagged as secret by password managers are skipped automatically. History lives in memory by default; you can optionally persist it between sessions in an encrypted, password-protected file (XChaCha20-Poly1305 + Argon2id), unlocked on first access.
 
 ### File Execution
 Allows to launch files with OS-default applications directly from Data Organizer. Execution history is tracked for easy reference.
