@@ -12,6 +12,13 @@ namespace DataOrganizer.UnitTests.TestTypes;
 [TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
 internal class AppEnvironmentTests
 {
+	#region Data
+	/// <summary>
+	/// Default directory name.
+	/// </summary>
+	private const string DefaultDirectoryName = "Instance";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="AppEnvironment" /> constructor when first running instance.
@@ -39,15 +46,15 @@ internal class AppEnvironmentTests
 
 		sut.AppDataDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data"));
+			.Be(Path.Combine(root, DefaultDirectoryName));
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data", "Database"));
+			.Be(Path.Combine(root, DefaultDirectoryName, "Database"));
 
 		sut.SandboxDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data", "Sandbox"));
+			.Be(Path.Combine(root, DefaultDirectoryName, "Sandbox"));
 	}
 
 	/// <summary>
@@ -76,11 +83,11 @@ internal class AppEnvironmentTests
 
 		sut.AppDataDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (2)"));
+			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)"));
 
 		sut.DatabaseDirectoryPath
 			.Should()
-			.Be(Path.Combine(root, "Data (2)", "Database"));
+			.Be(Path.Combine(root, $"{DefaultDirectoryName} (2)", "Database"));
 	}
 
 	/// <summary>
