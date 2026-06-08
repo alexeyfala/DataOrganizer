@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -905,12 +905,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
-	private static bool HasChildren(RecordsGroup? group)
-	{
-		return group?
-			.Children
-			.Any() == true;
-	}
+	private static bool HasChildren(RecordsGroup? group) => group?.Children.Any() ?? false;
 
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
@@ -920,7 +915,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		return group?
 			.Children
 			.OfType<RecordsGroup>()
-			.Any() == true;
+			.Any() ?? false;
 	}
 
 	/// <summary>
