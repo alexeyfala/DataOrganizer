@@ -27,7 +27,6 @@ using Repository.Interfaces;
 using Repository.Services;
 using Serilog;
 using Serilog.Core;
-using Serilog.Events;
 using Serilog.Exceptions;
 using Serilog.Sinks.FileEx;
 using Shared.Common;
@@ -185,7 +184,7 @@ public sealed class App : Application
 		LoggerConfiguration configuration = new LoggerConfiguration()
 			.Enrich.WithExceptionDetails()
 			.Enrich.WithDemystifiedStackTraces()
-			.MinimumLevel.Debug()
+			.MinimumLevel.Is(options.MinimumLogEventLevel)
 			.WriteTo.Async(configure =>
 			{
 				string path = Path.Combine(
@@ -213,7 +212,6 @@ public sealed class App : Application
 
 			LogCallbackSink sink = new()
 			{
-				IgnoreDebugLevel = options.MinimumLogEventLevel != LogEventLevel.Debug,
 				LogCallback = viewModel.WriteCallback
 			};
 

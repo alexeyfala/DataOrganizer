@@ -14,11 +14,6 @@ internal sealed class LogCallbackSink : ILogEventSink
 {
 	#region Properties
 	/// <summary>
-	/// <c>True</c> when logs of level <see cref="LogEventLevel.Debug" /> should be ignored.
-	/// </summary>
-	public required bool IgnoreDebugLevel { get; init; }
-
-	/// <summary>
 	/// Reference to the method for receiving messages.
 	/// </summary>
 	public required Action<string> LogCallback { get; init; }
@@ -28,11 +23,6 @@ internal sealed class LogCallbackSink : ILogEventSink
 	/// <inheritdoc />
 	public void Emit(LogEvent logEvent)
 	{
-		if (logEvent.Level == LogEventLevel.Debug && IgnoreDebugLevel)
-		{
-			return;
-		}
-
 		string message = $"[{logEvent.Timestamp.ToString(AppUtils.LogTimestampFormat)}] {logEvent.Level.ToShort()} {logEvent.RenderMessage()}{Environment.NewLine}";
 
 		if (logEvent.Exception is { } ex)
