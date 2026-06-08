@@ -62,7 +62,7 @@ internal class ExecutionServiceTests
 				.Returns(true);
 
 			fileAssociation
-				.GetApplicationByExtension(Arg.Any<string>())
+				.FindApplicationByExtension(Arg.Any<string>())
 				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
 
 			builder.RegisterInstance(fileSystem);
@@ -141,7 +141,7 @@ internal class ExecutionServiceTests
 				});
 
 			fileAssociation
-				.GetApplicationByExtension(Arg.Any<string>())
+				.FindApplicationByExtension(Arg.Any<string>())
 				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
 
 			builder.RegisterInstance(appEnvironment);
