@@ -3,6 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -42,7 +43,6 @@
 			ColumnDefinitions="Auto,Auto,*,Auto">
 
 			<Grid.Resources>
-				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
 				<converters:FileIsOpenedToFalseConverter x:Key="FileIsOpenedToFalseConverter" />
 			</Grid.Resources>
 
@@ -76,7 +76,7 @@
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
 				IsEnabled="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToFalseConverter}}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}">
 				<materialIcons:MaterialIcon.Styles>
 					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
 						<Setter Property="Kind" Value="EyeOutline" />

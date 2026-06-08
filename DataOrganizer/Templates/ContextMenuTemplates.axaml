@@ -3,7 +3,9 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:entityEnums="using:Entities.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -331,9 +333,6 @@
 		x:DataType="entities:FileModelDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Resources>
-				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
-				<converters:EntityTypeToExecuteFileMenuItemVisibilityConverter x:Key="EntityTypeToExecuteFileMenuItemVisibilityConverter" />
-				<converters:IfFileThenVisibleConverter x:Key="IfFileThenVisibleConverter" />
 				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 			</StackPanel.Resources>
 
@@ -375,7 +374,7 @@
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.OpenInOS}"
 				Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource EntityTypeToExecuteFileMenuItemVisibilityConverter}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityType.DataSet}}" />
 
 			<wrappers:FlyoutButton
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseOpenedFileCommand}"
@@ -404,14 +403,14 @@
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyContent}"
 				Icon="ContentCopy"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
 
-			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}" />
+			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}" />
 
 			<wrappers:FlyoutButton
 				Header="{x:Static prop:Strings.Encryption}"
 				Icon="LockOutline"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}">
 				<Button.Flyout>
 					<Flyout
 						OverlayDismissEventPassThrough="True"
@@ -435,21 +434,21 @@
 				</Button.Flyout>
 			</wrappers:FlyoutButton>
 
-			<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+			<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
 
 			<wrappers:FlyoutButton
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).SetFavoriteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Favorite}"
 				Icon="StarOutline"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
 
 			<wrappers:FlyoutButton
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowHotkeysEditorCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Hotkeys}"
 				Icon="KeyboardVariant"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={StaticResource IfFileThenVisibleConverter}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
 
 			<Separator />
 

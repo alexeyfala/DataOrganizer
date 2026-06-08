@@ -2,7 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -81,9 +81,6 @@
 		<StackPanel
 			Orientation="Horizontal"
 			Spacing="10.0">
-			<StackPanel.Resources>
-				<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
-			</StackPanel.Resources>
 
 			<TextBlock
 				Margin="10.0,0.0,0.0,0.0"
@@ -93,7 +90,7 @@
 			<materialIcons:MaterialIcon
 				Background="Transparent"
 				Foreground="{StaticResource WarningBrush}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
 				Kind="LockOpenVariantOutline"
 				ToolTip.Tip="{x:Static prop:Strings.ContentIsDecrypted}" />
 

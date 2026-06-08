@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -11,7 +12,6 @@
 	mc:Ignorable="d">
 
 	<UserControl.Resources>
-		<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
 		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
 		<converters:EncryptionStatusToIconDescriptionConverter x:Key="EncryptionStatusToIconDescriptionConverter" />
 		<converters:EncryptionStatusToIconKindConverter x:Key="EncryptionStatusToIconKindConverter" />
@@ -56,7 +56,7 @@
 
 		<materialIcons:MaterialIcon
 			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconBrushConverter}}"
-			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
 			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconKindConverter}}"
 			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconDescriptionConverter}}" />
 	</StackPanel>
