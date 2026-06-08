@@ -1,7 +1,10 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
 using Entities.Enums;
+using Material.Colors;
 using Material.Icons;
 using Shared.Properties;
 
@@ -44,6 +47,17 @@ internal static class AppConverters
 			EntityType.File => MaterialIconKind.FileOutline,
 			EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
 			_ => default
+		});
+
+	public static FuncValueConverter<FileModelDto, bool> FileIsOpenedToFalse { get; } =
+		new(file => file is { } opened && !opened.IsOpened());
+
+	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
+		new(value => value switch
+		{
+			PrimaryColor primary => primary.GetBrush(),
+			SecondaryColor secondary => secondary.GetBrush(),
+			_ => Brushes.Transparent
 		});
 	#endregion
 }

@@ -42,10 +42,6 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">
 
-			<Grid.Resources>
-				<converters:FileIsOpenedToFalseConverter x:Key="FileIsOpenedToFalseConverter" />
-			</Grid.Resources>
-
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
@@ -75,7 +71,7 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsEnabled="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToFalseConverter}}"
+				IsEnabled="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.FileIsOpenedToFalse}}"
 				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}">
 				<materialIcons:MaterialIcon.Styles>
 					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
@@ -131,10 +127,6 @@
 	<!-- MaterialDesignColorSampleTemplate -->
 	<DataTemplate x:Key="MaterialDesignColorSampleTemplate">
 		<Grid ColumnDefinitions="*,Auto">
-			<Grid.Resources>
-				<converters:MaterialDesignColorToBrushConverter x:Key="MaterialDesignColorToBrushConverter" />
-			</Grid.Resources>
-
 			<TextBlock
 				Grid.Column="0"
 				Margin="0.0,0.0,6.0,0.0"
@@ -143,7 +135,7 @@
 			<Rectangle
 				Grid.Column="1"
 				Classes="ColorSampleStyle"
-				Fill="{Binding Mode=OneTime, Converter={StaticResource MaterialDesignColorToBrushConverter}}" />
+				Fill="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
 		</Grid>
 	</DataTemplate>
 
