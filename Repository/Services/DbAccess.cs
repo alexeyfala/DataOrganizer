@@ -20,7 +20,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -799,30 +798,22 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
-		static bool HasValidHeader(string filePath)
+		bool HasValidHeader(string filePath)
 		{
 			try
 			{
-				byte[] header = new byte[16];
+				Span<byte> header = stackalloc byte[16];
 
-				using FileStream stream = File.Open(
-					filePath,
-					FileMode.Open,
-					FileAccess.Read,
-					FileShare.ReadWrite);
+				using Stream stream = _fileSystem.OpenRead(filePath);
 
 				if (stream.Length < 16)
 				{
 					return false;
 				}
 
-				stream.ReadExactly(header, 0, 16);
+				stream.ReadExactly(header);
 
-				string headerStr = Encoding
-					.UTF8
-					.GetString(header);
-
-				return headerStr.StartsWith("SQLite format 3");
+				return header.StartsWith("SQLite format 3"u8);
 			}
 			catch
 			{
