@@ -332,10 +332,6 @@
 		x:Key="FileInTreeViewContextMenuTemplate"
 		x:DataType="entities:FileModelDto">
 		<StackPanel Orientation="Vertical">
-			<StackPanel.Resources>
-				<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
-			</StackPanel.Resources>
-
 			<StackPanel.Styles>
 				<Style Selector="Button">
 					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
@@ -373,7 +369,9 @@
 				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ExecuteFileCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.OpenInOS}"
-				Icon="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
+				Icon="{OnPlatform Default=MicrosoftWindows,
+				                  macOS=Apple,
+				                  Linux=Linux}"
 				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityType.DataSet}}" />
 
 			<wrappers:FlyoutButton

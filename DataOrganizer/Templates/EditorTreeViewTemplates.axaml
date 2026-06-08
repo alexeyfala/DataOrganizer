@@ -55,10 +55,6 @@
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
-			<Grid.Resources>
-				<converters:EntityTypeToMaterialIconKindConverter x:Key="EntityTypeToMaterialIconKindConverter" />
-			</Grid.Resources>
-
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
 
@@ -80,7 +76,7 @@
 				Width="{StaticResource EntityTypeIconSize}"
 				Height="{StaticResource EntityTypeIconSize}"
 				Foreground="{StaticResource FileBrush}"
-				Kind="{Binding EntityType, Mode=OneTime, Converter={StaticResource EntityTypeToMaterialIconKindConverter}}" />
+				Kind="{Binding EntityType, Mode=OneTime, Converter={x:Static converters:AppConverters.EntityTypeToIconKind}}" />
 
 			<TextBlock
 				Grid.Column="1"

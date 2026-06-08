@@ -11,13 +11,6 @@
 	xmlns:views="using:DataOrganizer.Views"
 	mc:Ignorable="d">
 
-	<UserControl.Resources>
-		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
-		<converters:EncryptionStatusToIconDescriptionConverter x:Key="EncryptionStatusToIconDescriptionConverter" />
-		<converters:EncryptionStatusToIconKindConverter x:Key="EncryptionStatusToIconKindConverter" />
-		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
-	</UserControl.Resources>
-
 	<StackPanel
 		DataContext="{Binding $parent[views:IconsBlock]}"
 		Orientation="Horizontal"
@@ -39,7 +32,9 @@
 		<materialIcons:MaterialIcon
 			Foreground="LimeGreen"
 			IsVisible="{Binding IsExecuting, Mode=OneWay}"
-			Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
+			Kind="{OnPlatform Default=MicrosoftWindows,
+			                  macOS=Apple,
+			                  Linux=Linux}"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
 
 		<materialIcons:MaterialIcon
@@ -55,9 +50,9 @@
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconBrushConverter}}"
+			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconBrush}}"
 			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
-			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconKindConverter}}"
-			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconDescriptionConverter}}" />
+			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconKind}}"
+			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconDescription}}" />
 	</StackPanel>
 </UserControl>
