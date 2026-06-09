@@ -28,9 +28,18 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
 	</ItemGroup>
+	<!--
+		When building from the command line with Platform=x64, the .NET SDK puts the project
+		output under bin\x64\..., so the publish path must include the platform prefix too.
+		VS builds DataOrganizer.Desktop as Any CPU (per .sln mapping), so no prefix is needed there.
+	-->
+	<PropertyGroup>
+		<_PublishPlatformPrefix Condition="'$(Platform)'=='x64'">x64\</_PublishPlatformPrefix>
+		<_PublishPlatformPrefix Condition="'$(Platform)'!='x64'"></_PublishPlatformPrefix>
+	</PropertyGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="PreBuildEvent">
-		<Exec Command='dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir="bin\$(Configuration)\net10.0\Publish"' />
+		<Exec Command='dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir="bin\$(_PublishPlatformPrefix)$(Configuration)\net10.0\Publish"' />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">

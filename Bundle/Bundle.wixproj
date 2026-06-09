@@ -1,6 +1,7 @@
-﻿<Project Sdk="WixToolset.Sdk/6.0.2">
+﻿<Project Sdk="WixToolset.Sdk/6.0.2"
+		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
-		<DesktopRuntimeVersion>10.0.5</DesktopRuntimeVersion>
+		<DesktopRuntimeVersion>10.0.9</DesktopRuntimeVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -34,9 +35,22 @@
 	<ItemGroup>
 		<None Include="Resources\DesktopRuntime.exe" />
 	</ItemGroup>
+	<Target Name="BuildSetupDependency">
+		<MSBuild Projects="..\Setup\Setup.wixproj"
+				 Properties="
+				 AppIconPath=$(AppIconPath);
+				 AppName=$(AppName);
+				 AppNameAsOneWord=$(AppNameAsOneWord);
+				 AppVersion=$(AppVersion);
+				 Configuration=$(Configuration);
+				 Manufacturer=$(Manufacturer);
+				 MsiOutputName=$(MsiOutputName);
+				 SetupCulture=$(SetupCulture);" />
+	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
+		<Exec Command="del /f $(OutputPath)\*.msi" />
 		<Exec Command="start $(OutputPath)" />
 	</Target>
 </Project>

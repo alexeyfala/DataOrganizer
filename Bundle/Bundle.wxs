@@ -4,7 +4,6 @@
 	Chain - https://docs.firegiant.com/wix/schema/wxs/chain
 	DotNetCoreSearch - https://docs.firegiant.com/wix/schema/netfx/dotnetcoresearch
 	ExePackage - https://docs.firegiant.com/wix/schema/wxs/exepackage
-	ExePackagePayload - https://docs.firegiant.com/wix/schema/wxs/exepackagepayload
 	Fragment - https://docs.firegiant.com/wix/schema/wxs/fragment
 	MsiPackage - https://docs.firegiant.com/wix/schema/wxs/msipackage
 	PackageGroup - https://docs.firegiant.com/wix/schema/wxs/packagegroup
@@ -77,16 +76,6 @@
 				Permanent="yes"
 				SourceFile="Resources\DesktopRuntime.exe"
 				Vital="yes">
-
-				<!-- https://dotnet.microsoft.com/en-us/download/dotnet/10.0 -->
-				<!--<ExePackagePayload
-					Description=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
-					DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.5/windowsdesktop-runtime-10.0.5-win-x64.exe"
-					Hash="cbb1ad53aecc54264488cc5c0be938991770750209cf4acd383bbe8af57db679f4d5988e6281a6d6a46b4e141db3d3d539ea764250b4ab48871972a610944b40"
-					Name="windowsdesktop-runtime-10.0.5-win-x64.exe"
-					ProductName=".NET 10.0 Desktop Runtime (v10.0.5) - Windows x64"
-					Size="60082160"
-					Version="10.0.5" />-->
 			</ExePackage>
 		</PackageGroup>
 	</Fragment>
