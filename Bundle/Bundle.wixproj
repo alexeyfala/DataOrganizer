@@ -1,6 +1,7 @@
-﻿<Project Sdk="WixToolset.Sdk/6.0.2"
+﻿<Project Sdk="WixToolset.Sdk/7.0.0"
 		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
+		<AcceptEula>wix7</AcceptEula>
 		<DesktopRuntimeVersion>10.0.9</DesktopRuntimeVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
@@ -28,9 +29,9 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.BootstrapperApplications.wixext"
-						  Version="6.0.2" />
+						  Version="7.0.0" />
 		<PackageReference Include="WixToolset.Netfx.wixext"
-						  Version="6.0.2" />
+						  Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="Resources\DesktopRuntime.exe" />

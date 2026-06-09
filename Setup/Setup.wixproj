@@ -1,5 +1,6 @@
-﻿<Project Sdk="WixToolset.Sdk/6.0.2">
+﻿<Project Sdk="WixToolset.Sdk/7.0.0">
 	<PropertyGroup>
+		<AcceptEula>wix7</AcceptEula>
 		<OutputName>$(MsiOutputName)</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
@@ -23,7 +24,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext"
-						  Version="6.0.2" />
+						  Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
