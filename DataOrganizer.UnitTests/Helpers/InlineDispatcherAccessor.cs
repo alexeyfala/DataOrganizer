@@ -15,6 +15,7 @@ internal sealed class InlineDispatcherAccessor : IDispatcherAccessor
 	/// <inheritdoc />
 	public void Post(Action action, DispatcherPriority priority = default) => action();
 
+
 	/// <inheritdoc />
 	public Task PostAsync(Action action, DispatcherPriority priority = default)
 	{
