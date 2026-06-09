@@ -61,13 +61,13 @@ public sealed class EncryptionService : IEncryptionService
 
 		try
 		{
-			byte[] salt = new byte[SaltSize];
-
-			Buffer.BlockCopy(input, 1, salt, 0, salt.Length);
-
-			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 1 + SaltSize);
+			ReadOnlySpan<byte> salt = input.AsSpan(1, SaltSize);
 
 			using Key key = DeriveKey(password, salt);
+
+			ReadOnlySpan<byte> nonce = input.AsSpan(1 + SaltSize, _algorithm.NonceSize);
+
+			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + SaltSize + _algorithm.NonceSize);
 
 			return OpenAead(key, nonce, ciphertext);
 		}
@@ -113,9 +113,11 @@ public sealed class EncryptionService : IEncryptionService
 
 		try
 		{
-			(byte[] nonce, byte[] ciphertext) = ExtractNonceAndCiphertext(input, offset: 1);
-
 			using Key key = ImportKey(dek);
+
+			ReadOnlySpan<byte> nonce = input.AsSpan(1, _algorithm.NonceSize);
+
+			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + _algorithm.NonceSize);
 
 			return OpenAead(key, nonce, ciphertext);
 		}
@@ -132,22 +134,23 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		try
 		{
-			byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
+			int nonceSize = _algorithm.NonceSize;
 
-			using Key key = DeriveKey(password, salt);
-
-			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
-
-			// Format: [version 1][salt 16][nonce 24][ciphertext+tag].
-			byte[] result = new byte[1 + salt.Length + nonce.Length + ciphertext.Length];
+			byte[] result = new byte[1 + SaltSize + nonceSize + input.Length + _algorithm.TagSize];
 
 			result[0] = FormatVersionPasswordV1;
 
-			Buffer.BlockCopy(salt, 0, result, 1, salt.Length);
+			Span<byte> saltSpan = result.AsSpan(1, SaltSize);
 
-			Buffer.BlockCopy(nonce, 0, result, 1 + salt.Length, nonce.Length);
+			RandomNumberGenerator.Fill(saltSpan);
 
-			Buffer.BlockCopy(ciphertext, 0, result, 1 + salt.Length + nonce.Length, ciphertext.Length);
+			using Key key = DeriveKey(password, saltSpan);
+
+			Span<byte> nonceSpan = result.AsSpan(1 + SaltSize, nonceSize);
+
+			RandomNumberGenerator.Fill(nonceSpan);
+
+			_algorithm.Encrypt(key, nonceSpan, [], input, result.AsSpan(1 + SaltSize + nonceSize));
 
 			return result;
 		}
@@ -186,16 +189,17 @@ public sealed class EncryptionService : IEncryptionService
 		{
 			using Key key = ImportKey(dek);
 
-			(byte[] nonce, byte[] ciphertext) = SealAead(key, input);
+			int nonceSize = _algorithm.NonceSize;
 
-			// Format: [version 2][nonce 24][ciphertext+tag].
-			byte[] result = new byte[1 + nonce.Length + ciphertext.Length];
+			byte[] result = new byte[1 + nonceSize + input.Length + _algorithm.TagSize];
 
 			result[0] = FormatVersionDekV1;
 
-			Buffer.BlockCopy(nonce, 0, result, 1, nonce.Length);
+			Span<byte> nonceSpan = result.AsSpan(1, nonceSize);
 
-			Buffer.BlockCopy(ciphertext, 0, result, 1 + nonce.Length, ciphertext.Length);
+			RandomNumberGenerator.Fill(nonceSpan);
+
+			_algorithm.Encrypt(key, nonceSpan, [], input, result.AsSpan(1 + nonceSize));
 
 			return result;
 		}
@@ -263,7 +267,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Derives a key.
 	/// </summary>
-	private static Key DeriveKey(byte[] password, byte[] salt)
+	private static Key DeriveKey(byte[] password, ReadOnlySpan<byte> salt)
 	{
 		Argon2id kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(new()
 		{
@@ -287,23 +291,6 @@ public sealed class EncryptionService : IEncryptionService
 		}
 	}
 
-	/// <summary>
-	/// Extracts the nonce and ciphertext slices from <paramref name="input" /> starting at <paramref name="offset" />.
-	/// Caller is responsible for ensuring <paramref name="input" /> has enough bytes.
-	/// </summary>
-	private static (byte[] Nonce, byte[] Ciphertext) ExtractNonceAndCiphertext(byte[] input, int offset)
-	{
-		byte[] nonce = new byte[_algorithm.NonceSize];
-
-		byte[] ciphertext = new byte[input.Length - offset - nonce.Length];
-
-		Buffer.BlockCopy(input, offset, nonce, 0, nonce.Length);
-
-		Buffer.BlockCopy(input, offset + nonce.Length, ciphertext, 0, ciphertext.Length);
-
-		return (nonce, ciphertext);
-	}
-
 	private static Key ImportKey(byte[] blob)
 	{
 		return Key.Import(
@@ -318,8 +305,8 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static byte[]? OpenAead(
 		Key key,
-		byte[] nonce,
-		byte[] ciphertext)
+		ReadOnlySpan<byte> nonce,
+		ReadOnlySpan<byte> ciphertext)
 	{
 		if (ciphertext.Length < _algorithm.TagSize)
 		{
@@ -334,23 +321,6 @@ public sealed class EncryptionService : IEncryptionService
 			associatedData: [],
 			ciphertext: ciphertext,
 			plaintext: plaintext) ? plaintext : null;
-	}
-
-	/// <summary>
-	/// Runs AEAD authenticated encryption with a fresh random nonce.
-	/// Returns the nonce and the ciphertext (with appended tag).
-	/// </summary>
-	private static (byte[] Nonce, byte[] Ciphertext) SealAead(Key key, byte[] input)
-	{
-		byte[] nonce = RandomNumberGenerator.GetBytes(_algorithm.NonceSize);
-
-		byte[] ciphertext = _algorithm.Encrypt(
-			key: key,
-			nonce: nonce,
-			associatedData: [],
-			plaintext: input);
-
-		return (nonce, ciphertext);
 	}
 	#endregion
 }

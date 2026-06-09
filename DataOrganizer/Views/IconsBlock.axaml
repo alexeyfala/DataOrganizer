@@ -4,19 +4,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	mc:Ignorable="d">
-
-	<UserControl.Resources>
-		<converters:EncryptionStatusNotDefaultToTrueConverter x:Key="EncryptionStatusNotDefaultToTrueConverter" />
-		<converters:EncryptionStatusToIconBrushConverter x:Key="EncryptionStatusToIconBrushConverter" />
-		<converters:EncryptionStatusToIconDescriptionConverter x:Key="EncryptionStatusToIconDescriptionConverter" />
-		<converters:EncryptionStatusToIconKindConverter x:Key="EncryptionStatusToIconKindConverter" />
-		<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
-	</UserControl.Resources>
 
 	<StackPanel
 		DataContext="{Binding $parent[views:IconsBlock]}"
@@ -39,7 +32,9 @@
 		<materialIcons:MaterialIcon
 			Foreground="LimeGreen"
 			IsVisible="{Binding IsExecuting, Mode=OneWay}"
-			Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}"
+			Kind="{OnPlatform Default=MicrosoftWindows,
+			                  macOS=Apple,
+			                  Linux=Linux}"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
 
 		<materialIcons:MaterialIcon
@@ -55,9 +50,9 @@
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconBrushConverter}}"
-			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusNotDefaultToTrueConverter}}"
-			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconKindConverter}}"
-			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={StaticResource EncryptionStatusToIconDescriptionConverter}}" />
+			Foreground="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconBrush}}"
+			IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
+			Kind="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconKind}}"
+			ToolTip.Tip="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static converters:AppConverters.EncryptionStatusToIconDescription}}" />
 	</StackPanel>
 </UserControl>

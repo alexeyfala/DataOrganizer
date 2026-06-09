@@ -14,7 +14,7 @@ public sealed partial class FileAssociationService : IFileAssociationService
 {
 	#region Methods
 	/// <inheritdoc />
-	public string? GetApplicationByExtension(string fileExtension)
+	public string? FindApplicationByExtension(string fileExtension)
 	{
 		uint length = 0;
 
@@ -52,20 +52,20 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	}
 
 	/// <inheritdoc />
-	public string? GetApplicationByPath(string absoluteFilePath)
+	public string? FindApplicationByPath(string absoluteFilePath)
 	{
-		char[] buffer = new char[1024];
+		Span<char> buffer = stackalloc char[1024];
 
 		FindExecutable(absoluteFilePath, string.Empty, buffer);
 
-		int nullTerminator = Array.IndexOf(buffer, '\0');
+		int nullTerminator = buffer.IndexOf('\0');
 
 		if (nullTerminator <= 0)
 		{
 			return null;
 		}
 
-		return new string(buffer, 0, nullTerminator);
+		return new string(buffer[..nullTerminator]);
 	}
 	#endregion
 
@@ -83,7 +83,7 @@ public sealed partial class FileAssociationService : IFileAssociationService
 	private static partial long FindExecutable(
 		string lpFile,
 		string lpDirectory,
-		[Out] char[] lpResult);
+		Span<char> lpResult);
 	#endregion
 
 	#region Nested Types

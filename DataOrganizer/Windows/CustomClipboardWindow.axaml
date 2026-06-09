@@ -56,7 +56,7 @@
 			CornerRadius="6.0">
 
 			<Interaction.Behaviors>
-				<behaviors:MoveWindowBehavior Window="{Binding $parent[Window]}" />
+				<WindowDragMoveBehavior />
 			</Interaction.Behaviors>
 
 			<Grid RowDefinitions="Auto,*">

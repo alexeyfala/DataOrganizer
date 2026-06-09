@@ -627,7 +627,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return (true, null);
 		}
 
-		string? appPath = _fileAssociation.GetApplicationByExtension(Path.GetExtension(fileName));
+		string? appPath = _fileAssociation.FindApplicationByExtension(Path.GetExtension(fileName));
 
 		if (appPath?.EndsWith("OpenWith.exe", StringComparison.OrdinalIgnoreCase) == false)
 		{

@@ -4,7 +4,7 @@ using Repository.DTO;
 
 namespace DataOrganizer.DTO.Encryption;
 
-public sealed class UpdateDatabaseParameters
+public sealed record UpdateDatabaseParameters
 {
 	#region Properties
 	/// <summary>

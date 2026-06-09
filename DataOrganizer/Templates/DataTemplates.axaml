@@ -3,6 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -41,11 +42,6 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">
 
-			<Grid.Resources>
-				<converters:EncryptionStatusNotEncryptedToTrueConverter x:Key="EncryptionStatusNotEncryptedToTrueConverter" />
-				<converters:FileIsOpenedToFalseConverter x:Key="FileIsOpenedToFalseConverter" />
-			</Grid.Resources>
-
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
@@ -75,8 +71,8 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsEnabled="{Binding Mode=OneTime, Converter={StaticResource FileIsOpenedToFalseConverter}}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={StaticResource EncryptionStatusNotEncryptedToTrueConverter}}">
+				IsEnabled="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.FileIsOpenedToFalse}}"
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}">
 				<materialIcons:MaterialIcon.Styles>
 					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
 						<Setter Property="Kind" Value="EyeOutline" />
@@ -131,10 +127,6 @@
 	<!-- MaterialDesignColorSampleTemplate -->
 	<DataTemplate x:Key="MaterialDesignColorSampleTemplate">
 		<Grid ColumnDefinitions="*,Auto">
-			<Grid.Resources>
-				<converters:MaterialDesignColorToBrushConverter x:Key="MaterialDesignColorToBrushConverter" />
-			</Grid.Resources>
-
 			<TextBlock
 				Grid.Column="0"
 				Margin="0.0,0.0,6.0,0.0"
@@ -143,7 +135,7 @@
 			<Rectangle
 				Grid.Column="1"
 				Classes="ColorSampleStyle"
-				Fill="{Binding Mode=OneTime, Converter={StaticResource MaterialDesignColorToBrushConverter}}" />
+				Fill="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
 		</Grid>
 	</DataTemplate>
 

@@ -9,14 +9,14 @@ public interface IFileAssociationService
 {
 	#region Methods
 	/// <summary>
-	/// Returns the path to the executable application file by file extension.
+	/// Tries to find a path to the executable application file by file extension.
 	/// </summary>
-	string? GetApplicationByExtension(string fileExtension);
+	string? FindApplicationByExtension(string fileExtension);
 
 	/// <summary>
-	/// Returns the path to the executable application file by the absolute path of existing file.
+	/// Tries to find a path to the executable application file by the absolute path of existing file.
 	/// For the method to work, the file must exist at the specified path.
 	/// </summary>
-	string? GetApplicationByPath(string absoluteFilePath);
+	string? FindApplicationByPath(string absoluteFilePath);
 	#endregion
 }

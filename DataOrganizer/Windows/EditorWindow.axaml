@@ -32,8 +32,6 @@
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceInclude Source="/Styling/SideSheetControlTheme.axaml" />
 			</ResourceDictionary.MergedDictionaries>
-
-			<converters:OperatingSystemToIconKindConverter x:Key="OperatingSystemToIconKindConverter" />
 		</ResourceDictionary>
 	</Window.Resources>
 
@@ -296,7 +294,9 @@
 									<materialIcons:MaterialIcon
 										Width="{StaticResource ToolBarIconSize}"
 										Height="{StaticResource ToolBarIconSize}"
-										Kind="{Binding Converter={StaticResource OperatingSystemToIconKindConverter}}" />
+										Kind="{OnPlatform Default=MicrosoftWindows,
+										                  macOS=Apple,
+										                  Linux=Linux}" />
 								</Button>
 
 								<TextBlock

@@ -158,11 +158,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.AddGroup,
-			KeyHint = Strings.Name
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.AddGroup,
+			KeyHint: Strings.Name);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -180,12 +178,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.AddKeyAndValue,
-			KeyHint = Strings.Key,
-			ValueHint = Strings.Value
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.AddKeyAndValue,
+			KeyHint: Strings.Key,
+			ValueHint: Strings.Value);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -206,11 +202,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.AddValue,
-			KeyHint = Strings.Name
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.AddValue,
+			KeyHint: Strings.Name);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -308,14 +302,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.Save,
-			Key = record.Key,
-			KeyHint = Strings.Key,
-			Value = record.Value,
-			ValueHint = Strings.Value
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.Save,
+			Key: record.Key,
+			KeyHint: Strings.Key,
+			Value: record.Value,
+			ValueHint: Strings.Value);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -364,12 +356,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.Save,
-			Key = record.Value,
-			KeyHint = Strings.Edit
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.Save,
+			Key: record.Value,
+			KeyHint: Strings.Edit);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -427,12 +417,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.Save,
-			Key = group.Name,
-			KeyHint = Strings.Rename
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.Save,
+			Key: group.Name,
+			KeyHint: Strings.Rename);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -905,12 +893,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child objects.
 	/// </summary>
-	private static bool HasChildren(RecordsGroup? group)
-	{
-		return group?
-			.Children
-			.Any() == true;
-	}
+	private static bool HasChildren(RecordsGroup? group) => group?.Children.Any() ?? false;
 
 	/// <summary>
 	/// <c>True</c> when <see cref="RecordsGroup" /> has child <see cref="RecordsGroup" />.
@@ -920,7 +903,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		return group?
 			.Children
 			.OfType<RecordsGroup>()
-			.Any() == true;
+			.Any() ?? false;
 	}
 
 	/// <summary>

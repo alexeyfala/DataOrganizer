@@ -142,16 +142,16 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			return friendly;
 		}
 
-		char[] buffer = new char[1024];
+		Span<char> buffer = stackalloc char[1024];
 
 		if (SHLoadIndirectString(friendly, buffer, buffer.Length, IntPtr.Zero) != S_OK)
 		{
 			return subkeyName;
 		}
 
-		int nullTerminator = Array.IndexOf(buffer, '\0');
+		int nullTerminator = buffer.IndexOf('\0');
 
-		return new string(buffer, 0, nullTerminator >= 0 ? nullTerminator : buffer.Length);
+		return new string(nullTerminator >= 0 ? buffer[..nullTerminator] : buffer);
 	}
 
 	/// <summary>
@@ -466,7 +466,7 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 	[LibraryImport("shlwapi.dll", EntryPoint = "SHLoadIndirectString", StringMarshalling = StringMarshalling.Utf16)]
 	private static partial int SHLoadIndirectString(
 		string pszSource,
-		[Out] char[] pszOutBuf,
+		Span<char> pszOutBuf,
 		int cchOutBuf,
 		IntPtr ppvReserved);
 	#endregion

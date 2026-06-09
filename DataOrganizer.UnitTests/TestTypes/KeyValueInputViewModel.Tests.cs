@@ -80,14 +80,12 @@ internal class KeyValueInputViewModelTests
 		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
 
 		// Act
-		sut.Initialize(new()
-		{
-			DefaultButtonText = defaultButtonText,
-			Key = key,
-			KeyHint = keyHint,
-			Value = value,
-			ValueHint = valueHint
-		});
+		sut.Initialize(new(
+			DefaultButtonText: defaultButtonText,
+			Key: key,
+			KeyHint: keyHint,
+			Value: value,
+			ValueHint: valueHint));
 
 		// Assert
 		sut.DefaultButtonText

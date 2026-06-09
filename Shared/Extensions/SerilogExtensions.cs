@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using Serilog.Events;
 using Shared.Common;
+using Shared.Helpers;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -29,7 +30,29 @@ public static partial class SerilogExtensions
 		[CallerLineNumber] int lineNumber = 0) => CreateSourceInfo(filePath, callerName, lineNumber);
 
 	/// <summary>
-	/// Logs a <see cref="LogEventLevel.Debug" /> level entry.
+	/// Logs a <see cref="LogEventLevel.Debug" /> level entry, building the interpolated message only when Debug logging is enabled.
+	/// </summary>
+	public static void LogDebug(
+		this ILogger target,
+		[InterpolatedStringHandlerArgument(nameof(target))]
+		LogDebugInterpolatedStringHandler message,
+		[CallerFilePath] string filePath = "",
+		[CallerMemberName] string callerName = "",
+		[CallerLineNumber] int lineNumber = 0)
+	{
+		if (!target.IsEnabled(LogEventLevel.Debug))
+		{
+			return;
+		}
+
+		target.Debug(
+			MessageSourceTemplate,
+			DecodeUnicode(message.ToStringAndClear(), target),
+			CreateSourceInfo(filePath, callerName, lineNumber));
+	}
+
+	/// <summary>
+	/// Logs a <see cref="LogEventLevel.Debug" /> level entry from an already-computed message.
 	/// </summary>
 	public static void LogDebug(
 		this ILogger target,
@@ -38,6 +61,11 @@ public static partial class SerilogExtensions
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
 	{
+		if (!target.IsEnabled(LogEventLevel.Debug))
+		{
+			return;
+		}
+
 		target.Debug(
 			MessageSourceTemplate,
 			DecodeUnicode(message, target),

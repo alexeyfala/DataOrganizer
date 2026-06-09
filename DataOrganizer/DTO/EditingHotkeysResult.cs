@@ -1,21 +1,5 @@
-﻿using Repository.DTO;
+using Repository.DTO;
 
 namespace DataOrganizer.DTO;
 
-/// <summary>
-/// Result of editing hotkeys.
-/// </summary>
-public sealed class EditingHotkeysResult
-{
-	#region Properties
-	/// <summary>
-	/// <c>True</c> when the hotkeys were saved.
-	/// </summary>
-	public required bool IsSaved { get; init; }
-
-	/// <summary>
-	/// New hotkeys.
-	/// </summary>
-	public required CodeMaskPair[] NewHotkeys { get; init; }
-	#endregion
-}
+public sealed record EditingHotkeysResult(bool IsSaved, CodeMaskPair[] NewHotkeys);
