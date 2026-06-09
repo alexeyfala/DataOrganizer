@@ -412,7 +412,7 @@ public abstract partial class ViewModelBase :
 					break;
 
 				case SnackbarMessageLevel.Error:
-					_logger.LogError(message, isAssertDebug: false);
+					_logger.LogError(message, assertDebug: false);
 					break;
 
 				default:

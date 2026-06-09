@@ -305,7 +305,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
 
 			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 

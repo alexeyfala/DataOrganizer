@@ -690,7 +690,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 		finally
 		{
@@ -722,7 +722,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return false;
 		}
@@ -914,7 +914,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				}
 				catch (Exception ex)
 				{
-					_logger.LogException(ex, isAssertDebug: false);
+					_logger.LogException(ex, assertDebug: false);
 				}
 			}
 
@@ -948,7 +948,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 	}
 
@@ -972,7 +972,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 	}
 
@@ -1019,7 +1019,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 	}
 
@@ -1039,7 +1039,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return null;
 		}
@@ -1108,7 +1108,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return null;
 		}
@@ -1129,7 +1129,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return null;
 		}
@@ -1149,7 +1149,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return null;
 		}
@@ -1172,7 +1172,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return null;
 		}

@@ -96,7 +96,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
-					isAssertDebug: false);
+					assertDebug: false);
 
 				return;
 			}
@@ -370,7 +370,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			if (!IsReadOnly)
 			{
