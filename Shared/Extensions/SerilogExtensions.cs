@@ -100,7 +100,7 @@ public static partial class SerilogExtensions
 			return;
 		}
 
-		Debug.Fail(message);
+		Debugger.Break();
 	}
 
 	/// <summary>
@@ -126,7 +126,7 @@ public static partial class SerilogExtensions
 			return;
 		}
 
-		Debug.Fail(exception.Message);
+		Debugger.Break();
 	}
 
 	/// <summary>
@@ -153,7 +153,7 @@ public static partial class SerilogExtensions
 			return;
 		}
 
-		Debug.Fail(exception.Message);
+		Debugger.Break();
 	}
 
 	/// <summary>
