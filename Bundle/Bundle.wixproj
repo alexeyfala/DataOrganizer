@@ -38,7 +38,7 @@
 	<Target Name="BuildSetupDependency">
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
-				 AppIconPath=$(AppIconPath)
+				 AppIconPath=$(AppIconPath);
 				 AppName=$(AppName);
 				 AppNameAsOneWord=$(AppNameAsOneWord);
 				 AppVersion=$(AppVersion);
