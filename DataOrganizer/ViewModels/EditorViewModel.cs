@@ -887,12 +887,10 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Renaming an object using dialog");
 
-		KeyValueInputParameters parameters = new()
-		{
-			DefaultButtonText = Strings.Rename,
-			Key = toBeRenamed.Name,
-			KeyHint = Strings.Name
-		};
+		KeyValueInputParameters parameters = new(
+			DefaultButtonText: Strings.Rename,
+			Key: toBeRenamed.Name,
+			KeyHint: Strings.Name);
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)

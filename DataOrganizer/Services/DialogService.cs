@@ -66,11 +66,7 @@ public sealed class DialogService : IDialogService
 
 		try
 		{
-			return new()
-			{
-				IsSaved = viewModel.IsSaved,
-				NewHotkeys = [.. viewModel.Buffer]
-			};
+			return new(viewModel.IsSaved, [.. viewModel.Buffer]);
 		}
 		finally
 		{
@@ -132,11 +128,7 @@ public sealed class DialogService : IDialogService
 			return null;
 		}
 
-		return new()
-		{
-			Key = key,
-			Value = viewModel.Value
-		};
+		return new(key, viewModel.Value);
 	}
 
 	/// <inheritdoc />
@@ -155,11 +147,7 @@ public sealed class DialogService : IDialogService
 			return new();
 		}
 
-		return new()
-		{
-			IsValid = true,
-			Value = viewModel.Text
-		};
+		return new(IsValid: true, Value: viewModel.Text);
 	}
 
 	/// <inheritdoc />
@@ -291,11 +279,7 @@ public sealed class DialogService : IDialogService
 				_ => throw new NotImplementedException()
 			};
 
-			return new()
-			{
-				Name = viewModel.Name,
-				Type = entityType
-			};
+			return new(viewModel.Name, entityType);
 		}
 		finally
 		{

@@ -301,11 +301,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			return new()
-			{
-				ImportedItems = objects,
-				Variant = variant
-			};
+			return new(objects, variant);
 		}
 		catch (Exception ex)
 		{
