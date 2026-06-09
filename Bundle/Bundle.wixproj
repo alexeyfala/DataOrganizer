@@ -1,7 +1,7 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.2"
 		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
-		<DesktopRuntimeVersion>10.0.5</DesktopRuntimeVersion>
+		<DesktopRuntimeVersion>10.0.9</DesktopRuntimeVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
