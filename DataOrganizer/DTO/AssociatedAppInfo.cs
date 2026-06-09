@@ -14,7 +14,6 @@ public sealed class AssociatedAppInfo
 	/// </summary>
 	public required string AppName { get; init; }
 
-
 	/// <summary>
 	/// Absolute path to the executable that opens the file.
 	/// </summary>
