@@ -1051,6 +1051,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pin.
+        /// </summary>
+        public static string Pin {
+            get {
+                return ResourceManager.GetString("Pin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Plain text.
         /// </summary>
         public static string PlainText {
@@ -1247,7 +1256,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("ShowContents", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Show In Editor.
         /// </summary>
@@ -1407,6 +1416,15 @@ namespace Shared.Properties {
         public static string UnableToCreateDatabaseBackup {
             get {
                 return ResourceManager.GetString("UnableToCreateDatabaseBackup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unpin.
+        /// </summary>
+        public static string Unpin {
+            get {
+                return ResourceManager.GetString("Unpin", resourceCulture);
             }
         }
         

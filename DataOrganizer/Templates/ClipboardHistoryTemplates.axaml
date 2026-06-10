@@ -108,113 +108,150 @@
 				<Grid
 					HorizontalAlignment="Right"
 					VerticalAlignment="Stretch"
-					ColumnDefinitions="Auto,Auto"
-					ColumnSpacing="2.0"
 					RowDefinitions="Auto,*,Auto"
 					RowSpacing="2.0">
 
-					<Button
+					<StackPanel
 						Grid.Row="0"
-						Grid.Column="1"
-						Padding="3.0"
-						HorizontalAlignment="Right"
-						Background="{StaticResource MaterialCardBackgroundBrush}"
-						Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-						CommandParameter="{ReflectionBinding Url,
-						                                     Mode=OneTime}"
-						Content="🌎"
-						Cursor="Hand"
-						FontFamily="Segoe UI Emoji"
-						FontSize="12.0"
-						IsVisible="{Binding IsUrl}"
-						ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
-
-					<ToggleButton
-						x:Name="RevealEye"
-						Grid.Row="2"
-						Grid.Column="0"
-						Padding="3.0"
-						VerticalAlignment="Center"
-						Background="{StaticResource MaterialCardBackgroundBrush}"
-						Cursor="Hand"
-						Theme="{StaticResource MaterialFlatButton}">
-
-						<ToggleButton.IsVisible>
-							<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
-								<ReflectionBinding
-									Mode="OneTime"
-									Path="IsSensitive">
-									<!--
-										Real bool fallback for entries without IsSensitive (image / files); UnsetValue would be
-										dropped by BoolConverters.And and leak the eye onto them.
-									-->
-									<ReflectionBinding.FallbackValue>
-										<system:Boolean>False</system:Boolean>
-									</ReflectionBinding.FallbackValue>
-								</ReflectionBinding>
-
-								<Binding
-									Path="IsPointerOver"
-									RelativeSource="{RelativeSource AncestorType=Button}" />
-
-								<!-- Hide the eye while the pointer is over the type-glyph badge. -->
-								<Binding
-									ElementName="TypeGlyphBadge"
-									Path="!IsPointerOver" />
-							</MultiBinding>
-						</ToggleButton.IsVisible>
-
-						<Interaction.Behaviors>
-							<behaviors:HandleClickBehavior />
-						</Interaction.Behaviors>
-
-						<ToggleButton.Styles>
-							<Style Selector="ToggleButton:not(:checked)">
-								<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
-							</Style>
-
-							<Style Selector="ToggleButton:checked">
-								<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
-							</Style>
-
-							<Style Selector="ToggleButton:not(:checked) materialIcons|MaterialIcon">
-								<Setter Property="Kind" Value="EyeOutline" />
-							</Style>
-
-							<Style Selector="ToggleButton:checked materialIcons|MaterialIcon">
-								<Setter Property="Kind" Value="EyeOffOutline" />
-							</Style>
-						</ToggleButton.Styles>
-
-						<materialIcons:MaterialIcon
-							Width="12.5"
-							Height="12.5" />
-					</ToggleButton>
-
-					<Border
-						x:Name="TypeGlyphBadge"
-						Grid.Row="2"
-						Grid.Column="1"
-						Padding="3.0"
-						HorizontalAlignment="Right"
-						VerticalAlignment="Center"
-						Background="{StaticResource MaterialCardBackgroundBrush}"
-						BorderBrush="{StaticResource MaterialDividerBrush}"
-						BorderThickness="1.0"
-						CornerRadius="4.0"
-						ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
-
-						<Border.Styles>
-							<Style Selector="Border:pointerover">
-								<Setter Property="Opacity" Value="0.5" />
-							</Style>
-						</Border.Styles>
-
-						<TextBlock
+						Orientation="Horizontal"
+						Spacing="2.0">
+						<Button
+							Padding="3.0"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+							CommandParameter="{ReflectionBinding Url,
+							                                     Mode=OneTime}"
+							Content="🌎"
+							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
-							Text="{Binding TypeGlyph, Mode=OneTime}" />
-					</Border>
+							IsVisible="{Binding IsUrl}"
+							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
+
+						<ToggleButton
+							Padding="3.0"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).TogglePinCommand}"
+							CommandParameter="{Binding}"
+							Cursor="Hand"
+							IsChecked="{Binding IsPinned, Mode=OneWay}"
+							Theme="{StaticResource MaterialFlatButton}">
+
+							<Interaction.Behaviors>
+								<behaviors:HandleClickBehavior />
+							</Interaction.Behaviors>
+
+							<ToggleButton.Styles>
+								<Style Selector="ToggleButton:not(:checked)">
+									<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Pin}" />
+								</Style>
+
+								<Style Selector="ToggleButton:checked">
+									<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.Unpin}" />
+								</Style>
+
+								<Style Selector="ToggleButton:not(:checked) materialIcons|MaterialIcon">
+									<Setter Property="Kind" Value="PinOutline" />
+								</Style>
+
+								<Style Selector="ToggleButton:checked materialIcons|MaterialIcon">
+									<Setter Property="Kind" Value="Pin" />
+								</Style>
+							</ToggleButton.Styles>
+
+							<materialIcons:MaterialIcon
+								Width="12.5"
+								Height="12.5" />
+						</ToggleButton>
+					</StackPanel>
+
+					<StackPanel
+						Grid.Row="2"
+						Orientation="Horizontal"
+						Spacing="2.0">
+						<ToggleButton
+							x:Name="RevealEye"
+							Padding="3.0"
+							VerticalAlignment="Center"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Cursor="Hand"
+							Theme="{StaticResource MaterialFlatButton}">
+
+							<ToggleButton.IsVisible>
+								<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
+									<ReflectionBinding
+										Mode="OneTime"
+										Path="IsSensitive">
+										<!--
+											Real bool fallback for entries without IsSensitive (image / files); UnsetValue would be
+											dropped by BoolConverters.And and leak the eye onto them.
+										-->
+										<ReflectionBinding.FallbackValue>
+											<system:Boolean>False</system:Boolean>
+										</ReflectionBinding.FallbackValue>
+									</ReflectionBinding>
+
+									<Binding
+										Path="IsPointerOver"
+										RelativeSource="{RelativeSource AncestorType=Button}" />
+
+									<!-- Hide the eye while the pointer is over the type-glyph badge. -->
+									<Binding
+										ElementName="TypeGlyphBadge"
+										Path="!IsPointerOver" />
+								</MultiBinding>
+							</ToggleButton.IsVisible>
+
+							<Interaction.Behaviors>
+								<behaviors:HandleClickBehavior />
+							</Interaction.Behaviors>
+
+							<ToggleButton.Styles>
+								<Style Selector="ToggleButton:not(:checked)">
+									<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.ShowContents}" />
+								</Style>
+
+								<Style Selector="ToggleButton:checked">
+									<Setter Property="ToolTip.Tip" Value="{x:Static prop:Strings.HideContents}" />
+								</Style>
+
+								<Style Selector="ToggleButton:not(:checked) materialIcons|MaterialIcon">
+									<Setter Property="Kind" Value="EyeOutline" />
+								</Style>
+
+								<Style Selector="ToggleButton:checked materialIcons|MaterialIcon">
+									<Setter Property="Kind" Value="EyeOffOutline" />
+								</Style>
+							</ToggleButton.Styles>
+
+							<materialIcons:MaterialIcon
+								Width="12.5"
+								Height="12.5" />
+						</ToggleButton>
+
+						<Border
+							x:Name="TypeGlyphBadge"
+							Padding="3.0"
+							HorizontalAlignment="Right"
+							VerticalAlignment="Center"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							BorderBrush="{StaticResource MaterialDividerBrush}"
+							BorderThickness="1.0"
+							CornerRadius="4.0"
+							ToolTip.Tip="{Binding TypeToolTip, Mode=OneTime}">
+
+							<Border.Styles>
+								<Style Selector="Border:pointerover">
+									<Setter Property="Opacity" Value="0.5" />
+								</Style>
+							</Border.Styles>
+
+							<TextBlock
+								FontFamily="Segoe UI Emoji"
+								FontSize="12.0"
+								Text="{Binding TypeGlyph, Mode=OneTime}" />
+						</Border>
+					</StackPanel>
 				</Grid>
 			</Panel>
 		</Button>
