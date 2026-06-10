@@ -113,6 +113,7 @@
 
 					<StackPanel
 						Grid.Row="0"
+						HorizontalAlignment="Right"
 						Orientation="Horizontal"
 						Spacing="2.0">
 						<Button
@@ -167,6 +168,7 @@
 
 					<StackPanel
 						Grid.Row="2"
+						HorizontalAlignment="Right"
 						Orientation="Horizontal"
 						Spacing="2.0">
 						<ToggleButton
