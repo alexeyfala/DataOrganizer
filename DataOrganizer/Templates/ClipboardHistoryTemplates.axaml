@@ -116,29 +116,24 @@
 						HorizontalAlignment="Right"
 						Orientation="Horizontal"
 						Spacing="2.0">
-						<Button
-							Padding="3.0"
-							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
-							CommandParameter="{ReflectionBinding Url,
-							                                     Mode=OneTime}"
-							Content="🌎"
-							Cursor="Hand"
-							FontFamily="Segoe UI Emoji"
-							FontSize="12.0"
-							IsVisible="{Binding IsUrl}"
-							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
-
 						<ToggleButton
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).TogglePinCommand}"
-							CommandParameter="{Binding}"
 							Cursor="Hand"
 							IsChecked="{Binding IsPinned, Mode=OneWay}"
 							Theme="{StaticResource MaterialFlatButton}">
 
 							<Interaction.Behaviors>
+								<!--
+									Command via Click trigger, not Button.Command: HandleClickBehavior marks the click
+									handled (to block bubbling), and Button.OnClick skips Command once handled.
+								-->
+								<EventTriggerBehavior EventName="Click">
+									<InvokeCommandAction
+										Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).TogglePinCommand}"
+										CommandParameter="{Binding}" />
+								</EventTriggerBehavior>
+
 								<behaviors:HandleClickBehavior />
 							</Interaction.Behaviors>
 
@@ -164,6 +159,19 @@
 								Width="12.5"
 								Height="12.5" />
 						</ToggleButton>
+
+						<Button
+							Padding="3.0"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+							CommandParameter="{ReflectionBinding Url,
+							                                     Mode=OneTime}"
+							Content="🌎"
+							Cursor="Hand"
+							FontFamily="Segoe UI Emoji"
+							FontSize="12.0"
+							IsVisible="{Binding IsUrl}"
+							ToolTip.Tip="{x:Static prop:Strings.OpenInBrowser}" />
 					</StackPanel>
 
 					<StackPanel
