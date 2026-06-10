@@ -32,46 +32,6 @@
 	</ControlTheme>
 
 	<ControlTheme
-		x:Key="WindowsClipboardButtonTheme"
-		BasedOn="{StaticResource MaterialFlatButton}"
-		TargetType="Button">
-		<Setter Property="IsVisible" Value="{OnPlatform Default={x:False}, Windows={x:True}}" />
-		<Setter Property="Content">
-			<Setter.Value>
-				<Template>
-					<Panel>
-						<materialIcons:MaterialIcon
-							Width="{StaticResource ToolBarIconSize}"
-							Height="{StaticResource ToolBarIconSize}"
-							Kind="ClipboardOutline" />
-
-						<materialIcons:MaterialIcon
-							Width="16.0"
-							Height="16.0"
-							Margin="0.0,0.0,-2.0,-2.0"
-							HorizontalAlignment="Right"
-							VerticalAlignment="Bottom"
-							Foreground="{StaticResource MaterialBodyBrush}"
-							Kind="MicrosoftWindows" />
-					</Panel>
-				</Template>
-			</Setter.Value>
-		</Setter>
-		<Setter Property="ToolTip.Tip">
-			<Setter.Value>
-				<Template>
-					<ToolTip>
-						<TextBlock>
-							<Run Text="{x:Static prop:Strings.WindowsClipboard}" />
-							<Run Text="(Win+V)" />
-						</TextBlock>
-					</ToolTip>
-				</Template>
-			</Setter.Value>
-		</Setter>
-	</ControlTheme>
-
-	<ControlTheme
 		x:Key="DialogTheme"
 		TargetType="UserControl">
 		<Setter Property="MinWidth" Value="300.0" />

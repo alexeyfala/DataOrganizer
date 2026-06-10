@@ -209,28 +209,12 @@
 								Classes="primary"
 								Command="{Binding ShowCustomClipboardCommand}"
 								CommandParameter="{Binding $parent[Window]}"
-								IsVisible="{Binding IsClipboardHistoryEnabled}"
+								IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}"
 								Theme="{StaticResource CustomClipboardButtonTheme}" />
 
-							<Button
-								Name="WindowsClipboardButton"
-								Classes="primary"
-								Command="{Binding ShowWindowsClipboardCommand}"
-								Theme="{StaticResource WindowsClipboardButtonTheme}" />
-
-							<Panel Classes="VerticalSeparatorPanelStyle">
-								<Panel.IsVisible>
-									<MultiBinding Converter="{x:Static avaloniaConverters:BoolConverters.Or}">
-										<Binding
-											ElementName="CustomClipboardButton"
-											Path="IsVisible" />
-
-										<Binding
-											ElementName="WindowsClipboardButton"
-											Path="IsVisible" />
-									</MultiBinding>
-								</Panel.IsVisible>
-							</Panel>
+							<Panel
+								Classes="VerticalSeparatorPanelStyle"
+								IsVisible="{Binding IsClipboardHistoryEnabled, Mode=OneWay}" />
 
 							<ToggleButton
 								Classes="primary"

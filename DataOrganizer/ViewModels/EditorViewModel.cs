@@ -32,7 +32,6 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1057,7 +1056,6 @@ public partial class EditorViewModel :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMapper mapper,
@@ -1073,7 +1071,6 @@ public partial class EditorViewModel :
 			dialogService,
 			dispatcher,
 			entityEncryption,
-			eventSimulator,
 			executionEngine,
 			logger,
 			messenger,

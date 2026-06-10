@@ -18,7 +18,6 @@ using DynamicData;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -199,7 +198,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
@@ -213,7 +211,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			dialogService,
 			dispatcher,
 			entityEncryption,
-			eventSimulator,
 			executionEngine,
 			logger,
 			messenger,
