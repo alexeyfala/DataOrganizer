@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -94,12 +94,28 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 			? Task.CompletedTask
 			: _clipboardHistory.RestoreAsync(entry);
 	}
+
+	/// <summary>
+	/// Toggles the pinned state of <paramref name="entry" />.
+	/// </summary>
+	[RelayCommand]
+	private void TogglePin(ClipboardHistoryEntryBase? entry)
+	{
+		if (entry is null)
+		{
+			return;
+		}
+
+		_clipboardHistory.TogglePin(entry);
+
+		ClearCommand.NotifyCanExecuteChanged();
+	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanClear() => _clipboardHistory.Entries.Count > 0;
+	private bool CanClear() => _clipboardHistory.Entries.Any(static entry => !entry.IsPinned);
 	#endregion
 }
