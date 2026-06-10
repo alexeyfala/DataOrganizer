@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Input;
+﻿using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Extensions;
@@ -53,13 +52,13 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// Clears <see cref=Buffer"" />.
 	/// </summary>
 	[RelayCommand]
-	public void Clear() => Buffer.Clear();
+	internal void Clear() => Buffer.Clear();
 
 	/// <summary>
 	/// <see cref="InputElement.KeyUp" /> event handler of <see cref="UserControl" />.
 	/// </summary>
 	[RelayCommand]
-	public void KeyUp(KeyEventArgs? e)
+	internal void KeyUp(KeyEventArgs? e)
 	{
 		if (e is null
 			|| e.KeyModifiers != KeyModifiers.None
@@ -75,7 +74,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// Saves hotkeys and closes the view.
 	/// </summary>
 	[RelayCommand]
-	public void SaveAndClose()
+	internal void SaveAndClose()
 	{
 		IsSaved = true;
 

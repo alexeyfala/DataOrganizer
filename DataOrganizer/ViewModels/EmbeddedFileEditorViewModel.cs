@@ -68,7 +68,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="TextEditor" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task EditorLoaded(TextEditor? editor)
+	internal async Task EditorLoaded(TextEditor? editor)
 	{
 		if (IsInitialized || editor is null)
 		{

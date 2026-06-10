@@ -234,7 +234,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// Saves settings and closes the view.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSaveAndClose))]
-	public void SaveAndClose()
+	internal void SaveAndClose()
 	{
 		IsSaved = true;
 

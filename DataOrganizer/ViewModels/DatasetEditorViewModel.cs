@@ -51,7 +51,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsRepeater" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task ContainerLoaded(ItemsRepeater? container)
+	internal async Task ContainerLoaded(ItemsRepeater? container)
 	{
 		if (IsInitialized)
 		{
@@ -139,7 +139,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles when the user has manually changed <see cref="ValueRecord.IsHidden" />.
 	/// </summary>
 	[RelayCommand]
-	public Task IsHiddenChanged()
+	internal Task IsHiddenChanged()
 	{
 		// Do not check "IsReadOnly" in "CanExecute", otherwise "ToggleButton" will not be enabled.
 		if (IsReadOnly)

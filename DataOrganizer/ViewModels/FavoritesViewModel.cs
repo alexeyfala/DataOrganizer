@@ -113,17 +113,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Closes the popup by Esc key.
-	/// </summary>
-	[RelayCommand]
-	public void ClosePopupByEsc()
-	{
-		IsPopupFixed = false;
-
-		IsPopupOpen = false;
-	}
-
-	/// <summary>
 	/// Displays the favorites in the popup panel.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
@@ -134,6 +123,17 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		SaveContent();
 
 		ShowContentInPopup(FavoritesPopupContentType.Favorites);
+	}
+
+	/// <summary>
+	/// Closes the popup by Esc key.
+	/// </summary>
+	[RelayCommand]
+	internal void ClosePopupByEsc()
+	{
+		IsPopupFixed = false;
+
+		IsPopupOpen = false;
 	}
 
 	/// <summary>
@@ -151,6 +151,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			FavoritesSettings.OrderedCategories,
 			FavoritesSettings.SelectedPairs);
 	}
+
 	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
