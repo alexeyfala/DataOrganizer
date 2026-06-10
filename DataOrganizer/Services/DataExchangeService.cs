@@ -298,20 +298,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		RegenerateId(result.Folders, result.Files);
 
-		int index = hierarchy.Count;
-
-		result
-		   .Folders
-		   .OfType<ExplorerModelBase>()
-		   .Concat(result.Files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = index;
-
-			   index++;
-		   });
+		SetupIndex(hierarchy, result.Folders, result.Files);
 
 		if (result.Folders.IsNotEmpty() && !await _dbAccess
 			.AddFoldersAsync(result.Folders, token)
@@ -358,6 +345,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		FileModel[] files = [.. entities.OfType<FileModel>()];
 
 		RegenerateId(folders, files);
+
+		if (variant == ImportListVariant.Append)
+		{
+			SetupIndex(hierarchy, folders, files);
+		}
 
 		if (folders.IsNotEmpty() && !await _dbAccess
 			.AddFoldersAsync(folders, token)
@@ -449,6 +441,30 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			filesByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 		});
+	}
+
+	/// <summary>
+	/// Sets <see cref="EntityModelBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
+	/// from <paramref name="hierarchy"/> max element index.
+	/// </summary>
+	private static void SetupIndex(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		FolderModel[] folders,
+		FileModel[] files)
+	{
+		int startIndex = hierarchy.Max(x => x.Index) + 1;
+
+		folders
+		   .OfType<ExplorerModelBase>()
+		   .Concat(files)
+		   .Where(x => x.ParentId is null)
+		   .OrderBy(x => x.Index)
+		   .ForEach(x =>
+		   {
+			   x.Index = startIndex;
+
+			   startIndex++;
+		   });
 	}
 
 	/// <summary>
