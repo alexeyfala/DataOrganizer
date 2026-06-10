@@ -4,7 +4,7 @@ namespace DataOrganizer.Helpers.Clipboard;
 /// Clipboard format identifiers that password managers set to flag content as sensitive
 /// (so clipboard history / cloud sync skip it). Used both to detect and to re-emit markers.
 /// </summary>
-public static class ClipboardSensitivityMarkers
+internal static class ClipboardSensitivityMarkers
 {
 	#region Data
 	/// <summary>

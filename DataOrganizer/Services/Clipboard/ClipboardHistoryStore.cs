@@ -153,7 +153,7 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 		finally
 		{
@@ -173,7 +173,7 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			return new(ClipboardHistoryUnlockStatus.Failed, []);
 		}
@@ -307,7 +307,7 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 	}
 
@@ -325,7 +325,7 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 	}
 

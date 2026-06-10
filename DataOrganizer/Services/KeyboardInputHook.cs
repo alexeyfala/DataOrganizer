@@ -26,18 +26,18 @@ namespace DataOrganizer.Services;
 public sealed class KeyboardInputHook : IKeyboardInputHook
 {
 	#region Properties
+	/// <inheritdoc />
+	public bool IsRunning => _hook.IsRunning;
+
 	/// <summary>
 	/// List of files with hotkeys.
 	/// </summary>
-	public List<FileModelDto> Files { get; } = [];
+	internal List<FileModelDto> Files { get; } = [];
 
 	/// <summary>
 	/// Stack of pressed keys.
 	/// </summary>
-	public List<CodeMaskPair> InputStack { get; } = [];
-
-	/// <inheritdoc />
-	public bool IsRunning => _hook.IsRunning;
+	internal List<CodeMaskPair> InputStack { get; } = [];
 	#endregion
 
 	#region Data
@@ -143,10 +143,77 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		InputStack.Clear();
 	}
 
+	/// <inheritdoc />
+	public async Task StartTrackingAsync(
+		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		Func<bool> condition = () => !IsRunning;
+
+		if (!await condition
+			.WaitAsync(100, 10, token)
+			.ConfigureAwait(false))
+		{
+			return;
+		}
+
+		try
+		{
+			_logger.LogInformation("Start global keyboard input tracking");
+
+			_exceptionHandler.Watch(_hook.RunAsync());
+
+			condition = () => IsRunning;
+
+			if (!await condition
+				.WaitAsync(100, 10, token)
+				.ConfigureAwait(false))
+			{
+				return;
+			}
+
+			_exceptionHandler.Watch(FilterFilesAsync(hierarchy, token));
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task StopTrackingAsync(CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			_logger.LogInformation("Stop global keyboard input tracking");
+
+			Files.Clear();
+
+			InputStack.Clear();
+
+			_hook.Stop();
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public async Task HandleKeyReleasedAsync(
+	internal async Task HandleKeyReleasedAsync(
 		EventMask rawMask,
 		KeyCode code,
 		CancellationToken token = default)
@@ -242,73 +309,6 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task StartTrackingAsync(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token = default)
-	{
-		Func<bool> condition = () => !IsRunning;
-
-		if (!await condition
-			.WaitAsync(100, 10, token)
-			.ConfigureAwait(false))
-		{
-			return;
-		}
-
-		try
-		{
-			_logger.LogInformation("Start global keyboard input tracking");
-
-			_exceptionHandler.Watch(_hook.RunAsync());
-
-			condition = () => IsRunning;
-
-			if (!await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false))
-			{
-				return;
-			}
-
-			_exceptionHandler.Watch(FilterFilesAsync(hierarchy, token));
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task StopTrackingAsync(CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			_logger.LogInformation("Stop global keyboard input tracking");
-
-			Files.Clear();
-
-			InputStack.Clear();
-
-			_hook.Stop();
 		}
 		finally
 		{

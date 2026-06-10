@@ -20,8 +20,6 @@ using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using SharpHook;
-using SharpHook.Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -137,21 +135,6 @@ public abstract partial class ViewModelBase :
 
 		return _viewLauncher.ShowCustomClipboardWindowAsync(owner);
 	}
-
-	/// <summary>
-	/// Opens the native Windows clipboard history overlay.
-	/// </summary>
-	[RelayCommand]
-	private void ShowWindowsClipboard()
-	{
-		_eventSimulator.SimulateKeyPress(KeyCode.VcLeftMeta);
-
-		_eventSimulator.SimulateKeyPress(KeyCode.VcV);
-
-		_eventSimulator.SimulateKeyRelease(KeyCode.VcLeftMeta);
-
-		_eventSimulator.SimulateKeyRelease(KeyCode.VcV);
-	}
 	#endregion
 
 	#region Data
@@ -172,9 +155,6 @@ public abstract partial class ViewModelBase :
 
 	/// <inheritdoc cref="CopyHistoryViewModel" />
 	protected CopyHistoryViewModel? _copyHistory;
-
-	/// <inheritdoc cref="IEventSimulator" />
-	private readonly IEventSimulator _eventSimulator;
 	#endregion
 
 	#region Constructors
@@ -186,7 +166,6 @@ public abstract partial class ViewModelBase :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
@@ -203,8 +182,6 @@ public abstract partial class ViewModelBase :
 			exceptionHandler)
 	{
 		_dispatcher = dispatcher;
-
-		_eventSimulator = eventSimulator;
 
 		_executionEngine = executionEngine;
 
@@ -412,7 +389,7 @@ public abstract partial class ViewModelBase :
 					break;
 
 				case SnackbarMessageLevel.Error:
-					_logger.LogError(message, isAssertDebug: false);
+					_logger.LogError(message, assertDebug: false);
 					break;
 
 				default:

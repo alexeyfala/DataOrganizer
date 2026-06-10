@@ -83,7 +83,7 @@ public static partial class SerilogExtensions
 	public static void LogError(
 		this ILogger target,
 		string message,
-		bool isAssertDebug = true,
+		bool assertDebug = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
@@ -93,14 +93,14 @@ public static partial class SerilogExtensions
 			DecodeUnicode(message, target),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
-		if (!isAssertDebug || AppDomain
+		if (!assertDebug || AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
 			return;
 		}
 
-		Debug.Fail(message);
+		Debugger.Break();
 	}
 
 	/// <summary>
@@ -109,7 +109,7 @@ public static partial class SerilogExtensions
 	public static void LogException(
 		this ILogger target,
 		Exception exception,
-		bool isAssertDebug = true,
+		bool assertDebug = true,
 		[CallerFilePath] string filePath = "",
 		[CallerMemberName] string callerName = "",
 		[CallerLineNumber] int lineNumber = 0)
@@ -119,14 +119,14 @@ public static partial class SerilogExtensions
 			"{Source}",
 			CreateSourceInfo(filePath, callerName, lineNumber));
 
-		if (!isAssertDebug || AppDomain
+		if (!assertDebug || AppDomain
 			.CurrentDomain
 			.IsRunningFromNUnit())
 		{
 			return;
 		}
 
-		Debug.Fail(exception.Message);
+		Debugger.Break();
 	}
 
 	/// <summary>
@@ -153,7 +153,7 @@ public static partial class SerilogExtensions
 			return;
 		}
 
-		Debug.Fail(exception.Message);
+		Debugger.Break();
 	}
 
 	/// <summary>

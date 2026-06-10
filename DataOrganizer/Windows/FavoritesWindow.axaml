@@ -270,11 +270,6 @@
 						IsVisible="{Binding IsClipboardHistoryEnabled}"
 						Theme="{StaticResource CustomClipboardButtonTheme}" />
 
-					<Button
-						Classes="primary"
-						Command="{Binding ShowWindowsClipboardCommand}"
-						Theme="{StaticResource WindowsClipboardButtonTheme}" />
-
 					<Panel>
 						<ToggleButton
 							Classes="primary"

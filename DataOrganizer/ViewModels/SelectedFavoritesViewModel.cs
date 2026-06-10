@@ -277,36 +277,6 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Methods
 	/// <summary>
-	/// Adds <see cref="FavoriteCategory" /> objects to the source.
-	/// </summary>
-	public void AddTestCategories(IEnumerable<FavoriteCategory> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_categoriesFilter.AddRange(items);
-	}
-
-	/// <summary>
-	/// Adds <see cref="FileModelDto" /> objects to the source.
-	/// </summary>
-	public void AddTestFavorites(IEnumerable<FileModelDto> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_favoritesFilter.AddRange(items);
-	}
-
-	/// <summary>
 	/// Performs initialization.
 	/// </summary>
 	public void Initialize(
@@ -343,6 +313,36 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		SelectedPairs.AddRange(selectedPairs);
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = categories.FirstOrDefault(x => x.Id == selectedCategoryId));
+	}
+
+	/// <summary>
+	/// Adds <see cref="FavoriteCategory" /> objects to the source.
+	/// </summary>
+	internal void AddTestCategories(IEnumerable<FavoriteCategory> items)
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
+		}
+
+		_categoriesFilter.AddRange(items);
+	}
+
+	/// <summary>
+	/// Adds <see cref="FileModelDto" /> objects to the source.
+	/// </summary>
+	internal void AddTestFavorites(IEnumerable<FileModelDto> items)
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
+		}
+
+		_favoritesFilter.AddRange(items);
 	}
 
 	/// <inheritdoc />

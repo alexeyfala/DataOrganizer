@@ -51,7 +51,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="ItemsRepeater" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task ContainerLoaded(ItemsRepeater? container)
+	internal async Task ContainerLoaded(ItemsRepeater? container)
 	{
 		if (IsInitialized)
 		{
@@ -123,7 +123,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			IsContentCorrupted = true;
 
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 		}
@@ -139,7 +139,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// Handles when the user has manually changed <see cref="ValueRecord.IsHidden" />.
 	/// </summary>
 	[RelayCommand]
-	public Task IsHiddenChanged()
+	internal Task IsHiddenChanged()
 	{
 		// Do not check "IsReadOnly" in "CanExecute", otherwise "ToggleButton" will not be enabled.
 		if (IsReadOnly)
@@ -623,7 +623,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 	#region Methods
 	/// <inheritdoc cref="AddGroup" />
-	public Task AddGroupAsync(
+	internal Task AddGroupAsync(
 		string name,
 		RecordsGroup? group,
 		CancellationToken token = default)
@@ -641,7 +641,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="AddKeyValue" />
-	public Task AddKeyValueAsync(
+	internal Task AddKeyValueAsync(
 		string key,
 		string? value,
 		RecordsGroup? group,
@@ -661,7 +661,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="AddValue" />
-	public Task AddValueAsync(
+	internal Task AddValueAsync(
 		string value,
 		RecordsGroup? group,
 		CancellationToken token = default)
@@ -681,7 +681,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a record from <see cref="Records" />.
 	/// </summary>
-	public Task DeleteRecordAsync(DatasetRecordBase record, CancellationToken token = default)
+	internal Task DeleteRecordAsync(DatasetRecordBase record, CancellationToken token = default)
 	{
 		_logger.LogInformation("Deleting a record");
 
@@ -691,7 +691,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="EditKeyValue" />
-	public Task EditKeyValueAsync(
+	internal Task EditKeyValueAsync(
 		KeyValueRecord target,
 		string key,
 		string? value,
@@ -714,7 +714,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="EditNote(DatasetRecordBase?)" />
-	public Task EditNoteAsync(
+	internal Task EditNoteAsync(
 		DatasetRecordBase record,
 		string? note,
 		CancellationToken token = default)
@@ -727,7 +727,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="EditValue(ValueRecord?)" />
-	public Task EditValueAsync(
+	internal Task EditValueAsync(
 		ValueRecord target,
 		string value,
 		CancellationToken token = default)
@@ -749,7 +749,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Expands or collapses all <see cref="RecordsGroup" /> in <see cref="RecordsGroup.Children" /> or in <see cref="Records" /> depending on <paramref name="expand"/> value.
 	/// </summary>
-	public async Task ExpandCollapseAsync(
+	internal async Task ExpandCollapseAsync(
 		RecordsGroup? group,
 		bool expand,
 		CancellationToken token = default)
@@ -781,7 +781,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <inheritdoc cref="RenameGroup" />
-	public Task RenameGroupAsync(
+	internal Task RenameGroupAsync(
 		RecordsGroup group,
 		string name,
 		CancellationToken token = default)
@@ -803,7 +803,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Sets <see cref="ValueRecord.IsHidden" /> value from <paramref name="hide"/> to all records in <see cref="RecordsGroup" /> or in <see cref="Records" />.
 	/// </summary>
-	public Task ShowHideAsync(
+	internal Task ShowHideAsync(
 		RecordsGroup? group,
 		bool hide,
 		CancellationToken token = default)
@@ -833,7 +833,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Sorts <see cref="RecordsGroup" /> or <see cref="Records" /> in a required order.
 	/// </summary>
-	public Task SortAsync(
+	internal Task SortAsync(
 		RecordsGroup? group,
 		ListSortDirection direction,
 		CancellationToken token = default)

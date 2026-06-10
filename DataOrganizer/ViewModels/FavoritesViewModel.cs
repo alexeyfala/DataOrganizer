@@ -18,7 +18,6 @@ using DynamicData;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
-using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,7 +115,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Closes the popup by Esc key.
 	/// </summary>
 	[RelayCommand]
-	public void ClosePopupByEsc()
+	internal void ClosePopupByEsc()
 	{
 		IsPopupFixed = false;
 
@@ -127,7 +126,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	/// Displays the favorites in the popup panel.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
-	public void ShowFavorites()
+	internal void ShowFavorites()
 	{
 		_logger.LogInformation("Show favorites");
 
@@ -151,6 +150,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			FavoritesSettings.OrderedCategories,
 			FavoritesSettings.SelectedPairs);
 	}
+
 	/// <summary>
 	/// Displays the copy history in the popup panel.
 	/// </summary>
@@ -198,7 +198,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
@@ -212,7 +211,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 			dialogService,
 			dispatcher,
 			entityEncryption,
-			eventSimulator,
 			executionEngine,
 			logger,
 			messenger,

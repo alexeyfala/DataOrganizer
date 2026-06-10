@@ -9,7 +9,7 @@ namespace DataOrganizer.Helpers.Clipboard;
 /// <summary>
 /// Maps clipboard history entries between the in-memory domain model and the on-disk persisted model.
 /// </summary>
-public static partial class ClipboardHistoryMapper
+internal static partial class ClipboardHistoryMapper
 {
 	#region Methods
 	/// <summary>

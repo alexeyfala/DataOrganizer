@@ -32,7 +32,6 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1057,7 +1056,6 @@ public partial class EditorViewModel :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IEventSimulator eventSimulator,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMapper mapper,
@@ -1073,7 +1071,6 @@ public partial class EditorViewModel :
 			dialogService,
 			dispatcher,
 			entityEncryption,
-			eventSimulator,
 			executionEngine,
 			logger,
 			messenger,
@@ -1094,233 +1091,12 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="ViewModelBase.Hierarchy" />.
-	/// </summary>
-	public async Task<ExplorerModelBaseDto?> AddAsync(
-		string name,
-		EntityType entityType,
-		FolderModelDto? parent,
-		CancellationToken token = default)
-	{
-		_logger.LogInformation($"Adding a {entityType switch
-		{
-			EntityType.Folder => "folder",
-			EntityType.File => "file",
-			EntityType.DataSet => "dataset",
-			_ => throw new NotImplementedException()
-		}} to the database.");
-
-		AddEntityParameters parameters = new()
-		{
-			EntityType = entityType,
-			Index = parent is not null ? parent.Children.Count : Hierarchy.Count,
-			Name = name,
-			ParentId = parent?.Id
-		};
-
-		if (await _dbAccess
-			.AddEntityAsync(parameters, token)
-			.ConfigureAwait(false) is not { } entity)
-		{
-			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
-
-			ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
-			return null;
-		}
-
-		_logger.LogInformation($"The object has been added to the database:{entity.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBase.Id),
-			nameof(ExplorerModelBase.Name),
-			nameof(ExplorerModelBase.EntityType),
-			nameof(ExplorerModelBase.ParentId))}");
-
-		try
-		{
-			ExplorerModelBaseDto dto = _mapper.Map<ExplorerModelBase, ExplorerModelBaseDto>(entity);
-
-			dto.Parent = parent;
-
-			if (parent is not null)
-			{
-				dto.EncryptionStatus = parent.EncryptionStatus;
-			}
-
-			GetCollectionToAdd(parent, Hierarchy).Add(dto);
-
-			CountHierarchy();
-
-			if (parent?.IsExpanded == false)
-			{
-				parent.IsExpanded = true;
-			}
-
-			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
-
-			ShowInfoSnackbar(successText);
-
-			_logger.LogInformation(successText);
-
-			return dto;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
-
 	/// <inheritdoc />
 	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		Hierarchy.AddRange(hierarchy);
 
 		CountHierarchy();
-	}
-
-	/// <summary>
-	/// Closes editing and executing files.
-	/// </summary>
-	public void CloseFiles(
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
-	{
-		foreach (FileModelDto file in editingFiles)
-		{
-			CloseEditingFile(file);
-		}
-
-		foreach (FileModelDto file in executingFiles)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
-	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
-	/// </summary>
-	public async Task<bool> DeleteAsync(
-		ExplorerModelBaseDto dto,
-		CancellationToken token = default)
-	{
-		bool result = dto.EntityType switch
-		{
-			EntityType.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
-			_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
-		};
-
-		if (!result)
-		{
-			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
-
-			ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
-			return false;
-		}
-
-		GetCollectionToDelete(dto, Hierarchy).Remove(dto);
-
-		if (dto is FileModelDto file)
-		{
-			CloseFile(file);
-
-			RemoveFromCopyHistory(file);
-		}
-
-		CountHierarchy();
-
-		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
-
-		ShowInfoSnackbar(text);
-
-		_logger.LogInformation(text);
-
-		return true;
-	}
-
-	/// <summary>
-	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
-	/// </summary>
-	/// <remarks>
-	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
-	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
-	/// </remarks>
-	public Task ExpandCollapseAllFoldersAsync(bool isExpanded)
-	{
-		if (!isExpanded)
-		{
-			ResetSelectedObject();
-		}
-
-		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
-
-		if (folders.IsEmpty())
-		{
-			return Task.CompletedTask;
-		}
-
-		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
-	}
-
-	/// <summary>
-	/// Handles changing application settings.
-	/// </summary>
-	public async Task HandleChangeSettingsAsync(
-		bool isSave,
-		AppSettings settings,
-		CancellationToken token = default)
-	{
-		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
-		bool wasPersistingClipboard = _settingsManager
-			.Settings
-			.PersistClipboardHistory;
-
-		if (isSave)
-		{
-			_settingsManager.OverwriteSettings(settings);
-
-			_settingsManager.SaveSettingsInFile();
-		}
-		else
-		{
-			_settingsManager.ApplyMaterialTheme();
-		}
-
-		if (!isSave)
-		{
-			return;
-		}
-
-		await ApplyClipboardHistorySettingAsync(
-			settings.TrackClipboardHistory,
-			token).ConfigureAwait(false);
-
-		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
-		{
-			_clipboardHistoryPersistence.DisablePersistence();
-		}
-
-		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
-		{
-			await _keyboardInputHook
-				.Value
-				.StopTrackingAsync(token)
-				.ConfigureAwait(false);
-		}
-
-		if (!settings.TrackHotkeys)
-		{
-			return;
-		}
-
-		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
 	}
 
 	/// <summary>
@@ -1615,31 +1391,224 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
-	/// dropping the in-memory history when disabled.
+	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
-	private async Task ApplyClipboardHistorySettingAsync(bool isEnabled, CancellationToken token)
+	internal async Task<ExplorerModelBaseDto?> AddAsync(
+		string name,
+		EntityType entityType,
+		FolderModelDto? parent,
+		CancellationToken token = default)
 	{
-		IsClipboardHistoryEnabled = isEnabled;
-
-		if (isEnabled)
+		_logger.LogInformation($"Adding a {entityType switch
 		{
-			if (!_clipboardHistory.IsRunning)
+			EntityType.Folder => "folder",
+			EntityType.File => "file",
+			EntityType.DataSet => "dataset",
+			_ => throw new NotImplementedException()
+		}} to the database.");
+
+		AddEntityParameters parameters = new()
+		{
+			EntityType = entityType,
+			Index = parent is not null ? parent.Children.Count : Hierarchy.Count,
+			Name = name,
+			ParentId = parent?.Id
+		};
+
+		if (await _dbAccess
+			.AddEntityAsync(parameters, token)
+			.ConfigureAwait(false) is not { } entity)
+		{
+			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
+
+			ShowErrorSnackbar(errorText);
+
+			_logger.LogError(errorText);
+
+			return null;
+		}
+
+		_logger.LogInformation($"The object has been added to the database:{entity.GetPropertyValues(
+			true,
+			nameof(ExplorerModelBase.Id),
+			nameof(ExplorerModelBase.Name),
+			nameof(ExplorerModelBase.EntityType),
+			nameof(ExplorerModelBase.ParentId))}");
+
+		try
+		{
+			ExplorerModelBaseDto dto = _mapper.Map<ExplorerModelBase, ExplorerModelBaseDto>(entity);
+
+			dto.Parent = parent;
+
+			if (parent is not null)
 			{
-				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+				dto.EncryptionStatus = parent.EncryptionStatus;
 			}
 
+			GetCollectionToAdd(parent, Hierarchy).Add(dto);
+
+			CountHierarchy();
+
+			if (parent?.IsExpanded == false)
+			{
+				parent.IsExpanded = true;
+			}
+
+			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
+
+			ShowInfoSnackbar(successText);
+
+			_logger.LogInformation(successText);
+
+			return dto;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Closes editing and executing files.
+	/// </summary>
+	internal void CloseFiles(
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
+	{
+		foreach (FileModelDto file in editingFiles)
+		{
+			CloseEditingFile(file);
+		}
+
+		foreach (FileModelDto file in executingFiles)
+		{
+			CloseExecutingFile(file);
+		}
+	}
+
+	/// <summary>
+	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	internal async Task<bool> DeleteAsync(
+		ExplorerModelBaseDto dto,
+		CancellationToken token = default)
+	{
+		bool result = dto.EntityType switch
+		{
+			EntityType.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
+			_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
+		};
+
+		if (!result)
+		{
+			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
+
+			ShowErrorSnackbar(errorText);
+
+			_logger.LogError(errorText);
+
+			return false;
+		}
+
+		GetCollectionToDelete(dto, Hierarchy).Remove(dto);
+
+		if (dto is FileModelDto file)
+		{
+			CloseFile(file);
+
+			RemoveFromCopyHistory(file);
+		}
+
+		CountHierarchy();
+
+		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
+
+		ShowInfoSnackbar(text);
+
+		_logger.LogInformation(text);
+
+		return true;
+	}
+
+	/// <summary>
+	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	/// <remarks>
+	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
+	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
+	/// </remarks>
+	internal Task ExpandCollapseAllFoldersAsync(bool isExpanded)
+	{
+		if (!isExpanded)
+		{
+			ResetSelectedObject();
+		}
+
+		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
+
+		if (folders.IsEmpty())
+		{
+			return Task.CompletedTask;
+		}
+
+		return folders.ForEachAsync(x => x.IsExpanded = isExpanded, Environment.ProcessorCount);
+	}
+
+	/// <summary>
+	/// Handles changing application settings.
+	/// </summary>
+	internal async Task HandleChangeSettingsAsync(
+		bool isSave,
+		AppSettings settings,
+		CancellationToken token = default)
+	{
+		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
+		bool wasPersistingClipboard = _settingsManager
+			.Settings
+			.PersistClipboardHistory;
+
+		if (isSave)
+		{
+			_settingsManager.OverwriteSettings(settings);
+
+			_settingsManager.SaveSettingsInFile();
+		}
+		else
+		{
+			_settingsManager.ApplyMaterialTheme();
+		}
+
+		if (!isSave)
+		{
 			return;
 		}
 
-		if (_clipboardHistory.IsRunning)
+		await ApplyClipboardHistorySettingAsync(
+			settings.TrackClipboardHistory,
+			token).ConfigureAwait(false);
+
+		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
 		{
-			_clipboardHistory.Stop();
+			_clipboardHistoryPersistence.DisablePersistence();
 		}
 
-		await _clipboardHistory
-			.ClearEntriesAsync()
-			.ConfigureAwait(false);
+		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
+		{
+			await _keyboardInputHook
+				.Value
+				.StopTrackingAsync(token)
+				.ConfigureAwait(false);
+		}
+
+		if (!settings.TrackHotkeys)
+		{
+			return;
+		}
+
+		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
 	}
 	#endregion
 
@@ -1710,6 +1679,34 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="FileModelDto.IsOpened" />
 	private static bool IsOpened(FileModelDto dto) => dto.IsOpened();
+
+	/// <summary>
+	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
+	/// dropping the in-memory history when disabled.
+	/// </summary>
+	private async Task ApplyClipboardHistorySettingAsync(bool isEnabled, CancellationToken token)
+	{
+		IsClipboardHistoryEnabled = isEnabled;
+
+		if (isEnabled)
+		{
+			if (!_clipboardHistory.IsRunning)
+			{
+				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+			}
+
+			return;
+		}
+
+		if (_clipboardHistory.IsRunning)
+		{
+			_clipboardHistory.Stop();
+		}
+
+		await _clipboardHistory
+			.ClearEntriesAsync()
+			.ConfigureAwait(false);
+	}
 
 	/// <summary>
 	/// Validates <see cref="AddCommand" />.

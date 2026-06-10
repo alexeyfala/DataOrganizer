@@ -1429,15 +1429,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows Clipboard.
-        /// </summary>
-        public static string WindowsClipboard {
-            get {
-                return ResourceManager.GetString("WindowsClipboard", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Word Wrap.
         /// </summary>
         public static string WordWrap {

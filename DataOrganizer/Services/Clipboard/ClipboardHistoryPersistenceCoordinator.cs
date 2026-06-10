@@ -249,7 +249,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 		}
 		finally
 		{

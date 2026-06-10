@@ -2,7 +2,7 @@
 
 namespace DataOrganizer.Helpers.Text;
 
-public static class TextHelper
+internal static class TextHelper
 {
 	#region Data
 	/// <summary>

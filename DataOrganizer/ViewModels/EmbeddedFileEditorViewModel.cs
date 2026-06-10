@@ -68,7 +68,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Handles the <see cref="Control.Loaded" /> event of <see cref="TextEditor" />.
 	/// </summary>
 	[RelayCommand]
-	public async Task EditorLoaded(TextEditor? editor)
+	internal async Task EditorLoaded(TextEditor? editor)
 	{
 		if (IsInitialized || editor is null)
 		{
@@ -96,7 +96,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
-					isAssertDebug: false);
+					assertDebug: false);
 
 				return;
 			}
@@ -370,7 +370,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex, isAssertDebug: false);
+			_logger.LogException(ex, assertDebug: false);
 
 			if (!IsReadOnly)
 			{

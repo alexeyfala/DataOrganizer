@@ -90,51 +90,6 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<bool> AppendFromSQLiteAsync(
-		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
-		CancellationToken token = default)
-	{
-		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
-
-		RegenerateId(result.Folders, result.Files);
-
-		int index = hierarchy.Count;
-
-		result
-		   .Folders
-		   .OfType<ExplorerModelBase>()
-		   .Concat(result.Files)
-		   .Where(x => x.ParentId is null)
-		   .OrderBy(x => x.Index)
-		   .ForEach(x =>
-		   {
-			   x.Index = index;
-
-			   index++;
-		   });
-
-		if (result.Folders.IsNotEmpty() && !await _dbAccess
-			.AddFoldersAsync(result.Folders, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		if (result.Files.IsNotEmpty() && !await _dbAccess
-			.AddFilesAsync(result.Files, token)
-			.ConfigureAwait(false))
-		{
-			return false;
-		}
-
-		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
-
-		return true;
-	}
-
-	/// <inheritdoc />
 	public async Task ExportDataAsync(CancellationToken token = default)
 	{
 		FilePickerSaveOptions options = new()
@@ -305,7 +260,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
 
 			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
@@ -330,8 +285,44 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 	}
 
-	/// <inheritdoc />
-	public async Task<bool> ImportEntitiesAsync(
+	/// <summary>
+	/// Appends data from SQLite database.
+	/// </summary>
+	internal async Task<bool> AppendFromSQLiteAsync(
+		string filePath,
+		List<ExplorerModelBaseDto> objects,
+		Collection<ExplorerModelBaseDto> hierarchy,
+		CancellationToken token = default)
+	{
+		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
+
+		RegenerateId(result.Folders, result.Files);
+
+		SetupIndex(hierarchy, result.Folders, result.Files);
+
+		if (result.Folders.IsNotEmpty() && !await _dbAccess
+			.AddFoldersAsync(result.Folders, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		if (result.Files.IsNotEmpty() && !await _dbAccess
+			.AddFilesAsync(result.Files, token)
+			.ConfigureAwait(false))
+		{
+			return false;
+		}
+
+		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
+
+		return true;
+	}
+
+	/// <summary>
+	/// Imports entities.
+	/// </summary>
+	internal async Task<bool> ImportEntitiesAsync(
 		ExplorerModelBase[] entities,
 		ImportListVariant variant,
 		List<ExplorerModelBaseDto> objects,
@@ -354,6 +345,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		FileModel[] files = [.. entities.OfType<FileModel>()];
 
 		RegenerateId(folders, files);
+
+		if (variant == ImportListVariant.Append)
+		{
+			SetupIndex(hierarchy, folders, files);
+		}
 
 		if (folders.IsNotEmpty() && !await _dbAccess
 			.AddFoldersAsync(folders, token)
@@ -381,8 +377,10 @@ public sealed class DataExchangeService : IDataExchangeService
 		return true;
 	}
 
-	/// <inheritdoc />
-	public async Task<bool> ReplaceFromSQLiteAsync(
+	/// <summary>
+	/// Replaces with data from SQLite database.
+	/// </summary>
+	internal async Task<bool> ReplaceFromSQLiteAsync(
 		string filePath,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
@@ -443,6 +441,35 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			filesByParent[oldFolderId].ForEach(x => x.ParentId = newFolderId);
 		});
+	}
+
+	/// <summary>
+	/// Sets <see cref="EntityModelBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
+	/// from <paramref name="hierarchy"/> max element index.
+	/// </summary>
+	private static void SetupIndex(
+		Collection<ExplorerModelBaseDto> hierarchy,
+		FolderModel[] folders,
+		FileModel[] files)
+	{
+		if (hierarchy.Count == 0)
+		{
+			return;
+		}
+
+		int startIndex = hierarchy.Max(x => x.Index) + 1;
+
+		folders
+		   .OfType<ExplorerModelBase>()
+		   .Concat(files)
+		   .Where(x => x.ParentId is null)
+		   .OrderBy(x => x.Index)
+		   .ForEach(x =>
+		   {
+			   x.Index = startIndex;
+
+			   startIndex++;
+		   });
 	}
 
 	/// <summary>

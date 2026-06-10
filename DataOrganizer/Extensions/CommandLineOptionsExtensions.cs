@@ -2,7 +2,7 @@
 
 namespace DataOrganizer.Extensions;
 
-public static class CommandLineOptionsExtensions
+internal static class CommandLineOptionsExtensions
 {
 	#region Methods
 	/// <summary>
