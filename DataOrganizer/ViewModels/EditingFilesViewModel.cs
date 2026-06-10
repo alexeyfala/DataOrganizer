@@ -35,7 +35,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// Closes a the tab in <see cref="TabControl" />.
 	/// </summary>
 	[RelayCommand]
-	public void CloseTab(FileModelDto dto)
+	internal void CloseTab(FileModelDto dto)
 	{
 		if (dto is null)
 		{

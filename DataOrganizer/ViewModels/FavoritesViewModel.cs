@@ -113,19 +113,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Displays the favorites in the popup panel.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
-	public void ShowFavorites()
-	{
-		_logger.LogInformation("Show favorites");
-
-		SaveContent();
-
-		ShowContentInPopup(FavoritesPopupContentType.Favorites);
-	}
-
-	/// <summary>
 	/// Closes the popup by Esc key.
 	/// </summary>
 	[RelayCommand]
@@ -134,6 +121,19 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IsPopupFixed = false;
 
 		IsPopupOpen = false;
+	}
+
+	/// <summary>
+	/// Displays the favorites in the popup panel.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanShowFavorites))]
+	internal void ShowFavorites()
+	{
+		_logger.LogInformation("Show favorites");
+
+		SaveContent();
+
+		ShowContentInPopup(FavoritesPopupContentType.Favorites);
 	}
 
 	/// <summary>
