@@ -7,7 +7,7 @@ namespace DataOrganizer.Helpers.Security;
 /// <summary>
 /// Heuristic random-string detector: guesses whether a single plain-text token looks like a password / secret.
 /// </summary>
-public static partial class SensitiveTextDetector
+internal static partial class SensitiveTextDetector
 {
 	#region Data
 	/// <summary>

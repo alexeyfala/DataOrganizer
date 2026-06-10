@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace DataOrganizer.Extensions;
 
-public static class EnumerableExtensions
+internal static class EnumerableExtensions
 {
 	#region Methods
 	/// <summary>
