@@ -448,10 +448,15 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// from <paramref name="hierarchy"/> max element index.
 	/// </summary>
 	private static void SetupIndex(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		Collection<ExplorerModelBaseDto> hierarchy,
 		FolderModel[] folders,
 		FileModel[] files)
 	{
+		if (hierarchy.Count == 0)
+		{
+			return;
+		}
+
 		int startIndex = hierarchy.Max(x => x.Index) + 1;
 
 		folders
