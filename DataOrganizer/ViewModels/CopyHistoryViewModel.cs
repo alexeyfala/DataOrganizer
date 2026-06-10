@@ -126,21 +126,6 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 	#region Methods
 	/// <summary>
-	/// Adds <see cref="FileModelDto" /> objects to the source.
-	/// </summary>
-	public void AddTestCopyHistory(IEnumerable<FileModelDto> items)
-	{
-		if (!AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
-		}
-
-		_filter.AddRange(items);
-	}
-
-	/// <summary>
 	/// Clears <see cref="Items" />.
 	/// </summary>
 	public void Clear()
@@ -186,6 +171,21 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// Tries to remove value from <see cref="Items" />.
 	/// </summary>
 	public bool Remove(FileModelDto file) => _filter.Remove(file);
+
+	/// <summary>
+	/// Adds <see cref="FileModelDto" /> objects to the source.
+	/// </summary>
+	internal void AddTestCopyHistory(IEnumerable<FileModelDto> items)
+	{
+		if (!AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			throw new InvalidOperationException("This method created for test purposes only, do not use it directly in code!");
+		}
+
+		_filter.AddRange(items);
+	}
 
 	/// <inheritdoc />
 	protected override void AfterDispose()

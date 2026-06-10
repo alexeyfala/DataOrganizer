@@ -143,7 +143,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>
-	public void HandleKeyReleased(EventMask rawMask, KeyCode code)
+	internal void HandleKeyReleased(EventMask rawMask, KeyCode code)
 	{
 		EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
 
@@ -176,7 +176,7 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// Controls creation value for <see cref="Preview" />.
 	/// </summary>
-	public void MakePreview()
+	internal void MakePreview()
 	{
 		Preview = Buffer.Count > 0
 			? Buffer.ToArray().GetHotkeysPresentation()
