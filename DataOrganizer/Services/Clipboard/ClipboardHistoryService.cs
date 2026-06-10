@@ -34,6 +34,30 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
+
+	/// <summary>
+	/// Number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
+	/// also the index of the first unpinned entry. UI-thread only.
+	/// </summary>
+	private int PinnedCount
+	{
+		get
+		{
+			int count = 0;
+
+			foreach (ClipboardHistoryEntryBase entry in Entries)
+			{
+				if (!entry.IsPinned)
+				{
+					break;
+				}
+
+				count++;
+			}
+
+			return count;
+		}
+	}
 	#endregion
 
 	#region Data
@@ -163,10 +187,22 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync() => ClearCoreAsync(clearSystem: true, ClipboardHistoryChangeKind.ClearedByUser);
+	public Task ClearAsync()
+	{
+		return ClearCoreAsync(
+			clearSystem: true,
+			preservePinned: true,
+			ClipboardHistoryChangeKind.ClearedByUser);
+	}
 
 	/// <inheritdoc />
-	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false, ClipboardHistoryChangeKind.ClearedForStop);
+	public Task ClearEntriesAsync()
+	{
+		return ClearCoreAsync(
+			clearSystem: false,
+			preservePinned: false,
+			ClipboardHistoryChangeKind.ClearedForStop);
+	}
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -331,6 +367,30 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		{
 			local.Dispose();
 		}
+	}
+
+	/// <inheritdoc />
+	public void TogglePin(ClipboardHistoryEntryBase entry)
+	{
+		int index = Entries.IndexOf(entry);
+
+		if (index < 0)
+		{
+			return;
+		}
+
+		bool pin = !entry.IsPinned;
+
+		entry.IsPinned = pin;
+
+		int target = pin ? 0 : PinnedCount;
+
+		if (index != target)
+		{
+			Entries.Move(index, target);
+		}
+
+		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -646,11 +706,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally emptying the
-	/// system clipboard (<paramref name="clearSystem" />). Raises a change notification of
-	/// <paramref name="clearKind" /> so listeners (e.g. persistence) can react.
+	/// Clears <see cref="Entries" /> and forgets the last observed payload.
 	/// </summary>
-	private async Task ClearCoreAsync(bool clearSystem, ClipboardHistoryChangeKind clearKind)
+	private async Task ClearCoreAsync(
+		bool clearSystem,
+		bool preservePinned,
+		ClipboardHistoryChangeKind clearKind)
 	{
 		if (IsDisposed())
 		{
@@ -663,6 +724,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
+			int remaining = 0;
+
 			// Touching Entries (and reading Count for the log) must happen on the UI thread.
 			await _dispatcher.PostAsync(() =>
 			{
@@ -670,12 +733,31 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					$"Clearing clipboard history ({Entries.Count} entries)" +
 					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
 
-				Entries.Clear();
+				if (preservePinned)
+				{
+					for (int i = Entries.Count - 1; i >= 0; i--)
+					{
+						if (!Entries[i].IsPinned)
+						{
+							Entries.RemoveAt(i);
+						}
+					}
+				}
+				else
+				{
+					Entries.Clear();
+				}
+
+				remaining = Entries.Count;
 
 				_lastHash = null;
 			}).ConfigureAwait(false);
 
-			NotifyChanged(clearKind);
+			ClipboardHistoryChangeKind effectiveKind = remaining > 0
+				? ClipboardHistoryChangeKind.Updated
+				: clearKind;
+
+			NotifyChanged(effectiveKind);
 
 			if (!clearSystem)
 			{
@@ -729,14 +811,16 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
+	/// Inserts <paramref name="entry" /> below the pinned block and enforces the history cap on
+	/// unpinned entries only (pinned ones are exempt from trimming).
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
-		Entries.Insert(0, entry);
+		Entries.Insert(PinnedCount, entry);
 
-		while (Entries.Count > HistoryLimit)
+		while (Entries.Count - PinnedCount > HistoryLimit)
 		{
+			// The last entry is always unpinned (pinned ones sit atop), so trimming never drops a pin.
 			Entries.RemoveAt(Entries.Count - 1);
 		}
 
@@ -831,8 +915,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Moves <paramref name="entry" /> to position 0 if it is already in the collection,
-	/// otherwise inserts it.
+	/// Moves <paramref name="entry" /> to the top of its block.
 	/// </summary>
 	private void MoveToTop(ClipboardHistoryEntryBase entry)
 	{
@@ -845,12 +928,15 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			return;
 		}
 
-		if (index == 0)
+		// Pinned entries go to the very top; unpinned ones stay below the pinned block.
+		int target = entry.IsPinned ? 0 : PinnedCount;
+
+		if (index == target)
 		{
 			return;
 		}
 
-		Entries.Move(index, 0);
+		Entries.Move(index, target);
 
 		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
@@ -867,6 +953,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private void RebaselineRestored(ClipboardHistoryEntryBase restored, ClipboardHistoryEntryBase rebaselined)
 	{
+		rebaselined.IsPinned = restored.IsPinned;
+
 		int index = Entries.IndexOf(restored);
 
 		if (index < 0)

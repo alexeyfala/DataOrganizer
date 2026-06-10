@@ -59,5 +59,11 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// Stops background polling without disposing the service.
 	/// </summary>
 	void Stop();
+
+	/// <summary>
+	/// Toggles the pinned state of <paramref name="entry" /> and repositions it: pinned entries are
+	/// kept atop the history and survive clearing / trimming.
+	/// </summary>
+	void TogglePin(ClipboardHistoryEntryBase entry);
 	#endregion
 }
