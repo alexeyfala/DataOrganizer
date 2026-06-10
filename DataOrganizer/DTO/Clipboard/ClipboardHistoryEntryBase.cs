@@ -1,9 +1,11 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
 /// Base type for one record in the in-memory system clipboard history.
 /// </summary>
-public abstract class ClipboardHistoryEntryBase
+public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 {
 	#region Properties
 	/// <summary>
@@ -15,6 +17,12 @@ public abstract class ClipboardHistoryEntryBase
 	/// SHA-256 of the source data; used for change detection and deduplication.
 	/// </summary>
 	public required byte[] Hash { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when the entry is pinned.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsPinned { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when this entry exposes an openable URL.

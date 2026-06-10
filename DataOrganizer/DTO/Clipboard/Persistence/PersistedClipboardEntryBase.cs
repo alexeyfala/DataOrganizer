@@ -16,5 +16,10 @@ public abstract class PersistedClipboardEntryBase
 	/// SHA-256 of the source data; used for change detection and deduplication.
 	/// </summary>
 	public byte[] Hash { get; set; } = [];
+
+	/// <summary>
+	/// <c>True</c> when the entry is pinned.
+	/// </summary>
+	public bool IsPinned { get; set; }
 	#endregion
 }
