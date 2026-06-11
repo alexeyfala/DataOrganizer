@@ -19,6 +19,12 @@ public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 	public required byte[] Hash { get; init; }
 
 	/// <summary>
+	/// <c>True</c> while this entry holds the current system-clipboard content (just restored or copied).
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsActive { get; set; }
+
+	/// <summary>
 	/// <c>True</c> when the entry is pinned.
 	/// </summary>
 	[ObservableProperty]

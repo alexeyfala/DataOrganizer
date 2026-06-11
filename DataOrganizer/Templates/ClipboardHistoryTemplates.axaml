@@ -70,10 +70,19 @@
 			HorizontalAlignment="Stretch"
 			HorizontalContentAlignment="Stretch"
 			Background="{StaticResource MaterialDividerBrush}"
+			Classes.active="{Binding IsActive}"
 			Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
 			CommandParameter="{Binding}"
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
+
+			<!-- Accent left bar marks the entry currently held in the system clipboard. -->
+			<Button.Styles>
+				<Style Selector="Button.active">
+					<Setter Property="BorderBrush" Value="{StaticResource MaterialPrimaryMidBrush}" />
+					<Setter Property="BorderThickness" Value="4.0,0.0,0.0,0.0" />
+				</Style>
+			</Button.Styles>
 
 			<Interaction.Behaviors>
 				<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />

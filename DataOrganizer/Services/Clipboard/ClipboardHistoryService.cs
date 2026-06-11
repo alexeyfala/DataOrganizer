@@ -728,6 +728,19 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Clears the active-entry highlight from every entry. UI-thread only.
+	/// </summary>
+	private void ClearActive()
+	{
+		if (Entries.FirstOrDefault(static entry => entry.IsActive) is not { } active)
+		{
+			return;
+		}
+
+		active.IsActive = false;
+	}
+
+	/// <summary>
 	/// Clears <see cref="Entries" /> and forgets the last observed payload.
 	/// </summary>
 	private async Task ClearCoreAsync(
@@ -773,6 +786,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				remaining = Entries.Count;
 
 				_lastHash = null;
+
+				ClearActive();
 			}).ConfigureAwait(false);
 
 			ClipboardHistoryChangeKind effectiveKind = remaining > 0
@@ -845,6 +860,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			// The last entry is always unpinned (pinned ones sit atop), so trimming never drops a pin.
 			Entries.RemoveAt(Entries.Count - 1);
 		}
+
+		MarkActive(entry);
 
 		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
@@ -937,30 +954,53 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Marks <paramref name="entry" /> (already in <see cref="Entries" />) as the active
+	/// current-clipboard entry, clearing the flag on all others. UI-thread only.
+	/// </summary>
+	private void MarkActive(ClipboardHistoryEntryBase entry)
+	{
+		if (Entries.FirstOrDefault(static other => other.IsActive) is { } previous && !ReferenceEquals(previous, entry))
+		{
+			previous.IsActive = false;
+		}
+
+		entry.IsActive = true;
+	}
+
+	/// <summary>
 	/// Moves <paramref name="entry" /> to the top of its block.
 	/// </summary>
 	private void MoveToTop(ClipboardHistoryEntryBase entry)
 	{
-		int index = Entries.IndexOf(entry);
-
-		if (index < 0)
+		try
 		{
-			InsertAtTop(entry);
+			int index = Entries.IndexOf(entry);
 
-			return;
+			if (index < 0)
+			{
+				InsertAtTop(entry);
+
+				return;
+			}
+
+			MarkActive(entry);
+
+			// Pinned entries go to the very top; unpinned ones stay below the pinned block.
+			int target = entry.IsPinned ? 0 : PinnedCount;
+
+			if (index == target)
+			{
+				return;
+			}
+
+			Entries.Move(index, target);
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
 		}
-
-		// Pinned entries go to the very top; unpinned ones stay below the pinned block.
-		int target = entry.IsPinned ? 0 : PinnedCount;
-
-		if (index == target)
+		catch (Exception ex)
 		{
-			return;
+			_logger.LogException(ex);
 		}
-
-		Entries.Move(index, target);
-
-		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -987,6 +1027,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Entries[index] = rebaselined;
+
+		MarkActive(rebaselined);
 
 		_logger.LogDebug($"Re-baselined restored clipboard entry: {rebaselined.GetType().Name}.");
 
