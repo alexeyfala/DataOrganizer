@@ -386,8 +386,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		entry.IsPinned = pin;
 
-		// Pinning lifts the entry to the very top; unpinning drops it just below the remaining pins.
-		int target = pin ? 0 : pinnedCount - 1;
+		// Pinning appends to the end of the pinned block; unpinning drops just below the remaining pins.
+		int target = pin ? pinnedCount : pinnedCount - 1;
 
 		if (index != target)
 		{
