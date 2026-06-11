@@ -472,10 +472,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
-	/// moves an existing matching entry to the top or inserts a new one.
+	/// Handles a freshly observed payload.
 	/// </summary>
-	internal void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	internal void HandleNewPayload(
+		byte[] hash,
+		Func<ClipboardHistoryEntryBase> entryFactory,
+		bool isSensitive)
 	{
 		if (_restoredEntry is { } restored)
 		{
@@ -496,6 +498,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			return;
 		}
 
+		if (isSensitive)
+		{
+			_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+
+			return;
+		}
+
 		InsertOrMoveToTop(hash, entryFactory);
 	}
 
@@ -510,12 +519,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
-			{
-				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
-
-				return;
-			}
+			bool isSensitive = await ContainsSensitivityMarkerAsync().ConfigureAwait(false);
 
 			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
@@ -525,7 +529,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				{
 					FileSystemEntries = fileSystemEntries,
 					Hash = hash
-				})).ConfigureAwait(false);
+				}, isSensitive)).ConfigureAwait(false);
 
 				return;
 			}
@@ -538,7 +542,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				{
 					OriginalPng = png,
 					Hash = hash
-				})).ConfigureAwait(false);
+				}, isSensitive)).ConfigureAwait(false);
 
 				return;
 			}
@@ -554,7 +558,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
 				await _dispatcher
-					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash), isSensitive))
 					.ConfigureAwait(false);
 			}
 		}

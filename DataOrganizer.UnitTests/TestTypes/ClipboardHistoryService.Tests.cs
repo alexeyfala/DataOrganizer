@@ -218,7 +218,7 @@ internal class ClipboardHistoryServiceTests
 		}
 
 		// Act
-		sut.HandleNewPayload([99], () => TextEntry("new", [99]));
+		sut.HandleNewPayload([99], () => TextEntry("new", [99]), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -242,12 +242,12 @@ internal class ClipboardHistoryServiceTests
 
 		(ClipboardHistoryService sut, _) = NewService(messenger);
 
-		sut.HandleNewPayload([1], () => TextEntry("a", [1]));
+		sut.HandleNewPayload([1], () => TextEntry("a", [1]), isSensitive: false);
 
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act (same hash as the last observed payload).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -275,7 +275,7 @@ internal class ClipboardHistoryServiceTests
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
 		// Act
-		sut.HandleNewPayload([1], () => entry);
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -310,7 +310,7 @@ internal class ClipboardHistoryServiceTests
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act (the factory must not run — the entry already exists).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -638,7 +638,7 @@ internal class ClipboardHistoryServiceTests
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
 		// Act
-		sut.HandleNewPayload([2], () => rebaselined);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -708,7 +708,7 @@ internal class ClipboardHistoryServiceTests
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -750,7 +750,7 @@ internal class ClipboardHistoryServiceTests
 			built = true;
 
 			return TextEntry("x", [1]);
-		});
+		}, isSensitive: false);
 
 		// Assert
 		sut.Entries
