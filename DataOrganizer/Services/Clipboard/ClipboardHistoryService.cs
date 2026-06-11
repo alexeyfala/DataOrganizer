@@ -372,29 +372,36 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void TogglePin(ClipboardHistoryEntryBase entry)
 	{
-		int index = Entries.IndexOf(entry);
-
-		if (index < 0)
+		try
 		{
-			return;
+			int index = Entries.IndexOf(entry);
+
+			if (index < 0)
+			{
+				return;
+			}
+
+			bool pin = !entry.IsPinned;
+
+			// Read before flipping: once unpinned in place, PinnedCount would stop at this entry and read 0.
+			int pinnedCount = PinnedCount;
+
+			entry.IsPinned = pin;
+
+			// Pinning appends to the end of the pinned block; unpinning drops just below the remaining pins.
+			int target = pin ? pinnedCount : pinnedCount - 1;
+
+			if (index != target)
+			{
+				Entries.Move(index, target);
+			}
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
 		}
-
-		bool pin = !entry.IsPinned;
-
-		// Read before flipping: once unpinned in place, PinnedCount would stop at this entry and read 0.
-		int pinnedCount = PinnedCount;
-
-		entry.IsPinned = pin;
-
-		// Pinning appends to the end of the pinned block; unpinning drops just below the remaining pins.
-		int target = pin ? pinnedCount : pinnedCount - 1;
-
-		if (index != target)
+		catch (Exception ex)
 		{
-			Entries.Move(index, target);
+			_logger.LogException(ex);
 		}
-
-		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
