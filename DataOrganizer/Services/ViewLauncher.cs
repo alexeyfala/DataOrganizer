@@ -501,6 +501,8 @@ public class ViewLauncher : IViewLauncher
 	{
 		if (_app.FindWindow<CustomClipboardWindow>() is { } existing)
 		{
+			PositionAtScreenBottomRight(existing, owner);
+
 			existing.Activate();
 
 			return;
