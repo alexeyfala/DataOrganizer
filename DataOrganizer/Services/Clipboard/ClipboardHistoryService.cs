@@ -307,11 +307,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			}
 
 			await _dispatcher.PostAsync(() =>
-				{
-					_lastHash = entry.Hash;
+			{
+				_lastHash = entry.Hash;
 
-					_restoredEntry = entry;
-				}).ConfigureAwait(false);
+				_restoredEntry = entry;
+			}).ConfigureAwait(false);
 
 			// Touching Entries must happen on the UI thread.
 			await _dispatcher
