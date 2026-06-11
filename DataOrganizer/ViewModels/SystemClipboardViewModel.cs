@@ -23,6 +23,12 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// </summary>
 	public ObservableCollection<ClipboardHistoryEntryBase> Entries => _clipboardHistory.Entries;
 
+	/// <summary>
+	/// Whether the window stays open on focus loss and after a restore.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool KeepOpen { get; set; }
+
 	/// <inheritdoc cref="ClipboardHistoryEntryBase" />
 	[ObservableProperty]
 	public partial ClipboardHistoryEntryBase? SelectedEntry { get; set; }

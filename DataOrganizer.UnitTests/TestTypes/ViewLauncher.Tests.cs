@@ -34,6 +34,7 @@ internal class ViewLauncherTests
 
 		CustomClipboardWindowSettings settings = new()
 		{
+			KeepOpen = true,
 			Size = new(positiveValue, positiveValue),
 			X = 10,
 			Y = 10
@@ -89,6 +90,11 @@ internal class ViewLauncherTests
 		window.Position
 			.Should()
 			.Be(new PixelPoint(settings.X, settings.Y));
+
+		window.ViewModel
+			.KeepOpen
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -436,6 +442,52 @@ internal class ViewLauncherTests
 		window
 			.Should()
 			.BeOfType<FavoritesWindow>();
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the keep-open flag is persisted.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	{
+		// Arrange
+		CustomClipboardWindowSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<CustomClipboardWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<CustomClipboardWindowSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		mock.Mock<IClipboardHistoryService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		CustomClipboardWindow window = mock.Create<CustomClipboardWindow>();
+
+		window.ViewModel.KeepOpen = true;
+
+		// Act
+		sut.SaveCustomClipboardSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.NotBeNull();
+
+		captured.KeepOpen
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
