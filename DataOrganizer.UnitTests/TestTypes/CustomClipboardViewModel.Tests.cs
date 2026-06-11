@@ -1,9 +1,10 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Serilog;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -19,7 +20,18 @@ internal class CustomClipboardViewModelTests
 	public void ClearCommand_Is_Disabled_When_Only_Pinned()
 	{
 		// Arrange
-		CustomClipboardViewModel sut = NewViewModel(PinnedTextEntry("p", [1]));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([PinnedTextEntry("p", [1])]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
 
 		// Act, Assert
 		sut.ClearCommand
@@ -35,7 +47,18 @@ internal class CustomClipboardViewModelTests
 	public void ClearCommand_Is_Enabled_With_Unpinned()
 	{
 		// Arrange
-		CustomClipboardViewModel sut = NewViewModel(PinnedTextEntry("p", [1]), TextEntry("u", [2]));
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([PinnedTextEntry("p", [1]), TextEntry("u", [2])]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
 
 		// Act, Assert
 		sut.ClearCommand
@@ -51,11 +74,18 @@ internal class CustomClipboardViewModelTests
 	public void TogglePin_Delegates_To_Service()
 	{
 		// Arrange
-		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
+		IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
 
-		service.Entries.Returns([]);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			history
+				.Entries
+				.Returns([]);
 
-		CustomClipboardViewModel sut = new(service, Substitute.For<ILogger>());
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -63,25 +93,13 @@ internal class CustomClipboardViewModelTests
 		sut.TogglePinCommand.Execute(entry);
 
 		// Assert
-		service
+		history
 			.Received(1)
 			.TogglePin(entry);
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Builds a view model whose history service exposes the supplied entries.
-	/// </summary>
-	private static CustomClipboardViewModel NewViewModel(params ClipboardHistoryEntryBase[] entries)
-	{
-		IClipboardHistoryService service = Substitute.For<IClipboardHistoryService>();
-
-		service.Entries.Returns(new ObservableCollection<ClipboardHistoryEntryBase>(entries));
-
-		return new CustomClipboardViewModel(service, Substitute.For<ILogger>());
-	}
-
 	/// <summary>
 	/// A minimal pinned text entry with the given hash.
 	/// </summary>
