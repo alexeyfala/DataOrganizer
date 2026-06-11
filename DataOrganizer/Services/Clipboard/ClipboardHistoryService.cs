@@ -381,9 +381,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		bool pin = !entry.IsPinned;
 
+		// Read before flipping: once unpinned in place, PinnedCount would stop at this entry and read 0.
+		int pinnedCount = PinnedCount;
+
 		entry.IsPinned = pin;
 
-		int target = pin ? 0 : PinnedCount;
+		// Pinning lifts the entry to the very top; unpinning drops it just below the remaining pins.
+		int target = pin ? 0 : pinnedCount - 1;
 
 		if (index != target)
 		{
