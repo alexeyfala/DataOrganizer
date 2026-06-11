@@ -574,7 +574,14 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				await _dispatcher
 					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash), isSensitive))
 					.ConfigureAwait(false);
+
+				return;
 			}
+
+			// Nothing capturable on the clipboard (e.g. emptied via Win+V "Clear all") — drop the stale highlight.
+			await _dispatcher
+				.PostAsync(HandleClipboardCleared)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -845,6 +852,22 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 			return false;
 		}
+	}
+
+	/// <summary>
+	/// Drops the active highlight and change-detection baseline when the clipboard holds nothing capturable
+	/// (e.g. emptied via Win+V); a restore awaiting its echo is left untouched. UI-thread only.
+	/// </summary>
+	private void HandleClipboardCleared()
+	{
+		if (_restoredEntry is not null)
+		{
+			return;
+		}
+
+		_lastHash = null;
+
+		ClearActive();
 	}
 
 	/// <summary>

@@ -824,6 +824,48 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Clears_Active_When_Clipboard_Emptied()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		// Capturing marks the entry active; the clipboard now holds nothing capturable.
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+
+		entry.IsActive
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		entry.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
 	/// </summary>
 	[Test]
