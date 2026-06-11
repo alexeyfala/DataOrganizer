@@ -116,6 +116,17 @@
 						HorizontalAlignment="Right"
 						Orientation="Horizontal"
 						Spacing="2.0">
+
+						<!--
+							Reserve the row height via the always-visible badge, so toggling the pin's
+							visibility on hover does not change the entry height.
+						-->
+						<StackPanel.MinHeight>
+							<Binding
+								ElementName="TypeGlyphBadge"
+								Path="Bounds.Height" />
+						</StackPanel.MinHeight>
+
 						<ToggleButton
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
