@@ -499,6 +499,13 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public async Task ShowCustomClipboardWindowAsync(Window owner)
 	{
+		if (_app.FindWindow<CustomClipboardWindow>() is { } existing)
+		{
+			existing.Activate();
+
+			return;
+		}
+
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
 		ConfigureCustomClipboardWindow(owner).Show();
