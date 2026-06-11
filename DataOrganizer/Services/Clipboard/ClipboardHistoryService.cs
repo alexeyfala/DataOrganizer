@@ -237,16 +237,23 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
 	{
-		// Appends entries below the current ones, skipping hash duplicates and enforcing the cap.
-		// Does not raise a change notification — the caller decides whether to persist.
+		// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
+		// invariant. Does not raise a change notification — the caller decides whether to persist.
 		foreach (ClipboardHistoryEntryBase entry in entries)
 		{
-			if (Entries.Count >= HistoryLimit)
+			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
 			{
-				break;
+				continue;
 			}
 
-			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			if (entry.IsPinned)
+			{
+				Entries.Insert(PinnedCount, entry);
+
+				continue;
+			}
+
+			if (Entries.Count - PinnedCount >= HistoryLimit)
 			{
 				continue;
 			}
