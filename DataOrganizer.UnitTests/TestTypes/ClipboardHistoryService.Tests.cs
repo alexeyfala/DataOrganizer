@@ -1268,6 +1268,40 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.RestoreAsync" />: keeping the position only highlights the entry, it does not move.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_With_KeepPosition_Marks_Active_Without_Moving()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry first = TextEntry("first", [1]);
+
+		ClipboardTextEntry target = TextEntry("target", [2]);
+
+		sut.Entries.Add(first);
+
+		sut.Entries.Add(target);
+
+		// Act
+		await sut.RestoreAsync(target, keepPosition: true);
+
+		// Assert
+		sut.Entries[1]
+			.Should()
+			.Be(target);
+
+		target.IsActive
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
 	/// </summary>
 	[Test]

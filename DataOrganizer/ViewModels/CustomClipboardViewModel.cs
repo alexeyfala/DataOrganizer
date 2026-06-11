@@ -98,7 +98,7 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	{
 		return entry is null
 			? Task.CompletedTask
-			: _clipboardHistory.RestoreAsync(entry);
+			: _clipboardHistory.RestoreAsync(entry, keepPosition: KeepOpen);
 	}
 
 	/// <summary>

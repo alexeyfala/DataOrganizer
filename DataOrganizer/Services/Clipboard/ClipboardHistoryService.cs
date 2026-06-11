@@ -263,7 +263,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
+	public async Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false)
 	{
 		if (IsDisposed())
 		{
@@ -311,12 +311,17 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				_lastHash = entry.Hash;
 
 				_restoredEntry = entry;
-			}).ConfigureAwait(false);
 
-			// Touching Entries must happen on the UI thread.
-			await _dispatcher
-				.PostAsync(() => MoveToTop(entry))
-				.ConfigureAwait(false);
+				// With a pinned-open window, only highlight so entries don't jump under the user.
+				if (keepPosition)
+				{
+					MarkActive(entry);
+				}
+				else
+				{
+					MoveToTop(entry);
+				}
+			}).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
