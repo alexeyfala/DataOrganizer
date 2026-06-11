@@ -85,7 +85,9 @@
 			</Button.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:CloseWindowOnClickBehavior Window="{Binding $parent[Window]}" />
+				<behaviors:CloseWindowOnClickBehavior
+					KeepOpen="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).KeepOpen}"
+					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 
 			<Panel>

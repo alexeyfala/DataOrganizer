@@ -403,6 +403,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Don&apos;t close automatically.
+        /// </summary>
+        public static string DoNotCloseAutomatically {
+            get {
+                return ResourceManager.GetString("DoNotCloseAutomatically", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
         public static string Edit {
@@ -1256,7 +1265,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("ShowContents", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Show In Editor.
         /// </summary>

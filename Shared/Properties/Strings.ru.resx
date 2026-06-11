@@ -234,6 +234,9 @@
   <data name="Close" xml:space="preserve">
     <value>Закрыть</value>
   </data>
+  <data name="DoNotCloseAutomatically" xml:space="preserve">
+    <value>Не закрывать автоматически</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Скрыть</value>
   </data>

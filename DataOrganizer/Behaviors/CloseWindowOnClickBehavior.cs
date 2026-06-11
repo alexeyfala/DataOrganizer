@@ -13,6 +13,15 @@ internal sealed class CloseWindowOnClickBehavior : Behavior<Button>
 {
 	#region Properties
 	/// <summary>
+	/// When <see langword="true" />, the click leaves the window open.
+	/// </summary>
+	public bool KeepOpen
+	{
+		get => GetValue(KeepOpenProperty);
+		set => SetValue(KeepOpenProperty, value);
+	}
+
+	/// <summary>
 	/// Target window to close on click.
 	/// </summary>
 	public Window? Window
@@ -23,6 +32,12 @@ internal sealed class CloseWindowOnClickBehavior : Behavior<Button>
 	#endregion
 
 	#region Styled Properties
+	/// <summary>
+	/// Identifies the <see cref="KeepOpen" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> KeepOpenProperty = AvaloniaProperty
+		.Register<CloseWindowOnClickBehavior, bool>(name: nameof(KeepOpen));
+
 	/// <summary>
 	/// Identifies the <see cref="Window" /> avalonia property.
 	/// </summary>
@@ -36,7 +51,7 @@ internal sealed class CloseWindowOnClickBehavior : Behavior<Button>
 	/// </summary>
 	private void AssociatedObject_Click(object? sender, RoutedEventArgs e)
 	{
-		if (Window is not { } window)
+		if (KeepOpen || Window is not { } window)
 		{
 			return;
 		}
