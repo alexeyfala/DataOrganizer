@@ -123,6 +123,18 @@
 							IsChecked="{Binding IsPinned, Mode=OneWay}"
 							Theme="{StaticResource MaterialFlatButton}">
 
+							<ToggleButton.IsVisible>
+								<MultiBinding Converter="{x:Static adc:BoolConverters.Or}">
+									<Binding
+										Mode="OneWay"
+										Path="IsPinned" />
+
+									<Binding
+										Path="IsPointerOver"
+										RelativeSource="{RelativeSource AncestorType=Button}" />
+								</MultiBinding>
+							</ToggleButton.IsVisible>
+
 							<Interaction.Behaviors>
 								<!--
 									Command via Click trigger, not Button.Command: HandleClickBehavior marks the click
