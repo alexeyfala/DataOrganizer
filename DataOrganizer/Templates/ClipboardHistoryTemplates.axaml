@@ -139,6 +139,7 @@
 						<ToggleButton
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Classes="primary"
 							Cursor="Hand"
 							IsChecked="{Binding IsPinned, Mode=OneWay}"
 							Theme="{StaticResource MaterialFlatButton}">
