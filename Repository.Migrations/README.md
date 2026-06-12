@@ -3,9 +3,13 @@
 ## Setup (once)
 
 `dotnet ef` is registered as a local tool (`.config/dotnet-tools.json`, version 10.0.9).
-After cloning the repository it must be restored:
+After cloning the repository, restore it from the solution root:
 
     dotnet tool restore
+
+> Keep the `dotnet-ef` version `>=` the `Microsoft.EntityFrameworkCore.*` package version.
+> When you upgrade EF Core, bump the tool too: `dotnet tool update dotnet-ef --version <version>`.
+> An older tool within the same major only warns; a different major fails.
 
 > All commands below are run from the solution root.
 > `--project` is where migrations are written, `--startup-project` is what the tool
