@@ -2,14 +2,13 @@ using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 using System;
-using System.Text.RegularExpressions;
 
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
+public class ClipboardTextEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <summary>
@@ -79,41 +78,13 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 
 		if (start >= 0 && end > start)
 		{
-			return NormalizePreBlocks(html[(start + startMarker.Length)..end]);
+			return html[(start + startMarker.Length)..end];
 		}
 
-		return NormalizePreBlocks(html);
+		// No CF_HTML markers (non-Windows / bare fragment): pass through; the AngleSharp pass
+		// in HtmlFragmentNormalizer strips any html/head/body wrapper via Body.InnerHtml.
+		return html;
 	}
-
-	/// <summary>
-	/// Makes preformatted blocks (e.g. Visual Studio code copies) render multi-line by
-	/// turning their literal newlines/tabs into explicit breaks the HTML engine honors.
-	/// </summary>
-	private static string NormalizePreBlocks(string html)
-	{
-		if (html.IndexOf("<pre", StringComparison.OrdinalIgnoreCase) < 0)
-		{
-			return html;
-		}
-
-		return PreBlockRegex().Replace(html, static match =>
-		{
-			string inner = match
-				.Groups[2]
-				.Value
-				.Replace("\r\n", "<br>")
-				.Replace("\n", "<br>")
-				.Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-
-			return match.Groups[1].Value + inner + match.Groups[3].Value;
-		});
-	}
-
-	/// <summary>
-	/// Matches for a single preformatted block: open tag, inner content, close tag.
-	/// </summary>
-	[GeneratedRegex(@"(<pre\b[^>]*>)(.*?)(</pre>)", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
-	private static partial Regex PreBlockRegex();
 
 	/// <summary>
 	/// Backing builder for the formatted-text branch of <see cref="Preview" />.
@@ -122,14 +93,14 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	{
 		if (Html is { } html)
 		{
-			return HtmlPreviewTrimmer.Trim(ExtractHtmlFragment(html));
+			return HtmlFragmentNormalizer.Trim(HtmlFragmentNormalizer.NormalizePreformatted(ExtractHtmlFragment(html)));
 		}
 
 		if (Rtf is { } rtf)
 		{
 			try
 			{
-				return HtmlPreviewTrimmer.Trim(RtfPipe.Rtf.ToHtml(rtf));
+				return HtmlFragmentNormalizer.Trim(RtfPipe.Rtf.ToHtml(rtf));
 			}
 			catch
 			{

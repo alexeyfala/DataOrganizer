@@ -103,6 +103,25 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: inside a &lt;pre&gt; block, newlines become &lt;br&gt;
+	/// and tabs become non-breaking spaces, so code copies render multi-line.
+	/// </summary>
+	[Test]
+	public void Preview_Expands_Preformatted_Whitespace()
+	{
+		// Arrange
+		const string html =
+			"<html><body><!--StartFragment--><pre>a\n\tb</pre><!--EndFragment--></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("a\n\tb", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<pre>a<br>&nbsp;&nbsp;&nbsp;&nbsp;b</pre>");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardTextEntry.Preview" />: a CF_HTML payload yields its trimmed fragment.
 	/// </summary>
 	[Test]
