@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Repository.DbContexts;
 using System;
 using System.Data.Common;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,9 +32,9 @@ public interface IDbContextService : IDisposable
 	string GetDbFilePath();
 
 	/// <summary>
-	/// Determines whether the assembly contains migration files.
+	/// Determines whether the context's configured migrations assembly contains any migrations.
 	/// </summary>
-	bool HasMigrations(Assembly assembly);
+	bool HasMigrations();
 
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.Migrate(DatabaseFacade)" />
 	void Migrate();

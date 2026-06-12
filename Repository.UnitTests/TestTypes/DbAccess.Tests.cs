@@ -15,7 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Repository.UnitTests.TestTypes;
@@ -232,7 +231,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbConnection
-				.HasMigrations(Arg.Any<Assembly>())
+				.HasMigrations()
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbConnection);
@@ -278,7 +277,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbConnection
-				.HasMigrations(Arg.Any<Assembly>())
+				.HasMigrations()
 				.Returns(useMigrations);
 
 			builder.RegisterInstance(dbConnection);

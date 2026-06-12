@@ -162,7 +162,9 @@ public sealed class App : Application
 				Pooling = true
 			};
 
-			builder.UseSqlite(connectionBuilder.ToString());
+			builder.UseSqlite(
+				connectionBuilder.ToString(),
+				x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName));
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();
 

@@ -18,7 +18,6 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -338,7 +337,7 @@ public sealed class DbAccess : IDbAccess
 
 			_dbContextService.EnsureDeleted();
 
-			if (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly()))
+			if (_dbContextService.HasMigrations())
 			{
 				_dbContextService.Migrate();
 			}
@@ -379,7 +378,7 @@ public sealed class DbAccess : IDbAccess
 
 			_logger.LogInformation("Connecting to the database.");
 
-			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
+			await (_dbContextService.HasMigrations()
 				? _dbContextService.MigrateAsync(token)
 				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
 		}
