@@ -42,7 +42,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// Renderable HTML fragment when formatted, otherwise the trimmed plain text.
 	/// </summary>
 	public override string? Preview => field ??= IsFormattedText
-		? BuildFormattedTextPreview()?.Trim()
+		? BuildFormattedTextPreview()
 		: Text.Trim();
 
 	/// <summary>
