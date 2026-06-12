@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -106,13 +107,28 @@
 				</Grid>
 
 				<ScrollViewer
+					x:Name="EntriesScrollViewer"
 					Grid.Row="1"
 					Margin="0.0,10.0,0.0,0.0"
+					Classes="no-auto-hide"
 					HorizontalScrollBarVisibility="Disabled"
+					Theme="{StaticResource MaterialModernScrollViewer}"
 					VerticalScrollBarVisibility="Auto">
 					<ItemsControl
 						ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
 						ItemsSource="{Binding Entries}">
+
+						<ItemsControl.Margin>
+							<MultiBinding Converter="{x:Static converters:AppConverters.ScrollGutter}">
+								<Binding
+									ElementName="EntriesScrollViewer"
+									Path="Extent.Height" />
+								<Binding
+									ElementName="EntriesScrollViewer"
+									Path="Viewport.Height" />
+							</MultiBinding>
+						</ItemsControl.Margin>
+
 						<ItemsControl.ItemsPanel>
 							<ItemsPanelTemplate>
 								<StackPanel
