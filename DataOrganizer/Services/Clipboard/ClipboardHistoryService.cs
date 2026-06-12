@@ -35,7 +35,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
 
-
 	/// <summary>
 	/// Number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
 	/// also the index of the first unpinned entry. UI-thread only.
