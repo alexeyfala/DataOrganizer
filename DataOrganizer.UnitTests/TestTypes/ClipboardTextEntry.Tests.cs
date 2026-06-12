@@ -154,6 +154,24 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: a bare fragment without CF_HTML markers
+	/// has its &lt;html&gt; / &lt;body&gt; wrapper stripped by the AngleSharp pass.
+	/// </summary>
+	[Test]
+	public void Preview_Unwraps_Fragment_Without_Cf_Html_Markers()
+	{
+		// Arrange (macOS / Linux shape: plain HTML, no CF_HTML descriptor or fragment comments).
+		const string html = "<html><body><p>hi</p></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("hi", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<p>hi</p>");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardTextEntry.TypeGlyph" /> across format combinations.
 	/// </summary>
 	[Test]

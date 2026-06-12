@@ -82,13 +82,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 			return NormalizePreBlocks(html[(start + startMarker.Length)..end]);
 		}
 
-		// No CF_HTML markers (non-Windows, or already a bare fragment): drop any
-		// leading descriptor header by returning from the first tag onward.
-		int firstTag = html.IndexOf('<');
-
-		return NormalizePreBlocks(firstTag > 0
-			? html[firstTag..]
-			: html);
+		return NormalizePreBlocks(html);
 	}
 
 	/// <summary>
