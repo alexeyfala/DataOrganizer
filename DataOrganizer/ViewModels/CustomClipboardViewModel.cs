@@ -1,7 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -15,7 +17,10 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>CustomClipboardWindow</c>.
 /// </summary>
-public sealed partial class CustomClipboardViewModel : ObservableObject
+public sealed partial class CustomClipboardViewModel :
+	ObservableObject,
+	IRecipient<ClipboardEntriesChangedMessage>,
+	IDisposable
 {
 	#region Properties
 	/// <summary>
@@ -40,15 +45,33 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 	#endregion
 
 	#region Constructors
-	public CustomClipboardViewModel(IClipboardHistoryService clipboardHistory, ILogger logger)
+	public CustomClipboardViewModel(
+		IClipboardHistoryService clipboardHistory,
+		ILogger logger,
+		IMessenger messenger)
 	{
 		_clipboardHistory = clipboardHistory;
 
 		_logger = logger;
+
+		_messenger = messenger;
+
+		messenger.RegisterAll(this);
 	}
+	#endregion
+
+	#region Methods
+	/// <inheritdoc />
+	public void Dispose() => _messenger.UnregisterAll(this);
+
+	/// <inheritdoc />
+	public void Receive(ClipboardEntriesChangedMessage message) => ClearCommand.NotifyCanExecuteChanged();
 	#endregion
 
 	#region Commands
@@ -56,14 +79,7 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanClear))]
-	private async Task Clear()
-	{
-		await _clipboardHistory
-			.ClearAsync()
-			.ConfigureAwait(true);
-
-		ClearCommand.NotifyCanExecuteChanged();
-	}
+	private Task Clear() => _clipboardHistory.ClearAsync();
 
 	/// <summary>
 	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
