@@ -377,6 +377,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
+
 			_logger.LogInformation("Connecting to the database.");
 
 			await (_dbContextService.HasMigrations(Assembly.GetExecutingAssembly())
