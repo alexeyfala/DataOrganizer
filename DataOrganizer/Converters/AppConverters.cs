@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using DataOrganizer.DTO.Entities;
@@ -7,6 +8,7 @@ using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
 using Shared.Properties;
+using System.Linq;
 
 namespace DataOrganizer.Converters;
 
@@ -15,6 +17,13 @@ namespace DataOrganizer.Converters;
 /// </summary>
 internal static class AppConverters
 {
+	#region Data
+	/// <summary>
+	/// Material vertical scrollbar thickness; the right gutter reserved while content overflows.
+	/// </summary>
+	private const double ScrollBarThickness = 10.0;
+	#endregion
+
 	#region Properties
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
@@ -59,5 +68,14 @@ internal static class AppConverters
 			SecondaryColor secondary => secondary.GetBrush(),
 			_ => Brushes.Transparent
 		});
+
+	/// <summary>
+	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
+	/// Inputs: [Extent.Height, Viewport.Height].
+	/// </summary>
+	public static FuncMultiValueConverter<double, Thickness> ScrollGutter { get; } =
+		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
+			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
+			: default);
 	#endregion
 }

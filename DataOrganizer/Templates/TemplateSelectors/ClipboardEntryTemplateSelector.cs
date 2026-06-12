@@ -13,7 +13,7 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 	#region Properties
 	/// <summary>
 	/// Template for <see cref="ClipboardTextEntry" /> with a renderable
-	/// <see cref="ClipboardTextEntry.FormattedTextPreview" /> (HTML / RTF / HTML + RTF).
+	/// <see cref="ClipboardTextEntry.Preview" /> (HTML / RTF / HTML + RTF).
 	/// </summary>
 	public IDataTemplate? FormattedTextTemplate { get; set; }
 

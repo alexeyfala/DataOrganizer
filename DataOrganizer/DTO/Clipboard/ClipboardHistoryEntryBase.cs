@@ -36,6 +36,12 @@ public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 	public virtual bool IsUrl => false;
 
 	/// <summary>
+	/// Display-only text preview for the restore button; <c>null</c> leaves it empty.
+	/// Never restored — safe to trim.
+	/// </summary>
+	public virtual string? Preview => null;
+
+	/// <summary>
 	/// Emoji glyph shown as a type badge over the entry in the clipboard history list.
 	/// </summary>
 	public abstract string TypeGlyph { get; }

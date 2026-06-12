@@ -237,28 +237,46 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
 	{
-		// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
-		// invariant. Does not raise a change notification — the caller decides whether to persist.
-		foreach (ClipboardHistoryEntryBase entry in entries)
+		try
 		{
-			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
+			// invariant. Does not raise a change notification — the caller decides whether to persist.
+			foreach (ClipboardHistoryEntryBase entry in entries)
 			{
-				continue;
+				if (Entries.FirstOrDefault(x => HashEquals(x.Hash, entry.Hash)) is { } existing)
+				{
+					// Promote the in-memory copy if the saved one was pinned; preserves the pin dedup used to drop.
+					if (entry.IsPinned && !existing.IsPinned)
+					{
+						// Read before flipping: the new pin appends to the end of the pinned block.
+						int target = PinnedCount;
+
+						existing.IsPinned = true;
+
+						Entries.Move(Entries.IndexOf(existing), target);
+					}
+
+					continue;
+				}
+
+				if (entry.IsPinned)
+				{
+					Entries.Insert(PinnedCount, entry);
+
+					continue;
+				}
+
+				if (Entries.Count - PinnedCount >= HistoryLimit)
+				{
+					continue;
+				}
+
+				Entries.Add(entry);
 			}
-
-			if (entry.IsPinned)
-			{
-				Entries.Insert(PinnedCount, entry);
-
-				continue;
-			}
-
-			if (Entries.Count - PinnedCount >= HistoryLimit)
-			{
-				continue;
-			}
-
-			Entries.Add(entry);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 
@@ -808,6 +826,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 			NotifyChanged(effectiveKind);
 
+			NotifyEntryCountChanged();
+
 			if (!clearSystem)
 			{
 				return;
@@ -892,6 +912,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		MarkActive(entry);
 
 		NotifyChanged(ClipboardHistoryChangeKind.Updated);
+
+		NotifyEntryCountChanged();
 	}
 
 	/// <summary>
@@ -1035,6 +1057,11 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// Publishes a <see cref="ClipboardHistoryChangedMessage" /> so listeners can react to a change.
 	/// </summary>
 	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardHistoryChangedMessage(kind));
+
+	/// <summary>
+	/// Publishes a <see cref="ClipboardHistoryEntryCountChangedMessage" /> after entries are added or removed.
+	/// </summary>
+	private void NotifyEntryCountChanged() => _messenger.Send(new ClipboardHistoryEntryCountChangedMessage());
 
 	/// <summary>
 	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />

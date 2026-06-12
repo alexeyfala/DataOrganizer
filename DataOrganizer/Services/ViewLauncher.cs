@@ -129,6 +129,10 @@ public class ViewLauncher : IViewLauncher
 		window.Closing -= CustomClipboardWindow_Closing;
 
 		SaveCustomClipboardSettings(window);
+
+		window
+			.ViewModel
+			.Dispose();
 	}
 
 	/// <summary>

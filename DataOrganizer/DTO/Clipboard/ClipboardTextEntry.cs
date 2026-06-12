@@ -1,21 +1,16 @@
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 using System;
-using System.Text.RegularExpressions;
 
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
+public class ClipboardTextEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
-	/// <summary>
-	/// Renderable HTML fragment for formatted entries.
-	/// </summary>
-	public string? FormattedTextPreview => field ??= BuildFormattedTextPreview();
-
 	/// <summary>
 	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
 	/// source app provided one. Pushed back to the clipboard alongside plain text
@@ -42,6 +37,13 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
 	/// </summary>
 	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
+
+	/// <summary>
+	/// Renderable HTML fragment when formatted, otherwise the trimmed plain text.
+	/// </summary>
+	public override string? Preview => field ??= IsFormattedText
+		? BuildFormattedTextPreview()
+		: Text.Trim();
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
@@ -76,63 +78,29 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 
 		if (start >= 0 && end > start)
 		{
-			return NormalizePreBlocks(html[(start + startMarker.Length)..end]);
+			return html[(start + startMarker.Length)..end];
 		}
 
-		// No CF_HTML markers (non-Windows, or already a bare fragment): drop any
-		// leading descriptor header by returning from the first tag onward.
-		int firstTag = html.IndexOf('<');
-
-		return NormalizePreBlocks(firstTag > 0
-			? html[firstTag..]
-			: html);
+		// No CF_HTML markers (non-Windows / bare fragment): pass through; the AngleSharp pass
+		// in HtmlFragmentNormalizer strips any html/head/body wrapper via Body.InnerHtml.
+		return html;
 	}
 
 	/// <summary>
-	/// Makes preformatted blocks (e.g. Visual Studio code copies) render multi-line by
-	/// turning their literal newlines/tabs into explicit breaks the HTML engine honors.
-	/// </summary>
-	private static string NormalizePreBlocks(string html)
-	{
-		if (html.IndexOf("<pre", StringComparison.OrdinalIgnoreCase) < 0)
-		{
-			return html;
-		}
-
-		return PreBlockRegex().Replace(html, static match =>
-		{
-			string inner = match
-				.Groups[2]
-				.Value
-				.Replace("\r\n", "<br>")
-				.Replace("\n", "<br>")
-				.Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
-
-			return match.Groups[1].Value + inner + match.Groups[3].Value;
-		});
-	}
-
-	/// <summary>
-	/// Matches for a single preformatted block: open tag, inner content, close tag.
-	/// </summary>
-	[GeneratedRegex(@"(<pre\b[^>]*>)(.*?)(</pre>)", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
-	private static partial Regex PreBlockRegex();
-
-	/// <summary>
-	/// Backing builder for <see cref="FormattedTextPreview" />.
+	/// Backing builder for the formatted-text branch of <see cref="Preview" />.
 	/// </summary>
 	private string? BuildFormattedTextPreview()
 	{
 		if (Html is { } html)
 		{
-			return ExtractHtmlFragment(html);
+			return HtmlFragmentNormalizer.Trim(HtmlFragmentNormalizer.NormalizePreformatted(ExtractHtmlFragment(html)));
 		}
 
 		if (Rtf is { } rtf)
 		{
 			try
 			{
-				return RtfPipe.Rtf.ToHtml(rtf);
+				return HtmlFragmentNormalizer.Trim(RtfPipe.Rtf.ToHtml(rtf));
 			}
 			catch
 			{
