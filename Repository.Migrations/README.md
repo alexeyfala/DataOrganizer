@@ -11,7 +11,8 @@ After cloning the repository, restore it from the solution root:
 > When you upgrade EF Core, bump the tool too: `dotnet tool update dotnet-ef --version <version>`.
 > An older tool within the same major only warns; a different major fails.
 
-> All commands below are run from the solution root.
+> All commands below are run from the solution root (if run from the `Repository.Migrations`
+> folder, the `--project` and `--startup-project` arguments can be omitted).
 > `--project` is where migrations are written, `--startup-project` is what the tool
 > builds and runs. Here both point to `Repository.Migrations`.
 
