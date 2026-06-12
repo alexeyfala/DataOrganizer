@@ -55,39 +55,6 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardTextEntry.FormattedTextPreview" />: a CF_HTML payload yields its fragment.
-	/// </summary>
-	[Test]
-	public void FormattedTextPreview_Extracts_Html_Fragment()
-	{
-		// Arrange
-		const string html =
-			"Version:0.9\r\nStartHTML:0000\r\n<html><body><!--StartFragment--><b>hi</b><!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.FormattedTextPreview
-			.Should()
-			.Be("<b>hi</b>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.FormattedTextPreview" />: plain text has no preview.
-	/// </summary>
-	[Test]
-	public void FormattedTextPreview_Is_Null_For_Plain_Text()
-	{
-		// Arrange
-		ClipboardTextEntry sut = TextEntry("plain");
-
-		// Act, Assert
-		sut.FormattedTextPreview
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardTextEntry.IsSensitive" />: ordinary prose is not flagged.
 	/// </summary>
 	[Test]
@@ -115,6 +82,39 @@ internal class ClipboardTextEntryTests
 		sut.IsSensitive
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: a CF_HTML payload yields its trimmed fragment.
+	/// </summary>
+	[Test]
+	public void Preview_Extracts_Html_Fragment()
+	{
+		// Arrange
+		const string html =
+			"Version:0.9\r\nStartHTML:0000\r\n<html><body><!--StartFragment--><b>hi</b><!--EndFragment--></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("hi", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<b>hi</b>");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: plain text is trimmed of surrounding blank space.
+	/// </summary>
+	[Test]
+	public void Preview_Trims_Plain_Text()
+	{
+		// Arrange
+		ClipboardTextEntry sut = TextEntry("\r\n\r\n  hello  \r\n");
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("hello");
 	}
 
 	/// <summary>

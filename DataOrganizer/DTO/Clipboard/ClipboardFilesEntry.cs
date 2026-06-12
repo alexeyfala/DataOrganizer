@@ -15,14 +15,14 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	public override string? ContentToolTip => field ??= BuildContentToolTip();
 
 	/// <summary>
-	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
-	/// </summary>
-	public string? EntriesSummary => field ??= BuildEntriesSummary();
-
-	/// <summary>
 	/// File / folder items captured for this entry.
 	/// </summary>
 	public required IReadOnlyList<ClipboardFileSystemEntry> FileSystemEntries { get; init; }
+
+	/// <summary>
+	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
+	/// </summary>
+	public override string? Preview => field ??= BuildEntriesPreview();
 
 	/// <inheritdoc />
 	public override string TypeGlyph => "🗂️";
@@ -82,7 +82,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	}
 
 	/// <summary>
-	/// Builds the expanded tooltip version of <see cref="EntriesSummary" />.
+	/// Builds the expanded tooltip version of <see cref="Preview" />.
 	/// </summary>
 	private string? BuildContentToolTip()
 	{
@@ -100,7 +100,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// Builds a multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
-	private string BuildEntriesSummary()
+	private string BuildEntriesPreview()
 	{
 		return string.Join(Environment.NewLine, EnumerateEntriesSummaryLines(FileSystemEntries, EntriesSummaryMaxLines));
 	}

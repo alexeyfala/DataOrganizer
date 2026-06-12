@@ -12,11 +12,6 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 {
 	#region Properties
 	/// <summary>
-	/// Renderable HTML fragment for formatted entries.
-	/// </summary>
-	public string? FormattedTextPreview => field ??= BuildFormattedTextPreview();
-
-	/// <summary>
 	/// HTML version of <see cref="Text" /> (e.g. from browsers or Word) when the
 	/// source app provided one. Pushed back to the clipboard alongside plain text
 	/// on restore so paste targets can pick up the formatting.
@@ -42,6 +37,13 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
 	/// </summary>
 	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
+
+	/// <summary>
+	/// Renderable HTML fragment when formatted, otherwise the trimmed plain text.
+	/// </summary>
+	public override string? Preview => field ??= IsFormattedText
+		? BuildFormattedTextPreview()?.Trim()
+		: Text.Trim();
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
@@ -119,7 +121,7 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	private static partial Regex PreBlockRegex();
 
 	/// <summary>
-	/// Backing builder for <see cref="FormattedTextPreview" />.
+	/// Backing builder for the formatted-text branch of <see cref="Preview" />.
 	/// </summary>
 	private string? BuildFormattedTextPreview()
 	{

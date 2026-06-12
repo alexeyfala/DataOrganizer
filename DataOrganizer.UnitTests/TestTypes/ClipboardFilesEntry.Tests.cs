@@ -27,10 +27,34 @@ internal class ClipboardFilesEntryTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardFilesEntry.EntriesSummary" />: a short list is shown in full with a header.
+	/// <see cref="ClipboardFilesEntry.Preview" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
+	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
 	/// </summary>
 	[Test]
-	public void EntriesSummary_Lists_Header_And_All_Items_When_Short()
+	public void Long_List_Truncates_Summary_And_Exposes_ToolTip()
+	{
+		// Arrange (10 files: more than the 6-item summary budget).
+		ClipboardFilesEntry sut = FilesEntry([.. Enumerable
+			.Range(0, 10)
+			.Select(i => new ClipboardFileSystemEntry($"C:\\dir\\file{i}.txt", IsFolder: false))]);
+
+		// Act, Assert
+		sut.Preview!
+			.Split(Environment.NewLine)
+			.Last()
+			.Should()
+			.Be("...");
+
+		sut.ContentToolTip
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardFilesEntry.Preview" />: a short list is shown in full with a header.
+	/// </summary>
+	[Test]
+	public void Preview_Lists_Header_And_All_Items_When_Short()
 	{
 		// Arrange
 		ClipboardFilesEntry sut = FilesEntry(
@@ -39,7 +63,7 @@ internal class ClipboardFilesEntryTests
 
 		// Act
 		string[] lines = sut
-			.EntriesSummary!
+			.Preview!
 			.Split(Environment.NewLine);
 
 		// Assert (header + 2 items, no ellipsis).
@@ -54,30 +78,6 @@ internal class ClipboardFilesEntryTests
 		lines
 			.Should()
 			.NotContain("...");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardFilesEntry.EntriesSummary" /> / <see cref="ClipboardFilesEntry.ContentToolTip" />:
-	/// a long list is truncated in the summary but fully shown (capped) in the tooltip.
-	/// </summary>
-	[Test]
-	public void Long_List_Truncates_Summary_And_Exposes_ToolTip()
-	{
-		// Arrange (10 files: more than the 6-item summary budget).
-		ClipboardFilesEntry sut = FilesEntry([.. Enumerable
-			.Range(0, 10)
-			.Select(i => new ClipboardFileSystemEntry($"C:\\dir\\file{i}.txt", IsFolder: false))]);
-
-		// Act, Assert
-		sut.EntriesSummary!
-			.Split(Environment.NewLine)
-			.Last()
-			.Should()
-			.Be("...");
-
-		sut.ContentToolTip
-			.Should()
-			.NotBeNull();
 	}
 
 	/// <summary>
