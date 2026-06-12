@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
 using Serilog;
@@ -19,7 +20,7 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class CustomClipboardViewModel :
 	ObservableObject,
-	IRecipient<ClipboardEntriesChangedMessage>,
+	IRecipient<ClipboardHistoryEntryCountChangedMessage>,
 	IDisposable
 {
 	#region Properties
@@ -43,6 +44,9 @@ public sealed partial class CustomClipboardViewModel :
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
 
+	/// <inheritdoc cref="IDispatcherAccessor" />
+	private readonly IDispatcherAccessor _dispatcher;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -53,10 +57,13 @@ public sealed partial class CustomClipboardViewModel :
 	#region Constructors
 	public CustomClipboardViewModel(
 		IClipboardHistoryService clipboardHistory,
+		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger)
 	{
 		_clipboardHistory = clipboardHistory;
+
+		_dispatcher = dispatcher;
 
 		_logger = logger;
 
@@ -71,7 +78,10 @@ public sealed partial class CustomClipboardViewModel :
 	public void Dispose() => _messenger.UnregisterAll(this);
 
 	/// <inheritdoc />
-	public void Receive(ClipboardEntriesChangedMessage message) => ClearCommand.NotifyCanExecuteChanged();
+	public void Receive(ClipboardHistoryEntryCountChangedMessage message)
+	{
+		_dispatcher.Post(ClearCommand.NotifyCanExecuteChanged);
+	}
 	#endregion
 
 	#region Commands

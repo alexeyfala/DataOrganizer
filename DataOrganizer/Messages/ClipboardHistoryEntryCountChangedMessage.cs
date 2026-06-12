@@ -1,6 +1,6 @@
 namespace DataOrganizer.Messages;
 
 /// <summary>
-/// Raised when the visible clipboard entry collection changes.
+/// Raised when the number of clipboard history entries changes (entries added or removed).
 /// </summary>
-public sealed record ClipboardEntriesChangedMessage;
+public sealed record ClipboardHistoryEntryCountChangedMessage;

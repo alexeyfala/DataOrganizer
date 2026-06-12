@@ -826,7 +826,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 			NotifyChanged(effectiveKind);
 
-			NotifyEntriesChanged();
+			NotifyEntryCountChanged();
 
 			if (!clearSystem)
 			{
@@ -913,7 +913,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 
-		NotifyEntriesChanged();
+		NotifyEntryCountChanged();
 	}
 
 	/// <summary>
@@ -1059,9 +1059,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardHistoryChangedMessage(kind));
 
 	/// <summary>
-	/// Publishes a <see cref="ClipboardEntriesChangedMessage" /> after the entry set gains or loses items.
+	/// Publishes a <see cref="ClipboardHistoryEntryCountChangedMessage" /> after entries are added or removed.
 	/// </summary>
-	private void NotifyEntriesChanged() => _messenger.Send(new ClipboardEntriesChangedMessage());
+	private void NotifyEntryCountChanged() => _messenger.Send(new ClipboardHistoryEntryCountChangedMessage());
 
 	/// <summary>
 	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />
