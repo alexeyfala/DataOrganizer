@@ -237,28 +237,46 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
 	{
-		// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
-		// invariant. Does not raise a change notification — the caller decides whether to persist.
-		foreach (ClipboardHistoryEntryBase entry in entries)
+		try
 		{
-			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
+			// invariant. Does not raise a change notification — the caller decides whether to persist.
+			foreach (ClipboardHistoryEntryBase entry in entries)
 			{
-				continue;
+				if (Entries.FirstOrDefault(x => HashEquals(x.Hash, entry.Hash)) is { } existing)
+				{
+					// Promote the in-memory copy if the saved one was pinned; preserves the pin dedup used to drop.
+					if (entry.IsPinned && !existing.IsPinned)
+					{
+						// Read before flipping: the new pin appends to the end of the pinned block.
+						int target = PinnedCount;
+
+						existing.IsPinned = true;
+
+						Entries.Move(Entries.IndexOf(existing), target);
+					}
+
+					continue;
+				}
+
+				if (entry.IsPinned)
+				{
+					Entries.Insert(PinnedCount, entry);
+
+					continue;
+				}
+
+				if (Entries.Count - PinnedCount >= HistoryLimit)
+				{
+					continue;
+				}
+
+				Entries.Add(entry);
 			}
-
-			if (entry.IsPinned)
-			{
-				Entries.Insert(PinnedCount, entry);
-
-				continue;
-			}
-
-			if (Entries.Count - PinnedCount >= HistoryLimit)
-			{
-				continue;
-			}
-
-			Entries.Add(entry);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 
