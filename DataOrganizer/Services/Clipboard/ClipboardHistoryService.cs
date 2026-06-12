@@ -32,7 +32,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public ObservableCollection<ClipboardHistoryEntryBase> Entries { get; } = [];
 
-
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
 
