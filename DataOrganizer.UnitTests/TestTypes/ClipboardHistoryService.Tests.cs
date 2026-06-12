@@ -13,7 +13,6 @@ using DataOrganizer.Messages;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +55,11 @@ internal class ClipboardHistoryServiceTests
 	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
 	{
 		// Act
-		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry("  https://example.com/x  ", null, null, [1]);
+		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry(
+			text: "  https://example.com/x  ",
+			html: null,
+			rtf: null,
+			hash: [1]);
 
 		// Assert
 		ClipboardUrlEntry url = entry
@@ -74,6 +77,157 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: the captured entry becomes the active one.
+	/// </summary>
+	[Test]
+	public void Capture_Marks_Entry_Active_Clearing_Previous()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry first = TextEntry("a", [1]);
+
+		ClipboardTextEntry second = TextEntry("b", [2]);
+
+		sut.HandleNewPayload([1], () => first, isSensitive: false);
+
+		// Act
+		sut.HandleNewPayload([2], () => second, isSensitive: false);
+
+		// Assert
+		second.IsActive
+			.Should()
+			.BeTrue();
+
+		first.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: pinned entries are exempt from the cap.
+	/// </summary>
+	[Test]
+	public void Capture_Trims_Only_Unpinned_Keeping_Pinned()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [200]);
+
+		sut.Entries.Add(pinned);
+
+		for (int i = 0; i < 25; i++)
+		{
+			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
+		}
+
+		// Act (cap applies to the 25 unpinned only, so the pinned entry survives).
+		sut.HandleNewPayload([99], () => TextEntry("new", [99]), isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.HaveCount(26);
+
+		sut.Entries
+			.Should()
+			.Contain(pinned);
+
+		sut.Entries[0]
+			.Should()
+			.Be(pinned);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.ClearAsync" />: the active highlight is cleared from a surviving pin.
+	/// </summary>
+	[Test]
+	public async Task ClearAsync_Clears_Active_On_Surviving_Pinned()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+
+		sut.Entries.Add(pinned);
+
+		// Restoring marks it active.
+		await sut.RestoreAsync(pinned);
+
+		// Act
+		await sut.ClearAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(pinned);
+
+		pinned.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.ClearAsync" />: pinned entries survive and Updated is raised.
+	/// </summary>
+	[Test]
+	public async Task ClearAsync_Preserves_Pinned_And_Raises_Updated()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+
+		sut.Entries.Add(pinned);
+
+		sut.Entries.Add(TextEntry("u", [2]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act
+		await sut.ClearAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(pinned);
+
+		received
+			.Should()
+			.Equal(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
@@ -82,7 +236,14 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
@@ -112,7 +273,14 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
@@ -188,7 +356,11 @@ internal class ClipboardHistoryServiceTests
 	public async Task DisposeAsync_Is_Idempotent()
 	{
 		// Arrange
-		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		await sut.DisposeAsync();
 
@@ -208,9 +380,18 @@ internal class ClipboardHistoryServiceTests
 	public void HandleNewPayload_Enforces_History_Cap()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		for (int i = 0; i < 25; i++)
 		{
@@ -218,7 +399,7 @@ internal class ClipboardHistoryServiceTests
 		}
 
 		// Act
-		sut.HandleNewPayload([99], () => TextEntry("new", [99]));
+		sut.HandleNewPayload([99], () => TextEntry("new", [99]), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -240,14 +421,23 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
 
-		sut.HandleNewPayload([1], () => TextEntry("a", [1]));
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		sut.HandleNewPayload([1], () => TextEntry("a", [1]), isSensitive: false);
 
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act (same hash as the last observed payload).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -268,14 +458,23 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
 		// Act
-		sut.HandleNewPayload([1], () => entry);
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -299,7 +498,16 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		ClipboardTextEntry target = TextEntry("target", [1]);
 
@@ -310,7 +518,7 @@ internal class ClipboardHistoryServiceTests
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
 		// Act (the factory must not run — the entry already exists).
-		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."));
+		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -383,7 +591,11 @@ internal class ClipboardHistoryServiceTests
 	public async Task IsRunning_Toggles_With_Start_And_Dispose()
 	{
 		// Arrange
-		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		// Act, Assert
 		await sut.StartAsync();
@@ -408,7 +620,14 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
@@ -440,9 +659,16 @@ internal class ClipboardHistoryServiceTests
 	public void Merge_Enforces_History_Cap()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(messenger);
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
@@ -466,15 +692,58 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.Merge" />: pinned entries are placed atop, keeping the invariant.
+	/// </summary>
+	[Test]
+	public void Merge_Places_Pinned_Atop_Preserving_Invariant()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		sut.Entries.Add(TextEntry("newText", [9]));
+
+		// Act
+		sut.Merge(
+		[
+			PinnedTextEntry("p0", [1]),
+			PinnedTextEntry("p1", [2]),
+			TextEntry("u", [3])
+		]);
+
+		// Assert
+		sut.Entries
+			.Select(static entry => entry.Hash[0])
+			.Should()
+			.Equal(1, 2, 9, 3);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files are captured with folders sorted first.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Captures_Files_Entry_Folders_First()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -517,9 +786,22 @@ internal class ClipboardHistoryServiceTests
 	public async Task PollOnce_Captures_Text_Entry()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		clipboard
 			.TryGetTextAsync()
@@ -542,15 +824,70 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Clears_Active_When_Clipboard_Emptied()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+			clipboard
+				.GetDataFormatsAsync()
+				.Returns([]);
+
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		// Capturing marks the entry active; the clipboard now holds nothing capturable.
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+
+		entry.IsActive
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		entry.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		IStorageFile valid = Substitute.For<IStorageFile>();
 
@@ -592,9 +929,22 @@ internal class ClipboardHistoryServiceTests
 	public async Task PollOnce_Skips_Sensitive_Content()
 	{
 		// Arrange
-		IMessenger messenger = new WeakReferenceMessenger();
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		(ClipboardHistoryService sut, IClipboardAccessor clipboard) = NewService(messenger);
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		clipboard
 			.GetDataFormatsAsync()
@@ -614,6 +964,43 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// Re-baseline path: a restored pinned entry keeps its pinned state on the replacement.
+	/// </summary>
+	[Test]
+	public async Task Rebaseline_Carries_Pin_State()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry original = PinnedTextEntry("orig", [1]);
+
+		sut.Entries.Add(original);
+
+		await sut.RestoreAsync(original);
+
+		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
+
+		// Act (the clipboard handed back a different representation -> different hash).
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(rebaselined);
+
+		rebaselined.IsPinned
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// Test of the re-baseline path when the restored entry is no longer present: it is inserted at the top.
 	/// </summary>
 	[Test]
@@ -622,7 +1009,16 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -638,7 +1034,7 @@ internal class ClipboardHistoryServiceTests
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
 		// Act
-		sut.HandleNewPayload([2], () => rebaselined);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -662,7 +1058,16 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		ClipboardTextEntry top = TextEntry("top", [1]);
 
@@ -695,7 +1100,16 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -708,7 +1122,7 @@ internal class ClipboardHistoryServiceTests
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
 		// Act (the clipboard handed back a different representation -> different hash).
-		sut.HandleNewPayload([2], () => rebaselined);
+		sut.HandleNewPayload([2], () => rebaselined, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -732,7 +1146,16 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		(ClipboardHistoryService sut, _) = NewService(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -750,7 +1173,7 @@ internal class ClipboardHistoryServiceTests
 			built = true;
 
 			return TextEntry("x", [1]);
-		});
+		}, isSensitive: false);
 
 		// Assert
 		sut.Entries
@@ -770,6 +1193,40 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.RestoreAsync" />: the restored entry becomes the active one.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Marks_Entry_Active()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry other = TextEntry("other", [1]);
+
+		ClipboardTextEntry target = TextEntry("target", [2]);
+
+		sut.Entries.Add(other);
+
+		sut.Entries.Add(target);
+
+		// Act
+		await sut.RestoreAsync(target);
+
+		// Assert
+		target.IsActive
+			.Should()
+			.BeTrue();
+
+		other.IsActive
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
 	/// </summary>
 	[Test]
@@ -778,7 +1235,14 @@ internal class ClipboardHistoryServiceTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		using AutoMock mock = CreateMock(messenger);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
 
 		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
@@ -804,13 +1268,51 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.RestoreAsync" />: keeping the position only highlights the entry, it does not move.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_With_KeepPosition_Marks_Active_Without_Moving()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry first = TextEntry("first", [1]);
+
+		ClipboardTextEntry target = TextEntry("target", [2]);
+
+		sut.Entries.Add(first);
+
+		sut.Entries.Add(target);
+
+		// Act
+		await sut.RestoreAsync(target, keepPosition: true);
+
+		// Assert
+		sut.Entries[1]
+			.Should()
+			.Be(target);
+
+		target.IsActive
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
 	/// </summary>
 	[Test]
 	public async Task StartAsync_After_Dispose_Does_Not_Run()
 	{
 		// Arrange
-		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		await sut.DisposeAsync();
 
@@ -830,7 +1332,11 @@ internal class ClipboardHistoryServiceTests
 	public void Stop_Without_Start_Is_NoOp()
 	{
 		// Arrange
-		(ClipboardHistoryService sut, _) = NewService(new WeakReferenceMessenger());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
 
 		// Act
 		Action act = sut.Stop;
@@ -839,6 +1345,118 @@ internal class ClipboardHistoryServiceTests
 		act
 			.Should()
 			.NotThrow();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.TogglePin" />: pinning the first entry lifts it to the very top.
+	/// </summary>
+	[Test]
+	public void TogglePin_Pins_First_Entry_To_Top()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry c = TextEntry("c", [3]);
+
+		sut.Entries.Add(TextEntry("a", [1]));
+
+		sut.Entries.Add(TextEntry("b", [2]));
+
+		sut.Entries.Add(c);
+
+		// Act
+		sut.TogglePin(c);
+
+		// Assert
+		sut.Entries[0]
+			.Should()
+			.Be(c);
+
+		c.IsPinned
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.TogglePin" />: a further pin lands at the end of the pinned block.
+	/// </summary>
+	[Test]
+	public void TogglePin_Pins_Next_Entry_To_End_Of_Pinned_Block()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+
+		ClipboardTextEntry b = TextEntry("b", [3]);
+
+		sut.Entries.Add(pinned);
+
+		sut.Entries.Add(TextEntry("a", [2]));
+
+		sut.Entries.Add(b);
+
+		// Act (b becomes the second pinned entry).
+		sut.TogglePin(b);
+
+		// Assert
+		sut.Entries
+			.Select(static entry => entry.Hash[0])
+			.Should()
+			.Equal(1, 3, 2);
+
+		b.IsPinned
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.TogglePin" />: unpinning drops the entry just below the remaining pins.
+	/// </summary>
+	[Test]
+	public void TogglePin_Unpins_To_Top_Of_Unpinned_Block()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry p0 = PinnedTextEntry("p0", [1]);
+
+		ClipboardTextEntry p1 = PinnedTextEntry("p1", [2]);
+
+		sut.Entries.Add(p0);
+
+		sut.Entries.Add(p1);
+
+		sut.Entries.Add(TextEntry("u", [3]));
+
+		// Act
+		sut.TogglePin(p0);
+
+		// Assert
+		sut.Entries
+			.Select(static entry => entry.Hash[0])
+			.Should()
+			.Equal(2, 1, 3);
+
+		p0.IsPinned
+			.Should()
+			.BeFalse();
+
+		p1.IsPinned
+			.Should()
+			.BeTrue();
 	}
 	#endregion
 
@@ -858,44 +1476,15 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// Builds an auto-mock container with a synchronous dispatcher and the supplied messenger.
+	/// A minimal pinned text entry with the given hash.
 	/// </summary>
-	private static AutoMock CreateMock(IMessenger messenger)
+	private static ClipboardTextEntry PinnedTextEntry(string text, byte[] hash)
 	{
-		return AutoMock.GetLoose(builder =>
-		{
-			builder
-				.RegisterInstance(new InlineDispatcherAccessor())
-				.As<IDispatcherAccessor>();
+		ClipboardTextEntry entry = TextEntry(text, hash);
 
-			builder.RegisterInstance(Substitute.For<IClipboardAccessor>());
+		entry.IsPinned = true;
 
-			builder.RegisterInstance(Substitute.For<IStorageAccessor>());
-
-			builder.RegisterInstance(messenger);
-		});
-	}
-
-	/// <summary>
-	/// Builds a service via its constructor with a synchronous dispatcher and substituted collaborators,
-	/// returning the clipboard accessor for per-test setup.
-	/// </summary>
-	private static (ClipboardHistoryService Sut, IClipboardAccessor Clipboard) NewService(IMessenger messenger)
-	{
-		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
-
-		clipboard
-			.GetDataFormatsAsync()
-			.Returns([]);
-
-		ClipboardHistoryService sut = new(
-			clipboard,
-			new InlineDispatcherAccessor(),
-			Substitute.For<ILogger>(),
-			messenger,
-			Substitute.For<IStorageAccessor>());
-
-		return (sut, clipboard);
+		return entry;
 	}
 
 	/// <summary>

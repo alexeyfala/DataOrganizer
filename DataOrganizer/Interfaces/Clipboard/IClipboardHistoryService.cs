@@ -45,10 +45,10 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries);
 
 	/// <summary>
-	/// Restores <paramref name="entry" /> into the system clipboard and moves it
-	/// to the top of <see cref="Entries" />.
+	/// Restores <paramref name="entry" /> into the system clipboard. Moves it to the top of
+	/// <see cref="Entries" /> unless <paramref name="keepPosition" /> is set.
 	/// </summary>
-	Task RestoreAsync(ClipboardHistoryEntryBase entry);
+	Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false);
 
 	/// <summary>
 	/// Starts background polling. Safe to call more than once.
@@ -59,5 +59,11 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	/// Stops background polling without disposing the service.
 	/// </summary>
 	void Stop();
+
+	/// <summary>
+	/// Toggles the pinned state of <paramref name="entry" /> and repositions it: pinned entries are
+	/// kept atop the history and survive clearing / trimming.
+	/// </summary>
+	void TogglePin(ClipboardHistoryEntryBase entry);
 	#endregion
 }

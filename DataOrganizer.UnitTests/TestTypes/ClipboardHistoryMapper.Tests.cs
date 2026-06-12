@@ -190,6 +190,32 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
+	/// the pinned flag survives the round-trip.
+	/// </summary>
+	[Test]
+	public void RoundTrip_Preserves_Pinned_State()
+	{
+		// Arrange
+		ClipboardTextEntry entry = new()
+		{
+			Text = "pinned",
+			Html = null,
+			Rtf = null,
+			Hash = [1],
+			IsPinned = true
+		};
+
+		// Act
+		ClipboardHistoryEntryBase result = RoundTrip(entry);
+
+		// Assert
+		result.IsPinned
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
 	/// </summary>
 	[Test]

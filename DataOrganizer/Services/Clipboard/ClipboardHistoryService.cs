@@ -34,6 +34,30 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
+
+	/// <summary>
+	/// Number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
+	/// also the index of the first unpinned entry. UI-thread only.
+	/// </summary>
+	private int PinnedCount
+	{
+		get
+		{
+			int count = 0;
+
+			foreach (ClipboardHistoryEntryBase entry in Entries)
+			{
+				if (!entry.IsPinned)
+				{
+					break;
+				}
+
+				count++;
+			}
+
+			return count;
+		}
+	}
 	#endregion
 
 	#region Data
@@ -163,10 +187,22 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync() => ClearCoreAsync(clearSystem: true, ClipboardHistoryChangeKind.ClearedByUser);
+	public Task ClearAsync()
+	{
+		return ClearCoreAsync(
+			clearSystem: true,
+			preservePinned: true,
+			ClipboardHistoryChangeKind.ClearedByUser);
+	}
 
 	/// <inheritdoc />
-	public Task ClearEntriesAsync() => ClearCoreAsync(clearSystem: false, ClipboardHistoryChangeKind.ClearedForStop);
+	public Task ClearEntriesAsync()
+	{
+		return ClearCoreAsync(
+			clearSystem: false,
+			preservePinned: false,
+			ClipboardHistoryChangeKind.ClearedForStop);
+	}
 
 	/// <inheritdoc />
 	public async ValueTask DisposeAsync()
@@ -201,16 +237,23 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
 	{
-		// Appends entries below the current ones, skipping hash duplicates and enforcing the cap.
-		// Does not raise a change notification — the caller decides whether to persist.
+		// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
+		// invariant. Does not raise a change notification — the caller decides whether to persist.
 		foreach (ClipboardHistoryEntryBase entry in entries)
 		{
-			if (Entries.Count >= HistoryLimit)
+			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
 			{
-				break;
+				continue;
 			}
 
-			if (Entries.Any(x => HashEquals(x.Hash, entry.Hash)))
+			if (entry.IsPinned)
+			{
+				Entries.Insert(PinnedCount, entry);
+
+				continue;
+			}
+
+			if (Entries.Count - PinnedCount >= HistoryLimit)
 			{
 				continue;
 			}
@@ -220,7 +263,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreAsync(ClipboardHistoryEntryBase entry)
+	public async Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false)
 	{
 		if (IsDisposed())
 		{
@@ -264,16 +307,21 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			}
 
 			await _dispatcher.PostAsync(() =>
+			{
+				_lastHash = entry.Hash;
+
+				_restoredEntry = entry;
+
+				// With a pinned-open window, only highlight so entries don't jump under the user.
+				if (keepPosition)
 				{
-					_lastHash = entry.Hash;
-
-					_restoredEntry = entry;
-				}).ConfigureAwait(false);
-
-			// Touching Entries must happen on the UI thread.
-			await _dispatcher
-				.PostAsync(() => MoveToTop(entry))
-				.ConfigureAwait(false);
+					MarkActive(entry);
+				}
+				else
+				{
+					MoveToTop(entry);
+				}
+			}).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -330,6 +378,41 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		finally
 		{
 			local.Dispose();
+		}
+	}
+
+	/// <inheritdoc />
+	public void TogglePin(ClipboardHistoryEntryBase entry)
+	{
+		try
+		{
+			int index = Entries.IndexOf(entry);
+
+			if (index < 0)
+			{
+				return;
+			}
+
+			bool pin = !entry.IsPinned;
+
+			// Read before flipping: once unpinned in place, PinnedCount would stop at this entry and read 0.
+			int pinnedCount = PinnedCount;
+
+			entry.IsPinned = pin;
+
+			// Pinning appends to the end of the pinned block; unpinning drops just below the remaining pins.
+			int target = pin ? pinnedCount : pinnedCount - 1;
+
+			if (index != target)
+			{
+				Entries.Move(index, target);
+			}
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
 		}
 	}
 
@@ -408,10 +491,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Handles a freshly observed payload: ignores self-echoes / unchanged content, then either
-	/// moves an existing matching entry to the top or inserts a new one.
+	/// Handles a freshly observed payload.
 	/// </summary>
-	internal void HandleNewPayload(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	internal void HandleNewPayload(
+		byte[] hash,
+		Func<ClipboardHistoryEntryBase> entryFactory,
+		bool isSensitive)
 	{
 		if (_restoredEntry is { } restored)
 		{
@@ -432,6 +517,13 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			return;
 		}
 
+		if (isSensitive)
+		{
+			_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
+
+			return;
+		}
+
 		InsertOrMoveToTop(hash, entryFactory);
 	}
 
@@ -446,12 +538,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
-			if (await ContainsSensitivityMarkerAsync().ConfigureAwait(false))
-			{
-				_logger.LogWarning("Skipping clipboard entry: a sensitivity marker was detected.");
-
-				return;
-			}
+			bool isSensitive = await ContainsSensitivityMarkerAsync().ConfigureAwait(false);
 
 			if (await TryReadFilesAsync() is { Count: > 0 } fileSystemEntries)
 			{
@@ -461,7 +548,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				{
 					FileSystemEntries = fileSystemEntries,
 					Hash = hash
-				})).ConfigureAwait(false);
+				}, isSensitive)).ConfigureAwait(false);
 
 				return;
 			}
@@ -474,7 +561,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				{
 					OriginalPng = png,
 					Hash = hash
-				})).ConfigureAwait(false);
+				}, isSensitive)).ConfigureAwait(false);
 
 				return;
 			}
@@ -490,9 +577,16 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				byte[] hash = ComputeTextEntryHash(text, html, rtf);
 
 				await _dispatcher
-					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash)))
+					.PostAsync(() => HandleNewPayload(hash, () => BuildTextEntry(text, html, rtf, hash), isSensitive))
 					.ConfigureAwait(false);
+
+				return;
 			}
+
+			// Nothing capturable on the clipboard (e.g. emptied via Win+V "Clear all") — drop the stale highlight.
+			await _dispatcher
+				.PostAsync(HandleClipboardCleared)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -646,11 +740,25 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Clears <see cref="Entries" /> and forgets the last observed payload, optionally emptying the
-	/// system clipboard (<paramref name="clearSystem" />). Raises a change notification of
-	/// <paramref name="clearKind" /> so listeners (e.g. persistence) can react.
+	/// Clears the active-entry highlight from every entry. UI-thread only.
 	/// </summary>
-	private async Task ClearCoreAsync(bool clearSystem, ClipboardHistoryChangeKind clearKind)
+	private void ClearActive()
+	{
+		if (Entries.FirstOrDefault(static entry => entry.IsActive) is not { } active)
+		{
+			return;
+		}
+
+		active.IsActive = false;
+	}
+
+	/// <summary>
+	/// Clears <see cref="Entries" /> and forgets the last observed payload.
+	/// </summary>
+	private async Task ClearCoreAsync(
+		bool clearSystem,
+		bool preservePinned,
+		ClipboardHistoryChangeKind clearKind)
 	{
 		if (IsDisposed())
 		{
@@ -663,6 +771,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 		try
 		{
+			int remaining = 0;
+
 			// Touching Entries (and reading Count for the log) must happen on the UI thread.
 			await _dispatcher.PostAsync(() =>
 			{
@@ -670,12 +780,33 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					$"Clearing clipboard history ({Entries.Count} entries)" +
 					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
 
-				Entries.Clear();
+				if (preservePinned)
+				{
+					for (int i = Entries.Count - 1; i >= 0; i--)
+					{
+						if (!Entries[i].IsPinned)
+						{
+							Entries.RemoveAt(i);
+						}
+					}
+				}
+				else
+				{
+					Entries.Clear();
+				}
+
+				remaining = Entries.Count;
 
 				_lastHash = null;
+
+				ClearActive();
 			}).ConfigureAwait(false);
 
-			NotifyChanged(clearKind);
+			ClipboardHistoryChangeKind effectiveKind = remaining > 0
+				? ClipboardHistoryChangeKind.Updated
+				: clearKind;
+
+			NotifyChanged(effectiveKind);
 
 			if (!clearSystem)
 			{
@@ -729,16 +860,36 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Inserts <paramref name="entry" /> at position 0 and enforces the history cap.
+	/// Drops the active highlight and change-detection baseline when the clipboard holds nothing capturable
+	/// (e.g. emptied via Win+V); a restore awaiting its echo is left untouched. UI-thread only.
+	/// </summary>
+	private void HandleClipboardCleared()
+	{
+		if (_restoredEntry is not null)
+		{
+			return;
+		}
+
+		_lastHash = null;
+
+		ClearActive();
+	}
+
+	/// <summary>
+	/// Inserts <paramref name="entry" /> below the pinned block and enforces the history cap on
+	/// unpinned entries only (pinned ones are exempt from trimming).
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
-		Entries.Insert(0, entry);
+		Entries.Insert(PinnedCount, entry);
 
-		while (Entries.Count > HistoryLimit)
+		while (Entries.Count - PinnedCount > HistoryLimit)
 		{
+			// The last entry is always unpinned (pinned ones sit atop), so trimming never drops a pin.
 			Entries.RemoveAt(Entries.Count - 1);
 		}
+
+		MarkActive(entry);
 
 		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
@@ -831,28 +982,53 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Moves <paramref name="entry" /> to position 0 if it is already in the collection,
-	/// otherwise inserts it.
+	/// Marks <paramref name="entry" /> (already in <see cref="Entries" />) as the active
+	/// current-clipboard entry, clearing the flag on all others. UI-thread only.
+	/// </summary>
+	private void MarkActive(ClipboardHistoryEntryBase entry)
+	{
+		if (Entries.FirstOrDefault(static other => other.IsActive) is { } previous && !ReferenceEquals(previous, entry))
+		{
+			previous.IsActive = false;
+		}
+
+		entry.IsActive = true;
+	}
+
+	/// <summary>
+	/// Moves <paramref name="entry" /> to the top of its block.
 	/// </summary>
 	private void MoveToTop(ClipboardHistoryEntryBase entry)
 	{
-		int index = Entries.IndexOf(entry);
-
-		if (index < 0)
+		try
 		{
-			InsertAtTop(entry);
+			int index = Entries.IndexOf(entry);
 
-			return;
+			if (index < 0)
+			{
+				InsertAtTop(entry);
+
+				return;
+			}
+
+			MarkActive(entry);
+
+			// Pinned entries go to the very top; unpinned ones stay below the pinned block.
+			int target = entry.IsPinned ? 0 : PinnedCount;
+
+			if (index == target)
+			{
+				return;
+			}
+
+			Entries.Move(index, target);
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
 		}
-
-		if (index == 0)
+		catch (Exception ex)
 		{
-			return;
+			_logger.LogException(ex);
 		}
-
-		Entries.Move(index, 0);
-
-		NotifyChanged(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -867,6 +1043,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private void RebaselineRestored(ClipboardHistoryEntryBase restored, ClipboardHistoryEntryBase rebaselined)
 	{
+		rebaselined.IsPinned = restored.IsPinned;
+
 		int index = Entries.IndexOf(restored);
 
 		if (index < 0)
@@ -877,6 +1055,8 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 
 		Entries[index] = rebaselined;
+
+		MarkActive(rebaselined);
 
 		_logger.LogDebug($"Re-baselined restored clipboard entry: {rebaselined.GetType().Name}.");
 

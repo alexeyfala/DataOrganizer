@@ -74,14 +74,16 @@ internal static partial class ClipboardHistoryMapper
 				Html = entry.Html,
 				Rtf = entry.Rtf,
 				Url = trimmed,
-				Hash = entry.Hash
+				Hash = entry.Hash,
+				IsPinned = entry.IsPinned
 			}
 			: new ClipboardTextEntry
 			{
 				Text = entry.Text,
 				Html = entry.Html,
 				Rtf = entry.Rtf,
-				Hash = entry.Hash
+				Hash = entry.Hash,
+				IsPinned = entry.IsPinned
 			};
 	}
 
@@ -93,12 +95,14 @@ internal static partial class ClipboardHistoryMapper
 		PersistedImageEntry image => new ClipboardImageEntry
 		{
 			OriginalPng = image.OriginalPng,
-			Hash = image.Hash
+			Hash = image.Hash,
+			IsPinned = image.IsPinned
 		},
 		PersistedFilesEntry files => new ClipboardFilesEntry
 		{
 			FileSystemEntries = [.. files.Files.Select(static x => new ClipboardFileSystemEntry(x.Path, x.IsFolder))],
-			Hash = files.Hash
+			Hash = files.Hash,
+			IsPinned = files.IsPinned
 		},
 		PersistedTextEntry text => BuildTextEntry(text),
 		_ => null
@@ -112,12 +116,14 @@ internal static partial class ClipboardHistoryMapper
 		ClipboardImageEntry image => new PersistedImageEntry
 		{
 			OriginalPng = image.OriginalPng,
-			Hash = image.Hash
+			Hash = image.Hash,
+			IsPinned = image.IsPinned
 		},
 		ClipboardFilesEntry files => new PersistedFilesEntry
 		{
 			Files = [.. files.FileSystemEntries.Select(static x => new PersistedFileSystemEntry(x.Path, x.IsFolder))],
-			Hash = files.Hash
+			Hash = files.Hash,
+			IsPinned = files.IsPinned
 		},
 		// Catches ClipboardUrlEntry too (derived from ClipboardTextEntry); URL is re-derived on load.
 		ClipboardTextEntry text => new PersistedTextEntry
@@ -125,7 +131,8 @@ internal static partial class ClipboardHistoryMapper
 			Text = text.Text,
 			Html = text.Html,
 			Rtf = text.Rtf,
-			Hash = text.Hash
+			Hash = text.Hash,
+			IsPinned = text.IsPinned
 		},
 		_ => null
 	};

@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -22,6 +22,12 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// History entries to display (delegated to <see cref="IClipboardHistoryService" />).
 	/// </summary>
 	public ObservableCollection<ClipboardHistoryEntryBase> Entries => _clipboardHistory.Entries;
+
+	/// <summary>
+	/// Whether the window stays open on focus loss and after a restore.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool KeepOpen { get; set; }
 
 	/// <inheritdoc cref="ClipboardHistoryEntryBase" />
 	[ObservableProperty]
@@ -92,7 +98,23 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	{
 		return entry is null
 			? Task.CompletedTask
-			: _clipboardHistory.RestoreAsync(entry);
+			: _clipboardHistory.RestoreAsync(entry, keepPosition: KeepOpen);
+	}
+
+	/// <summary>
+	/// Toggles the pinned state of <paramref name="entry" />.
+	/// </summary>
+	[RelayCommand]
+	private void TogglePin(ClipboardHistoryEntryBase? entry)
+	{
+		if (entry is null)
+		{
+			return;
+		}
+
+		_clipboardHistory.TogglePin(entry);
+
+		ClearCommand.NotifyCanExecuteChanged();
 	}
 	#endregion
 
@@ -100,6 +122,6 @@ public sealed partial class CustomClipboardViewModel : ObservableObject
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanClear() => _clipboardHistory.Entries.Count > 0;
+	private bool CanClear() => _clipboardHistory.Entries.Any(static entry => !entry.IsPinned);
 	#endregion
 }

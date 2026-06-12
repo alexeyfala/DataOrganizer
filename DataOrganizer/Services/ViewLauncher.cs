@@ -189,6 +189,8 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
 		{
+			viewModel.KeepOpen = settings.KeepOpen;
+
 			if (settings.Size.Width > 0 && settings.Size.Height > 0)
 			{
 				window.Width = settings.Size.Width;
@@ -361,6 +363,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			CustomClipboardWindowSettings settings = new()
 			{
+				KeepOpen = window.ViewModel.KeepOpen,
 				Size = new((int)window.Width, (int)window.Height),
 				X = window.Position.X,
 				Y = window.Position.Y,
@@ -496,6 +499,15 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public async Task ShowCustomClipboardWindowAsync(Window owner)
 	{
+		if (_app.FindWindow<CustomClipboardWindow>() is { } existing)
+		{
+			PositionAtScreenBottomRight(existing, owner);
+
+			existing.Activate();
+
+			return;
+		}
+
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
 		ConfigureCustomClipboardWindow(owner).Show();

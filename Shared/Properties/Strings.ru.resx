@@ -234,6 +234,9 @@
   <data name="Close" xml:space="preserve">
     <value>Закрыть</value>
   </data>
+  <data name="DoNotCloseAutomatically" xml:space="preserve">
+    <value>Не закрывать автоматически</value>
+  </data>
   <data name="Hide" xml:space="preserve">
     <value>Скрыть</value>
   </data>
@@ -422,6 +425,12 @@
   </data>
   <data name="HideContents" xml:space="preserve">
     <value>Скрыть содержимое</value>
+  </data>
+  <data name="Pin" xml:space="preserve">
+    <value>Закрепить</value>
+  </data>
+  <data name="Unpin" xml:space="preserve">
+    <value>Открепить</value>
   </data>
   <data name="EncryptFiles" xml:space="preserve">
     <value>Зашифровать файлы</value>

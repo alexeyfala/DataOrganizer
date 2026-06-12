@@ -24,9 +24,7 @@
 	mc:Ignorable="d">
 
 	<Interaction.Behaviors>
-		<EventTriggerBehavior EventName="Deactivated">
-			<CloseWindowAction />
-		</EventTriggerBehavior>
+		<behaviors:CloseWindowOnDeactivatedBehavior KeepOpen="{Binding KeepOpen}" />
 
 		<KeyDownTrigger
 			Key="Escape"
@@ -62,7 +60,7 @@
 			<Grid RowDefinitions="Auto,*">
 				<Grid
 					Grid.Row="0"
-					ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+					ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
 					<Image
 						Grid.Column="0"
 						Classes="AppImageStyle" />
@@ -74,15 +72,27 @@
 						Classes="HeaderTextBlockStyle"
 						Text="{x:Static prop:Strings.Clipboard}" />
 
-					<Button
+					<ToggleSwitch
 						Grid.Column="3"
+						Margin="4.0,0.0"
+						VerticalAlignment="Center"
+						Classes="accent"
+						IsChecked="{Binding KeepOpen, Mode=TwoWay}"
+						OffContent=""
+						OnContent=""
+						RenderTransform="scale(0.8)"
+						RenderTransformOrigin="50%,50%"
+						ToolTip.Tip="{x:Static prop:Strings.DoNotCloseAutomatically}" />
+
+					<Button
+						Grid.Column="4"
 						Padding="8.0,2.0"
 						Classes="primary"
 						Command="{Binding ClearCommand}"
 						Content="{x:Static prop:Strings.Clear}" />
 
 					<Button
-						Grid.Column="4"
+						Grid.Column="5"
 						Margin="4.0,0.0,0.0,0.0"
 						Padding="6.0,2.0"
 						Content="{materialIcons:MaterialIconTextExt Kind=Close}"
