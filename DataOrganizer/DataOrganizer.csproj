@@ -45,6 +45,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- HTML5 DOM parser: normalizes the formatted-text preview by trimming blank edge markup. -->
+		<PackageReference Include="AngleSharp" Version="1.5.0" />
 		<PackageReference Include="Avalonia" Version="12.0.4" />
 		<PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />

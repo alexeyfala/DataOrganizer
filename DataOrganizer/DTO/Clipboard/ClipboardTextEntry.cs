@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 using System;
@@ -127,14 +128,14 @@ public partial class ClipboardTextEntry : ClipboardHistoryEntryBase
 	{
 		if (Html is { } html)
 		{
-			return ExtractHtmlFragment(html);
+			return HtmlPreviewTrimmer.Trim(ExtractHtmlFragment(html));
 		}
 
 		if (Rtf is { } rtf)
 		{
 			try
 			{
-				return RtfPipe.Rtf.ToHtml(rtf);
+				return HtmlPreviewTrimmer.Trim(RtfPipe.Rtf.ToHtml(rtf));
 			}
 			catch
 			{

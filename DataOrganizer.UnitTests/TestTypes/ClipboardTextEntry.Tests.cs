@@ -85,6 +85,24 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: leading empty paragraphs (RTF-to-HTML shape) are dropped.
+	/// </summary>
+	[Test]
+	public void Preview_Drops_Leading_Empty_Paragraphs()
+	{
+		// Arrange (mirrors the nested empty blocks RtfPipe emits for blank leading lines).
+		const string html =
+			"<html><body><!--StartFragment--><div><p>&nbsp;</p><p></p><p>hi</p></div><!--EndFragment--></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("hi", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<div><p>hi</p></div>");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardTextEntry.Preview" />: a CF_HTML payload yields its trimmed fragment.
 	/// </summary>
 	[Test]
@@ -93,6 +111,24 @@ internal class ClipboardTextEntryTests
 		// Arrange
 		const string html =
 			"Version:0.9\r\nStartHTML:0000\r\n<html><body><!--StartFragment--><b>hi</b><!--EndFragment--></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("hi", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<b>hi</b>");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: leading / trailing &lt;br&gt; and whitespace are stripped.
+	/// </summary>
+	[Test]
+	public void Preview_Strips_Edge_Break_Markup()
+	{
+		// Arrange
+		const string html =
+			"<html><body><!--StartFragment--> <br><br><b>hi</b><br> <!--EndFragment--></body></html>";
 
 		ClipboardTextEntry sut = TextEntry("hi", html: html);
 
