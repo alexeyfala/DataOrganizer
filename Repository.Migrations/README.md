@@ -40,6 +40,13 @@ This creates a `Migrations/` folder in `Repository.Migrations` with the files
 
     dotnet ef migrations script --project Repository.Migrations --startup-project Repository.Migrations
 
+## Generate an idempotent SQL script (safe for deployment)
+
+Checks `__EFMigrationsHistory` and applies only the missing migrations, so it can be run
+against a database in any state:
+
+    dotnet ef migrations script --idempotent --project Repository.Migrations --startup-project Repository.Migrations
+
 ## Apply migrations to a database manually (usually not needed)
 
 The application applies migrations on startup by itself. If needed:
@@ -48,9 +55,27 @@ The application applies migrations on startup by itself. If needed:
 
 > Design time uses a dummy connection string `Data Source=design-time.db`
 
+## Roll back migrations
+
+`migrations remove` only deletes the last *not yet applied* migration. To undo an *applied*
+migration, update the database to an earlier one (`0` reverts everything):
+
+    dotnet ef database update <PreviousMigrationName> --project Repository.Migrations --startup-project Repository.Migrations
+    dotnet ef database update 0 --project Repository.Migrations --startup-project Repository.Migrations
+
 ## Verify the wiring without creating files
 
     dotnet ef dbcontext info --project Repository.Migrations --startup-project Repository.Migrations
 
 The output should contain `Provider name: Microsoft.EntityFrameworkCore.Sqlite`
 and `Options: MigrationsAssembly=Repository.Migrations`.
+
+## Check that the snapshot matches the model
+
+Useful as a sanity check / in CI — fails if the model changed but no migration was added:
+
+    dotnet ef migrations has-pending-model-changes --project Repository.Migrations --startup-project Repository.Migrations
+
+## Troubleshooting
+
+Append `--verbose` to any command above to see detailed diagnostic output when something fails.
