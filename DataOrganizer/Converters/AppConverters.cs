@@ -82,10 +82,5 @@ internal static class AppConverters
 	/// <c>True</c> when a search query is active (non-blank).
 	/// </summary>
 	public static FuncValueConverter<string?, bool> SearchIsActive { get; } = new(query => !string.IsNullOrWhiteSpace(query));
-
-	/// <summary>
-	/// <c>True</c> when no search query is active (blank).
-	/// </summary>
-	public static FuncValueConverter<string?, bool> SearchIsInactive { get; } = new(string.IsNullOrWhiteSpace);
 	#endregion
 }
