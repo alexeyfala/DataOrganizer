@@ -10,6 +10,13 @@ namespace Repository.DbContexts;
 /// </summary>
 public class SqliteDbContext : DbContext
 {
+	#region Data
+	/// <summary>
+	/// Name of the assembly that holds the EF Core migrations for this context.
+	/// </summary>
+	public const string MigrationsAssemblyName = "Repository.Migrations";
+	#endregion
+
 	#region Constructors
 	public SqliteDbContext(DbContextOptions<SqliteDbContext> options) : base(options)
 	{
@@ -26,9 +33,9 @@ public class SqliteDbContext : DbContext
 	/// <inheritdoc />
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
-		if (EF.IsDesignTime)
+		if (EF.IsDesignTime && !optionsBuilder.IsConfigured)
 		{
-			optionsBuilder.UseSqlite();
+			optionsBuilder.UseSqlite(x => x.MigrationsAssembly(MigrationsAssemblyName));
 		}
 
 		base.OnConfiguring(optionsBuilder);

@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System.Data.Common;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -80,11 +79,12 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
-	public bool HasMigrations(Assembly assembly)
+	public bool HasMigrations()
 	{
-		return assembly
-			.GetTypes()
-			.Any(x => x.IsSubclassOf(typeof(Migration)));
+		return _dbContext
+			.GetService<IMigrationsAssembly>()
+			.Migrations
+			.Count > 0;
 	}
 
 	/// <inheritdoc />
