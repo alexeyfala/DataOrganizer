@@ -4,6 +4,7 @@
 	xmlns:adc="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
@@ -19,25 +20,59 @@
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<TextBlock
-			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			VerticalAlignment="Center"
-			Text="{Binding Preview, Mode=OneTime}"
-			TextTrimming="CharacterEllipsis"
-			TextWrapping="Wrap" />
+		<Panel>
+			<TextBlock
+				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				VerticalAlignment="Center"
+				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsInactive}}"
+				Text="{Binding Preview, Mode=OneTime}"
+				TextTrimming="CharacterEllipsis"
+				TextWrapping="Wrap" />
+
+			<!-- Search-only excerpt centered on the first match. -->
+			<TextBlock
+				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				VerticalAlignment="Center"
+				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsActive}}"
+				TextTrimming="CharacterEllipsis"
+				TextWrapping="Wrap">
+				<Interaction.Behaviors>
+					<behaviors:SearchHighlightBehavior
+						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+						SourceText="{Binding Text, Mode=OneTime}" />
+				</Interaction.Behaviors>
+			</TextBlock>
+		</Panel>
 	</DataTemplate>
 
 	<!-- ClipboardFormattedTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardFormattedTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<html:HtmlLabel
-			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			AutoSize="False"
-			AutoSizeHeightOnly="True"
-			Background="White"
-			IsHitTestVisible="False"
-			Text="{Binding Preview, Mode=OneTime}" />
+		<Panel>
+			<html:HtmlLabel
+				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				AutoSize="False"
+				AutoSizeHeightOnly="True"
+				Background="White"
+				IsHitTestVisible="False"
+				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsInactive}}"
+				Text="{Binding Preview, Mode=OneTime}" />
+
+			<!-- While searching, formatted entries fall back to a plain excerpt centered on the match. -->
+			<TextBlock
+				MaxHeight="{StaticResource TextEntryMaxHeight}"
+				VerticalAlignment="Center"
+				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsActive}}"
+				TextTrimming="CharacterEllipsis"
+				TextWrapping="Wrap">
+				<Interaction.Behaviors>
+					<behaviors:SearchHighlightBehavior
+						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+						SourceText="{Binding Text, Mode=OneTime}" />
+				</Interaction.Behaviors>
+			</TextBlock>
+		</Panel>
 	</DataTemplate>
 
 	<!-- ClipboardImageEntryTemplate -->
