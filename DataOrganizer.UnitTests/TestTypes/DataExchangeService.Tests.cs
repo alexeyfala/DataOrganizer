@@ -103,7 +103,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt));
+				.Returns(TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt));
 
 			builder.RegisterInstance(picker);
 
@@ -183,7 +183,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt));
+				.Returns(TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt));
 
 			builder.RegisterInstance(picker);
 
@@ -222,7 +222,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
@@ -320,7 +320,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
@@ -375,7 +375,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.JsonExt)]);
+				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -479,7 +479,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, IFileSystemPicker.XmlExt)]);
+				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 

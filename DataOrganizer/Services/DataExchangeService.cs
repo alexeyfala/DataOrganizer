@@ -28,6 +28,41 @@ namespace DataOrganizer.Services;
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data
+	/// <summary>
+	/// JSON file extension.
+	/// </summary>
+	internal const string JsonExt = ".json";
+
+	/// <summary>
+	/// XML file extension.
+	/// </summary>
+	internal const string XmlExt = ".xml";
+
+	/// <summary>
+	/// MIME type for JSON files.
+	/// </summary>
+	private const string JsonMime = "application/json";
+
+	/// <summary>
+	/// MIME type for SQLite database files.
+	/// </summary>
+	private const string SqliteMime = "application/x-sqlite3";
+
+	/// <summary>
+	/// MIME type for XML files.
+	/// </summary>
+	private const string XmlMime = "application/xml";
+
+	/// <summary>
+	/// File types for export application objects.
+	/// </summary>
+	private static readonly FilePickerFileType[] ExportFilePickerTypes;
+
+	/// <summary>
+	/// File types for import application objects.
+	/// </summary>
+	private static readonly FilePickerFileType[] ImportFilePickerTypes;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -57,6 +92,41 @@ public sealed class DataExchangeService : IDataExchangeService
 	#endregion
 
 	#region Constructors
+	static DataExchangeService()
+	{
+		FilePickerFileType[] allTypes =
+		[
+			new("All Supported Files")
+			{
+				Patterns = [$"*{JsonExt}", $"*{XmlExt}", $"*{AppUtils.SQLiteExtension}"],
+				MimeTypes = [JsonMime, XmlMime, SqliteMime]
+			}
+		];
+
+		FilePickerFileType[] concreteTypes =
+		[
+			new("JSON File")
+			{
+				Patterns = [$"*{JsonExt}"],
+				MimeTypes = [JsonMime]
+			},
+			new("XML File")
+			{
+				Patterns = [$"*{XmlExt}"],
+				MimeTypes = [XmlMime]
+			},
+			new("SQLite Database File")
+			{
+				Patterns = [$"*{AppUtils.SQLiteExtension}"],
+				MimeTypes = [SqliteMime]
+			}
+		];
+
+		ExportFilePickerTypes = concreteTypes;
+
+		ImportFilePickerTypes = [.. allTypes, .. concreteTypes];
+	}
+
 	public DataExchangeService(
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -94,8 +164,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = IFileSystemPicker.JsonExt.TrimStart('.'),
-			FileTypeChoices = IFileSystemPicker.ImportExportFilePickerTypes,
+			DefaultExtension = JsonExt.TrimStart('.'),
+			FileTypeChoices = ExportFilePickerTypes,
 			ShowOverwritePrompt = true,
 			SuggestedFileName = AppUtils.AppNameAsOneWord,
 			Title = Strings.SaveAs
@@ -114,11 +184,11 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemPicker.JsonExt:
+				case JsonExt:
 					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case IFileSystemPicker.XmlExt:
+				case XmlExt:
 					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
@@ -166,7 +236,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		FilePickerOpenOptions options = new()
 		{
 			AllowMultiple = false,
-			FileTypeFilter = IFileSystemPicker.ImportExportFilePickerTypes,
+			FileTypeFilter = ImportFilePickerTypes,
 			Title = Strings.Select
 		};
 
@@ -198,7 +268,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case IFileSystemPicker.JsonExt:
+				case JsonExt:
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
@@ -216,7 +286,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case IFileSystemPicker.XmlExt:
+				case XmlExt:
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
