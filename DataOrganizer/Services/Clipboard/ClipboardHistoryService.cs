@@ -39,25 +39,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// Number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
 	/// also the index of the first unpinned entry. UI-thread only.
 	/// </summary>
-	private int PinnedCount
-	{
-		get
-		{
-			int count = 0;
-
-			foreach (ClipboardHistoryEntryBase entry in Entries)
-			{
-				if (!entry.IsPinned)
-				{
-					break;
-				}
-
-				count++;
-			}
-
-			return count;
-		}
-	}
+	private int PinnedCount => Entries.Count(x => x.IsPinned);
 	#endregion
 
 	#region Data
