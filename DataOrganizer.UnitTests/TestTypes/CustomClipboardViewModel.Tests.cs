@@ -7,6 +7,7 @@ using DataOrganizer.ViewModels;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -167,6 +168,8 @@ internal class CustomClipboardViewModelTests
 	public void VisibleEntries_Mirrors_All_Entries_Without_Search()
 	{
 		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
@@ -195,6 +198,8 @@ internal class CustomClipboardViewModelTests
 	public void VisibleEntries_New_Entry_Below_Pinned_Keeps_Source_Order()
 	{
 		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
 		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [1]);
 
 		ClipboardTextEntry older = TextEntry("older", [2]);
