@@ -50,6 +50,9 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// </summary>
 	public required string? Rtf { get; init; }
 
+	/// <inheritdoc />
+	public override string? SearchableText => Text;
+
 	/// <summary>
 	/// Plain text content.
 	/// </summary>

@@ -42,6 +42,11 @@ public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 	public virtual string? Preview => null;
 
 	/// <summary>
+	/// Text used to match this entry against a search query; <c>null</c> excludes it from matching.
+	/// </summary>
+	public virtual string? SearchableText => null;
+
+	/// <summary>
 	/// Emoji glyph shown as a type badge over the entry in the clipboard history list.
 	/// </summary>
 	public abstract string TypeGlyph { get; }
