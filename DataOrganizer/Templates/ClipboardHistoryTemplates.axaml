@@ -19,30 +19,17 @@
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<Panel>
-			<TextBlock
-				MaxHeight="{StaticResource TextEntryMaxHeight}"
-				VerticalAlignment="Center"
-				IsVisible="{Binding #MatchExcerpt.IsVisible, Converter={x:Static BoolConverters.Not}}"
-				Text="{Binding Preview, Mode=OneTime}"
-				TextTrimming="CharacterEllipsis"
-				TextWrapping="Wrap" />
-
-			<!-- Search-only excerpt centered on the first match. -->
-			<TextBlock
-				x:Name="MatchExcerpt"
-				MaxHeight="{StaticResource TextEntryMaxHeight}"
-				VerticalAlignment="Center"
-				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsActive}}"
-				TextTrimming="CharacterEllipsis"
-				TextWrapping="Wrap">
-				<Interaction.Behaviors>
-					<behaviors:SearchHighlightBehavior
-						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
-						SourceText="{Binding Text, Mode=OneTime}" />
-				</Interaction.Behaviors>
-			</TextBlock>
-		</Panel>
+		<TextBlock
+			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			VerticalAlignment="Center"
+			TextTrimming="CharacterEllipsis"
+			TextWrapping="Wrap">
+			<Interaction.Behaviors>
+				<behaviors:SearchHighlightBehavior
+					Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+					SourceText="{Binding Text, Mode=OneTime}" />
+			</Interaction.Behaviors>
+		</TextBlock>
 	</DataTemplate>
 
 	<!-- ClipboardFormattedTextEntryTemplate -->

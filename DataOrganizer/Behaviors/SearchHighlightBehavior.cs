@@ -98,11 +98,13 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 
 		InlineCollection inlines = [];
 
-		string snippet = SearchSnippet.Build(SourceText, Query);
+		string content = string.IsNullOrWhiteSpace(Query)
+			? SourceText?.Trim() ?? string.Empty
+			: SearchSnippet.Build(SourceText, Query);
 
-		if (snippet.Length > 0)
+		if (content.Length > 0)
 		{
-			inlines.Add(new Run(snippet));
+			inlines.Add(new Run(content));
 		}
 
 		AssociatedObject.Inlines = inlines;
