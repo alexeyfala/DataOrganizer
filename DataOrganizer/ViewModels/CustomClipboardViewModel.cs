@@ -58,7 +58,7 @@ public sealed partial class CustomClipboardViewModel :
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <summary>
-	/// Subscription handle for the search-filter pipeline; disposed in <see cref="Dispose" />.
+	/// Subscription handle for the search-filter pipeline.
 	/// </summary>
 	private readonly IDisposable _filterSubscription;
 
@@ -186,6 +186,17 @@ public sealed partial class CustomClipboardViewModel :
 
 	#region Helpers
 	/// <summary>
+	/// Builds the entry predicate for a search <paramref name="value" />: a blank value matches every entry,
+	/// otherwise an entry matches when its <see cref="ClipboardHistoryEntryBase.SearchableText" /> contains it (case-insensitive).
+	/// </summary>
+	internal static Func<ClipboardHistoryEntryBase, bool> BuildPredicate(string? value)
+	{
+		return string.IsNullOrWhiteSpace(value)
+			? _ => true
+			: entry => entry.SearchableText is { } text && text.Contains(value, StringComparison.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
 	/// Builds the throttled predicate stream that drives <see cref="VisibleEntries" /> from <see cref="SearchText" />.
 	/// The first value is applied immediately; later changes are debounced.
 	/// </summary>
@@ -198,14 +209,7 @@ public sealed partial class CustomClipboardViewModel :
 				.Merge(stream
 					.Skip(1)
 					.Throttle(TimeSpan.FromMilliseconds(500L))))
-			.Select(Predicate);
-
-		static Func<ClipboardHistoryEntryBase, bool> Predicate(string? value)
-		{
-			return !string.IsNullOrWhiteSpace(value)
-				? x => x.SearchableText is { } text && text.Contains(value, StringComparison.OrdinalIgnoreCase)
-				: _ => true;
-		}
+			.Select(BuildPredicate);
 	}
 
 	/// <summary>
