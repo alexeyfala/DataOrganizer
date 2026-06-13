@@ -48,7 +48,7 @@
 	</Style>
 
 	<Style Selector="Panel.VerticalSeparatorPanelStyle">
-		<Setter Property="Background" Value="{StaticResource NeutralBrush}" />
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 		<Setter Property="Margin" Value="0.0,6.0" />
 		<Setter Property="VerticalAlignment" Value="Stretch" />
 		<Setter Property="Width" Value="1.0" />
@@ -95,7 +95,7 @@
 	</Style>
 
 	<Style Selector="GridSplitter.VerticalGridSplitterStyle">
-		<Setter Property="Background" Value="{StaticResource NeutralBrush}" />
+		<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
 		<Setter Property="BorderThickness" Value="3.0" />
 		<Setter Property="ResizeDirection" Value="Columns" />
 	</Style>
@@ -184,7 +184,7 @@
 						Grid.RowSpan="2"
 						Grid.ColumnSpan="2"
 						Margin="0.0,10.0,0.0,0.0"
-						BorderBrush="{StaticResource NeutralBrush}"
+						BorderBrush="{StaticResource MaterialDividerBrush}"
 						BorderThickness="1.0"
 						CornerRadius="4.0">
 						<ContentPresenter

@@ -106,11 +106,17 @@
 					</Button>
 				</Grid>
 
-				<TextBox
+				<Border
 					Grid.Row="1"
 					Margin="0.0,8.0,0.0,0.0"
-					Classes="clearButton SearchTextBoxStyle"
-					Text="{Binding SearchText, Mode=TwoWay}" />
+					Padding="6.0,0.0"
+					BorderBrush="{StaticResource MaterialDividerBrush}"
+					BorderThickness="1.0"
+					CornerRadius="4.0">
+					<TextBox
+						Classes="clearButton SearchTextBoxStyle"
+						Text="{Binding SearchText, Mode=TwoWay}" />
+				</Border>
 
 				<ScrollViewer
 					Grid.Row="2"
