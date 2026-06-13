@@ -6,6 +6,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using System;
+using System.Collections.ObjectModel;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -184,6 +185,44 @@ internal class CustomClipboardViewModelTests
 		sut.VisibleEntries
 			.Should()
 			.HaveCount(3);
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: a new entry inserted below the pinned block keeps its
+	/// source position in <c>VisibleEntries</c> (regression: live inserts must not jump to the bottom).
+	/// </summary>
+	[Test]
+	public void VisibleEntries_New_Entry_Below_Pinned_Keeps_Source_Order()
+	{
+		// Arrange
+		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [1]);
+
+		ClipboardTextEntry older = TextEntry("older", [2]);
+
+		ObservableCollection<ClipboardHistoryEntryBase> entries = [pinned, older];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns(entries);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+
+		// Act — mimic the service: insert the new entry just below the pinned block.
+		ClipboardTextEntry fresh = TextEntry("fresh", [3]);
+
+		entries.Insert(1, fresh);
+
+		// Assert
+		sut.VisibleEntries
+			.Should()
+			.ContainInOrder(pinned, fresh, older);
 	}
 	#endregion
 

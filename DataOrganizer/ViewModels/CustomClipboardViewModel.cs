@@ -5,7 +5,6 @@ using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
-using DynamicData;
 using DynamicData.Binding;
 using Serilog;
 using Shared.Extensions;
@@ -13,6 +12,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +47,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// <summary>
 	/// History entries matching the current search query.
 	/// </summary>
-	public ReadOnlyObservableCollection<ClipboardHistoryEntryBase> VisibleEntries => _visibleEntries;
+	public ReadOnlyObservableCollection<ClipboardHistoryEntryBase> VisibleEntries { get; }
 	#endregion
 
 	#region Data
@@ -69,9 +69,9 @@ public sealed partial class CustomClipboardViewModel :
 	private readonly IMessenger _messenger;
 
 	/// <summary>
-	/// Backing field for <see cref="VisibleEntries" />.
+	/// Backing collection for <see cref="VisibleEntries" />.
 	/// </summary>
-	private readonly ReadOnlyObservableCollection<ClipboardHistoryEntryBase> _visibleEntries;
+	private readonly ObservableCollection<ClipboardHistoryEntryBase> _visibleEntries = [];
 	#endregion
 
 	#region Constructors
@@ -91,20 +91,21 @@ public sealed partial class CustomClipboardViewModel :
 
 		messenger.RegisterAll(this);
 
-		IObservable<IChangeSet<ClipboardHistoryEntryBase>> observable = _clipboardHistory
+		VisibleEntries = new(_visibleEntries);
+
+		IObservable<Unit> trigger = _clipboardHistory
 			.Entries
 			.ToObservableChangeSet()
-			.Filter(BuildSearchPredicate());
+			.Select(static _ => Unit.Default)
+			.Merge(BuildSearchTrigger());
 
 		if (SynchronizationContext.Current is { } context)
 		{
-			// Marshal filter updates back to the UI thread: the search throttle emits off-thread.
-			observable = observable.ObserveOn(context);
+			// The search throttle emits off-thread; marshal refreshes back to the UI thread.
+			trigger = trigger.ObserveOn(context);
 		}
 
-		_filterSubscription = observable
-			.Bind(out _visibleEntries)
-			.Subscribe();
+		_filterSubscription = trigger.Subscribe(_ => RefreshVisibleEntries());
 	}
 	#endregion
 
@@ -197,10 +198,9 @@ public sealed partial class CustomClipboardViewModel :
 	}
 
 	/// <summary>
-	/// Builds the throttled predicate stream that drives <see cref="VisibleEntries" /> from <see cref="SearchText" />.
-	/// The first value is applied immediately; later changes are debounced.
+	/// Emits when the search query should be re-applied: immediately for the first value, debounced thereafter.
 	/// </summary>
-	private IObservable<Func<ClipboardHistoryEntryBase, bool>> BuildSearchPredicate()
+	private IObservable<Unit> BuildSearchTrigger()
 	{
 		return this
 			.WhenValueChanged(x => x.SearchText)
@@ -209,12 +209,49 @@ public sealed partial class CustomClipboardViewModel :
 				.Merge(stream
 					.Skip(1)
 					.Throttle(TimeSpan.FromMilliseconds(500L))))
-			.Select(BuildPredicate);
+			.Select(static _ => Unit.Default);
 	}
 
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
 	private bool CanClear() => _clipboardHistory.Entries.Any(static entry => !entry.IsPinned);
+
+	/// <summary>
+	/// Reconciles <see cref="VisibleEntries" /> with the matching history entries, preserving source order.
+	/// </summary>
+	private void RefreshVisibleEntries()
+	{
+		Func<ClipboardHistoryEntryBase, bool> predicate = BuildPredicate(SearchText);
+
+		int target = 0;
+
+		foreach (ClipboardHistoryEntryBase entry in _clipboardHistory.Entries)
+		{
+			if (!predicate(entry))
+			{
+				continue;
+			}
+
+			int current = _visibleEntries.IndexOf(entry);
+
+			if (current < 0)
+			{
+				_visibleEntries.Insert(target, entry);
+			}
+			else if (current != target)
+			{
+				_visibleEntries.Move(current, target);
+			}
+
+			target++;
+		}
+
+		// Entries removed from the source or no longer matching pile up past the last match — drop them.
+		while (_visibleEntries.Count > target)
+		{
+			_visibleEntries.RemoveAt(_visibleEntries.Count - 1);
+		}
+	}
 	#endregion
 }
