@@ -5,12 +5,16 @@ using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
+using DynamicData;
+using DynamicData.Binding;
 using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -35,9 +39,20 @@ public sealed partial class CustomClipboardViewModel :
 	[ObservableProperty]
 	public partial bool KeepOpen { get; set; }
 
+	/// <summary>
+	/// Current search query used to filter the history.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? SearchText { get; set; }
+
 	/// <inheritdoc cref="ClipboardHistoryEntryBase" />
 	[ObservableProperty]
 	public partial ClipboardHistoryEntryBase? SelectedEntry { get; set; }
+
+	/// <summary>
+	/// History entries matching the current search query.
+	/// </summary>
+	public ReadOnlyObservableCollection<ClipboardHistoryEntryBase> VisibleEntries => _visibleEntries;
 	#endregion
 
 	#region Data
@@ -47,11 +62,21 @@ public sealed partial class CustomClipboardViewModel :
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
+	/// <summary>
+	/// Subscription handle for the search-filter pipeline; disposed in <see cref="Dispose" />.
+	/// </summary>
+	private readonly IDisposable _filterSubscription;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <summary>
+	/// Backing field for <see cref="VisibleEntries" />.
+	/// </summary>
+	private readonly ReadOnlyObservableCollection<ClipboardHistoryEntryBase> _visibleEntries;
 	#endregion
 
 	#region Constructors
@@ -70,12 +95,32 @@ public sealed partial class CustomClipboardViewModel :
 		_messenger = messenger;
 
 		messenger.RegisterAll(this);
+
+		IObservable<IChangeSet<ClipboardHistoryEntryBase>> observable = _clipboardHistory
+			.Entries
+			.ToObservableChangeSet()
+			.Filter(BuildSearchPredicate());
+
+		if (SynchronizationContext.Current is { } context)
+		{
+			// Marshal filter updates back to the UI thread: the search throttle emits off-thread.
+			observable = observable.ObserveOn(context);
+		}
+
+		_filterSubscription = observable
+			.Bind(out _visibleEntries)
+			.Subscribe();
 	}
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose() => _messenger.UnregisterAll(this);
+	public void Dispose()
+	{
+		_filterSubscription.Dispose();
+
+		_messenger.UnregisterAll(this);
+	}
 
 	/// <inheritdoc />
 	public void Receive(ClipboardHistoryEntryCountChangedMessage message)
@@ -145,6 +190,29 @@ public sealed partial class CustomClipboardViewModel :
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Builds the throttled predicate stream that drives <see cref="VisibleEntries" /> from <see cref="SearchText" />.
+	/// The first value is applied immediately; later changes are debounced.
+	/// </summary>
+	private IObservable<Func<ClipboardHistoryEntryBase, bool>> BuildSearchPredicate()
+	{
+		return this
+			.WhenValueChanged(x => x.SearchText)
+			.Publish(stream => stream
+				.Take(1)
+				.Merge(stream
+					.Skip(1)
+					.Throttle(TimeSpan.FromMilliseconds(500L))))
+			.Select(Predicate);
+
+		static Func<ClipboardHistoryEntryBase, bool> Predicate(string? value)
+		{
+			return !string.IsNullOrWhiteSpace(value)
+				? x => x.SearchableText is { } text && text.Contains(value, StringComparison.OrdinalIgnoreCase)
+				: _ => true;
+		}
+	}
+
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
