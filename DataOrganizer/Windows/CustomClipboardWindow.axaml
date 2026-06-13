@@ -58,7 +58,7 @@
 				<WindowDragMoveBehavior />
 			</Interaction.Behaviors>
 
-			<Grid RowDefinitions="Auto,*">
+			<Grid RowDefinitions="Auto,Auto,*">
 				<Grid
 					Grid.Row="0"
 					ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
@@ -106,8 +106,14 @@
 					</Button>
 				</Grid>
 
-				<ScrollViewer
+				<TextBox
 					Grid.Row="1"
+					Margin="0.0,8.0,0.0,0.0"
+					Classes="clearButton SearchTextBoxStyle"
+					Text="{Binding SearchText, Mode=TwoWay}" />
+
+				<ScrollViewer
+					Grid.Row="2"
 					Margin="0.0,10.0,0.0,0.0"
 					Classes="no-auto-hide"
 					HorizontalScrollBarVisibility="Disabled"
@@ -115,7 +121,7 @@
 					VerticalScrollBarVisibility="Auto">
 					<ItemsControl
 						ItemTemplate="{StaticResource ClipboardEntryItemTemplate}"
-						ItemsSource="{Binding Entries}">
+						ItemsSource="{Binding VisibleEntries, Mode=OneTime}">
 
 						<ItemsControl.Margin>
 							<MultiBinding Converter="{x:Static converters:AppConverters.ScrollGutter}">

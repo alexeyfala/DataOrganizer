@@ -29,11 +29,6 @@ public sealed partial class CustomClipboardViewModel :
 {
 	#region Properties
 	/// <summary>
-	/// History entries to display (delegated to <see cref="IClipboardHistoryService" />).
-	/// </summary>
-	public ObservableCollection<ClipboardHistoryEntryBase> Entries => _clipboardHistory.Entries;
-
-	/// <summary>
 	/// Whether the window stays open on focus loss and after a restore.
 	/// </summary>
 	[ObservableProperty]
