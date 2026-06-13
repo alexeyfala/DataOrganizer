@@ -77,10 +77,5 @@ internal static class AppConverters
 		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
-
-	/// <summary>
-	/// <c>True</c> when a search query is active (non-blank).
-	/// </summary>
-	public static FuncValueConverter<string?, bool> SearchIsActive { get; } = new(query => !string.IsNullOrWhiteSpace(query));
 	#endregion
 }

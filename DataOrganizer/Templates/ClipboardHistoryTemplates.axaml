@@ -3,7 +3,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
-	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
@@ -36,31 +35,25 @@
 	<DataTemplate
 		x:Key="ClipboardFormattedTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<Panel>
+		<!-- Non-interactive viewer: clips to the entry height, the behavior scrolls the match into view. -->
+		<ScrollViewer
+			MaxHeight="{StaticResource TextEntryMaxHeight}"
+			Focusable="False"
+			HorizontalScrollBarVisibility="Disabled"
+			IsHitTestVisible="False"
+			VerticalScrollBarVisibility="Hidden">
 			<html:HtmlLabel
-				MaxHeight="{StaticResource TextEntryMaxHeight}"
 				AutoSize="False"
 				AutoSizeHeightOnly="True"
 				Background="White"
-				IsHitTestVisible="False"
-				IsVisible="{Binding #FormattedMatchExcerpt.IsVisible, Converter={x:Static BoolConverters.Not}}"
-				Text="{Binding Preview, Mode=OneTime}" />
-
-			<!-- While searching, formatted entries fall back to a plain excerpt centered on the match. -->
-			<TextBlock
-				x:Name="FormattedMatchExcerpt"
-				MaxHeight="{StaticResource TextEntryMaxHeight}"
-				VerticalAlignment="Center"
-				IsVisible="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText, Converter={x:Static converters:AppConverters.SearchIsActive}}"
-				TextTrimming="CharacterEllipsis"
-				TextWrapping="Wrap">
+				IsHitTestVisible="False">
 				<Interaction.Behaviors>
-					<behaviors:SearchHighlightBehavior
+					<behaviors:HtmlSearchHighlightBehavior
 						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
-						SourceText="{Binding Text, Mode=OneTime}" />
+						SourceHtml="{Binding Preview, Mode=OneTime}" />
 				</Interaction.Behaviors>
-			</TextBlock>
-		</Panel>
+			</html:HtmlLabel>
+		</ScrollViewer>
 	</DataTemplate>
 
 	<!-- ClipboardImageEntryTemplate -->
