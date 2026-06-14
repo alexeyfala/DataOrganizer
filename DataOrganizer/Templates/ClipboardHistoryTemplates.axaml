@@ -35,25 +35,13 @@
 	<DataTemplate
 		x:Key="ClipboardFormattedTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<!-- Non-interactive viewer: clips to the entry height, the behavior scrolls the match into view. -->
-		<ScrollViewer
+		<html:HtmlLabel
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			Focusable="False"
-			HorizontalScrollBarVisibility="Disabled"
+			AutoSize="False"
+			AutoSizeHeightOnly="True"
+			Background="White"
 			IsHitTestVisible="False"
-			VerticalScrollBarVisibility="Hidden">
-			<html:HtmlLabel
-				AutoSize="False"
-				AutoSizeHeightOnly="True"
-				Background="White"
-				IsHitTestVisible="False">
-				<Interaction.Behaviors>
-					<behaviors:HtmlSearchHighlightBehavior
-						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
-						SourceHtml="{Binding Preview, Mode=OneTime}" />
-				</Interaction.Behaviors>
-			</html:HtmlLabel>
-		</ScrollViewer>
+			Text="{Binding Preview, Mode=OneTime}" />
 	</DataTemplate>
 
 	<!-- ClipboardImageEntryTemplate -->

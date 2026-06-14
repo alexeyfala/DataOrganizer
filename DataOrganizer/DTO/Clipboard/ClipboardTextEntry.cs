@@ -84,8 +84,6 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 			return html[(start + startMarker.Length)..end];
 		}
 
-		// No CF_HTML markers (non-Windows / bare fragment): pass through; the AngleSharp pass
-		// in HtmlFragmentNormalizer strips any html/head/body wrapper via Body.InnerHtml.
 		return html;
 	}
 
