@@ -32,6 +32,16 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	}
 
 	/// <summary>
+	/// Brush for the text of each query match; pinned so the match stays readable on
+	/// <see cref="HighlightBrush" /> regardless of the active theme's text color.
+	/// </summary>
+	public IBrush? HighlightForeground
+	{
+		get => GetValue(HighlightForegroundProperty);
+		set => SetValue(HighlightForegroundProperty, value);
+	}
+
+	/// <summary>
 	/// Search query whose matches are highlighted; blank shows the full ellipsis-trimmed text.
 	/// </summary>
 	public string? Query
@@ -56,6 +66,12 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	/// </summary>
 	public static readonly StyledProperty<IBrush?> HighlightBrushProperty = AvaloniaProperty
 		.Register<SearchHighlightBehavior, IBrush?>(name: nameof(HighlightBrush));
+
+	/// <summary>
+	/// Identifies the <see cref="HighlightForeground" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<IBrush?> HighlightForegroundProperty = AvaloniaProperty
+		.Register<SearchHighlightBehavior, IBrush?>(name: nameof(HighlightForeground));
 
 	/// <summary>
 	/// Identifies the <see cref="Query" /> avalonia property.
@@ -111,6 +127,11 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 
 		this
 			.GetObservable(HighlightBrushProperty)
+			.Subscribe(_ => Rebuild())
+			.DisposeWith(_disposables);
+
+		this
+			.GetObservable(HighlightForegroundProperty)
 			.Subscribe(_ => Rebuild())
 			.DisposeWith(_disposables);
 
@@ -176,6 +197,8 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 			if (segment.IsMatch)
 			{
 				run.Background = HighlightBrush;
+
+				run.Foreground = HighlightForeground;
 			}
 
 			inlines.Add(run);
