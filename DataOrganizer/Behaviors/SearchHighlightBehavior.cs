@@ -80,6 +80,14 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 	private readonly CompositeDisposable _disposables = [];
 	#endregion
 
+	#region Event Handlers
+	/// <summary>
+	/// <see cref="Visual.AttachedToVisualTree" /> handler: rebuilds now that the <see cref="ScrollViewer" />
+	/// ancestor is reachable.
+	/// </summary>
+	private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e) => Rebuild();
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	protected override void OnAttached()
@@ -104,6 +112,13 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 		this
 			.GetObservable(HighlightBrushProperty)
 			.Subscribe(_ => Rebuild())
+			.DisposeWith(_disposables);
+
+		// Re-run once the ScrollViewer ancestor is reachable, which a virtualized container lacks at OnAttached.
+		AssociatedObject.AttachedToVisualTree += OnAttachedToVisualTree;
+
+		Disposable
+			.Create(this, static self => self.AssociatedObject!.AttachedToVisualTree -= self.OnAttachedToVisualTree)
 			.DisposeWith(_disposables);
 	}
 
