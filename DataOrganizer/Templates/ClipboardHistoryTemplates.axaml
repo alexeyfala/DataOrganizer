@@ -14,21 +14,29 @@
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
+	<SolidColorBrush x:Key="SearchHighlightBrush" Color="Yellow" />
+
 	<!-- ClipboardTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<TextBlock
+		<ScrollViewer
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			VerticalAlignment="Center"
-			TextTrimming="CharacterEllipsis"
-			TextWrapping="Wrap">
-			<Interaction.Behaviors>
-				<behaviors:SearchHighlightBehavior
-					Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
-					SourceText="{Binding Text, Mode=OneTime}" />
-			</Interaction.Behaviors>
-		</TextBlock>
+			HorizontalScrollBarVisibility="Disabled"
+			IsHitTestVisible="False"
+			VerticalScrollBarVisibility="Disabled">
+			<TextBlock
+				VerticalAlignment="Center"
+				TextTrimming="CharacterEllipsis"
+				TextWrapping="Wrap">
+				<Interaction.Behaviors>
+					<behaviors:SearchHighlightBehavior
+						HighlightBrush="{StaticResource SearchHighlightBrush}"
+						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+						SourceText="{Binding Text, Mode=OneTime}" />
+				</Interaction.Behaviors>
+			</TextBlock>
+		</ScrollViewer>
 	</DataTemplate>
 
 	<!-- ClipboardFormattedTextEntryTemplate -->
