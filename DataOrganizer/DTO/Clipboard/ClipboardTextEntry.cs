@@ -94,7 +94,9 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	{
 		if (Html is { } html)
 		{
-			return HtmlFragmentNormalizer.Trim(HtmlFragmentNormalizer.NormalizePreformatted(ExtractHtmlFragment(html)));
+			return HtmlFragmentNormalizer.Trim(
+				HtmlFragmentNormalizer.NormalizePreformatted(
+					HtmlFragmentNormalizer.NeutralizeUnsupportedColors(ExtractHtmlFragment(html))));
 		}
 
 		if (Rtf is { } rtf)

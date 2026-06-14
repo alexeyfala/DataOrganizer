@@ -2,13 +2,14 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DataOrganizer.Helpers.Clipboard;
 
 /// <summary>
 /// DOM-based touch-ups for an HTML fragment: edge trimming and preformatted normalization.
 /// </summary>
-internal static class HtmlFragmentNormalizer
+internal static partial class HtmlFragmentNormalizer
 {
 	#region Data
 	/// <summary>
@@ -32,6 +33,12 @@ internal static class HtmlFragmentNormalizer
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Rewrites <c>rgb()</c> / <c>rgba()</c> colors to plain <c>rgb()</c>, dropping any alpha the
+	/// HTML engine would misread as a 0-255 integer and render fully transparent.
+	/// </summary>
+	public static string NeutralizeUnsupportedColors(string html) => UnsupportedColorRegex().Replace(html, "rgb($1, $2, $3)");
+
 	/// <summary>
 	/// Makes <c>&lt;pre&gt;</c> blocks render multi-line (newlines to <c>&lt;br&gt;</c>, tabs to spaces);
 	/// returns the input unchanged when there is no such block or on parse failure.
@@ -163,5 +170,12 @@ internal static class HtmlFragmentNormalizer
 			break;
 		}
 	}
+
+	/// <summary>
+	/// Matches <c>rgb()</c> / <c>rgba()</c> in comma- or space-separated form, capturing the first
+	/// three integer channels and discarding any trailing alpha component.
+	/// </summary>
+	[GeneratedRegex(@"rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)[^)]*\)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex UnsupportedColorRegex();
 	#endregion
 }
