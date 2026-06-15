@@ -824,6 +824,105 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 1 (allowed)
+	/// is not treated as sensitive — the entry is captured (e.g. content restored via Win+V).
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_When_History_Flag_Is_Allowed()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+		clipboard
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.Returns([1, 0, 0, 0]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("allowed");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Which
+			.Text
+			.Should()
+			.Be("allowed");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: content re-published from Windows clipboard history
+	/// (ClipboardHistoryItemId present) is captured, even though it carries the exclude marker (anti-loop, not secrecy).
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_Win_V_Restored_Content_Despite_Exclude_Marker()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		// Order mirrors a real Win+V restore: the exclude marker precedes the history id.
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns(
+			[
+				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing),
+				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardHistoryItemId)
+			]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("restored from Win+V");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Which
+			.Text
+			.Should()
+			.Be("restored from Win+V");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
 	/// </summary>
 	[Test]
@@ -953,6 +1052,48 @@ internal class ClipboardHistoryServiceTests
 		clipboard
 			.TryGetTextAsync()
 			.Returns("super-secret");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 0 (exclude)
+	/// is treated as sensitive — the entry is skipped.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Skips_When_History_Flag_Excludes()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+		clipboard
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.Returns([0, 0, 0, 0]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("excluded");
 
 		// Act
 		await sut.PollOnceAsync();

@@ -67,7 +67,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly FrozenSet<string> SensitivityMarkerIdentifiers = new[]
 	{
 		ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing,
-		ClipboardSensitivityMarkers.CanIncludeInClipboardHistory,
 		ClipboardSensitivityMarkers.ClipboardViewerIgnore,
 		ClipboardSensitivityMarkers.KdePasswordManagerHint,
 		ClipboardSensitivityMarkers.NsPasteboardConcealedType
@@ -913,15 +912,27 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				.GetDataFormatsAsync()
 				.ConfigureAwait(false);
 
+			if (formats.Any(static format => format.Identifier == ClipboardSensitivityMarkers.ClipboardHistoryItemId))
+			{
+				return false;
+			}
+
+			bool hasHistoryFlag = false;
+
 			foreach (DataFormat format in formats)
 			{
 				if (SensitivityMarkerIdentifiers.Contains(format.Identifier))
 				{
 					return true;
 				}
+
+				if (format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)
+				{
+					hasHistoryFlag = true;
+				}
 			}
 
-			return false;
+			return hasHistoryFlag && await IsHistoryExcludedAsync().ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -1019,6 +1030,21 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		_lastHash = hash;
 
 		return false;
+	}
+
+	/// <summary>
+	/// <c>True</c> when the <see cref="ClipboardSensitivityMarkers.CanIncludeInClipboardHistory" /> DWORD reads as 0 (exclude from history).
+	/// </summary>
+	private async Task<bool> IsHistoryExcludedAsync()
+	{
+		DataFormat<byte[]> format = DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory);
+
+		byte[]? value = await _clipboard
+			.TryGetValueAsync(format)
+			.ConfigureAwait(false);
+
+		// A missing or non-zero value means the content is allowed in history (not sensitive).
+		return value is { Length: > 0 } && value.All(static x => x == 0);
 	}
 
 	/// <summary>

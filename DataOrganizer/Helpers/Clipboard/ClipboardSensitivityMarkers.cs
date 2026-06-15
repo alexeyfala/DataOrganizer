@@ -18,6 +18,12 @@ internal static class ClipboardSensitivityMarkers
 	public const string CanUploadToCloudClipboard = "CanUploadToCloudClipboard";
 
 	/// <summary>
+	/// Windows: origin indicator (not a secrecy flag) tagging content re-published from clipboard history (Win+V),
+	/// where the accompanying exclude marker is anti-loop rather than a sensitivity signal.
+	/// </summary>
+	public const string ClipboardHistoryItemId = "ClipboardHistoryItemId";
+
+	/// <summary>
 	/// De-facto convention honored by third-party clipboard managers (KeePass et al.).
 	/// </summary>
 	public const string ClipboardViewerIgnore = "Clipboard Viewer Ignore";
