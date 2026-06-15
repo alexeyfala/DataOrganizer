@@ -25,10 +25,6 @@ internal class ClipboardTextEntryTests
 		sut.IsRtf
 			.Should()
 			.BeFalse();
-
-		sut.IsFormattedText
-			.Should()
-			.BeFalse();
 	}
 
 	/// <summary>
@@ -46,10 +42,6 @@ internal class ClipboardTextEntryTests
 			.BeTrue();
 
 		sut.IsRtf
-			.Should()
-			.BeTrue();
-
-		sut.IsFormattedText
 			.Should()
 			.BeTrue();
 	}
@@ -82,131 +74,6 @@ internal class ClipboardTextEntryTests
 		sut.IsSensitive
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: a fractional-alpha rgba() color (the shape Chrome emits
-	/// for headings) is rewritten to plain rgb(), so the HTML engine does not render the text transparent.
-	/// </summary>
-	[Test]
-	public void Preview_Drops_Fractional_Alpha_From_Rgba_Color()
-	{
-		// Arrange (mirrors the inline style Chrome puts on a copied heading).
-		const string html =
-			"<html><body><!--StartFragment--><h2 style=\"color: rgba(0, 0, 0, 0.89);\">hi</h2><!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<h2 style=\"color: rgb(0, 0, 0);\">hi</h2>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: leading empty paragraphs (RTF-to-HTML shape) are dropped.
-	/// </summary>
-	[Test]
-	public void Preview_Drops_Leading_Empty_Paragraphs()
-	{
-		// Arrange (mirrors the nested empty blocks RtfPipe emits for blank leading lines).
-		const string html =
-			"<html><body><!--StartFragment--><div><p>&nbsp;</p><p></p><p>hi</p></div><!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<div><p>hi</p></div>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: inside a &lt;pre&gt; block, newlines become &lt;br&gt;
-	/// and tabs become non-breaking spaces, so code copies render multi-line.
-	/// </summary>
-	[Test]
-	public void Preview_Expands_Preformatted_Whitespace()
-	{
-		// Arrange
-		const string html =
-			"<html><body><!--StartFragment--><pre>a\n\tb</pre><!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("a\n\tb", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<pre>a<br>&nbsp;&nbsp;&nbsp;&nbsp;b</pre>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: a CF_HTML payload yields its trimmed fragment.
-	/// </summary>
-	[Test]
-	public void Preview_Extracts_Html_Fragment()
-	{
-		// Arrange
-		const string html =
-			"Version:0.9\r\nStartHTML:0000\r\n<html><body><!--StartFragment--><b>hi</b><!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<b>hi</b>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: leading / trailing &lt;br&gt; and whitespace are stripped.
-	/// </summary>
-	[Test]
-	public void Preview_Strips_Edge_Break_Markup()
-	{
-		// Arrange
-		const string html =
-			"<html><body><!--StartFragment--> <br><br><b>hi</b><br> <!--EndFragment--></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<b>hi</b>");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: plain text is trimmed of surrounding blank space.
-	/// </summary>
-	[Test]
-	public void Preview_Trims_Plain_Text()
-	{
-		// Arrange
-		ClipboardTextEntry sut = TextEntry("\r\n\r\n  hello  \r\n");
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("hello");
-	}
-
-	/// <summary>
-	/// <see cref="ClipboardTextEntry.Preview" />: a bare fragment without CF_HTML markers
-	/// has its &lt;html&gt; / &lt;body&gt; wrapper stripped by the AngleSharp pass.
-	/// </summary>
-	[Test]
-	public void Preview_Unwraps_Fragment_Without_Cf_Html_Markers()
-	{
-		// Arrange (macOS / Linux shape: plain HTML, no CF_HTML descriptor or fragment comments).
-		const string html = "<html><body><p>hi</p></body></html>";
-
-		ClipboardTextEntry sut = TextEntry("hi", html: html);
-
-		// Act, Assert
-		sut.Preview
-			.Should()
-			.Be("<p>hi</p>");
 	}
 
 	/// <summary>

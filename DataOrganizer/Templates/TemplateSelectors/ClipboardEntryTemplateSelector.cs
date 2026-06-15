@@ -10,19 +10,6 @@ namespace DataOrganizer.Templates.TemplateSelectors;
 /// </summary>
 internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
-	#region Properties
-	/// <summary>
-	/// Template for <see cref="ClipboardTextEntry" /> with a renderable
-	/// <see cref="ClipboardTextEntry.Preview" /> (HTML / RTF / HTML + RTF).
-	/// </summary>
-	public IDataTemplate? FormattedTextTemplate { get; set; }
-
-	/// <summary>
-	/// Template for plain-text <see cref="ClipboardTextEntry" /> (no formatting).
-	/// </summary>
-	public IDataTemplate? PlainTextTemplate { get; set; }
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
 	public Control? Build(object? param)
@@ -30,15 +17,6 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 		if (param is null)
 		{
 			return null;
-		}
-
-		if (param is ClipboardTextEntry textEntry)
-		{
-			IDataTemplate? textTemplate = textEntry.IsFormattedText
-				? FormattedTextTemplate
-				: PlainTextTemplate;
-
-			return textTemplate?.Build(param);
 		}
 
 		DataTemplate? bestMatch = null;

@@ -36,12 +36,6 @@ public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 	public virtual bool IsUrl => false;
 
 	/// <summary>
-	/// Display-only text preview for the restore button; <c>null</c> leaves it empty.
-	/// Never restored — safe to trim.
-	/// </summary>
-	public virtual string? Preview => null;
-
-	/// <summary>
 	/// Text used to match this entry against a search query; <c>null</c> excludes it from matching.
 	/// </summary>
 	public virtual string? SearchableText => null;

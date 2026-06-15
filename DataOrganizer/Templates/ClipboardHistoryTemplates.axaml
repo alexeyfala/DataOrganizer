@@ -3,7 +3,6 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
-	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System"
@@ -17,7 +16,7 @@
 	<SolidColorBrush
 		x:Key="SearchHighlightBrush"
 		Color="Yellow" />
-	
+
 	<SolidColorBrush
 		x:Key="SearchHighlightForegroundBrush"
 		Color="Black" />
@@ -44,19 +43,6 @@
 				</Interaction.Behaviors>
 			</TextBlock>
 		</ScrollViewer>
-	</DataTemplate>
-
-	<!-- ClipboardFormattedTextEntryTemplate -->
-	<DataTemplate
-		x:Key="ClipboardFormattedTextEntryTemplate"
-		x:DataType="clipboard:ClipboardTextEntry">
-		<html:HtmlLabel
-			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			AutoSize="False"
-			AutoSizeHeightOnly="True"
-			Background="White"
-			IsHitTestVisible="False"
-			Text="{Binding Preview, Mode=OneTime}" />
 	</DataTemplate>
 
 	<!-- ClipboardImageEntryTemplate -->
@@ -125,13 +111,12 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<templateSelectors:ClipboardEntryTemplateSelector
-							FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
-							PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
+						<templateSelectors:ClipboardEntryTemplateSelector>
+							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
-							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
+							<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
 						</templateSelectors:ClipboardEntryTemplateSelector>
 					</ContentControl.ContentTemplate>
 				</ContentControl>
