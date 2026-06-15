@@ -12,12 +12,6 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 {
 	#region Properties
 	/// <summary>
-	/// Template for <see cref="ClipboardTextEntry" /> with a renderable
-	/// <see cref="ClipboardTextEntry.Preview" /> (HTML / RTF / HTML + RTF).
-	/// </summary>
-	public IDataTemplate? FormattedTextTemplate { get; set; }
-
-	/// <summary>
 	/// Template for plain-text <see cref="ClipboardTextEntry" /> (no formatting).
 	/// </summary>
 	public IDataTemplate? PlainTextTemplate { get; set; }
@@ -32,13 +26,9 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 			return null;
 		}
 
-		if (param is ClipboardTextEntry textEntry)
+		if (param is ClipboardTextEntry)
 		{
-			IDataTemplate? textTemplate = textEntry.IsFormattedText
-				? FormattedTextTemplate
-				: PlainTextTemplate;
-
-			return textTemplate?.Build(param);
+			return PlainTextTemplate?.Build(param);
 		}
 
 		DataTemplate? bestMatch = null;

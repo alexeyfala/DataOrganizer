@@ -22,7 +22,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	/// <summary>
 	/// Pre-computed multi-line display block for <see cref="FileSystemEntries" />.
 	/// </summary>
-	public override string? Preview => field ??= BuildEntriesPreview();
+	public string? Preview => field ??= BuildEntriesPreview();
 
 	/// <inheritdoc />
 	public override string TypeGlyph => "🗂️";

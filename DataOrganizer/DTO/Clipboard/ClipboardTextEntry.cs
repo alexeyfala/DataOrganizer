@@ -1,7 +1,5 @@
-using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
-using System;
 
 namespace DataOrganizer.DTO.Clipboard;
 
@@ -39,13 +37,6 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
 
 	/// <summary>
-	/// Renderable HTML fragment when formatted, otherwise the trimmed plain text.
-	/// </summary>
-	public override string? Preview => field ??= IsFormattedText
-		? BuildFormattedTextPreview()
-		: Text.Trim();
-
-	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.
 	/// </summary>
 	public required string? Rtf { get; init; }
@@ -66,55 +57,6 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Strips the Windows CF_HTML descriptor header, returning just the fragment markup.
-	/// </summary>
-	private static string ExtractHtmlFragment(string html)
-	{
-		const string startMarker = "<!--StartFragment-->";
-
-		const string endMarker = "<!--EndFragment-->";
-
-		int start = html.IndexOf(startMarker, StringComparison.OrdinalIgnoreCase);
-
-		int end = html.IndexOf(endMarker, StringComparison.OrdinalIgnoreCase);
-
-		if (start >= 0 && end > start)
-		{
-			return html[(start + startMarker.Length)..end];
-		}
-
-		return html;
-	}
-
-	/// <summary>
-	/// Backing builder for the formatted-text branch of <see cref="Preview" />.
-	/// </summary>
-	private string? BuildFormattedTextPreview()
-	{
-		if (Html is { } html)
-		{
-			return HtmlFragmentNormalizer.Trim(
-				HtmlFragmentNormalizer.NormalizePreformatted(
-					HtmlFragmentNormalizer.NeutralizeUnsupportedColors(ExtractHtmlFragment(html))));
-		}
-
-		if (Rtf is { } rtf)
-		{
-			try
-			{
-				return HtmlFragmentNormalizer.Trim(RtfPipe.Rtf.ToHtml(rtf));
-			}
-			catch
-			{
-				// Conversion failed -> entry stays on the plain-text template.
-				return null;
-			}
-		}
-
-		return null;
-	}
-
 	/// <summary>
 	/// Builds the type badge glyph.
 	/// </summary>

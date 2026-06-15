@@ -9,7 +9,7 @@
 	xmlns:system="using:System"
 	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels">
-	
+
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
@@ -17,7 +17,7 @@
 	<SolidColorBrush
 		x:Key="SearchHighlightBrush"
 		Color="Yellow" />
-	
+
 	<SolidColorBrush
 		x:Key="SearchHighlightForegroundBrush"
 		Color="Black" />
@@ -44,19 +44,6 @@
 				</Interaction.Behaviors>
 			</TextBlock>
 		</ScrollViewer>
-	</DataTemplate>
-
-	<!-- ClipboardFormattedTextEntryTemplate -->
-	<DataTemplate
-		x:Key="ClipboardFormattedTextEntryTemplate"
-		x:DataType="clipboard:ClipboardTextEntry">
-		<html:HtmlLabel
-			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			AutoSize="False"
-			AutoSizeHeightOnly="True"
-			Background="White"
-			IsHitTestVisible="False"
-			Text="{Binding Preview, Mode=OneTime}" />
 	</DataTemplate>
 
 	<!-- ClipboardImageEntryTemplate -->
@@ -125,10 +112,7 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<templateSelectors:ClipboardEntryTemplateSelector
-							FormattedTextTemplate="{StaticResource ClipboardFormattedTextEntryTemplate}"
-							PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
-
+						<templateSelectors:ClipboardEntryTemplateSelector PlainTextTemplate="{StaticResource ClipboardTextEntryTemplate}">
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
