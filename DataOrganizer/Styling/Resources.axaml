@@ -5,30 +5,28 @@
 	xmlns:system="using:System">
 
 	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
-	
+
 	<Brush x:Key="FolderBrush">Peru</Brush>
-	
+
 	<Brush x:Key="LightForeground">#FFFAFAFA</Brush>
-	
-	<Brush x:Key="NeutralBrush">Gray</Brush>
-	
+
 	<Brush x:Key="WarningBrush">OrangeRed</Brush>
-	
+
 	<icons:MaterialIconKind x:Key="DatasetIconKind">ViewSplitHorizontal</icons:MaterialIconKind>
-	
+
 	<icons:MaterialIconKind x:Key="FileIconKind">FileOutline</icons:MaterialIconKind>
-	
+
 	<icons:MaterialIconKind x:Key="FolderIconKind">Folder</icons:MaterialIconKind>
-	
+
 	<system:Double x:Key="ElementSpacing">10.0</system:Double>
-	
+
 	<system:Double x:Key="EntityTypeIconSize">28.0</system:Double>
-	
+
 	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
-	
+
 	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>
-	
+
 	<Thickness x:Key="ChromelessWindowBorderThickness">4.0</Thickness>
-	
+
 	<Thickness x:Key="DialogIndent">8.0</Thickness>
 </ResourceDictionary>

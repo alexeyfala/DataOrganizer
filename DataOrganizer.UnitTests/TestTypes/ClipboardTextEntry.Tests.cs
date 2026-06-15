@@ -85,6 +85,25 @@ internal class ClipboardTextEntryTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardTextEntry.Preview" />: a fractional-alpha rgba() color (the shape Chrome emits
+	/// for headings) is rewritten to plain rgb(), so the HTML engine does not render the text transparent.
+	/// </summary>
+	[Test]
+	public void Preview_Drops_Fractional_Alpha_From_Rgba_Color()
+	{
+		// Arrange (mirrors the inline style Chrome puts on a copied heading).
+		const string html =
+			"<html><body><!--StartFragment--><h2 style=\"color: rgba(0, 0, 0, 0.89);\">hi</h2><!--EndFragment--></body></html>";
+
+		ClipboardTextEntry sut = TextEntry("hi", html: html);
+
+		// Act, Assert
+		sut.Preview
+			.Should()
+			.Be("<h2 style=\"color: rgb(0, 0, 0);\">hi</h2>");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardTextEntry.Preview" />: leading empty paragraphs (RTF-to-HTML shape) are dropped.
 	/// </summary>
 	[Test]

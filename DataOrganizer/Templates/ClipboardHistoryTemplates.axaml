@@ -1,7 +1,6 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:adc="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
 	xmlns:html="using:TheArtOfDev.HtmlRenderer.Avalonia"
@@ -15,16 +14,36 @@
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
 
+	<SolidColorBrush
+		x:Key="SearchHighlightBrush"
+		Color="Yellow" />
+	
+	<SolidColorBrush
+		x:Key="SearchHighlightForegroundBrush"
+		Color="Black" />
+
 	<!-- ClipboardTextEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardTextEntryTemplate"
 		x:DataType="clipboard:ClipboardTextEntry">
-		<TextBlock
+		<ScrollViewer
 			MaxHeight="{StaticResource TextEntryMaxHeight}"
-			VerticalAlignment="Center"
-			Text="{Binding Preview, Mode=OneTime}"
-			TextTrimming="CharacterEllipsis"
-			TextWrapping="Wrap" />
+			HorizontalScrollBarVisibility="Disabled"
+			IsHitTestVisible="False"
+			VerticalScrollBarVisibility="Disabled">
+			<TextBlock
+				VerticalAlignment="Center"
+				TextTrimming="CharacterEllipsis"
+				TextWrapping="Wrap">
+				<Interaction.Behaviors>
+					<behaviors:SearchHighlightBehavior
+						HighlightBrush="{StaticResource SearchHighlightBrush}"
+						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
+						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+						SourceText="{Binding Text, Mode=OneTime}" />
+				</Interaction.Behaviors>
+			</TextBlock>
+		</ScrollViewer>
 	</DataTemplate>
 
 	<!-- ClipboardFormattedTextEntryTemplate -->
@@ -148,7 +167,7 @@
 							Theme="{StaticResource MaterialFlatButton}">
 
 							<ToggleButton.IsVisible>
-								<MultiBinding Converter="{x:Static adc:BoolConverters.Or}">
+								<MultiBinding Converter="{x:Static BoolConverters.Or}">
 									<Binding
 										Mode="OneWay"
 										Path="IsPinned" />
@@ -224,7 +243,7 @@
 							Theme="{StaticResource MaterialFlatButton}">
 
 							<ToggleButton.IsVisible>
-								<MultiBinding Converter="{x:Static adc:BoolConverters.And}">
+								<MultiBinding Converter="{x:Static BoolConverters.And}">
 									<ReflectionBinding
 										Mode="OneTime"
 										Path="IsSensitive">

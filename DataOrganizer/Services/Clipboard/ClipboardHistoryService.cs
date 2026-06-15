@@ -34,30 +34,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
-
-	/// <summary>
-	/// Number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
-	/// also the index of the first unpinned entry. UI-thread only.
-	/// </summary>
-	private int PinnedCount
-	{
-		get
-		{
-			int count = 0;
-
-			foreach (ClipboardHistoryEntryBase entry in Entries)
-			{
-				if (!entry.IsPinned)
-				{
-					break;
-				}
-
-				count++;
-			}
-
-			return count;
-		}
-	}
 	#endregion
 
 	#region Data
@@ -249,7 +225,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					if (entry.IsPinned && !existing.IsPinned)
 					{
 						// Read before flipping: the new pin appends to the end of the pinned block.
-						int target = PinnedCount;
+						int target = GetPinnedCount();
 
 						existing.IsPinned = true;
 
@@ -261,12 +237,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 				if (entry.IsPinned)
 				{
-					Entries.Insert(PinnedCount, entry);
+					Entries.Insert(GetPinnedCount(), entry);
 
 					continue;
 				}
 
-				if (Entries.Count - PinnedCount >= HistoryLimit)
+				if (Entries.Count - GetPinnedCount() >= HistoryLimit)
 				{
 					continue;
 				}
@@ -414,7 +390,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			bool pin = !entry.IsPinned;
 
 			// Read before flipping: once unpinned in place, PinnedCount would stop at this entry and read 0.
-			int pinnedCount = PinnedCount;
+			int pinnedCount = GetPinnedCount();
 
 			entry.IsPinned = pin;
 
@@ -880,6 +856,12 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
+	/// Returns the number of pinned entries, which by invariant form a contiguous block atop <see cref="Entries" />;
+	/// also the index of the first unpinned entry. UI-thread only.
+	/// </summary>
+	private int GetPinnedCount() => Entries.Count(x => x.IsPinned);
+
+	/// <summary>
 	/// Drops the active highlight and change-detection baseline when the clipboard holds nothing capturable
 	/// (e.g. emptied via Win+V); a restore awaiting its echo is left untouched. UI-thread only.
 	/// </summary>
@@ -901,9 +883,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
-		Entries.Insert(PinnedCount, entry);
+		Entries.Insert(GetPinnedCount(), entry);
 
-		while (Entries.Count - PinnedCount > HistoryLimit)
+		while (Entries.Count - GetPinnedCount() > HistoryLimit)
 		{
 			// The last entry is always unpinned (pinned ones sit atop), so trimming never drops a pin.
 			Entries.RemoveAt(Entries.Count - 1);
@@ -1036,7 +1018,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			MarkActive(entry);
 
 			// Pinned entries go to the very top; unpinned ones stay below the pinned block.
-			int target = entry.IsPinned ? 0 : PinnedCount;
+			int target = entry.IsPinned ? 0 : GetPinnedCount();
 
 			if (index == target)
 			{

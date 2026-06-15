@@ -50,6 +50,9 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// </summary>
 	public required string? Rtf { get; init; }
 
+	/// <inheritdoc />
+	public override string? SearchableText => Text;
+
 	/// <summary>
 	/// Plain text content.
 	/// </summary>
@@ -81,8 +84,6 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 			return html[(start + startMarker.Length)..end];
 		}
 
-		// No CF_HTML markers (non-Windows / bare fragment): pass through; the AngleSharp pass
-		// in HtmlFragmentNormalizer strips any html/head/body wrapper via Body.InnerHtml.
 		return html;
 	}
 
@@ -93,7 +94,9 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	{
 		if (Html is { } html)
 		{
-			return HtmlFragmentNormalizer.Trim(HtmlFragmentNormalizer.NormalizePreformatted(ExtractHtmlFragment(html)));
+			return HtmlFragmentNormalizer.Trim(
+				HtmlFragmentNormalizer.NormalizePreformatted(
+					HtmlFragmentNormalizer.NeutralizeUnsupportedColors(ExtractHtmlFragment(html))));
 		}
 
 		if (Rtf is { } rtf)
