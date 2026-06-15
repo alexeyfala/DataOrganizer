@@ -67,7 +67,6 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	private static readonly FrozenSet<string> SensitivityMarkerIdentifiers = new[]
 	{
 		ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing,
-		ClipboardSensitivityMarkers.CanIncludeInClipboardHistory,
 		ClipboardSensitivityMarkers.ClipboardViewerIgnore,
 		ClipboardSensitivityMarkers.KdePasswordManagerHint,
 		ClipboardSensitivityMarkers.NsPasteboardConcealedType
@@ -253,6 +252,82 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task RemoveAsync(ClipboardHistoryEntryBase entry)
+	{
+		if (IsDisposed())
+		{
+			return;
+		}
+
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
+		try
+		{
+			bool removed = false;
+
+			bool wasActive = false;
+
+			// Touching Entries (and reading IsActive) must happen on the UI thread.
+			await _dispatcher.PostAsync(() =>
+			{
+				int index = Entries.IndexOf(entry);
+
+				if (index < 0)
+				{
+					return;
+				}
+
+				removed = true;
+
+				wasActive = entry.IsActive;
+
+				Entries.RemoveAt(index);
+
+				// Removing the entry currently on the system clipboard: forget the change-detection baseline so
+				// the emptied clipboard is not mistaken for the previous payload on the next poll tick.
+				if (wasActive)
+				{
+					_lastHash = null;
+				}
+
+				// Forget the entry if it was awaiting its restore echo, so a later poll does not re-baseline it.
+				if (ReferenceEquals(_restoredEntry, entry))
+				{
+					_restoredEntry = null;
+				}
+			}).ConfigureAwait(false);
+
+			if (!removed)
+			{
+				return;
+			}
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+
+			NotifyEntryCountChanged();
+
+			// Only the active entry's content actually lives in the system clipboard; empty it so the just-removed
+			// content is not re-captured by the next poll tick (and is gone from a subsequent paste).
+			if (wasActive)
+			{
+				await _clipboard
+					.ClearAsync()
+					.ConfigureAwait(false);
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
@@ -837,15 +912,27 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 				.GetDataFormatsAsync()
 				.ConfigureAwait(false);
 
+			if (formats.Any(static format => format.Identifier == ClipboardSensitivityMarkers.ClipboardHistoryItemId))
+			{
+				return false;
+			}
+
+			bool hasHistoryFlag = false;
+
 			foreach (DataFormat format in formats)
 			{
 				if (SensitivityMarkerIdentifiers.Contains(format.Identifier))
 				{
 					return true;
 				}
+
+				if (format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)
+				{
+					hasHistoryFlag = true;
+				}
 			}
 
-			return false;
+			return hasHistoryFlag && await IsHistoryExcludedAsync().ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -943,6 +1030,21 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		_lastHash = hash;
 
 		return false;
+	}
+
+	/// <summary>
+	/// <c>True</c> when the <see cref="ClipboardSensitivityMarkers.CanIncludeInClipboardHistory" /> DWORD reads as 0 (exclude from history).
+	/// </summary>
+	private async Task<bool> IsHistoryExcludedAsync()
+	{
+		DataFormat<byte[]> format = DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory);
+
+		byte[]? value = await _clipboard
+			.TryGetValueAsync(format)
+			.ConfigureAwait(false);
+
+		// A missing or non-zero value means the content is allowed in history (not sensitive).
+		return value is { Length: > 0 } && value.All(static x => x == 0);
 	}
 
 	/// <summary>

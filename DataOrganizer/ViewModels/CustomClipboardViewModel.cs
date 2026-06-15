@@ -50,6 +50,80 @@ public sealed partial class CustomClipboardViewModel :
 	public ReadOnlyObservableCollection<ClipboardHistoryEntryBase> VisibleEntries { get; }
 	#endregion
 
+	#region Auto-Generated Commands
+	/// <summary>
+	/// Clears the history list. Disabled while it is empty.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanClear))]
+	private Task Clear() => _clipboardHistory.ClearAsync();
+
+	/// <summary>
+	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
+	/// </summary>
+	[RelayCommand]
+	private void OpenUrl(string? url)
+	{
+		if (string.IsNullOrWhiteSpace(url))
+		{
+			return;
+		}
+
+		try
+		{
+			Process.Start(new ProcessStartInfo
+			{
+				FileName = url,
+				UseShellExecute = true,
+			});
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+		}
+	}
+
+	/// <summary>
+	/// Removes <paramref name="entry" /> from the history.
+	/// </summary>
+	[RelayCommand]
+	private Task RemoveEntry(ClipboardHistoryEntryBase? entry)
+	{
+		if (entry is null)
+		{
+			return Task.CompletedTask;
+		}
+
+		return _clipboardHistory.RemoveAsync(entry);
+	}
+
+	/// <summary>
+	/// Restores <paramref name="entry" /> back into the system clipboard.
+	/// </summary>
+	[RelayCommand]
+	private Task RestoreEntry(ClipboardHistoryEntryBase? entry)
+	{
+		return entry is null
+			? Task.CompletedTask
+			: _clipboardHistory.RestoreAsync(entry, keepPosition: KeepOpen);
+	}
+
+	/// <summary>
+	/// Toggles the pinned state of <paramref name="entry" />.
+	/// </summary>
+	[RelayCommand]
+	private void TogglePin(ClipboardHistoryEntryBase? entry)
+	{
+		if (entry is null)
+		{
+			return;
+		}
+
+		_clipboardHistory.TogglePin(entry);
+
+		ClearCommand.NotifyCanExecuteChanged();
+	}
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _clipboardHistory;
@@ -122,66 +196,6 @@ public sealed partial class CustomClipboardViewModel :
 	public void Receive(ClipboardHistoryEntryCountChangedMessage message)
 	{
 		_dispatcher.Post(ClearCommand.NotifyCanExecuteChanged);
-	}
-	#endregion
-
-	#region Commands
-	/// <summary>
-	/// Clears the history list. Disabled while it is empty.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanClear))]
-	private Task Clear() => _clipboardHistory.ClearAsync();
-
-	/// <summary>
-	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
-	/// </summary>
-	[RelayCommand]
-	private void OpenUrl(string? url)
-	{
-		if (string.IsNullOrWhiteSpace(url))
-		{
-			return;
-		}
-
-		try
-		{
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = url,
-				UseShellExecute = true,
-			});
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex, assertDebug: false);
-		}
-	}
-
-	/// <summary>
-	/// Restores <paramref name="entry" /> back into the system clipboard.
-	/// </summary>
-	[RelayCommand]
-	private Task RestoreEntry(ClipboardHistoryEntryBase? entry)
-	{
-		return entry is null
-			? Task.CompletedTask
-			: _clipboardHistory.RestoreAsync(entry, keepPosition: KeepOpen);
-	}
-
-	/// <summary>
-	/// Toggles the pinned state of <paramref name="entry" />.
-	/// </summary>
-	[RelayCommand]
-	private void TogglePin(ClipboardHistoryEntryBase? entry)
-	{
-		if (entry is null)
-		{
-			return;
-		}
-
-		_clipboardHistory.TogglePin(entry);
-
-		ClearCommand.NotifyCanExecuteChanged();
 	}
 	#endregion
 

@@ -824,6 +824,105 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 1 (allowed)
+	/// is not treated as sensitive — the entry is captured (e.g. content restored via Win+V).
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_When_History_Flag_Is_Allowed()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+		clipboard
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.Returns([1, 0, 0, 0]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("allowed");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Which
+			.Text
+			.Should()
+			.Be("allowed");
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: content re-published from Windows clipboard history
+	/// (ClipboardHistoryItemId present) is captured, even though it carries the exclude marker (anti-loop, not secrecy).
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Captures_Win_V_Restored_Content_Despite_Exclude_Marker()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		// Order mirrors a real Win+V restore: the exclude marker precedes the history id.
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns(
+			[
+				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing),
+				DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.ClipboardHistoryItemId)
+			]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("restored from Win+V");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>()
+			.Which
+			.Text
+			.Should()
+			.Be("restored from Win+V");
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
 	/// </summary>
 	[Test]
@@ -964,6 +1063,48 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 0 (exclude)
+	/// is treated as sensitive — the entry is skipped.
+	/// </summary>
+	[Test]
+	public async Task PollOnce_Skips_When_History_Flag_Excludes()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
+
+		clipboard
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.Returns([0, 0, 0, 0]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		clipboard
+			.TryGetTextAsync()
+			.Returns("excluded");
+
+		// Act
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// Re-baseline path: a restored pinned entry keeps its pinned state on the replacement.
 	/// </summary>
 	[Test]
@@ -998,6 +1139,211 @@ internal class ClipboardHistoryServiceTests
 		rebaselined.IsPinned
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.RemoveAsync" />: a missing entry is a no-op and raises no notification.
+	/// </summary>
+	[Test]
+	public async Task Remove_Missing_Entry_Is_NoOp()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		sut.Entries.Add(TextEntry("a", [1]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act (the entry was never added).
+		await sut.RemoveAsync(TextEntry("absent", [9]));
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle();
+
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.RemoveAsync" />: removing the active entry empties the system clipboard.
+	/// </summary>
+	[Test]
+	public async Task Remove_Of_Active_Entry_Empties_System_Clipboard()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		// Capturing marks the entry active (its content is the one held in the system clipboard).
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+
+		// Act
+		await sut.RemoveAsync(entry);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+
+		await clipboard
+			.Received()
+			.ClearAsync();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.RemoveAsync" />: after removing the active entry the emptied clipboard
+	/// is not re-captured by the next poll tick.
+	/// </summary>
+	[Test]
+	public async Task Remove_Of_Active_Entry_Is_Not_Recaptured_By_Next_Poll()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		clipboard
+			.GetDataFormatsAsync()
+			.Returns([]);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+
+		// Act (the content is gone from the clipboard, so the poll sees nothing capturable).
+		await sut.RemoveAsync(entry);
+
+		await sut.PollOnceAsync();
+
+		// Assert
+		sut.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.RemoveAsync" />: removing a non-active entry leaves the system clipboard intact.
+	/// </summary>
+	[Test]
+	public async Task Remove_Of_Inactive_Entry_Leaves_System_Clipboard()
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry old = TextEntry("old", [2]);
+
+		ClipboardTextEntry active = TextEntry("active", [1]);
+
+		sut.Entries.Add(old);
+
+		// The newest capture is the active one; "old" sits below it and is not on the system clipboard.
+		sut.HandleNewPayload([1], () => active, isSensitive: false);
+
+		// Act (remove the non-active entry).
+		await sut.RemoveAsync(old);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(active);
+
+		await clipboard
+			.DidNotReceive()
+			.ClearAsync();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.RemoveAsync" />: a pinned entry is removed and Updated is raised.
+	/// </summary>
+	[Test]
+	public async Task Remove_Removes_Pinned_Entry_And_Raises_Updated()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+
+		sut.Entries.Add(pinned);
+
+		sut.Entries.Add(TextEntry("u", [2]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act
+		await sut.RemoveAsync(pinned);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Hash[0]
+			.Should()
+			.Be(2);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
 	}
 
 	/// <summary>

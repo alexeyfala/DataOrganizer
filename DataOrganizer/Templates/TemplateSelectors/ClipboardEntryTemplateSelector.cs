@@ -28,7 +28,6 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 				continue;
 			}
 
-			// Prefer the most-derived matching DataType.
 			if (bestMatch?.DataType is null || bestMatch
 				.DataType
 				.IsAssignableFrom(dataType))
