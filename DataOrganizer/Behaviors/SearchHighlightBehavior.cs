@@ -184,7 +184,7 @@ internal sealed class SearchHighlightBehavior : Behavior<TextBlock>
 
 	/// <summary>
 	/// Builds the inlines for <paramref name="text" />, wrapping each match of <paramref name="query" />
-	/// in a highlighted <see cref="Run" />. A blank query yields a single plain run.
+	/// in a highlighted <see cref="Run" />.
 	/// </summary>
 	private InlineCollection BuildInlines(string text, string? query)
 	{
