@@ -10,6 +10,7 @@
 	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
+	
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxHeight">120.0</system:Double>
