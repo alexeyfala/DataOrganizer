@@ -45,10 +45,10 @@ public interface IClipboardHistoryService : IAsyncDisposable
 	void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries);
 
 	/// <summary>
-	/// Removes <paramref name="entry" /> from <see cref="Entries" />, including pinned ones. The system
-	/// clipboard is left untouched.
+	/// Removes <paramref name="entry" /> from <see cref="Entries" />, including pinned ones. When the entry
+	/// is the active one, the system clipboard is emptied too.
 	/// </summary>
-	void Remove(ClipboardHistoryEntryBase entry);
+	Task RemoveAsync(ClipboardHistoryEntryBase entry);
 
 	/// <summary>
 	/// Restores <paramref name="entry" /> into the system clipboard. Moves it to the top of

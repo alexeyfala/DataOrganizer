@@ -257,41 +257,78 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <inheritdoc />
-	public void Remove(ClipboardHistoryEntryBase entry)
+	public async Task RemoveAsync(ClipboardHistoryEntryBase entry)
 	{
+		if (IsDisposed())
+		{
+			return;
+		}
+
+		await _clearGate
+			.WaitAsync()
+			.ConfigureAwait(false);
+
 		try
 		{
-			int index = Entries.IndexOf(entry);
+			bool removed = false;
 
-			if (index < 0)
+			bool wasActive = false;
+
+			// Touching Entries (and reading IsActive) must happen on the UI thread.
+			await _dispatcher.PostAsync(() =>
+			{
+				int index = Entries.IndexOf(entry);
+
+				if (index < 0)
+				{
+					return;
+				}
+
+				removed = true;
+
+				wasActive = entry.IsActive;
+
+				Entries.RemoveAt(index);
+
+				// Removing the entry currently on the system clipboard: forget the change-detection baseline so
+				// the emptied clipboard is not mistaken for the previous payload on the next poll tick.
+				if (wasActive)
+				{
+					_lastHash = null;
+				}
+
+				// Forget the entry if it was awaiting its restore echo, so a later poll does not re-baseline it.
+				if (ReferenceEquals(_restoredEntry, entry))
+				{
+					_restoredEntry = null;
+				}
+			}).ConfigureAwait(false);
+
+			if (!removed)
 			{
 				return;
-			}
-
-			bool wasActive = entry.IsActive;
-
-			Entries.RemoveAt(index);
-
-			// Removing the entry currently held in the system clipboard: leave the OS clipboard alone,
-			// but drop the change-detection baseline so re-copying the same content re-adds it.
-			if (wasActive)
-			{
-				_lastHash = null;
-			}
-
-			// Forget the entry if it was awaiting its restore echo, so a later poll does not re-baseline it.
-			if (ReferenceEquals(_restoredEntry, entry))
-			{
-				_restoredEntry = null;
 			}
 
 			NotifyChanged(ClipboardHistoryChangeKind.Updated);
 
 			NotifyEntryCountChanged();
+
+			// Only the active entry's content actually lives in the system clipboard; empty it so the just-removed
+			// content is not re-captured by the next poll tick (and is gone from a subsequent paste).
+			if (wasActive)
+			{
+				await _clipboard
+					.ClearAsync()
+					.ConfigureAwait(false);
+			}
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
+		}
+		finally
+		{
+			_clearGate.Release();
 		}
 	}
 
