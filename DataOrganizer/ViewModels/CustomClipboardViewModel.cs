@@ -83,6 +83,20 @@ public sealed partial class CustomClipboardViewModel :
 	}
 
 	/// <summary>
+	/// Removes <paramref name="entry" /> from the history.
+	/// </summary>
+	[RelayCommand]
+	private void RemoveEntry(ClipboardHistoryEntryBase? entry)
+	{
+		if (entry is null)
+		{
+			return;
+		}
+
+		_clipboardHistory.Remove(entry);
+	}
+
+	/// <summary>
 	/// Restores <paramref name="entry" /> back into the system clipboard.
 	/// </summary>
 	[RelayCommand]

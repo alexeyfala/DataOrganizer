@@ -257,6 +257,45 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <inheritdoc />
+	public void Remove(ClipboardHistoryEntryBase entry)
+	{
+		try
+		{
+			int index = Entries.IndexOf(entry);
+
+			if (index < 0)
+			{
+				return;
+			}
+
+			bool wasActive = entry.IsActive;
+
+			Entries.RemoveAt(index);
+
+			// Removing the entry currently held in the system clipboard: leave the OS clipboard alone,
+			// but drop the change-detection baseline so re-copying the same content re-adds it.
+			if (wasActive)
+			{
+				_lastHash = null;
+			}
+
+			// Forget the entry if it was awaiting its restore echo, so a later poll does not re-baseline it.
+			if (ReferenceEquals(_restoredEntry, entry))
+			{
+				_restoredEntry = null;
+			}
+
+			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+
+			NotifyEntryCountChanged();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false)
 	{
 		if (IsDisposed())

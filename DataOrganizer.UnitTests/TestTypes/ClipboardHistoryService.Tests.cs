@@ -1001,6 +1001,124 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardHistoryService.Remove" />: a missing entry is a no-op and raises no notification.
+	/// </summary>
+	[Test]
+	public void Remove_Missing_Entry_Is_NoOp()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		sut.Entries.Add(TextEntry("a", [1]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act (the entry was never added).
+		sut.Remove(TextEntry("absent", [9]));
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle();
+
+		received
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.Remove" />: removing the active entry lets a fresh copy of the
+	/// same content be re-captured (the change-detection baseline is dropped).
+	/// </summary>
+	[Test]
+	public void Remove_Of_Active_Entry_Allows_Recapture_Of_Same_Content()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry entry = TextEntry("a", [1]);
+
+		// Capturing marks the entry active and records [1] as the last observed payload.
+		sut.HandleNewPayload([1], () => entry, isSensitive: false);
+
+		// Act
+		sut.Remove(entry);
+
+		// The same content is copied again; without dropping the baseline it would be suppressed as an echo.
+		ClipboardTextEntry recaptured = TextEntry("a", [1]);
+
+		sut.HandleNewPayload([1], () => recaptured, isSensitive: false);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(recaptured);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardHistoryService.Remove" />: a pinned entry is removed and Updated is raised.
+	/// </summary>
+	[Test]
+	public void Remove_Removes_Pinned_Entry_And_Raises_Updated()
+	{
+		// Arrange
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(messenger);
+		});
+
+		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+
+		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
+
+		sut.Entries.Add(pinned);
+
+		sut.Entries.Add(TextEntry("u", [2]));
+
+		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+
+		// Act
+		sut.Remove(pinned);
+
+		// Assert
+		sut.Entries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Hash[0]
+			.Should()
+			.Be(2);
+
+		received
+			.Should()
+			.Contain(ClipboardHistoryChangeKind.Updated);
+	}
+
+	/// <summary>
 	/// Test of the re-baseline path when the restored entry is no longer present: it is inserted at the top.
 	/// </summary>
 	[Test]

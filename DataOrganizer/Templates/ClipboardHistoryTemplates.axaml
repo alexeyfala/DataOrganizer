@@ -127,6 +127,10 @@
 					RowDefinitions="Auto,*,Auto"
 					RowSpacing="2.0">
 
+					<Grid.Resources>
+						<system:Double x:Key="ActionButtonSize">12.5</system:Double>
+					</Grid.Resources>
+					
 					<StackPanel
 						Grid.Row="0"
 						HorizontalAlignment="Right"
@@ -142,6 +146,31 @@
 								ElementName="TypeGlyphBadge"
 								Path="Bounds.Height" />
 						</StackPanel.MinHeight>
+
+						<Button
+							Padding="3.0"
+							Background="{StaticResource MaterialCardBackgroundBrush}"
+							Classes="primary"
+							Cursor="Hand"
+							IsVisible="{Binding IsPointerOver, RelativeSource={RelativeSource AncestorType=Button}}"
+							Theme="{StaticResource MaterialFlatButton}"
+							ToolTip.Tip="{x:Static prop:Strings.Delete}">
+
+							<Interaction.Behaviors>
+								<EventTriggerBehavior EventName="Click">
+									<InvokeCommandAction
+										Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RemoveEntryCommand}"
+										CommandParameter="{Binding}" />
+								</EventTriggerBehavior>
+
+								<behaviors:HandleClickBehavior />
+							</Interaction.Behaviors>
+
+							<materialIcons:MaterialIcon
+								Width="{StaticResource ActionButtonSize}"
+								Height="{StaticResource ActionButtonSize}"
+								Kind="TrashCanOutline" />
+						</Button>
 
 						<ToggleButton
 							Padding="3.0"
@@ -164,10 +193,6 @@
 							</ToggleButton.IsVisible>
 
 							<Interaction.Behaviors>
-								<!--
-									Command via Click trigger, not Button.Command: HandleClickBehavior marks the click
-									handled (to block bubbling), and Button.OnClick skips Command once handled.
-								-->
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
 										Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).TogglePinCommand}"
@@ -196,8 +221,8 @@
 							</ToggleButton.Styles>
 
 							<materialIcons:MaterialIcon
-								Width="12.5"
-								Height="12.5" />
+								Width="{StaticResource ActionButtonSize}"
+								Height="{StaticResource ActionButtonSize}" />
 						</ToggleButton>
 
 						<Button
@@ -275,8 +300,8 @@
 							</ToggleButton.Styles>
 
 							<materialIcons:MaterialIcon
-								Width="12.5"
-								Height="12.5" />
+								Width="{StaticResource ActionButtonSize}"
+								Height="{StaticResource ActionButtonSize}" />
 						</ToggleButton>
 
 						<Border
