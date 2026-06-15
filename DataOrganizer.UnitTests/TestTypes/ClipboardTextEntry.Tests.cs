@@ -25,10 +25,6 @@ internal class ClipboardTextEntryTests
 		sut.IsRtf
 			.Should()
 			.BeFalse();
-
-		sut.IsFormattedText
-			.Should()
-			.BeFalse();
 	}
 
 	/// <summary>
@@ -46,10 +42,6 @@ internal class ClipboardTextEntryTests
 			.BeTrue();
 
 		sut.IsRtf
-			.Should()
-			.BeTrue();
-
-		sut.IsFormattedText
 			.Should()
 			.BeTrue();
 	}

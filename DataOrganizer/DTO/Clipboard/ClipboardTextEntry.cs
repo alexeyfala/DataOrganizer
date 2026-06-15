@@ -17,11 +17,6 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	public required string? Html { get; init; }
 
 	/// <summary>
-	/// <c>True</c> when <see cref="IsHtml" /> == <c>True</c> or <see cref="IsRtf" /> == <c>True</c>.
-	/// </summary>
-	public bool IsFormattedText => IsHtml || IsRtf;
-
-	/// <summary>
 	/// <c>True</c> when <see cref="Html" /> is not null.
 	/// </summary>
 	public bool IsHtml => Html is not null;
