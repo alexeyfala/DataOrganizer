@@ -10,13 +10,6 @@ namespace DataOrganizer.Templates.TemplateSelectors;
 /// </summary>
 internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
-	#region Properties
-	/// <summary>
-	/// Template for plain-text <see cref="ClipboardTextEntry" /> (no formatting).
-	/// </summary>
-	public IDataTemplate? PlainTextTemplate { get; set; }
-	#endregion
-
 	#region Methods
 	/// <inheritdoc />
 	public Control? Build(object? param)
@@ -24,11 +17,6 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 		if (param is null)
 		{
 			return null;
-		}
-
-		if (param is ClipboardTextEntry)
-		{
-			return PlainTextTemplate?.Build(param);
 		}
 
 		DataTemplate? bestMatch = null;
