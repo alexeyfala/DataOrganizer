@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.ViewModels;
 using NSubstitute;
@@ -16,16 +17,85 @@ internal class CustomClipboardViewModelTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: the type filter and the search query combine (AND).
+	/// </summary>
+	[Test]
+	public void ActiveFilter_Combines_With_Search()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+
+		// Act — set the query first (its trigger is debounced, so it does not refresh synchronously),
+		// then flip the type filter to force a single refresh that reads both predicates.
+		sut.SearchText = "banana";
+
+		sut.ActiveFilter = ClipboardEntryFilter.Text;
+
+		// Assert — the only text entry ("apple") fails the "banana" query, so nothing matches both.
+		sut.VisibleEntries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: setting <c>ActiveFilter</c> narrows <c>VisibleEntries</c>
+	/// to the matching payload type.
+	/// </summary>
+	[Test]
+	public void ActiveFilter_Narrows_VisibleEntries_To_Matching_Type()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+
+		// Act — show only text entries.
+		sut.ActiveFilter = ClipboardEntryFilter.Text;
+
+		// Assert — the URL and image are filtered out.
+		sut.VisibleEntries
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ClipboardTextEntry>();
+	}
+
+	/// <summary>
 	/// <see cref="CustomClipboardViewModel" />: a blank query matches every entry, including
 	/// pinned entries and ones without searchable text (e.g. images).
 	/// </summary>
 	[TestCase(null)]
 	[TestCase("")]
 	[TestCase("   ")]
-	public void BuildPredicate_Blank_Query_Matches_Everything(string? query)
+	public void BuildSearchPredicate_Blank_Query_Matches_Everything(string? query)
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildPredicate(query);
+		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate(query);
 
 		// Act, Assert
 		predicate(TextEntry("anything", [1]))
@@ -46,10 +116,10 @@ internal class CustomClipboardViewModelTests
 	/// case-insensitively, applies to pinned entries, and excludes entries without searchable text.
 	/// </summary>
 	[Test]
-	public void BuildPredicate_NonBlank_Query_Matches_By_SearchableText()
+	public void BuildSearchPredicate_NonBlank_Query_Matches_By_SearchableText()
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildPredicate("App");
+		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate("App");
 
 		// Act, Assert
 		predicate(TextEntry("Application", [1]))
@@ -72,6 +142,96 @@ internal class CustomClipboardViewModelTests
 
 		// Images have no searchable text, so they are hidden while searching.
 		predicate(ImageEntry([5]))
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: <see cref="ClipboardEntryFilter.All" /> matches every payload type.
+	/// </summary>
+	[Test]
+	public void BuildTypePredicate_All_Matches_Everything()
+	{
+		// Arrange
+		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.All);
+
+		// Act, Assert
+		predicate(TextEntry("text", [1]))
+			.Should()
+			.BeTrue();
+
+		predicate(UrlEntry("https://example.com", [2]))
+			.Should()
+			.BeTrue();
+
+		predicate(ImageEntry([3]))
+			.Should()
+			.BeTrue();
+
+		predicate(FilesEntry([4]))
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: each non-text filter matches only its own payload type.
+	/// </summary>
+	[Test]
+	public void BuildTypePredicate_Matches_Only_Its_Own_Type()
+	{
+		// Arrange
+		ClipboardHistoryEntryBase url = UrlEntry("https://example.com", [1]);
+
+		ClipboardHistoryEntryBase image = ImageEntry([2]);
+
+		ClipboardHistoryEntryBase files = FilesEntry([3]);
+
+		// Act, Assert
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Url)(url)
+			.Should()
+			.BeTrue();
+
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Url)(image)
+			.Should()
+			.BeFalse();
+
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Image)(image)
+			.Should()
+			.BeTrue();
+
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Image)(files)
+			.Should()
+			.BeFalse();
+
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Files)(files)
+			.Should()
+			.BeTrue();
+
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Files)(url)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: the <see cref="ClipboardEntryFilter.Text" /> filter matches plain text
+	/// but excludes URLs (which have their own filter).
+	/// </summary>
+	[Test]
+	public void BuildTypePredicate_Text_Excludes_Url()
+	{
+		// Arrange
+		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Text);
+
+		// Act, Assert
+		predicate(TextEntry("text", [1]))
+			.Should()
+			.BeTrue();
+
+		predicate(UrlEntry("https://example.com", [2]))
+			.Should()
+			.BeFalse();
+
+		predicate(ImageEntry([3]))
 			.Should()
 			.BeFalse();
 	}
@@ -233,6 +393,15 @@ internal class CustomClipboardViewModelTests
 
 	#region Helpers
 	/// <summary>
+	/// A minimal files entry with a single file and the given hash.
+	/// </summary>
+	private static ClipboardFilesEntry FilesEntry(byte[] hash) => new()
+	{
+		FileSystemEntries = [new ClipboardFileSystemEntry(@"C:\file.txt", IsFolder: false)],
+		Hash = hash
+	};
+
+	/// <summary>
 	/// A minimal image entry (no searchable text) with the given hash.
 	/// </summary>
 	private static ClipboardImageEntry ImageEntry(byte[] hash) => new()
@@ -261,6 +430,18 @@ internal class CustomClipboardViewModelTests
 		Text = text,
 		Html = null,
 		Rtf = null,
+		Hash = hash
+	};
+
+	/// <summary>
+	/// A minimal URL entry with the given hash.
+	/// </summary>
+	private static ClipboardUrlEntry UrlEntry(string url, byte[] hash) => new()
+	{
+		Text = url,
+		Html = null,
+		Rtf = null,
+		Url = url,
 		Hash = hash
 	};
 	#endregion

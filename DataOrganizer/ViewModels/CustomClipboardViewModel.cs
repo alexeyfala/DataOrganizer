@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
@@ -28,6 +29,12 @@ public sealed partial class CustomClipboardViewModel :
 	IDisposable
 {
 	#region Properties
+	/// <summary>
+	/// Active type filter applied to the history list.
+	/// </summary>
+	[ObservableProperty]
+	public partial ClipboardEntryFilter ActiveFilter { get; set; }
+
 	/// <summary>
 	/// Whether the window stays open on focus loss and after a restore.
 	/// </summary>
@@ -171,7 +178,8 @@ public sealed partial class CustomClipboardViewModel :
 			.Entries
 			.ToObservableChangeSet()
 			.Select(static _ => Unit.Default)
-			.Merge(BuildSearchTrigger());
+			.Merge(BuildSearchTrigger())
+			.Merge(BuildFilterTrigger());
 
 		if (SynchronizationContext.Current is { } context)
 		{
@@ -204,11 +212,37 @@ public sealed partial class CustomClipboardViewModel :
 	/// Builds the entry predicate for a search <paramref name="value" />: a blank value matches every entry,
 	/// otherwise an entry matches when its <see cref="ClipboardHistoryEntryBase.SearchableText" /> contains it (case-insensitive).
 	/// </summary>
-	internal static Func<ClipboardHistoryEntryBase, bool> BuildPredicate(string? value)
+	internal static Func<ClipboardHistoryEntryBase, bool> BuildSearchPredicate(string? value)
 	{
 		return string.IsNullOrWhiteSpace(value)
 			? _ => true
 			: entry => entry.SearchableText is { } text && text.Contains(value, StringComparison.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
+	/// Builds the entry predicate for a type <paramref name="filter" />: <see cref="ClipboardEntryFilter.All" />
+	/// matches every entry, otherwise only entries of the matching payload type (text excludes URLs).
+	/// </summary>
+	internal static Func<ClipboardHistoryEntryBase, bool> BuildTypePredicate(ClipboardEntryFilter filter)
+	{
+		return filter switch
+		{
+			ClipboardEntryFilter.Text => static entry => entry is ClipboardTextEntry and not ClipboardUrlEntry,
+			ClipboardEntryFilter.Url => static entry => entry is ClipboardUrlEntry,
+			ClipboardEntryFilter.Image => static entry => entry is ClipboardImageEntry,
+			ClipboardEntryFilter.Files => static entry => entry is ClipboardFilesEntry,
+			_ => static _ => true
+		};
+	}
+
+	/// <summary>
+	/// Emits when the active type filter changes.
+	/// </summary>
+	private IObservable<Unit> BuildFilterTrigger()
+	{
+		return this
+			.WhenValueChanged(x => x.ActiveFilter)
+			.Select(static _ => Unit.Default);
 	}
 
 	/// <summary>
@@ -236,13 +270,15 @@ public sealed partial class CustomClipboardViewModel :
 	/// </summary>
 	private void RefreshVisibleEntries()
 	{
-		Func<ClipboardHistoryEntryBase, bool> predicate = BuildPredicate(SearchText);
+		Func<ClipboardHistoryEntryBase, bool> searchPredicate = BuildSearchPredicate(SearchText);
+
+		Func<ClipboardHistoryEntryBase, bool> typePredicate = BuildTypePredicate(ActiveFilter);
 
 		int target = 0;
 
 		foreach (ClipboardHistoryEntryBase entry in _clipboardHistory.Entries)
 		{
-			if (!predicate(entry))
+			if (!typePredicate(entry) || !searchPredicate(entry))
 			{
 				continue;
 			}
