@@ -15,7 +15,7 @@ namespace DataOrganizer.Services.Clipboard;
 
 public sealed class ClipboardLogPersistenceCoordinator :
 	IClipboardLogPersistenceCoordinator,
-	IRecipient<ClipboardHistoryChangedMessage>
+	IRecipient<ClipboardLogChangedMessage>
 {
 	#region Data
 	/// <summary>
@@ -129,7 +129,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	}
 
 	/// <inheritdoc />
-	public void Receive(ClipboardHistoryChangedMessage message)
+	public void Receive(ClipboardLogChangedMessage message)
 	{
 		switch (message.Kind)
 		{

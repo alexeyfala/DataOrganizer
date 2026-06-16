@@ -25,7 +25,7 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class CustomClipboardViewModel :
 	ObservableObject,
-	IRecipient<ClipboardHistoryEntryCountChangedMessage>,
+	IRecipient<ClipboardLogEntryCountChangedMessage>,
 	IDisposable
 {
 	#region Properties
@@ -238,7 +238,7 @@ public sealed partial class CustomClipboardViewModel :
 	}
 
 	/// <inheritdoc />
-	public void Receive(ClipboardHistoryEntryCountChangedMessage message)
+	public void Receive(ClipboardLogEntryCountChangedMessage message)
 	{
 		_dispatcher.Post(ClearCommand.NotifyCanExecuteChanged);
 	}

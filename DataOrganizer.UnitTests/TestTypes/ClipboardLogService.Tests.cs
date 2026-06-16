@@ -1808,13 +1808,13 @@ internal class ClipboardLogServiceTests
 
 	#region Helpers
 	/// <summary>
-	/// Records the kinds of every <see cref="ClipboardHistoryChangedMessage" /> sent on <paramref name="messenger" />.
+	/// Records the kinds of every <see cref="ClipboardLogChangedMessage" /> sent on <paramref name="messenger" />.
 	/// </summary>
 	private static List<ClipboardHistoryChangeKind> Capture(IMessenger messenger)
 	{
 		List<ClipboardHistoryChangeKind> received = [];
 
-		messenger.Register<ClipboardHistoryChangedMessage>(
+		messenger.Register<ClipboardLogChangedMessage>(
 			received,
 			static (recipient, message) => ((List<ClipboardHistoryChangeKind>)recipient).Add(message.Kind));
 

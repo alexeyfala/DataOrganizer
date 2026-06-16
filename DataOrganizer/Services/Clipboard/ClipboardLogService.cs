@@ -81,7 +81,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// Matches only when the entire trimmed text is an http(s) URL (used to pick
 	/// <see cref="ClipboardUrlEntry" /> over <see cref="ClipboardTextEntry" />).
 	/// </summary>
-	private static readonly Regex WholeStringUrlRegex = ClipboardHistoryMapper.WholeStringUrlRegex();
+	private static readonly Regex WholeStringUrlRegex = ClipboardLogMapper.WholeStringUrlRegex();
 
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
@@ -1137,14 +1137,14 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <summary>
-	/// Publishes a <see cref="ClipboardHistoryChangedMessage" /> so listeners can react to a change.
+	/// Publishes a <see cref="ClipboardLogChangedMessage" /> so listeners can react to a change.
 	/// </summary>
-	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardHistoryChangedMessage(kind));
+	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardLogChangedMessage(kind));
 
 	/// <summary>
-	/// Publishes a <see cref="ClipboardHistoryEntryCountChangedMessage" /> after entries are added or removed.
+	/// Publishes a <see cref="ClipboardLogEntryCountChangedMessage" /> after entries are added or removed.
 	/// </summary>
-	private void NotifyEntryCountChanged() => _messenger.Send(new ClipboardHistoryEntryCountChangedMessage());
+	private void NotifyEntryCountChanged() => _messenger.Send(new ClipboardLogEntryCountChangedMessage());
 
 	/// <summary>
 	/// Replaces the just-restored <paramref name="restored" /> entry with <paramref name="rebaselined" />

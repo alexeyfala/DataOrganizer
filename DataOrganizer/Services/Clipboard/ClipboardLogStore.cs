@@ -134,7 +134,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			return;
 		}
 
-		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(ClipboardHistoryMapper.ToPersisted(entries));
+		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(ClipboardLogMapper.ToPersisted(entries));
 
 		try
 		{
@@ -215,7 +215,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				return [];
 			}
 
-			return ClipboardHistoryMapper.ToDomain(history);
+			return ClipboardLogMapper.ToDomain(history);
 		}
 		catch (JsonException ex)
 		{

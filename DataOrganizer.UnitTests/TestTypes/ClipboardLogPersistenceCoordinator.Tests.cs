@@ -47,9 +47,9 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			SaveDebounce);
 
 		// Act
-		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
-		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
 
 		await Task.Delay(SaveSettleDelay);
 
@@ -85,11 +85,11 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		sut.Start();
 
 		// Act (three rapid changes — each cancels the previous pending save).
-		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
-		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
-		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
 		await Task.Delay(SaveSettleDelay);
 
@@ -146,7 +146,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		await sut.DisposeAsync();
 
 		// Act (a change after dispose must not be handled).
-		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
 		await Task.Delay(SaveSettleDelay);
 
@@ -224,7 +224,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.ClearedByUser));
 
 		// Assert
 		store
@@ -248,7 +248,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.ClearedForStop));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.ClearedForStop));
 
 		// Assert
 		store
@@ -416,7 +416,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		sut.Receive(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
 		await Task.Delay(SaveSettleDelay);
 
@@ -448,7 +448,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		sut.Start();
 
 		// Act
-		messenger.Send(new ClipboardHistoryChangedMessage(ClipboardHistoryChangeKind.Updated));
+		messenger.Send(new ClipboardLogChangedMessage(ClipboardHistoryChangeKind.Updated));
 
 		await Task.Delay(SaveSettleDelay);
 

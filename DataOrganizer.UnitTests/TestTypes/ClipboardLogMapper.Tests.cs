@@ -7,8 +7,8 @@ using System.Text.Json;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistoryMapper)}"" type")]
-internal class ClipboardHistoryMapperTests
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogMapper)}"" type")]
+internal class ClipboardLogMapperTests
 {
 	#region Methods
 	/// <summary>
@@ -30,7 +30,7 @@ internal class ClipboardHistoryMapperTests
 		];
 
 		// Act
-		string json = JsonSerializer.Serialize(ClipboardHistoryMapper.ToPersisted(entries));
+		string json = JsonSerializer.Serialize(ClipboardLogMapper.ToPersisted(entries));
 
 		PersistedClipboardHistory? deserialized = JsonSerializer.Deserialize<PersistedClipboardHistory>(json);
 
@@ -43,7 +43,7 @@ internal class ClipboardHistoryMapperTests
 			.Should()
 			.Be(PersistedClipboardHistory.CurrentVersion);
 
-		List<ClipboardHistoryEntryBase> domain = ClipboardHistoryMapper.ToDomain(deserialized);
+		List<ClipboardHistoryEntryBase> domain = ClipboardLogMapper.ToDomain(deserialized);
 
 		domain
 			.Should()
@@ -63,7 +63,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToDomain" />: URL detection trims surrounding whitespace.
+	/// <see cref="ClipboardLogMapper.ToDomain" />: URL detection trims surrounding whitespace.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Detects_Url_With_Surrounding_Whitespace()
@@ -91,28 +91,28 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />:
 	/// an empty history maps to a versioned, empty container and back to no entries.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Empty_History_Yields_No_Entries()
 	{
 		// Act
-		PersistedClipboardHistory persisted = ClipboardHistoryMapper.ToPersisted([]);
+		PersistedClipboardHistory persisted = ClipboardLogMapper.ToPersisted([]);
 
 		// Assert
 		persisted.Version
 			.Should()
 			.Be(PersistedClipboardHistory.CurrentVersion);
 
-		ClipboardHistoryMapper
+		ClipboardLogMapper
 			.ToDomain(persisted)
 			.Should()
 			.BeEmpty();
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Files_Entry()
@@ -159,7 +159,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Image_Entry()
@@ -190,7 +190,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />:
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />:
 	/// the pinned flag survives the round-trip.
 	/// </summary>
 	[Test]
@@ -216,7 +216,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToPersisted" /> / <see cref="ClipboardHistoryMapper.ToDomain" />.
+	/// <see cref="ClipboardLogMapper.ToPersisted" /> / <see cref="ClipboardLogMapper.ToDomain" />.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Preserves_Text_Entry()
@@ -257,7 +257,7 @@ internal class ClipboardHistoryMapperTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryMapper.ToDomain" />: a whole-string URL becomes a URL entry.
+	/// <see cref="ClipboardLogMapper.ToDomain" />: a whole-string URL becomes a URL entry.
 	/// </summary>
 	[Test]
 	public void RoundTrip_Rebuilds_Url_Entry_From_Url_Text()
@@ -297,9 +297,9 @@ internal class ClipboardHistoryMapperTests
 	/// </summary>
 	private static ClipboardHistoryEntryBase RoundTrip(ClipboardHistoryEntryBase entry)
 	{
-		PersistedClipboardHistory persisted = ClipboardHistoryMapper.ToPersisted([entry]);
+		PersistedClipboardHistory persisted = ClipboardLogMapper.ToPersisted([entry]);
 
-		return ClipboardHistoryMapper
+		return ClipboardLogMapper
 			.ToDomain(persisted)
 			.Should()
 			.ContainSingle()

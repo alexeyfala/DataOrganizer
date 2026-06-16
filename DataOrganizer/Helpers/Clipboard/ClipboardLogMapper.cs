@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 namespace DataOrganizer.Helpers.Clipboard;
 
 /// <summary>
-/// Maps clipboard history entries between the in-memory domain model and the on-disk persisted model.
+/// Maps clipboard log entries between the in-memory domain model and the on-disk persisted model.
 /// </summary>
-internal static partial class ClipboardHistoryMapper
+internal static partial class ClipboardLogMapper
 {
 	#region Methods
 	/// <summary>
