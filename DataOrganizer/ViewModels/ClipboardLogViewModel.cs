@@ -23,7 +23,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>CustomClipboardWindow</c>.
 /// </summary>
-public sealed partial class CustomClipboardViewModel :
+public sealed partial class ClipboardLogViewModel :
 	ObservableObject,
 	IRecipient<ClipboardLogEntryCountChangedMessage>,
 	IDisposable
@@ -193,7 +193,7 @@ public sealed partial class CustomClipboardViewModel :
 	#endregion
 
 	#region Constructors
-	public CustomClipboardViewModel(
+	public ClipboardLogViewModel(
 		IClipboardLogService clipboardLog,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,

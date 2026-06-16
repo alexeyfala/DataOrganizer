@@ -12,12 +12,12 @@ using System.Threading;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(CustomClipboardViewModel)}"" type")]
-internal class CustomClipboardViewModelTests
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogViewModel)}"" type")]
+internal class ClipboardLogViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: the type filter and the search query combine (AND).
+	/// <see cref="ClipboardLogViewModel" />: the type filter and the search query combine (AND).
 	/// </summary>
 	[Test]
 	public void ActiveFilter_Combines_With_Search()
@@ -36,7 +36,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act — set the query first (its trigger is debounced, so it does not refresh synchronously),
 		// then flip the type filter to force a single refresh that reads both predicates.
@@ -51,7 +51,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: setting <c>ActiveFilter</c> narrows <c>VisibleEntries</c>
+	/// <see cref="ClipboardLogViewModel" />: setting <c>ActiveFilter</c> narrows <c>VisibleEntries</c>
 	/// to the matching payload type.
 	/// </summary>
 	[Test]
@@ -71,7 +71,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act — show only text entries.
 		sut.ActiveFilter = ClipboardLogEntryFilter.Text;
@@ -86,7 +86,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: a blank query matches every entry, including
+	/// <see cref="ClipboardLogViewModel" />: a blank query matches every entry, including
 	/// pinned entries and ones without searchable text (e.g. images).
 	/// </summary>
 	[TestCase(null)]
@@ -95,7 +95,7 @@ internal class CustomClipboardViewModelTests
 	public void BuildSearchPredicate_Blank_Query_Matches_Everything(string? query)
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate(query);
+		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildSearchPredicate(query);
 
 		// Act, Assert
 		predicate(TextEntry("anything", [1]))
@@ -112,14 +112,14 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: a non-blank query matches by <c>SearchableText</c>
+	/// <see cref="ClipboardLogViewModel" />: a non-blank query matches by <c>SearchableText</c>
 	/// case-insensitively, applies to pinned entries, and excludes entries without searchable text.
 	/// </summary>
 	[Test]
 	public void BuildSearchPredicate_NonBlank_Query_Matches_By_SearchableText()
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate("App");
+		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildSearchPredicate("App");
 
 		// Act, Assert
 		predicate(TextEntry("Application", [1]))
@@ -147,13 +147,13 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: <see cref="ClipboardLogEntryFilter.All" /> matches every payload type.
+	/// <see cref="ClipboardLogViewModel" />: <see cref="ClipboardLogEntryFilter.All" /> matches every payload type.
 	/// </summary>
 	[Test]
 	public void BuildTypePredicate_All_Matches_Everything()
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.All);
+		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.All);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -174,7 +174,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: each non-text filter matches only its own payload type.
+	/// <see cref="ClipboardLogViewModel" />: each non-text filter matches only its own payload type.
 	/// </summary>
 	[Test]
 	public void BuildTypePredicate_Matches_Only_Its_Own_Type()
@@ -187,40 +187,40 @@ internal class CustomClipboardViewModelTests
 		ClipboardLogEntryBase files = FilesEntry([3]);
 
 		// Act, Assert
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(url)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(url)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(image)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(image)
 			.Should()
 			.BeFalse();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(image)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(image)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(files)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(files)
 			.Should()
 			.BeFalse();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(files)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(files)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(url)
+		ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(url)
 			.Should()
 			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: the <see cref="ClipboardLogEntryFilter.Text" /> filter matches plain text
+	/// <see cref="ClipboardLogViewModel" />: the <see cref="ClipboardLogEntryFilter.Text" /> filter matches plain text
 	/// but excludes URLs (which have their own filter).
 	/// </summary>
 	[Test]
 	public void BuildTypePredicate_Text_Excludes_Url()
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Text);
+		Func<ClipboardLogEntryBase, bool> predicate = ClipboardLogViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Text);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -237,7 +237,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: Clear is disabled when only pinned entries remain.
+	/// <see cref="ClipboardLogViewModel" />: Clear is disabled when only pinned entries remain.
 	/// </summary>
 	[Test]
 	public void ClearCommand_Is_Disabled_When_Only_Pinned()
@@ -254,7 +254,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act, Assert
 		sut.ClearCommand
@@ -264,7 +264,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: Clear is enabled while an unpinned entry exists.
+	/// <see cref="ClipboardLogViewModel" />: Clear is enabled while an unpinned entry exists.
 	/// </summary>
 	[Test]
 	public void ClearCommand_Is_Enabled_With_Unpinned()
@@ -281,7 +281,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act, Assert
 		sut.ClearCommand
@@ -291,7 +291,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: search is disabled for image and file filters (no searchable text)
+	/// <see cref="ClipboardLogViewModel" />: search is disabled for image and file filters (no searchable text)
 	/// and enabled for the rest.
 	/// </summary>
 	[TestCase(ClipboardLogEntryFilter.All, true)]
@@ -315,7 +315,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act
 		sut.ActiveFilter = filter;
@@ -327,7 +327,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: switching to a non-searchable filter stashes and empties the query
+	/// <see cref="ClipboardLogViewModel" />: switching to a non-searchable filter stashes and empties the query
 	/// (so a leftover search does not leave the list empty), then restores it on return to a searchable filter.
 	/// </summary>
 	[Test]
@@ -347,7 +347,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		sut.SearchText = "query";
 
@@ -372,7 +372,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: toggling a pin delegates to the history service.
+	/// <see cref="ClipboardLogViewModel" />: toggling a pin delegates to the history service.
 	/// </summary>
 	[Test]
 	public void TogglePin_Delegates_To_Service()
@@ -389,7 +389,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -403,7 +403,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: with no search query, <c>VisibleEntries</c> mirrors all history entries.
+	/// <see cref="ClipboardLogViewModel" />: with no search query, <c>VisibleEntries</c> mirrors all history entries.
 	/// </summary>
 	[Test]
 	public void VisibleEntries_Mirrors_All_Entries_Without_Search()
@@ -423,7 +423,7 @@ internal class CustomClipboardViewModelTests
 		});
 
 		// Act
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Assert
 		sut.VisibleEntries
@@ -432,7 +432,7 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: a new entry inserted below the pinned block keeps its
+	/// <see cref="ClipboardLogViewModel" />: a new entry inserted below the pinned block keeps its
 	/// source position in <c>VisibleEntries</c> (regression: live inserts must not jump to the bottom).
 	/// </summary>
 	[Test]
@@ -458,7 +458,7 @@ internal class CustomClipboardViewModelTests
 			builder.RegisterInstance(log);
 		});
 
-		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
 
 		// Act — mimic the service: insert the new entry just below the pinned block.
 		ClipboardTextEntry fresh = TextEntry("fresh", [3]);

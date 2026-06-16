@@ -51,7 +51,7 @@ internal class ViewLauncherTests
 				.SetupGet(x => x.Entries)
 				.Returns([]);
 
-			CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
 			CustomClipboardWindow clipboardWindow = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
 
@@ -64,7 +64,7 @@ internal class ViewLauncherTests
 				.Returns(settings);
 
 			viewFactory
-				.CreateViewModel<CustomClipboardViewModel>()
+				.CreateViewModel<ClipboardLogViewModel>()
 				.Returns(viewModel);
 
 			viewFactory
@@ -669,7 +669,7 @@ internal class ViewLauncherTests
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
-		CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
+		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
 		CustomClipboardWindow existing = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
 

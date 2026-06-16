@@ -15,7 +15,7 @@
 	Height="420.0"
 	MinWidth="280.0"
 	MinHeight="220.0"
-	x:DataType="vm:CustomClipboardViewModel"
+	x:DataType="vm:ClipboardLogViewModel"
 	Background="Transparent"
 	CanMaximize="False"
 	CanMinimize="False"

@@ -296,8 +296,8 @@ public sealed class App : Application
 		#region ViewModels
 		services.AddTransient<AppPickerViewModel>();
 		services.AddTransient<BooleanAsyncResultViewModel>();
+		services.AddTransient<ClipboardLogViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
-		services.AddTransient<CustomClipboardViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();

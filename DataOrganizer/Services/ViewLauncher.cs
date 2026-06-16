@@ -185,7 +185,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		_logger.LogInformation($@"Opening ""{nameof(CustomClipboardWindow)}""");
 
-		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
+		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
 
 		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
 

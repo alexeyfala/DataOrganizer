@@ -39,7 +39,7 @@
 					<behaviors:SearchHighlightBehavior
 						HighlightBrush="{StaticResource SearchHighlightBrush}"
 						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
-						Query="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).SearchText}"
+						Query="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>
 			</TextBlock>
@@ -78,7 +78,7 @@
 			HorizontalContentAlignment="Stretch"
 			Background="{StaticResource MaterialDividerBrush}"
 			Classes.active="{Binding IsActive}"
-			Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RestoreEntryCommand}"
+			Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
 			CommandParameter="{Binding}"
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
@@ -93,7 +93,7 @@
 
 			<Interaction.Behaviors>
 				<behaviors:CloseWindowOnClickBehavior
-					KeepOpen="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).KeepOpen}"
+					KeepOpen="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).KeepOpen}"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 
@@ -160,7 +160,7 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).RemoveEntryCommand}"
+										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RemoveEntryCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
@@ -196,7 +196,7 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).TogglePinCommand}"
+										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).TogglePinCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
@@ -229,7 +229,7 @@
 						<Button
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
+							Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
 							CommandParameter="{ReflectionBinding Url,
 							                                     Mode=OneTime}"
 							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
