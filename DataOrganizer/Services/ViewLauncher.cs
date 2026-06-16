@@ -193,6 +193,8 @@ public class ViewLauncher : IViewLauncher
 
 		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
 		{
+			viewModel.ActiveFilter = settings.ActiveFilter;
+
 			viewModel.KeepOpen = settings.KeepOpen;
 
 			if (settings.Size.Width > 0 && settings.Size.Height > 0)
@@ -367,6 +369,7 @@ public class ViewLauncher : IViewLauncher
 		{
 			CustomClipboardWindowSettings settings = new()
 			{
+				ActiveFilter = window.ViewModel.ActiveFilter,
 				KeepOpen = window.ViewModel.KeepOpen,
 				Size = new((int)window.Width, (int)window.Height),
 				X = window.Position.X,
