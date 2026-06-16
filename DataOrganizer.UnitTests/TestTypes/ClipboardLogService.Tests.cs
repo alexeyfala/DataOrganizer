@@ -125,18 +125,18 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(pinned);
 
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
 		}
 
-		// Act (cap applies to the 25 unpinned only, so the pinned entry survives).
-		sut.HandleNewPayload([99], () => TextEntry("new", [99]), isSensitive: false);
+		// Act (cap applies to the 100 unpinned only, so the pinned entry survives).
+		sut.HandleNewPayload([201], () => TextEntry("new", [201]), isSensitive: false);
 
 		// Assert
 		sut.Entries
 			.Should()
-			.HaveCount(26);
+			.HaveCount(101);
 
 		sut.Entries
 			.Should()
@@ -393,23 +393,23 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			sut.Entries.Add(TextEntry($"e{i}", [(byte)i]));
 		}
 
 		// Act
-		sut.HandleNewPayload([99], () => TextEntry("new", [99]), isSensitive: false);
+		sut.HandleNewPayload([201], () => TextEntry("new", [201]), isSensitive: false);
 
 		// Assert
 		sut.Entries
 			.Should()
-			.HaveCount(25);
+			.HaveCount(100);
 
 		sut.Entries[0]
 			.Hash
 			.Should()
-			.Equal("c"u8.ToArray());
+			.Equal([201]);
 	}
 
 	/// <summary>
@@ -672,7 +672,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 100; i++)
 		{
 			sut.Entries.Add(TextEntry($"cur{i}", [(byte)i]));
 		}
@@ -683,7 +683,7 @@ internal class ClipboardLogServiceTests
 		// Assert
 		sut.Entries
 			.Should()
-			.HaveCount(25);
+			.HaveCount(100);
 
 		sut.Entries
 			.Cast<ClipboardTextEntry>()

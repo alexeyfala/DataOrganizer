@@ -40,7 +40,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <summary>
 	/// Maximum number of entries kept in log.
 	/// </summary>
-	private const int LogLimit = 25;
+	private const int LogLimit = 100;
 
 	/// <summary>
 	/// Linux-only byte[] format that file managers (GNOME/Nautilus and most DEs) require to paste files:
