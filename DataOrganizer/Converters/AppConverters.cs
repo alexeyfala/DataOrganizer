@@ -58,9 +58,7 @@ internal static class AppConverters
 				_ => default
 			});
 
-	/// <summary>
-	/// Two-way enum-to-bool converter for radio-style bindings; the parameter is the enum member to match.
-	/// </summary>
+	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
 
 	public static FuncValueConverter<FileModelDto, bool> FileIsOpenedToFalse { get; } =
