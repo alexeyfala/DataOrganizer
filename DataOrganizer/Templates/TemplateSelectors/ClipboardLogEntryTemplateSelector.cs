@@ -8,7 +8,7 @@ namespace DataOrganizer.Templates.TemplateSelectors;
 /// <summary>
 /// Picks the content template for a clipboard entry by its runtime type.
 /// </summary>
-internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDataTemplate
+internal sealed class ClipboardLogEntryTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
 	#region Methods
 	/// <inheritdoc />

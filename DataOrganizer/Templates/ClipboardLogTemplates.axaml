@@ -112,13 +112,13 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<templateSelectors:ClipboardEntryTemplateSelector>
+						<templateSelectors:ClipboardLogEntryTemplateSelector>
 							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
-						</templateSelectors:ClipboardEntryTemplateSelector>
+						</templateSelectors:ClipboardLogEntryTemplateSelector>
 					</ContentControl.ContentTemplate>
 				</ContentControl>
 
