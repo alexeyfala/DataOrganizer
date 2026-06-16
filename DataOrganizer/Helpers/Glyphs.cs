@@ -53,6 +53,11 @@ internal static class Glyphs
 	public const string Link = "🔗";
 
 	/// <summary>
+	/// Memo.
+	/// </summary>
+	public const string Memo = "📝";
+
+	/// <summary>
 	/// Middle dot.
 	/// </summary>
 	public const string MiddleDot = "·";

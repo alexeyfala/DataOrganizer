@@ -156,7 +156,7 @@
 
 					<RadioButton
 						Classes="typeChip"
-						Content="{x:Static helpers:Glyphs.InputLatinLetters}"
+						Content="{x:Static helpers:Glyphs.Memo}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Text}}"
 						ToolTip.Tip="{x:Static prop:Strings.Text}" />
