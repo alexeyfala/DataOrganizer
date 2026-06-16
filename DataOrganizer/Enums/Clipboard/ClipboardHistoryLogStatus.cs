@@ -1,12 +1,12 @@
 namespace DataOrganizer.Enums.Clipboard;
 
 /// <summary>
-/// Outcome of an attempt to unlock the persisted clipboard history.
+/// Outcome of an attempt to unlock the persisted clipboard log.
 /// </summary>
-public enum ClipboardHistoryUnlockStatus
+public enum ClipboardHistoryLogStatus
 {
 	/// <summary>
-	/// The history was unlocked (existing key opened, or a new key created).
+	/// The log was unlocked (existing key opened, or a new key created).
 	/// </summary>
 	Unlocked,
 

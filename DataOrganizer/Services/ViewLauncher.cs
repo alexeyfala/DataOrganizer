@@ -724,11 +724,11 @@ public class ViewLauncher : IViewLauncher
 
 			try
 			{
-				ClipboardHistoryUnlockStatus status = await _clipboardLogPersistence
+				ClipboardHistoryLogStatus status = await _clipboardLogPersistence
 					.TryUnlockAndMergeAsync(passwordBytes)
 					.ConfigureAwait(true);
 
-				if (status == ClipboardHistoryUnlockStatus.Unlocked)
+				if (status == ClipboardHistoryLogStatus.Unlocked)
 				{
 					return;
 				}

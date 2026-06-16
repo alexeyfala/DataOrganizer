@@ -175,7 +175,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			return new(ClipboardHistoryUnlockStatus.Failed, []);
+			return new(ClipboardHistoryLogStatus.Failed, []);
 		}
 	}
 
@@ -244,7 +244,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 			_logger.LogWarning("Failed to wrap a new clipboard history key.");
 
-			return new(ClipboardHistoryUnlockStatus.Failed, []);
+			return new(ClipboardHistoryLogStatus.Failed, []);
 		}
 
 		EnsureDirectory();
@@ -255,7 +255,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		SetKey(dek);
 
-		return new(ClipboardHistoryUnlockStatus.Unlocked, []);
+		return new(ClipboardHistoryLogStatus.Unlocked, []);
 	}
 
 	/// <summary>
@@ -340,14 +340,14 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		if (_encryption.Decrypt(wrapped, password) is not { } dek)
 		{
-			return new(ClipboardHistoryUnlockStatus.WrongPassword, []);
+			return new(ClipboardHistoryLogStatus.WrongPassword, []);
 		}
 
 		SetKey(dek);
 
 		IReadOnlyList<ClipboardHistoryEntryBase> entries = await LoadEntriesAsync(dek, token).ConfigureAwait(false);
 
-		return new(ClipboardHistoryUnlockStatus.Unlocked, entries);
+		return new(ClipboardHistoryLogStatus.Unlocked, entries);
 	}
 	#endregion
 }

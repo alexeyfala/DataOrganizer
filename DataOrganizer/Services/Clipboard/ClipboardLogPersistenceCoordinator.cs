@@ -174,7 +174,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	}
 
 	/// <inheritdoc />
-	public async Task<ClipboardHistoryUnlockStatus> TryUnlockAndMergeAsync(
+	public async Task<ClipboardHistoryLogStatus> TryUnlockAndMergeAsync(
 		byte[] password,
 		CancellationToken token = default)
 	{
@@ -182,7 +182,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 			.TryUnlockAsync(password, token)
 			.ConfigureAwait(false);
 
-		if (result.Status != ClipboardHistoryUnlockStatus.Unlocked)
+		if (result.Status != ClipboardHistoryLogStatus.Unlocked)
 		{
 			return result.Status;
 		}
@@ -195,7 +195,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		await SaveSnapshotAsync(token).ConfigureAwait(false);
 
-		return ClipboardHistoryUnlockStatus.Unlocked;
+		return ClipboardHistoryLogStatus.Unlocked;
 	}
 	#endregion
 

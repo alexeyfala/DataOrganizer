@@ -36,6 +36,6 @@ public interface IClipboardLogPersistenceCoordinator : IAsyncDisposable
 	/// Unlocks (or creates) the on-disk history with <paramref name="password" />, merges the
 	/// loaded entries into the service and enables persistence for the session.
 	/// </summary>
-	Task<ClipboardHistoryUnlockStatus> TryUnlockAndMergeAsync(byte[] password, CancellationToken token = default);
+	Task<ClipboardHistoryLogStatus> TryUnlockAndMergeAsync(byte[] password, CancellationToken token = default);
 	#endregion
 }
