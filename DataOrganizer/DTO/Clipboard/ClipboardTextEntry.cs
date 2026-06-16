@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 
@@ -57,11 +58,11 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// </summary>
 	private string BuildTypeGlyph()
 	{
-		const string htmlGlyph = "</>";
+		const string htmlGlyph = Glyphs.AngleBracketSlash;
 
-		const string formattedTextGlyph = "🅱️";
+		const string formattedTextGlyph = Glyphs.BButton;
 
-		const string plainTextGlyph = "🔤";
+		const string plainTextGlyph = Glyphs.InputLatinLetters;
 
 		return (IsHtml, IsRtf) switch
 		{

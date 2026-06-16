@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Helpers;
 using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -20,7 +21,7 @@ internal class ClipboardImageEntryTests
 		// Act, Assert
 		sut.TypeGlyph
 			.Should()
-			.Be("🖼️");
+			.Be(Glyphs.FramedPicture);
 
 		sut.TypeToolTip
 			.Should()

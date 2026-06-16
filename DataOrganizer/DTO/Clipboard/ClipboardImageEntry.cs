@@ -1,4 +1,5 @@
 using Avalonia.Media.Imaging;
+using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Buffers.Binary;
@@ -26,7 +27,7 @@ public sealed class ClipboardImageEntry : ClipboardHistoryEntryBase
 	public required byte[] OriginalPng { get; init; }
 
 	/// <inheritdoc />
-	public override string TypeGlyph => "🖼️";
+	public override string TypeGlyph => Glyphs.FramedPicture;
 
 	/// <inheritdoc />
 	public override string TypeToolTip => Strings.Image;

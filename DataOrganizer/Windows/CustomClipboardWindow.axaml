@@ -6,6 +6,7 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:enums="using:DataOrganizer.Enums.Clipboard"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -148,35 +149,35 @@
 					Spacing="4.0">
 					<RadioButton
 						Classes="typeChip"
-						Content="📋"
+						Content="{x:Static helpers:Glyphs.Clipboard}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.All}}"
 						ToolTip.Tip="{x:Static prop:Strings.All}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="🔤"
+						Content="{x:Static helpers:Glyphs.InputLatinLetters}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Text}}"
 						ToolTip.Tip="{x:Static prop:Strings.Text}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="🔗"
+						Content="{x:Static helpers:Glyphs.Link}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Url}}"
 						ToolTip.Tip="{x:Static prop:Strings.Hyperlink}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="🖼️"
+						Content="{x:Static helpers:Glyphs.FramedPicture}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Image}}"
 						ToolTip.Tip="{x:Static prop:Strings.Image}" />
 
 					<RadioButton
 						Classes="typeChip"
-						Content="🗂️"
+						Content="{x:Static helpers:Glyphs.CardIndexDividers}"
 						GroupName="ClipboardTypeFilter"
 						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Files}}"
 						ToolTip.Tip="{x:Static prop:Strings.Files}" />

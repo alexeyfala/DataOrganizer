@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ public sealed class ClipboardUrlEntry : ClipboardTextEntry
 	public override bool IsUrl => true;
 
 	/// <inheritdoc />
-	public override string TypeGlyph => "🔗";
+	public override string TypeGlyph => Glyphs.Link;
 
 	/// <inheritdoc />
 	public override string TypeToolTip => Strings.Hyperlink;

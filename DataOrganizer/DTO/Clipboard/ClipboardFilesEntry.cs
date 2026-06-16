@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 	public string? Preview => field ??= BuildEntriesPreview();
 
 	/// <inheritdoc />
-	public override string TypeGlyph => "🗂️";
+	public override string TypeGlyph => Glyphs.CardIndexDividers;
 
 	/// <inheritdoc />
 	public override string TypeToolTip => field ??= BuildTypeToolTip();
@@ -62,11 +63,11 @@ public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
 
 		int folderCount = entries.Count(e => e.IsFolder);
 
-		const string folderGlyph = "📁";
+		const string folderGlyph = Glyphs.FileFolder;
 
-		const string fileGlyph = "📄";
+		const string fileGlyph = Glyphs.PageFacingUp;
 
-		const string bulletGlyph = "·";
+		const string bulletGlyph = Glyphs.MiddleDot;
 
 		yield return $"{folderGlyph}: {folderCount}  {fileGlyph}: {entries.Count - folderCount}  Σ: {entries.Count}";
 

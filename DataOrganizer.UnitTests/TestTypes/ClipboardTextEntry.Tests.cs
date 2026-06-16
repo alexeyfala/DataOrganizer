@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Helpers;
 using Shared.Properties;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -85,19 +86,19 @@ internal class ClipboardTextEntryTests
 		// Arrange, Act, Assert
 		TextEntry("a").TypeGlyph
 			.Should()
-			.Be("🔤");
+			.Be(Glyphs.InputLatinLetters);
 
 		TextEntry("a", html: "<b>a</b>").TypeGlyph
 			.Should()
-			.Be("</>");
+			.Be(Glyphs.AngleBracketSlash);
 
 		TextEntry("a", rtf: @"{\rtf1 a}").TypeGlyph
 			.Should()
-			.Be("🅱️");
+			.Be(Glyphs.BButton);
 
 		TextEntry("a", html: "<b>a</b>", rtf: @"{\rtf1 a}").TypeGlyph
 			.Should()
-			.Be("</> 🅱️");
+			.Be($"{Glyphs.AngleBracketSlash} {Glyphs.BButton}");
 	}
 
 	/// <summary>

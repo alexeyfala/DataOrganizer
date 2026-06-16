@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Helpers;
 using Shared.Properties;
 using System;
 using System.Linq;
@@ -26,7 +27,7 @@ internal class ClipboardUrlEntryTests
 
 		sut.TypeGlyph
 			.Should()
-			.Be("🔗");
+			.Be(Glyphs.Link);
 
 		sut.TypeToolTip
 			.Should()
@@ -54,8 +55,7 @@ internal class ClipboardUrlEntryTests
 			.Should()
 			.HaveCount(10);
 
-		lines
-			.Last()
+		lines[^1]
 			.Should()
 			.Be("...");
 	}

@@ -3,6 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.DTO.Clipboard"
+	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:system="using:System"
@@ -130,7 +131,7 @@
 					<Grid.Resources>
 						<system:Double x:Key="ActionButtonSize">12.5</system:Double>
 					</Grid.Resources>
-					
+
 					<StackPanel
 						Grid.Row="0"
 						HorizontalAlignment="Right"
@@ -231,7 +232,7 @@
 							Command="{Binding $parent[Window].((vm:CustomClipboardViewModel)DataContext).OpenUrlCommand}"
 							CommandParameter="{ReflectionBinding Url,
 							                                     Mode=OneTime}"
-							Content="🌎"
+							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
 							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
 							FontSize="12.0"
