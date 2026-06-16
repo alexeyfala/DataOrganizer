@@ -20,18 +20,18 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistoryService)}"" type")]
-internal class ClipboardHistoryServiceTests
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogService)}"" type")]
+internal class ClipboardLogServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.BuildTextEntry" />: plain text becomes a text entry.
+	/// <see cref="ClipboardLogService.BuildTextEntry" />: plain text becomes a text entry.
 	/// </summary>
 	[Test]
 	public void BuildTextEntry_Builds_Text_Entry_For_Plain_Text()
 	{
 		// Act
-		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
+		ClipboardHistoryEntryBase entry = ClipboardLogService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
 
 		// Assert
 		ClipboardTextEntry text = entry
@@ -49,13 +49,13 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
+	/// <see cref="ClipboardLogService.BuildTextEntry" />: whole-string URL text becomes a URL entry (trimmed).
 	/// </summary>
 	[Test]
 	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
 	{
 		// Act
-		ClipboardHistoryEntryBase entry = ClipboardHistoryService.BuildTextEntry(
+		ClipboardHistoryEntryBase entry = ClipboardLogService.BuildTextEntry(
 			text: "  https://example.com/x  ",
 			html: null,
 			rtf: null,
@@ -77,7 +77,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: the captured entry becomes the active one.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: the captured entry becomes the active one.
 	/// </summary>
 	[Test]
 	public void Capture_Marks_Entry_Active_Clearing_Previous()
@@ -87,7 +87,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry first = TextEntry("a", [1]);
 
@@ -109,7 +109,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: pinned entries are exempt from the cap.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: pinned entries are exempt from the cap.
 	/// </summary>
 	[Test]
 	public void Capture_Trims_Only_Unpinned_Keeping_Pinned()
@@ -119,7 +119,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry pinned = PinnedTextEntry("pinned", [200]);
 
@@ -148,7 +148,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ClearAsync" />: the active highlight is cleared from a surviving pin.
+	/// <see cref="ClipboardLogService.ClearAsync" />: the active highlight is cleared from a surviving pin.
 	/// </summary>
 	[Test]
 	public async Task ClearAsync_Clears_Active_On_Surviving_Pinned()
@@ -158,7 +158,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
 
@@ -184,7 +184,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ClearAsync" />: pinned entries survive and Updated is raised.
+	/// <see cref="ClipboardLogService.ClearAsync" />: pinned entries survive and Updated is raised.
 	/// </summary>
 	[Test]
 	public async Task ClearAsync_Preserves_Pinned_And_Raises_Updated()
@@ -201,7 +201,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
 
@@ -228,7 +228,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ClearAsync" />: clears entries and raises ClearedByUser.
+	/// <see cref="ClipboardLogService.ClearAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
 	public async Task ClearAsync_Raises_ClearedByUser()
@@ -245,7 +245,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
@@ -265,7 +265,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
+	/// <see cref="ClipboardLogService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
 	/// </summary>
 	[Test]
 	public async Task ClearEntriesAsync_Raises_ClearedForStop()
@@ -282,7 +282,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
@@ -302,17 +302,17 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: plain and formatted text hash differently.
+	/// <see cref="ClipboardLogService.ComputeTextEntryHash" />: plain and formatted text hash differently.
 	/// </summary>
 	[Test]
 	public void ComputeTextEntryHash_Differs_Between_Plain_And_Formatted()
 	{
 		// Arrange
-		byte[] plain = ClipboardHistoryService.ComputeTextEntryHash("t", null, null);
+		byte[] plain = ClipboardLogService.ComputeTextEntryHash("t", null, null);
 
-		byte[] withHtml = ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null);
+		byte[] withHtml = ClipboardLogService.ComputeTextEntryHash("t", "<b>x</b>", null);
 
-		byte[] withRtf = ClipboardHistoryService.ComputeTextEntryHash("t", null, @"{\rtf1 x}");
+		byte[] withRtf = ClipboardLogService.ComputeTextEntryHash("t", null, @"{\rtf1 x}");
 
 		// Act, Assert
 		plain
@@ -325,32 +325,32 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: only the presence of companion
+	/// <see cref="ClipboardLogService.ComputeTextEntryHash" />: only the presence of companion
 	/// formats matters, not their (delayed-rendered) payloads.
 	/// </summary>
 	[Test]
 	public void ComputeTextEntryHash_Ignores_Companion_Payload_Differences()
 	{
 		// Act, Assert
-		ClipboardHistoryService.ComputeTextEntryHash("t", "<a>one</a>", null)
+		ClipboardLogService.ComputeTextEntryHash("t", "<a>one</a>", null)
 			.Should()
-			.Equal(ClipboardHistoryService.ComputeTextEntryHash("t", "<b>two</b>", null));
+			.Equal(ClipboardLogService.ComputeTextEntryHash("t", "<b>two</b>", null));
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.ComputeTextEntryHash" />: the same inputs hash identically.
+	/// <see cref="ClipboardLogService.ComputeTextEntryHash" />: the same inputs hash identically.
 	/// </summary>
 	[Test]
 	public void ComputeTextEntryHash_Is_Deterministic()
 	{
 		// Act, Assert
-		ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null)
+		ClipboardLogService.ComputeTextEntryHash("t", "<b>x</b>", null)
 			.Should()
-			.Equal(ClipboardHistoryService.ComputeTextEntryHash("t", "<b>x</b>", null));
+			.Equal(ClipboardLogService.ComputeTextEntryHash("t", "<b>x</b>", null));
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.DisposeAsync" />: disposing twice is safe.
+	/// <see cref="ClipboardLogService.DisposeAsync" />: disposing twice is safe.
 	/// </summary>
 	[Test]
 	public async Task DisposeAsync_Is_Idempotent()
@@ -360,7 +360,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		await sut.DisposeAsync();
 
@@ -374,7 +374,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: capture enforces the history cap.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: capture enforces the history cap.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Enforces_History_Cap()
@@ -391,7 +391,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		for (int i = 0; i < 25; i++)
 		{
@@ -413,7 +413,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: an unchanged payload is ignored.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: an unchanged payload is ignored.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Ignores_Unchanged_Payload()
@@ -430,7 +430,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.HandleNewPayload([1], () => TextEntry("a", [1]), isSensitive: false);
 
@@ -450,7 +450,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: a new payload is inserted at the top.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a new payload is inserted at the top.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Inserts_New_Entry_At_Top()
@@ -467,7 +467,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		List<ClipboardHistoryChangeKind> received = Capture(messenger);
 
@@ -490,7 +490,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HandleNewPayload" />: a matching hash moves the existing entry up.
+	/// <see cref="ClipboardLogService.HandleNewPayload" />: a matching hash moves the existing entry up.
 	/// </summary>
 	[Test]
 	public void HandleNewPayload_Moves_Existing_Entry_To_Top()
@@ -507,7 +507,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry target = TextEntry("target", [1]);
 
@@ -535,15 +535,15 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HashFiles" />: same path as a folder vs a file hashes differently.
+	/// <see cref="ClipboardLogService.HashFiles" />: same path as a folder vs a file hashes differently.
 	/// </summary>
 	[Test]
 	public void HashFiles_Distinguishes_Folder_From_File()
 	{
 		// Arrange
-		byte[] asFolder = ClipboardHistoryService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: true)]);
+		byte[] asFolder = ClipboardLogService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: true)]);
 
-		byte[] asFile = ClipboardHistoryService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: false)]);
+		byte[] asFile = ClipboardLogService.HashFiles([new ClipboardFileSystemEntry("C:\\x", IsFolder: false)]);
 
 		// Act, Assert
 		asFolder
@@ -552,7 +552,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HashFiles" />: the same list hashes identically.
+	/// <see cref="ClipboardLogService.HashFiles" />: the same list hashes identically.
 	/// </summary>
 	[Test]
 	public void HashFiles_Is_Deterministic()
@@ -561,13 +561,13 @@ internal class ClipboardHistoryServiceTests
 		ClipboardFileSystemEntry[] list = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
 
 		// Act, Assert
-		ClipboardHistoryService.HashFiles(list)
+		ClipboardLogService.HashFiles(list)
 			.Should()
-			.Equal(ClipboardHistoryService.HashFiles(list));
+			.Equal(ClipboardLogService.HashFiles(list));
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.HashFiles" />: ordering of the items affects the hash.
+	/// <see cref="ClipboardLogService.HashFiles" />: ordering of the items affects the hash.
 	/// </summary>
 	[Test]
 	public void HashFiles_Is_Order_Sensitive()
@@ -578,13 +578,13 @@ internal class ClipboardHistoryServiceTests
 		ClipboardFileSystemEntry b = new("C:\\b", IsFolder: false);
 
 		// Act, Assert
-		ClipboardHistoryService.HashFiles([a, b])
+		ClipboardLogService.HashFiles([a, b])
 			.Should()
-			.NotEqual(ClipboardHistoryService.HashFiles([b, a]));
+			.NotEqual(ClipboardLogService.HashFiles([b, a]));
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.StartAsync" /> / <see cref="ClipboardHistoryService.DisposeAsync" />:
+	/// <see cref="ClipboardLogService.StartAsync" /> / <see cref="ClipboardLogService.DisposeAsync" />:
 	/// the running flag toggles around the loop's lifetime.
 	/// </summary>
 	[Test]
@@ -595,7 +595,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		// Act, Assert
 		await sut.StartAsync();
@@ -612,7 +612,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.Merge" />: appends below current, dedupes by hash, no message.
+	/// <see cref="ClipboardLogService.Merge" />: appends below current, dedupes by hash, no message.
 	/// </summary>
 	[Test]
 	public void Merge_Appends_Below_Current_Skipping_Duplicates()
@@ -629,7 +629,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.Entries.Add(TextEntry("C", [2]));
 
@@ -653,7 +653,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.Merge" />: the history cap is enforced.
+	/// <see cref="ClipboardLogService.Merge" />: the history cap is enforced.
 	/// </summary>
 	[Test]
 	public void Merge_Enforces_History_Cap()
@@ -670,7 +670,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		for (int i = 0; i < 25; i++)
 		{
@@ -692,7 +692,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.Merge" />: pinned entries are placed atop, keeping the invariant.
+	/// <see cref="ClipboardLogService.Merge" />: pinned entries are placed atop, keeping the invariant.
 	/// </summary>
 	[Test]
 	public void Merge_Places_Pinned_Atop_Preserving_Invariant()
@@ -702,7 +702,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.Entries.Add(TextEntry("newText", [9]));
 
@@ -722,7 +722,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files are captured with folders sorted first.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: files are captured with folders sorted first.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Captures_Files_Entry_Folders_First()
@@ -743,7 +743,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		IStorageFile file = Substitute.For<IStorageFile>();
 
@@ -780,7 +780,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: plain text is captured as a text entry.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: plain text is captured as a text entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Captures_Text_Entry()
@@ -801,7 +801,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		clipboard
 			.TryGetTextAsync()
@@ -824,7 +824,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 1 (allowed)
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: CanIncludeInClipboardHistory = 1 (allowed)
 	/// is not treated as sensitive — the entry is captured (e.g. content restored via Win+V).
 	/// </summary>
 	[Test]
@@ -850,7 +850,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		clipboard
 			.TryGetTextAsync()
@@ -873,7 +873,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: content re-published from Windows clipboard history
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: content re-published from Windows clipboard history
 	/// (ClipboardHistoryItemId present) is captured, even though it carries the exclude marker (anti-loop, not secrecy).
 	/// </summary>
 	[Test]
@@ -900,7 +900,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		clipboard
 			.TryGetTextAsync()
@@ -923,7 +923,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: an emptied clipboard drops the active highlight.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Clears_Active_When_Clipboard_Emptied()
@@ -944,7 +944,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -965,7 +965,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: files without an absolute path are skipped.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: files without an absolute path are skipped.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Skips_Files_Without_Absolute_Path()
@@ -986,7 +986,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		IStorageFile valid = Substitute.For<IStorageFile>();
 
@@ -1022,7 +1022,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: a sensitivity marker skips the entry.
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: a sensitivity marker skips the entry.
 	/// </summary>
 	[Test]
 	public async Task PollOnce_Skips_Sensitive_Content()
@@ -1043,7 +1043,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		clipboard
 			.GetDataFormatsAsync()
@@ -1063,7 +1063,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.PollOnceAsync" />: CanIncludeInClipboardHistory = 0 (exclude)
+	/// <see cref="ClipboardLogService.PollOnceAsync" />: CanIncludeInClipboardHistory = 0 (exclude)
 	/// is treated as sensitive — the entry is skipped.
 	/// </summary>
 	[Test]
@@ -1089,7 +1089,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		clipboard
 			.TryGetTextAsync()
@@ -1115,7 +1115,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry original = PinnedTextEntry("orig", [1]);
 
@@ -1142,7 +1142,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RemoveAsync" />: a missing entry is a no-op and raises no notification.
+	/// <see cref="ClipboardLogService.RemoveAsync" />: a missing entry is a no-op and raises no notification.
 	/// </summary>
 	[Test]
 	public async Task Remove_Missing_Entry_Is_NoOp()
@@ -1159,7 +1159,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
@@ -1179,7 +1179,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RemoveAsync" />: removing the active entry empties the system clipboard.
+	/// <see cref="ClipboardLogService.RemoveAsync" />: removing the active entry empties the system clipboard.
 	/// </summary>
 	[Test]
 	public async Task Remove_Of_Active_Entry_Empties_System_Clipboard()
@@ -1196,7 +1196,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -1217,7 +1217,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RemoveAsync" />: after removing the active entry the emptied clipboard
+	/// <see cref="ClipboardLogService.RemoveAsync" />: after removing the active entry the emptied clipboard
 	/// is not re-captured by the next poll tick.
 	/// </summary>
 	[Test]
@@ -1239,7 +1239,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -1257,7 +1257,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RemoveAsync" />: removing a non-active entry leaves the system clipboard intact.
+	/// <see cref="ClipboardLogService.RemoveAsync" />: removing a non-active entry leaves the system clipboard intact.
 	/// </summary>
 	[Test]
 	public async Task Remove_Of_Inactive_Entry_Leaves_System_Clipboard()
@@ -1274,7 +1274,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(clipboard);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry old = TextEntry("old", [2]);
 
@@ -1302,7 +1302,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RemoveAsync" />: a pinned entry is removed and Updated is raised.
+	/// <see cref="ClipboardLogService.RemoveAsync" />: a pinned entry is removed and Updated is raised.
 	/// </summary>
 	[Test]
 	public async Task Remove_Removes_Pinned_Entry_And_Raises_Updated()
@@ -1319,7 +1319,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
 
@@ -1364,7 +1364,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -1396,7 +1396,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RestoreAsync" />: restoring the top entry raises no notification.
+	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring the top entry raises no notification.
 	/// </summary>
 	[Test]
 	public async Task Restore_Of_Top_Entry_Raises_No_Notification()
@@ -1413,7 +1413,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry top = TextEntry("top", [1]);
 
@@ -1455,7 +1455,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -1501,7 +1501,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry original = TextEntry("orig", [1]);
 
@@ -1539,7 +1539,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RestoreAsync" />: the restored entry becomes the active one.
+	/// <see cref="ClipboardLogService.RestoreAsync" />: the restored entry becomes the active one.
 	/// </summary>
 	[Test]
 	public async Task RestoreAsync_Marks_Entry_Active()
@@ -1549,7 +1549,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry other = TextEntry("other", [1]);
 
@@ -1573,7 +1573,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RestoreAsync" />: moves the entry to the top and raises Updated.
+	/// <see cref="ClipboardLogService.RestoreAsync" />: moves the entry to the top and raises Updated.
 	/// </summary>
 	[Test]
 	public async Task RestoreAsync_Moves_To_Top_And_Raises_Updated()
@@ -1590,7 +1590,7 @@ internal class ClipboardHistoryServiceTests
 			builder.RegisterInstance(messenger);
 		});
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry target = TextEntry("target", [2]);
 
@@ -1614,7 +1614,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.RestoreAsync" />: keeping the position only highlights the entry, it does not move.
+	/// <see cref="ClipboardLogService.RestoreAsync" />: keeping the position only highlights the entry, it does not move.
 	/// </summary>
 	[Test]
 	public async Task RestoreAsync_With_KeepPosition_Marks_Active_Without_Moving()
@@ -1624,7 +1624,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry first = TextEntry("first", [1]);
 
@@ -1648,7 +1648,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.StartAsync" />: a disposed service does not start.
+	/// <see cref="ClipboardLogService.StartAsync" />: a disposed service does not start.
 	/// </summary>
 	[Test]
 	public async Task StartAsync_After_Dispose_Does_Not_Run()
@@ -1658,7 +1658,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		await sut.DisposeAsync();
 
@@ -1672,7 +1672,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.Stop" />: stopping without a running loop is a no-op.
+	/// <see cref="ClipboardLogService.Stop" />: stopping without a running loop is a no-op.
 	/// </summary>
 	[Test]
 	public void Stop_Without_Start_Is_NoOp()
@@ -1682,7 +1682,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		// Act
 		Action act = sut.Stop;
@@ -1694,7 +1694,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.TogglePin" />: pinning the first entry lifts it to the very top.
+	/// <see cref="ClipboardLogService.TogglePin" />: pinning the first entry lifts it to the very top.
 	/// </summary>
 	[Test]
 	public void TogglePin_Pins_First_Entry_To_Top()
@@ -1704,7 +1704,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry c = TextEntry("c", [3]);
 
@@ -1728,7 +1728,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.TogglePin" />: a further pin lands at the end of the pinned block.
+	/// <see cref="ClipboardLogService.TogglePin" />: a further pin lands at the end of the pinned block.
 	/// </summary>
 	[Test]
 	public void TogglePin_Pins_Next_Entry_To_End_Of_Pinned_Block()
@@ -1738,7 +1738,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry pinned = PinnedTextEntry("p", [1]);
 
@@ -1765,7 +1765,7 @@ internal class ClipboardHistoryServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryService.TogglePin" />: unpinning drops the entry just below the remaining pins.
+	/// <see cref="ClipboardLogService.TogglePin" />: unpinning drops the entry just below the remaining pins.
 	/// </summary>
 	[Test]
 	public void TogglePin_Unpins_To_Top_Of_Unpinned_Block()
@@ -1775,7 +1775,7 @@ internal class ClipboardHistoryServiceTests
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>());
 
-		ClipboardHistoryService sut = mock.Create<ClipboardHistoryService>();
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
 		ClipboardTextEntry p0 = PinnedTextEntry("p0", [1]);
 

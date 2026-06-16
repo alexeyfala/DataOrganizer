@@ -47,7 +47,7 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
-			windowMock.Mock<IClipboardHistoryService>()
+			windowMock.Mock<IClipboardLogService>()
 				.SetupGet(x => x.Entries)
 				.Returns([]);
 
@@ -475,7 +475,7 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 		});
 
-		mock.Mock<IClipboardHistoryService>()
+		mock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
@@ -521,7 +521,7 @@ internal class ViewLauncherTests
 			builder.RegisterInstance(fileSystem);
 		});
 
-		mock.Mock<IClipboardHistoryService>()
+		mock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
@@ -555,7 +555,7 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		mock.Mock<IClipboardHistoryService>()
+		mock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
@@ -665,7 +665,7 @@ internal class ViewLauncherTests
 		// Arrange
 		using AutoMock windowMock = AutoMock.GetLoose();
 
-		windowMock.Mock<IClipboardHistoryService>()
+		windowMock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 

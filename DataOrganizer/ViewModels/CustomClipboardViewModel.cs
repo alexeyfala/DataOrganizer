@@ -69,7 +69,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanClear))]
-	private Task Clear() => _clipboardHistory.ClearAsync();
+	private Task Clear() => _clipboardLog.ClearAsync();
 
 	/// <summary>
 	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
@@ -107,7 +107,7 @@ public sealed partial class CustomClipboardViewModel :
 			return Task.CompletedTask;
 		}
 
-		return _clipboardHistory.RemoveAsync(entry);
+		return _clipboardLog.RemoveAsync(entry);
 	}
 
 	/// <summary>
@@ -118,7 +118,7 @@ public sealed partial class CustomClipboardViewModel :
 	{
 		return entry is null
 			? Task.CompletedTask
-			: _clipboardHistory.RestoreAsync(entry, keepPosition: KeepOpen);
+			: _clipboardLog.RestoreAsync(entry, keepPosition: KeepOpen);
 	}
 
 	/// <summary>
@@ -132,7 +132,7 @@ public sealed partial class CustomClipboardViewModel :
 			return;
 		}
 
-		_clipboardHistory.TogglePin(entry);
+		_clipboardLog.TogglePin(entry);
 
 		ClearCommand.NotifyCanExecuteChanged();
 	}
@@ -164,8 +164,8 @@ public sealed partial class CustomClipboardViewModel :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardHistory;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
@@ -194,12 +194,12 @@ public sealed partial class CustomClipboardViewModel :
 
 	#region Constructors
 	public CustomClipboardViewModel(
-		IClipboardHistoryService clipboardHistory,
+		IClipboardLogService clipboardLog,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger)
 	{
-		_clipboardHistory = clipboardHistory;
+		_clipboardLog = clipboardLog;
 
 		_dispatcher = dispatcher;
 
@@ -211,7 +211,7 @@ public sealed partial class CustomClipboardViewModel :
 
 		VisibleEntries = new(_visibleEntries);
 
-		IObservable<Unit> trigger = _clipboardHistory
+		IObservable<Unit> trigger = clipboardLog
 			.Entries
 			.ToObservableChangeSet()
 			.Select(static _ => Unit.Default)
@@ -300,7 +300,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// <summary>
 	/// Validates <see cref="ClearCommand" />.
 	/// </summary>
-	private bool CanClear() => _clipboardHistory.Entries.Any(static entry => !entry.IsPinned);
+	private bool CanClear() => _clipboardLog.Entries.Any(static entry => !entry.IsPinned);
 
 	/// <summary>
 	/// Reconciles <see cref="VisibleEntries" /> with the matching history entries, preserving source order.
@@ -313,7 +313,7 @@ public sealed partial class CustomClipboardViewModel :
 
 		int target = 0;
 
-		foreach (ClipboardHistoryEntryBase entry in _clipboardHistory.Entries)
+		foreach (ClipboardHistoryEntryBase entry in _clipboardLog.Entries)
 		{
 			if (!typePredicate(entry) || !searchPredicate(entry))
 			{

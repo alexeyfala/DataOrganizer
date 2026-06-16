@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
-public sealed class ClipboardHistoryService : IClipboardHistoryService
+public sealed class ClipboardLogService : IClipboardLogService
 {
 	#region Properties
 	/// <inheritdoc />
@@ -38,9 +38,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Data
 	/// <summary>
-	/// Maximum number of entries kept in history.
+	/// Maximum number of entries kept in log.
 	/// </summary>
-	private const int HistoryLimit = 100;
+	private const int LogLimit = 100;
 
 	/// <summary>
 	/// Linux-only byte[] format that file managers (GNOME/Nautilus and most DEs) require to paste files:
@@ -85,7 +85,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
-	/// insert an entry while the history / clipboard is being cleared.
+	/// insert an entry while the log / clipboard is being cleared.
 	/// </summary>
 	private readonly SemaphoreSlim _clearGate = new(1, 1);
 
@@ -140,7 +140,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	#endregion
 
 	#region Constructors
-	public ClipboardHistoryService(
+	public ClipboardLogService(
 		IClipboardAccessor clipboard,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -240,7 +240,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 					continue;
 				}
 
-				if (Entries.Count - GetPinnedCount() >= HistoryLimit)
+				if (Entries.Count - GetPinnedCount() >= LogLimit)
 				{
 					continue;
 				}
@@ -393,7 +393,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		}
 		catch (Exception ex)
 		{
-			_logger.LogWarning($"Restore from clipboard history failed: {ex.Message}");
+			_logger.LogWarning($"Restore from clipboard log failed: {ex.Message}");
 		}
 		finally
 		{
@@ -404,7 +404,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public Task StartAsync(CancellationToken token = default)
 	{
-		_logger.LogInformation($"{nameof(ClipboardHistoryService)}.{nameof(StartAsync)} requested.");
+		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(StartAsync)} requested.");
 
 		if (IsDisposed() || Interlocked.Exchange(ref _isLoopRunning, true))
 		{
@@ -426,7 +426,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// <inheritdoc />
 	public void Stop()
 	{
-		_logger.LogInformation($"{nameof(ClipboardHistoryService)}.{nameof(Stop)} requested.");
+		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(Stop)} requested.");
 
 		CancellationTokenSource? local = Interlocked.Exchange(ref _stopCts, null);
 
@@ -845,7 +845,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			await _dispatcher.PostAsync(() =>
 			{
 				_logger.LogInformation(
-					$"Clearing clipboard history ({Entries.Count} entries)" +
+					$"Clearing clipboard log ({Entries.Count} entries)" +
 					$"{(clearSystem ? " and emptying the system clipboard" : " without touching the system clipboard")}.");
 
 				if (preservePinned)
@@ -964,14 +964,14 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// Inserts <paramref name="entry" /> below the pinned block and enforces the history cap on
+	/// Inserts <paramref name="entry" /> below the pinned block and enforces the log cap on
 	/// unpinned entries only (pinned ones are exempt from trimming).
 	/// </summary>
 	private void InsertAtTop(ClipboardHistoryEntryBase entry)
 	{
 		Entries.Insert(GetPinnedCount(), entry);
 
-		while (Entries.Count - GetPinnedCount() > HistoryLimit)
+		while (Entries.Count - GetPinnedCount() > LogLimit)
 		{
 			// The last entry is always unpinned (pinned ones sit atop), so trimming never drops a pin.
 			Entries.RemoveAt(Entries.Count - 1);
@@ -1032,7 +1032,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	}
 
 	/// <summary>
-	/// <c>True</c> when the <see cref="ClipboardSensitivityMarkers.CanIncludeInClipboardHistory" /> DWORD reads as 0 (exclude from history).
+	/// <c>True</c> when the <see cref="ClipboardSensitivityMarkers.CanIncludeInClipboardHistory" /> DWORD reads as 0 (exclude from log).
 	/// </summary>
 	private async Task<bool> IsHistoryExcludedAsync()
 	{
@@ -1042,7 +1042,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 			.TryGetValueAsync(format)
 			.ConfigureAwait(false);
 
-		// A missing or non-zero value means the content is allowed in history (not sensitive).
+		// A missing or non-zero value means the content is allowed in log (not sensitive).
 		return value is { Length: > 0 } && value.All(static x => x == 0);
 	}
 
@@ -1056,7 +1056,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 		TimeSpan pollInterval = TimeSpan.FromMilliseconds(750.0);
 
 		_logger.LogInformation(
-			$"{nameof(ClipboardHistoryService)} loop started (interval = {pollInterval.TotalMilliseconds:F0} ms, limit = {HistoryLimit}).");
+			$"{nameof(ClipboardLogService)} loop started (interval = {pollInterval.TotalMilliseconds:F0} ms, limit = {LogLimit}).");
 
 		try
 		{
@@ -1082,7 +1082,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 			cancellation.Dispose();
 
-			_logger.LogInformation($"{nameof(ClipboardHistoryService)} loop stopped.");
+			_logger.LogInformation($"{nameof(ClipboardLogService)} loop stopped.");
 		}
 	}
 

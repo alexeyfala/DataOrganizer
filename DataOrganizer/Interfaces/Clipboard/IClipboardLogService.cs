@@ -9,9 +9,9 @@ namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
 /// Tracks the system clipboard in the background and exposes an in-memory
-/// history (newest first) capped at <see cref="HistoryLimit" /> entries.
+/// log (newest first) capped at <see cref="HistoryLimit" /> entries.
 /// </summary>
-public interface IClipboardHistoryService : IAsyncDisposable
+public interface IClipboardLogService : IAsyncDisposable
 {
 	#region Properties
 	/// <summary>

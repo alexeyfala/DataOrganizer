@@ -38,8 +38,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
@@ -75,7 +75,7 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IClipboardHistoryService clipboardLog,
+		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDialogService dialogService,
 		IExecutionEngine executionEngine,

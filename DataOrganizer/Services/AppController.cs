@@ -23,8 +23,8 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
@@ -61,7 +61,7 @@ public sealed class AppController : IAppController
 	public AppController(
 		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
-		IClipboardHistoryService clipboardLog,
+		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICommandLineOptions options,
 		IDbAccess dbAccess,

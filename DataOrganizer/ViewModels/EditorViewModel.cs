@@ -1023,8 +1023,8 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardLog;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
 	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
 	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
@@ -1049,7 +1049,7 @@ public partial class EditorViewModel :
 		Application app,
 		IAppSettingsManager settingsManager,
 		IClipboardAccessor clipboard,
-		IClipboardHistoryService clipboardLog,
+		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,

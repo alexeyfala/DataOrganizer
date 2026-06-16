@@ -44,8 +44,8 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// <inheritdoc cref="IClipboardLogStore" />
 	private readonly IClipboardLogStore _store;
 
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _сlipboardHistory;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _сlipboardLog;
 
 	/// <summary>
 	/// <c>True</c> once <see cref="Start" /> has subscribed to change notifications.
@@ -61,13 +61,13 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	#region Constructors
 	public ClipboardLogPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
-		IClipboardHistoryService сlipboardHistory,
+		IClipboardLogService сlipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger) : this(
 			  settingsManager,
-			  сlipboardHistory,
+			  сlipboardLog,
 			  store,
 			  dispatcher,
 			  logger,
@@ -81,7 +81,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	internal ClipboardLogPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
-		IClipboardHistoryService сlipboardHistory,
+		IClipboardLogService сlipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -98,7 +98,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		_store = store;
 
-		_сlipboardHistory = сlipboardHistory;
+		_сlipboardLog = сlipboardLog;
 
 		_saveDebounce = saveDebounce;
 	}
@@ -190,7 +190,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		// Merge previous-session entries on the UI thread (Merge raises no notification),
 		// then write the merged set once.
 		await _dispatcher
-			.PostAsync(() => _сlipboardHistory.Merge(result.Entries))
+			.PostAsync(() => _сlipboardLog.Merge(result.Entries))
 			.ConfigureAwait(false);
 
 		await SaveSnapshotAsync(token).ConfigureAwait(false);
@@ -270,7 +270,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		}
 
 		ClipboardHistoryEntryBase[] snapshot = await _dispatcher
-			.PostAsync(() => _сlipboardHistory.Entries.ToArray())
+			.PostAsync(() => _сlipboardLog.Entries.ToArray())
 			.ConfigureAwait(false);
 
 		await _store
