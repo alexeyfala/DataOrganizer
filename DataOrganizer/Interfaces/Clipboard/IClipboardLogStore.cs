@@ -44,6 +44,6 @@ public interface IClipboardLogStore : IDisposable
 	/// Unlocks an existing key with <paramref name="password" /> (loading the previous journal),
 	/// or creates and stores a new key when none exists yet.
 	/// </summary>
-	Task<ClipboardHistoryUnlockResult> TryUnlockAsync(byte[] password, CancellationToken token = default);
+	Task<ClipboardLogUnlockResult> TryUnlockAsync(byte[] password, CancellationToken token = default);
 	#endregion
 }

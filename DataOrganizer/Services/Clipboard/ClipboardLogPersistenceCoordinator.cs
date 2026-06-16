@@ -178,7 +178,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		byte[] password,
 		CancellationToken token = default)
 	{
-		ClipboardHistoryUnlockResult result = await _store
+		ClipboardLogUnlockResult result = await _store
 			.TryUnlockAsync(password, token)
 			.ConfigureAwait(false);
 

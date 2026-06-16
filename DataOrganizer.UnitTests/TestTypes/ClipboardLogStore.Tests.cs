@@ -153,7 +153,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -199,7 +199,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		ClipboardTextEntry restored = result
@@ -292,7 +292,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -336,7 +336,7 @@ internal class ClipboardLogStoreTests
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
-		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -377,7 +377,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
 		// Assert
 		result.Status
@@ -410,7 +410,7 @@ internal class ClipboardLogStoreTests
 
 		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
-		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("wrong"));
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("wrong"));
 
 		// Assert
 		result.Status

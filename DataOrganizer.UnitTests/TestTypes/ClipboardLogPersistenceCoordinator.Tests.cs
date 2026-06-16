@@ -337,7 +337,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardHistoryUnlockResult(ClipboardHistoryLogStatus.Unlocked, loaded));
+			.Returns(new ClipboardLogUnlockResult(ClipboardHistoryLogStatus.Unlocked, loaded));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
 
@@ -375,7 +375,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardHistoryUnlockResult(ClipboardHistoryLogStatus.WrongPassword, []));
+			.Returns(new ClipboardLogUnlockResult(ClipboardHistoryLogStatus.WrongPassword, []));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
 
