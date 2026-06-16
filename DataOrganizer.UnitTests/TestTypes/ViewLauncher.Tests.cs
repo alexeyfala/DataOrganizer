@@ -34,7 +34,7 @@ internal class ViewLauncherTests
 		// Arrange
 		int positiveValue = TestUtils.CreateRandomInt(100, 300);
 
-		CustomClipboardWindowSettings settings = new()
+		ClipboardLogWindowSettings settings = new()
 		{
 			ActiveFilter = ClipboardEntryFilter.Image,
 			KeepOpen = true,
@@ -60,7 +60,7 @@ internal class ViewLauncherTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.FromFile<CustomClipboardWindowSettings>(Arg.Any<string>())
+				.FromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -459,7 +459,7 @@ internal class ViewLauncherTests
 	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
 	{
 		// Arrange
-		CustomClipboardWindowSettings? captured = null;
+		ClipboardLogWindowSettings? captured = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -467,10 +467,10 @@ internal class ViewLauncherTests
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CustomClipboardWindowSettings>(),
+					Arg.Any<ClipboardLogWindowSettings>(),
 					Arg.Any<string>(),
 					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<CustomClipboardWindowSettings>());
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -505,7 +505,7 @@ internal class ViewLauncherTests
 	public void SaveCustomClipboardSettings_Persists_KeepOpen()
 	{
 		// Arrange
-		CustomClipboardWindowSettings? captured = null;
+		ClipboardLogWindowSettings? captured = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -513,10 +513,10 @@ internal class ViewLauncherTests
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CustomClipboardWindowSettings>(),
+					Arg.Any<ClipboardLogWindowSettings>(),
 					Arg.Any<string>(),
 					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<CustomClipboardWindowSettings>());
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
 			builder.RegisterInstance(fileSystem);
 		});
@@ -567,7 +567,7 @@ internal class ViewLauncherTests
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(
-			Arg.Any<CustomClipboardWindowSettings>(),
+			Arg.Any<ClipboardLogWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 	}

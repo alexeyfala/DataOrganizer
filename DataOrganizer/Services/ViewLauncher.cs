@@ -189,9 +189,9 @@ public class ViewLauncher : IViewLauncher
 
 		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
 
-		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
+		if (_jsonSerializer.FromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
 		{
 			viewModel.ActiveFilter = settings.ActiveFilter;
 
@@ -367,7 +367,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		try
 		{
-			CustomClipboardWindowSettings settings = new()
+			ClipboardLogWindowSettings settings = new()
 			{
 				ActiveFilter = window.ViewModel.ActiveFilter,
 				KeepOpen = window.ViewModel.KeepOpen,
@@ -378,7 +378,7 @@ public class ViewLauncher : IViewLauncher
 
 			_fileSystem.SerializeToJsonFile(
 				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings)),
+				_appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings)),
 				false);
 		}
 		catch (Exception ex)
