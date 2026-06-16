@@ -564,6 +564,12 @@
   <data name="Hyperlink" xml:space="preserve">
     <value>Гиперссылка</value>
   </data>
+  <data name="All" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="Text" xml:space="preserve">
+    <value>Текст</value>
+  </data>
   <data name="OpenInBrowser" xml:space="preserve">
     <value>Открыть в браузере</value>
   </data>
