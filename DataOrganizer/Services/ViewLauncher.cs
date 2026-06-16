@@ -38,11 +38,11 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardHistory;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
-	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
-	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -75,8 +75,8 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IClipboardHistoryService clipboardHistory,
-		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
+		IClipboardLogService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
@@ -91,9 +91,9 @@ public class ViewLauncher : IViewLauncher
 
 		_appEnvironment = appEnvironment;
 
-		_clipboardHistory = clipboardHistory;
+		_clipboardLog = clipboardLog;
 
-		_clipboardHistoryPersistence = clipboardHistoryPersistence;
+		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_dialogService = dialogService;
 
@@ -117,11 +117,11 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="CustomClipboardWindow" />.
+	/// <see cref="Window.Closing" /> event handler of <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	private void CustomClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
 	{
-		if (sender is not CustomClipboardWindow window)
+		if (sender is not ClipboardLogWindow window)
 		{
 			return;
 		}
@@ -181,18 +181,20 @@ public class ViewLauncher : IViewLauncher
 
 	#region Methods
 	/// <inheritdoc />
-	public CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner)
+	public ClipboardLogWindow ConfigureCustomClipboardWindow(Window owner)
 	{
-		_logger.LogInformation($@"Opening ""{nameof(CustomClipboardWindow)}""");
+		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
 
-		CustomClipboardViewModel viewModel = _viewFactory.CreateViewModel<CustomClipboardViewModel>();
+		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
 
-		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
+		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
 
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
 
-		if (_jsonSerializer.FromFile<CustomClipboardWindowSettings>(filePath) is { } settings)
+		if (_jsonSerializer.FromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
 		{
+			viewModel.ActiveFilter = settings.ActiveFilter;
+
 			viewModel.KeepOpen = settings.KeepOpen;
 
 			if (settings.Size.Width > 0 && settings.Size.Height > 0)
@@ -361,12 +363,13 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public void SaveCustomClipboardSettings(CustomClipboardWindow window)
+	public void SaveCustomClipboardSettings(ClipboardLogWindow window)
 	{
 		try
 		{
-			CustomClipboardWindowSettings settings = new()
+			ClipboardLogWindowSettings settings = new()
 			{
+				ActiveFilter = window.ViewModel.ActiveFilter,
 				KeepOpen = window.ViewModel.KeepOpen,
 				Size = new((int)window.Width, (int)window.Height),
 				X = window.Position.X,
@@ -375,7 +378,7 @@ public class ViewLauncher : IViewLauncher
 
 			_fileSystem.SerializeToJsonFile(
 				settings,
-				_appEnvironment.GetSettingsFilePath(nameof(CustomClipboardWindowSettings)),
+				_appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings)),
 				false);
 		}
 		catch (Exception ex)
@@ -503,7 +506,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public async Task ShowCustomClipboardWindowAsync(Window owner)
 	{
-		if (_app.FindWindow<CustomClipboardWindow>() is { } existing)
+		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
 		{
 			PositionAtScreenBottomRight(existing, owner);
 
@@ -623,9 +626,9 @@ public class ViewLauncher : IViewLauncher
 				.ConfigureAwait(true);
 		}
 
-		if (_clipboardHistory.IsRunning)
+		if (_clipboardLog.IsRunning)
 		{
-			_clipboardHistory.Stop();
+			_clipboardLog.Stop();
 		}
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
@@ -704,7 +707,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		string label = $"{Strings.EnterThePasswordToLoadSavedHistory} ({Strings.OrCancelToKeepSessionInMemory})";
 
-		while (_clipboardHistoryPersistence.RequiresUnlock)
+		while (_clipboardLogPersistence.RequiresUnlock)
 		{
 			char[] password = await _dialogService
 				.RequestPasswordAsync(Strings.ClipboardHistory, label)
@@ -721,11 +724,11 @@ public class ViewLauncher : IViewLauncher
 
 			try
 			{
-				ClipboardHistoryUnlockStatus status = await _clipboardHistoryPersistence
+				ClipboardLogStatus status = await _clipboardLogPersistence
 					.TryUnlockAndMergeAsync(passwordBytes)
 					.ConfigureAwait(true);
 
-				if (status == ClipboardHistoryUnlockStatus.Unlocked)
+				if (status == ClipboardLogStatus.Unlocked)
 				{
 					return;
 				}

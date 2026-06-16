@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 
@@ -6,7 +7,7 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public class ClipboardTextEntry : ClipboardHistoryEntryBase
+public class ClipboardTextEntry : ClipboardLogEntryBase
 {
 	#region Properties
 	/// <summary>
@@ -57,11 +58,11 @@ public class ClipboardTextEntry : ClipboardHistoryEntryBase
 	/// </summary>
 	private string BuildTypeGlyph()
 	{
-		const string htmlGlyph = "</>";
+		const string htmlGlyph = Glyphs.AngleBracketSlash;
 
-		const string formattedTextGlyph = "🅱️";
+		const string formattedTextGlyph = Glyphs.BButton;
 
-		const string plainTextGlyph = "🔤";
+		const string plainTextGlyph = Glyphs.InputLatinLetters;
 
 		return (IsHtml, IsRtf) switch
 		{

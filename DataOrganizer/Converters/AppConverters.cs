@@ -26,37 +26,40 @@ internal static class AppConverters
 
 	#region Properties
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
-		new(status => status switch
-		{
-			EncryptionStatus.Decrypted => Brushes.OrangeRed,
-			EncryptionStatus.Encrypted => Brushes.ForestGreen,
-			_ => Brushes.Transparent
-		});
+			new(status => status switch
+			{
+				EncryptionStatus.Decrypted => Brushes.OrangeRed,
+				EncryptionStatus.Encrypted => Brushes.ForestGreen,
+				_ => Brushes.Transparent
+			});
 
 	public static FuncValueConverter<EncryptionStatus, string?> EncryptionStatusToIconDescription { get; } =
-		new(status => status switch
-		{
-			EncryptionStatus.Decrypted => Strings.ContentIsDecrypted,
-			EncryptionStatus.Encrypted => Strings.ContentIsEncrypted,
-			_ => null
-		});
+			new(status => status switch
+			{
+				EncryptionStatus.Decrypted => Strings.ContentIsDecrypted,
+				EncryptionStatus.Encrypted => Strings.ContentIsEncrypted,
+				_ => null
+			});
 
 	public static FuncValueConverter<EncryptionStatus, MaterialIconKind> EncryptionStatusToIconKind { get; } =
-		new(status => status switch
-		{
-			EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariantOutline,
-			EncryptionStatus.Encrypted => MaterialIconKind.Lock,
-			_ => default
-		});
+			new(status => status switch
+			{
+				EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariantOutline,
+				EncryptionStatus.Encrypted => MaterialIconKind.Lock,
+				_ => default
+			});
 
 	public static FuncValueConverter<EntityType, MaterialIconKind> EntityTypeToIconKind { get; } =
-		new(type => type switch
-		{
-			EntityType.Folder => MaterialIconKind.Folder,
-			EntityType.File => MaterialIconKind.FileOutline,
-			EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
-			_ => default
-		});
+			new(type => type switch
+			{
+				EntityType.Folder => MaterialIconKind.Folder,
+				EntityType.File => MaterialIconKind.FileOutline,
+				EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
+				_ => default
+			});
+
+	/// <inheritdoc cref="EnumToBoolConverter" />
+	public static EnumToBoolConverter EnumToBool { get; } = new();
 
 	public static FuncValueConverter<FileModelDto, bool> FileIsOpenedToFalse { get; } =
 		new(file => file is { } opened && !opened.IsOpened());

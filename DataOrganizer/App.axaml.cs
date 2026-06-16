@@ -272,9 +272,9 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
-		services.AddSingleton<IClipboardHistoryPersistenceCoordinator, ClipboardHistoryPersistenceCoordinator>();
-		services.AddSingleton<IClipboardHistoryService, ClipboardHistoryService>();
-		services.AddSingleton<IClipboardHistoryStore, ClipboardHistoryStore>();
+		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
+		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
+		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
@@ -296,8 +296,8 @@ public sealed class App : Application
 		#region ViewModels
 		services.AddTransient<AppPickerViewModel>();
 		services.AddTransient<BooleanAsyncResultViewModel>();
+		services.AddTransient<ClipboardLogViewModel>();
 		services.AddTransient<CopyHistoryViewModel>();
-		services.AddTransient<CustomClipboardViewModel>();
 		services.AddTransient<DatasetEditorViewModel>();
 		services.AddTransient<EditingFilesViewModel>();
 		services.AddTransient<EditorViewModel>();
@@ -319,7 +319,7 @@ public sealed class App : Application
 		#region Views
 		services.AddTransient<AppPickerView>();
 		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<CustomClipboardWindow>();
+		services.AddTransient<ClipboardLogWindow>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();

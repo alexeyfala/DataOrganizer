@@ -1,0 +1,140 @@
+using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.DTO.Clipboard.Persistence;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+
+namespace DataOrganizer.Helpers.Clipboard;
+
+/// <summary>
+/// Maps clipboard log entries between the in-memory domain model and the on-disk persisted model.
+/// </summary>
+internal static partial class ClipboardLogMapper
+{
+	#region Methods
+	/// <summary>
+	/// Reconstructs domain entries from a persisted history. Entries that cannot be
+	/// mapped (unknown type) are skipped.
+	/// </summary>
+	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardLog history)
+	{
+		List<ClipboardLogEntryBase> result = new(history.Entries.Count);
+
+		foreach (PersistedClipboardEntryBase entry in history.Entries)
+		{
+			if (ToDomainEntry(entry) is { } domain)
+			{
+				result.Add(domain);
+			}
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Projects domain entries into a persisted history container.
+	/// </summary>
+	public static PersistedClipboardLog ToPersisted(IEnumerable<ClipboardLogEntryBase> entries)
+	{
+		PersistedClipboardLog history = new();
+
+		foreach (ClipboardLogEntryBase entry in entries)
+		{
+			if (ToPersistedEntry(entry) is { } persisted)
+			{
+				history.Entries.Add(persisted);
+			}
+		}
+
+		return history;
+	}
+
+	/// <summary>
+	/// Matches when the entire input is an http(s) URL.
+	/// </summary>
+	[GeneratedRegex(@"^https?://\S+$", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+	public static partial Regex WholeStringUrlRegex();
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Builds a domain text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
+	/// </summary>
+	/// <remarks>
+	/// Mirrors the URL detection used while capturing; kept local so persistence stays self-contained.
+	/// </remarks>
+	private static ClipboardLogEntryBase BuildTextEntry(PersistedTextEntry entry)
+	{
+		string trimmed = entry.Text.Trim();
+
+		return WholeStringUrlRegex().IsMatch(trimmed)
+			? new ClipboardUrlEntry
+			{
+				Text = entry.Text,
+				Html = entry.Html,
+				Rtf = entry.Rtf,
+				Url = trimmed,
+				Hash = entry.Hash,
+				IsPinned = entry.IsPinned
+			}
+			: new ClipboardTextEntry
+			{
+				Text = entry.Text,
+				Html = entry.Html,
+				Rtf = entry.Rtf,
+				Hash = entry.Hash,
+				IsPinned = entry.IsPinned
+			};
+	}
+
+	/// <summary>
+	/// Maps a single persisted entry to its domain counterpart; <c>null</c> for unknown types.
+	/// </summary>
+	private static ClipboardLogEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
+	{
+		PersistedImageEntry image => new ClipboardImageEntry
+		{
+			OriginalPng = image.OriginalPng,
+			Hash = image.Hash,
+			IsPinned = image.IsPinned
+		},
+		PersistedFilesEntry files => new ClipboardFilesEntry
+		{
+			FileSystemEntries = [.. files.Files.Select(static x => new ClipboardFileSystemEntry(x.Path, x.IsFolder))],
+			Hash = files.Hash,
+			IsPinned = files.IsPinned
+		},
+		PersistedTextEntry text => BuildTextEntry(text),
+		_ => null
+	};
+
+	/// <summary>
+	/// Maps a single domain entry to its persisted counterpart; <c>null</c> for unknown types.
+	/// </summary>
+	private static PersistedClipboardEntryBase? ToPersistedEntry(ClipboardLogEntryBase entry) => entry switch
+	{
+		ClipboardImageEntry image => new PersistedImageEntry
+		{
+			OriginalPng = image.OriginalPng,
+			Hash = image.Hash,
+			IsPinned = image.IsPinned
+		},
+		ClipboardFilesEntry files => new PersistedFilesEntry
+		{
+			Files = [.. files.FileSystemEntries.Select(static x => new PersistedFileSystemEntry(x.Path, x.IsFolder))],
+			Hash = files.Hash,
+			IsPinned = files.IsPinned
+		},
+		// Catches ClipboardUrlEntry too (derived from ClipboardTextEntry); URL is re-derived on load.
+		ClipboardTextEntry text => new PersistedTextEntry
+		{
+			Text = text.Text,
+			Html = text.Html,
+			Rtf = text.Rtf,
+			Hash = text.Hash,
+			IsPinned = text.IsPinned
+		},
+		_ => null
+	};
+	#endregion
+}

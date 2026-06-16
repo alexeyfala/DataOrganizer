@@ -1023,11 +1023,11 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardHistory;
+	/// <inheritdoc cref="IClipboardLogService" />
+	private readonly IClipboardLogService _clipboardLog;
 
-	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
-	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
@@ -1049,8 +1049,8 @@ public partial class EditorViewModel :
 		Application app,
 		IAppSettingsManager settingsManager,
 		IClipboardAccessor clipboard,
-		IClipboardHistoryService clipboardHistory,
-		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
+		IClipboardLogService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -1078,9 +1078,9 @@ public partial class EditorViewModel :
 			viewLauncher,
 			keyboardInputHook)
 	{
-		_clipboardHistory = clipboardHistory;
+		_clipboardLog = clipboardLog;
 
-		_clipboardHistoryPersistence = clipboardHistoryPersistence;
+		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_dataExchange = dataExchange;
 
@@ -1592,7 +1592,7 @@ public partial class EditorViewModel :
 
 		if (wasPersistingClipboard && (!settings.PersistClipboardHistory || !settings.TrackClipboardHistory))
 		{
-			_clipboardHistoryPersistence.DisablePersistence();
+			_clipboardLogPersistence.DisablePersistence();
 		}
 
 		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
@@ -1690,20 +1690,20 @@ public partial class EditorViewModel :
 
 		if (isEnabled)
 		{
-			if (!_clipboardHistory.IsRunning)
+			if (!_clipboardLog.IsRunning)
 			{
-				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
 			return;
 		}
 
-		if (_clipboardHistory.IsRunning)
+		if (_clipboardLog.IsRunning)
 		{
-			_clipboardHistory.Stop();
+			_clipboardLog.Stop();
 		}
 
-		await _clipboardHistory
+		await _clipboardLog
 			.ClearEntriesAsync()
 			.ConfigureAwait(false);
 	}

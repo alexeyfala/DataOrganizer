@@ -8,6 +8,7 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
+using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Services;
@@ -33,8 +34,9 @@ internal class ViewLauncherTests
 		// Arrange
 		int positiveValue = TestUtils.CreateRandomInt(100, 300);
 
-		CustomClipboardWindowSettings settings = new()
+		ClipboardLogWindowSettings settings = new()
 		{
+			ActiveFilter = ClipboardLogEntryFilter.Image,
 			KeepOpen = true,
 			Size = new(positiveValue, positiveValue),
 			X = 10,
@@ -45,28 +47,28 @@ internal class ViewLauncherTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
-			windowMock.Mock<IClipboardHistoryService>()
+			windowMock.Mock<IClipboardLogService>()
 				.SetupGet(x => x.Entries)
 				.Returns([]);
 
-			CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
-			CustomClipboardWindow clipboardWindow = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.FromFile<CustomClipboardWindowSettings>(Arg.Any<string>())
+				.FromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
-				.CreateViewModel<CustomClipboardViewModel>()
+				.CreateViewModel<ClipboardLogViewModel>()
 				.Returns(viewModel);
 
 			viewFactory
-				.CreateWindow<CustomClipboardWindow>(Arg.Any<object[]>())
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(clipboardWindow);
 
 			builder.RegisterInstance(viewFactory);
@@ -77,7 +79,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		CustomClipboardWindow window = sut.ConfigureCustomClipboardWindow(new Window());
+		ClipboardLogWindow window = sut.ConfigureCustomClipboardWindow(new Window());
 
 		// Assert
 		window.Width
@@ -96,53 +98,11 @@ internal class ViewLauncherTests
 			.KeepOpen
 			.Should()
 			.BeTrue();
-	}
 
-	/// <summary>
-	/// <see cref="ViewLauncher.ShowCustomClipboardWindowAsync" />: an already-open window is focused instead of opening a duplicate.
-	/// </summary>
-	[AvaloniaTest]
-	public async Task ShowCustomClipboardWindowAsync_Focuses_Existing_Window()
-	{
-		// Arrange
-		using AutoMock windowMock = AutoMock.GetLoose();
-
-		windowMock.Mock<IClipboardHistoryService>()
-			.SetupGet(x => x.Entries)
-			.Returns([]);
-
-		CustomClipboardViewModel viewModel = windowMock.Create<CustomClipboardViewModel>();
-
-		CustomClipboardWindow existing = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
-
-		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
-
-		lifetime
-			.Windows
-			.Returns([existing]);
-
-		Application app = Substitute.For<Application>();
-
-		app.ApplicationLifetime = lifetime;
-
-		IViewFactory viewFactory = Substitute.For<IViewFactory>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(app).As<Application>();
-
-			builder.RegisterInstance(viewFactory);
-		});
-
-		ViewLauncher sut = mock.Create<ViewLauncher>();
-
-		// Act
-		await sut.ShowCustomClipboardWindowAsync(new Window());
-
-		// Assert
-		viewFactory
-			.DidNotReceive()
-			.CreateWindow<CustomClipboardWindow>(Arg.Any<object[]>());
+		window.ViewModel
+			.ActiveFilter
+			.Should()
+			.Be(ClipboardLogEntryFilter.Image);
 	}
 
 	/// <summary>
@@ -493,13 +453,13 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the keep-open flag is persisted.
+	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the active type filter is persisted.
 	/// </summary>
 	[AvaloniaTest]
-	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
 	{
 		// Arrange
-		CustomClipboardWindowSettings? captured = null;
+		ClipboardLogWindowSettings? captured = null;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -507,21 +467,67 @@ internal class ViewLauncherTests
 
 			fileSystem
 				.When(x => x.SerializeToJsonFile(
-					Arg.Any<CustomClipboardWindowSettings>(),
+					Arg.Any<ClipboardLogWindowSettings>(),
 					Arg.Any<string>(),
 					Arg.Any<bool>()))
-				.Do(call => captured = call.Arg<CustomClipboardWindowSettings>());
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
 
 			builder.RegisterInstance(fileSystem);
 		});
 
-		mock.Mock<IClipboardHistoryService>()
+		mock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		CustomClipboardWindow window = mock.Create<CustomClipboardWindow>();
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
+
+		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
+
+		// Act
+		sut.SaveCustomClipboardSettings(window);
+
+		// Assert
+		captured
+			.Should()
+			.NotBeNull();
+
+		captured.ActiveFilter
+			.Should()
+			.Be(ClipboardLogEntryFilter.Image);
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the keep-open flag is persisted.
+	/// </summary>
+	[AvaloniaTest]
+	public void SaveCustomClipboardSettings_Persists_KeepOpen()
+	{
+		// Arrange
+		ClipboardLogWindowSettings? captured = null;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.When(x => x.SerializeToJsonFile(
+					Arg.Any<ClipboardLogWindowSettings>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>()))
+				.Do(call => captured = call.Arg<ClipboardLogWindowSettings>());
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		mock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
 
 		window.ViewModel.KeepOpen = true;
 
@@ -549,7 +555,7 @@ internal class ViewLauncherTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		mock.Mock<IClipboardHistoryService>()
+		mock.Mock<IClipboardLogService>()
 			.SetupGet(x => x.Entries)
 			.Returns([]);
 
@@ -557,11 +563,11 @@ internal class ViewLauncherTests
 			TypedParameter.From(fileSystem));
 
 		// Act
-		sut.SaveCustomClipboardSettings(mock.Create<CustomClipboardWindow>());
+		sut.SaveCustomClipboardSettings(mock.Create<ClipboardLogWindow>());
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(
-			Arg.Any<CustomClipboardWindowSettings>(),
+			Arg.Any<ClipboardLogWindowSettings>(),
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 	}
@@ -648,6 +654,53 @@ internal class ViewLauncherTests
 			CurrentWindow.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowCustomClipboardWindowAsync" />: an already-open window is focused instead of opening a duplicate.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowCustomClipboardWindowAsync_Focuses_Existing_Window()
+	{
+		// Arrange
+		using AutoMock windowMock = AutoMock.GetLoose();
+
+		windowMock.Mock<IClipboardLogService>()
+			.SetupGet(x => x.Entries)
+			.Returns([]);
+
+		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
+
+		lifetime
+			.Windows
+			.Returns([existing]);
+
+		Application app = Substitute.For<Application>();
+
+		app.ApplicationLifetime = lifetime;
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(app).As<Application>();
+
+			builder.RegisterInstance(viewFactory);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowCustomClipboardWindowAsync(new Window());
+
+		// Assert
+		viewFactory
+			.DidNotReceive()
+			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
 	}
 	#endregion
 }
