@@ -56,7 +56,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 
 		store
 			.Received()
@@ -96,7 +96,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.Received(1)
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -153,7 +153,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert (the single save is the dispose-time flush; the post-dispose change added none).
 		await store
 			.Received(1)
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -177,7 +177,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -205,7 +205,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.Received()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -333,7 +333,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		ClipboardHistoryEntryBase[] loaded = [TextEntry("A", [1])];
+		ClipboardLogEntryBase[] loaded = [TextEntry("A", [1])];
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
@@ -361,7 +361,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		await store
 			.Received()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -393,11 +393,11 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		log
 			.DidNotReceive()
-			.Merge(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>());
+			.Merge(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>());
 
 		await store
 			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -423,7 +423,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.DidNotReceive()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -455,7 +455,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		// Assert
 		await store
 			.Received()
-			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardHistoryEntryBase>>(), Arg.Any<CancellationToken>());
+			.SaveAsync(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>(), Arg.Any<CancellationToken>());
 	}
 	#endregion
 

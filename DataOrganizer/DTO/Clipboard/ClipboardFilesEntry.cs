@@ -9,7 +9,7 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <summary>
 /// Clipboard entry holding a captured list of filesystem entries.
 /// </summary>
-public sealed class ClipboardFilesEntry : ClipboardHistoryEntryBase
+public sealed class ClipboardFilesEntry : ClipboardLogEntryBase
 {
 	#region Properties
 	/// <inheritdoc />

@@ -269,7 +269,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 			return;
 		}
 
-		ClipboardHistoryEntryBase[] snapshot = await _dispatcher
+		ClipboardLogEntryBase[] snapshot = await _dispatcher
 			.PostAsync(() => _сlipboardLog.Entries.ToArray())
 			.ConfigureAwait(false);
 

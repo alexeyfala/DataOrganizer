@@ -122,7 +122,7 @@ internal class ClipboardLogStoreTests
 		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek)!;
 
 		// Act
-		IReadOnlyList<ClipboardHistoryEntryBase> result = await sut.LoadEntriesAsync(dek, default);
+		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(dek, default);
 
 		// Assert
 		result

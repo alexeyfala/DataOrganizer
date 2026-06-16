@@ -7,7 +7,7 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.
 /// </summary>
-public class ClipboardTextEntry : ClipboardHistoryEntryBase
+public class ClipboardTextEntry : ClipboardLogEntryBase
 {
 	#region Properties
 	/// <summary>

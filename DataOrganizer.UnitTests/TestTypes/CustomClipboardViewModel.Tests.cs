@@ -95,7 +95,7 @@ internal class CustomClipboardViewModelTests
 	public void BuildSearchPredicate_Blank_Query_Matches_Everything(string? query)
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate(query);
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate(query);
 
 		// Act, Assert
 		predicate(TextEntry("anything", [1]))
@@ -119,7 +119,7 @@ internal class CustomClipboardViewModelTests
 	public void BuildSearchPredicate_NonBlank_Query_Matches_By_SearchableText()
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate("App");
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildSearchPredicate("App");
 
 		// Act, Assert
 		predicate(TextEntry("Application", [1]))
@@ -153,7 +153,7 @@ internal class CustomClipboardViewModelTests
 	public void BuildTypePredicate_All_Matches_Everything()
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.All);
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.All);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -180,11 +180,11 @@ internal class CustomClipboardViewModelTests
 	public void BuildTypePredicate_Matches_Only_Its_Own_Type()
 	{
 		// Arrange
-		ClipboardHistoryEntryBase url = UrlEntry("https://example.com", [1]);
+		ClipboardLogEntryBase url = UrlEntry("https://example.com", [1]);
 
-		ClipboardHistoryEntryBase image = ImageEntry([2]);
+		ClipboardLogEntryBase image = ImageEntry([2]);
 
-		ClipboardHistoryEntryBase files = FilesEntry([3]);
+		ClipboardLogEntryBase files = FilesEntry([3]);
 
 		// Act, Assert
 		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Url)(url)
@@ -220,7 +220,7 @@ internal class CustomClipboardViewModelTests
 	public void BuildTypePredicate_Text_Excludes_Url()
 	{
 		// Arrange
-		Func<ClipboardHistoryEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Text);
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Text);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -445,7 +445,7 @@ internal class CustomClipboardViewModelTests
 
 		ClipboardTextEntry older = TextEntry("older", [2]);
 
-		ObservableCollection<ClipboardHistoryEntryBase> entries = [pinned, older];
+		ObservableCollection<ClipboardLogEntryBase> entries = [pinned, older];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

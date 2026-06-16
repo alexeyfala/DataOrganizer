@@ -12,4 +12,4 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <param name="Entries">Entries loaded from disk, newest first.</param>
 public sealed record ClipboardLogUnlockResult(
 	ClipboardHistoryLogStatus Status,
-	IReadOnlyList<ClipboardHistoryEntryBase> Entries);
+	IReadOnlyList<ClipboardLogEntryBase> Entries);

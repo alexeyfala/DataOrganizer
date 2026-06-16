@@ -17,7 +17,7 @@ public interface IClipboardLogService : IAsyncDisposable
 	/// <summary>
 	/// History entries, newest first.
 	/// </summary>
-	ObservableCollection<ClipboardHistoryEntryBase> Entries { get; }
+	ObservableCollection<ClipboardLogEntryBase> Entries { get; }
 
 	/// <summary>
 	/// <c>True</c> while the background polling is active.
@@ -42,19 +42,19 @@ public interface IClipboardLogService : IAsyncDisposable
 	/// Merges <paramref name="entries" /> into <see cref="Entries" /> below the current ones,
 	/// skipping hash duplicates and enforcing the history cap. Raises no change notification.
 	/// </summary>
-	void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries);
+	void Merge(IReadOnlyList<ClipboardLogEntryBase> entries);
 
 	/// <summary>
 	/// Removes <paramref name="entry" /> from <see cref="Entries" />, including pinned ones. When the entry
 	/// is the active one, the system clipboard is emptied too.
 	/// </summary>
-	Task RemoveAsync(ClipboardHistoryEntryBase entry);
+	Task RemoveAsync(ClipboardLogEntryBase entry);
 
 	/// <summary>
 	/// Restores <paramref name="entry" /> into the system clipboard. Moves it to the top of
 	/// <see cref="Entries" /> unless <paramref name="keepPosition" /> is set.
 	/// </summary>
-	Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false);
+	Task RestoreAsync(ClipboardLogEntryBase entry, bool keepPosition = false);
 
 	/// <summary>
 	/// Starts background polling. Safe to call more than once.
@@ -70,6 +70,6 @@ public interface IClipboardLogService : IAsyncDisposable
 	/// Toggles the pinned state of <paramref name="entry" /> and repositions it: pinned entries are
 	/// kept atop the history and survive clearing / trimming.
 	/// </summary>
-	void TogglePin(ClipboardHistoryEntryBase entry);
+	void TogglePin(ClipboardLogEntryBase entry);
 	#endregion
 }

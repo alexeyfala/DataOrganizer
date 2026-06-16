@@ -54,14 +54,14 @@ public sealed partial class CustomClipboardViewModel :
 	[ObservableProperty]
 	public partial string? SearchText { get; set; }
 
-	/// <inheritdoc cref="ClipboardHistoryEntryBase" />
+	/// <inheritdoc cref="ClipboardLogEntryBase" />
 	[ObservableProperty]
-	public partial ClipboardHistoryEntryBase? SelectedEntry { get; set; }
+	public partial ClipboardLogEntryBase? SelectedEntry { get; set; }
 
 	/// <summary>
 	/// History entries matching the current search query.
 	/// </summary>
-	public ReadOnlyObservableCollection<ClipboardHistoryEntryBase> VisibleEntries { get; }
+	public ReadOnlyObservableCollection<ClipboardLogEntryBase> VisibleEntries { get; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -100,7 +100,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Removes <paramref name="entry" /> from the history.
 	/// </summary>
 	[RelayCommand]
-	private Task RemoveEntry(ClipboardHistoryEntryBase? entry)
+	private Task RemoveEntry(ClipboardLogEntryBase? entry)
 	{
 		if (entry is null)
 		{
@@ -114,7 +114,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Restores <paramref name="entry" /> back into the system clipboard.
 	/// </summary>
 	[RelayCommand]
-	private Task RestoreEntry(ClipboardHistoryEntryBase? entry)
+	private Task RestoreEntry(ClipboardLogEntryBase? entry)
 	{
 		return entry is null
 			? Task.CompletedTask
@@ -125,7 +125,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Toggles the pinned state of <paramref name="entry" />.
 	/// </summary>
 	[RelayCommand]
-	private void TogglePin(ClipboardHistoryEntryBase? entry)
+	private void TogglePin(ClipboardLogEntryBase? entry)
 	{
 		if (entry is null)
 		{
@@ -184,7 +184,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// <summary>
 	/// Backing collection for <see cref="VisibleEntries" />.
 	/// </summary>
-	private readonly ObservableCollection<ClipboardHistoryEntryBase> _visibleEntries = [];
+	private readonly ObservableCollection<ClipboardLogEntryBase> _visibleEntries = [];
 
 	/// <summary>
 	/// Search query held aside while a non-searchable filter is active, restored on return.
@@ -247,9 +247,9 @@ public sealed partial class CustomClipboardViewModel :
 	#region Helpers
 	/// <summary>
 	/// Builds the entry predicate for a search <paramref name="value" />: a blank value matches every entry,
-	/// otherwise an entry matches when its <see cref="ClipboardHistoryEntryBase.SearchableText" /> contains it (case-insensitive).
+	/// otherwise an entry matches when its <see cref="ClipboardLogEntryBase.SearchableText" /> contains it (case-insensitive).
 	/// </summary>
-	internal static Func<ClipboardHistoryEntryBase, bool> BuildSearchPredicate(string? value)
+	internal static Func<ClipboardLogEntryBase, bool> BuildSearchPredicate(string? value)
 	{
 		return string.IsNullOrWhiteSpace(value)
 			? _ => true
@@ -260,7 +260,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Builds the entry predicate for a type <paramref name="filter" />: <see cref="ClipboardEntryFilter.All" />
 	/// matches every entry, otherwise only entries of the matching payload type (text excludes URLs).
 	/// </summary>
-	internal static Func<ClipboardHistoryEntryBase, bool> BuildTypePredicate(ClipboardEntryFilter filter)
+	internal static Func<ClipboardLogEntryBase, bool> BuildTypePredicate(ClipboardEntryFilter filter)
 	{
 		return filter switch
 		{
@@ -307,13 +307,13 @@ public sealed partial class CustomClipboardViewModel :
 	/// </summary>
 	private void RefreshVisibleEntries()
 	{
-		Func<ClipboardHistoryEntryBase, bool> searchPredicate = BuildSearchPredicate(SearchText);
+		Func<ClipboardLogEntryBase, bool> searchPredicate = BuildSearchPredicate(SearchText);
 
-		Func<ClipboardHistoryEntryBase, bool> typePredicate = BuildTypePredicate(ActiveFilter);
+		Func<ClipboardLogEntryBase, bool> typePredicate = BuildTypePredicate(ActiveFilter);
 
 		int target = 0;
 
-		foreach (ClipboardHistoryEntryBase entry in _clipboardLog.Entries)
+		foreach (ClipboardLogEntryBase entry in _clipboardLog.Entries)
 		{
 			if (!typePredicate(entry) || !searchPredicate(entry))
 			{

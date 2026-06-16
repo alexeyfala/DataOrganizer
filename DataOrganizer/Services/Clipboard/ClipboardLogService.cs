@@ -30,7 +30,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 {
 	#region Properties
 	/// <inheritdoc />
-	public ObservableCollection<ClipboardHistoryEntryBase> Entries { get; } = [];
+	public ObservableCollection<ClipboardLogEntryBase> Entries { get; } = [];
 
 	/// <inheritdoc />
 	public bool IsRunning => Volatile.Read(ref _isLoopRunning);
@@ -131,7 +131,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// The entry just restored to the system clipboard, awaiting re-baseline to the clipboard's
 	/// actual representation on the next poll tick. UI-thread only.
 	/// </summary>
-	private ClipboardHistoryEntryBase? _restoredEntry;
+	private ClipboardLogEntryBase? _restoredEntry;
 
 	/// <summary>
 	/// Linked cancellation source created on start from the user token.
@@ -209,13 +209,13 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <inheritdoc />
-	public void Merge(IReadOnlyList<ClipboardHistoryEntryBase> entries)
+	public void Merge(IReadOnlyList<ClipboardLogEntryBase> entries)
 	{
 		try
 		{
 			// Pinned go atop (exempt from the cap), unpinned are appended (capped) — keeps the pinned-atop
 			// invariant. Does not raise a change notification — the caller decides whether to persist.
-			foreach (ClipboardHistoryEntryBase entry in entries)
+			foreach (ClipboardLogEntryBase entry in entries)
 			{
 				if (Entries.FirstOrDefault(x => HashEquals(x.Hash, entry.Hash)) is { } existing)
 				{
@@ -255,7 +255,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <inheritdoc />
-	public async Task RemoveAsync(ClipboardHistoryEntryBase entry)
+	public async Task RemoveAsync(ClipboardLogEntryBase entry)
 	{
 		if (IsDisposed())
 		{
@@ -331,7 +331,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <inheritdoc />
-	public async Task RestoreAsync(ClipboardHistoryEntryBase entry, bool keepPosition = false)
+	public async Task RestoreAsync(ClipboardLogEntryBase entry, bool keepPosition = false)
 	{
 		if (IsDisposed())
 		{
@@ -450,7 +450,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	}
 
 	/// <inheritdoc />
-	public void TogglePin(ClipboardHistoryEntryBase entry)
+	public void TogglePin(ClipboardLogEntryBase entry)
 	{
 		try
 		{
@@ -487,7 +487,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <summary>
 	/// Builds a text entry, choosing <see cref="ClipboardUrlEntry" /> when the text is a whole URL.
 	/// </summary>
-	internal static ClipboardHistoryEntryBase BuildTextEntry(
+	internal static ClipboardLogEntryBase BuildTextEntry(
 		string text,
 		string? html,
 		string? rtf,
@@ -563,7 +563,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// </summary>
 	internal void HandleNewPayload(
 		byte[] hash,
-		Func<ClipboardHistoryEntryBase> entryFactory,
+		Func<ClipboardLogEntryBase> entryFactory,
 		bool isSensitive)
 	{
 		if (_restoredEntry is { } restored)
@@ -967,7 +967,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// Inserts <paramref name="entry" /> below the pinned block and enforces the log cap on
 	/// unpinned entries only (pinned ones are exempt from trimming).
 	/// </summary>
-	private void InsertAtTop(ClipboardHistoryEntryBase entry)
+	private void InsertAtTop(ClipboardLogEntryBase entry)
 	{
 		Entries.Insert(GetPinnedCount(), entry);
 
@@ -987,7 +987,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <summary>
 	/// Moves an existing entry with the same <paramref name="hash" /> to the top, otherwise inserts a new one.
 	/// </summary>
-	private void InsertOrMoveToTop(byte[] hash, Func<ClipboardHistoryEntryBase> entryFactory)
+	private void InsertOrMoveToTop(byte[] hash, Func<ClipboardLogEntryBase> entryFactory)
 	{
 		if (Entries.FirstOrDefault(x => HashEquals(x.Hash, hash)) is { } existing)
 		{
@@ -998,7 +998,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			return;
 		}
 
-		ClipboardHistoryEntryBase entry = entryFactory();
+		ClipboardLogEntryBase entry = entryFactory();
 
 		_logger.LogDebug($"Captured new clipboard entry: {entry.GetType().Name}.");
 
@@ -1090,7 +1090,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// Marks <paramref name="entry" /> (already in <see cref="Entries" />) as the active
 	/// current-clipboard entry, clearing the flag on all others. UI-thread only.
 	/// </summary>
-	private void MarkActive(ClipboardHistoryEntryBase entry)
+	private void MarkActive(ClipboardLogEntryBase entry)
 	{
 		if (Entries.FirstOrDefault(static other => other.IsActive) is { } previous && !ReferenceEquals(previous, entry))
 		{
@@ -1103,7 +1103,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <summary>
 	/// Moves <paramref name="entry" /> to the top of its block.
 	/// </summary>
-	private void MoveToTop(ClipboardHistoryEntryBase entry)
+	private void MoveToTop(ClipboardLogEntryBase entry)
 	{
 		try
 		{
@@ -1151,7 +1151,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// (the content as the clipboard handed it back), so its persisted hash matches what a future
 	/// session will capture for the same content. UI-thread only.
 	/// </summary>
-	private void RebaselineRestored(ClipboardHistoryEntryBase restored, ClipboardHistoryEntryBase rebaselined)
+	private void RebaselineRestored(ClipboardLogEntryBase restored, ClipboardLogEntryBase rebaselined)
 	{
 		rebaselined.IsPinned = restored.IsPinned;
 

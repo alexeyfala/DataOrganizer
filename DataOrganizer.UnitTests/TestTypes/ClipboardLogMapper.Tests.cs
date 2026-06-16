@@ -18,7 +18,7 @@ internal class ClipboardLogMapperTests
 	public void Json_RoundTrip_Preserves_Polymorphic_Entries()
 	{
 		// Arrange
-		List<ClipboardHistoryEntryBase> entries =
+		List<ClipboardLogEntryBase> entries =
 		[
 			new ClipboardTextEntry { Text = "plain", Html = null, Rtf = null, Hash = [1] },
 			new ClipboardImageEntry { OriginalPng = [2, 2], Hash = [2] },
@@ -43,7 +43,7 @@ internal class ClipboardLogMapperTests
 			.Should()
 			.Be(PersistedClipboardHistory.CurrentVersion);
 
-		List<ClipboardHistoryEntryBase> domain = ClipboardLogMapper.ToDomain(deserialized);
+		List<ClipboardLogEntryBase> domain = ClipboardLogMapper.ToDomain(deserialized);
 
 		domain
 			.Should()
@@ -78,7 +78,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		result
@@ -129,7 +129,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		ClipboardFilesEntry files = result
@@ -172,7 +172,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		ClipboardImageEntry image = result
@@ -207,7 +207,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		result.IsPinned
@@ -231,7 +231,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		ClipboardTextEntry text = result
@@ -273,7 +273,7 @@ internal class ClipboardLogMapperTests
 		};
 
 		// Act
-		ClipboardHistoryEntryBase result = RoundTrip(entry);
+		ClipboardLogEntryBase result = RoundTrip(entry);
 
 		// Assert
 		ClipboardUrlEntry url = result
@@ -295,7 +295,7 @@ internal class ClipboardLogMapperTests
 	/// <summary>
 	/// Maps an entry to its persisted form and back through the in-memory model (no JSON).
 	/// </summary>
-	private static ClipboardHistoryEntryBase RoundTrip(ClipboardHistoryEntryBase entry)
+	private static ClipboardLogEntryBase RoundTrip(ClipboardLogEntryBase entry)
 	{
 		PersistedClipboardHistory persisted = ClipboardLogMapper.ToPersisted([entry]);
 

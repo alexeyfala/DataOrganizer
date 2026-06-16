@@ -16,9 +16,9 @@ internal static partial class ClipboardLogMapper
 	/// Reconstructs domain entries from a persisted history. Entries that cannot be
 	/// mapped (unknown type) are skipped.
 	/// </summary>
-	public static List<ClipboardHistoryEntryBase> ToDomain(PersistedClipboardHistory history)
+	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardHistory history)
 	{
-		List<ClipboardHistoryEntryBase> result = new(history.Entries.Count);
+		List<ClipboardLogEntryBase> result = new(history.Entries.Count);
 
 		foreach (PersistedClipboardEntryBase entry in history.Entries)
 		{
@@ -34,11 +34,11 @@ internal static partial class ClipboardLogMapper
 	/// <summary>
 	/// Projects domain entries into a persisted history container.
 	/// </summary>
-	public static PersistedClipboardHistory ToPersisted(IEnumerable<ClipboardHistoryEntryBase> entries)
+	public static PersistedClipboardHistory ToPersisted(IEnumerable<ClipboardLogEntryBase> entries)
 	{
 		PersistedClipboardHistory history = new();
 
-		foreach (ClipboardHistoryEntryBase entry in entries)
+		foreach (ClipboardLogEntryBase entry in entries)
 		{
 			if (ToPersistedEntry(entry) is { } persisted)
 			{
@@ -63,7 +63,7 @@ internal static partial class ClipboardLogMapper
 	/// <remarks>
 	/// Mirrors the URL detection used while capturing; kept local so persistence stays self-contained.
 	/// </remarks>
-	private static ClipboardHistoryEntryBase BuildTextEntry(PersistedTextEntry entry)
+	private static ClipboardLogEntryBase BuildTextEntry(PersistedTextEntry entry)
 	{
 		string trimmed = entry.Text.Trim();
 
@@ -90,7 +90,7 @@ internal static partial class ClipboardLogMapper
 	/// <summary>
 	/// Maps a single persisted entry to its domain counterpart; <c>null</c> for unknown types.
 	/// </summary>
-	private static ClipboardHistoryEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
+	private static ClipboardLogEntryBase? ToDomainEntry(PersistedClipboardEntryBase entry) => entry switch
 	{
 		PersistedImageEntry image => new ClipboardImageEntry
 		{
@@ -111,7 +111,7 @@ internal static partial class ClipboardLogMapper
 	/// <summary>
 	/// Maps a single domain entry to its persisted counterpart; <c>null</c> for unknown types.
 	/// </summary>
-	private static PersistedClipboardEntryBase? ToPersistedEntry(ClipboardHistoryEntryBase entry) => entry switch
+	private static PersistedClipboardEntryBase? ToPersistedEntry(ClipboardLogEntryBase entry) => entry switch
 	{
 		ClipboardImageEntry image => new PersistedImageEntry
 		{

@@ -40,6 +40,6 @@ internal sealed class ClipboardEntryTemplateSelector : TemplateSelectorBase, IDa
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is ClipboardHistoryEntryBase;
+	public bool Match(object? data) => data is ClipboardLogEntryBase;
 	#endregion
 }

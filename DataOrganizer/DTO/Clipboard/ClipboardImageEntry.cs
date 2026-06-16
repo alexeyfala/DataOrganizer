@@ -10,7 +10,7 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <summary>
 /// Image clipboard entry backed by the original full-size PNG bytes.
 /// </summary>
-public sealed class ClipboardImageEntry : ClipboardHistoryEntryBase
+public sealed class ClipboardImageEntry : ClipboardLogEntryBase
 {
 	#region Properties
 	/// <inheritdoc />

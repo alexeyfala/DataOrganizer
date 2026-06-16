@@ -38,7 +38,7 @@ public interface IClipboardLogStore : IDisposable
 	/// <summary>
 	/// Encrypts and writes <paramref name="entries" /> to disk. No-op when not unlocked.
 	/// </summary>
-	Task SaveAsync(IReadOnlyList<ClipboardHistoryEntryBase> entries, CancellationToken token = default);
+	Task SaveAsync(IReadOnlyList<ClipboardLogEntryBase> entries, CancellationToken token = default);
 
 	/// <summary>
 	/// Unlocks an existing key with <paramref name="password" /> (loading the previous journal),

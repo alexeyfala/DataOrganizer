@@ -31,7 +31,7 @@ internal class ClipboardLogServiceTests
 	public void BuildTextEntry_Builds_Text_Entry_For_Plain_Text()
 	{
 		// Act
-		ClipboardHistoryEntryBase entry = ClipboardLogService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
+		ClipboardLogEntryBase entry = ClipboardLogService.BuildTextEntry("just text", "<b>x</b>", null, [1]);
 
 		// Assert
 		ClipboardTextEntry text = entry
@@ -55,7 +55,7 @@ internal class ClipboardLogServiceTests
 	public void BuildTextEntry_Builds_Url_Entry_For_Url_Text()
 	{
 		// Act
-		ClipboardHistoryEntryBase entry = ClipboardLogService.BuildTextEntry(
+		ClipboardLogEntryBase entry = ClipboardLogService.BuildTextEntry(
 			text: "  https://example.com/x  ",
 			html: null,
 			rtf: null,

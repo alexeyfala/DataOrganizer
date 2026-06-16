@@ -125,7 +125,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	public void EraseHistory() => TryEraseFile(_historyFilePath);
 
 	/// <inheritdoc />
-	public async Task SaveAsync(IReadOnlyList<ClipboardHistoryEntryBase> entries, CancellationToken token = default)
+	public async Task SaveAsync(IReadOnlyList<ClipboardLogEntryBase> entries, CancellationToken token = default)
 	{
 		byte[]? dek = GetKey();
 
@@ -182,7 +182,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Decrypts and maps the journal with the current key; empty on missing / corrupt / unknown-version data.
 	/// </summary>
-	internal async Task<IReadOnlyList<ClipboardHistoryEntryBase>> LoadEntriesAsync(byte[] dek, CancellationToken token)
+	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(byte[] dek, CancellationToken token)
 	{
 		if (!_fileSystem.IsFileExists(_historyFilePath))
 		{
@@ -345,7 +345,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		SetKey(dek);
 
-		IReadOnlyList<ClipboardHistoryEntryBase> entries = await LoadEntriesAsync(dek, token).ConfigureAwait(false);
+		IReadOnlyList<ClipboardLogEntryBase> entries = await LoadEntriesAsync(dek, token).ConfigureAwait(false);
 
 		return new(ClipboardHistoryLogStatus.Unlocked, entries);
 	}

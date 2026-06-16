@@ -3,13 +3,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace DataOrganizer.DTO.Clipboard;
 
 /// <summary>
-/// Base type for one record in the in-memory system clipboard history.
+/// Base type for one record in the in-memory system clipboard log.
 /// </summary>
-public abstract partial class ClipboardHistoryEntryBase : ObservableObject
+public abstract partial class ClipboardLogEntryBase : ObservableObject
 {
 	#region Properties
 	/// <summary>
-	/// Content for the entry's hover tooltip; <c>null</c> shows none. Overridden where needed.
+	/// Content for the entry's hover tooltip; <c>null</c> shows none.
 	/// </summary>
 	public virtual string? ContentToolTip => null;
 
@@ -41,7 +41,7 @@ public abstract partial class ClipboardHistoryEntryBase : ObservableObject
 	public virtual string? SearchableText => null;
 
 	/// <summary>
-	/// Emoji glyph shown as a type badge over the entry in the clipboard history list.
+	/// Emoji glyph shown as a type badge over the entry in the clipboard log list.
 	/// </summary>
 	public abstract string TypeGlyph { get; }
 
