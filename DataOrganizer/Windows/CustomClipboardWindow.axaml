@@ -192,6 +192,7 @@
 					CornerRadius="4.0">
 					<TextBox
 						Classes="clearButton SearchTextBoxStyle"
+						IsEnabled="{Binding IsSearchEnabled}"
 						Text="{Binding SearchText, Mode=TwoWay}" />
 				</Border>
 

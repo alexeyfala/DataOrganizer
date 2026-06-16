@@ -33,7 +33,14 @@ public sealed partial class CustomClipboardViewModel :
 	/// Active type filter applied to the history list.
 	/// </summary>
 	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(IsSearchEnabled))]
 	public partial ClipboardEntryFilter ActiveFilter { get; set; }
+
+	/// <summary>
+	/// <c>True</c> while the active filter contains entries that carry searchable text
+	/// (images and files have none, so search is disabled for them).
+	/// </summary>
+	public bool IsSearchEnabled => ActiveFilter is not (ClipboardEntryFilter.Image or ClipboardEntryFilter.Files);
 
 	/// <summary>
 	/// Whether the window stays open on focus loss and after a restore.
@@ -128,6 +135,22 @@ public sealed partial class CustomClipboardViewModel :
 		_clipboardHistory.TogglePin(entry);
 
 		ClearCommand.NotifyCanExecuteChanged();
+	}
+	#endregion
+
+	#region Partial
+	/// <summary>
+	/// Clears the search query when switching to a filter whose entries have no searchable text,
+	/// so a leftover query does not leave the list empty.
+	/// </summary>
+	partial void OnActiveFilterChanged(ClipboardEntryFilter value)
+	{
+		if (IsSearchEnabled)
+		{
+			return;
+		}
+
+		SearchText = null;
 	}
 	#endregion
 

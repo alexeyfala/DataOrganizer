@@ -291,6 +291,76 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: search is disabled for image and file filters (no searchable text)
+	/// and enabled for the rest.
+	/// </summary>
+	[TestCase(ClipboardEntryFilter.All, true)]
+	[TestCase(ClipboardEntryFilter.Text, true)]
+	[TestCase(ClipboardEntryFilter.Url, true)]
+	[TestCase(ClipboardEntryFilter.Image, false)]
+	[TestCase(ClipboardEntryFilter.Files, false)]
+	public void IsSearchEnabled_Reflects_Whether_Filter_Has_Searchable_Text(ClipboardEntryFilter filter, bool expected)
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+
+		// Act
+		sut.ActiveFilter = filter;
+
+		// Assert
+		sut.IsSearchEnabled
+			.Should()
+			.Be(expected);
+	}
+
+	/// <summary>
+	/// <see cref="CustomClipboardViewModel" />: switching to a non-searchable filter clears any active query,
+	/// so the list is not left empty by a leftover search.
+	/// </summary>
+	[Test]
+	public void Switching_To_NonSearchable_Filter_Clears_SearchText()
+	{
+		// Arrange
+		SynchronizationContext.SetSynchronizationContext(null);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IClipboardHistoryService history = Substitute.For<IClipboardHistoryService>();
+
+			history
+				.Entries
+				.Returns([]);
+
+			builder.RegisterInstance(history);
+		});
+
+		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
+
+		sut.SearchText = "query";
+
+		// Act
+		sut.ActiveFilter = ClipboardEntryFilter.Image;
+
+		// Assert
+		sut.SearchText
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
 	/// <see cref="CustomClipboardViewModel" />: toggling a pin delegates to the history service.
 	/// </summary>
 	[Test]
