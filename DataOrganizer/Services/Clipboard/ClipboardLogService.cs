@@ -166,7 +166,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		return ClearCoreAsync(
 			clearSystem: true,
 			preservePinned: true,
-			ClipboardHistoryChangeKind.ClearedByUser);
+			ClipboardLogChangeKind.ClearedByUser);
 	}
 
 	/// <inheritdoc />
@@ -175,7 +175,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		return ClearCoreAsync(
 			clearSystem: false,
 			preservePinned: false,
-			ClipboardHistoryChangeKind.ClearedForStop);
+			ClipboardLogChangeKind.ClearedForStop);
 	}
 
 	/// <inheritdoc />
@@ -307,7 +307,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 				return;
 			}
 
-			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+			NotifyChanged(ClipboardLogChangeKind.Updated);
 
 			NotifyEntryCountChanged();
 
@@ -476,7 +476,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 				Entries.Move(index, target);
 			}
 
-			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+			NotifyChanged(ClipboardLogChangeKind.Updated);
 		}
 		catch (Exception ex)
 		{
@@ -826,7 +826,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	private async Task ClearCoreAsync(
 		bool clearSystem,
 		bool preservePinned,
-		ClipboardHistoryChangeKind clearKind)
+		ClipboardLogChangeKind clearKind)
 	{
 		if (IsDisposed())
 		{
@@ -870,8 +870,8 @@ public sealed class ClipboardLogService : IClipboardLogService
 				ClearActive();
 			}).ConfigureAwait(false);
 
-			ClipboardHistoryChangeKind effectiveKind = remaining > 0
-				? ClipboardHistoryChangeKind.Updated
+			ClipboardLogChangeKind effectiveKind = remaining > 0
+				? ClipboardLogChangeKind.Updated
 				: clearKind;
 
 			NotifyChanged(effectiveKind);
@@ -979,7 +979,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 		MarkActive(entry);
 
-		NotifyChanged(ClipboardHistoryChangeKind.Updated);
+		NotifyChanged(ClipboardLogChangeKind.Updated);
 
 		NotifyEntryCountChanged();
 	}
@@ -1128,7 +1128,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 			Entries.Move(index, target);
 
-			NotifyChanged(ClipboardHistoryChangeKind.Updated);
+			NotifyChanged(ClipboardLogChangeKind.Updated);
 		}
 		catch (Exception ex)
 		{
@@ -1139,7 +1139,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// <summary>
 	/// Publishes a <see cref="ClipboardLogChangedMessage" /> so listeners can react to a change.
 	/// </summary>
-	private void NotifyChanged(ClipboardHistoryChangeKind kind) => _messenger.Send(new ClipboardLogChangedMessage(kind));
+	private void NotifyChanged(ClipboardLogChangeKind kind) => _messenger.Send(new ClipboardLogChangedMessage(kind));
 
 	/// <summary>
 	/// Publishes a <see cref="ClipboardLogEntryCountChangedMessage" /> after entries are added or removed.
@@ -1170,7 +1170,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 		_logger.LogDebug($"Re-baselined restored clipboard entry: {rebaselined.GetType().Name}.");
 
-		NotifyChanged(ClipboardHistoryChangeKind.Updated);
+		NotifyChanged(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>

@@ -209,7 +209,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("u", [2]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.ClearAsync();
@@ -224,7 +224,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Equal(ClipboardHistoryChangeKind.Updated);
+			.Equal(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -249,7 +249,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.ClearAsync();
@@ -261,7 +261,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Equal(ClipboardHistoryChangeKind.ClearedByUser);
+			.Equal(ClipboardLogChangeKind.ClearedByUser);
 	}
 
 	/// <summary>
@@ -286,7 +286,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.ClearEntriesAsync();
@@ -298,7 +298,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Equal(ClipboardHistoryChangeKind.ClearedForStop);
+			.Equal(ClipboardLogChangeKind.ClearedForStop);
 	}
 
 	/// <summary>
@@ -434,7 +434,7 @@ internal class ClipboardLogServiceTests
 
 		sut.HandleNewPayload([1], () => TextEntry("a", [1]), isSensitive: false);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (same hash as the last observed payload).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
@@ -469,7 +469,7 @@ internal class ClipboardLogServiceTests
 
 		ClipboardLogService sut = mock.Create<ClipboardLogService>();
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		ClipboardTextEntry entry = TextEntry("a", [1]);
 
@@ -486,7 +486,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Equal(ClipboardHistoryChangeKind.Updated);
+			.Equal(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -515,7 +515,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(target);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (the factory must not run — the entry already exists).
 		sut.HandleNewPayload([1], static () => throw new InvalidOperationException("Factory should not be invoked."), isSensitive: false);
@@ -531,7 +531,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Contain(ClipboardHistoryChangeKind.Updated);
+			.Contain(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -635,7 +635,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("D", [9]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act ("B" duplicates current "C" by hash [2] and is skipped).
 		sut.Merge([TextEntry("A", [1]), TextEntry("B", [2])]);
@@ -1163,7 +1163,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("a", [1]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (the entry was never added).
 		await sut.RemoveAsync(TextEntry("absent", [9]));
@@ -1327,7 +1327,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(TextEntry("u", [2]));
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.RemoveAsync(pinned);
@@ -1343,7 +1343,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Contain(ClipboardHistoryChangeKind.Updated);
+			.Contain(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -1375,7 +1375,7 @@ internal class ClipboardLogServiceTests
 		// The restored entry is gone by the time the next capture arrives.
 		sut.Entries.Clear();
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
@@ -1392,7 +1392,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Contain(ClipboardHistoryChangeKind.Updated);
+			.Contain(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -1419,7 +1419,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(top);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act (the entry is already at index 0).
 		await sut.RestoreAsync(top);
@@ -1463,7 +1463,7 @@ internal class ClipboardLogServiceTests
 
 		await sut.RestoreAsync(original);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		ClipboardTextEntry rebaselined = TextEntry("rebased", [2]);
 
@@ -1480,7 +1480,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Contain(ClipboardHistoryChangeKind.Updated);
+			.Contain(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -1509,7 +1509,7 @@ internal class ClipboardLogServiceTests
 
 		await sut.RestoreAsync(original);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		bool built = false;
 
@@ -1598,7 +1598,7 @@ internal class ClipboardLogServiceTests
 
 		sut.Entries.Add(target);
 
-		List<ClipboardHistoryChangeKind> received = Capture(messenger);
+		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
 		await sut.RestoreAsync(target);
@@ -1610,7 +1610,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Contain(ClipboardHistoryChangeKind.Updated);
+			.Contain(ClipboardLogChangeKind.Updated);
 	}
 
 	/// <summary>
@@ -1810,13 +1810,13 @@ internal class ClipboardLogServiceTests
 	/// <summary>
 	/// Records the kinds of every <see cref="ClipboardLogChangedMessage" /> sent on <paramref name="messenger" />.
 	/// </summary>
-	private static List<ClipboardHistoryChangeKind> Capture(IMessenger messenger)
+	private static List<ClipboardLogChangeKind> Capture(IMessenger messenger)
 	{
-		List<ClipboardHistoryChangeKind> received = [];
+		List<ClipboardLogChangeKind> received = [];
 
 		messenger.Register<ClipboardLogChangedMessage>(
 			received,
-			static (recipient, message) => ((List<ClipboardHistoryChangeKind>)recipient).Add(message.Kind));
+			static (recipient, message) => ((List<ClipboardLogChangeKind>)recipient).Add(message.Kind));
 
 		return received;
 	}

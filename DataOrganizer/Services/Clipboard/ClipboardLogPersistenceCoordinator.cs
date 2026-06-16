@@ -133,14 +133,14 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	{
 		switch (message.Kind)
 		{
-			case ClipboardHistoryChangeKind.Updated:
+			case ClipboardLogChangeKind.Updated:
 				if (_store.IsUnlocked)
 				{
 					ScheduleSave();
 				}
 				break;
 
-			case ClipboardHistoryChangeKind.ClearedByUser:
+			case ClipboardLogChangeKind.ClearedByUser:
 				// Explicit clear: drop the pending save and erase the journal (keep the wrapped key).
 				CancelPendingSave();
 
@@ -150,7 +150,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 				}
 				break;
 
-			case ClipboardHistoryChangeKind.ClearedForStop:
+			case ClipboardLogChangeKind.ClearedForStop:
 				// Tracking toggled off: drop the pending save but keep the saved history on disk.
 				CancelPendingSave();
 				break;

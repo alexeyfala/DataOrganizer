@@ -1,10 +1,10 @@
 namespace DataOrganizer.Enums.Clipboard;
 
 /// <summary>
-/// Describes what happened to the in-memory clipboard history, so listeners (e.g. persistence)
+/// Describes what happened to the in-memory clipboard log, so listeners (e.g. persistence)
 /// can react appropriately.
 /// </summary>
-public enum ClipboardHistoryChangeKind
+public enum ClipboardLogChangeKind
 {
 	/// <summary>
 	/// Content changed (an entry was captured, moved to the top, or trimmed).
@@ -12,12 +12,12 @@ public enum ClipboardHistoryChangeKind
 	Updated,
 
 	/// <summary>
-	/// The user explicitly cleared the history.
+	/// The user explicitly cleared the log.
 	/// </summary>
 	ClearedByUser,
 
 	/// <summary>
-	/// The history was cleared because tracking was turned off (not a user-initiated clear).
+	/// The log was cleared because tracking was turned off (not a user-initiated clear).
 	/// </summary>
 	ClearedForStop
 }
