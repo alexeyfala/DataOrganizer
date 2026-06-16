@@ -34,13 +34,13 @@ public sealed partial class CustomClipboardViewModel :
 	/// </summary>
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(IsSearchEnabled))]
-	public partial ClipboardEntryFilter ActiveFilter { get; set; }
+	public partial ClipboardLogEntryFilter ActiveFilter { get; set; }
 
 	/// <summary>
 	/// <c>True</c> while the active filter contains entries that carry searchable text
 	/// (images and files have none, so search is disabled for them).
 	/// </summary>
-	public bool IsSearchEnabled => ActiveFilter is not (ClipboardEntryFilter.Image or ClipboardEntryFilter.Files);
+	public bool IsSearchEnabled => ActiveFilter is not (ClipboardLogEntryFilter.Image or ClipboardLogEntryFilter.Files);
 
 	/// <summary>
 	/// Whether the window stays open on focus loss and after a restore.
@@ -143,7 +143,7 @@ public sealed partial class CustomClipboardViewModel :
 	/// Stashes the search query when switching to a filter whose entries have no searchable text (so a
 	/// leftover query does not leave the list empty), and restores it when returning to a searchable filter.
 	/// </summary>
-	partial void OnActiveFilterChanged(ClipboardEntryFilter value)
+	partial void OnActiveFilterChanged(ClipboardLogEntryFilter value)
 	{
 		if (IsSearchEnabled)
 		{
@@ -257,17 +257,17 @@ public sealed partial class CustomClipboardViewModel :
 	}
 
 	/// <summary>
-	/// Builds the entry predicate for a type <paramref name="filter" />: <see cref="ClipboardEntryFilter.All" />
+	/// Builds the entry predicate for a type <paramref name="filter" />: <see cref="ClipboardLogEntryFilter.All" />
 	/// matches every entry, otherwise only entries of the matching payload type (text excludes URLs).
 	/// </summary>
-	internal static Func<ClipboardLogEntryBase, bool> BuildTypePredicate(ClipboardEntryFilter filter)
+	internal static Func<ClipboardLogEntryBase, bool> BuildTypePredicate(ClipboardLogEntryFilter filter)
 	{
 		return filter switch
 		{
-			ClipboardEntryFilter.Text => static entry => entry is ClipboardTextEntry and not ClipboardUrlEntry,
-			ClipboardEntryFilter.Url => static entry => entry is ClipboardUrlEntry,
-			ClipboardEntryFilter.Image => static entry => entry is ClipboardImageEntry,
-			ClipboardEntryFilter.Files => static entry => entry is ClipboardFilesEntry,
+			ClipboardLogEntryFilter.Text => static entry => entry is ClipboardTextEntry and not ClipboardUrlEntry,
+			ClipboardLogEntryFilter.Url => static entry => entry is ClipboardUrlEntry,
+			ClipboardLogEntryFilter.Image => static entry => entry is ClipboardImageEntry,
+			ClipboardLogEntryFilter.Files => static entry => entry is ClipboardFilesEntry,
 			_ => static _ => true
 		};
 	}

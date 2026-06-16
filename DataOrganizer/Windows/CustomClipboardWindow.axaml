@@ -151,35 +151,35 @@
 						Classes="typeChip"
 						Content="{x:Static helpers:Glyphs.Clipboard}"
 						GroupName="ClipboardTypeFilter"
-						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.All}}"
+						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.All}}"
 						ToolTip.Tip="{x:Static prop:Strings.All}" />
 
 					<RadioButton
 						Classes="typeChip"
 						Content="{x:Static helpers:Glyphs.Memo}"
 						GroupName="ClipboardTypeFilter"
-						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Text}}"
+						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Text}}"
 						ToolTip.Tip="{x:Static prop:Strings.Text}" />
 
 					<RadioButton
 						Classes="typeChip"
 						Content="{x:Static helpers:Glyphs.Link}"
 						GroupName="ClipboardTypeFilter"
-						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Url}}"
+						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Url}}"
 						ToolTip.Tip="{x:Static prop:Strings.Hyperlink}" />
 
 					<RadioButton
 						Classes="typeChip"
 						Content="{x:Static helpers:Glyphs.FramedPicture}"
 						GroupName="ClipboardTypeFilter"
-						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Image}}"
+						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Image}}"
 						ToolTip.Tip="{x:Static prop:Strings.Image}" />
 
 					<RadioButton
 						Classes="typeChip"
 						Content="{x:Static helpers:Glyphs.CardIndexDividers}"
 						GroupName="ClipboardTypeFilter"
-						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardEntryFilter.Files}}"
+						IsChecked="{Binding ActiveFilter, Converter={x:Static converters:AppConverters.EnumToBool}, ConverterParameter={x:Static enums:ClipboardLogEntryFilter.Files}}"
 						ToolTip.Tip="{x:Static prop:Strings.Files}" />
 				</StackPanel>
 

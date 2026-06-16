@@ -11,7 +11,7 @@ public sealed class ClipboardLogWindowSettings : PositionSizeSettings
 	/// <summary>
 	/// Last selected type filter.
 	/// </summary>
-	public ClipboardEntryFilter ActiveFilter { get; init; }
+	public ClipboardLogEntryFilter ActiveFilter { get; init; }
 
 	/// <summary>
 	/// Whether the window stays open on focus loss and after a restore.

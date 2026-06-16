@@ -1,9 +1,9 @@
 namespace DataOrganizer.Enums.Clipboard;
 
 /// <summary>
-/// Type filter applied to the clipboard history list.
+/// Type filter applied to the clipboard log list.
 /// </summary>
-public enum ClipboardEntryFilter
+public enum ClipboardLogEntryFilter
 {
 	/// <summary>
 	/// No filtering; every entry is shown.
@@ -11,7 +11,7 @@ public enum ClipboardEntryFilter
 	All,
 
 	/// <summary>
-	/// Plain / formatted text entries, excluding URLs.
+	/// Plain / formatted text entries.
 	/// </summary>
 	Text,
 

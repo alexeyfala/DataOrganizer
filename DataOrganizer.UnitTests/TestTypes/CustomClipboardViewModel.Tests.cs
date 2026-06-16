@@ -42,7 +42,7 @@ internal class CustomClipboardViewModelTests
 		// then flip the type filter to force a single refresh that reads both predicates.
 		sut.SearchText = "banana";
 
-		sut.ActiveFilter = ClipboardEntryFilter.Text;
+		sut.ActiveFilter = ClipboardLogEntryFilter.Text;
 
 		// Assert — the only text entry ("apple") fails the "banana" query, so nothing matches both.
 		sut.VisibleEntries
@@ -74,7 +74,7 @@ internal class CustomClipboardViewModelTests
 		CustomClipboardViewModel sut = mock.Create<CustomClipboardViewModel>();
 
 		// Act — show only text entries.
-		sut.ActiveFilter = ClipboardEntryFilter.Text;
+		sut.ActiveFilter = ClipboardLogEntryFilter.Text;
 
 		// Assert — the URL and image are filtered out.
 		sut.VisibleEntries
@@ -147,13 +147,13 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: <see cref="ClipboardEntryFilter.All" /> matches every payload type.
+	/// <see cref="CustomClipboardViewModel" />: <see cref="ClipboardLogEntryFilter.All" /> matches every payload type.
 	/// </summary>
 	[Test]
 	public void BuildTypePredicate_All_Matches_Everything()
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.All);
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.All);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -187,40 +187,40 @@ internal class CustomClipboardViewModelTests
 		ClipboardLogEntryBase files = FilesEntry([3]);
 
 		// Act, Assert
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Url)(url)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(url)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Url)(image)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Url)(image)
 			.Should()
 			.BeFalse();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Image)(image)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(image)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Image)(files)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Image)(files)
 			.Should()
 			.BeFalse();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Files)(files)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(files)
 			.Should()
 			.BeTrue();
 
-		CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Files)(url)
+		CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Files)(url)
 			.Should()
 			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: the <see cref="ClipboardEntryFilter.Text" /> filter matches plain text
+	/// <see cref="CustomClipboardViewModel" />: the <see cref="ClipboardLogEntryFilter.Text" /> filter matches plain text
 	/// but excludes URLs (which have their own filter).
 	/// </summary>
 	[Test]
 	public void BuildTypePredicate_Text_Excludes_Url()
 	{
 		// Arrange
-		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardEntryFilter.Text);
+		Func<ClipboardLogEntryBase, bool> predicate = CustomClipboardViewModel.BuildTypePredicate(ClipboardLogEntryFilter.Text);
 
 		// Act, Assert
 		predicate(TextEntry("text", [1]))
@@ -294,12 +294,12 @@ internal class CustomClipboardViewModelTests
 	/// <see cref="CustomClipboardViewModel" />: search is disabled for image and file filters (no searchable text)
 	/// and enabled for the rest.
 	/// </summary>
-	[TestCase(ClipboardEntryFilter.All, true)]
-	[TestCase(ClipboardEntryFilter.Text, true)]
-	[TestCase(ClipboardEntryFilter.Url, true)]
-	[TestCase(ClipboardEntryFilter.Image, false)]
-	[TestCase(ClipboardEntryFilter.Files, false)]
-	public void IsSearchEnabled_Reflects_Whether_Filter_Has_Searchable_Text(ClipboardEntryFilter filter, bool expected)
+	[TestCase(ClipboardLogEntryFilter.All, true)]
+	[TestCase(ClipboardLogEntryFilter.Text, true)]
+	[TestCase(ClipboardLogEntryFilter.Url, true)]
+	[TestCase(ClipboardLogEntryFilter.Image, false)]
+	[TestCase(ClipboardLogEntryFilter.Files, false)]
+	public void IsSearchEnabled_Reflects_Whether_Filter_Has_Searchable_Text(ClipboardLogEntryFilter filter, bool expected)
 	{
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
@@ -352,7 +352,7 @@ internal class CustomClipboardViewModelTests
 		sut.SearchText = "query";
 
 		// Act — enter a non-searchable filter: the query is stashed and the box emptied.
-		sut.ActiveFilter = ClipboardEntryFilter.Image;
+		sut.ActiveFilter = ClipboardLogEntryFilter.Image;
 
 		// Assert
 		sut.SearchText
@@ -360,10 +360,10 @@ internal class CustomClipboardViewModelTests
 			.BeNull();
 
 		// Act — a second non-searchable filter must not overwrite the stash.
-		sut.ActiveFilter = ClipboardEntryFilter.Files;
+		sut.ActiveFilter = ClipboardLogEntryFilter.Files;
 
 		// Act — return to a searchable filter: the query is restored.
-		sut.ActiveFilter = ClipboardEntryFilter.Text;
+		sut.ActiveFilter = ClipboardLogEntryFilter.Text;
 
 		// Assert
 		sut.SearchText

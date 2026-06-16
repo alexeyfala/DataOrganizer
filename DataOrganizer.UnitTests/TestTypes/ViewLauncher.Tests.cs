@@ -36,7 +36,7 @@ internal class ViewLauncherTests
 
 		ClipboardLogWindowSettings settings = new()
 		{
-			ActiveFilter = ClipboardEntryFilter.Image,
+			ActiveFilter = ClipboardLogEntryFilter.Image,
 			KeepOpen = true,
 			Size = new(positiveValue, positiveValue),
 			X = 10,
@@ -102,7 +102,7 @@ internal class ViewLauncherTests
 		window.ViewModel
 			.ActiveFilter
 			.Should()
-			.Be(ClipboardEntryFilter.Image);
+			.Be(ClipboardLogEntryFilter.Image);
 	}
 
 	/// <summary>
@@ -483,7 +483,7 @@ internal class ViewLauncherTests
 
 		CustomClipboardWindow window = mock.Create<CustomClipboardWindow>();
 
-		window.ViewModel.ActiveFilter = ClipboardEntryFilter.Image;
+		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
 
 		// Act
 		sut.SaveCustomClipboardSettings(window);
@@ -495,7 +495,7 @@ internal class ViewLauncherTests
 
 		captured.ActiveFilter
 			.Should()
-			.Be(ClipboardEntryFilter.Image);
+			.Be(ClipboardLogEntryFilter.Image);
 	}
 
 	/// <summary>
