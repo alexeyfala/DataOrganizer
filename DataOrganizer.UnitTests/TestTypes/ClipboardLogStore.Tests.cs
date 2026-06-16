@@ -158,7 +158,7 @@ internal class ClipboardLogStoreTests
 		// Assert
 		result.Status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.Unlocked);
+			.Be(ClipboardLogStatus.Unlocked);
 
 		ClipboardTextEntry restored = result
 			.Entries
@@ -297,7 +297,7 @@ internal class ClipboardLogStoreTests
 		// Assert
 		result.Status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.Unlocked);
+			.Be(ClipboardLogStatus.Unlocked);
 
 		result.Entries
 			.Should()
@@ -341,7 +341,7 @@ internal class ClipboardLogStoreTests
 		// Assert
 		result.Status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.Failed);
+			.Be(ClipboardLogStatus.Failed);
 
 		sut.IsUnlocked
 			.Should()
@@ -382,7 +382,7 @@ internal class ClipboardLogStoreTests
 		// Assert
 		result.Status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.Unlocked);
+			.Be(ClipboardLogStatus.Unlocked);
 
 		result.Entries
 			.Should()
@@ -415,7 +415,7 @@ internal class ClipboardLogStoreTests
 		// Assert
 		result.Status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.WrongPassword);
+			.Be(ClipboardLogStatus.WrongPassword);
 
 		reader.IsUnlocked
 			.Should()

@@ -6,10 +6,10 @@ namespace DataOrganizer.DTO.Clipboard;
 /// <summary>
 /// Result of unlocking the persisted clipboard log: the outcome and the entries
 /// loaded from the previous session (empty unless <see cref="Status" /> is
-/// <see cref="ClipboardHistoryLogStatus.Unlocked" />).
+/// <see cref="ClipboardLogStatus.Unlocked" />).
 /// </summary>
 /// <param name="Status">The unlock outcome.</param>
 /// <param name="Entries">Entries loaded from disk, newest first.</param>
 public sealed record ClipboardLogUnlockResult(
-	ClipboardHistoryLogStatus Status,
+	ClipboardLogStatus Status,
 	IReadOnlyList<ClipboardLogEntryBase> Entries);

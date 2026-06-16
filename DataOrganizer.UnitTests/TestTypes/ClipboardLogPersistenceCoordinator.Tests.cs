@@ -337,7 +337,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardLogUnlockResult(ClipboardHistoryLogStatus.Unlocked, loaded));
+			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.Unlocked, loaded));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
 
@@ -348,12 +348,12 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		ClipboardHistoryLogStatus status = await sut.TryUnlockAndMergeAsync(Password("pw"));
+		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(Password("pw"));
 
 		// Assert
 		status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.Unlocked);
+			.Be(ClipboardLogStatus.Unlocked);
 
 		log
 			.Received()
@@ -375,7 +375,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
-			.Returns(new ClipboardLogUnlockResult(ClipboardHistoryLogStatus.WrongPassword, []));
+			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.WrongPassword, []));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
 
@@ -384,12 +384,12 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		ClipboardHistoryLogStatus status = await sut.TryUnlockAndMergeAsync(Password("wrong"));
+		ClipboardLogStatus status = await sut.TryUnlockAndMergeAsync(Password("wrong"));
 
 		// Assert
 		status
 			.Should()
-			.Be(ClipboardHistoryLogStatus.WrongPassword);
+			.Be(ClipboardLogStatus.WrongPassword);
 
 		log
 			.DidNotReceive()
