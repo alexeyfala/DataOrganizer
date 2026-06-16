@@ -31,7 +31,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task ClearedByUser_Cancels_Pending_Save()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -72,7 +72,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -106,7 +106,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public void DisablePersistence_Erases_All()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardHistoryService>(), store);
 
@@ -131,7 +131,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -163,7 +163,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task DisposeAsync_When_Locked_Does_Not_Save()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(false);
 
@@ -187,7 +187,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task DisposeAsync_When_Unlocked_Flushes()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -215,7 +215,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public void Receive_ClearedByUser_Erases_History()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -239,7 +239,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public void Receive_ClearedForStop_Keeps_History()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -263,7 +263,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public void RequiresUnlock_Reflects_Settings_And_Store_State()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(false);
 
@@ -303,7 +303,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		using AutoMock mock = CreateMock(
 			Settings(persist: true),
 			Substitute.For<IClipboardHistoryService>(),
-			Substitute.For<IClipboardHistoryStore>(),
+			Substitute.For<IClipboardLogStore>(),
 			messenger);
 
 		ClipboardHistoryPersistenceCoordinator sut = mock.Create<ClipboardHistoryPersistenceCoordinator>();
@@ -329,7 +329,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task TryUnlockAndMerge_Merges_And_Saves()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -371,7 +371,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task TryUnlockAndMerge_Wrong_Password_Does_Not_Merge_Or_Save()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store
 			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
@@ -407,7 +407,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	public async Task Updated_When_Locked_Does_Not_Save()
 	{
 		// Arrange
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(false);
 
@@ -435,7 +435,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
 
-		IClipboardHistoryStore store = Substitute.For<IClipboardHistoryStore>();
+		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store.IsUnlocked.Returns(true);
 
@@ -477,7 +477,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	private static AutoMock CreateMock(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService service,
-		IClipboardHistoryStore store,
+		IClipboardLogStore store,
 		IMessenger? messenger = null)
 	{
 		return AutoMock.GetLoose(builder =>
@@ -509,7 +509,7 @@ internal class ClipboardHistoryPersistenceCoordinatorTests
 	private static ClipboardHistoryPersistenceCoordinator CreateSut(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService service,
-		IClipboardHistoryStore store,
+		IClipboardLogStore store,
 		IMessenger messenger,
 		TimeSpan saveDebounce)
 	{

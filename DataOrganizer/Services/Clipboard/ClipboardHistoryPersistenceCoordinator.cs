@@ -41,8 +41,8 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	/// <inheritdoc cref="IAppSettingsManager" />
 	private readonly IAppSettingsManager _settingsManager;
 
-	/// <inheritdoc cref="IClipboardHistoryStore" />
-	private readonly IClipboardHistoryStore _store;
+	/// <inheritdoc cref="IClipboardLogStore" />
+	private readonly IClipboardLogStore _store;
 
 	/// <inheritdoc cref="IClipboardHistoryService" />
 	private readonly IClipboardHistoryService _сlipboardHistory;
@@ -62,7 +62,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	public ClipboardHistoryPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService сlipboardHistory,
-		IClipboardHistoryStore store,
+		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger) : this(
@@ -82,7 +82,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	internal ClipboardHistoryPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService сlipboardHistory,
-		IClipboardHistoryStore store,
+		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger,

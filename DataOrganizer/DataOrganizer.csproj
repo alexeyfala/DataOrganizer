@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AvaloniaXaml Remove="Templates\ClipboardHistoryTemplates.axaml" />
+		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DataTemplates.axaml" />
@@ -35,7 +35,7 @@
 		<AvaloniaResource Include="Styling\SideSheetControlTheme.axaml" />
 		<AvaloniaResource Include="Styling\Styles.axaml" />
 		<AvaloniaResource Include="Styling\Themes.axaml" />
-		<AvaloniaResource Include="Templates\ClipboardHistoryTemplates.axaml" />
+		<AvaloniaResource Include="Templates\ClipboardLogTemplates.axaml" />
 		<AvaloniaResource Include="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaResource Include="Templates\DatasetTemplates.axaml" />
 		<AvaloniaResource Include="Templates\DataTemplates.axaml" />

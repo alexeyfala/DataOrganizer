@@ -19,8 +19,8 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(ClipboardHistoryStore)}"" type")]
-internal class ClipboardHistoryStoreTests
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogStore)}"" type")]
+internal class ClipboardLogStoreTests
 {
 	#region Data
 	private static readonly string BinPath = Path.Combine("clip", "History.bin");
@@ -30,7 +30,7 @@ internal class ClipboardHistoryStoreTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.EraseAll" />: removes both journal and key files and locks the store.
+	/// <see cref="ClipboardLogStore.EraseAll" />: removes both journal and key files and locks the store.
 	/// </summary>
 	[Test]
 	public async Task EraseAll_Removes_Both_Files_And_Locks()
@@ -40,7 +40,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		await sut.TryUnlockAsync(Password("pw"));
 
@@ -64,7 +64,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
+	/// <see cref="ClipboardLogStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
 	/// </summary>
 	[Test]
 	public async Task EraseHistory_Removes_Journal_But_Keeps_Key()
@@ -74,7 +74,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		await sut.TryUnlockAsync(Password("pw"));
 
@@ -98,7 +98,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
+	/// <see cref="ClipboardLogStore.LoadEntriesAsync" />: an unsupported schema version is treated as empty.
 	/// </summary>
 	[Test]
 	public async Task LoadEntries_With_Unsupported_Version_Returns_Empty()
@@ -108,7 +108,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		IEncryptionService encryption = mock.Create<IEncryptionService>();
 
@@ -131,7 +131,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.SaveAsync" /> / <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
+	/// <see cref="ClipboardLogStore.SaveAsync" /> / <see cref="ClipboardLogStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
 	public async Task Save_Then_Unlock_In_New_Session_Restores_Entries()
@@ -141,7 +141,7 @@ internal class ClipboardHistoryStoreTests
 
 		using (AutoMock first = CreateMock(files))
 		{
-			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("pw"));
 
@@ -151,7 +151,7 @@ internal class ClipboardHistoryStoreTests
 		// Act
 		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
@@ -175,7 +175,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.SaveAsync" />: a later save replaces the previous journal.
+	/// <see cref="ClipboardLogStore.SaveAsync" />: a later save replaces the previous journal.
 	/// </summary>
 	[Test]
 	public async Task Save_Twice_Overwrites_Previous_Journal()
@@ -185,7 +185,7 @@ internal class ClipboardHistoryStoreTests
 
 		using (AutoMock first = CreateMock(files))
 		{
-			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("pw"));
 
@@ -197,7 +197,7 @@ internal class ClipboardHistoryStoreTests
 		// Act
 		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
@@ -217,7 +217,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.SaveAsync" />: an encryption failure writes no journal.
+	/// <see cref="ClipboardLogStore.SaveAsync" />: an encryption failure writes no journal.
 	/// </summary>
 	[Test]
 	public async Task Save_When_Encryption_Fails_Writes_Nothing()
@@ -243,7 +243,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files, encryption);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		await sut.TryUnlockAsync(Password("pw"));
 
@@ -257,7 +257,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.SaveAsync" />: writes nothing while locked.
+	/// <see cref="ClipboardLogStore.SaveAsync" />: writes nothing while locked.
 	/// </summary>
 	[Test]
 	public async Task Save_Without_Unlock_Writes_Nothing()
@@ -267,7 +267,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
 		await sut.SaveAsync([TextEntry("data")]);
@@ -279,7 +279,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a new key is created when none exists.
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a new key is created when none exists.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_Creates_Key_When_None_Exists()
@@ -289,7 +289,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
 		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
@@ -313,7 +313,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_When_Key_Wrap_Fails_Returns_Failed()
@@ -333,7 +333,7 @@ internal class ClipboardHistoryStoreTests
 
 		using AutoMock mock = CreateMock(files, encryption);
 
-		ClipboardHistoryStore sut = mock.Create<ClipboardHistoryStore>();
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
 		// Act
 		ClipboardHistoryUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
@@ -353,7 +353,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a corrupt journal yields no entries.
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a corrupt journal yields no entries.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_With_Corrupt_Journal_Returns_Empty()
@@ -363,7 +363,7 @@ internal class ClipboardHistoryStoreTests
 
 		using (AutoMock first = CreateMock(files))
 		{
-			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("pw"));
 
@@ -375,7 +375,7 @@ internal class ClipboardHistoryStoreTests
 		// Act
 		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
 
@@ -390,7 +390,7 @@ internal class ClipboardHistoryStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardHistoryStore.TryUnlockAsync" />: a wrong password is rejected.
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a wrong password is rejected.
 	/// </summary>
 	[Test]
 	public async Task TryUnlock_With_Wrong_Password_Returns_WrongPassword()
@@ -400,7 +400,7 @@ internal class ClipboardHistoryStoreTests
 
 		using (AutoMock first = CreateMock(files))
 		{
-			ClipboardHistoryStore writer = first.Create<ClipboardHistoryStore>();
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
 
 			await writer.TryUnlockAsync(Password("right"));
 		}
@@ -408,7 +408,7 @@ internal class ClipboardHistoryStoreTests
 		// Act
 		using AutoMock second = CreateMock(files);
 
-		ClipboardHistoryStore reader = second.Create<ClipboardHistoryStore>();
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
 
 		ClipboardHistoryUnlockResult result = await reader.TryUnlockAsync(Password("wrong"));
 

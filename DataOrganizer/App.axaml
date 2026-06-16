@@ -16,7 +16,7 @@
 
 				<ResourceInclude Source="/Styling/Themes.axaml" />
 				
-				<ResourceInclude Source="/Templates/ClipboardHistoryTemplates.axaml" />
+				<ResourceInclude Source="/Templates/ClipboardLogTemplates.axaml" />
 				
 				<ResourceInclude Source="/Templates/ContextMenuTemplates.axaml" />
 				

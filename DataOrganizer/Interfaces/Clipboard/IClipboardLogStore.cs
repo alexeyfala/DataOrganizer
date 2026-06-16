@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
-/// Encrypts the clipboard history to disk and decrypts it back, holding the data
+/// Encrypts the clipboard log to disk and decrypts it back, holding the data
 /// encryption key for the current session.
 /// </summary>
-public interface IClipboardHistoryStore : IDisposable
+public interface IClipboardLogStore : IDisposable
 {
 	#region Properties
 	/// <summary>

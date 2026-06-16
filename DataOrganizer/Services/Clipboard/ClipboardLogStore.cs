@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
-public sealed class ClipboardHistoryStore : IClipboardHistoryStore
+public sealed class ClipboardLogStore : IClipboardLogStore
 {
 	#region Properties
 	/// <inheritdoc />
@@ -79,7 +79,7 @@ public sealed class ClipboardHistoryStore : IClipboardHistoryStore
 	#endregion
 
 	#region Constructors
-	public ClipboardHistoryStore(
+	public ClipboardLogStore(
 		IAppEnvironment appEnvironment,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
