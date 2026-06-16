@@ -39,10 +39,10 @@ public class ViewLauncher : IViewLauncher
 	private readonly IAppEnvironment _appEnvironment;
 
 	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardHistory;
+	private readonly IClipboardHistoryService _clipboardLog;
 
-	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
-	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
 	/// <inheritdoc cref="IDialogService" />
 	private readonly IDialogService _dialogService;
@@ -75,8 +75,8 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
-		IClipboardHistoryService clipboardHistory,
-		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
+		IClipboardHistoryService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
@@ -91,9 +91,9 @@ public class ViewLauncher : IViewLauncher
 
 		_appEnvironment = appEnvironment;
 
-		_clipboardHistory = clipboardHistory;
+		_clipboardLog = clipboardLog;
 
-		_clipboardHistoryPersistence = clipboardHistoryPersistence;
+		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_dialogService = dialogService;
 
@@ -626,9 +626,9 @@ public class ViewLauncher : IViewLauncher
 				.ConfigureAwait(true);
 		}
 
-		if (_clipboardHistory.IsRunning)
+		if (_clipboardLog.IsRunning)
 		{
-			_clipboardHistory.Stop();
+			_clipboardLog.Stop();
 		}
 
 		if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
@@ -707,7 +707,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		string label = $"{Strings.EnterThePasswordToLoadSavedHistory} ({Strings.OrCancelToKeepSessionInMemory})";
 
-		while (_clipboardHistoryPersistence.RequiresUnlock)
+		while (_clipboardLogPersistence.RequiresUnlock)
 		{
 			char[] password = await _dialogService
 				.RequestPasswordAsync(Strings.ClipboardHistory, label)
@@ -724,7 +724,7 @@ public class ViewLauncher : IViewLauncher
 
 			try
 			{
-				ClipboardHistoryUnlockStatus status = await _clipboardHistoryPersistence
+				ClipboardHistoryUnlockStatus status = await _clipboardLogPersistence
 					.TryUnlockAndMergeAsync(passwordBytes)
 					.ConfigureAwait(true);
 

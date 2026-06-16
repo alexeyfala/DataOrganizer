@@ -13,8 +13,8 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Clipboard;
 
-public sealed class ClipboardHistoryPersistenceCoordinator :
-	IClipboardHistoryPersistenceCoordinator,
+public sealed class ClipboardLogPersistenceCoordinator :
+	IClipboardLogPersistenceCoordinator,
 	IRecipient<ClipboardHistoryChangedMessage>
 {
 	#region Data
@@ -59,7 +59,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	#endregion
 
 	#region Constructors
-	public ClipboardHistoryPersistenceCoordinator(
+	public ClipboardLogPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService сlipboardHistory,
 		IClipboardLogStore store,
@@ -79,7 +79,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 	/// <summary>
 	/// Test constructor that allows overriding the debounce delay.
 	/// </summary>
-	internal ClipboardHistoryPersistenceCoordinator(
+	internal ClipboardLogPersistenceCoordinator(
 		IAppSettingsManager settingsManager,
 		IClipboardHistoryService сlipboardHistory,
 		IClipboardLogStore store,
@@ -170,7 +170,7 @@ public sealed class ClipboardHistoryPersistenceCoordinator :
 		_messenger.RegisterAll(this);
 
 		_logger.LogInformation(
-			$"{nameof(ClipboardHistoryPersistenceCoordinator)} started ({nameof(RequiresUnlock)} = {RequiresUnlock}).");
+			$"{nameof(ClipboardLogPersistenceCoordinator)} started ({nameof(RequiresUnlock)} = {RequiresUnlock}).");
 	}
 
 	/// <inheritdoc />

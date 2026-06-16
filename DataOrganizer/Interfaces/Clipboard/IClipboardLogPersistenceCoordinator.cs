@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Interfaces.Clipboard;
 
 /// <summary>
-/// Coordinates on-disk persistence (encryption + storage) of the clipboard history. Listens to the
+/// Coordinates on-disk persistence (encryption + storage) of the clipboard log. Listens to the
 /// service's change notifications and saves / erases accordingly.
 /// </summary>
-public interface IClipboardHistoryPersistenceCoordinator : IAsyncDisposable
+public interface IClipboardLogPersistenceCoordinator : IAsyncDisposable
 {
 	#region Properties
 	/// <summary>

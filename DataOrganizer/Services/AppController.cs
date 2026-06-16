@@ -24,10 +24,10 @@ public sealed class AppController : IAppController
 	private readonly IAppEnvironment _appEnvironment;
 
 	/// <inheritdoc cref="IClipboardHistoryService" />
-	private readonly IClipboardHistoryService _clipboardHistory;
+	private readonly IClipboardHistoryService _clipboardLog;
 
-	/// <inheritdoc cref="IClipboardHistoryPersistenceCoordinator" />
-	private readonly IClipboardHistoryPersistenceCoordinator _clipboardHistoryPersistence;
+	/// <inheritdoc cref="IClipboardLogPersistenceCoordinator" />
+	private readonly IClipboardLogPersistenceCoordinator _clipboardLogPersistence;
 
 	/// <inheritdoc cref="IConsoleWindowHost" />
 	private readonly Lazy<IConsoleWindowHost> _consoleWindowHost;
@@ -61,8 +61,8 @@ public sealed class AppController : IAppController
 	public AppController(
 		IAppEnvironment appEnvironment,
 		IAppSettingsManager settingsManager,
-		IClipboardHistoryService clipboardHistory,
-		IClipboardHistoryPersistenceCoordinator clipboardHistoryPersistence,
+		IClipboardHistoryService clipboardLog,
+		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
@@ -75,9 +75,9 @@ public sealed class AppController : IAppController
 	{
 		_appEnvironment = appEnvironment;
 
-		_clipboardHistory = clipboardHistory;
+		_clipboardLog = clipboardLog;
 
-		_clipboardHistoryPersistence = clipboardHistoryPersistence;
+		_clipboardLogPersistence = clipboardLogPersistence;
 
 		_consoleWindowHost = consoleWindowHost;
 
@@ -146,11 +146,11 @@ public sealed class AppController : IAppController
 				.ConfigureMainWindow(hierarchy)?
 				.Show();
 
-			_clipboardHistoryPersistence.Start();
+			_clipboardLogPersistence.Start();
 
 			if (_settingsManager.Settings.TrackClipboardHistory)
 			{
-				_exceptionHandler.Watch(_clipboardHistory.StartAsync(token));
+				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 		}
 		catch (Exception ex)
