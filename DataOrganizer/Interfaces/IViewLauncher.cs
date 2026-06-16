@@ -26,9 +26,9 @@ public interface IViewLauncher
 
 	#region Methods
 	/// <summary>
-	/// Configures <see cref="CustomClipboardWindow" />.
+	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
-	CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner);
+	ClipboardLogWindow ConfigureCustomClipboardWindow(Window owner);
 
 	/// <summary>
 	/// Configures <see cref="EditorWindow" />.
@@ -53,9 +53,9 @@ public interface IViewLauncher
 	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Saves <see cref="CustomClipboardWindow" /> settings to the file.
+	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
 	/// </summary>
-	void SaveCustomClipboardSettings(CustomClipboardWindow window);
+	void SaveCustomClipboardSettings(ClipboardLogWindow window);
 
 	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
@@ -69,7 +69,7 @@ public interface IViewLauncher
 
 	/// <summary>
 	/// Prompts to unlock the persisted clipboard history when required, then opens
-	/// <see cref="CustomClipboardWindow" />.
+	/// <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	Task ShowCustomClipboardWindowAsync(Window owner);
 

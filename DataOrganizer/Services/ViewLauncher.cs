@@ -117,11 +117,11 @@ public class ViewLauncher : IViewLauncher
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Window.Closing" /> event handler of <see cref="CustomClipboardWindow" />.
+	/// <see cref="Window.Closing" /> event handler of <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	private void CustomClipboardWindow_Closing(object? sender, WindowClosingEventArgs e)
 	{
-		if (sender is not CustomClipboardWindow window)
+		if (sender is not ClipboardLogWindow window)
 		{
 			return;
 		}
@@ -181,13 +181,13 @@ public class ViewLauncher : IViewLauncher
 
 	#region Methods
 	/// <inheritdoc />
-	public CustomClipboardWindow ConfigureCustomClipboardWindow(Window owner)
+	public ClipboardLogWindow ConfigureCustomClipboardWindow(Window owner)
 	{
-		_logger.LogInformation($@"Opening ""{nameof(CustomClipboardWindow)}""");
+		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
 
 		ClipboardLogViewModel viewModel = _viewFactory.CreateViewModel<ClipboardLogViewModel>();
 
-		CustomClipboardWindow window = _viewFactory.CreateWindow<CustomClipboardWindow>(viewModel);
+		ClipboardLogWindow window = _viewFactory.CreateWindow<ClipboardLogWindow>(viewModel);
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
 
@@ -363,7 +363,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public void SaveCustomClipboardSettings(CustomClipboardWindow window)
+	public void SaveCustomClipboardSettings(ClipboardLogWindow window)
 	{
 		try
 		{
@@ -506,7 +506,7 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public async Task ShowCustomClipboardWindowAsync(Window owner)
 	{
-		if (_app.FindWindow<CustomClipboardWindow>() is { } existing)
+		if (_app.FindWindow<ClipboardLogWindow>() is { } existing)
 		{
 			PositionAtScreenBottomRight(existing, owner);
 

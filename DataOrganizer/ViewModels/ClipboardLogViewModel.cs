@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <c>CustomClipboardWindow</c>.
+/// View model for <c>ClipboardLogWindow</c>.
 /// </summary>
 public sealed partial class ClipboardLogViewModel :
 	ObservableObject,

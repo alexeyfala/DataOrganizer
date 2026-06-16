@@ -3,7 +3,7 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Windows;
 
-public sealed partial class CustomClipboardWindow : Window
+public sealed partial class ClipboardLogWindow : Window
 {
 	#region Properties
 	/// <inheritdoc cref="ClipboardLogViewModel" />
@@ -11,8 +11,8 @@ public sealed partial class CustomClipboardWindow : Window
 	#endregion
 
 	#region Constructors
-	public CustomClipboardWindow() => InitializeComponent();
+	public ClipboardLogWindow() => InitializeComponent();
 
-	public CustomClipboardWindow(ClipboardLogViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
+	public ClipboardLogWindow(ClipboardLogViewModel viewModel) : this() => DataContext = ViewModel = viewModel;
 	#endregion
 }

@@ -53,7 +53,7 @@ internal class ViewLauncherTests
 
 			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
-			CustomClipboardWindow clipboardWindow = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
@@ -68,7 +68,7 @@ internal class ViewLauncherTests
 				.Returns(viewModel);
 
 			viewFactory
-				.CreateWindow<CustomClipboardWindow>(Arg.Any<object[]>())
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
 				.Returns(clipboardWindow);
 
 			builder.RegisterInstance(viewFactory);
@@ -79,7 +79,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		CustomClipboardWindow window = sut.ConfigureCustomClipboardWindow(new Window());
+		ClipboardLogWindow window = sut.ConfigureCustomClipboardWindow(new Window());
 
 		// Assert
 		window.Width
@@ -481,7 +481,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		CustomClipboardWindow window = mock.Create<CustomClipboardWindow>();
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
 
 		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
 
@@ -527,7 +527,7 @@ internal class ViewLauncherTests
 
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
-		CustomClipboardWindow window = mock.Create<CustomClipboardWindow>();
+		ClipboardLogWindow window = mock.Create<ClipboardLogWindow>();
 
 		window.ViewModel.KeepOpen = true;
 
@@ -563,7 +563,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(fileSystem));
 
 		// Act
-		sut.SaveCustomClipboardSettings(mock.Create<CustomClipboardWindow>());
+		sut.SaveCustomClipboardSettings(mock.Create<ClipboardLogWindow>());
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(
@@ -671,7 +671,7 @@ internal class ViewLauncherTests
 
 		ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
 
-		CustomClipboardWindow existing = windowMock.Create<CustomClipboardWindow>(TypedParameter.From(viewModel));
+		ClipboardLogWindow existing = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
 
 		IClassicDesktopStyleApplicationLifetime lifetime = Substitute.For<IClassicDesktopStyleApplicationLifetime>();
 
@@ -700,7 +700,7 @@ internal class ViewLauncherTests
 		// Assert
 		viewFactory
 			.DidNotReceive()
-			.CreateWindow<CustomClipboardWindow>(Arg.Any<object[]>());
+			.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>());
 	}
 	#endregion
 }

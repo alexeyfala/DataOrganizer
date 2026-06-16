@@ -3,7 +3,7 @@ using DataOrganizer.Enums.Clipboard;
 namespace DataOrganizer.DTO.Settings;
 
 /// <summary>
-/// Persisted settings of <c>CustomClipboardWindow</c>.
+/// Persisted settings of <c>ClipboardLogWindow</c>.
 /// </summary>
 public sealed class ClipboardLogWindowSettings : PositionSizeSettings
 {

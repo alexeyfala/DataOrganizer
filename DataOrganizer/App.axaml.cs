@@ -319,7 +319,7 @@ public sealed class App : Application
 		#region Views
 		services.AddTransient<AppPickerView>();
 		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<CustomClipboardWindow>();
+		services.AddTransient<ClipboardLogWindow>();
 		services.AddTransient<DatasetEditorView>();
 		services.AddTransient<EditorWindow>();
 		services.AddTransient<EmbeddedFileEditorView>();
