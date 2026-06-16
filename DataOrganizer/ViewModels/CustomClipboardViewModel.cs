@@ -140,17 +140,26 @@ public sealed partial class CustomClipboardViewModel :
 
 	#region Partial
 	/// <summary>
-	/// Clears the search query when switching to a filter whose entries have no searchable text,
-	/// so a leftover query does not leave the list empty.
+	/// Stashes the search query when switching to a filter whose entries have no searchable text (so a
+	/// leftover query does not leave the list empty), and restores it when returning to a searchable filter.
 	/// </summary>
 	partial void OnActiveFilterChanged(ClipboardEntryFilter value)
 	{
 		if (IsSearchEnabled)
 		{
-			return;
-		}
+			if (_stashedSearchText is { } stashed)
+			{
+				SearchText = stashed;
 
-		SearchText = null;
+				_stashedSearchText = null;
+			}
+		}
+		else if (SearchText is { } current)
+		{
+			_stashedSearchText = current;
+
+			SearchText = null;
+		}
 	}
 	#endregion
 
@@ -176,6 +185,11 @@ public sealed partial class CustomClipboardViewModel :
 	/// Backing collection for <see cref="VisibleEntries" />.
 	/// </summary>
 	private readonly ObservableCollection<ClipboardHistoryEntryBase> _visibleEntries = [];
+
+	/// <summary>
+	/// Search query held aside while a non-searchable filter is active, restored on return.
+	/// </summary>
+	private string? _stashedSearchText;
 	#endregion
 
 	#region Constructors

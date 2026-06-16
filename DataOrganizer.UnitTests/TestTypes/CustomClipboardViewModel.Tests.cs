@@ -327,11 +327,11 @@ internal class CustomClipboardViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CustomClipboardViewModel" />: switching to a non-searchable filter clears any active query,
-	/// so the list is not left empty by a leftover search.
+	/// <see cref="CustomClipboardViewModel" />: switching to a non-searchable filter stashes and empties the query
+	/// (so a leftover search does not leave the list empty), then restores it on return to a searchable filter.
 	/// </summary>
 	[Test]
-	public void Switching_To_NonSearchable_Filter_Clears_SearchText()
+	public void Switching_To_NonSearchable_Filter_Stashes_And_Restores_SearchText()
 	{
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
@@ -351,13 +351,24 @@ internal class CustomClipboardViewModelTests
 
 		sut.SearchText = "query";
 
-		// Act
+		// Act — enter a non-searchable filter: the query is stashed and the box emptied.
 		sut.ActiveFilter = ClipboardEntryFilter.Image;
 
 		// Assert
 		sut.SearchText
 			.Should()
 			.BeNull();
+
+		// Act — a second non-searchable filter must not overwrite the stash.
+		sut.ActiveFilter = ClipboardEntryFilter.Files;
+
+		// Act — return to a searchable filter: the query is restored.
+		sut.ActiveFilter = ClipboardEntryFilter.Text;
+
+		// Assert
+		sut.SearchText
+			.Should()
+			.Be("query");
 	}
 
 	/// <summary>
