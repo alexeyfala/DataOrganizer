@@ -3,9 +3,9 @@ using System.Collections.Generic;
 namespace DataOrganizer.DTO.Clipboard.Persistence;
 
 /// <summary>
-/// Root container for the persisted clipboard history (the plaintext payload that is encrypted on disk).
+/// Root container for the persisted clipboard log (the plaintext payload that is encrypted on disk).
 /// </summary>
-public sealed class PersistedClipboardHistory
+public sealed class PersistedClipboardLog
 {
 	#region Data
 	/// <summary>
@@ -16,7 +16,7 @@ public sealed class PersistedClipboardHistory
 
 	#region Properties
 	/// <summary>
-	/// History entries, newest first.
+	/// Log entries, newest first.
 	/// </summary>
 	public List<PersistedClipboardEntryBase> Entries { get; set; } = [];
 

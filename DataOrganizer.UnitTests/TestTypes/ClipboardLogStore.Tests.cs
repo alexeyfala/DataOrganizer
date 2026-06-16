@@ -114,9 +114,9 @@ internal class ClipboardLogStoreTests
 
 		byte[] dek = encryption.CreateRandomDek();
 
-		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardHistory
+		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardLog
 		{
-			Version = PersistedClipboardHistory.CurrentVersion + 1
+			Version = PersistedClipboardLog.CurrentVersion + 1
 		});
 
 		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek)!;

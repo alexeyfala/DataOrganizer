@@ -202,15 +202,15 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		try
 		{
-			if (JsonSerializer.Deserialize<PersistedClipboardHistory>(plaintext) is not { } history)
+			if (JsonSerializer.Deserialize<PersistedClipboardLog>(plaintext) is not { } history)
 			{
 				return [];
 			}
 
-			if (history.Version != PersistedClipboardHistory.CurrentVersion)
+			if (history.Version != PersistedClipboardLog.CurrentVersion)
 			{
 				_logger.LogWarning(
-					$"Clipboard history version {history.Version} is not supported (expected {PersistedClipboardHistory.CurrentVersion}); treating as empty.");
+					$"Clipboard history version {history.Version} is not supported (expected {PersistedClipboardLog.CurrentVersion}); treating as empty.");
 
 				return [];
 			}

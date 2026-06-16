@@ -32,7 +32,7 @@ internal class ClipboardLogMapperTests
 		// Act
 		string json = JsonSerializer.Serialize(ClipboardLogMapper.ToPersisted(entries));
 
-		PersistedClipboardHistory? deserialized = JsonSerializer.Deserialize<PersistedClipboardHistory>(json);
+		PersistedClipboardLog? deserialized = JsonSerializer.Deserialize<PersistedClipboardLog>(json);
 
 		// Assert
 		deserialized
@@ -41,7 +41,7 @@ internal class ClipboardLogMapperTests
 
 		deserialized!.Version
 			.Should()
-			.Be(PersistedClipboardHistory.CurrentVersion);
+			.Be(PersistedClipboardLog.CurrentVersion);
 
 		List<ClipboardLogEntryBase> domain = ClipboardLogMapper.ToDomain(deserialized);
 
@@ -98,12 +98,12 @@ internal class ClipboardLogMapperTests
 	public void RoundTrip_Empty_History_Yields_No_Entries()
 	{
 		// Act
-		PersistedClipboardHistory persisted = ClipboardLogMapper.ToPersisted([]);
+		PersistedClipboardLog persisted = ClipboardLogMapper.ToPersisted([]);
 
 		// Assert
 		persisted.Version
 			.Should()
-			.Be(PersistedClipboardHistory.CurrentVersion);
+			.Be(PersistedClipboardLog.CurrentVersion);
 
 		ClipboardLogMapper
 			.ToDomain(persisted)
@@ -297,7 +297,7 @@ internal class ClipboardLogMapperTests
 	/// </summary>
 	private static ClipboardLogEntryBase RoundTrip(ClipboardLogEntryBase entry)
 	{
-		PersistedClipboardHistory persisted = ClipboardLogMapper.ToPersisted([entry]);
+		PersistedClipboardLog persisted = ClipboardLogMapper.ToPersisted([entry]);
 
 		return ClipboardLogMapper
 			.ToDomain(persisted)

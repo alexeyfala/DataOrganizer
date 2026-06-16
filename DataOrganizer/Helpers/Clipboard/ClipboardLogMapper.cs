@@ -16,7 +16,7 @@ internal static partial class ClipboardLogMapper
 	/// Reconstructs domain entries from a persisted history. Entries that cannot be
 	/// mapped (unknown type) are skipped.
 	/// </summary>
-	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardHistory history)
+	public static List<ClipboardLogEntryBase> ToDomain(PersistedClipboardLog history)
 	{
 		List<ClipboardLogEntryBase> result = new(history.Entries.Count);
 
@@ -34,9 +34,9 @@ internal static partial class ClipboardLogMapper
 	/// <summary>
 	/// Projects domain entries into a persisted history container.
 	/// </summary>
-	public static PersistedClipboardHistory ToPersisted(IEnumerable<ClipboardLogEntryBase> entries)
+	public static PersistedClipboardLog ToPersisted(IEnumerable<ClipboardLogEntryBase> entries)
 	{
-		PersistedClipboardHistory history = new();
+		PersistedClipboardLog history = new();
 
 		foreach (ClipboardLogEntryBase entry in entries)
 		{
