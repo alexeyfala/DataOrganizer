@@ -60,6 +60,7 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 	/// </summary>
 	private static readonly DataFormat<byte[]>? RtfFormat = GetRtfFormat();
 
+
 	/// <summary>
 	/// Clipboard format identifiers (Windows / Linux / macOS) that password managers set to flag
 	/// content as sensitive; presence of any makes us skip the entry, like the Windows Win+V history.
