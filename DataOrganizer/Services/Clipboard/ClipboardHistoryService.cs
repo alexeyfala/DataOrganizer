@@ -38,10 +38,9 @@ public sealed class ClipboardHistoryService : IClipboardHistoryService
 
 	#region Data
 	/// <summary>
-	/// Maximum number of entries kept in history. Matches the Windows
-	/// system clipboard (Win+V) limit of 25 records.
+	/// Maximum number of entries kept in history.
 	/// </summary>
-	private const int HistoryLimit = 25;
+	private const int HistoryLimit = 100;
 
 	/// <summary>
 	/// Linux-only byte[] format that file managers (GNOME/Nautilus and most DEs) require to paste files:
