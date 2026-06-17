@@ -133,7 +133,7 @@ public abstract partial class ViewModelBase :
 			return Task.CompletedTask;
 		}
 
-		return _viewLauncher.ShowCustomClipboardWindowAsync(owner);
+		return _viewLauncher.ShowClipboardLogWindowAsync(owner);
 	}
 	#endregion
 
