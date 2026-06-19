@@ -99,6 +99,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
+	/// <summary>
+	/// Last properties persisted to the database.
+	/// Intended to skip persistence when properties match what is already stored.
+	/// </summary>
+	protected string? _lastSavedProperties;
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -174,6 +180,17 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		SessionEncryptedDek?.ZeroMemory();
 
 		SessionEncryptedDek = null;
+	}
+
+	/// <summary>
+	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.
+	/// </summary>
+	protected bool IsLastPropertiesEqualTo(string current)
+	{
+		return string.Equals(
+			_lastSavedProperties,
+			current,
+			StringComparison.Ordinal);
 	}
 
 	/// <summary>

@@ -204,7 +204,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 	/// <summary>
 	/// SHA-256 of the last plain text persisted to the database.
-	/// Intended for skip persistence when the text matches what is already stored.
+	/// Intended to skip persistence when the text matches what is already stored.
 	/// </summary>
 	private byte[]? _lastSavedContentHash;
 	#endregion
@@ -475,10 +475,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		SetPropertiesCallback?.Invoke(json);
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsLastPropertiesEqualTo(json))
 		{
 			return Task.CompletedTask;
 		}
+
+		_lastSavedProperties = json;
 
 		return SavePropertiesAsync(json, token);
 	}
