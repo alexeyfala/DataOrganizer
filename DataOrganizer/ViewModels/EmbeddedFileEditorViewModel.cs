@@ -22,6 +22,7 @@ using System;
 using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -104,6 +105,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			editor.Text = TextHelper
 				.Utf8Encoding
 				.GetString(output);
+
+			_lastSavedContentHash = SHA256.HashData(output);
 
 			try
 			{
@@ -198,6 +201,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Reference to <see cref="TextEditor" />.
 	/// </summary>
 	private TextEditor? _editor;
+
+	/// <summary>
+	/// SHA-256 of the last plain text persisted to the database.
+	/// Intended for skip persistence when the text matches what is already stored.
+	/// </summary>
+	private byte[]? _lastSavedContentHash;
 	#endregion
 
 	#region Constructors
@@ -407,6 +416,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				latest = newer;
 			}
 
+			byte[] hash = SHA256.HashData(latest);
+
+			if (_lastSavedContentHash is { } previous && hash.AsSpan().SequenceEqual(previous))
+			{
+				latest.ZeroMemory();
+
+				continue;
+			}
+
 			if (TryToEncrypt(latest) is not { } output)
 			{
 				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
@@ -418,7 +436,10 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			try
 			{
-				await SaveContentsAsync(output).ConfigureAwait(false);
+				if (await SaveContentsAsync(output).ConfigureAwait(false))
+				{
+					_lastSavedContentHash = hash;
+				}
 			}
 			finally
 			{

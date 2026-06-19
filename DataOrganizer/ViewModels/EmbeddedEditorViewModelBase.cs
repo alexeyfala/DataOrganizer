@@ -177,9 +177,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Contents" /> to the database.
+	/// Saves <see cref="FileModel.Contents" /> in the database.
 	/// </summary>
-	protected Task SaveContentsAsync(byte[] contents, CancellationToken token = default)
+	/// <returns><c>true</c> when the row was updated.</returns>
+	protected Task<bool> SaveContentsAsync(byte[] contents, CancellationToken token = default)
 	{
 		_logger.LogDebug($@"Saving contents of ""{FileId}"" in the database");
 
@@ -190,7 +191,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Properties" /> to the database.
+	/// Saves <see cref="FileModel.Properties" /> in the database.
 	/// </summary>
 	protected Task SavePropertiesAsync(
 		[StringSyntax(StringSyntaxAttribute.Json)] string json,
