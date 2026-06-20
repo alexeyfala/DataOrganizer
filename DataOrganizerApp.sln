@@ -38,6 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{10AC88A7-F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{98B8B320-2FA8-4740-B286-D6E9C8BD1BDA}"
 	ProjectSection(SolutionItems) = preProject
+		PupNet.txt = PupNet.txt
 		Wix.txt = Wix.txt
 	EndProjectSection
 EndProject
