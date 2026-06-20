@@ -1,0 +1,25 @@
+PupNet Deploy - Stage 2: Access the project from WSL and generate the config
+====================================================================================================
+
+STAGE 2 - Generate the PupNet configuration template
+
+1) Open the Ubuntu terminal (wsl.exe -d Ubuntu) and go to the project root via the Windows drive:
+       cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
+   Check you are in the right place (you should see the .sln and the *.txt guides):
+       ls
+
+2) Generate a configuration template:
+       pupnet --new conf
+   This writes a sample *.pupnet.conf file into the current folder.
+
+3) See what was created and report its exact name:
+       ls -la *.pupnet.conf
+   (The file can also be opened/edited from Windows in Visual Studio, since it lives under /mnt/c.)
+
+4) Do NOT fill it in yet. Just open it once to get a feel for the fields:
+       less <generated-file>.pupnet.conf      (press q to quit)
+   Key fields we will set in Stage 3:
+       AppBaseName, AppFriendlyName, AppId, AppVersionRelease,
+       PublisherName, DotnetProjectPath, IconFiles, DotnetPublishArgs.
+
+Report back: the exact file name from step 3, and tell me if step 1 "ls" showed the .sln file.
