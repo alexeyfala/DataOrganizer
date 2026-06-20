@@ -42,8 +42,15 @@ STAGE 1 - Prepare the Linux build environment (WSL)
 
 6) Install the PupNet tool (global dotnet tool):
        dotnet tool install -g KuiperZone.PupNet
-   Make sure the tools path is on PATH (re-open the terminal or run):
+   Confirm it is installed (look for "kuiperzone.pupnet"):
+       dotnet tool list -g
+   Global dotnet tools live in ~/.dotnet/tools, which is usually NOT on PATH yet,
+   so "pupnet" gives "Command not found" until you add it.
+   Add it for the current session:
        export PATH="$PATH:$HOME/.dotnet/tools"
+   Make it permanent (otherwise it is lost when the terminal restarts):
+       echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bashrc
+       source ~/.bashrc
 
 7) Verify PupNet works:
        pupnet --version
