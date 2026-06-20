@@ -1,0 +1,46 @@
+PupNet Deploy - Building a Linux .deb installer for DataOrganizer
+====================================================================================================
+
+Goal: produce a *.deb package (and later AppImage) from the DataOrganizer.Desktop project.
+Note: .deb building needs a Linux environment with dpkg-deb, so all build steps run inside WSL (Ubuntu).
+
+This guide is filled in one stage at a time. Do a stage, report the result, then we add the next one.
+
+====================================================================================================
+
+STAGE 1 - Prepare the Linux build environment (WSL)
+
+1) Check whether WSL/Ubuntu is already installed.
+   In Windows PowerShell:
+       wsl -l -v
+   - A line with "Ubuntu" (or any apt-based distro) -> already installed, skip step 2.
+   - Empty list / no distros -> go to step 2.
+   - "wsl" not recognized -> WSL itself is missing, go to step 2.
+   If the distro is not named "Ubuntu" (e.g. Debian), the steps are the same;
+   just enter it with:  wsl -d <DistroName>
+
+2) Install WSL with Ubuntu (skip if step 1 found it).
+   In Windows PowerShell (Admin):
+       wsl --install -d Ubuntu
+   Reboot if asked, then open the "Ubuntu" terminal and create a user when prompted.
+
+3) Update the package list (inside Ubuntu):
+       sudo apt update && sudo apt upgrade -y
+
+4) Install the .NET 10 SDK inside WSL:
+       sudo apt install -y dotnet-sdk-10.0
+   Verify:
+       dotnet --version        (expect 10.x)
+
+5) Verify the Debian packaging tool is present:
+       dpkg-deb --version      (ships with Ubuntu by default)
+
+6) Install the PupNet tool (global dotnet tool):
+       dotnet tool install -g KuiperZone.PupNet
+   Make sure the tools path is on PATH (re-open the terminal or run):
+       export PATH="$PATH:$HOME/.dotnet/tools"
+
+7) Verify PupNet works:
+       pupnet --version
+
+Report back: outputs of "dotnet --version", "dpkg-deb --version", and "pupnet --version".
