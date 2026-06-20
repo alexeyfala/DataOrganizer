@@ -24,6 +24,11 @@ STAGE 1 - Prepare the Linux build environment (WSL)
        wsl --install -d Ubuntu
    Reboot if asked, then open the "Ubuntu" terminal and create a user when prompted.
 
+   If you have more than one distro (e.g. Debian + Ubuntu), enter Ubuntu explicitly:
+       wsl.exe -d Ubuntu
+   Optional - make Ubuntu the default so plain "wsl" opens it:
+       wsl --set-default Ubuntu
+
 3) Update the package list (inside Ubuntu):
        sudo apt update && sudo apt upgrade -y
 
