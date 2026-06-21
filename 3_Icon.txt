@@ -1,0 +1,18 @@
+PupNet Deploy - Stage 3: Prepare a PNG icon for Linux
+====================================================================================================
+
+Why: Linux desktop entries need a PNG (or SVG) icon; the Windows *.ico is not used by .deb.
+Approach chosen: a single 256x256 Logo.png next to the existing Logo.ico. Desktop environments
+scale it down for menus. No WSL or extra tools needed - it is generated on Windows.
+
+STAGE 3 - Done on Windows (no action needed in WSL)
+
+Source : DataOrganizer/Assets/Logo.ico  (single 256x256 frame, stored as PNG inside the .ico)
+Result : DataOrganizer/Assets/Logo.png  (256x256, 32bpp ARGB, transparency preserved)
+
+How it was produced (for reference / to redo):
+  The .ico held one 256x256 frame already PNG-encoded, so the embedded PNG bytes were
+  extracted as-is (lossless, no re-encoding) into Logo.png using a short PowerShell script.
+  Fallback when the frame is not PNG-encoded: convert with System.Drawing (ToBitmap -> Save Png).
+
+This Logo.png is the file we will point IconFiles to in Stage 4.
