@@ -17,20 +17,39 @@ cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
 
 ```bash
 VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props)
-pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]"
+pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]" \
+  && rm -rf Publish/Artifacts.Deb.amd64
 ```
 
 Flags: `-k deb` (package kind), `-r linux-x64` (runtime), `-y` (no prompts), `--app-version` overrides `AppVersionRelease` from the conf.
 
 - `[1]` is the **Debian package revision** (separate from the app version); bump it on re-packaging.
+- The `&& rm -rf Publish/Artifacts.Deb.amd64` removes the intermediate build artifacts **only on success** (a failed build keeps them for debugging). The final `.deb` and `.sha256.txt` stay.
 - Add `--verbose` if you need a detailed log to diagnose a failure.
 - The first run is slow (runtime + NuGet download). This is expected.
+
+> **If you are validating AppStream metainfo (Stage 3):** the expanded `.metainfo.xml` lives inside `Artifacts.Deb.amd64/`, so run the build **without** the `&& rm -rf ...` part, validate, then clean up.
 
 **3) Check the result** — a `*.deb` should appear in `Publish/`:
 
 ```bash
 ls -la Publish/*.deb
 ```
+
+## Output
+
+A build produces the following under `Publish/`:
+
+**Shipping files (in `Publish/` root) — this is what you distribute:**
+
+- `dataorganizer_<version>-<rev>_amd64.deb` — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside.
+- `dataorganizer_<version>-<rev>_amd64.deb.sha256.txt` — the SHA-256 checksum of the `.deb`, so users can verify the download with `sha256sum -c`. Handy for GitHub Releases; shipping it is optional.
+
+**Intermediate artifacts (in `Publish/Artifacts.Deb.amd64/`) — used to assemble the `.deb`, kept for inspection, not for distribution:**
+
+- `control` — Debian package metadata (name, version, architecture, dependencies from `DebianRecommends`, description).
+- `com.alexeyfala.dataorganizer.desktop` — the generated desktop entry (menu shortcut: name, icon, launch command, category).
+- `com.alexeyfala.dataorganizer.metainfo.xml` — the expanded AppStream metainfo (the file validated in Stage 3, with all `${...}` macros already substituted).
 
 ## Verify
 

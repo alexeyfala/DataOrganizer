@@ -43,6 +43,8 @@ appstreamcli validate Publish/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.m
 
 > **IMPORTANT:** validate the **generated** file, not the source template. The source `app.metainfo.xml` still contains `${...}` macros (validation would fail on them); PupNet expands them only at build time into the package artifact under `Publish/Artifacts.Deb.amd64/`.
 
+> **Watch the auto-clean:** the Stage 4 build command ends with `&& rm -rf Publish/Artifacts.Deb.amd64`, which deletes the very file you validate here. Run the build **without** that cleanup part, validate, then clean up.
+
 > **Note — `url-not-reachable` warning:** `appstreamcli` does a network check on the homepage URL (`PublisherLinkUrl` in `app.pupnet.conf`). If that points to a **private / not-yet-created** GitHub repo, it returns 404 and validation *"fails"* on this single warning. This is harmless — the package is fine, and it will pass once the repo is public. To validate offline meanwhile, skip the network check:
 >
 > ```bash
