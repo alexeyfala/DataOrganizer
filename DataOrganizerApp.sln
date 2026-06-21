@@ -53,10 +53,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repository.Migrations", "Re
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PupNet", "PupNet", "{05AAEA59-772E-4B86-BD78-23757B2AF230}"
 	ProjectSection(SolutionItems) = preProject
-		1_Setup.txt = 1_Setup.txt
-		2_Config.txt = 2_Config.txt
-		3_AppStream.txt = 3_AppStream.txt
-		4_Build.txt = 4_Build.txt
+		1_Setup.md = 1_Setup.md
+		2_Config.md = 2_Config.md
+		3_AppStream.md = 3_AppStream.md
+		4_Build.md = 4_Build.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WIX", "WIX", "{965F1DEF-99CB-47AF-8FB4-38CB49464BC6}"
