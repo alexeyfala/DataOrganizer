@@ -1,0 +1,35 @@
+PupNet Deploy - Stage: AppStream metainfo (.metainfo.xml)
+====================================================================================================
+
+What it is: a standard XML describing the app (summary, description, screenshots, categories,
+keywords, releases). Graphical "software centers" (GNOME Software, KDE Discover) read it.
+Not needed for apt/dpkg install; only matters for software centers / stores like Flathub.
+Adding it also clears the build note "AppStream metadata file not provided".
+
+PupNet auto-fills these via macros at build time (do NOT hand-edit them):
+    ${APP_ID}, ${PUBLISHER_NAME}, ${PUBLISHER_ID}, ${PUBLISHER_LINK_URL},
+    ${APP_VERSION}, ${APPSTREAM_DESCRIPTION_XML}, ${APPSTREAM_CHANGELOG_XML}.
+
+We fill these by hand (next, together): categories, keywords, content_rating, screenshots.
+
+1) Enter Ubuntu and go to the solution root:
+       wsl.exe -d Ubuntu
+       cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
+
+2) Generate the template:
+       pupnet --new meta
+   This writes "app.metainfo.xml" (same "app" base name as app.pupnet.conf).
+   Confirm:
+       ls -la *.metainfo.xml
+
+3) Link it in app.pupnet.conf (I will set this):
+       MetaFile = app.metainfo.xml
+
+4) Then we edit app.metainfo.xml together to fill the manual fields.
+
+5) Rebuild to verify the note is gone (same build command as before).
+   Optional validation if the tool is available:
+       sudo apt install -y appstream
+       appstreamcli validate app.metainfo.xml
+
+Report back: the output of "ls -la *.metainfo.xml" after step 1.

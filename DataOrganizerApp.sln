@@ -55,7 +55,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PupNet", "PupNet", "{05AAEA
 	ProjectSection(SolutionItems) = preProject
 		1_Setup.txt = 1_Setup.txt
 		2_Config.txt = 2_Config.txt
-		3_Build.txt = 3_Build.txt
+		3_AppStream.txt = 3_AppStream.txt
+		4_Build.txt = 4_Build.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WIX", "WIX", "{965F1DEF-99CB-47AF-8FB4-38CB49464BC6}"
