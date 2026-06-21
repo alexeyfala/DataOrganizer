@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Remove="Assets\Logo.png" />
+		<AvaloniaResource Remove="Assets\Logo.256.png" />
 	</ItemGroup>
 
 	<ItemGroup>
