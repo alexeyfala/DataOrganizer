@@ -57,6 +57,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PupNet", "PupNet", "{05AAEA
 		2_Config.md = 2_Config.md
 		3_AppStream.md = 3_AppStream.md
 		4_Build.md = 4_Build.md
+		app.metainfo.xml = app.metainfo.xml
+		app.pupnet.conf = app.pupnet.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WIX", "WIX", "{965F1DEF-99CB-47AF-8FB4-38CB49464BC6}"
