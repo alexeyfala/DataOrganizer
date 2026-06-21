@@ -34,15 +34,16 @@
         <category>${PRIME_CATEGORY}</category>
     </categories>
 
-    <!-- Uncomment to provide keywords
     <keywords>
-        <keyword translate="no">IDE</keyword>
-        <keyword>development</keyword>
-        <keyword>programming</keyword>
-        <keyword xml:lang="de">entwicklung</keyword>
-        <keyword xml:lang="de">programmierung</keyword>
+        <keyword>organizer</keyword>
+        <keyword>notes</keyword>
+        <keyword>snippets</keyword>
+        <keyword>clipboard</keyword>
+        <keyword>hotkeys</keyword>
+        <keyword>encryption</keyword>
+        <keyword>datasets</keyword>
+        <keyword>productivity</keyword>
     </keywords>
-    -->
 
     <!-- Uncomment to provide screenshots
     <screenshots>
