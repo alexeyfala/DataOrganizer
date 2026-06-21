@@ -17,6 +17,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AvaloniaResource Remove="Assets\Logo.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<AvaloniaXaml Remove="Templates\ClipboardLogTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\ContextMenuTemplates.axaml" />
 		<AvaloniaXaml Remove="Templates\DatasetTemplates.axaml" />
