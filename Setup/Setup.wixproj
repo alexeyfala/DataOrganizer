@@ -40,6 +40,7 @@
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
-		<Exec Command="start $(OutputPath)" />
+		<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
+		<Exec Command="start $(OutputPath)" Condition="'$(OpenOutputFolder)' != 'false'" />
 	</Target>
 </Project>

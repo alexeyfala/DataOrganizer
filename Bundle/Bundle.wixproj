@@ -52,6 +52,7 @@
 				 Configuration=$(Configuration);
 				 Manufacturer=$(Manufacturer);
 				 MsiOutputName=$(MsiOutputName);
+				 OpenOutputFolder=false;
 				 SetupCulture=$(SetupCulture);" />
 	</Target>
 	<Target Name="PostBuild"
