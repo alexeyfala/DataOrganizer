@@ -68,7 +68,7 @@
 			<ExePackage
 				Cache="keep"
 				Compressed="yes"
-				DetectCondition="NetCoreRuntimeVersion >= v$(DesktopRuntimeVersion)"
+				DetectCondition="NetCoreRuntimeVersion >= v$(DotNetVersion)"
 				DisplayName="$(RuntimeDescription)"
 				Id="NetRuntimeRedist"
 				InstallArguments="/norestart /quiet"

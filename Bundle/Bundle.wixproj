@@ -2,7 +2,7 @@
 		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
-		<DesktopRuntimeVersion>10.0.9</DesktopRuntimeVersion>
+		<DotNetVersion>10.0.9</DotNetVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -15,13 +15,13 @@
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);DesktopRuntimeVersion=$(DesktopRuntimeVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Desktop Runtime (v$(DesktopRuntimeVersion)) - Windows x64</DefineConstants>
+		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Desktop Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
