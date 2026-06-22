@@ -73,9 +73,37 @@ public static partial class SerilogExtensions
 	}
 
 	/// <summary>
-	/// Logs a <see cref="LogEventLevel.Debug" /> level entry using a template, without calling code information.
+	/// Logs an entry of level <see cref="LogEventLevel.Debug" /> using a template,
+	/// without any information about the calling code.
 	/// </summary>
-	public static void LogDebugWithTemplate(this ILogger target, string message) => target.Debug("{0}", message);
+	public static void LogDebugWithTemplate(
+		this ILogger target,
+		[InterpolatedStringHandlerArgument(nameof(target))]
+		LogDebugInterpolatedStringHandler message)
+	{
+		if (!target.IsEnabled(LogEventLevel.Debug))
+		{
+			return;
+		}
+
+		target.Debug("{0}", message.ToStringAndClear());
+	}
+
+	/// <summary>
+	/// Logs an entry of level <see cref="LogEventLevel.Debug" /> using a template,
+	/// without any information about the calling code.
+	/// </summary>
+	public static void LogDebugWithTemplate(
+		this ILogger target,
+		string message)
+	{
+		if (!target.IsEnabled(LogEventLevel.Debug))
+		{
+			return;
+		}
+
+		target.Debug("{0}", message);
+	}
 
 	/// <summary>
 	/// Logs a <see cref="LogEventLevel.Error" /> level entry.
