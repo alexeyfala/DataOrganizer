@@ -18,6 +18,7 @@
 
 	<ItemGroup>
 		<AvaloniaResource Remove="Assets\Logo.256.png" />
+		<AvaloniaResource Remove="Assets\Logo.svg" />
 	</ItemGroup>
 
 	<ItemGroup>
