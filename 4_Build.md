@@ -110,6 +110,7 @@ Needs `rpmbuild` once: `sudo apt install -y rpm`
 cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
 VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
 pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "${VER}[1]" && \
+rm -rf Publish/Artifacts.Rpm.x86_64 && \
 ls -la Publish/*.rpm
 ```
 
