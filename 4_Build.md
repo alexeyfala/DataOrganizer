@@ -100,19 +100,16 @@ sudo apt remove dataorganizer
 
 ## Build — other formats (rpm, appimage, flatpak, zip)
 
-Same workflow as the `.deb`: run in WSL (Ubuntu) from the solution root, only `-k` changes. Set `VER` once per shell session:
-
-```bash
-cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props)
-```
+Same workflow as the `.deb`: run in WSL (Ubuntu), only `-k` changes. Each block below is **self-contained — copy the whole block once**: it enters the solution root, reads the version from `Directory.Build.props`, builds, and lists the result.
 
 ### RPM — Fedora / RHEL / openSUSE
 
 Needs `rpmbuild` once: `sudo apt install -y rpm`
 
 ```bash
-pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "${VER}[1]"
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
+pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "${VER}[1]" && \
 ls -la Publish/*.rpm
 ```
 
@@ -121,30 +118,36 @@ ls -la Publish/*.rpm
 First run downloads `appimagetool` (needs internet). No install step for the end user — just `chmod +x` and run.
 
 ```bash
-pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]"
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
+pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]" && \
 ls -la Publish/*.AppImage
 ```
 
 ### Flatpak — sandboxed, Flathub / any distro
 
-Needs the toolchain and runtimes once:
+One-time toolchain + runtimes (copy once):
 
 ```bash
-sudo apt install -y flatpak flatpak-builder
+sudo apt install -y flatpak flatpak-builder && \
 flatpak install -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 ```
 
-Then build:
+Build (copy once):
 
 ```bash
-pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "${VER}[1]"
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
+pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "${VER}[1]" && \
 ls -la Publish/*.flatpak
 ```
 
 ### Zip — portable archive
 
 ```bash
-pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "${VER}[1]"
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
+pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "${VER}[1]" && \
 ls -la Publish/*.zip
 ```
 
@@ -153,7 +156,7 @@ ls -la Publish/*.zip
 Each format leaves an `Artifacts.<Kind>.<arch>/` folder in `Publish/`. Remove them all after a successful build (the shipping files stay):
 
 ```bash
-rm -rf Publish/Artifacts.*
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && rm -rf Publish/Artifacts.*
 ```
 
 > Keep the `Artifacts.*` folder if you still need to inspect the expanded `.metainfo.xml` / `.desktop` / `control` for that format.
