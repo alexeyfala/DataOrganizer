@@ -19,14 +19,6 @@
     <description>
         <!-- See AppDescription in configuration -->
         ${APPSTREAM_DESCRIPTION_XML}
-        <!--
-        <p>This is a longer application description in the default (English) language
-        which may span several short paragraphs. You may either specify it yourself
-        directly here, or have it populated automatically using the macro above.</p>
-        <p>IMPORTANT. If you wish to provide your own (default) description here, delete the
-        macro directly above. In either case, you may wish to provide other language
-        descriptions here also.</p>
-        -->
     </description>
 
     <!-- Freedesktop Categories -->

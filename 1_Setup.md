@@ -1,12 +1,4 @@
-# PupNet Deploy — Building a Linux `.deb` installer for DataOrganizer
-
-> **Goal:** produce a `*.deb` package (and later AppImage) from the `DataOrganizer.Desktop` project.
->
-> **Note:** `.deb` building needs a Linux environment with `dpkg-deb`, so all build steps run inside **WSL (Ubuntu)**.
-
----
-
-## Stage 1 — Prepare the Linux build environment (WSL)
+# Stage 1 — Prepare the Linux build environment (WSL)
 
 **1) Check whether WSL/Ubuntu is already installed** — in Windows PowerShell:
 
@@ -74,5 +66,3 @@ source ~/.bashrc
 ```bash
 pupnet --version
 ```
-
-> **Report back:** outputs of `dotnet --version`, `dpkg-deb --version`, and `pupnet --version`.
