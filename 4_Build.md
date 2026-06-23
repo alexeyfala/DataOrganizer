@@ -1,110 +1,46 @@
-# Stage 4 — Build and verify the `.deb` package
+# Stage 4 — Build and verify Linux packages
 
-> **Prerequisite:** `app.pupnet.conf` is filled in and `DataOrganizer/Assets/Logo.256.png` exists. The build runs in WSL (Ubuntu) and needs internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
+> **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist (`DataOrganizer/Assets/Logo.svg` + `Logo.256.png`). Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 
 ---
 
 ## Linux package formats PupNet can build
 
-The `.deb` below is one of several formats. Each is selected with the `-k` flag and already has its own settings section in `app.pupnet.conf`. The build command is identical except for `-k`.
+PupNet builds several Linux formats from the same config. Each is selected with the `-k` flag and has its own settings section in `app.pupnet.conf`; the build command is identical except for `-k`.
 
-| `-k` | Output | Target | Conf section | Extra tooling needed |
+| `-k` | Output | Target | Conf section | One-time tooling (WSL) |
 |---|---|---|---|---|
 | `deb` | `.deb` | Debian / Ubuntu / Mint | `# DEBIAN OPTIONS` | — |
-| `rpm` | `.rpm` | Fedora / RHEL / openSUSE | `# RPM OPTIONS` | `rpmbuild` (`sudo apt install rpm`) |
-| `appimage` | `.AppImage` | single portable file, any distro | `# APPIMAGE OPTIONS` | PupNet auto-downloads `appimagetool` (internet on first run) |
-| `flatpak` | `.flatpak` | sandboxed, Flathub / any distro | `# FLATPAK OPTIONS` | `flatpak` + `flatpak-builder` + the `org.freedesktop.Platform`/`Sdk` runtimes |
+| `rpm` | `.rpm` | Fedora / RHEL / openSUSE | `# RPM OPTIONS` | `rpmbuild` |
+| `appimage` | `.AppImage` | single portable file, any distro | `# APPIMAGE OPTIONS` | `appimagetool` + type2 runtime |
+| `flatpak` | `.flatpak` | sandboxed, Flathub / any distro | `# FLATPAK OPTIONS` | `flatpak` + `flatpak-builder` + runtimes |
 | `zip` | `.zip` | portable archive | `# ZIP OPTIONS` | — |
 
-`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`. Ready-to-copy commands for each format are in [**Build — other formats**](#build--other-formats-rpm-appimage-flatpak-zip) below.
+`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`.
 
 ---
 
-## Build
+## Build recipes
 
-**1) Enter Ubuntu and go to the solution root:**
+All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the whole block once**: it enters the solution root, reads `<AppVersion>` from `Directory.Build.props` (the single source of truth), builds, removes the intermediate `Artifacts.*` folder on success, and lists the result.
 
-```bash
-wsl.exe -d Ubuntu
-cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
-```
+`--app-version "${VER}[1]"`: `[1]` is the **package revision**, separate from the app version — bump it when you re-package the same version. `-r linux-x64` is the runtime, `-y` disables prompts, `--app-version` overrides `AppVersionRelease` in the conf. Add `--verbose` to diagnose a failure; the first build of each kind is slow (runtime + NuGet download).
 
-**2) Build the `.deb`** — the version is read from `<AppVersion>` in `Directory.Build.props` (single source):
+### Debian (.deb)
 
 ```bash
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props)
-pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]" \
-  && rm -rf Publish/Artifacts.Deb.amd64
-```
-
-Flags: `-k deb` (package kind), `-r linux-x64` (runtime), `-y` (no prompts), `--app-version` overrides `AppVersionRelease` from the conf.
-
-- `[1]` is the **Debian package revision** (separate from the app version); bump it on re-packaging.
-- The `&& rm -rf Publish/Artifacts.Deb.amd64` removes the intermediate build artifacts **only on success** (a failed build keeps them for debugging). The final `.deb` and `.sha256.txt` stay.
-- Add `--verbose` if you need a detailed log to diagnose a failure.
-- The first run is slow (runtime + NuGet download). This is expected.
-
-> **If you are validating AppStream metainfo (Stage 3):** the expanded `.metainfo.xml` lives inside `Artifacts.Deb.amd64/`, so run the build **without** the `&& rm -rf ...` part, validate, then clean up.
-
-**3) Check the result** — a `*.deb` should appear in `Publish/`:
-
-```bash
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
+pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]" && \
+rm -rf Publish/Artifacts.Deb.amd64 && \
 ls -la Publish/*.deb
 ```
 
-## Output
+> To inspect the expanded AppStream `.metainfo.xml` (Stage 3), drop the `rm -rf ...` line — it lives in `Publish/Artifacts.Deb.amd64/`.
 
-A build produces the following under `Publish/`:
+### RPM (.rpm)
 
-**Shipping files (in `Publish/` root) — this is what you distribute:**
-
-- `dataorganizer_<version>-<rev>_amd64.deb` — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside.
-- `dataorganizer_<version>-<rev>_amd64.deb.sha256.txt` — the SHA-256 checksum of the `.deb`, so users can verify the download with `sha256sum -c`. Handy for GitHub Releases; shipping it is optional.
-
-**Intermediate artifacts (in `Publish/Artifacts.Deb.amd64/`) — used to assemble the `.deb`, kept for inspection, not for distribution:**
-
-- `control` — Debian package metadata (name, version, architecture, dependencies from `DebianRecommends`, description).
-- `com.alexeyfala.dataorganizer.desktop` — the generated desktop entry (menu shortcut: name, icon, launch command, category).
-- `com.alexeyfala.dataorganizer.metainfo.xml` — the expanded AppStream metainfo (the file validated in Stage 3, with all `${...}` macros already substituted).
-
-## Verify
-
-**4) Install the package** (`apt` resolves dependencies; do **not** use `dpkg -i`, which does not):
-
-```bash
-sudo apt install ./Publish/DataOrganizer*.deb
-```
-
-**5) Confirm it landed** and that the desktop entry exists:
-
-```bash
-which dataorganizer
-ls /usr/share/applications/ | grep -i dataorganizer
-```
-
-**6) Launch it** — from the application menu (look for *"Data Organizer"* with the icon), or from a terminal:
-
-```bash
-dataorganizer
-```
-
-**7) Uninstall** when done testing:
-
-```bash
-sudo apt remove dataorganizer
-```
-
-> **Report back:** the output of `ls -la Publish/*.deb`, and whether install + launch + menu icon work. If the build fails, re-run step 2 with `--verbose` and paste the last ~30 lines of output.
-
----
-
-## Build — other formats (rpm, appimage, flatpak, zip)
-
-Same workflow as the `.deb`: run in WSL (Ubuntu), only `-k` changes. Each block below is **self-contained — copy the whole block once**: it enters the solution root, reads the version from `Directory.Build.props`, builds, and lists the result.
-
-### RPM — Fedora / RHEL / openSUSE
-
-Needs `rpmbuild` once: `sudo apt install -y rpm`
+One-time: `sudo apt install -y rpm`
 
 ```bash
 cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
@@ -114,7 +50,7 @@ rm -rf Publish/Artifacts.Rpm.x86_64 && \
 ls -la Publish/*.rpm
 ```
 
-### AppImage — single portable file, any distro
+### AppImage (.AppImage)
 
 **One-time setup (copy once).** WSL has neither `appimagetool` nor the bits it needs, and its proxy blocks the tool's own downloads (HTTP 302). Fetch both manually with `curl -L` (follows the redirect). The runtime path here **must match `AppImageRuntimePath` in `app.pupnet.conf`**:
 
@@ -140,7 +76,7 @@ ls -la Publish/*.AppImage
 
 > The same FUSE caveat applies to **running** the finished file on a host without `libfuse2`: `./DataOrganizer*.AppImage --appimage-extract-and-run` (or install `libfuse2`).
 
-### Flatpak — sandboxed, Flathub / any distro
+### Flatpak (.flatpak)
 
 **One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flatpak remote-add` hangs fetching `flathub.org` directly (HTTP 301 redirect times out), so download the small repo file with `curl` first and add it from disk; the actual runtime download from `dl.flathub.org` works fine. Runtimes are installed `--user`:
 
@@ -161,21 +97,53 @@ rm -rf Publish/Artifacts.Flatpak.x86_64 && \
 ls -la Publish/*.flatpak
 ```
 
-### Zip — portable archive
+### Zip (.zip)
 
 ```bash
 cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
 VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
 pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "${VER}[1]" && \
+rm -rf Publish/Artifacts.Zip.x86_64 && \
 ls -la Publish/*.zip
 ```
 
-### Clean up intermediate artifacts
+---
 
-Each format leaves an `Artifacts.<Kind>.<arch>/` folder in `Publish/`. Remove them all after a successful build (the shipping files stay):
+## Output
+
+Each build drops two shipping files in `Publish/` (this is what you distribute) plus one intermediate folder (removed by the `rm -rf Artifacts.*` line in each recipe):
+
+- **`Publish/<name>`** — the package itself. It is large (~40+ MB) because it is *self-contained*: the app **and** the .NET runtime are bundled inside. Names: `dataorganizer_<version>-<rev>_amd64.deb` (Debian convention — lowercase, `amd64`), `DataOrganizer-<version>-<rev>.x86_64.{rpm,AppImage,flatpak}`, `DataOrganizer-<version>.zip`.
+- **`Publish/<name>.sha256.txt`** — the SHA-256 checksum, so users can verify the download (`sha256sum -c`). Handy for GitHub Releases; shipping it is optional.
+- **`Publish/Artifacts.<Kind>.<arch>/`** — intermediate files used to assemble the package (the `control` metadata, the generated `.desktop` entry, and the expanded AppStream `.metainfo.xml` validated in Stage 3). Kept for inspection, not for distribution.
+
+---
+
+## Verify — Debian example
+
+**Install** (`apt` resolves dependencies; do **not** use `dpkg -i`, which does not):
 
 ```bash
-cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && rm -rf Publish/Artifacts.*
+sudo apt install ./Publish/DataOrganizer*.deb
 ```
 
-> Keep the `Artifacts.*` folder if you still need to inspect the expanded `.metainfo.xml` / `.desktop` / `control` for that format.
+**Confirm it landed** and that the desktop entry exists:
+
+```bash
+which dataorganizer
+ls /usr/share/applications/ | grep -i dataorganizer
+```
+
+**Launch** — from the application menu (look for *"Data Organizer"* with the icon), or from a terminal:
+
+```bash
+dataorganizer
+```
+
+**Uninstall** when done testing:
+
+```bash
+sudo apt remove dataorganizer
+```
+
+> Other formats run differently: an `.AppImage` just needs `chmod +x` then `./DataOrganizer*.AppImage`; a `.flatpak` installs with `flatpak install --user ./Publish/DataOrganizer*.flatpak`; a `.zip` is unpacked and run in place.
