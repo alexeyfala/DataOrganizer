@@ -1,12 +1,12 @@
 # Stage 4 — Build and verify Linux packages
 
-> **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist (`DataOrganizer/Assets/Logo.svg` + `Logo.256.png`). Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
+> **Prerequisite:** `app.pupnet.conf` is filled in and the icons exist in `IconFiles`. Builds run in WSL (Ubuntu) and need internet access (`dotnet publish` pulls the `linux-x64` runtime and NuGet packages).
 
 ---
 
 ## Linux package formats PupNet can build
 
-PupNet builds several Linux formats from the same config. Each is selected with the `-k` flag and has its own settings section in `app.pupnet.conf`; the build command is identical except for `-k`.
+PupNet builds several Linux formats from the same config. Each is selected with the `-k` flag and has its own settings section in `app.pupnet.conf`.
 
 | `-k` | Output | Target | Conf section | One-time tooling (WSL) |
 |---|---|---|---|---|
@@ -15,8 +15,6 @@ PupNet builds several Linux formats from the same config. Each is selected with 
 | `appimage` | `.AppImage` | single portable file, any distro | `# APPIMAGE OPTIONS` | `appimagetool` + type2 runtime |
 | `flatpak` | `.flatpak` | sandboxed, Flathub / any distro | `# FLATPAK OPTIONS` | `flatpak` + `flatpak-builder` + runtimes |
 | `zip` | `.zip` | portable archive | `# ZIP OPTIONS` | — |
-
-`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`.
 
 ---
 
@@ -35,8 +33,6 @@ pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]" && \
 rm -rf Publish/Artifacts.Deb.amd64 && \
 ls -la Publish/*.deb
 ```
-
-> To inspect the expanded AppStream `.metainfo.xml` (Stage 3), drop the `rm -rf ...` line — it lives in `Publish/Artifacts.Deb.amd64/`.
 
 ### RPM (.rpm)
 
@@ -140,7 +136,7 @@ ls /usr/share/applications/ | grep -i dataorganizer
 dataorganizer
 ```
 
-**Uninstall** when done testing:
+**Uninstall**:
 
 ```bash
 sudo apt remove dataorganizer
