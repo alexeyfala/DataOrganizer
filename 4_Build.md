@@ -142,19 +142,22 @@ ls -la Publish/*.AppImage
 
 ### Flatpak — sandboxed, Flathub / any distro
 
-One-time toolchain + runtimes (copy once):
+**One-time setup (copy once).** Install the toolchain, then add the `flathub` remote. In WSL `flatpak remote-add` hangs fetching `flathub.org` directly (HTTP 301 redirect times out), so download the small repo file with `curl` first and add it from disk; the actual runtime download from `dl.flathub.org` works fine. Runtimes are installed `--user`:
 
 ```bash
 sudo apt install -y flatpak flatpak-builder && \
-flatpak install -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+curl -L -o /tmp/flathub.flatpakrepo https://flathub.org/repo/flathub.flatpakrepo && \
+flatpak remote-add --if-not-exists --user flathub /tmp/flathub.flatpakrepo && \
+flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 ```
 
-Build (copy once):
+**Build (copy once):**
 
 ```bash
 cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
 VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
 pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "${VER}[1]" && \
+rm -rf Publish/Artifacts.Flatpak.x86_64 && \
 ls -la Publish/*.flatpak
 ```
 
