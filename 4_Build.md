@@ -116,14 +116,29 @@ ls -la Publish/*.rpm
 
 ### AppImage — single portable file, any distro
 
-First run downloads `appimagetool` (needs internet). No install step for the end user — just `chmod +x` and run.
+**One-time setup (copy once).** WSL has neither `appimagetool` nor the bits it needs, and its proxy blocks the tool's own downloads (HTTP 302). Fetch both manually with `curl -L` (follows the redirect). The runtime path here **must match `AppImageRuntimePath` in `app.pupnet.conf`**:
+
+```bash
+sudo curl -L -o /usr/local/bin/appimagetool-x86_64.AppImage \
+  https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage && \
+sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage && \
+mkdir -p ~/.local/share/pupnet && \
+curl -L -o ~/.local/share/pupnet/runtime-x86_64 \
+  https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64 && \
+chmod +x ~/.local/share/pupnet/runtime-x86_64
+```
+
+**Build (copy once).** `APPIMAGE_EXTRACT_AND_RUN=1` lets the bundled tools run without `libfuse2` (WSL ships only `fuse3`):
 
 ```bash
 cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp && \
 VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]" && \
+APPIMAGE_EXTRACT_AND_RUN=1 pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]" && \
+rm -rf Publish/Artifacts.AppImage.x86_64 && \
 ls -la Publish/*.AppImage
 ```
+
+> The same FUSE caveat applies to **running** the finished file on a host without `libfuse2`: `./DataOrganizer*.AppImage --appimage-extract-and-run` (or install `libfuse2`).
 
 ### Flatpak — sandboxed, Flathub / any distro
 
