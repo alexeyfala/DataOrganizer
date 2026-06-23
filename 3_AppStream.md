@@ -50,5 +50,3 @@ appstreamcli validate Publish/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.m
 > ```bash
 > appstreamcli validate --no-net Publish/Artifacts.Deb.amd64/com.alexeyfala.dataorganizer.metainfo.xml
 > ```
-
-> **Report back:** the output of `ls -la *.metainfo.xml` after step 2.
