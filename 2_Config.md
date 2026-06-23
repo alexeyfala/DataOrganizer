@@ -27,7 +27,3 @@ ls -la *.pupnet.conf
 ```bash
 less app.pupnet.conf
 ```
-
-Key fields that get filled in: `AppBaseName`, `AppFriendlyName`, `AppId`, `AppVersionRelease`, `PublisherName`, `DotnetProjectPath`, `IconFiles`, `DotnetPublishArgs`, `MetaFile`.
-
-> **Report back:** the exact file name from step 3, and whether `ls` showed the `.sln` file.
