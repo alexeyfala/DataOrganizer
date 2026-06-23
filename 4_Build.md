@@ -58,10 +58,10 @@ ls -la Publish/*.rpm
 sudo curl -L -o /usr/local/bin/appimagetool-x86_64.AppImage \
   https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage && \
 sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage && \
-mkdir -p ~/.local/share/pupnet && \
-curl -L -o ~/.local/share/pupnet/runtime-x86_64 \
+sudo mkdir -p /usr/local/share/pupnet && \
+sudo curl -L -o /usr/local/share/pupnet/runtime-x86_64 \
   https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64 && \
-chmod +x ~/.local/share/pupnet/runtime-x86_64
+sudo chmod +x /usr/local/share/pupnet/runtime-x86_64
 ```
 
 **Build (copy once).** `APPIMAGE_EXTRACT_AND_RUN=1` lets the bundled tools run without `libfuse2` (WSL ships only `fuse3`):
