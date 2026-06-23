@@ -4,6 +4,28 @@
 
 ---
 
+## Linux package formats PupNet can build
+
+The `.deb` below is one of several formats. Each is selected with the `-k` flag and already has its own settings section in `app.pupnet.conf`. The build command is identical except for `-k`.
+
+| `-k` | Output | Target | Conf section | Extra tooling needed |
+|---|---|---|---|---|
+| `deb` | `.deb` | Debian / Ubuntu / Mint | `# DEBIAN OPTIONS` | — |
+| `rpm` | `.rpm` | Fedora / RHEL / openSUSE | `# RPM OPTIONS` | `rpmbuild` (`sudo apt install rpm`) |
+| `appimage` | `.AppImage` | single portable file, any distro | `# APPIMAGE OPTIONS` | PupNet auto-downloads `appimagetool` (internet on first run) |
+| `flatpak` | `.flatpak` | sandboxed, Flathub / any distro | `# FLATPAK OPTIONS` | `flatpak` + `flatpak-builder` + the `org.freedesktop.Platform`/`Sdk` runtimes |
+| `zip` | `.zip` | portable archive | `# ZIP OPTIONS` | — |
+
+```bash
+# Same command as for deb — only -k changes:
+pupnet app.pupnet.conf -r linux-x64 -k rpm      -y --app-version "${VER}[1]"
+pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]"
+```
+
+`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`.
+
+---
+
 ## Build
 
 **1) Enter Ubuntu and go to the solution root:**
