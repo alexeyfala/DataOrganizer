@@ -16,13 +16,7 @@ The `.deb` below is one of several formats. Each is selected with the `-k` flag 
 | `flatpak` | `.flatpak` | sandboxed, Flathub / any distro | `# FLATPAK OPTIONS` | `flatpak` + `flatpak-builder` + the `org.freedesktop.Platform`/`Sdk` runtimes |
 | `zip` | `.zip` | portable archive | `# ZIP OPTIONS` | — |
 
-```bash
-# Same command as for deb — only -k changes:
-pupnet app.pupnet.conf -r linux-x64 -k rpm      -y --app-version "${VER}[1]"
-pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]"
-```
-
-`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`.
+`appimage` uses the raster `Logo.256.png` for its root icon; `deb`/`rpm`/`flatpak` use the scalable `Logo.svg`. Ready-to-copy commands for each format are in [**Build — other formats**](#build--other-formats-rpm-appimage-flatpak-zip) below.
 
 ---
 
@@ -101,3 +95,65 @@ sudo apt remove dataorganizer
 ```
 
 > **Report back:** the output of `ls -la Publish/*.deb`, and whether install + launch + menu icon work. If the build fails, re-run step 2 with `--verbose` and paste the last ~30 lines of output.
+
+---
+
+## Build — other formats (rpm, appimage, flatpak, zip)
+
+Same workflow as the `.deb`: run in WSL (Ubuntu) from the solution root, only `-k` changes. Set `VER` once per shell session:
+
+```bash
+cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
+VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props)
+```
+
+### RPM — Fedora / RHEL / openSUSE
+
+Needs `rpmbuild` once: `sudo apt install -y rpm`
+
+```bash
+pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "${VER}[1]"
+ls -la Publish/*.rpm
+```
+
+### AppImage — single portable file, any distro
+
+First run downloads `appimagetool` (needs internet). No install step for the end user — just `chmod +x` and run.
+
+```bash
+pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]"
+ls -la Publish/*.AppImage
+```
+
+### Flatpak — sandboxed, Flathub / any distro
+
+Needs the toolchain and runtimes once:
+
+```bash
+sudo apt install -y flatpak flatpak-builder
+flatpak install -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+```
+
+Then build:
+
+```bash
+pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "${VER}[1]"
+ls -la Publish/*.flatpak
+```
+
+### Zip — portable archive
+
+```bash
+pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "${VER}[1]"
+ls -la Publish/*.zip
+```
+
+### Clean up intermediate artifacts
+
+Each format leaves an `Artifacts.<Kind>.<arch>/` folder in `Publish/`. Remove them all after a successful build (the shipping files stay):
+
+```bash
+rm -rf Publish/Artifacts.*
+```
+
+> Keep the `Artifacts.*` folder if you still need to inspect the expanded `.metainfo.xml` / `.desktop` / `control` for that format.
