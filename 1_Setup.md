@@ -88,3 +88,16 @@ source ~/.bashrc
 ```bash
 pupnet --version
 ```
+
+**9) Point an environment variable at the repository.** The build recipes in Stage 4 `cd "$DATAORG_REPO"` instead of hardcoding the path, so it is defined once here. Adjust the path if the repository lives elsewhere:
+
+```bash
+echo 'export DATAORG_REPO="/mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Confirm it resolves:
+
+```bash
+echo "$DATAORG_REPO" && ls "$DATAORG_REPO/Directory.Build.props"
+```
