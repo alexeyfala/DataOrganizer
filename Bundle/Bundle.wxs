@@ -61,20 +61,20 @@
 		<netfx:DotNetCoreSearch
 			MajorVersion="10"
 			Platform="x64"
-			RuntimeType="desktop"
+			RuntimeType="core"
 			Variable="NetCoreRuntimeVersion" />
 
 		<PackageGroup Id="NetRuntimeRedist">
 			<ExePackage
 				Cache="keep"
 				Compressed="yes"
-				DetectCondition="NetCoreRuntimeVersion >= v$(DesktopRuntimeVersion)"
+				DetectCondition="NetCoreRuntimeVersion >= v$(DotNetVersion)"
 				DisplayName="$(RuntimeDescription)"
 				Id="NetRuntimeRedist"
 				InstallArguments="/norestart /quiet"
 				PerMachine="yes"
 				Permanent="yes"
-				SourceFile="Resources\DesktopRuntime.exe"
+				SourceFile="Resources\dotnet-runtime-10.0.9-win-x64.exe"
 				Vital="yes">
 			</ExePackage>
 		</PackageGroup>

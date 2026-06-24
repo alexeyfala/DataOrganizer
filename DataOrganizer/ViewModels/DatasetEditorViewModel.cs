@@ -612,10 +612,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		SetPropertiesCallback?.Invoke(json);
 
-		if (IsReadOnly)
+		if (IsReadOnly || IsLastPropertiesEqualTo(json))
 		{
 			return;
 		}
+
+		_lastSavedProperties = json;
 
 		_exceptionHandler.Watch(SavePropertiesAsync(json));
 	}
@@ -1283,7 +1285,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				scrollSubscription.Disposable = Observable.FromEventPattern<EventHandler<ScrollChangedEventArgs>, ScrollChangedEventArgs>(
 					x => scrollViewer.ScrollChanged += x,
 					x => scrollViewer.ScrollChanged -= x)
-					.SetDelay(TimeSpan.FromSeconds(0.3), false)
+					.SetDelay(TimeSpan.FromSeconds(0.5), false)
 					.Subscribe(ScrollViewer_ScrollChanged);
 			}, DispatcherPriority.Loaded);
 		}

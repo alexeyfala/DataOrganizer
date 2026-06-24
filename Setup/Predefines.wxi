@@ -36,15 +36,5 @@
 		Complete name of the application that appears everywhere.
 		Guarantees the name is unique across all the setup project.
 	-->
-	<?define FullName = "$(var.AppNameAsOneWord)$(var.PlatformInName)$(var.ProgramConfig)"?>
-
-	<!--
-		Name of the package (used in the installer and in the Apps and Features
-		list.
-
-		Note that the product version is added to the name: This way, the
-		version of the product is visible in the Apps and Features list as well
-		as throughout the installer dialog process.
-	-->
-	<?define PackageName = "$(var.FullName)-$(var.AppVersion)"?>
+	<?define FullName = "$(var.AppNameAsOneWord)-$(var.AppVersion)$(var.PlatformInName)$(var.ProgramConfig)"?>
 </Include>

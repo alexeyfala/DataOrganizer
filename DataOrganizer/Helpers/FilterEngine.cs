@@ -18,25 +18,20 @@ namespace DataOrganizer.Helpers;
 // Nuget: DynamicData
 
 /// <summary>
-/// Wraps a DynamicData <see cref="SourceList{T}"/> with a <c>Filter</c>/<c>Bind</c> pipeline and exposes
-/// a read-only <see cref="Visible"/> projection of the source through a caller-supplied predicate stream.
-/// Mutating methods (<see cref="InsertAndRebuild"/>, <see cref="Reorder"/>) trigger a full rebuild of the
-/// source so that <see cref="Visible"/> reflects source order under <see cref="ListFilterPolicy.ClearAndReplace"/>.
-/// Not thread-safe — intended to be created and used on the UI thread; the captured
-/// <see cref="SynchronizationContext"/> is used to marshal change notifications back to that thread.
+/// Wraps a DynamicData <see cref="SourceList{T}"/> with a Filter/Bind pipeline, exposing a read-only
+/// projection driven by a caller-supplied predicate stream. Not thread-safe — created and used on the
+/// UI thread, with the captured <see cref="SynchronizationContext"/> marshalling notifications back to it.
 /// </summary>
 internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyPropertyChanged
 {
 	#region Properties
 	/// <summary>
-	/// <c>True</c> when the underlying source contains no items at all.
-	/// This reflects total contents — items hidden by an active filter still count.
-	/// To check whether the currently shown subset is empty, use <c><see cref="Visible"/>.Count == 0</c>.
+	/// <c>True</c> when the source holds no items at all, including items hidden by an active filter.
 	/// </summary>
 	public bool IsSourceEmpty => _source.Items.Count == 0;
 
 	/// <summary>
-	/// A visible sequence of <typeparamref name="TModel" />.
+	/// Read-only projection of the source filtered by the current predicate.
 	/// </summary>
 	public ReadOnlyObservableCollection<TModel> Visible => _visible;
 	#endregion
@@ -49,17 +44,17 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	private readonly SourceList<TModel> _source = new();
 
 	/// <summary>
-	/// Subscription handle for the bind pipeline; disposed in <see cref="Dispose"/>.
+	/// Subscription handle for the bind pipeline.
 	/// </summary>
 	private readonly IDisposable _subscription;
 
 	/// <summary>
-	/// A backing field for <see cref="Visible" />.
+	/// Backing collection bound by the pipeline.
 	/// </summary>
 	private readonly ReadOnlyObservableCollection<TModel> _visible;
 
 	/// <summary>
-	/// <c>True</c> when the service has already been disposed.
+	/// <c>True</c> once disposed.
 	/// </summary>
 	private bool _isDisposed;
 	#endregion
@@ -68,12 +63,11 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// <summary>
 	/// Creates a new <see cref="FilterEngine{TModel}"/>.
 	/// </summary>
-	/// <param name="filterPredicate">Stream of predicates driving <see cref="Visible"/>.</param>
+	/// <param name="filterPredicate">Stream of predicates that drive the filter.</param>
 	/// <param name="autoRefreshOn">
-	/// Optional property accessor that scopes <c>AutoRefresh</c> — the filter is re-evaluated only when
-	/// this specific property changes on a source item (e.g. <c>x =&gt; x.Name</c>). Pass <c>null</c>
-	/// to skip per-item INPC tracking entirely; in that case property changes on items already in the
-	/// source will not trigger <see cref="Visible"/> recomputation until the predicate itself changes.
+	/// Optional property accessor that scopes <c>AutoRefresh</c> — the filter is re-evaluated only when this
+	/// property changes on a source item (e.g. <c>x =&gt; x.Name</c>). Pass <c>null</c> to skip per-item INPC
+	/// tracking; property changes on existing items then have no effect until the predicate itself changes.
 	/// </param>
 	public FilterEngine(
 		IObservable<Func<TModel, bool>> filterPredicate,
@@ -130,18 +124,14 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 
 	/// <summary>
 	/// Returns the first source item matching <paramref name="condition"/>, or <c>null</c> if none match.
-	/// Searches the entire source — items currently hidden by an active filter are still considered.
+	/// Searches the whole source, including items hidden by an active filter.
 	/// </summary>
 	public TModel? FirstOrDefaultFromSource(Func<TModel, bool> condition) => _source.Items.FirstOrDefault(condition);
 
 	/// <summary>
-	/// Inserts <paramref name="item"/> so that it lands at <paramref name="destinationVisibleIndex"/>
-	/// in <see cref="Visible"/> after the source is rebuilt. Translation uses the item currently at that
-	/// visible index as an anchor, so behavior is correct even when a filter is active.
-	/// Does nothing if <paramref name="item"/> is already present in the source — to relocate an existing
-	/// item use <see cref="Reorder"/>.
-	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
-	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
+	/// Inserts <paramref name="item"/> to land at <paramref name="destinationVisibleIndex"/> in the visible
+	/// list after a rebuild, anchoring on the item at that index so it works under a filter. No-op if already
+	/// present; triggers a full source rebuild (a Reset), so selection and scroll position are lost.
 	/// </summary>
 	public void InsertAndRebuild(TModel item, int destinationVisibleIndex)
 	{
@@ -156,9 +146,8 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	}
 
 	/// <summary>
-	/// Posts <paramref name="action"/> to the captured <see cref="SynchronizationContext"/> so it runs
-	/// after any pending <see cref="Visible"/> updates already queued on the UI thread (FIFO ordering of
-	/// <see cref="SynchronizationContext.Post"/>). If no context was captured, runs synchronously.
+	/// Posts <paramref name="action"/> to the captured <see cref="SynchronizationContext"/> so it runs after
+	/// any pending updates already queued on the UI thread. Runs synchronously if no context was captured.
 	/// </summary>
 	public void PostToUi(Action action)
 	{
@@ -176,16 +165,9 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	public bool Remove(TModel item) => _source.Remove(item);
 
 	/// <summary>
-	/// Moves <paramref name="item"/> within the source so that it lands at
-	/// <paramref name="destinationVisibleIndex"/> in <see cref="Visible"/> after the rebuild.
-	/// Translation uses the item currently at that visible index as an anchor, so behavior is
-	/// correct even when a filter is active. Does nothing if <paramref name="item"/> is not in the source
-	/// or if it is already at the resolved destination.
-	/// Triggers a full rebuild of the source (and therefore <see cref="Visible"/>) — i.e. <c>ItemsControl</c>
-	/// sees a Reset, so selection and scroll position are lost; restore them via <see cref="PostToUi"/> if needed.
-	/// Performs two <c>O(N)</c> linear scans of the source (one to locate <paramref name="item"/>, one to
-	/// resolve the anchor at <paramref name="destinationVisibleIndex"/>) plus the <c>O(N)</c> rebuild — not
-	/// suited for collections in the tens of thousands of elements without further optimization.
+	/// Moves <paramref name="item"/> to land at <paramref name="destinationVisibleIndex"/> in the visible list,
+	/// anchoring on the item at that index so it works under a filter. No-op if absent or already at the target.
+	/// Rebuilds the source (a Reset), so selection and scroll are lost; <c>O(N)</c>, unsuited to huge collections.
 	/// </summary>
 	public void Reorder(TModel item, int destinationVisibleIndex)
 	{
@@ -214,18 +196,16 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	}
 
 	/// <summary>
-	/// Projects every item in the source through <paramref name="selector"/>, in source order.
-	/// Iterates the entire source — items currently hidden by an active filter are still included.
+	/// Projects every source item through <paramref name="selector"/> in source order, including items
+	/// hidden by an active filter.
 	/// </summary>
 	public IEnumerable<TResult> SelectFromSource<TResult>(Func<TModel, TResult> selector) => _source.Items.Select(selector);
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Snapshots the source into a working list, applies <paramref name="mutate"/>, then replays the
-	/// result via <c>Clear</c> + <c>AddRange</c> inside a single <see cref="ISourceList{T}.Edit"/>.
-	/// The <c>Clear</c> step forces the <c>Filter</c> cache (under <see cref="ListFilterPolicy.ClearAndReplace"/>)
-	/// to rebuild in the new source order, sidestepping the cache's insertion-order tracking.
+	/// Snapshots the source, applies <paramref name="mutate"/>, then replays the result via Clear + AddRange
+	/// in one edit so the filter cache rebuilds in the new source order.
 	/// </summary>
 	private void RebuildSourceWith(Action<List<TModel>> mutate) => _source.Edit(list =>
 	{
@@ -239,9 +219,8 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	});
 
 	/// <summary>
-	/// Translates an index in <see cref="Visible"/> to the corresponding source index by looking up
-	/// the item currently at that visible position. Past-end and negative inputs are clamped to the
-	/// source ends. When no filter is active, this is a 1:1 mapping.
+	/// Translates an index in the visible list to the matching source index via the item at that position.
+	/// Out-of-range inputs are clamped to the source ends; a 1:1 mapping when no filter is active.
 	/// </summary>
 	private int TranslateVisibleToSource(int destinationVisibleIndex)
 	{

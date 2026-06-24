@@ -1,0 +1,9 @@
+Visual Studio Extension: HeatWave for VS2022
+https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17
+
+Examples are taken from here:
+https://github.com/stephenlepisto/wixtoolsetexamples
+
+A blank WiX license dialog (RTF) is usually caused by using Microsoft Word to create the file,
+which generates overly complex formatting. Fix this by opening the .rtf file in WordPad and saving it,
+which strips unnecessary formatting. You can download WordPad here: https://www.comss.ru/page.php?id=13295

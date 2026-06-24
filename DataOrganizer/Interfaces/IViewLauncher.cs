@@ -28,7 +28,7 @@ public interface IViewLauncher
 	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
-	ClipboardLogWindow ConfigureCustomClipboardWindow(Window owner);
+	ClipboardLogWindow ConfigureClipboardLogWindow(Window owner);
 
 	/// <summary>
 	/// Configures <see cref="EditorWindow" />.
@@ -55,7 +55,7 @@ public interface IViewLauncher
 	/// <summary>
 	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.
 	/// </summary>
-	void SaveCustomClipboardSettings(ClipboardLogWindow window);
+	void SaveClipboardLogSettings(ClipboardLogWindow window);
 
 	/// <summary>
 	/// Saves <see cref="EditorWindow" /> settings to the file.
@@ -71,7 +71,7 @@ public interface IViewLauncher
 	/// Prompts to unlock the persisted clipboard history when required, then opens
 	/// <see cref="ClipboardLogWindow" />.
 	/// </summary>
-	Task ShowCustomClipboardWindowAsync(Window owner);
+	Task ShowClipboardLogWindowAsync(Window owner);
 
 	/// <summary>
 	/// Checks whether <paramref name="position" /> places the window's title bar

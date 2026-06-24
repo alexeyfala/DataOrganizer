@@ -113,7 +113,7 @@ public sealed partial class ClipboardLogViewModel :
 	/// <summary>
 	/// Restores <paramref name="entry" /> back into the system clipboard.
 	/// </summary>
-	[RelayCommand]
+	[RelayCommand(AllowConcurrentExecutions = true)]
 	private Task RestoreEntry(ClipboardLogEntryBase? entry)
 	{
 		return entry is null

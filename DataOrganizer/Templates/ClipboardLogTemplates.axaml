@@ -57,7 +57,7 @@
 			Source="{Binding ImagePreview, Mode=OneTime}"
 			Stretch="Uniform" />
 	</DataTemplate>
-
+	
 	<!-- ClipboardFilesEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardFilesEntryTemplate"

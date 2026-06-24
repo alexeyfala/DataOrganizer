@@ -2,7 +2,7 @@
 		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
-		<DesktopRuntimeVersion>10.0.9</DesktopRuntimeVersion>
+		<DotNetVersion>10.0.9</DotNetVersion>
 		<OutputName>$(MsiOutputName)-Bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -15,13 +15,13 @@
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);DesktopRuntimeVersion=$(DesktopRuntimeVersion)</DefineConstants>
+		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);MsiOutputName=$(MsiOutputName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);OutputPath=$(OutputPath)</DefineConstants>
 		<DefineConstants>$(DefineConstants);ProductVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Desktop Runtime (v$(DesktopRuntimeVersion)) - Windows x64</DefineConstants>
+		<DefineConstants>$(DefineConstants);RuntimeDescription=.NET 10.0 Runtime (v$(DotNetVersion)) - Windows x64</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
@@ -34,9 +34,15 @@
 						  Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="Resources\DesktopRuntime.exe" />
+		<None Include="Resources\dotnet-runtime-10.0.9-win-x64.exe" />
 	</ItemGroup>
-	<Target Name="BuildSetupDependency">
+	<!--
+		Skip during restore: WiX makes EnableDefaultCompileItems=false global on the
+		restore phase, which would drop Program.cs from the Desktop build (CS5001).
+		Build the dependency only in the build phase ($(MSBuildRestoreSessionId) is empty).
+	-->
+	<Target Name="BuildSetupDependency"
+			Condition="'$(MSBuildRestoreSessionId)' == ''">
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
 				 AppIconPath=$(AppIconPath);
@@ -46,6 +52,7 @@
 				 Configuration=$(Configuration);
 				 Manufacturer=$(Manufacturer);
 				 MsiOutputName=$(MsiOutputName);
+				 OpenOutputFolder=false;
 				 SetupCulture=$(SetupCulture);" />
 	</Target>
 	<Target Name="PostBuild"

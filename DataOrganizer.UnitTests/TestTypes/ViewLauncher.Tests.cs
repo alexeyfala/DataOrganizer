@@ -26,10 +26,10 @@ internal class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureCustomClipboardWindow" />: saved size and position settings are applied to the window.
+	/// <see cref="ViewLauncher.ConfigureClipboardLogWindow" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureCustomClipboardWindow_Applies_Saved_Settings()
+	public void ConfigureClipboardLogWindow_Applies_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = TestUtils.CreateRandomInt(100, 300);
@@ -79,7 +79,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		ClipboardLogWindow window = sut.ConfigureCustomClipboardWindow(new Window());
+		ClipboardLogWindow window = sut.ConfigureClipboardLogWindow(new Window());
 
 		// Assert
 		window.Width
@@ -453,7 +453,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the active type filter is persisted.
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the active type filter is persisted.
 	/// </summary>
 	[AvaloniaTest]
 	public void SaveCustomClipboardSettings_Persists_ActiveFilter()
@@ -486,7 +486,7 @@ internal class ViewLauncherTests
 		window.ViewModel.ActiveFilter = ClipboardLogEntryFilter.Image;
 
 		// Act
-		sut.SaveCustomClipboardSettings(window);
+		sut.SaveClipboardLogSettings(window);
 
 		// Assert
 		captured
@@ -499,7 +499,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: the keep-open flag is persisted.
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: the keep-open flag is persisted.
 	/// </summary>
 	[AvaloniaTest]
 	public void SaveCustomClipboardSettings_Persists_KeepOpen()
@@ -532,7 +532,7 @@ internal class ViewLauncherTests
 		window.ViewModel.KeepOpen = true;
 
 		// Act
-		sut.SaveCustomClipboardSettings(window);
+		sut.SaveClipboardLogSettings(window);
 
 		// Assert
 		captured
@@ -545,7 +545,7 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.SaveCustomClipboardSettings" />: clipboard window settings are serialized to a JSON file.
+	/// <see cref="ViewLauncher.SaveClipboardLogSettings" />: clipboard window settings are serialized to a JSON file.
 	/// </summary>
 	[AvaloniaTest]
 	public void SaveCustomClipboardSettings_Saves_Settings()
@@ -563,7 +563,7 @@ internal class ViewLauncherTests
 			TypedParameter.From(fileSystem));
 
 		// Act
-		sut.SaveCustomClipboardSettings(mock.Create<ClipboardLogWindow>());
+		sut.SaveClipboardLogSettings(mock.Create<ClipboardLogWindow>());
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(
@@ -657,10 +657,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ShowCustomClipboardWindowAsync" />: an already-open window is focused instead of opening a duplicate.
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: an already-open window is focused instead of opening a duplicate.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task ShowCustomClipboardWindowAsync_Focuses_Existing_Window()
+	public async Task ShowClipboardLogWindowAsync_Focuses_Existing_Window()
 	{
 		// Arrange
 		using AutoMock windowMock = AutoMock.GetLoose();
@@ -695,7 +695,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		await sut.ShowCustomClipboardWindowAsync(new Window());
+		await sut.ShowClipboardLogWindowAsync(new Window());
 
 		// Assert
 		viewFactory

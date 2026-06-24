@@ -99,6 +99,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
+	/// <summary>
+	/// Last properties persisted to the database.
+	/// Intended to skip persistence when properties match what is already stored.
+	/// </summary>
+	protected string? _lastSavedProperties;
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -177,9 +183,21 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Contents" /> to the database.
+	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.
 	/// </summary>
-	protected Task SaveContentsAsync(byte[] contents, CancellationToken token = default)
+	protected bool IsLastPropertiesEqualTo(string current)
+	{
+		return string.Equals(
+			_lastSavedProperties,
+			current,
+			StringComparison.Ordinal);
+	}
+
+	/// <summary>
+	/// Saves <see cref="FileModel.Contents" /> in the database.
+	/// </summary>
+	/// <returns><c>true</c> when the row was updated.</returns>
+	protected Task<bool> SaveContentsAsync(byte[] contents, CancellationToken token = default)
 	{
 		_logger.LogDebug($@"Saving contents of ""{FileId}"" in the database");
 
@@ -190,7 +208,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileModel.Properties" /> to the database.
+	/// Saves <see cref="FileModel.Properties" /> in the database.
 	/// </summary>
 	protected Task SavePropertiesAsync(
 		[StringSyntax(StringSyntaxAttribute.Json)] string json,
