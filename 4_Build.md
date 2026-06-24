@@ -20,7 +20,7 @@ PupNet builds several Linux formats from the same config. Each is selected with 
 
 ## Build recipes
 
-All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the whole block once**: it enters the solution root via `$DATAORG_REPO` (set once in Stage 1), reads `<AppVersion>` from `Directory.Build.props` (the single source of truth), builds, removes the intermediate `Artifacts.*` folder on success, and lists the result.
+All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the whole block once**: it enters the repository root via `$DATAORG_REPO` (set once in Stage 1), reads `<AppVersion>` from `Directory.Build.props` (the single source of truth), builds, removes the intermediate `Artifacts.*` folder on success, and lists the result.
 
 `--app-version "$(dataorg_ver)[1]"`: `[1]` is the **package revision**, separate from the app version — bump it when you re-package the same version. `-r linux-x64` is the runtime, `-y` disables prompts, `--app-version` overrides `AppVersionRelease` in the conf. Add `--verbose` to diagnose a failure; the first build of each kind is slow (runtime + NuGet download).
 

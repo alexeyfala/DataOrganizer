@@ -1,10 +1,15 @@
 # Stage 2 — Generate the PupNet configuration
 
-**1) Enter Ubuntu and go to the solution root** via the Windows drive, then list it (you should see the `.sln` and the guide files):
+**1) Enter Ubuntu** — in Windows PowerShell:
+
+```powershell
+wsl.exe -d Ubuntu
+```
+
+Then, inside Ubuntu, go to the repository root and list it (you should see the `.sln` and the guide files):
 
 ```bash
-wsl.exe -d Ubuntu
-cd /mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp
+cd "$DATAORG_REPO"
 ls
 ```
 
@@ -14,7 +19,7 @@ ls
 pupnet --new conf
 ```
 
-**3) See what was created** and note its exact name:
+**3) See what was created** — it is named `app.pupnet.conf` (the rest of the guide uses this name):
 
 ```bash
 ls -la *.pupnet.conf
