@@ -24,6 +24,8 @@ All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the
 
 `--app-version "$(dataorg_ver)[1]"`: `[1]` is the **package revision**, separate from the app version — bump it when you re-package the same version. `-r linux-x64` is the runtime, `-y` disables prompts, `--app-version` overrides `AppVersionRelease` in the conf. Add `--verbose` to diagnose a failure; the first build of each kind is slow (runtime + NuGet download).
 
+> **Release vs Debug.** PupNet ignores the configuration selected in Visual Studio and builds **Release** by default. For a Debug build, add `-c Debug` to the `pupnet` command. PupNet then appends `.Debug` to the `AppId`, so the Debug package installs alongside the Release one instead of replacing it.
+
 ### Debian (.deb)
 
 ```bash
