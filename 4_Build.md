@@ -48,16 +48,12 @@ ls -la Publish/*.rpm
 
 ### AppImage (.AppImage)
 
-**One-time setup (copy once).** WSL has neither `appimagetool` nor the bits it needs, and its proxy blocks the tool's own downloads (HTTP 302). Fetch both manually with `curl -L` (follows the redirect). The runtime path here **must match `AppImageRuntimePath` in `app.pupnet.conf`**:
+**One-time setup (copy once).** WSL has no `appimagetool`; fetch it once. It downloads its own type2 runtime at build time, so `AppImageRuntimePath` in `app.pupnet.conf` is left empty (a non-empty path there is validated for *every* `-k`, which would break the other recipes):
 
 ```bash
 sudo curl -L -o /usr/local/bin/appimagetool-x86_64.AppImage \
   https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage && \
-sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage && \
-sudo mkdir -p /usr/local/share/pupnet && \
-sudo curl -L -o /usr/local/share/pupnet/runtime-x86_64 \
-  https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64 && \
-sudo chmod +x /usr/local/share/pupnet/runtime-x86_64
+sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage
 ```
 
 **Build (copy once).** `APPIMAGE_EXTRACT_AND_RUN=1` lets the bundled tools run without `libfuse2` (WSL ships only `fuse3`):
