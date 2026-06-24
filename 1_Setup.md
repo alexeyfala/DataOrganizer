@@ -89,15 +89,16 @@ source ~/.bashrc
 pupnet --version
 ```
 
-**9) Point an environment variable at the repository.** The build recipes in Stage 4 `cd "$DATAORG_REPO"` instead of hardcoding the path, so it is defined once here. Adjust the path if the repository lives elsewhere:
+**9) Define the repository path and version helper.** The build recipes in Stage 4 use `$DATAORG_REPO` (the repo path) and `$(dataorg_ver)` (the current `<AppVersion>`) instead of hardcoding them. The path is a fixed value; the version is a function so it is re-read from `Directory.Build.props` on every call and never goes stale. Adjust the path if the repository lives elsewhere:
 
 ```bash
 echo 'export DATAORG_REPO="/mnt/c/Users/alexey/source/repos/DataOrganizerAvaloniaApp"' >> ~/.bashrc
+echo "dataorg_ver() { grep -oP '(?<=<AppVersion>)[^<]+' \"\$DATAORG_REPO/Directory.Build.props\"; }" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-Confirm it resolves:
+Confirm both resolve (expect the path, then the version, e.g. `0.0.1`):
 
 ```bash
-echo "$DATAORG_REPO" && ls "$DATAORG_REPO/Directory.Build.props"
+echo "$DATAORG_REPO" && dataorg_ver
 ```

@@ -22,14 +22,13 @@ PupNet builds several Linux formats from the same config. Each is selected with 
 
 All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the whole block once**: it enters the solution root via `$DATAORG_REPO` (set once in Stage 1), reads `<AppVersion>` from `Directory.Build.props` (the single source of truth), builds, removes the intermediate `Artifacts.*` folder on success, and lists the result.
 
-`--app-version "${VER}[1]"`: `[1]` is the **package revision**, separate from the app version — bump it when you re-package the same version. `-r linux-x64` is the runtime, `-y` disables prompts, `--app-version` overrides `AppVersionRelease` in the conf. Add `--verbose` to diagnose a failure; the first build of each kind is slow (runtime + NuGet download).
+`--app-version "$(dataorg_ver)[1]"`: `[1]` is the **package revision**, separate from the app version — bump it when you re-package the same version. `-r linux-x64` is the runtime, `-y` disables prompts, `--app-version` overrides `AppVersionRelease` in the conf. Add `--verbose` to diagnose a failure; the first build of each kind is slow (runtime + NuGet download).
 
 ### Debian (.deb)
 
 ```bash
 cd "$DATAORG_REPO" && \
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "${VER}[1]" && \
+pupnet app.pupnet.conf -r linux-x64 -k deb -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf Publish/Artifacts.Deb.amd64 && \
 ls -la Publish/*.deb
 ```
@@ -40,8 +39,7 @@ One-time: `sudo apt install -y rpm`
 
 ```bash
 cd "$DATAORG_REPO" && \
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "${VER}[1]" && \
+pupnet app.pupnet.conf -r linux-x64 -k rpm -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf Publish/Artifacts.Rpm.x86_64 && \
 ls -la Publish/*.rpm
 ```
@@ -60,8 +58,7 @@ sudo chmod +x /usr/local/bin/appimagetool-x86_64.AppImage
 
 ```bash
 cd "$DATAORG_REPO" && \
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-APPIMAGE_EXTRACT_AND_RUN=1 pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "${VER}[1]" && \
+APPIMAGE_EXTRACT_AND_RUN=1 pupnet app.pupnet.conf -r linux-x64 -k appimage -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf Publish/Artifacts.AppImage.x86_64 && \
 ls -la Publish/*.AppImage
 ```
@@ -83,8 +80,7 @@ flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedeskto
 
 ```bash
 cd "$DATAORG_REPO" && \
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "${VER}[1]" && \
+pupnet app.pupnet.conf -r linux-x64 -k flatpak -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf Publish/Artifacts.Flatpak.x86_64 && \
 ls -la Publish/*.flatpak
 ```
@@ -93,8 +89,7 @@ ls -la Publish/*.flatpak
 
 ```bash
 cd "$DATAORG_REPO" && \
-VER=$(grep -oP '(?<=<AppVersion>)[^<]+' Directory.Build.props) && \
-pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "${VER}[1]" && \
+pupnet app.pupnet.conf -r linux-x64 -k zip -y --app-version "$(dataorg_ver)[1]" && \
 rm -rf Publish/Artifacts.Zip.x86_64 && \
 ls -la Publish/*.zip
 ```
