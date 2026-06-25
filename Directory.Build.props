@@ -4,6 +4,7 @@
 		<AppNameAsOneWord>DataOrganizer</AppNameAsOneWord>
 		<AppIconPath>..\$(AppNameAsOneWord)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.0.1</AppVersion>
+		
 		<Manufacturer>Alexey Fala</Manufacturer>
 		<!--
 			Append "-Debug" to the MSI/Bundle name in non-Release builds. Treats an empty
