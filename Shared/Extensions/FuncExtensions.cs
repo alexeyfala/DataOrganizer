@@ -14,7 +14,7 @@ public static class FuncExtensions
 	/// <param name="millisecondsDelay">Delay in milliseconds.</param>
 	/// <param name="maxRepeat">Maximum number of repetitions.</param>
 	/// <returns><c>True</c> if the condition is met, <c>False</c> if the maximum number of repetitions is reached and the condition is not met.</returns>
-	public static async Task<bool> WaitAsync(
+	public static async ValueTask<bool> WaitAsync(
 		this Func<bool> condition,
 		int millisecondsDelay,
 		int maxRepeat,
