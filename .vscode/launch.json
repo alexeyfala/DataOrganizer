@@ -1,0 +1,17 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"args": [],
+			"console": "internalConsole",
+			"cwd": "${workspaceFolder}/DataOrganizer.MacOS",
+			// Launches the macOS app head under the debugger. Runs the executable inside the .app bundle.
+			"name": ".NET Launch (macOS)",
+			"preLaunchTask": "build-macos",
+			"program": "${workspaceFolder}/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app/Contents/MacOS/DataOrganizer",
+			"request": "launch",
+			"stopAtEntry": false,
+			"type": "coreclr"
+		}
+	]
+}

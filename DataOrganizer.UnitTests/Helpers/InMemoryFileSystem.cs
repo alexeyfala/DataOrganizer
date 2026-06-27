@@ -96,7 +96,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public void SetFileReadOnly(string filePath, bool value) => throw new NotSupportedException();
 
-	public Task<bool> WaitFileUnlockedAsync(
+	public ValueTask<bool> WaitFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default) => throw new NotSupportedException();
