@@ -1,4 +1,5 @@
-﻿using DataOrganizer.DTO;
+﻿using Avalonia.Controls;
+using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -174,40 +175,11 @@ public sealed class DialogService : IDialogService
 
 				_exceptionHandler.Watch(DialogHost.Show(view));
 
-				try
-				{
-					bool confirmed = await viewModel
-						.GetResultAsync(token)
-						.ConfigureAwait(true);
+				bool confirmed = await viewModel
+					.GetResultAsync(token)
+					.ConfigureAwait(true);
 
-					if (confirmed && !string.IsNullOrWhiteSpace(view.PasswordInput.Text))
-					{
-						using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
-							.PasswordInput
-							.Text);
-
-						source.SetResult(secret
-							.AsReadOnlySpan()
-							.ToArray());
-					}
-					else
-					{
-						source.SetResult([]);
-					}
-				}
-				finally
-				{
-					if (!string.IsNullOrEmpty(view.PasswordInput.Text))
-					{
-						SecureStringHelper.WipeString(view
-							.PasswordInput
-							.Text);
-					}
-
-					view
-						.PasswordInput
-						.Text = null;
-				}
+				source.SetResult(CapturePasswordAndScrub(view.PasswordInput, confirmed));
 			}
 			catch (Exception ex)
 			{
@@ -322,6 +294,37 @@ public sealed class DialogService : IDialogService
 			IsSaved = viewModel.IsSaved,
 			Settings = viewModel.CurrentSettings
 		};
+	}
+
+	/// <summary>
+	/// Captures the password into a pinned buffer when confirmed with non-blank input,
+	/// then scrubs and clears the source <see cref="TextBox" /> on every path.
+	/// </summary>
+	/// <returns>The captured characters, or an empty array when not confirmed or blank.</returns>
+	internal static char[] CapturePasswordAndScrub(TextBox input, bool confirmed)
+	{
+		try
+		{
+			if (confirmed && !string.IsNullOrWhiteSpace(input.Text))
+			{
+				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(input.Text);
+
+				return secret
+					.AsReadOnlySpan()
+					.ToArray();
+			}
+
+			return [];
+		}
+		finally
+		{
+			if (!string.IsNullOrEmpty(input.Text))
+			{
+				SecureStringHelper.WipeString(input.Text);
+			}
+
+			input.Text = null;
+		}
 	}
 	#endregion
 }
