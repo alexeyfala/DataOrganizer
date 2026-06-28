@@ -5,6 +5,8 @@
 			"args": [
 				"build",
 				"${workspaceFolder}/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj",
+				"-c",
+				"Debug",
 				"/property:GenerateFullPaths=true",
 				"/consoleloggerparameters:NoSummary"
 			],
@@ -13,8 +15,24 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			// Builds the macOS app head (net10.0-macos). Used as preLaunchTask for debugging.
+			// Builds the macOS app head in Debug. Used as preLaunchTask for the Debug launch.
 			"label": "build-macos",
+			"problemMatcher": "$msCompile",
+			"type": "process"
+		},
+		{
+			"args": [
+				"build",
+				"${workspaceFolder}/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj",
+				"-c",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"command": "dotnet",
+			"group": "build",
+			// Builds the macOS app head in Release. Used as preLaunchTask for the Release launch.
+			"label": "build-macos-release",
 			"problemMatcher": "$msCompile",
 			"type": "process"
 		}
