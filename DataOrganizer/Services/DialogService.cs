@@ -174,27 +174,36 @@ public sealed class DialogService : IDialogService
 
 				_exceptionHandler.Watch(DialogHost.Show(view));
 
-				if (!await viewModel
-					.GetResultAsync(token)
-					.ConfigureAwait(true) || string.IsNullOrWhiteSpace(view.PasswordInput.Text))
-				{
-					source.SetResult([]);
-
-					return;
-				}
-
 				try
 				{
-					using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
-						.PasswordInput
-						.Text);
+					bool confirmed = await viewModel
+						.GetResultAsync(token)
+						.ConfigureAwait(true);
 
-					source.SetResult(secret
-						.AsReadOnlySpan()
-						.ToArray());
+					if (confirmed && !string.IsNullOrWhiteSpace(view.PasswordInput.Text))
+					{
+						using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(view
+							.PasswordInput
+							.Text);
+
+						source.SetResult(secret
+							.AsReadOnlySpan()
+							.ToArray());
+					}
+					else
+					{
+						source.SetResult([]);
+					}
 				}
 				finally
 				{
+					if (!string.IsNullOrEmpty(view.PasswordInput.Text))
+					{
+						SecureStringHelper.WipeString(view
+							.PasswordInput
+							.Text);
+					}
+
 					view
 						.PasswordInput
 						.Text = null;
