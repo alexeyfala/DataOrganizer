@@ -150,7 +150,6 @@ public sealed class DialogService : IDialogService
 		return new(IsValid: true, Value: viewModel.Text);
 	}
 
-
 	/// <inheritdoc />
 	public Task<char[]> RequestPasswordAsync(
 		string header,
