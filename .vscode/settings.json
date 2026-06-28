@@ -1,0 +1,7 @@
+{
+	// Hide build output folders from the Explorer, search and Quick Open (Visual Studio-like).
+	"files.exclude": {
+		"**/bin": true,
+		"**/obj": true
+	}
+}
