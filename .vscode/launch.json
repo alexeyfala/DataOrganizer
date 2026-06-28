@@ -2,17 +2,10 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			// Launches the macOS app head. C# Dev Kit resolves the output path from the project.
-			"name": ".NET Launch (macOS)",
-			"type": "dotnet",
-			"request": "launch",
-			"projectPath": "${workspaceFolder}/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj"
-		}
-		/* Previous coreclr configuration with a hardcoded program path. Kept as a fallback:
-		,{
 			"args": [],
 			"console": "internalConsole",
 			"cwd": "${workspaceFolder}/DataOrganizer.MacOS",
+			// Launches the macOS app head under the debugger. Runs the executable inside the .app bundle.
 			"name": ".NET Launch (macOS)",
 			"preLaunchTask": "build-macos",
 			"program": "${workspaceFolder}/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app/Contents/MacOS/DataOrganizer",
@@ -20,6 +13,5 @@
 			"stopAtEntry": false,
 			"type": "coreclr"
 		}
-		*/
 	]
 }
