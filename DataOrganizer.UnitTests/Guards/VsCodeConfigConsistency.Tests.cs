@@ -13,6 +13,7 @@ internal class VsCodeConfigConsistencyTests
 	// Placeholder the .vscode configs must use instead of the literal app name.
 	private const string AppNameConfigReference = "${config:app.name}";
 
+
 	// MSBuild property holding the one-word app name, the canonical source of the name.
 	private const string AppNamePropertyName = "AppNameAsOneWord";
 
