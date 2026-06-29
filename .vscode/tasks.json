@@ -11,6 +11,55 @@
 			],
 			"command": "dotnet",
 			"options": {
+				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+			},
+			"osx": {
+				"options": {
+					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				}
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"label": "build-app",
+			"problemMatcher": "$msCompile",
+			"type": "process"
+		},
+		{
+			"args": [
+				"build",
+				"-c",
+				"Release",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"command": "dotnet",
+			"options": {
+				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+			},
+			"osx": {
+				"options": {
+					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				}
+			},
+			"group": "build",
+			"label": "build-app-release",
+			"problemMatcher": "$msCompile",
+			"type": "process"
+		}
+
+		/*
+		{
+			"args": [
+				"build",
+				"-c",
+				"Debug",
+				"/property:GenerateFullPaths=true",
+				"/consoleloggerparameters:NoSummary"
+			],
+			"command": "dotnet",
+			"options": {
 				"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
 			},
 			"group": {
@@ -40,5 +89,6 @@
 			"problemMatcher": "$msCompile",
 			"type": "process"
 		}
+		*/
 	]
 }
