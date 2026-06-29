@@ -115,7 +115,7 @@
 					Directory="DesktopFolder"
 					Icon="AppIcon"
 					Id="ApplicationDesktopShortcut"
-					Name="$(var.AppName)"
+					Name="$(var.AppNameParted)"
 					Target="[!AppExe]"
 					WorkingDirectory="APPLICATIONFOLDER" />
 

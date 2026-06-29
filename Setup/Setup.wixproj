@@ -8,7 +8,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppNameParted=$(AppNameParted)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>

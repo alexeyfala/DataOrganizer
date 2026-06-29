@@ -46,7 +46,7 @@
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
 				 AppIconPath=$(AppIconPath);
-				 AppName=$(AppName);
+				 AppNameParted=$(AppNameParted);
 				 AppNameAsOneWord=$(AppNameAsOneWord);
 				 AppVersion=$(AppVersion);
 				 Configuration=$(Configuration);

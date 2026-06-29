@@ -101,12 +101,12 @@ public static class AppUtils
 			.GetExecutingAssembly()
 			.GetCustomAttributes<AssemblyMetadataAttribute>()];
 
-		AppNameAsOneWord = attributes
-			.First(x => x.Key == "AppNameAsOneWord")
-			.Value!;
-
 		AppNameParted = attributes
 			.First(x => x.Key == "AppNameParted")
+			.Value!;
+
+		AppNameAsOneWord = attributes
+			.First(x => x.Key == "AppNameAsOneWord")
 			.Value!;
 	}
 	#endregion
