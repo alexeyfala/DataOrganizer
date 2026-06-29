@@ -58,7 +58,7 @@ public sealed class NotificationService : INotificationService
 
 			ToastWindow window = _viewFactory.CreateWindow<ToastWindow>(viewModel);
 
-			viewModel.Title = AppUtils.AppName;
+			viewModel.Title = AppUtils.AppNameParted;
 
 			viewModel.Message = message;
 

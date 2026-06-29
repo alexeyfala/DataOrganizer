@@ -15,19 +15,21 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// Application name "Data Organizer".
+	/// Application name "DataOrganizer".
 	/// </summary>
-	public static string AppName => "Data Organizer";
+	public static string AppName { get; }
 
 	/// <summary>
-	/// Application name "DataOrganizer" in one word.
+	/// Application name "Data Organizer".
 	/// </summary>
-	public static string AppNameAsOneWord => "DataOrganizer";
+	public static string AppNameParted { get; }
 
 	/// <summary>
 	/// Application version.
 	/// </summary>
-	public static string? AppVersion { get; } = Assembly.GetEntryAssembly()?.GetVersionWithSuffix() ?? "unknown";
+	public static string? AppVersion { get; } = Assembly
+		.GetEntryAssembly()?
+		.GetVersionWithSuffix() ?? "unknown";
 
 	/// <summary>
 	/// Current operating system.
@@ -72,7 +74,7 @@ public static class AppUtils
 	/// <summary>
 	/// The name of the program for opening files depending on the operating system.
 	/// </summary>
-	public static string PlatformSpecificExplorer { get; }
+	public static string PlatformSpecificExplorer { get; } = GetPlatformSpecificExplorer();
 
 	/// <summary>
 	/// Delay in milliseconds for displaying the tip.
@@ -95,21 +97,21 @@ public static class AppUtils
 	#region Constructors
 	static AppUtils()
 	{
-		// This property must be initialized in the constructor, not directly,
-		// otherwise, a System.TypeInitializationException exception is thrown.
-		PlatformSpecificExplorer = GetPlatformSpecificExplorer();
+		AssemblyMetadataAttribute[] attributes = [.. Assembly
+			.GetExecutingAssembly()
+			.GetCustomAttributes<AssemblyMetadataAttribute>()];
+
+		AppName = attributes
+			.First(x => x.Key == "AppName")
+			.Value!;
+
+		AppNameParted = attributes
+			.First(x => x.Key == "AppNameParted")
+			.Value!;
 	}
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Generates a random file name.
-	/// </summary>
-	public static string CreateRandomFileName(int length)
-	{
-		return $"{CreateRandomString(length)}_file.{CreateRandomString(3).ToLower()}";
-	}
-
 	/// <summary>
 	/// Generates a random string in upper case of the required length.
 	/// </summary>

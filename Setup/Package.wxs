@@ -52,7 +52,7 @@
 		-->
 		<Property
 			Id="ApplicationFolderName"
-			Value="$(var.AppNameAsOneWord)" />
+			Value="$(var.AppName)" />
 
 		<Property
 			Id="WixAppFolder"
@@ -95,7 +95,7 @@
 			ConfigurableDirectory="APPLICATIONFOLDER"
 			Description="The core elements that must be installed"
 			Id="Main"
-			Title="$(var.AppName) Application">
+			Title="$(var.AppNameParted) Application">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 

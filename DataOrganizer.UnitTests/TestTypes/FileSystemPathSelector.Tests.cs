@@ -1,7 +1,7 @@
 ﻿using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
 using DataOrganizer.Views;
-using Shared.Common;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -19,7 +19,7 @@ internal class FileSystemPathSelectorTests
 		FileSystemPathSelector sut = new()
 		{
 			// Act
-			Path = AppUtils.CreateRandomFileName(10)
+			Path = TestUtils.CreateRandomFileName(10)
 		};
 
 		// Assert
@@ -37,7 +37,7 @@ internal class FileSystemPathSelectorTests
 		// Arrange
 		FileSystemPathSelector sut = new()
 		{
-			Path = AppUtils.CreateRandomFileName(10)
+			Path = TestUtils.CreateRandomFileName(10)
 		};
 
 		// Act

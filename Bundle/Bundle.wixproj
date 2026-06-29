@@ -13,7 +13,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
@@ -46,8 +46,8 @@
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
 				 AppIconPath=$(AppIconPath);
+				 AppNameParted=$(AppNameParted);
 				 AppName=$(AppName);
-				 AppNameAsOneWord=$(AppNameAsOneWord);
 				 AppVersion=$(AppVersion);
 				 Configuration=$(Configuration);
 				 Manufacturer=$(Manufacturer);

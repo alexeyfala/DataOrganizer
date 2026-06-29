@@ -3,13 +3,13 @@
 		<AcceptEula>wix7</AcceptEula>
 		<OutputName>$(MsiOutputName)</OutputName>
 		<OutputPath>..\Publish</OutputPath>
-		<ProjectReferenceName>$(AppNameAsOneWord).Desktop</ProjectReferenceName>
+		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
 		<Cultures>$(SetupCulture)</Cultures>
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppNameParted=$(AppNameParted)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
 		<DefineConstants>$(DefineConstants);SetupCulture=$(SetupCulture)</DefineConstants>

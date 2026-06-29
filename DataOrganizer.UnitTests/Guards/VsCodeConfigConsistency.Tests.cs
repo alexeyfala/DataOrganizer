@@ -14,7 +14,7 @@ internal class VsCodeConfigConsistencyTests
 	private const string AppNameConfigReference = "${config:app.name}";
 
 	// MSBuild property holding the one-word app name, the canonical source of the name.
-	private const string AppNamePropertyName = "AppNameAsOneWord";
+	private const string AppNamePropertyName = "AppName";
 
 	// Custom VS Code setting that mirrors the MSBuild property for ${config:app.name} references.
 	private const string AppNameSettingKey = "app.name";
@@ -22,10 +22,10 @@ internal class VsCodeConfigConsistencyTests
 
 	#region Methods
 	/// <summary>
-	/// The "app.name" setting in .vscode/settings.json equals AppNameAsOneWord in Directory.Build.props.
+	/// The "app.name" setting in .vscode/settings.json equals AppName in Directory.Build.props.
 	/// </summary>
 	[Test]
-	public void SettingsAppName_Matches_DirectoryBuildProps_AppNameAsOneWord()
+	public void SettingsAppName_Matches_DirectoryBuildProps_AppName()
 	{
 		// Arrange
 		string expected = ReadAppNameFromDirectoryBuildProps();
@@ -93,7 +93,7 @@ internal class VsCodeConfigConsistencyTests
 	}
 
 	/// <summary>
-	/// Reads AppNameAsOneWord from Directory.Build.props at the repository root.
+	/// Reads AppName from Directory.Build.props at the repository root.
 	/// </summary>
 	private static string ReadAppNameFromDirectoryBuildProps()
 	{

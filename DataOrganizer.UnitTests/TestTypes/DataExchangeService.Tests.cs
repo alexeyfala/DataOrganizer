@@ -226,7 +226,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -283,7 +283,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(picker);
 
@@ -324,7 +324,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -381,7 +381,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			dbAccess
 				.ClearDatabaseAsync()
@@ -440,7 +440,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			dbAccess
 				.IsValidSQLiteDatabase(Arg.Any<string>())
@@ -485,7 +485,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			dbAccess
 				.ClearDatabaseAsync()

@@ -36,5 +36,5 @@
 		Complete name of the application that appears everywhere.
 		Guarantees the name is unique across all the setup project.
 	-->
-	<?define FullName = "$(var.AppNameAsOneWord)-$(var.AppVersion)$(var.PlatformInName)$(var.ProgramConfig)"?>
+	<?define FullName = "$(var.AppName)-$(var.AppVersion)$(var.PlatformInName)$(var.ProgramConfig)"?>
 </Include>

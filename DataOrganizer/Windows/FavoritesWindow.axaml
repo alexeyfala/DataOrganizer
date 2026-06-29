@@ -54,7 +54,7 @@
 					VerticalAlignment="Center"
 					FontWeight="SemiBold"
 					Foreground="{StaticResource LightForeground}"
-					Text="{x:Static common:AppUtils.AppName}" />
+					Text="{x:Static common:AppUtils.AppNameParted}" />
 
 				<ToggleSwitch
 					Grid.Column="3"

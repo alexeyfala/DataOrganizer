@@ -7,7 +7,7 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:system="using:System"
 	xmlns:themes="using:Material.Styles.Themes"
-	Name="{x:Static common:AppUtils.AppName}">
+	Name="{x:Static common:AppUtils.AppNameParted}">
 
 	<Application.Resources>
 		<ResourceDictionary>
