@@ -1,5 +1,5 @@
 {
-	// Hide build output folders from the Explorer, search and Quick Open (Visual Studio-like).
+	"app.name": "DataOrganizer",
 	"files.exclude": {
 		"**/bin": true,
 		"**/obj": true

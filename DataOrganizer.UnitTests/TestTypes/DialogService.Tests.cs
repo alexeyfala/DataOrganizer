@@ -1,5 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Controls;
+using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Interfaces;
@@ -14,6 +16,91 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class DialogServiceTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: when confirmed but the input is blank,
+	/// returns an empty array and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_But_Blank_Returns_Empty()
+	{
+		// Arrange
+		// Non-interned blank: the finally branch wipes it in place, which would corrupt a literal.
+		string typed = new(' ', 3);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+
+		input.Text
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: when confirmed with non-blank input,
+	/// returns the typed characters, wipes the source string and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_Returns_Characters_And_Wipes_Source()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+
+		// Assert
+		result
+			.Should()
+			.Equal('s', 'e', 'c', 'r', 'e', 't');
+
+		input.Text
+			.Should()
+			.BeNull();
+
+		typed
+			.Should()
+			.Be(new string('\0', typed.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel, returns an empty array,
+	/// wipes the typed text in place and clears the input.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Not_Confirmed_Returns_Empty_And_Wipes_Input()
+	{
+		// Arrange
+		// new string(...) builds a non-interned instance: wiping a literal would corrupt the intern pool.
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new() { Text = typed };
+
+		// Act
+		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: false);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+
+		input.Text
+			.Should()
+			.BeNull();
+
+		typed
+			.Should()
+			.Be(new string('\0', typed.Length));
+	}
+
 	/// <summary>
 	/// <see cref="DialogService.RequestPasswordAsync" />: posts the work to the dispatcher and returns a task that is still pending.
 	/// </summary>
