@@ -4,13 +4,15 @@
 		{
 			"args": [
 				"build",
-				"${workspaceFolder}/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj",
 				"-c",
 				"Debug",
 				"/property:GenerateFullPaths=true",
 				"/consoleloggerparameters:NoSummary"
 			],
 			"command": "dotnet",
+			"options": {
+				"cwd": "${workspaceFolder}/DataOrganizer.MacOS"
+			},
 			"group": {
 				"kind": "build",
 				"isDefault": true
@@ -23,13 +25,15 @@
 		{
 			"args": [
 				"build",
-				"${workspaceFolder}/DataOrganizer.MacOS/DataOrganizer.MacOS.csproj",
 				"-c",
 				"Release",
 				"/property:GenerateFullPaths=true",
 				"/consoleloggerparameters:NoSummary"
 			],
 			"command": "dotnet",
+			"options": {
+				"cwd": "${workspaceFolder}/DataOrganizer.MacOS"
+			},
 			"group": "build",
 			// Builds the macOS app head in Release. Used as preLaunchTask for the Release launch.
 			"label": "build-macos-release",
