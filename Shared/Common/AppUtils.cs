@@ -17,17 +17,19 @@ public static class AppUtils
 	/// <summary>
 	/// Application name "Data Organizer".
 	/// </summary>
-	public static string AppName => "Data Organizer";
+	public static string AppName { get; }
 
 	/// <summary>
 	/// Application name "DataOrganizer" in one word.
 	/// </summary>
-	public static string AppNameAsOneWord => "DataOrganizer";
+	public static string AppNameAsOneWord { get; }
 
 	/// <summary>
 	/// Application version.
 	/// </summary>
-	public static string? AppVersion { get; } = Assembly.GetEntryAssembly()?.GetVersionWithSuffix() ?? "unknown";
+	public static string? AppVersion { get; } = Assembly
+		.GetEntryAssembly()?
+		.GetVersionWithSuffix() ?? "unknown";
 
 	/// <summary>
 	/// Current operating system.
@@ -95,6 +97,18 @@ public static class AppUtils
 	#region Constructors
 	static AppUtils()
 	{
+		AssemblyMetadataAttribute[] attributes = [.. Assembly
+			.GetExecutingAssembly()
+			.GetCustomAttributes<AssemblyMetadataAttribute>()];
+
+		AppName = attributes
+			.First(x => x.Key == "AppName")
+			.Value!;
+
+		AppNameAsOneWord = attributes
+			.First(x => x.Key == "AppNameAsOneWord")
+			.Value!;
+
 		// This property must be initialized in the constructor, not directly,
 		// otherwise, a System.TypeInitializationException exception is thrown.
 		PlatformSpecificExplorer = GetPlatformSpecificExplorer();
