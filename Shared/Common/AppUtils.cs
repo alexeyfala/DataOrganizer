@@ -25,6 +25,11 @@ public static class AppUtils
 	public static string AppNameAsOneWord { get; }
 
 	/// <summary>
+	/// Application name "Data Organizer".
+	/// </summary>
+	public static string AppNameParted { get; }
+
+	/// <summary>
 	/// Application version.
 	/// </summary>
 	public static string? AppVersion { get; } = Assembly
@@ -103,6 +108,10 @@ public static class AppUtils
 
 		AppName = attributes
 			.First(x => x.Key == "AppName")
+			.Value!;
+
+		AppNameParted = attributes
+			.First(x => x.Key == "AppNameParted")
 			.Value!;
 
 		AppNameAsOneWord = attributes

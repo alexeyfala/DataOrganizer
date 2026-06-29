@@ -1,6 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<AppName>Data Organizer</AppName>
+		<AppNameParted>Data Organizer</AppNameParted>
 		<AppNameAsOneWord>DataOrganizer</AppNameAsOneWord>
 		<AppIconPath>..\$(AppNameAsOneWord)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.0.1</AppVersion>
