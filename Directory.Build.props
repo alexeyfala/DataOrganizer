@@ -10,7 +10,6 @@
 			Configuration (default Debug) as Debug, so a bare build is named correctly.
 		-->
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-Debug</_DebugSuffix>
-		
 		<MsiOutputName>$(AppNameAsOneWord)-$(AppVersion)-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>ru-ru</SetupCulture>
 	</PropertyGroup>
