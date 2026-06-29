@@ -11,7 +11,7 @@
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/DataOrganizer.MacOS"
+				"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
 			},
 			"group": {
 				"kind": "build",
@@ -32,7 +32,7 @@
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/DataOrganizer.MacOS"
+				"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
 			},
 			"group": "build",
 			// Builds the macOS app head in Release. Used as preLaunchTask for the Release launch.

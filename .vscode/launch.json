@@ -4,11 +4,11 @@
 		{
 			"args": [],
 			"console": "internalConsole",
-			"cwd": "${workspaceFolder}/DataOrganizer.MacOS",
+			"cwd": "${workspaceFolder}/${config:app.name}.MacOS",
 			// Launches the macOS app head (Debug). Runs the executable inside the .app bundle.
 			"name": ".NET Launch (macOS, Debug)",
 			"preLaunchTask": "build-macos",
-			"program": "${workspaceFolder}/DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app/Contents/MacOS/DataOrganizer",
+			"program": "${workspaceFolder}/${config:app.name}.MacOS/bin/Debug/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}",
 			"request": "launch",
 			"stopAtEntry": false,
 			"type": "coreclr"
@@ -16,11 +16,11 @@
 		{
 			"args": [],
 			"console": "internalConsole",
-			"cwd": "${workspaceFolder}/DataOrganizer.MacOS",
+			"cwd": "${workspaceFolder}/${config:app.name}.MacOS",
 			// Same as above but Release (bin/Release + build-macos-release task).
 			"name": ".NET Launch (macOS, Release)",
 			"preLaunchTask": "build-macos-release",
-			"program": "${workspaceFolder}/DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app/Contents/MacOS/DataOrganizer",
+			"program": "${workspaceFolder}/${config:app.name}.MacOS/bin/Release/net10.0-macos/osx-x64/${config:app.name}.app/Contents/MacOS/${config:app.name}",
 			"request": "launch",
 			"stopAtEntry": false,
 			"type": "coreclr"
