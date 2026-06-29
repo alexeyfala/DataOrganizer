@@ -74,7 +74,7 @@ public static class AppUtils
 	/// <summary>
 	/// The name of the program for opening files depending on the operating system.
 	/// </summary>
-	public static string PlatformSpecificExplorer { get; }
+	public static string PlatformSpecificExplorer { get; } = GetPlatformSpecificExplorer();
 
 	/// <summary>
 	/// Delay in milliseconds for displaying the tip.
@@ -108,22 +108,10 @@ public static class AppUtils
 		AppNameAsOneWord = attributes
 			.First(x => x.Key == "AppNameAsOneWord")
 			.Value!;
-
-		// This property must be initialized in the constructor, not directly,
-		// otherwise, a System.TypeInitializationException exception is thrown.
-		PlatformSpecificExplorer = GetPlatformSpecificExplorer();
 	}
 	#endregion
 
 	#region Methods
-	/// <summary>
-	/// Generates a random file name.
-	/// </summary>
-	public static string CreateRandomFileName(int length)
-	{
-		return $"{CreateRandomString(length)}_file.{CreateRandomString(3).ToLower()}";
-	}
-
 	/// <summary>
 	/// Generates a random string in upper case of the required length.
 	/// </summary>
