@@ -140,7 +140,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(dialogService);
 
@@ -310,7 +310,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(AppUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateRandomFileName(10));
 
 			builder.RegisterInstance(encryption);
 
@@ -865,7 +865,7 @@ internal class EntityEncryptionTests
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
 			Contents = [],
 			EncryptedDek = null,
 			Files = [],
@@ -910,7 +910,7 @@ internal class EntityEncryptionTests
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
 			Contents = [],
 			EncryptedDek = null,
 			Files = [],
@@ -968,7 +968,7 @@ internal class EntityEncryptionTests
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = AppUtils.CreateRandomFileName(10),
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
 			Contents = [],
 			EncryptedDek = TestUtils.CreateRandomBytes(10),
 			Files = files,

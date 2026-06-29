@@ -320,6 +320,14 @@ public static class TestUtils
 	}
 
 	/// <summary>
+	/// Generates a random file name.
+	/// </summary>
+	public static string CreateRandomFileName(int length)
+	{
+		return $"{AppUtils.CreateRandomString(length)}_file.{AppUtils.CreateRandomString(3).ToLower()}";
+	}
+
+	/// <summary>
 	/// Generates a random <see cref="int" /> number within a given range.
 	/// </summary>
 	public static int CreateRandomInt(int minValue, int maxValue)

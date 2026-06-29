@@ -13,7 +13,6 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.Interfaces;
-using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
@@ -71,8 +70,8 @@ internal class FileChangeTrackerTests
 		{
 			Contents = parametersContents,
 			File = TestUtils.CreateFileDto(),
-			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10)
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10)
 		};
 
 		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -157,8 +156,8 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
-			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10),
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
 
@@ -216,8 +215,8 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
-			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10)
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10)
 		};
 
 		// Act
@@ -302,8 +301,8 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
-			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10),
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10),
 			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
 		};
 
@@ -389,8 +388,8 @@ internal class FileChangeTrackerTests
 		{
 			Contents = TestUtils.CreateRandomBytes(10),
 			File = TestUtils.CreateFileDto(),
-			FileName = AppUtils.CreateRandomFileName(10),
-			FilePath = AppUtils.CreateRandomFileName(10)
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10)
 		};
 
 		DateTime before = DateTime.Now;
