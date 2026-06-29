@@ -19,7 +19,7 @@
 	<Bundle
 		DisableModify="yes"
 		IconSourceFile="$(AppIconPath)"
-		Id="$(AppNameAsOneWord).Bundle"
+		Id="$(AppName).Bundle"
 		Manufacturer="$(Manufacturer)"
 		Name="$(MsiOutputName)-Bundle"
 		UpgradeCode="2FDD5C1E-392E-4B5A-8454-D4D6D35E7B0D"

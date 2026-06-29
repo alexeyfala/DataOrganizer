@@ -167,7 +167,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			DefaultExtension = JsonExt.TrimStart('.'),
 			FileTypeChoices = ExportFilePickerTypes,
 			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppNameAsOneWord,
+			SuggestedFileName = AppUtils.AppName,
 			Title = Strings.SaveAs
 		};
 

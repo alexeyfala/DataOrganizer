@@ -1,9 +1,8 @@
 <Project>
 	<PropertyGroup>
-		<AppName>Data Organizer</AppName>
+		<AppName>DataOrganizer</AppName>
 		<AppNameParted>Data Organizer</AppNameParted>
-		<AppNameAsOneWord>DataOrganizer</AppNameAsOneWord>
-		<AppIconPath>..\$(AppNameAsOneWord)\Assets\Logo.ico</AppIconPath>
+		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.0.1</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
 		<!--
@@ -11,7 +10,7 @@
 			Configuration (default Debug) as Debug, so a bare build is named correctly.
 		-->
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-Debug</_DebugSuffix>
-		<MsiOutputName>$(AppNameAsOneWord)-$(AppVersion)-$(Platform)$(_DebugSuffix)</MsiOutputName>
+		<MsiOutputName>$(AppName)-$(AppVersion)-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>ru-ru</SetupCulture>
 	</PropertyGroup>
 </Project>

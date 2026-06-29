@@ -6,12 +6,12 @@
 		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<RuntimeIdentifier>osx-x64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
-		<ApplicationIcon>..\DataOrganizer\Assets\Logo.ico</ApplicationIcon>
+		<ApplicationIcon>..\$(AppName)\Assets\Logo.ico</ApplicationIcon>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 		<ApplicationDisplayVersion>$(AppVersion)</ApplicationDisplayVersion>
 		<ApplicationVersion>$(AppVersion)</ApplicationVersion>
-		<AssemblyName>$(AppNameAsOneWord)</AssemblyName>
+		<AssemblyName>$(AppName)</AssemblyName>
 		<NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
 		<SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
 		<!--To exclude the source revision (git commit hash) in the AssemblyInformationalVersionAttribute-->

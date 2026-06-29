@@ -4,8 +4,8 @@
 		<Nullable>enable</Nullable>
 		<WarningsAsErrors>nullable</WarningsAsErrors>
 		<LangVersion>latest</LangVersion>
-		<RootNamespace>$(AppNameAsOneWord)</RootNamespace>
-		<AssemblyName>$(AppNameAsOneWord)Main</AssemblyName>
+		<RootNamespace>$(AppName)</RootNamespace>
+		<AssemblyName>$(AppName)Main</AssemblyName>
 		<FileVersion>$(AppVersion)</FileVersion>
 		<AssemblyVersion>$(AppVersion)</AssemblyVersion>
 		<!-- Required by [LibraryImport] source generator (writes unsafe interop stubs). -->

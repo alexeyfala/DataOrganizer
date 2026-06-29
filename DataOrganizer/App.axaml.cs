@@ -88,7 +88,7 @@ public sealed class App : Application
 
 			string filePath = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-				$"{AppUtils.AppNameAsOneWord}_Critical_Errors{AppUtils.TxtExtension}");
+				$"{AppUtils.AppName}_Critical_Errors{AppUtils.TxtExtension}");
 
 			File.AppendAllText(
 				filePath,
@@ -151,7 +151,7 @@ public sealed class App : Application
 
 			string dataSource = Path.Combine(
 				directoryPath,
-				AppUtils.AppNameAsOneWord + AppUtils.SQLiteExtension);
+				AppUtils.AppName + AppUtils.SQLiteExtension);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{

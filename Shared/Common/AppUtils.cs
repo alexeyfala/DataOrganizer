@@ -15,9 +15,9 @@ public static class AppUtils
 {
 	#region Properties
 	/// <summary>
-	/// Application name "DataOrganizer" in one word.
+	/// Application name "DataOrganizer".
 	/// </summary>
-	public static string AppNameAsOneWord { get; }
+	public static string AppName { get; }
 
 	/// <summary>
 	/// Application name "Data Organizer".
@@ -101,12 +101,12 @@ public static class AppUtils
 			.GetExecutingAssembly()
 			.GetCustomAttributes<AssemblyMetadataAttribute>()];
 
-		AppNameParted = attributes
-			.First(x => x.Key == "AppNameParted")
+		AppName = attributes
+			.First(x => x.Key == "AppName")
 			.Value!;
 
-		AppNameAsOneWord = attributes
-			.First(x => x.Key == "AppNameAsOneWord")
+		AppNameParted = attributes
+			.First(x => x.Key == "AppNameParted")
 			.Value!;
 	}
 	#endregion

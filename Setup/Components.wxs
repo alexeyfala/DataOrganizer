@@ -37,7 +37,7 @@
 					Checksum="yes"
 					Id="AppExe"
 					KeyPath="yes"
-					Name="$(var.AppNameAsOneWord).exe"
+					Name="$(var.AppName).exe"
 					Source="$(var.DotNetPublishPath)\" />
 			</Component>
 
@@ -45,7 +45,7 @@
 				Include all other files and folders.
 			-->
 			<Files Include="!(bindpath.$(var.SourceProjectName))\Publish\**">
-				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppNameAsOneWord).exe" />
+				<Exclude Files="!(bindpath.$(var.SourceProjectName))\Publish\$(var.AppName).exe" />
 			</Files>
 
 			<Component
@@ -86,7 +86,7 @@
 					Note: A key path must be unique across all components.
 				-->
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
+					Key="Software\$(var.Manufacturer)\$(var.AppName)"
 					KeyPath="yes"
 					Name="installed"
 					Root="HKCU"
@@ -120,7 +120,7 @@
 					WorkingDirectory="APPLICATIONFOLDER" />
 
 				<RegistryValue
-					Key="Software\$(var.Manufacturer)\$(var.AppNameAsOneWord)"
+					Key="Software\$(var.Manufacturer)\$(var.AppName)"
 					KeyPath="yes"
 					Name="shortcut_installed"
 					Root="HKCU"

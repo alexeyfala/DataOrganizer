@@ -13,7 +13,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameAsOneWord=$(AppNameAsOneWord)</DefineConstants>
+		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
 		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);DotNetVersion=$(DotNetVersion)</DefineConstants>
 		<DefineConstants>$(DefineConstants);LCID=$(LCID)</DefineConstants>
@@ -47,7 +47,7 @@
 				 Properties="
 				 AppIconPath=$(AppIconPath);
 				 AppNameParted=$(AppNameParted);
-				 AppNameAsOneWord=$(AppNameAsOneWord);
+				 AppName=$(AppName);
 				 AppVersion=$(AppVersion);
 				 Configuration=$(Configuration);
 				 Manufacturer=$(Manufacturer);

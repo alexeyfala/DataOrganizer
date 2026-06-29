@@ -52,7 +52,7 @@
 		-->
 		<Property
 			Id="ApplicationFolderName"
-			Value="$(var.AppNameAsOneWord)" />
+			Value="$(var.AppName)" />
 
 		<Property
 			Id="WixAppFolder"
