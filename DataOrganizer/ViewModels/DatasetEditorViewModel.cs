@@ -32,7 +32,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
