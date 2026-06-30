@@ -44,6 +44,11 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public bool IsContentCorrupted { get; protected set; }
 
 	/// <summary>
+	/// <c>True</c> when the file contents are encrypted with a session key.
+	/// </summary>
+	public bool IsEncrypted => SessionEncryptedDek is not null;
+
+	/// <summary>
 	/// <c>True</c> when the editor has been initialized at least once.
 	/// </summary>
 	public bool IsInitialized { get; protected set; }

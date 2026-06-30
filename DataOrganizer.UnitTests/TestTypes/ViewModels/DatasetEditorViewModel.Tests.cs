@@ -576,6 +576,31 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: reflects whether a session key is present.
+	/// </summary>
+	[Test]
+	public void IsEncrypted_Reflects_SessionEncryptedDek()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Assert
+		sut.IsEncrypted
+			.Should()
+			.BeFalse();
+
+		// Act
+		sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+
+		// Assert
+		sut.IsEncrypted
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: persists the content only when not read-only.
 	/// </summary>
 	[Test]

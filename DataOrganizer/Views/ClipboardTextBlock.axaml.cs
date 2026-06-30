@@ -123,6 +123,15 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when the tooltip must not be shown, in addition to the hidden state.
+	/// </summary>
+	public bool IsToolTipDisabled
+	{
+		get => GetValue(IsToolTipDisabledProperty);
+		set => SetValue(IsToolTipDisabledProperty, value);
+	}
+
+	/// <summary>
 	/// Note.
 	/// </summary>
 	public string? Note
@@ -220,6 +229,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsNoteVisibleProperty = AvaloniaProperty
 		.Register<ClipboardTextBlock, bool>(name: nameof(IsNoteVisible));
+
+	/// <summary>
+	/// Identifies the <see cref="IsToolTipDisabled" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsToolTipDisabledProperty = AvaloniaProperty
+		.Register<ClipboardTextBlock, bool>(name: nameof(IsToolTipDisabled));
 
 	/// <summary>
 	/// Identifies the <see cref="Note" /> avalonia property.

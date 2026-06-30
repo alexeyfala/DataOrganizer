@@ -42,7 +42,19 @@
 					Text="{Binding DisplayText, Mode=OneWay}">
 
 					<Interaction.Behaviors>
-						<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
+						<behaviors:TextBlockAutoToolTipBehavior>
+							<behaviors:TextBlockAutoToolTipBehavior.IsDisabled>
+								<MultiBinding Converter="{x:Static BoolConverters.Or}">
+									<Binding
+										Mode="OneWay"
+										Path="IsHidden" />
+
+									<Binding
+										Mode="OneWay"
+										Path="IsToolTipDisabled" />
+								</MultiBinding>
+							</behaviors:TextBlockAutoToolTipBehavior.IsDisabled>
+						</behaviors:TextBlockAutoToolTipBehavior>
 					</Interaction.Behaviors>
 				</TextBlock>
 
@@ -52,7 +64,19 @@
 					NavigateUri="{Binding Text, Mode=OneWay}">
 					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
-							<behaviors:TextBlockAutoToolTipBehavior IsDisabled="{Binding IsHidden, Mode=OneWay}" />
+							<behaviors:TextBlockAutoToolTipBehavior>
+								<behaviors:TextBlockAutoToolTipBehavior.IsDisabled>
+									<MultiBinding Converter="{x:Static BoolConverters.Or}">
+										<Binding
+											Mode="OneWay"
+											Path="IsHidden" />
+
+										<Binding
+											Mode="OneWay"
+											Path="IsToolTipDisabled" />
+									</MultiBinding>
+								</behaviors:TextBlockAutoToolTipBehavior.IsDisabled>
+							</behaviors:TextBlockAutoToolTipBehavior>
 						</Interaction.Behaviors>
 					</TextBlock>
 				</HyperlinkButton>
