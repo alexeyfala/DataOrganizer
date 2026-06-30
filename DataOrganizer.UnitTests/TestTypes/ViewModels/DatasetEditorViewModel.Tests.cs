@@ -43,8 +43,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -108,8 +108,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -171,8 +171,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -244,7 +244,7 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
 
 			jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(Arg.Any<string>())
+				.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>())
 				.Returns(records);
 
 			builder.RegisterInstance(dbAccess);
@@ -307,7 +307,7 @@ internal class DatasetEditorViewModelTests
 
 		jsonSerializer
 			.DidNotReceive()
-			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
+			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -328,8 +328,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -382,8 +382,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -427,8 +427,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -473,8 +473,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -518,8 +518,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -589,8 +589,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -633,8 +633,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -681,8 +681,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -755,8 +755,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 

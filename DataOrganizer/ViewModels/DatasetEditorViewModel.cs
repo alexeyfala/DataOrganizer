@@ -9,7 +9,6 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
@@ -95,12 +94,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			try
 			{
-				string json = TextHelper
-					.Utf8Encoding
-					.GetString(output);
-
 				Records.AddRange(_jsonSerializer
-					.Deserialize<DatasetRecordBase[]>(json)
+					.Deserialize<DatasetRecordBase[]>(output)
 					.AsNotNull());
 
 				if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
@@ -1208,9 +1203,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private async Task SaveContentsAsync(CancellationToken token = default)
 	{
-		byte[] contents = TextHelper
-			.Utf8Encoding
-			.GetBytes(_jsonSerializer.Serialize(Records));
+		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
 		if (TryToEncrypt(contents) is not { } output)
 		{
