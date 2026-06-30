@@ -1,5 +1,7 @@
 {
 	"app.name": "DataOrganizer",
+	"build.fullPathsArg": "/property:GenerateFullPaths=true",
+	"build.noSummaryArg": "/consoleloggerparameters:NoSummary",
 	"files.exclude": {
 		"**/bin": true,
 		"**/obj": true

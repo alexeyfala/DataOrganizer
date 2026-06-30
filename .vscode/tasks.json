@@ -6,19 +6,23 @@
 				"build",
 				"-c",
 				"Debug",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
+				"${config:build.fullPathsArg}",
+				"${config:build.noSummaryArg}"
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+			},
+			"osx": {
+				"options": {
+					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				}
 			},
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
-			// Builds the macOS app head in Debug. Used as preLaunchTask for the Debug launch.
-			"label": "build-macos",
+			"label": "build-app",
 			"problemMatcher": "$msCompile",
 			"type": "process"
 		},
@@ -27,16 +31,20 @@
 				"build",
 				"-c",
 				"Release",
-				"/property:GenerateFullPaths=true",
-				"/consoleloggerparameters:NoSummary"
+				"${config:build.fullPathsArg}",
+				"${config:build.noSummaryArg}"
 			],
 			"command": "dotnet",
 			"options": {
-				"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				"cwd": "${workspaceFolder}/${config:app.name}.Desktop"
+			},
+			"osx": {
+				"options": {
+					"cwd": "${workspaceFolder}/${config:app.name}.MacOS"
+				}
 			},
 			"group": "build",
-			// Builds the macOS app head in Release. Used as preLaunchTask for the Release launch.
-			"label": "build-macos-release",
+			"label": "build-app-release",
 			"problemMatcher": "$msCompile",
 			"type": "process"
 		}
