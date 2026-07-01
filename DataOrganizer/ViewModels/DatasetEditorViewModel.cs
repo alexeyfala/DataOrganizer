@@ -648,6 +648,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		KeyValueRecord record = new()
 		{
+			IsHidden = IsEncrypted,
 			Key = key,
 			Value = value
 		};
@@ -667,6 +668,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		ValueRecord record = new()
 		{
+			IsHidden = IsEncrypted,
 			Value = value
 		};
 

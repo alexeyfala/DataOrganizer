@@ -156,6 +156,51 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: a new record is hidden by default only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		string text = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddKeyValueAsync(text, text, group: null);
+
+		// Assert
+		sut.Records
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<KeyValueRecord>()
+			.Which
+			.IsHidden
+			.Should()
+			.Be(isEncrypted);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddValueAsync" />: adds a value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
@@ -216,6 +261,51 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddValueAsync" />: a new record is hidden by default only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		string text = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddValueAsync(text, group: null);
+
+		// Assert
+		sut.Records
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ValueRecord>()
+			.Which
+			.IsHidden
+			.Should()
+			.Be(isEncrypted);
 	}
 
 	/// <summary>
