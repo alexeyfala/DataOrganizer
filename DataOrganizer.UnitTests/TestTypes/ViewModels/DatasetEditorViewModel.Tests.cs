@@ -506,6 +506,37 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the value input field is masked only when the record is hidden.
+	/// </summary>
+	[Test]
+	public async Task EditKeyValue_Masks_Value_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		KeyValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut.EditKeyValueCommand.ExecuteAsync(record);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isHidden),
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.EditKeyValueAsync" />: updates the record's key and value, persisting only when the values actually changed.
 	/// </summary>
 	[Test]
@@ -598,6 +629,36 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditValueCommand" />: the value input dialog masks the input only when the record is hidden.
+	/// </summary>
+	[Test]
+	public async Task EditValue_Masks_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		ValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut.EditValueCommand.ExecuteAsync(record);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isHidden),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

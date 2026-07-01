@@ -310,6 +310,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			DefaultButtonText = Strings.Save,
 			Key = record.Key,
 			KeyHint = Strings.Key,
+			MaskValueInput = record.IsHidden,
 			Value = record.Value,
 			ValueHint = Strings.Value
 		};
@@ -365,7 +366,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DefaultButtonText = Strings.Save,
 			Key = record.Value,
-			KeyHint = Strings.Edit
+			KeyHint = Strings.Edit,
+			MaskKeyInput = record.IsHidden
 		};
 
 		if (await _dialogService
