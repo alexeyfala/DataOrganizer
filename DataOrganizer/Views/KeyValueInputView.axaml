@@ -42,7 +42,8 @@
 			Grid.Column="0"
 			Grid.ColumnSpan="3"
 			assists:TextFieldAssist.Label="{Binding ValueHint, Mode=OneWay}"
-			Classes="clearButton"
+			Classes.clearButton="{Binding !IsValueMasked, Mode=OneWay}"
+			Classes.revealPasswordButton="{Binding IsValueMasked, Mode=OneWay}"
 			IsVisible="{Binding IsValueInputVisible, Mode=OneWay}"
 			Text="{Binding Value, Mode=TwoWay}"
 			UseFloatingPlaceholder="True" />

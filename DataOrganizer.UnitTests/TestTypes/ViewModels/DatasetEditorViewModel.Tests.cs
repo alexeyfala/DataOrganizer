@@ -93,6 +93,35 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the value input field is masked only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValue_Masks_Value_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddKeyValueCommand.ExecuteAsync((RecordsGroup?)null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isEncrypted),
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: adds a key-value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]

@@ -32,6 +32,12 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial bool IsValueInputVisible { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when the <see cref="Value" /> input field is masked with a reveal button.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsValueMasked { get; set; }
+
+	/// <summary>
 	/// Key.
 	/// </summary>
 	[ObservableProperty]
@@ -88,6 +94,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 		DefaultButtonText = parameters.DefaultButtonText;
 
 		IsKeyMasked = parameters.MaskKeyInput;
+
+		IsValueMasked = parameters.MaskValueInput;
 
 		Key = parameters.Key;
 

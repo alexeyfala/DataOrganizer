@@ -179,6 +179,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			DefaultButtonText = Strings.AddKeyAndValue,
 			KeyHint = Strings.Key,
+			MaskValueInput = IsEncrypted,
 			ValueHint = Strings.Value
 		};
 
