@@ -114,5 +114,29 @@ internal class KeyValueInputViewModelTests
 			.Should()
 			.BeTrue();
 	}
+
+	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Initialize" />: maps the key-input mask flag from the parameters.
+	/// </summary>
+	[Test]
+	public void Initialize_Sets_IsKeyMasked([Values] bool maskKeyInput)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		sut.Initialize(new()
+		{
+			DefaultButtonText = AppUtils.CreateRandomString(10),
+			MaskKeyInput = maskKeyInput
+		});
+
+		// Assert
+		sut.IsKeyMasked
+			.Should()
+			.Be(maskKeyInput);
+	}
 	#endregion
 }

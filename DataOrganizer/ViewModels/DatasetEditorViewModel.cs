@@ -204,7 +204,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddValue,
-			KeyHint = Strings.Name
+			KeyHint = Strings.Name,
+			MaskKeyInput = IsEncrypted
 		};
 
 		if (await _dialogService

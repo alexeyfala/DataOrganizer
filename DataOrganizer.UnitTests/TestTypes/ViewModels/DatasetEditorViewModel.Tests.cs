@@ -2,6 +2,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -19,6 +20,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
@@ -198,6 +200,35 @@ internal class DatasetEditorViewModelTests
 			.IsHidden
 			.Should()
 			.Be(isEncrypted);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddValueCommand" />: the value input dialog masks the input only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddValue_Masks_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddValueCommand.ExecuteAsync((RecordsGroup?)null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isEncrypted),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

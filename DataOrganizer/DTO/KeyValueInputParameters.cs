@@ -19,6 +19,11 @@ public sealed class KeyValueInputParameters
 	public string? KeyHint { get; init; }
 
 	/// <summary>
+	/// <c>True</c> when the <see cref="Key" /> input field is masked with a reveal button.
+	/// </summary>
+	public bool MaskKeyInput { get; init; }
+
+	/// <summary>
 	/// Value.
 	/// </summary>
 	public string? Value { get; init; }
