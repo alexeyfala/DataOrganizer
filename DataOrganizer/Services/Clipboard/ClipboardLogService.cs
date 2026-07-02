@@ -81,7 +81,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
 	/// insert an entry while the log / clipboard is being cleared.
 	/// </summary>
-	private readonly SemaphoreSlim _clearGate = new(1, 1);
+	private readonly IClipboardGate _clearGate;
 
 	/// <inheritdoc cref="IClipboardAccessor" />
 	private readonly IClipboardAccessor _clipboard;
@@ -136,12 +136,15 @@ public sealed class ClipboardLogService : IClipboardLogService
 	#region Constructors
 	public ClipboardLogService(
 		IClipboardAccessor clipboard,
+		IClipboardGate clearGate,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger,
 		IStorageAccessor storage)
 	{
 		_clipboard = clipboard;
+
+		_clearGate = clearGate;
 
 		_dispatcher = dispatcher;
 
@@ -199,7 +202,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			.WaitAsync()
 			.ConfigureAwait(false);
 
-		_clearGate.Dispose();
+		_clearGate.Release();
 	}
 
 	/// <inheritdoc />

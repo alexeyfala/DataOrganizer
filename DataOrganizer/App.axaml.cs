@@ -272,6 +272,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
+		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
 		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
 		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
