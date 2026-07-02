@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -158,8 +159,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				try
 				{
-					await _clipboard
-						.SetTextAsync(text)
+					await (file.EncryptionStatus != EncryptionStatus.None
+						? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+						: _clipboard.SetTextAsync(text))
 						.ConfigureAwait(true);
 				}
 				catch (Exception ex)
