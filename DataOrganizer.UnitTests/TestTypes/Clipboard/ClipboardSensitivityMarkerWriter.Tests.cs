@@ -1,0 +1,70 @@
+using Avalonia.Input;
+using AwesomeAssertions;
+using DataOrganizer.Helpers.Clipboard;
+using Shared.Common;
+
+namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+
+[TestFixture(Description = $@"Tests of ""{nameof(ClipboardSensitivityMarkerWriter)}"" type")]
+internal class ClipboardSensitivityMarkerWriterTests
+{
+	#region Methods
+	/// <summary>
+	/// <see cref="ClipboardSensitivityMarkerWriter.CreateSensitiveText" />: attaches the platform sensitivity marker.
+	/// </summary>
+	[Test]
+	public void CreateSensitiveText_Attaches_Platform_Marker()
+	{
+		// Arrange
+		string identifier = ExpectedMarkerIdentifier();
+
+		// Act
+		IDataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+
+		// Assert
+		transfer
+			.Contains(DataFormat.CreateBytesPlatformFormat(identifier))
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardSensitivityMarkerWriter.CreateSensitiveText" />: carries the text payload.
+	/// </summary>
+	[Test]
+	public void CreateSensitiveText_Carries_Text()
+	{
+		// Arrange
+		string text = AppUtils.CreateRandomString(16);
+
+		// Act
+		IDataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(text);
+
+		// Assert
+		transfer
+			.TryGetText()
+			.Should()
+			.Be(text);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Returns the sensitivity marker identifier the current platform writes.
+	/// </summary>
+	private static string ExpectedMarkerIdentifier()
+	{
+		if (AppUtils.IsWindows)
+		{
+			return ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing;
+		}
+
+		if (AppUtils.IsLinux)
+		{
+			return ClipboardSensitivityMarkers.KdePasswordManagerHint;
+		}
+
+		return ClipboardSensitivityMarkers.NsPasteboardConcealedType;
+	}
+	#endregion
+}

@@ -32,7 +32,7 @@
 				Grid.Column="0"
 				Padding="{StaticResource RecordPadding}"
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
-				IsToolTipDisabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Text="{Binding Key, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
 
@@ -42,7 +42,7 @@
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 				IsHidden="{Binding IsHidden, Mode=TwoWay}"
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
-				IsToolTipDisabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
@@ -68,7 +68,7 @@
 				Padding="{StaticResource RecordPadding}"
 				IsHidden="{Binding IsHidden, Mode=TwoWay}"
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
-				IsToolTipDisabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}" />
@@ -131,7 +131,7 @@
 							<views:ClipboardTextBlock
 								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
-								IsToolTipDisabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
+								IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 								Note="{Binding Note, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}" />
 						</Grid>
