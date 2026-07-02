@@ -272,6 +272,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
+		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
 		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
@@ -280,6 +281,7 @@ public sealed class App : Application
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
