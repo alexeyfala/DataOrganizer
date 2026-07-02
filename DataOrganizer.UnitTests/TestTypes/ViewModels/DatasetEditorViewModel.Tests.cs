@@ -1,11 +1,13 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -458,6 +460,58 @@ internal class DatasetEditorViewModelTests
 		jsonSerializer
 			.DidNotReceive()
 			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.CopyKeyValueToClipboardCommand" />: encrypted copies are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext copies use <see cref="IClipboardAccessor.SetTextAsync" />.
+	/// </summary>
+	[Test]
+	public async Task CopyKeyValueToClipboard_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		KeyValueRecord record = new()
+		{
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.CopyKeyValueToClipboardCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		if (isEncrypted)
+		{
+			await clipboard
+				.Received(1)
+				.SetDataAsync(Arg.Any<DataTransfer>());
+
+			await clipboard
+				.DidNotReceive()
+				.SetTextAsync(Arg.Any<string>());
+		}
+		else
+		{
+			await clipboard
+				.Received(1)
+				.SetTextAsync(Arg.Any<string>());
+
+			await clipboard
+				.DidNotReceive()
+				.SetDataAsync(Arg.Any<DataTransfer>());
+		}
 	}
 
 	/// <summary>

@@ -9,6 +9,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
@@ -236,10 +237,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
+		string text = $"{record.Key}    {record.Value}";
+
 		try
 		{
-			await _clipboard
-				.SetTextAsync($"{record.Key}    {record.Value}")
+			await (IsEncrypted
+				? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+				: _clipboard.SetTextAsync(text))
 				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
