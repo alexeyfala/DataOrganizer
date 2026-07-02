@@ -10,6 +10,44 @@ internal class ClipboardSensitivityMarkerWriterTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker" />: returns <c>false</c> for foreign clipboard content.
+	/// </summary>
+	[Test]
+	public void ContainsOwnershipMarker_Is_False_For_Foreign_Content()
+	{
+		// Arrange
+		DataTransferItem item = new();
+
+		item.SetText(AppUtils.CreateRandomString(16));
+
+		DataTransfer transfer = new();
+
+		transfer.Add(item);
+
+		// Assert
+		ClipboardSensitivityMarkerWriter
+			.ContainsOwnershipMarker(transfer.Formats)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardSensitivityMarkerWriter.CreateSensitiveText" />: attaches the ownership marker, and <see cref="ClipboardSensitivityMarkerWriter.ContainsOwnershipMarker" /> detects it.
+	/// </summary>
+	[Test]
+	public void CreateSensitiveText_Attaches_Ownership_Marker()
+	{
+		// Act
+		DataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+
+		// Assert
+		ClipboardSensitivityMarkerWriter
+			.ContainsOwnershipMarker(transfer.Formats)
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardSensitivityMarkerWriter.CreateSensitiveText" />: attaches the platform sensitivity marker.
 	/// </summary>
 	[Test]

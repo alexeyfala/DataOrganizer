@@ -1,6 +1,8 @@
 using Avalonia.Input;
 using DataOrganizer.Helpers.Text;
 using Shared.Common;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataOrganizer.Helpers.Clipboard;
 
@@ -14,6 +16,11 @@ internal static class ClipboardSensitivityMarkerWriter
 	/// Sensitivity marker formats written alongside a sensitive payload; platform-specific, empty on unsupported platforms.
 	/// </summary>
 	private static readonly (DataFormat<byte[]> Format, byte[] Value)[] MarkersToWrite = BuildMarkersToWrite();
+
+	/// <summary>
+	/// Application-scoped ownership marker format identifying a sensitive payload this application placed.
+	/// </summary>
+	private static readonly DataFormat<byte[]> OwnershipFormat = DataFormat.CreateBytesApplicationFormat(ClipboardSensitivityMarkers.AutoClearOwnership);
 	#endregion
 
 	#region Methods
@@ -26,6 +33,16 @@ internal static class ClipboardSensitivityMarkerWriter
 		{
 			item.Set(format, value);
 		}
+
+		item.Set(OwnershipFormat, [1]);
+	}
+
+	/// <summary>
+	/// <c>True</c> when <paramref name="formats" /> carries the ownership marker, i.e. the current clipboard content is a sensitive payload this application placed.
+	/// </summary>
+	public static bool ContainsOwnershipMarker(IReadOnlyList<DataFormat> formats)
+	{
+		return formats.Any(static format => format.Identifier == OwnershipFormat.Identifier);
 	}
 
 	/// <summary>
