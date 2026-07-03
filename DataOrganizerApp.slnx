@@ -1,0 +1,64 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Deployment/" />
+  <Folder Name="/Deployment/PupNet/">
+    <File Path="1_Setup.md" />
+    <File Path="2_Config.md" />
+    <File Path="3_AppStream.md" />
+    <File Path="4_Build.md" />
+    <File Path="app.metainfo.xml" />
+    <File Path="app.pupnet.conf" />
+  </Folder>
+  <Folder Name="/Deployment/WIX/">
+    <File Path="Useful.txt" />
+    <Project Path="Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Build Solution="*|Any CPU" Project="false" />
+    </Project>
+    <Project Path="Setup/Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Build Solution="*|Any CPU" Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Docs/">
+    <File Path="Prerequisites.txt" />
+    <File Path="Publish.txt" />
+    <File Path="TerminalLaunch.txt" />
+  </Folder>
+  <Folder Name="/Global/">
+    <Project Path="Entities/Entities.csproj" />
+    <Project Path="Shared/Shared.csproj" />
+  </Folder>
+  <Folder Name="/Platforms/">
+    <Project Path="DataOrganizer.Desktop/DataOrganizer.Desktop.csproj" />
+    <Project Path="DataOrganizer.MacOS/DataOrganizer.MacOS.csproj" />
+  </Folder>
+  <Folder Name="/Services/">
+    <Project Path="Repository.Migrations/Repository.Migrations.csproj" />
+    <Project Path="Repository/Repository.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Solution Items/.config/">
+    <File Path=".config/dotnet-tools.json" />
+  </Folder>
+  <Folder Name="/Solution Items/.vscode/">
+    <File Path=".vscode/launch.json" />
+    <File Path=".vscode/settings.json" />
+    <File Path=".vscode/tasks.json" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />
+    <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
+    <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
+  </Folder>
+  <Project Path="DataOrganizer/DataOrganizer.csproj" />
+</Solution>
