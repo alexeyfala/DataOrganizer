@@ -37,12 +37,12 @@
 		<None Include="Resources\dotnet-runtime-10.0.9-win-x64.exe" />
 	</ItemGroup>
 	<!--
-		Skip during restore: WiX makes EnableDefaultCompileItems=false global on the
+		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the
 		restore phase, which would drop Program.cs from the Desktop build (CS5001).
 		Build the dependency only in the build phase ($(MSBuildRestoreSessionId) is empty).
 	-->
 	<Target Name="BuildSetupDependency"
-			Condition="'$(MSBuildRestoreSessionId)' == ''">
+			Condition="'$(MSBuildRestoreSessionId)' == '' AND '$(DesignTimeBuild)' != 'true'">
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
 				 AppIconPath=$(AppIconPath);

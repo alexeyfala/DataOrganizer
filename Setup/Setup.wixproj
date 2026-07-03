@@ -31,14 +31,16 @@
 	</ItemGroup>
 	<Target Name="PreBuild"
 			BeforeTargets="CoreCompile"
-			DependsOnTargets="ResolveReferences">
+			DependsOnTargets="ResolveReferences"
+			Condition="'$(DesignTimeBuild)' != 'true'">
 		<PropertyGroup>
 			<_DesktopPublishDir>@(_WixReferencedProjectOutputs->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
 		</PropertyGroup>
 		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
 	</Target>
 	<Target Name="PostBuild"
-			AfterTargets="PostBuildEvent">
+			AfterTargets="PostBuildEvent"
+			Condition="'$(DesignTimeBuild)' != 'true'">
 		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
 		<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
 		<Exec Command="start $(OutputPath)" Condition="'$(OpenOutputFolder)' != 'false'" />
