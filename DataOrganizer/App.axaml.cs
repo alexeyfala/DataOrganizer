@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -107,6 +108,8 @@ public sealed class App : Application
 		}
 
 		Services = serviceProvider;
+
+		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
 		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
 

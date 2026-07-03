@@ -1,6 +1,8 @@
 using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Interfaces.Clipboard;
+using NSubstitute;
 using Shared.Common;
 
 namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
@@ -29,6 +31,26 @@ internal class ClipboardSensitivityMarkerWriterTests
 			.ContainsOwnershipMarker(transfer.Formats)
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardSensitivityMarkerWriter.CreateSensitiveText" />: arms the configured auto-clear scheduler.
+	/// </summary>
+	[Test]
+	public void CreateSensitiveText_Arms_AutoClear()
+	{
+		// Arrange
+		IClipboardAutoClear autoClear = Substitute.For<IClipboardAutoClear>();
+
+		ClipboardSensitivityMarkerWriter.Configure(autoClear);
+
+		// Act
+		ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+
+		// Assert
+		autoClear
+			.Received(1)
+			.Arm();
 	}
 
 	/// <summary>
@@ -84,6 +106,12 @@ internal class ClipboardSensitivityMarkerWriterTests
 			.Should()
 			.Be(text);
 	}
+
+	/// <summary>
+	/// Resets the static auto-clear wiring so the arming test does not leak into other tests.
+	/// </summary>
+	[TearDown]
+	public void ResetAutoClear() => ClipboardSensitivityMarkerWriter.Configure(null);
 	#endregion
 
 	#region Helpers
