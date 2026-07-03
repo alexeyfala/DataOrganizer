@@ -19,10 +19,16 @@ public interface IJsonSerializerWrapper
 	T? Deserialize<T>([StringSyntax(StringSyntaxAttribute.Json)] string json);
 
 	/// <summary>
+	/// Deserializes UTF-8 encoded Json bytes into <typeparamref name="T"/>, avoiding the
+	/// materialization of an intermediate string in memory.
+	/// </summary>
+	T? Deserialize<T>(byte[] utf8Json);
+
+	/// <summary>
 	/// Asynchronously deserializes Json content directly from a stream, avoiding the materialization
 	/// of an intermediate string in memory.
 	/// </summary>
-	ValueTask<T?> DeserializeAsync<T>(Stream stream, CancellationToken token = default);
+	ValueTask<T?> DeserializeAsync<T>(Stream utf8Json, CancellationToken token = default);
 
 	/// <summary>
 	/// Deserializes a Json string into <typeparamref name="T"/> from a file.<br />
@@ -36,14 +42,20 @@ public interface IJsonSerializerWrapper
 	string Serialize<T>(T value, JsonSerializerOptions? options = null);
 
 	/// <summary>
-	/// Asynchronously serializes <paramref name="value"/> directly to <paramref name="stream"/>,
+	/// Asynchronously serializes <paramref name="value"/> directly to <paramref name="utf8Json"/>,
 	/// avoiding the materialization of an intermediate string in memory.
 	/// </summary>
 	Task SerializeAsync<T>(
-		Stream stream,
+		Stream utf8Json,
 		T value,
 		JsonSerializerOptions? options = null,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Serializes data directly into UTF-8 encoded Json bytes, avoiding the materialization
+	/// of an intermediate string in memory.
+	/// </summary>
+	byte[] SerializeToUtf8Bytes<T>(T value, JsonSerializerOptions? options = null);
 
 	/// <summary>
 	/// Returns a human-readable Json representation of the object with the type, with indentation.

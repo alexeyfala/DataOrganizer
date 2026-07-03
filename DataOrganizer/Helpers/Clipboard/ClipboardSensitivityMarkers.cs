@@ -8,6 +8,12 @@ internal static class ClipboardSensitivityMarkers
 {
 	#region Data
 	/// <summary>
+	/// Application-scoped marker tagging a sensitive payload this application placed on the clipboard,
+	/// so its own copy can be recognized when deciding whether to auto-clear it.
+	/// </summary>
+	public const string AutoClearOwnership = "DataOrganizer.AutoClear";
+
+	/// <summary>
 	/// Windows / Cloud Clipboard: include in clipboard history (DWORD 0 = exclude).
 	/// </summary>
 	public const string CanIncludeInClipboardHistory = "CanIncludeInClipboardHistory";

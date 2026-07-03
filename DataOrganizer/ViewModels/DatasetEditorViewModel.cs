@@ -9,7 +9,7 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
@@ -95,12 +95,8 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			try
 			{
-				string json = TextHelper
-					.Utf8Encoding
-					.GetString(output);
-
 				Records.AddRange(_jsonSerializer
-					.Deserialize<DatasetRecordBase[]>(json)
+					.Deserialize<DatasetRecordBase[]>(output)
 					.AsNotNull());
 
 				if (container?.FindAncestorOfType<ScrollViewer>() is not { } scrollViewer)
@@ -158,9 +154,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.AddGroup,
-			KeyHint: Strings.Name);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddGroup,
+			KeyHint = Strings.Name
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -178,10 +176,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.AddKeyAndValue,
-			KeyHint: Strings.Key,
-			ValueHint: Strings.Value);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddKeyAndValue,
+			KeyHint = Strings.Key,
+			MaskValueInput = IsEncrypted,
+			ValueHint = Strings.Value
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -202,9 +203,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
 	private async Task AddValue(RecordsGroup? group)
 	{
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.AddValue,
-			KeyHint: Strings.Name);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.AddValue,
+			KeyHint = Strings.Name,
+			MaskKeyInput = IsEncrypted
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -233,10 +237,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
+		string text = $"{record.Key}    {record.Value}";
+
 		try
 		{
-			await _clipboard
-				.SetTextAsync($"{record.Key}    {record.Value}")
+			await (IsEncrypted
+				? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+				: _clipboard.SetTextAsync(text))
 				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
@@ -302,12 +309,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.Save,
-			Key: record.Key,
-			KeyHint: Strings.Key,
-			Value: record.Value,
-			ValueHint: Strings.Value);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Key,
+			KeyHint = Strings.Key,
+			MaskValueInput = record.IsHidden,
+			Value = record.Value,
+			ValueHint = Strings.Value
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -356,10 +366,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.Save,
-			Key: record.Value,
-			KeyHint: Strings.Edit);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = record.Value,
+			KeyHint = Strings.Edit,
+			MaskKeyInput = record.IsHidden
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -417,10 +430,12 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		KeyValueInputParameters parameters = new(
-			DefaultButtonText: Strings.Save,
-			Key: group.Name,
-			KeyHint: Strings.Rename);
+		KeyValueInputParameters parameters = new()
+		{
+			DefaultButtonText = Strings.Save,
+			Key = group.Name,
+			KeyHint = Strings.Rename
+		};
 
 		if (await _dialogService
 			.RequestKeyValueInputAsync(parameters)
@@ -653,6 +668,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		KeyValueRecord record = new()
 		{
+			IsHidden = IsEncrypted,
 			Key = key,
 			Value = value
 		};
@@ -672,6 +688,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		ValueRecord record = new()
 		{
+			IsHidden = IsEncrypted,
 			Value = value
 		};
 
@@ -1208,9 +1225,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private async Task SaveContentsAsync(CancellationToken token = default)
 	{
-		byte[] contents = TextHelper
-			.Utf8Encoding
-			.GetBytes(_jsonSerializer.Serialize(Records));
+		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
 		if (TryToEncrypt(contents) is not { } output)
 		{

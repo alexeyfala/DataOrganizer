@@ -22,9 +22,15 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 	}
 
 	/// <inheritdoc />
-	public ValueTask<T?> DeserializeAsync<T>(Stream stream, CancellationToken token = default)
+	public T? Deserialize<T>(byte[] utf8Json)
 	{
-		return JsonSerializer.DeserializeAsync<T>(stream, cancellationToken: token);
+		return JsonSerializer.Deserialize<T>(utf8Json);
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(Stream utf8Json, CancellationToken token = default)
+	{
+		return JsonSerializer.DeserializeAsync<T>(utf8Json, cancellationToken: token);
 	}
 
 	/// <inheritdoc />
@@ -50,16 +56,22 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 
 	/// <inheritdoc />
 	public Task SerializeAsync<T>(
-		Stream stream,
+		Stream utf8Json,
 		T value,
 		JsonSerializerOptions? options = null,
 		CancellationToken token = default)
 	{
 		return JsonSerializer.SerializeAsync(
-			stream,
+			utf8Json,
 			value,
 			options,
 			token);
+	}
+
+	/// <inheritdoc />
+	public byte[] SerializeToUtf8Bytes<T>(T value, JsonSerializerOptions? options = null)
+	{
+		return JsonSerializer.SerializeToUtf8Bytes(value, options);
 	}
 
 	/// <inheritdoc />

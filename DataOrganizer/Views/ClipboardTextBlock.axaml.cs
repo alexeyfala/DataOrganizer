@@ -6,6 +6,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Helpers.Clipboard;
 using Material.Icons.Avalonia;
 using Shared.Common;
 using Shared.Extensions;
@@ -123,6 +124,16 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when the content is sensitive: the tooltip is suppressed (in addition to the hidden
+	/// state) and clipboard copies are flagged so clipboard history / cloud sync skip them.
+	/// </summary>
+	public bool IsSensitive
+	{
+		get => GetValue(IsSensitiveProperty);
+		set => SetValue(IsSensitiveProperty, value);
+	}
+
+	/// <summary>
 	/// Note.
 	/// </summary>
 	public string? Note
@@ -222,6 +233,12 @@ internal sealed partial class ClipboardTextBlock : UserControl
 		.Register<ClipboardTextBlock, bool>(name: nameof(IsNoteVisible));
 
 	/// <summary>
+	/// Identifies the <see cref="IsSensitive" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
+		.Register<ClipboardTextBlock, bool>(name: nameof(IsSensitive));
+
+	/// <summary>
 	/// Identifies the <see cref="Note" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> NoteProperty = AvaloniaProperty
@@ -268,8 +285,9 @@ internal sealed partial class ClipboardTextBlock : UserControl
 
 		try
 		{
-			await clipboard
-				.SetTextAsync(Text)
+			await (IsSensitive
+				? clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(Text))
+				: clipboard.SetTextAsync(Text))
 				.ConfigureAwait(true);
 		}
 		finally

@@ -1,10 +1,13 @@
 ﻿using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using Entities.Models;
@@ -19,6 +22,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
@@ -43,8 +47,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -91,6 +95,35 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the value input field is masked only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValue_Masks_Value_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddKeyValueCommand.ExecuteAsync((RecordsGroup?)null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isEncrypted),
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: adds a key-value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
@@ -108,8 +141,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -156,6 +189,80 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueAsync" />: a new record is hidden by default only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		string text = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddKeyValueAsync(text, text, group: null);
+
+		// Assert
+		sut.Records
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<KeyValueRecord>()
+			.Which
+			.IsHidden
+			.Should()
+			.Be(isEncrypted);
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddValueCommand" />: the value input dialog masks the input only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddValue_Masks_Input_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddValueCommand.ExecuteAsync((RecordsGroup?)null);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isEncrypted),
+				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddValueAsync" />: adds a value record to the parent group (expanding it) or to the root records and persists the change.
 	/// </summary>
 	[Test]
@@ -171,8 +278,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -219,6 +326,51 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddValueAsync" />: a new record is hidden by default only when the dataset is encrypted.
+	/// </summary>
+	[Test]
+	public async Task AddValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		string text = AppUtils.CreateRandomString(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(Substitute.For<IDbAccess>());
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		// Act
+		await sut.AddValueAsync(text, group: null);
+
+		// Assert
+		sut.Records
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.BeOfType<ValueRecord>()
+			.Which
+			.IsHidden
+			.Should()
+			.Be(isEncrypted);
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.ContainerLoaded" />: deserializes the file contents and populates the records, marking the view model initialized.
 	/// </summary>
 	[Test]
@@ -244,7 +396,7 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
 
 			jsonSerializer
-				.Deserialize<DatasetRecordBase[]>(Arg.Any<string>())
+				.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>())
 				.Returns(records);
 
 			builder.RegisterInstance(dbAccess);
@@ -307,7 +459,59 @@ internal class DatasetEditorViewModelTests
 
 		jsonSerializer
 			.DidNotReceive()
-			.Deserialize<DatasetRecordBase[]>(Arg.Any<string>());
+			.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.CopyKeyValueToClipboardCommand" />: encrypted copies are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />), plaintext copies use <see cref="IClipboardAccessor.SetTextAsync" />.
+	/// </summary>
+	[Test]
+	public async Task CopyKeyValueToClipboard_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
+	{
+		// Arrange
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(clipboard));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		}
+
+		KeyValueRecord record = new()
+		{
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.CopyKeyValueToClipboardCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		if (isEncrypted)
+		{
+			await clipboard
+				.Received(1)
+				.SetDataAsync(Arg.Any<DataTransfer>());
+
+			await clipboard
+				.DidNotReceive()
+				.SetTextAsync(Arg.Any<string>());
+		}
+		else
+		{
+			await clipboard
+				.Received(1)
+				.SetTextAsync(Arg.Any<string>());
+
+			await clipboard
+				.DidNotReceive()
+				.SetDataAsync(Arg.Any<DataTransfer>());
+		}
 	}
 
 	/// <summary>
@@ -328,8 +532,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -353,6 +557,37 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the value input field is masked only when the record is hidden.
+	/// </summary>
+	[Test]
+	public async Task EditKeyValue_Masks_Value_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		KeyValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut.EditKeyValueCommand.ExecuteAsync(record);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isHidden),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -382,8 +617,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -427,8 +662,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -448,6 +683,36 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditValueCommand" />: the value input dialog masks the input only when the record is hidden.
+	/// </summary>
+	[Test]
+	public async Task EditValue_Masks_Input_When_Hidden([Values] bool isHidden)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		ValueRecord record = new()
+		{
+			IsHidden = isHidden,
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut.EditValueCommand.ExecuteAsync(record);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestKeyValueInputAsync(
+				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isHidden),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -473,8 +738,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -518,8 +783,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -576,6 +841,31 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: reflects whether a session key is present.
+	/// </summary>
+	[Test]
+	public void IsEncrypted_Reflects_SessionEncryptedDek()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		// Assert
+		sut.IsEncrypted
+			.Should()
+			.BeFalse();
+
+		// Act
+		sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+
+		// Assert
+		sut.IsEncrypted
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.IsHiddenChanged" />: persists the content only when not read-only.
 	/// </summary>
 	[Test]
@@ -589,8 +879,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -633,8 +923,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -681,8 +971,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -755,8 +1045,8 @@ internal class DatasetEditorViewModelTests
 			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
 
 			serializer
-				.Serialize(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 

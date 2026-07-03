@@ -1,6 +1,7 @@
 ﻿using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Shared.Services;
+using System.Text;
 
 namespace Shared.UnitTests.TestTypes;
 
@@ -8,6 +9,36 @@ namespace Shared.UnitTests.TestTypes;
 internal class JsonSerializerWrapperTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="JsonSerializerWrapper.Deserialize{T}(byte[])" />: parses UTF-8 JSON bytes into the expected object.
+	/// </summary>
+	[Test]
+	public void Deserialize_From_Utf8_Bytes_Returns_Object()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
+
+		byte[] utf8Json = Encoding.UTF8.GetBytes("""{"Name":"delta","Number":13}""");
+
+		// Act
+		Sample? result = sut.Deserialize<Sample>(utf8Json);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNull();
+
+		result.Name
+			.Should()
+			.Be("delta");
+
+		result.Number
+			.Should()
+			.Be(13);
+	}
+
 	/// <summary>
 	/// <see cref="JsonSerializerWrapper.Deserialize{T}" />: parses a JSON string into the expected object.
 	/// </summary>
@@ -81,6 +112,56 @@ internal class JsonSerializerWrapperTests
 		string json = sut.Serialize(value);
 
 		Sample? roundTrip = sut.Deserialize<Sample>(json);
+
+		// Assert
+		roundTrip
+			.Should()
+			.BeEquivalentTo(value);
+	}
+
+	/// <summary>
+	/// <see cref="JsonSerializerWrapper.SerializeToUtf8Bytes{T}" />: produces the same UTF-8 bytes as
+	/// encoding the string-based serialization, guaranteeing parity with already-stored content.
+	/// </summary>
+	[Test]
+	public void SerializeToUtf8Bytes_Matches_Encoded_String_Serialization()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
+
+		Sample value = new() { Name = "delta", Number = 13 };
+
+		// Act
+		byte[] fromBytes = sut.SerializeToUtf8Bytes(value);
+
+		byte[] fromString = Encoding.UTF8.GetBytes(sut.Serialize(value));
+
+		// Assert
+		fromBytes
+			.Should()
+			.Equal(fromString);
+	}
+
+	/// <summary>
+	/// <see cref="JsonSerializerWrapper.SerializeToUtf8Bytes{T}" /> + <see cref="JsonSerializerWrapper.Deserialize{T}(byte[])" />:
+	/// a byte round-trip yields an equivalent object.
+	/// </summary>
+	[Test]
+	public void SerializeToUtf8Bytes_Then_Deserialize_From_Bytes_Returns_Equivalent_Object()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
+
+		Sample value = new() { Name = "zeta", Number = 256 };
+
+		// Act
+		byte[] utf8Json = sut.SerializeToUtf8Bytes(value);
+
+		Sample? roundTrip = sut.Deserialize<Sample>(utf8Json);
 
 		// Assert
 		roundTrip

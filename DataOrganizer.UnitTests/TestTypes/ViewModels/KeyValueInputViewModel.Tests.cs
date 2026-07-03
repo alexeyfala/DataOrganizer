@@ -80,12 +80,14 @@ internal class KeyValueInputViewModelTests
 		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
 
 		// Act
-		sut.Initialize(new(
-			DefaultButtonText: defaultButtonText,
-			Key: key,
-			KeyHint: keyHint,
-			Value: value,
-			ValueHint: valueHint));
+		sut.Initialize(new()
+		{
+			DefaultButtonText = defaultButtonText,
+			Key = key,
+			KeyHint = keyHint,
+			Value = value,
+			ValueHint = valueHint
+		});
 
 		// Assert
 		sut.DefaultButtonText
@@ -111,6 +113,54 @@ internal class KeyValueInputViewModelTests
 		sut.IsValueInputVisible
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Initialize" />: maps the key-input mask flag from the parameters.
+	/// </summary>
+	[Test]
+	public void Initialize_Sets_IsKeyMasked([Values] bool maskKeyInput)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		sut.Initialize(new()
+		{
+			DefaultButtonText = AppUtils.CreateRandomString(10),
+			MaskKeyInput = maskKeyInput
+		});
+
+		// Assert
+		sut.IsKeyMasked
+			.Should()
+			.Be(maskKeyInput);
+	}
+
+	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Initialize" />: maps the value-input mask flag from the parameters.
+	/// </summary>
+	[Test]
+	public void Initialize_Sets_IsValueMasked([Values] bool maskValueInput)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		sut.Initialize(new()
+		{
+			DefaultButtonText = AppUtils.CreateRandomString(10),
+			MaskValueInput = maskValueInput
+		});
+
+		// Assert
+		sut.IsValueMasked
+			.Should()
+			.Be(maskValueInput);
 	}
 	#endregion
 }
