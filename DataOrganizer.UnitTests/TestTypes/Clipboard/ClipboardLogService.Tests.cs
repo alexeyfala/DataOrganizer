@@ -1539,6 +1539,72 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring a sensitive entry arms the auto-clear.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Arms_AutoClear_For_Sensitive_Entry()
+	{
+		// Arrange
+		IClipboardAutoClear autoClear = Substitute.For<IClipboardAutoClear>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(autoClear);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry secret = TextEntry("Xk7#pQ2!mZ", [1]);
+
+		sut.Entries.Add(secret);
+
+		// Act
+		await sut.RestoreAsync(secret);
+
+		// Assert
+		autoClear
+			.Received(1)
+			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogService.RestoreAsync" />: restoring a non-sensitive entry does not arm the auto-clear.
+	/// </summary>
+	[Test]
+	public async Task RestoreAsync_Does_Not_Arm_AutoClear_For_Non_Sensitive_Entry()
+	{
+		// Arrange
+		IClipboardAutoClear autoClear = Substitute.For<IClipboardAutoClear>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder
+				.RegisterInstance(new InlineDispatcherAccessor())
+				.As<IDispatcherAccessor>();
+
+			builder.RegisterInstance(autoClear);
+		});
+
+		ClipboardLogService sut = mock.Create<ClipboardLogService>();
+
+		ClipboardTextEntry plain = TextEntry("just some text", [1]);
+
+		sut.Entries.Add(plain);
+
+		// Act
+		await sut.RestoreAsync(plain);
+
+		// Assert
+		autoClear
+			.DidNotReceive()
+			.Arm();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogService.RestoreAsync" />: the restored entry becomes the active one.
 	/// </summary>
 	[Test]

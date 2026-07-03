@@ -77,6 +77,9 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// </summary>
 	private static readonly Regex WholeStringUrlRegex = ClipboardLogMapper.WholeStringUrlRegex();
 
+	/// <inheritdoc cref="IClipboardAutoClear" />
+	private readonly IClipboardAutoClear _autoClear;
+
 	/// <summary>
 	/// Serializes a poll tick against a clear operation so a poll tick cannot
 	/// insert an entry while the log / clipboard is being cleared.
@@ -136,6 +139,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	#region Constructors
 	public ClipboardLogService(
 		IClipboardAccessor clipboard,
+		IClipboardAutoClear autoClear,
 		IClipboardGate clearGate,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
@@ -143,6 +147,8 @@ public sealed class ClipboardLogService : IClipboardLogService
 		IStorageAccessor storage)
 	{
 		_clipboard = clipboard;
+
+		_autoClear = autoClear;
 
 		_clearGate = clearGate;
 
@@ -1257,6 +1263,12 @@ public sealed class ClipboardLogService : IClipboardLogService
 			await _clipboard
 				.SetDataAsync(transfer)
 				.ConfigureAwait(false);
+
+			// A restored sensitive entry carries the ownership marker; arm the same auto-clear as a fresh copy.
+			if (isSensitive)
+			{
+				_autoClear.Arm();
+			}
 		}
 		catch (Exception ex)
 		{
