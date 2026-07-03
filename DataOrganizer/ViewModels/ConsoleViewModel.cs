@@ -104,7 +104,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	[RelayCommand]
 	private void OpenAppDataDirectory() => _processUtils.OpenDirectory(_appEnvironment.AppDataDirectoryPath);
 
-	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
+	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory" />
 	[RelayCommand]
 	private void OpenAppDirectory() => _processUtils.OpenAppDirectory();
 	#endregion
