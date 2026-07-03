@@ -98,15 +98,15 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 		ReadFromBuffer();
 	}
 
+	/// <summary>
+	/// Opens the application data directory.
+	/// </summary>
+	[RelayCommand]
+	private void OpenAppDataDirectory() => _processUtils.OpenDirectory(_appEnvironment.AppDataDirectoryPath);
+
 	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
 	[RelayCommand]
 	private void OpenAppDirectory() => _processUtils.OpenAppDirectory();
-
-	/// <summary>
-	/// Opens the application database directory.
-	/// </summary>
-	[RelayCommand]
-	private void OpenDatabaseDirectory() => _processUtils.OpenDirectory(_appEnvironment.DatabaseDirectoryPath);
 	#endregion
 
 	#region Partial

@@ -129,41 +129,6 @@ internal class ConsoleViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ConsoleViewModel.OpenDatabaseDirectoryCommand" />: opens the configured database directory.
-	/// </summary>
-	[Test]
-	public void OpenDatabaseDirectoryCommand_Opens_Database_Directory_When_References_Are_Injected()
-	{
-		// Arrange
-		const string databasePath = @"C:\fake\Data\Database";
-
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-			appEnvironment
-				.DatabaseDirectoryPath
-				.Returns(databasePath);
-
-			builder.RegisterInstance(processUtils);
-
-			builder.RegisterInstance(appEnvironment);
-		});
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>();
-
-		// Act
-		sut.OpenDatabaseDirectoryCommand.Execute(null);
-
-		// Assert
-		processUtils
-			.Received()
-			.OpenDirectory(databasePath);
-	}
-
-	/// <summary>
 	/// <see cref="ConsoleViewModel.IsPaused" /> change handler.
 	/// </summary>
 	[Test]
