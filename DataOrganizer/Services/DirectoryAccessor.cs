@@ -43,7 +43,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.Linux:
-					Process.Start(AppUtils.PlatformSpecificExplorer, Environment.CurrentDirectory);
+					OpenDirectory(Environment.CurrentDirectory);
 					break;
 
 				case OperatingSystemType.MacOs:
