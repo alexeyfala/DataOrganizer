@@ -65,6 +65,35 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
+			if (AppUtils.IsWindows)
+			{
+				try
+				{
+					if (_winExplorerManager.TryForegroundFolder(directoryPath))
+					{
+						return;
+					}
+				}
+				catch (Exception ex)
+				{
+					logger?.LogException(ex);
+				}
+			}
+			else if (AppUtils.IsLinux)
+			{
+				try
+				{
+					if (_linuxExplorerManager.TryForegroundFolder(directoryPath))
+					{
+						return;
+					}
+				}
+				catch (Exception ex)
+				{
+					logger?.LogException(ex);
+				}
+			}
+
 			Process.Start(
 				AppUtils.PlatformSpecificExplorer,
 				directoryPath.SurroundWithQuotesIfNeeded());
