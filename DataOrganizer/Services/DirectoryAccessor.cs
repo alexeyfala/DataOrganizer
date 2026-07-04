@@ -76,7 +76,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.MacOs:
-					Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(AppContext.BaseDirectory));
+					string macOsRevealTarget = ResolveMacOsBundle() ?? AppContext.BaseDirectory;
+
+					Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(macOsRevealTarget));
 					break;
 
 				default:
@@ -171,6 +173,29 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		if (!string.IsNullOrEmpty(entryLocation) && File.Exists(entryLocation))
 		{
 			return entryLocation;
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemType.MacOs" /> by walking up
+	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
+	/// </summary>
+	private static string? ResolveMacOsBundle()
+	{
+		const string bundleExtension = ".app";
+
+		DirectoryInfo? directory = new(AppContext.BaseDirectory);
+
+		while (directory is not null)
+		{
+			if (directory.Name.EndsWith(bundleExtension, StringComparison.OrdinalIgnoreCase))
+			{
+				return directory.FullName;
+			}
+
+			directory = directory.Parent;
 		}
 
 		return null;
