@@ -6,6 +6,7 @@ using Shared.Enums;
 using Shared.Extensions;
 using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace DataOrganizer.Services;
 
@@ -39,7 +40,16 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			switch (AppUtils.CurrentOs)
 			{
 				case OperatingSystemType.Windows:
-					Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + Environment.ProcessPath);
+					string appPath = Environment.ProcessPath!;
+
+					string appDirectory = Path.GetDirectoryName(appPath)!;
+
+					if (_winExplorerManager.TryForegroundFolder(appDirectory, appPath))
+					{
+						return;
+					}
+
+					Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + appPath);
 					break;
 
 				case OperatingSystemType.Linux:

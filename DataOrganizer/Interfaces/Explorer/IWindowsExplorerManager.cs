@@ -9,8 +9,8 @@ public interface IWindowsExplorerManager
 {
 	#region Methods
 	/// <summary>
-	/// Tryes to bring folder to the front.
+	/// Tryes to bring folder to the front and optionally select an item inside it.
 	/// </summary>
-	bool TryForegroundFolder(string folderPath);
+	bool TryForegroundFolder(string folderPath, string? selectItemPath = null);
 	#endregion
 }

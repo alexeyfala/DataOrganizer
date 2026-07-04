@@ -22,7 +22,7 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 
 	#region Methods
 	/// <inheritdoc />
-	public bool TryForegroundFolder(string folderPath)
+	public bool TryForegroundFolder(string folderPath, string? selectItemPath = null)
 	{
 		const char separator = '\\';
 
@@ -99,6 +99,11 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 
 						TrySwitchToTab(hwnd, folderPath);
 
+						if (selectItemPath is not null)
+						{
+							TrySelectItem(window, selectItemPath);
+						}
+
 						return true;
 					}
 				}
@@ -145,6 +150,37 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 			SetForegroundWindow(hwnd);
 
 			ShowWindow(hwnd, SW_SHOW);
+		}
+	}
+
+	/// <summary>
+	/// Selects the specified item inside the active tab of the Explorer window.
+	/// </summary>
+	private static void TrySelectItem(dynamic window, string itemPath)
+	{
+		try
+		{
+			dynamic? document = window.Document;
+
+			if (document is null)
+			{
+				return;
+			}
+
+			string fileName = Path.GetFileName(itemPath);
+
+			dynamic? folderItem = document.Folder?.ParseName(fileName);
+
+			if (folderItem is null)
+			{
+				return;
+			}
+
+			document.SelectItem(folderItem, SVSI_SELECT_ITEM);
+		}
+		catch
+		{
+			// Shell automation failed — not critical, folder is already in foreground
 		}
 	}
 
@@ -205,10 +241,10 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 	#endregion
 
 	#region Native
+	private const int SVSI_SELECT_ITEM = 0x001D;
 	private const int SW_RESTORE = 9;
 
 	private const int SW_SHOW = 5;
-
 	[LibraryImport(User32Dll)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static partial bool AttachThreadInput(
