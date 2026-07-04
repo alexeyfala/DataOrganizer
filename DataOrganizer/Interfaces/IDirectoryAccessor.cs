@@ -9,12 +9,12 @@ public interface IDirectoryAccessor
 {
 	#region Methods
 	/// <summary>
-	/// Opens the application directory.
+	/// Opens the directory containing the application and selects it.
 	/// </summary>
 	void OpenAppDirectory(ILogger? logger = null);
 
 	/// <summary>
-	/// Opens a directory.
+	/// Opens the specified directory.
 	/// </summary>
 	void OpenDirectory(string directoryPath, ILogger? logger = null);
 
