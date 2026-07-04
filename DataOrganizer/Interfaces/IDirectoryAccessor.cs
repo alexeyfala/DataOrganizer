@@ -17,5 +17,10 @@ public interface IDirectoryAccessor
 	/// Opens a directory.
 	/// </summary>
 	void OpenDirectory(string directoryPath, ILogger? logger = null);
+
+	/// <summary>
+	/// Opens the directory containing the specified file (or bundle) and selects it.
+	/// </summary>
+	void RevealFile(string filePath, ILogger? logger = null);
 	#endregion
 }
