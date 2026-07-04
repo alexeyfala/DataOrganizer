@@ -1,0 +1,65 @@
+﻿using DataOrganizer.Interfaces;
+using Serilog;
+using Shared.Common;
+using Shared.Enums;
+using Shared.Extensions;
+using System;
+using System.Diagnostics;
+
+namespace DataOrganizer.Services;
+
+public sealed class DirectoryAccessor : IDirectoryAccessor
+{
+	#region Methods
+	/// <inheritdoc />
+	public void OpenAppDirectory(ILogger? logger = null)
+	{
+		try
+		{
+			switch (AppUtils.CurrentOs)
+			{
+				case OperatingSystemType.Windows:
+					Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + Environment.ProcessPath);
+					break;
+
+				case OperatingSystemType.Linux:
+					Process.Start(AppUtils.PlatformSpecificExplorer, Environment.CurrentDirectory);
+					break;
+
+				case OperatingSystemType.MacOs:
+					Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(AppDomain.CurrentDomain.BaseDirectory));
+					break;
+
+				default:
+					throw new NotImplementedException();
+			}
+		}
+		catch (Exception ex)
+		{
+			logger?.LogException(ex);
+		}
+	}
+
+	/// <inheritdoc />
+	public void OpenDirectory(string directoryPath, ILogger? logger = null)
+	{
+		try
+		{
+			Process.Start(
+				AppUtils.PlatformSpecificExplorer,
+				directoryPath.SurroundWithQuotesIfNeeded());
+		}
+		catch (Exception ex)
+		{
+			logger?.LogException(ex);
+		}
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemType.MacOs" />.
+	/// </summary>
+	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
+	#endregion
+}

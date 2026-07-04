@@ -27,16 +27,6 @@ public interface IProcessUtils
 	void KillProcess(int processId);
 
 	/// <summary>
-	/// Opens the application directory.
-	/// </summary>
-	void OpenAppDirectory();
-
-	/// <summary>
-	/// Opens a directory.
-	/// </summary>
-	void OpenDirectory(string directoryPath);
-
-	/// <summary>
 	/// Launches a file process depending on the operating system.<br />
 	/// When running a file without an extension or when there is no application
 	/// in system associated with file <paramref name="processId"/> will have default value.

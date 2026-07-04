@@ -67,36 +67,6 @@ public sealed class ProcessUtils : IProcessUtils
 	}
 
 	/// <inheritdoc />
-	public void OpenAppDirectory()
-	{
-		switch (AppUtils.CurrentOs)
-		{
-			case OperatingSystemType.Windows:
-				Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + Environment.ProcessPath);
-				break;
-
-			case OperatingSystemType.Linux:
-				Process.Start(AppUtils.PlatformSpecificExplorer, Environment.CurrentDirectory);
-				break;
-
-			case OperatingSystemType.MacOs:
-				Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(AppDomain.CurrentDomain.BaseDirectory));
-				break;
-
-			default:
-				throw new NotImplementedException();
-		}
-	}
-
-	/// <inheritdoc />
-	public void OpenDirectory(string directoryPath)
-	{
-		Process.Start(
-			AppUtils.PlatformSpecificExplorer,
-			directoryPath.SurroundWithQuotesIfNeeded());
-	}
-
-	/// <inheritdoc />
 	public bool StartProcess(string filePath, out int processId)
 	{
 		using Process process = AppUtils.IsWindows
@@ -171,11 +141,6 @@ public sealed class ProcessUtils : IProcessUtils
 			UseShellExecute = true
 		}
 	};
-
-	/// <summary>
-	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemType.MacOs" />.
-	/// </summary>
-	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
 
 	/// <summary>
 	/// Returns the parent process ID.

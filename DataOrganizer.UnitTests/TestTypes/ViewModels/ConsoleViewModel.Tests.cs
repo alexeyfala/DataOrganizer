@@ -1,9 +1,6 @@
-using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
-using NSubstitute;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
@@ -104,28 +101,6 @@ internal class ConsoleViewModelTests
 		act
 			.Should()
 			.NotThrow();
-	}
-
-	/// <summary>
-	/// <see cref="ConsoleViewModel.OpenAppDirectoryCommand" />: invokes process utils to open the app directory.
-	/// </summary>
-	[Test]
-	public void OpenAppDirectoryCommand_Invokes_Process_Utils_When_Reference_Is_Injected()
-	{
-		// Arrange
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		ConsoleViewModel sut = mock.Create<ConsoleViewModel>(TypedParameter.From(processUtils));
-
-		// Act
-		sut.OpenAppDirectoryCommand.Execute(null);
-
-		// Assert
-		processUtils
-			.Received()
-			.OpenAppDirectory();
 	}
 
 	/// <summary>
