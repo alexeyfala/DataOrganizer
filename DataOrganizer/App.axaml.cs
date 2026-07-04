@@ -256,6 +256,7 @@ public sealed class App : Application
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();

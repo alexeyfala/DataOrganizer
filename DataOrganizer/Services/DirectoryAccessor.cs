@@ -1,4 +1,5 @@
 ﻿using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Explorer;
 using Serilog;
 using Shared.Common;
 using Shared.Enums;
@@ -10,6 +11,25 @@ namespace DataOrganizer.Services;
 
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {
+	#region Data
+	/// <inheritdoc cref="ILinuxExplorerManager" />
+	private readonly ILinuxExplorerManager _linuxExplorerManager;
+
+	/// <inheritdoc cref="IWindowsExplorerManager" />
+	private readonly IWindowsExplorerManager _winExplorerManager;
+	#endregion
+
+	#region Constructors
+	public DirectoryAccessor(
+		ILinuxExplorerManager linuxExplorerManager,
+		IWindowsExplorerManager winExplorerManager)
+	{
+		_linuxExplorerManager = linuxExplorerManager;
+
+		_winExplorerManager = winExplorerManager;
+	}
+	#endregion
+
 	#region Methods
 	/// <inheritdoc />
 	public void OpenAppDirectory(ILogger? logger = null)
