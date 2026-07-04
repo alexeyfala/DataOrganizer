@@ -7,6 +7,7 @@ using Shared.Extensions;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace DataOrganizer.Services;
 
@@ -53,7 +54,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.Linux:
-					if (_linuxExplorerManager.TryRevealFile(Environment.ProcessPath!))
+					string? linuxAppFile = ResolveLinuxAppFile();
+
+					if (linuxAppFile is not null && _linuxExplorerManager.TryRevealFile(linuxAppFile))
 					{
 						return;
 					}
@@ -125,5 +128,41 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemType.MacOs" />.
 	/// </summary>
 	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
+
+	/// <summary>
+	/// Resolves the application file to reveal on <see cref="OperatingSystemType.Linux" /> — the native
+	/// apphost next to the app, falling back to the entry assembly; <c>null</c> when neither exists.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="Environment.ProcessPath" /> is unreliable here: launching through the shared
+	/// <c>dotnet</c> host points it at the muxer instead of the application.
+	/// </remarks>
+	private static string? ResolveLinuxAppFile()
+	{
+		Assembly? entryAssembly = Assembly.GetEntryAssembly();
+
+		string? appName = entryAssembly?
+			.GetName()
+			.Name;
+
+		if (!string.IsNullOrEmpty(appName))
+		{
+			string appHost = Path.Combine(AppContext.BaseDirectory, appName);
+
+			if (File.Exists(appHost))
+			{
+				return appHost;
+			}
+		}
+
+		string? entryLocation = entryAssembly?.Location;
+
+		if (!string.IsNullOrEmpty(entryLocation) && File.Exists(entryLocation))
+		{
+			return entryLocation;
+		}
+
+		return null;
+	}
 	#endregion
 }
