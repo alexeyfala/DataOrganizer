@@ -276,6 +276,7 @@ public sealed class App : Application
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
+		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
@@ -289,7 +290,6 @@ public sealed class App : Application
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
@@ -298,6 +298,7 @@ public sealed class App : Application
 		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
+		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		#endregion

@@ -14,28 +14,6 @@ public sealed class ProcessUtils : IProcessUtils
 {
 	#region Methods
 	/// <inheritdoc />
-	public int GetAppProcessesCount()
-	{
-		Process process = Process.GetCurrentProcess();
-
-		string? currentPath = process
-			.MainModule?
-			.FileName;
-
-		return Process.GetProcessesByName(process.ProcessName).Count(x =>
-		{
-			try
-			{
-				return x.MainModule is not null && x.MainModule.FileName == currentPath;
-			}
-			catch
-			{
-				return false;
-			}
-		});
-	}
-
-	/// <inheritdoc />
 	public Process[] GetChildProcesses(int parentProcessId)
 	{
 		return [.. Process
