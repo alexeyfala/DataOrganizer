@@ -56,6 +56,17 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 				case OperatingSystemType.Linux:
 					string? linuxAppFile = ResolveLinuxAppFile();
 
+					string linuxAppDirectory = linuxAppFile is not null
+						? Path.GetDirectoryName(linuxAppFile)!
+						: AppContext.BaseDirectory;
+
+					// Reuse an already-open window if possible (X11 cannot select the file inside it).
+					if (_linuxExplorerManager.TryForegroundFolder(linuxAppDirectory))
+					{
+						return;
+					}
+
+					// Otherwise open a fresh window with the file selected.
 					if (linuxAppFile is not null && _linuxExplorerManager.TryRevealFile(linuxAppFile))
 					{
 						return;
