@@ -29,13 +29,13 @@ internal class AppEnvironmentTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+			IInstanceRegistry instanceRegistry = Substitute.For<IInstanceRegistry>();
 
-			processUtils
-				.GetAppProcessesCount()
+			instanceRegistry
+				.InstanceNumber
 				.Returns(1);
 
-			builder.RegisterInstance(processUtils);
+			builder.RegisterInstance(instanceRegistry);
 		});
 
 		// Act
@@ -66,13 +66,13 @@ internal class AppEnvironmentTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+			IInstanceRegistry instanceRegistry = Substitute.For<IInstanceRegistry>();
 
-			processUtils
-				.GetAppProcessesCount()
+			instanceRegistry
+				.InstanceNumber
 				.Returns(2);
 
-			builder.RegisterInstance(processUtils);
+			builder.RegisterInstance(instanceRegistry);
 		});
 
 		// Act
@@ -99,13 +99,13 @@ internal class AppEnvironmentTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+			IInstanceRegistry instanceRegistry = Substitute.For<IInstanceRegistry>();
 
-			processUtils
-				.GetAppProcessesCount()
+			instanceRegistry
+				.InstanceNumber
 				.Returns(1);
 
-			builder.RegisterInstance(processUtils);
+			builder.RegisterInstance(instanceRegistry);
 		});
 
 		AppEnvironment sut = mock.Create<AppEnvironment>();
@@ -128,13 +128,13 @@ internal class AppEnvironmentTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+			IInstanceRegistry instanceRegistry = Substitute.For<IInstanceRegistry>();
 
-			processUtils
-				.GetAppProcessesCount()
+			instanceRegistry
+				.InstanceNumber
 				.Returns(2);
 
-			builder.RegisterInstance(processUtils);
+			builder.RegisterInstance(instanceRegistry);
 		});
 
 		AppEnvironment sut = mock.Create<AppEnvironment>();
@@ -157,13 +157,13 @@ internal class AppEnvironmentTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+			IInstanceRegistry instanceRegistry = Substitute.For<IInstanceRegistry>();
 
-			processUtils
-				.GetAppProcessesCount()
+			instanceRegistry
+				.InstanceNumber
 				.Returns(1);
 
-			builder.RegisterInstance(processUtils);
+			builder.RegisterInstance(instanceRegistry);
 		});
 
 		AppEnvironment sut = mock.Create<AppEnvironment>();

@@ -9,11 +9,6 @@ public interface IProcessUtils
 {
 	#region Methods
 	/// <summary>
-	/// Returns the number of running instances of the application.
-	/// </summary>
-	int GetAppProcessesCount();
-
-	/// <summary>
 	/// Returns a list of child processes.
 	/// </summary>
 	Process[] GetChildProcesses(int parentProcessId);

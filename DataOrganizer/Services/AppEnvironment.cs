@@ -25,11 +25,11 @@ public sealed class AppEnvironment : IAppEnvironment
 	#endregion
 
 	#region Constructors
-	public AppEnvironment(IProcessUtils processUtils)
+	public AppEnvironment(IInstanceRegistry instanceRegistry)
 	{
 		const string directoryName = "Instance";
 
-		_appCount = processUtils.GetAppProcessesCount();
+		_appCount = instanceRegistry.InstanceNumber;
 
 		AppDataDirectoryPath = Path.Combine(
 			IAppEnvironment.GetAppDataDirectoryPath(),
