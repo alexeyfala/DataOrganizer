@@ -53,7 +53,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.Linux:
-					OpenDirectory(Environment.CurrentDirectory);
+					OpenDirectory(AppDomain.CurrentDomain.BaseDirectory);
+					//OpenDirectory(Environment.CurrentDirectory);
 					break;
 
 				case OperatingSystemType.MacOs:
