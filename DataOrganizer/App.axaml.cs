@@ -12,10 +12,12 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Explorer;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.Services.Explorer;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -260,6 +262,7 @@ public sealed class App : Application
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
 		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 
