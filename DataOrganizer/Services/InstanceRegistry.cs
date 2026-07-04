@@ -18,7 +18,7 @@ public sealed class InstanceRegistry : IInstanceRegistry
 	/// <summary>
 	/// Name of the directory holding the per-instance lock files.
 	/// </summary>
-	private const string LocksDirectoryName = "InstanceLocks";
+	private const string LocksDirectoryName = ".instancelocks";
 
 	/// <summary>
 	/// Upper bound on the number of slots probed before giving up.
