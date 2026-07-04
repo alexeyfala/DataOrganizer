@@ -1,5 +1,6 @@
 ﻿using DataOrganizer.Interfaces.Explorer;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
@@ -39,6 +40,27 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 	/// X11 <c>SubstructureNotifyMask | SubstructureRedirectMask</c>.
 	/// </summary>
 	private const long EventMask = (1L << 19) | (1L << 20);
+
+	/// <summary>
+	/// Time budget for a single D-Bus reveal call before it is abandoned.
+	/// </summary>
+	private const int FileManager1CallTimeoutMs = 5000;
+
+	/// <summary>
+	/// Freedesktop <c>org.freedesktop.FileManager1.ShowItems</c> method — opens a file manager
+	/// with the given items selected.
+	/// </summary>
+	private const string FileManager1Method = "org.freedesktop.FileManager1.ShowItems";
+
+	/// <summary>
+	/// Freedesktop <c>FileManager1</c> object path.
+	/// </summary>
+	private const string FileManager1ObjectPath = "/org/freedesktop/FileManager1";
+
+	/// <summary>
+	/// Freedesktop <c>FileManager1</c> bus name.
+	/// </summary>
+	private const string FileManager1Service = "org.freedesktop.FileManager1";
 
 	/// <summary>
 	/// "libX11.so.6"
@@ -199,6 +221,46 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 				}
 			}
 		}
+	}
+
+	/// <inheritdoc />
+	public bool TryRevealFile(string filePath)
+	{
+		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+		{
+			return false;
+		}
+
+		string uri = new Uri(Path.GetFullPath(filePath)).AbsoluteUri;
+
+		// Primary transport: gdbus (GLib) — present on GTK/GNOME-based desktops.
+		if (TryCallShowItems(
+			"gdbus",
+			[
+				"call",
+					"--session",
+					"--dest", FileManager1Service,
+					"--object-path", FileManager1ObjectPath,
+					"--method", FileManager1Method,
+					$"['{uri}']",
+					""
+			]))
+		{
+			return true;
+		}
+
+		// Fallback transport: dbus-send — shipped with the dbus package on virtually every desktop.
+		return TryCallShowItems(
+			"dbus-send",
+			[
+				"--session",
+					$"--dest={FileManager1Service}",
+					"--type=method_call",
+					FileManager1ObjectPath,
+					FileManager1Method,
+					$"array:string:{uri}",
+					"string:"
+			]);
 	}
 	#endregion
 
@@ -379,6 +441,58 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 		_ = XRaiseWindow(display, window);
 
 		return status != 0;
+	}
+
+	/// <summary>
+	/// Invokes <c>FileManager1.ShowItems</c> through the given D-Bus command-line tool;
+	/// returns whether the call completed successfully.
+	/// </summary>
+	private static bool TryCallShowItems(string executable, string[] arguments)
+	{
+		try
+		{
+			ProcessStartInfo startInfo = new()
+			{
+				FileName = executable,
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				CreateNoWindow = true
+			};
+
+			foreach (string argument in arguments)
+			{
+				startInfo.ArgumentList.Add(argument);
+			}
+
+			using Process? process = Process.Start(startInfo);
+
+			if (process is null)
+			{
+				return false;
+			}
+
+			// The call returns once the file manager accepts the request; abandon a missing or stuck tool.
+			if (!process.WaitForExit(FileManager1CallTimeoutMs))
+			{
+				try
+				{
+					process.Kill(entireProcessTree: true);
+				}
+				catch
+				{
+				}
+
+				return false;
+			}
+
+			return process.ExitCode == 0;
+		}
+		catch
+		{
+			// Tool not installed or failed to launch — the caller falls back to the next transport.
+			return false;
+		}
 	}
 
 	/// <summary>

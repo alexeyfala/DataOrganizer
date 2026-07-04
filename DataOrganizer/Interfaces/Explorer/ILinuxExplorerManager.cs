@@ -13,5 +13,11 @@ public interface ILinuxExplorerManager
 	/// <c>org.freedesktop.FileManager1.ShowFolders</c>.
 	/// </summary>
 	bool TryForegroundFolder(string folderPath);
+
+	/// <summary>
+	/// Tries to open a file manager with the specified file selected via the freedesktop D-Bus
+	/// interface <c>org.freedesktop.FileManager1.ShowItems</c>.
+	/// </summary>
+	bool TryRevealFile(string filePath);
 	#endregion
 }

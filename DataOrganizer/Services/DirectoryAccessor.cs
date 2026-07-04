@@ -53,6 +53,11 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.Linux:
+					if (_linuxExplorerManager.TryRevealFile(Environment.ProcessPath!))
+					{
+						return;
+					}
+
 					OpenDirectory(AppContext.BaseDirectory);
 					break;
 
