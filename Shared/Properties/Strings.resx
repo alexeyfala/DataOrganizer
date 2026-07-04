@@ -511,9 +511,6 @@
   <data name="ExportList" xml:space="preserve">
     <value>Export List</value>
   </data>
-  <data name="Database" xml:space="preserve">
-    <value>Database</value>
-  </data>
   <data name="DoesNotExist" xml:space="preserve">
     <value>does not exist</value>
   </data>
@@ -573,5 +570,8 @@
   </data>
   <data name="TryAgain" xml:space="preserve">
     <value>Try again</value>
+  </data>
+  <data name="ApplicationData" xml:space="preserve">
+    <value>Application Data</value>
   </data>
 </root>

@@ -98,15 +98,15 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 		ReadFromBuffer();
 	}
 
-	/// <inheritdoc cref="IProcessUtils.OpenAppDirectory()" />
-	[RelayCommand]
-	private void OpenAppDirectory() => _processUtils.OpenAppDirectory();
-
 	/// <summary>
-	/// Opens the application database directory.
+	/// Opens the application data directory.
 	/// </summary>
 	[RelayCommand]
-	private void OpenDatabaseDirectory() => _processUtils.OpenDirectory(_appEnvironment.DatabaseDirectoryPath);
+	private void OpenAppDataDirectory() => _directoryAccessor.OpenDirectory(_appEnvironment.AppDataDirectoryPath);
+
+	/// <inheritdoc cref="IDirectoryAccessor.OpenAppDirectory" />
+	[RelayCommand]
+	private void OpenAppDirectory() => _directoryAccessor.OpenAppDirectory();
 	#endregion
 
 	#region Partial
@@ -133,14 +133,14 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
 
+	/// <inheritdoc cref="IDirectoryAccessor" />
+	private readonly IDirectoryAccessor _directoryAccessor;
+
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
 	/// <inheritdoc cref="Lock" />
 	private readonly Lock _mutex = new();
-
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
 
 	/// <summary>
 	/// Record buffer.
@@ -156,14 +156,14 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	#region Constructors
 	public ConsoleViewModel(
 		IAppEnvironment appEnvironment,
-		IDispatcherAccessor dispatcher,
-		IProcessUtils processUtils)
+		IDirectoryAccessor directoryAccessor,
+		IDispatcherAccessor dispatcher)
 	{
 		_appEnvironment = appEnvironment;
 
-		_dispatcher = dispatcher;
+		_directoryAccessor = directoryAccessor;
 
-		_processUtils = processUtils;
+		_dispatcher = dispatcher;
 
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
 	}

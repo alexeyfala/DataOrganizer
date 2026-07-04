@@ -12,10 +12,12 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Explorer;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.Services.Explorer;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Windows;
@@ -244,6 +246,7 @@ public sealed class App : Application
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
+		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
@@ -253,12 +256,14 @@ public sealed class App : Application
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
 		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
 		#endregion
 

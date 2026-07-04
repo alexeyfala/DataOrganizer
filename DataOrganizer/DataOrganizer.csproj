@@ -60,6 +60,7 @@
 		<PackageReference Include="Comparation" Version="0.1.7" />
 		<PackageReference Include="DialogHost.Avalonia" Version="0.12.2" />
 		<PackageReference Include="DynamicData" Version="9.4.33" />
+		<PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
 		<PackageReference Include="Mapster" Version="10.0.10" />
 		<PackageReference Include="Mapster.DependencyInjection" Version="10.0.10" />
 		<PackageReference Include="Material.Avalonia" Version="3.17.0" />

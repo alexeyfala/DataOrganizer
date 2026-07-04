@@ -80,12 +80,12 @@
 				<Button.Flyout>
 					<MenuFlyout>
 						<MenuItem
-							Command="{Binding OpenAppDirectoryCommand}"
-							Header="{x:Static prop:Strings.ApplicationFile}" />
+							Command="{Binding OpenAppDataDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationData}" />
 
 						<MenuItem
-							Command="{Binding OpenDatabaseDirectoryCommand}"
-							Header="{x:Static prop:Strings.Database}" />
+							Command="{Binding OpenAppDirectoryCommand}"
+							Header="{x:Static prop:Strings.ApplicationFile}" />
 					</MenuFlyout>
 				</Button.Flyout>
 			</Button>

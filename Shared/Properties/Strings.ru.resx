@@ -531,9 +531,6 @@
   <data name="ExportList" xml:space="preserve">
     <value>Экспорт списка</value>
   </data>
-  <data name="Database" xml:space="preserve">
-    <value>База данных</value>
-  </data>
   <data name="DoesNotExist" xml:space="preserve">
     <value>не существует</value>
   </data>
@@ -593,5 +590,8 @@
   </data>
   <data name="TryAgain" xml:space="preserve">
     <value>Попробуйте снова</value>
+  </data>
+  <data name="ApplicationData" xml:space="preserve">
+    <value>Данные приложения</value>
   </data>
 </root>

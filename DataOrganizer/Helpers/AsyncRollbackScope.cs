@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Helpers;
 
 /// <summary>
-/// Collects rollback actions and runs them in LIFO order on <see cref="DisposeAsync" />
-/// unless <see cref="Commit" /> was called first.
+/// Collects rollback actions and runs them in LIFO order.
 /// </summary>
 internal sealed class AsyncRollbackScope : IAsyncDisposable
 {
