@@ -29,6 +29,7 @@ public sealed class AppEnvironment : IAppEnvironment
 	{
 		const string directoryName = "Instance";
 
+
 		_appCount = processUtils.GetAppProcessesCount();
 
 		AppDataDirectoryPath = Path.Combine(
