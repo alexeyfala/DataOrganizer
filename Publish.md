@@ -94,6 +94,8 @@ A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 ## macOS
 
+> **These recipes produce a `.pkg` installer.**
+
 ### Release
 
 Open a terminal in macOS. Regenerate notices first:
@@ -103,6 +105,7 @@ cd DataOrganizer.MacOS
 pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
 cd ../Publish
+open .
 ```
 
 ### Debug
@@ -113,4 +116,5 @@ Open a terminal in macOS.
 cd DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
 cd ../Publish
+open .
 ```
