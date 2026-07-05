@@ -79,6 +79,15 @@ Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"
 ```
 
+### Native installers — `.deb` / `.rpm` / AppImage / Flatpak (PupNet)
+
+A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
+
+- [Stage 1 — Prepare the Linux build environment (WSL)](PupNet_Instructions/1_Setup.md)
+- [Stage 2 — Generate the PupNet configuration](PupNet_Instructions/2_Config.md)
+- [Stage 3 — AppStream metainfo (`.metainfo.xml`)](PupNet_Instructions/3_AppStream.md)
+- [Stage 4 — Build and verify Linux packages](PupNet_Instructions/4_Build.md)
+
 ---
 
 ## macOS
