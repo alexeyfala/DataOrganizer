@@ -14,12 +14,16 @@
 		<SetupCulture>ru-ru</SetupCulture>
 	</PropertyGroup>
 
-	<!-- Shared assembly/package identity and licensing metadata. -->
+	<!--
+		Assembly metadata shown on the file's Details tab in Windows Explorer
+		(Authors and PackageLicenseExpression apply to NuGet packages only).
+	-->
 	<PropertyGroup>
 		<Product>$(AppNameParted)</Product>
-		<Authors>Alexey Fala</Authors>
-		<Company>Alexey Fala</Company>
-		<Copyright>Copyright (c) 2026 Alexey Fala</Copyright>
+		<AssemblyTitle>$(AppNameParted)</AssemblyTitle>
+		<Authors>$(Manufacturer)</Authors>
+		<Company>$(Manufacturer)</Company>
+		<Copyright>Copyright (c) 2026 $(Manufacturer)</Copyright>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 	</PropertyGroup>
 </Project>
