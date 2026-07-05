@@ -104,6 +104,7 @@ Open a terminal in macOS. Regenerate notices first:
 cd DataOrganizer.MacOS
 pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+rm -rf bin
 cd ../Publish
 open .
 ```
@@ -115,6 +116,7 @@ Open a terminal in macOS.
 ```bash
 cd DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+rm -rf bin
 cd ../Publish
 open .
 ```
