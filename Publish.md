@@ -60,6 +60,9 @@ start "..\Publish"
 
 ## Linux
 
+> Prerequisite: the notice generator runs under PowerShell (Core). Install `pwsh` once, e.g.
+> `sudo apt-get install -y powershell` (or via the [Microsoft package repo](https://learn.microsoft.com/powershell/scripting/install/install-ubuntu)).
+
 ### Portable — Release
 
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
@@ -94,14 +97,54 @@ A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 ## macOS
 
-> **These recipes produce a `.pkg` installer.**
->
-> The `rm -rf bin` step is required, not just cleanup: the build leaves a copy of `DataOrganizer.app` under
-> `bin`, and macOS LaunchServices registers that copy instead of the one the `.pkg` installs into
-> `/Applications`. Until `bin` is removed the installed app is not discoverable in Finder/Launchpad and cannot
-> be uninstalled by dragging it to Trash.
+Two output formats: a `.dmg` (recommended for end users — drag-to-Applications, uninstall by dragging to Trash) and a `.pkg` installer.
 
-### Release
+> Prerequisite: the notice generator runs under PowerShell (Core). Install `pwsh` once, e.g.
+> `brew install powershell/tap/powershell`.
+
+> The `rm -rf bin` step is required, not just cleanup: the build leaves a copy of `DataOrganizer.app` under
+> `bin`, which macOS LaunchServices may register instead of the copy installed into `/Applications`. Until
+> `bin` is removed the installed app is not discoverable in Finder/Launchpad and cannot be uninstalled by
+> dragging it to Trash.
+
+### `.dmg` — Release
+
+Open a terminal in macOS. Regenerate notices first:
+
+```bash
+cd DataOrganizer.MacOS
+pwsh ../tools/gen-third-party-notices.ps1
+dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag -p:PublishDir="../Publish"
+APP_VERSION=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:AppVersion)
+rm -rf bin
+cd ../Publish
+mkdir dmg-staging
+cp -R DataOrganizer.app dmg-staging/
+ln -s /Applications dmg-staging/Applications
+hdiutil create -volname "Data Organizer" -srcfolder dmg-staging -ov -format UDZO "DataOrganizer-$APP_VERSION.dmg"
+rm -rf dmg-staging DataOrganizer.app
+open .
+```
+
+### `.dmg` — Debug
+
+Open a terminal in macOS.
+
+```bash
+cd DataOrganizer.MacOS
+dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag -p:PublishDir="../Publish"
+APP_VERSION=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:AppVersion)
+rm -rf bin
+cd ../Publish
+mkdir dmg-staging
+cp -R DataOrganizer.app dmg-staging/
+ln -s /Applications dmg-staging/Applications
+hdiutil create -volname "Data Organizer" -srcfolder dmg-staging -ov -format UDZO "DataOrganizer-$APP_VERSION.dmg"
+rm -rf dmg-staging DataOrganizer.app
+open .
+```
+
+### `.pkg` — Release
 
 Open a terminal in macOS. Regenerate notices first:
 
@@ -114,7 +157,7 @@ cd ../Publish
 open .
 ```
 
-### Debug
+### `.pkg` — Debug
 
 Open a terminal in macOS.
 
