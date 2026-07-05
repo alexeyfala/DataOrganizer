@@ -7,12 +7,14 @@
   </Configurations>
   <Folder Name="/Deployment/" />
   <Folder Name="/Deployment/PupNet/">
-    <File Path="1_Setup.md" />
-    <File Path="2_Config.md" />
-    <File Path="3_AppStream.md" />
-    <File Path="4_Build.md" />
     <File Path="app.metainfo.xml" />
     <File Path="app.pupnet.conf" />
+  </Folder>
+  <Folder Name="/Deployment/PupNet/PupNet_Instructions/">
+    <File Path="PupNet_Instructions/1_Setup.md" />
+    <File Path="PupNet_Instructions/2_Config.md" />
+    <File Path="PupNet_Instructions/3_AppStream.md" />
+    <File Path="PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Deployment/WIX/">
     <File Path="Useful.txt" />
