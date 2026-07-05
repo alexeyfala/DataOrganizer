@@ -5,7 +5,9 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/Deployment/" />
+  <Folder Name="/Deployment/">
+    <File Path="Publish.md" />
+  </Folder>
   <Folder Name="/Deployment/PupNet/">
     <File Path="app.metainfo.xml" />
     <File Path="app.pupnet.conf" />
@@ -29,7 +31,6 @@
   </Folder>
   <Folder Name="/Docs/">
     <File Path="Prerequisites.txt" />
-    <File Path="Publish.md" />
     <File Path="TerminalLaunch.txt" />
   </Folder>
   <Folder Name="/Global/">
