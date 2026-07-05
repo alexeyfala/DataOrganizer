@@ -4,11 +4,11 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 
 > **Before any Release / distributable build — regenerate third-party license notices.**
 > The notice set is platform-independent, so running this once per release is enough; commit the result.
-> Requires PowerShell (on Linux/macOS use `pwsh`). Restore first so `project.assets.json` is current.
+> Restore first so `project.assets.json` is current. On Windows use `powershell`; on Linux/macOS use `pwsh`.
 >
 > ```powershell
 > dotnet restore
-> pwsh tools/gen-third-party-notices.ps1
+> powershell -NoProfile -ExecutionPolicy Bypass -File tools\gen-third-party-notices.ps1
 > ```
 >
 > Review the console summary (watch for any `UNKNOWN` licenses) and commit the updated `THIRD-PARTY-NOTICES.txt`.
@@ -22,7 +22,7 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 1\. Regenerate notices (see above):
 
 ```powershell
-pwsh tools/gen-third-party-notices.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\gen-third-party-notices.ps1
 ```
 
 2\. Set **Release** or **Debug** mode.
@@ -38,7 +38,7 @@ start "..\Publish"
 Open a terminal in the `DataOrganizer.Desktop` project. Regenerate notices first:
 
 ```powershell
-pwsh ..\tools\gen-third-party-notices.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\tools\gen-third-party-notices.ps1
 dotnet publish -c:Release -p:PublishSingleFile=true -r:win-x64 --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugSymbols=false -verbosity:diag -p:PublishDir="..\Publish"
 Remove-Item -Path "..\Publish\*.xml", "..\Publish\*.pdb"
 start "..\Publish"

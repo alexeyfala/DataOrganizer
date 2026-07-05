@@ -109,6 +109,7 @@ repository listed above.
   * Microsoft.Extensions.Logging.Abstractions 10.0.9 - Copyright (c) Microsoft
   * Microsoft.Extensions.Options 10.0.9 - Copyright (c) Microsoft
   * Microsoft.Extensions.Primitives 10.0.9 - Copyright (c) Microsoft
+  * Microsoft.NET.ILLink.Tasks 10.0.9 - Copyright (c) Microsoft
   * Microsoft.Win32.SystemEvents 10.0.9 - Copyright (c) Microsoft
   * NSec.Cryptography 26.4.0 - Copyright (c) Klaus Hartke
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
