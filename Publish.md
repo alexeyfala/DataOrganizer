@@ -26,7 +26,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\gen-third-party-notice
 ```
 
 2\. Set **Release** or **Debug** mode.
+
 3\. Build the **Setup** project → produces the `*.msi` file.
+
 4\. Build the **Bundle** project → produces the `*.exe` file.
 
 ```powershell
