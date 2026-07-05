@@ -13,6 +13,7 @@ public sealed class AppEnvironment : IAppEnvironment
 	/// <inheritdoc />
 	public string DatabaseDirectoryPath { get; }
 
+
 	/// <inheritdoc />
 	public string SandboxDirectoryPath { get; }
 	#endregion
