@@ -95,6 +95,11 @@ A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 ## macOS
 
 > **These recipes produce a `.pkg` installer.**
+>
+> The `rm -rf bin` step is required, not just cleanup: the build leaves a copy of `DataOrganizer.app` under
+> `bin`, and macOS LaunchServices registers that copy instead of the one the `.pkg` installs into
+> `/Applications`. Until `bin` is removed the installed app is not discoverable in Finder/Launchpad and cannot
+> be uninstalled by dragging it to Trash.
 
 ### Release
 
