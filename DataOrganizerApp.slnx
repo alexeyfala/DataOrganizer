@@ -60,6 +60,9 @@
     <File Path="NOTICE" />
     <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
+  <Folder Name="/Solution Items/tools/">
+    <File Path="tools/gen-third-party-notices.ps1" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
