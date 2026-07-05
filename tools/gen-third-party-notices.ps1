@@ -36,16 +36,23 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 
-# The application's own license, read from the single source of truth in Directory.Build.props (no hardcoded fallback).
+# Application identity, read from the single source of truth in Directory.Build.props.
 $propsFile = Join-Path $repoRoot 'Directory.Build.props'
 if (-not (Test-Path $propsFile)) {
-    throw "Directory.Build.props not found at $propsFile; cannot determine the application license."
+    throw "Directory.Build.props not found at $propsFile; cannot determine application identity."
 }
 [xml]$props = Get-Content $propsFile -Raw
-$licNode = @($props.Project.PropertyGroup.License) | Where-Object { $_ } | Select-Object -First 1
-$appLicense = ("$licNode").Trim()
+function Get-PropsValue([string]$name) {
+    $node = @($props.Project.PropertyGroup.$name) | Where-Object { $_ } | Select-Object -First 1
+    ("$node").Trim()
+}
+$appLicense = Get-PropsValue 'License'
 if (-not $appLicense) {
     throw "No <License> property found in Directory.Build.props; cannot determine the application license."
+}
+$appName = Get-PropsValue 'AppNameParted'
+if (-not $appName) {
+    throw "No <AppNameParted> property found in Directory.Build.props; cannot determine the application name."
 }
 
 if (-not $AssetsFile) {
@@ -204,7 +211,7 @@ function Add-Line([string]$s = '') { [void]$sb.Append($s + $nl) }
 Add-Line 'THIRD-PARTY SOFTWARE NOTICES AND INFORMATION'
 Add-Line '============================================'
 Add-Line
-Add-Line 'Data Organizer incorporates, links against, or bundles the third-party'
+Add-Line "$appName incorporates, links against, or bundles the third-party"
 Add-Line 'components listed below. Each component is the property of its respective'
 Add-Line 'authors and is used under the license indicated. This file is provided to'
 Add-Line 'comply with the attribution and notice requirements of those licenses.'
