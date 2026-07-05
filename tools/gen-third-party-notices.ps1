@@ -36,6 +36,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot -Parent
 
+# The application's own license, read from the single source of truth in Directory.Build.props (no hardcoded fallback).
+$propsFile = Join-Path $repoRoot 'Directory.Build.props'
+if (-not (Test-Path $propsFile)) {
+    throw "Directory.Build.props not found at $propsFile; cannot determine the application license."
+}
+[xml]$props = Get-Content $propsFile -Raw
+$licNode = @($props.Project.PropertyGroup.License) | Where-Object { $_ } | Select-Object -First 1
+$appLicense = ("$licNode").Trim()
+if (-not $appLicense) {
+    throw "No <License> property found in Directory.Build.props; cannot determine the application license."
+}
+
 if (-not $AssetsFile) {
     $AssetsFile = @(Join-Path $repoRoot 'DataOrganizer.Desktop\obj\project.assets.json')
 }
@@ -112,13 +124,24 @@ $iscText = @'
     IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 '@
 
-$apacheRef = @'
+# The "reproduced in the LICENSE file" phrasing only holds when the application
+# itself is Apache-2.0 (its LICENSE file then contains the Apache text).
+if ($appLicense -eq 'Apache-2.0') {
+    $apacheRef = @'
     These components are licensed under the Apache License, Version 2.0. The full
     text of the Apache License 2.0 is reproduced in the LICENSE file that
     accompanies this software and is also available at:
 
         http://www.apache.org/licenses/LICENSE-2.0
 '@
+} else {
+    $apacheRef = @'
+    These components are licensed under the Apache License, Version 2.0. The full
+    text of the Apache License 2.0 is available at:
+
+        http://www.apache.org/licenses/LICENSE-2.0
+'@
+}
 
 # License body lookup: SPDX -> descriptive line + full/reference text.
 $licenseBodies = @{
