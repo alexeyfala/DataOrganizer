@@ -27,7 +27,7 @@
   </Folder>
   <Folder Name="/Docs/">
     <File Path="Prerequisites.txt" />
-    <File Path="Publish.txt" />
+    <File Path="Publish.md" />
     <File Path="TerminalLaunch.txt" />
   </Folder>
   <Folder Name="/Global/">
