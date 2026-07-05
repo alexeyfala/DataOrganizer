@@ -38,6 +38,15 @@
 			Id="1" />
 
 		<!--
+			Summary Information Stream: metadata shown on the file's
+			Details tab in Windows Explorer.
+		-->
+		<SummaryInformation
+			Comments="$(var.AppNameParted) installer. Copyright (c) 2026 $(var.Manufacturer). Licensed under $(var.License)."
+			Description="$(var.AppNameParted) $(var.AppVersion) Setup"
+			Keywords="Installer, MSI, $(var.AppNameParted)" />
+
+		<!--
 			https://docs.firegiant.com/wix3/wixui/dialog_reference/wixui_advanced
 		-->
 		<ui:WixUI Id="WixUI_Advanced" />
@@ -71,7 +80,7 @@
 		-->
 		<WixVariable
 			Id="WixUILicenseRtf"
-			Value="LICENSE.$(SetupCulture).rtf" />
+			Value="LICENSE.rtf" />
 
 		<!--
 			Add Icon and ARPPRODUCTICON (the installer icon). 

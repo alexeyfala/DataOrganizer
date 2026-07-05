@@ -1,6 +1,14 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+# MSBuild project and WiX files — keep tabs (VS defaults to spaces without this)
+[*.{csproj,wixproj,props,targets,wxs,wxi}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+end_of_line = crlf
+insert_final_newline = true
+
 # C# files
 [*.cs]
 
@@ -13,7 +21,7 @@ tab_width = 4
 
 # New line preferences
 end_of_line = crlf
-insert_final_newline = false
+insert_final_newline = true
 
 #### .NET Code Actions ####
 

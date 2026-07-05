@@ -5,14 +5,18 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/Deployment/" />
+  <Folder Name="/Deployment/">
+    <File Path="Publish.md" />
+  </Folder>
   <Folder Name="/Deployment/PupNet/">
-    <File Path="1_Setup.md" />
-    <File Path="2_Config.md" />
-    <File Path="3_AppStream.md" />
-    <File Path="4_Build.md" />
     <File Path="app.metainfo.xml" />
     <File Path="app.pupnet.conf" />
+  </Folder>
+  <Folder Name="/Deployment/PupNet/PupNet_Instructions/">
+    <File Path="PupNet_Instructions/1_Setup.md" />
+    <File Path="PupNet_Instructions/2_Config.md" />
+    <File Path="PupNet_Instructions/3_AppStream.md" />
+    <File Path="PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Deployment/WIX/">
     <File Path="Useful.txt" />
@@ -27,7 +31,6 @@
   </Folder>
   <Folder Name="/Docs/">
     <File Path="Prerequisites.txt" />
-    <File Path="Publish.txt" />
     <File Path="TerminalLaunch.txt" />
   </Folder>
   <Folder Name="/Global/">
@@ -45,6 +48,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.config/">
     <File Path=".config/dotnet-tools.json" />
@@ -53,6 +57,15 @@
     <File Path=".vscode/launch.json" />
     <File Path=".vscode/settings.json" />
     <File Path=".vscode/tasks.json" />
+  </Folder>
+  <Folder Name="/Solution Items/License/">
+    <File Path="LICENSE" />
+    <File Path="NOTICE" />
+    <File Path="THIRD-PARTY-NOTICES.txt" />
+  </Folder>
+  <Folder Name="/Solution Items/tools/">
+    <File Path="tools/gen-license-rtf.ps1" />
+    <File Path="tools/gen-third-party-notices.ps1" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />

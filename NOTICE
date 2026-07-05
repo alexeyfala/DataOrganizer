@@ -1,0 +1,18 @@
+Data Organizer
+Copyright 2026 Alexey Fala
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this product except in compliance with the License. A copy of the License
+is provided in the LICENSE file and is available at
+http://www.apache.org/licenses/LICENSE-2.0
+
+This product includes third-party software distributed under separate license
+terms. This includes a component (libuiohook, bundled with SharpHook) licensed
+under the GNU Lesser General Public License, version 3.0 or later. See the
+THIRD-PARTY-NOTICES.txt file for the complete list of third-party components
+and their respective licenses.
+
+"Data Organizer" is a product name of the author. Per Section 6 of the Apache
+License 2.0, this license does not grant permission to use the product name,
+except as required for reasonable and customary use in describing the origin
+of the work.

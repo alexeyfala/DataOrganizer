@@ -45,15 +45,8 @@
 			Condition="'$(MSBuildRestoreSessionId)' == '' AND '$(DesignTimeBuild)' != 'true'">
 		<MSBuild Projects="..\Setup\Setup.wixproj"
 				 Properties="
-				 AppIconPath=$(AppIconPath);
-				 AppNameParted=$(AppNameParted);
-				 AppName=$(AppName);
-				 AppVersion=$(AppVersion);
 				 Configuration=$(Configuration);
-				 Manufacturer=$(Manufacturer);
-				 MsiOutputName=$(MsiOutputName);
-				 OpenOutputFolder=false;
-				 SetupCulture=$(SetupCulture);" />
+				 OpenOutputFolder=false;" />
 	</Target>
 	<Target Name="PostBuild"
 			AfterTargets="PostBuildEvent">

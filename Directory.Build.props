@@ -5,6 +5,7 @@
 		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
 		<AppVersion>0.0.1</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
+		<License>Apache-2.0</License>
 		<!--
 			Append "-Debug" to the MSI/Bundle name in non-Release builds. Treats an empty
 			Configuration (default Debug) as Debug, so a bare build is named correctly.
@@ -12,5 +13,18 @@
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-Debug</_DebugSuffix>
 		<MsiOutputName>$(AppName)-$(AppVersion)-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>ru-ru</SetupCulture>
+	</PropertyGroup>
+
+	<!--
+		Assembly metadata shown on the file's Details tab in Windows Explorer
+		(Authors and PackageLicenseExpression apply to NuGet packages only).
+	-->
+	<PropertyGroup>
+		<Product>$(AppNameParted)</Product>
+		<AssemblyTitle>$(AppNameParted)</AssemblyTitle>
+		<Authors>$(Manufacturer)</Authors>
+		<Company>$(Manufacturer)</Company>
+		<Copyright>Copyright (c) 2026 $(Manufacturer)</Copyright>
+		<PackageLicenseExpression>$(License)</PackageLicenseExpression>
 	</PropertyGroup>
 </Project>

@@ -30,6 +30,13 @@
 			Value="$(RuntimeDescription)" />
 
 		<BootstrapperApplication>
+			<!--
+				LicenseUrl="" is intentional: it is the WixStdBA idiom for "no
+				bundle-level EULA", so the hyperlink/accept controls stay hidden.
+				The license is presented by the chained MSI, which runs with its
+				full internal UI (DisplayInternalUICondition below) and shows the
+				license via WixUILicenseRtf.
+			-->
 			<bal:WixStandardBootstrapperApplication
 				LicenseUrl=""
 				LogoFile="$(AppIconPath)"
