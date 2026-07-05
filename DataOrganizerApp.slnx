@@ -64,6 +64,7 @@
     <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
   <Folder Name="/Solution Items/tools/">
+    <File Path="tools/gen-license-rtf.ps1" />
     <File Path="tools/gen-third-party-notices.ps1" />
   </Folder>
   <Folder Name="/Tests/">

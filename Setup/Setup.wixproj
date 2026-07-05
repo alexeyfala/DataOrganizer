@@ -1,47 +1,40 @@
 ﻿<Project Sdk="WixToolset.Sdk/7.0.0">
-	<PropertyGroup>
-		<AcceptEula>wix7</AcceptEula>
-		<OutputName>$(MsiOutputName)</OutputName>
-		<OutputPath>..\Publish</OutputPath>
-		<ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
-		<Cultures>$(SetupCulture)</Cultures>
-	</PropertyGroup>
-	<PropertyGroup>
-		<DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppNameParted=$(AppNameParted)</DefineConstants>
-		<DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
-		<DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
-		<DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-		<Content Include="IssueWorkaround.wxi" />
-		<Content Include="Predefines.wxi" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="LICENSE.rtf" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="WixToolset.UI.wixext"
-						  Version="7.0.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
-	</ItemGroup>
-	<Target Name="PreBuild"
-			BeforeTargets="CoreCompile"
-			DependsOnTargets="ResolveReferences"
-			Condition="'$(DesignTimeBuild)' != 'true'">
-		<PropertyGroup>
-			<_DesktopPublishDir>@(_WixReferencedProjectOutputs->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
-		</PropertyGroup>
-		<Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
-	</Target>
-	<Target Name="PostBuild"
-			AfterTargets="PostBuildEvent"
-			Condition="'$(DesignTimeBuild)' != 'true'">
-		<Exec Command="del /f $(OutputPath)\*.wixpdb" />
-		<!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
-		<Exec Command="start $(OutputPath)" Condition="'$(OpenOutputFolder)' != 'false'" />
-	</Target>
+  <PropertyGroup>
+    <AcceptEula>wix7</AcceptEula>
+    <OutputName>$(MsiOutputName)</OutputName>
+    <OutputPath>..\Publish</OutputPath>
+    <ProjectReferenceName>$(AppName).Desktop</ProjectReferenceName>
+    <Cultures>$(SetupCulture)</Cultures>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);AppIconPath=$(AppIconPath)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppName=$(AppName)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppNameParted=$(AppNameParted)</DefineConstants>
+    <DefineConstants>$(DefineConstants);AppVersion=$(AppVersion)</DefineConstants>
+    <DefineConstants>$(DefineConstants);License=$(License)</DefineConstants>
+    <DefineConstants>$(DefineConstants);Manufacturer=$(Manufacturer)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="IssueWorkaround.wxi" />
+    <Content Include="Predefines.wxi" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DataOrganizer.Desktop\DataOrganizer.Desktop.csproj" />
+  </ItemGroup>
+  <Target Name="PreBuild" BeforeTargets="CoreCompile" DependsOnTargets="ResolveReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_DesktopPublishDir>@(_WixReferencedProjectOutputs->'%(RootDir)%(Directory)')Publish</_DesktopPublishDir>
+    </PropertyGroup>
+    <!-- Generate the RTF license from the plain-text LICENSE. -->
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\tools\gen-license-rtf.ps1&quot;" />
+    <Exec Command="dotnet publish ..\$(ProjectReferenceName)\$(ProjectReferenceName).csproj -c:$(Configuration) -r:win-x64 -p:DebugSymbols=false -p:PublishDir=&quot;$(_DesktopPublishDir)&quot;" />
+  </Target>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="del /f $(OutputPath)\*.wixpdb" />
+    <!-- Suppress when built as Bundle's dependency (Bundle opens the folder itself). -->
+    <Exec Command="start $(OutputPath)" Condition="'$(OpenOutputFolder)' != 'false'" />
+  </Target>
 </Project>

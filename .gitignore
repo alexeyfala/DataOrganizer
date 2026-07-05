@@ -426,3 +426,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Generated from the plain-text LICENSE by tools/gen-license-rtf.ps1 (single source of truth)
+Setup/LICENSE.rtf
