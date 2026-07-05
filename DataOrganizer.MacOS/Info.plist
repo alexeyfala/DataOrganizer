@@ -12,12 +12,5 @@
 		<string>com.dataorganizer.plist</string>
 		<key>CFBundleIconFile</key>
 		<string>Logo.icns</string>
-		<!-- A Boolean value indicating whether the app is an agent app that runs in the background and doesn’t appear in the Dock -->
-		<!-- <key>LSUIElement</key> -->
-		<!-- <true/> -->
-		<!--<key>LSMinimumSystemVersion</key>-->
-		<!--<string>14.2</string>-->
-		<!--<key>CFBundleName</key>-->
-		<!--<string>DataOrganizer</string>-->
 	</dict>
 </plist>
