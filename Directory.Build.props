@@ -13,4 +13,13 @@
 		<MsiOutputName>$(AppName)-$(AppVersion)-$(Platform)$(_DebugSuffix)</MsiOutputName>
 		<SetupCulture>ru-ru</SetupCulture>
 	</PropertyGroup>
+
+	<!-- Shared assembly/package identity and licensing metadata. -->
+	<PropertyGroup>
+		<Product>$(AppNameParted)</Product>
+		<Authors>Alexey Fala</Authors>
+		<Company>Alexey Fala</Company>
+		<Copyright>Copyright (c) 2026 Alexey Fala</Copyright>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+	</PropertyGroup>
 </Project>

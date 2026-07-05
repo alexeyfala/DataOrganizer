@@ -71,7 +71,7 @@
 		-->
 		<WixVariable
 			Id="WixUILicenseRtf"
-			Value="LICENSE.$(SetupCulture).rtf" />
+			Value="LICENSE.rtf" />
 
 		<!--
 			Add Icon and ARPPRODUCTICON (the installer icon). 

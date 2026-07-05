@@ -19,8 +19,7 @@
 		<Content Include="Predefines.wxi" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="LICENSE.en-us.rtf" />
-		<None Include="LICENSE.ru-ru.rtf" />
+		<None Include="LICENSE.rtf" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="WixToolset.UI.wixext"

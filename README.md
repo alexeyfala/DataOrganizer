@@ -119,4 +119,6 @@ All application data is stored locally:
 
 ## License
 
-This project is provided as-is. See the [LICENSE](LICENSE) file for details.
+Data Organizer is licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file for the full text.
+
+Third-party components are distributed under their own licenses; attribution and terms are listed in [THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt). Notably, the global-hotkey feature relies on the native `libuiohook` library (bundled with SharpHook), which is licensed under the **LGPL-3.0-or-later** and is linked dynamically. Required attribution notices are collected in the [NOTICE](NOTICE) file.

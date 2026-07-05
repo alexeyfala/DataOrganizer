@@ -1,0 +1,188 @@
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+============================================
+
+Data Organizer incorporates, links against, or bundles the third-party
+components listed below. Each component is the property of its respective
+authors and is used under the license indicated. This file is provided to
+comply with the attribution and notice requirements of those licenses.
+
+The components are grouped by license. The full text of each license (or a
+reference to it) follows the corresponding list.
+
+
+--------------------------------------------------------------------------
+1. GNU Lesser General Public License, version 3.0 or later (LGPL-3.0-or-later)
+--------------------------------------------------------------------------
+
+  * libuiohook
+      Copyright (c) 2006-2023 Alexander Barker.
+      https://github.com/kwhat/libuiohook
+
+libuiohook is a native C library that provides the global keyboard/mouse
+hooks used by this application. It is distributed as a native binary
+(uiohook.dll / libuiohook.so / libuiohook.dylib) bundled inside the SharpHook
+NuGet package and is loaded dynamically at runtime (via P/Invoke).
+
+This component is licensed under the GNU Lesser General Public License,
+version 3.0 or later. In accordance with the LGPL, the native library is
+linked dynamically and may be replaced by the end user with a compatible
+version of their own. The full text of the LGPL v3.0 and the GNU GPL v3.0
+(which the LGPL incorporates by reference) is available at:
+
+    https://www.gnu.org/licenses/lgpl-3.0.txt
+    https://www.gnu.org/licenses/gpl-3.0.txt
+
+The corresponding source code for libuiohook is available from the project
+repository listed above.
+
+
+--------------------------------------------------------------------------
+2. Apache License, Version 2.0 (Apache-2.0)
+--------------------------------------------------------------------------
+
+  * Ben.Demystifier 0.4.1 - Copyright (c) Ben Adams
+  * Serilog 4.3.1 - Copyright (c) Serilog Contributors
+  * Serilog.Enrichers.Demystifier 1.0.3 - Copyright (c) Serilog Contributors
+  * Serilog.Sinks.Async 2.1.0 - Copyright (c) Serilog Contributors
+  * Serilog.Sinks.FileEx 5.1.8 - Copyright (c) its authors
+  * SQLitePCLRaw.bundle_e_sqlite3 2.1.11 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.core 2.1.11 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.lib.e_sqlite3 2.1.11 - Copyright (c) Eric Sink
+  * SQLitePCLRaw.provider.e_sqlite3 2.1.11 - Copyright (c) Eric Sink
+
+These components are licensed under the Apache License, Version 2.0. The full
+text of the Apache License 2.0 is reproduced in the LICENSE file that
+accompanies this software and is also available at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+
+--------------------------------------------------------------------------
+3. MIT License (MIT)
+--------------------------------------------------------------------------
+
+  * Avalonia 12.0.5 and Avalonia.* modules (AvaloniaEdit, BuildServices,
+    Desktop, Fonts.Inter, FreeDesktop, FreeDesktop.AtSpi, HarfBuzz, Native,
+    Remote.Protocol, Skia, Themes.Fluent, Win32, X11)
+      - Copyright (c) .NET Foundation and Contributors / AvaloniaUI OU
+  * MicroCom.Runtime 0.11.4 - Copyright (c) .NET Foundation and Contributors
+  * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) its authors
+  * BCrypt.Net-Next 4.2.0 - Copyright (c) Chris McKee / BCrypt.Net contributors
+  * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) .NET Foundation and Contributors
+  * Comparation 0.1.7 - Copyright (c) its authors
+  * DialogHost.Avalonia 0.12.2 - Copyright (c) its authors
+  * DynamicData 9.4.33 - Copyright (c) Roland Pheasant
+  * HarfBuzzSharp 8.3.1.3 and HarfBuzzSharp.NativeAssets.* - Copyright (c) Microsoft / Xamarin
+  * Interop.UIAutomationClient 10.19041.0 - Copyright (c) 2019 Roman
+  * Mapster 10.0.10, Mapster.Core, Mapster.DependencyInjection - Copyright (c) Chaowlert Chaisrichalermpol
+  * Material.Avalonia 3.17.0 - Copyright (c) its authors
+  * Material.Icons 3.0.2, Material.Icons.Avalonia 3.0.2 - Copyright (c) its authors
+  * Microsoft.Data.Sqlite.Core 10.0.9 - Copyright (c) .NET Foundation and Contributors
+  * Microsoft.EntityFrameworkCore 10.0.9 and related packages - Copyright (c) .NET Foundation and Contributors
+  * Microsoft.Extensions.* 10.0.9 - Copyright (c) .NET Foundation and Contributors
+  * Microsoft.Win32.SystemEvents 10.0.9 - Copyright (c) .NET Foundation and Contributors
+  * NSec.Cryptography 26.4.0 - Copyright (c) Klaus Hartke
+  * OSVersionExt.NetStd 3.0.1 - Copyright (c) its authors
+  * ProItemsRepeater 12.0.0 - Copyright (c) Wieslaw Soltes
+      (the NuGet package does not declare a license; the author publishes it under the MIT License)
+  * SkiaSharp 3.119.4 and SkiaSharp.NativeAssets.* - Copyright (c) Microsoft / Xamarin
+  * System.Drawing.Common 10.0.9 - Copyright (c) .NET Foundation and Contributors
+  * System.Reactive 6.1.0 - Copyright (c) .NET Foundation and Contributors
+  * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) .NET Foundation and Contributors
+  * Tmds.DBus.Protocol 0.92.0 - Copyright (c) Tom Deseyn
+  * Xaml.Behaviors 12.0.5 - Copyright (c) Wieslaw Soltes
+  * ZString 2.6.0 - Copyright (c) Cysharp, Inc.
+
+The above components are licensed under the MIT License. Copyright is held by
+the respective authors and contributors of each component. The MIT License
+text is reproduced below:
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+
+--------------------------------------------------------------------------
+4. BSD 3-Clause License (BSD-3-Clause)
+--------------------------------------------------------------------------
+
+  * Avalonia.Angle.Windows.Natives 2.1.x (ANGLE)
+      Copyright (c) 2018 The ANGLE Project Authors.
+      https://chromium.googlesource.com/angle/angle
+
+This component (the ANGLE graphics engine, distributed as a native binary) is
+licensed under the BSD 3-Clause License:
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+      * Redistributions of source code must retain the above copyright notice,
+        this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the copyright holder nor the names of its
+        contributors may be used to endorse or promote products derived from
+        this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+
+--------------------------------------------------------------------------
+5. ISC License (ISC)
+--------------------------------------------------------------------------
+
+  * libsodium 1.0.22
+      Copyright (c) 2013-2025 Frank Denis <j at pureftpd dot org>
+      https://libsodium.org
+
+libsodium is a native cryptographic library bundled with the
+NSec.Cryptography package. It is licensed under the ISC License:
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+    IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+--------------------------------------------------------------------------
+Notes
+--------------------------------------------------------------------------
+
+Version numbers reflect the dependencies resolved at the time of writing and
+may change between releases. Copyright holders are listed to the best of the
+author's knowledge; where an exact holder could not be confirmed, copyright is
+attributed to the respective authors and contributors of the component. For
+the authoritative and complete license text of any component, refer to the
+package or repository of that component.

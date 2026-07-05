@@ -45,6 +45,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.config/">
     <File Path=".config/dotnet-tools.json" />
@@ -53,6 +54,11 @@
     <File Path=".vscode/launch.json" />
     <File Path=".vscode/settings.json" />
     <File Path=".vscode/tasks.json" />
+  </Folder>
+  <Folder Name="/Solution Items/License/">
+    <File Path="LICENSE" />
+    <File Path="NOTICE" />
+    <File Path="THIRD-PARTY-NOTICES.txt" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />
