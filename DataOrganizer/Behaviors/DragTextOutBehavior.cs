@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Behaviors;
@@ -172,10 +173,13 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 			AssociatedObject_PointerMoved,
 			RoutingStrategies.Tunnel);
 
+		// handledEventsToo: an ancestor (e.g. the group Expander header) may mark the tunneled
+		// press as handled before it reaches this element; the gesture must still observe it.
 		AssociatedObject.AddHandler(
 			InputElement.PointerPressedEvent,
 			AssociatedObject_PointerPressed,
-			RoutingStrategies.Tunnel);
+			RoutingStrategies.Tunnel,
+			handledEventsToo: true);
 
 		AssociatedObject.AddHandler(
 			InputElement.PointerReleasedEvent,
@@ -238,7 +242,14 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 
 		try
 		{
-			await DragDrop.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy);
+			await DragDrop
+				.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy)
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			// A failed drag must not crash the app; the gesture is simply abandoned.
+			Trace.WriteLine(ex);
 		}
 		finally
 		{
