@@ -26,15 +26,6 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// <c>True</c> disables dragging.
-	/// </summary>
-	public bool IsDisabled
-	{
-		get => GetValue(IsDisabledProperty);
-		set => SetValue(IsDisabledProperty, value);
-	}
-
-	/// <summary>
 	/// Text carried by the drag operation.
 	/// </summary>
 	public string? Text
@@ -50,12 +41,6 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	/// </summary>
 	public static readonly StyledProperty<double> DragThresholdProperty = AvaloniaProperty
 		.Register<DragTextOutBehavior, double>(name: nameof(DragThreshold), 4.0);
-
-	/// <summary>
-	/// Identifies the <see cref="IsDisabled" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsDisabledProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, bool>(name: nameof(IsDisabled));
 
 	/// <summary>
 	/// Identifies the <see cref="Text" /> avalonia property.
@@ -101,7 +86,7 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerEventArgs e)
 	{
-		if (IsDisabled
+		if (!IsEnabled
 			|| !_pressed
 			|| _dragStarted
 			|| AssociatedObject is null
@@ -130,7 +115,7 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerPressedEventArgs e)
 	{
-		if (IsDisabled
+		if (!IsEnabled
 			|| AssociatedObject is null
 			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
