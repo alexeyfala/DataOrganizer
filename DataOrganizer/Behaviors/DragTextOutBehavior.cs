@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using System;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.Behaviors;
 
@@ -63,11 +64,25 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// <c>True</c> once the drag operation has been started for the current press.
+	/// </summary>
 	private bool _dragStarted;
 
+	/// <summary>
+	/// <c>True</c> while the left button is held after a press on the associated element.
+	/// </summary>
 	private bool _pressed;
 
+	/// <summary>
+	/// Pointer position at press time, used to measure the drag threshold.
+	/// </summary>
 	private Point _start;
+
+	/// <summary>
+	/// Press event that seeds the drag operation.
+	/// </summary>
+	private PointerPressedEventArgs? _triggerEvent;
 	#endregion
 
 	#region Event Handlers
@@ -104,7 +119,7 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 
 		_dragStarted = true;
 
-		// Stage 2: build a DataTransfer with DataFormat.Text and call DragDrop.DoDragDropAsync here.
+		_ = StartDragAsync();
 	}
 
 	/// <summary>
@@ -126,6 +141,8 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		_dragStarted = false;
 
 		_start = e.GetPosition(AssociatedObject);
+
+		_triggerEvent = e;
 	}
 
 	/// <summary>
@@ -201,6 +218,32 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		_pressed = false;
 
 		_dragStarted = false;
+
+		_triggerEvent = null;
+	}
+
+	/// <summary>
+	/// Runs a copy drag-and-drop operation carrying <see cref="Text" /> as plain text.
+	/// </summary>
+	private async Task StartDragAsync()
+	{
+		if (_triggerEvent is not { } triggerEvent)
+		{
+			return;
+		}
+
+		using DataTransfer data = new();
+
+		data.Add(DataTransferItem.CreateText(Text));
+
+		try
+		{
+			await DragDrop.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy);
+		}
+		finally
+		{
+			Reset();
+		}
 	}
 	#endregion
 }
