@@ -26,6 +26,10 @@
 
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
+
+				<behaviors:DatasetRecordReorderDragBehavior
+					IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+					Record="{Binding Mode=OneWay}" />
 			</Interaction.Behaviors>
 
 			<views:ClipboardTextBlock
@@ -62,6 +66,10 @@
 
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
+
+				<behaviors:DatasetRecordReorderDragBehavior
+					IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+					Record="{Binding Mode=OneWay}" />
 			</Interaction.Behaviors>
 
 			<views:ClipboardTextBlock
@@ -111,6 +119,10 @@
 
 							<Interaction.Behaviors>
 								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+
+								<behaviors:DatasetRecordReorderDragBehavior
+									IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+									Record="{Binding Mode=OneWay}" />
 							</Interaction.Behaviors>
 
 							<ToggleButton

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.DTO.Dataset;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -10,10 +11,10 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Behaviors;
 
 /// <summary>
-/// Enables dragging the associated element's <see cref="Text" /> out to other applications
-/// as plain text, bypassing the system clipboard.
+/// Starts an in-process drag of the associated <see cref="Record" /> when the pointer is moved
+/// with the <see cref="KeyModifiers.Shift" /> modifier held, so records can be reordered by dropping.
 /// </summary>
-internal sealed class DragTextOutBehavior : Behavior<Control>
+internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
@@ -26,12 +27,21 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// Text carried by the drag operation.
+	/// <c>True</c> forbids starting a drag.
 	/// </summary>
-	public string? Text
+	public bool IsReadOnly
 	{
-		get => GetValue(TextProperty);
-		set => SetValue(TextProperty, value);
+		get => GetValue(IsReadOnlyProperty);
+		set => SetValue(IsReadOnlyProperty, value);
+	}
+
+	/// <summary>
+	/// Record carried by the drag operation.
+	/// </summary>
+	public DatasetRecordBase? Record
+	{
+		get => GetValue(RecordProperty);
+		set => SetValue(RecordProperty, value);
 	}
 	#endregion
 
@@ -40,16 +50,28 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	/// Identifies the <see cref="DragThreshold" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> DragThresholdProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, double>(name: nameof(DragThreshold), 4.0);
+		.Register<DatasetRecordReorderDragBehavior, double>(name: nameof(DragThreshold), 4.0);
 
 	/// <summary>
-	/// Identifies the <see cref="Text" /> avalonia property.
+	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<string?> TextProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, string?>(name: nameof(Text));
+	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
+		.Register<DatasetRecordReorderDragBehavior, bool>(name: nameof(IsReadOnly));
+
+	/// <summary>
+	/// Identifies the <see cref="Record" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<DatasetRecordBase?> RecordProperty = AvaloniaProperty
+		.Register<DatasetRecordReorderDragBehavior, DatasetRecordBase?>(name: nameof(Record));
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Application-private format carrying the dragged record; never serialized to other processes.
+	/// </summary>
+	public static readonly DataFormat<DatasetRecordBase> RecordFormat = DataFormat
+		.CreateInProcessFormat<DatasetRecordBase>("DataOrganizer.Dataset.RecordReorder");
+
 	/// <summary>
 	/// <c>True</c> once the drag operation has been started for the current press.
 	/// </summary>
@@ -86,14 +108,13 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerEventArgs e)
 	{
-		if (!IsEnabled
+		if (IsReadOnly
 			|| !_pressed
 			|| _dragStarted
 			|| AssociatedObject is null
-			// Shift+drag is reserved for internal record reordering; yield the gesture to it.
-			|| e.KeyModifiers.HasFlag(KeyModifiers.Shift)
-			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed
-			|| string.IsNullOrWhiteSpace(Text))
+			|| Record is null
+			|| !e.KeyModifiers.HasFlag(KeyModifiers.Shift)
+			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
 			return;
 		}
@@ -117,7 +138,7 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerPressedEventArgs e)
 	{
-		if (!IsEnabled
+		if (IsReadOnly
 			|| AssociatedObject is null
 			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
@@ -214,23 +235,23 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// Runs a copy drag-and-drop operation carrying <see cref="Text" /> as plain text.
+	/// Runs a move drag-and-drop operation carrying <see cref="Record" /> in-process.
 	/// </summary>
 	private async Task StartDragAsync()
 	{
-		if (_triggerEvent is not { } triggerEvent)
+		if (_triggerEvent is not { } triggerEvent || Record is not { } record)
 		{
 			return;
 		}
 
 		using DataTransfer data = new();
 
-		data.Add(DataTransferItem.CreateText(Text));
+		data.Add(DataTransferItem.Create(RecordFormat, record));
 
 		try
 		{
 			await DragDrop
-				.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy)
+				.DoDragDropAsync(triggerEvent, data, DragDropEffects.Move)
 				.ConfigureAwait(true);
 		}
 		catch (Exception ex)
