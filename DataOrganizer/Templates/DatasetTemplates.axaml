@@ -27,8 +27,8 @@
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
 
-				<behaviors:DatasetRecordReorderDragBehavior
-					IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+				<behaviors:DatasetDragRecordInsideBehavior
+					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					Record="{Binding Mode=OneWay}" />
 			</Interaction.Behaviors>
 
@@ -67,8 +67,8 @@
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
 
-				<behaviors:DatasetRecordReorderDragBehavior
-					IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+				<behaviors:DatasetDragRecordInsideBehavior
+					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					Record="{Binding Mode=OneWay}" />
 			</Interaction.Behaviors>
 
@@ -120,8 +120,8 @@
 							<Interaction.Behaviors>
 								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
 
-								<behaviors:DatasetRecordReorderDragBehavior
-									IsReadOnly="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay}"
+								<behaviors:DatasetDragRecordInsideBehavior
+									IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 									Record="{Binding Mode=OneWay}" />
 							</Interaction.Behaviors>
 

@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
-using DataOrganizer.DTO.Dataset;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -11,10 +10,9 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Behaviors;
 
 /// <summary>
-/// Starts an in-process drag of the associated <see cref="Record" /> when the pointer is moved
-/// with the <see cref="KeyModifiers.Shift" /> modifier held, so records can be reordered by dropping.
+/// Base for behaviors that start a mouse drag-and-drop gesture from the associated element.
 /// </summary>
-internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
+internal abstract class DatasetDragBehaviorBase : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
@@ -25,24 +23,6 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 		get => GetValue(DragThresholdProperty);
 		set => SetValue(DragThresholdProperty, value);
 	}
-
-	/// <summary>
-	/// <c>True</c> forbids starting a drag.
-	/// </summary>
-	public bool IsReadOnly
-	{
-		get => GetValue(IsReadOnlyProperty);
-		set => SetValue(IsReadOnlyProperty, value);
-	}
-
-	/// <summary>
-	/// Record carried by the drag operation.
-	/// </summary>
-	public DatasetRecordBase? Record
-	{
-		get => GetValue(RecordProperty);
-		set => SetValue(RecordProperty, value);
-	}
 	#endregion
 
 	#region Styled Properties
@@ -50,28 +30,10 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 	/// Identifies the <see cref="DragThreshold" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> DragThresholdProperty = AvaloniaProperty
-		.Register<DatasetRecordReorderDragBehavior, double>(name: nameof(DragThreshold), 4.0);
-
-	/// <summary>
-	/// Identifies the <see cref="IsReadOnly" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty
-		.Register<DatasetRecordReorderDragBehavior, bool>(name: nameof(IsReadOnly));
-
-	/// <summary>
-	/// Identifies the <see cref="Record" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<DatasetRecordBase?> RecordProperty = AvaloniaProperty
-		.Register<DatasetRecordReorderDragBehavior, DatasetRecordBase?>(name: nameof(Record));
+		.Register<DatasetDragBehaviorBase, double>(name: nameof(DragThreshold), 4.0);
 	#endregion
 
 	#region Data
-	/// <summary>
-	/// Application-private format carrying the dragged record; never serialized to other processes.
-	/// </summary>
-	public static readonly DataFormat<DatasetRecordBase> RecordFormat = DataFormat
-		.CreateInProcessFormat<DatasetRecordBase>("DataOrganizer.Dataset.RecordReorder");
-
 	/// <summary>
 	/// <c>True</c> once the drag operation has been started for the current press.
 	/// </summary>
@@ -93,6 +55,23 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 	private PointerPressedEventArgs? _triggerEvent;
 	#endregion
 
+	#region Abstract Members
+	/// <summary>
+	/// Effects offered to the drop target.
+	/// </summary>
+	protected abstract DragDropEffects AllowedEffects { get; }
+
+	/// <summary>
+	/// <c>True</c> when a drag may begin for the current pointer state.
+	/// </summary>
+	protected abstract bool CanStartDrag(PointerEventArgs e);
+
+	/// <summary>
+	/// Builds the drag payload; <c>null</c> aborts the drag.
+	/// </summary>
+	protected abstract DataTransfer? CreateDataTransfer();
+	#endregion
+
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="InputElement.PointerCaptureLostEvent" /> handler of <see cref="StyledElementBehavior{T}.AssociatedObject" />.
@@ -108,13 +87,12 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 		object? sender,
 		PointerEventArgs e)
 	{
-		if (IsReadOnly
+		if (!IsEnabled
 			|| !_pressed
 			|| _dragStarted
 			|| AssociatedObject is null
-			|| Record is null
-			|| !e.KeyModifiers.HasFlag(KeyModifiers.Shift)
-			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
+			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed
+			|| !CanStartDrag(e))
 		{
 			return;
 		}
@@ -138,7 +116,7 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 		object? sender,
 		PointerPressedEventArgs e)
 	{
-		if (IsReadOnly
+		if (!IsEnabled
 			|| AssociatedObject is null
 			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
@@ -235,33 +213,32 @@ internal sealed class DatasetRecordReorderDragBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// Runs a move drag-and-drop operation carrying <see cref="Record" /> in-process.
+	/// Runs the drag-and-drop operation for the payload produced by <see cref="CreateDataTransfer" />.
 	/// </summary>
 	private async Task StartDragAsync()
 	{
-		if (_triggerEvent is not { } triggerEvent || Record is not { } record)
+		if (_triggerEvent is not { } triggerEvent || CreateDataTransfer() is not { } data)
 		{
 			return;
 		}
 
-		using DataTransfer data = new();
-
-		data.Add(DataTransferItem.Create(RecordFormat, record));
-
-		try
+		using (data)
 		{
-			await DragDrop
-				.DoDragDropAsync(triggerEvent, data, DragDropEffects.Move)
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			// A failed drag must not crash the app; the gesture is simply abandoned.
-			Trace.WriteLine(ex);
-		}
-		finally
-		{
-			Reset();
+			try
+			{
+				await DragDrop
+					.DoDragDropAsync(triggerEvent, data, AllowedEffects)
+					.ConfigureAwait(true);
+			}
+			catch (Exception ex)
+			{
+				// A failed drag must not crash the app; the gesture is simply abandoned.
+				Trace.WriteLine(ex);
+			}
+			finally
+			{
+				Reset();
+			}
 		}
 	}
 	#endregion

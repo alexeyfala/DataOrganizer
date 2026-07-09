@@ -83,7 +83,7 @@
 			</Grid>
 
 			<Interaction.Behaviors>
-				<behaviors:DragTextOutBehavior Text="{Binding Text, Mode=OneWay}" />
+				<behaviors:DatasetDragTextOutBehavior Text="{Binding Text, Mode=OneWay}" />
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
