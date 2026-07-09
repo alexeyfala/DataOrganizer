@@ -30,6 +30,10 @@
 				<behaviors:DatasetDragRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					Record="{Binding Mode=OneWay}" />
+
+				<behaviors:DatasetDropRecordInsideBehavior
+					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
 			<views:ClipboardTextBlock
@@ -70,6 +74,10 @@
 				<behaviors:DatasetDragRecordInsideBehavior
 					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
 					Record="{Binding Mode=OneWay}" />
+
+				<behaviors:DatasetDropRecordInsideBehavior
+					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
 			<views:ClipboardTextBlock
@@ -93,6 +101,13 @@
 			BorderBrush="DarkGray"
 			BorderThickness="1.5"
 			CornerRadius="4.0">
+
+			<Interaction.Behaviors>
+				<behaviors:DatasetDropRecordInsideBehavior
+					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
+			</Interaction.Behaviors>
+
 			<Expander
 				HorizontalAlignment="Stretch"
 				Classes="RecordsGroupExpanderStyle"
