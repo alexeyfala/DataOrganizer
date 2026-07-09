@@ -168,6 +168,10 @@
 			Theme="{StaticResource MaterialModernScrollViewer}"
 			VerticalScrollBarVisibility="Auto">
 
+			<Interaction.Behaviors>
+				<behaviors:DatasetAutoScrollOnDragBehavior />
+			</Interaction.Behaviors>
+
 			<ItemsRepeater
 				x:Name="RecordsItemsControl"
 				ItemsSource="{Binding Records, Mode=OneTime}">

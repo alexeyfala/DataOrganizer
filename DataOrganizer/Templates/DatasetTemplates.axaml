@@ -4,6 +4,7 @@
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:prop="using:Shared.Properties"
 	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
@@ -16,7 +17,8 @@
 		x:DataType="dataset:KeyValueRecord">
 		<Grid
 			Classes="PointerOverBackgroundStyle"
-			ColumnDefinitions="Auto,*">
+			ColumnDefinitions="Auto,*"
+			ToolTip.Tip="{x:Static prop:Strings.ShiftDragToMove}">
 
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
@@ -61,7 +63,9 @@
 	<DataTemplate
 		x:Key="ValueRecordTemplate"
 		x:DataType="dataset:ValueRecord">
-		<Grid Classes="PointerOverBackgroundStyle">
+		<Grid
+			Classes="PointerOverBackgroundStyle"
+			ToolTip.Tip="{x:Static prop:Strings.ShiftDragToMove}">
 			<Grid.Styles>
 				<Style Selector="FlyoutPresenter">
 					<Setter Property="Background" Value="{StaticResource MaterialCardBackgroundBrush}" />
@@ -130,7 +134,8 @@
 					<DataTemplate x:DataType="dataset:RecordsGroup">
 						<Grid
 							Classes="PointerOverBackgroundStyle"
-							ColumnDefinitions="Auto,*">
+							ColumnDefinitions="Auto,*"
+							ToolTip.Tip="{x:Static prop:Strings.ShiftDragToMove}">
 
 							<Interaction.Behaviors>
 								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />

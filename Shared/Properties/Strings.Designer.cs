@@ -1258,6 +1258,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Shift + drag to move.
+        /// </summary>
+        public static string ShiftDragToMove {
+            get {
+                return ResourceManager.GetString("ShiftDragToMove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show All.
         /// </summary>
         public static string ShowAll {
