@@ -56,7 +56,7 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 	{
 		if (!IsEnabled
 			|| AssociatedObject is null
-			|| e.DataTransfer.TryGetValue(DatasetDragRecordInsideBehavior.RecordFormat) is null)
+			|| e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is null)
 		{
 			return;
 		}

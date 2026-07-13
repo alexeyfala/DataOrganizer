@@ -12,7 +12,7 @@ using System.Collections.ObjectModel;
 namespace DataOrganizer.Behaviors;
 
 /// <summary>
-/// Accepts a record dragged by <see cref="DatasetDragRecordInsideBehavior" /> and moves it into the
+/// Accepts a record dragged by <see cref="DatasetDragRecordBehavior" /> and moves it into the
 /// associated element's position, drawing an insertion indicator while the pointer is over the target.
 /// </summary>
 internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
@@ -83,8 +83,16 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 		object? sender,
 		DragEventArgs e)
 	{
+		// Disabled in read-only mode; internal moves are forbidden, external text drag-out is unaffected.
+		if (!IsEnabled)
+		{
+			RemoveAdorner();
+
+			return;
+		}
+
 		// Ignore foreign drags (e.g. text drag-out or external files); leave them to default handling.
-		if (e.DataTransfer.TryGetValue(DatasetDragRecordInsideBehavior.RecordFormat) is null)
+		if (e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is null)
 		{
 			return;
 		}
@@ -114,8 +122,14 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 		object? sender,
 		DragEventArgs e)
 	{
+		// Disabled in read-only mode; internal moves are forbidden, external text drag-out is unaffected.
+		if (!IsEnabled)
+		{
+			return;
+		}
+
 		// Ignore foreign drags (e.g. text drag-out or external files); leave them to default handling.
-		if (e.DataTransfer.TryGetValue(DatasetDragRecordInsideBehavior.RecordFormat) is not { } dragged)
+		if (e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is not { } dragged)
 		{
 			return;
 		}
@@ -273,7 +287,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 		if (Records is null
 			|| AssociatedObject is null
-			|| e.DataTransfer.TryGetValue(DatasetDragRecordInsideBehavior.RecordFormat) is not { } dragged)
+			|| e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is not { } dragged)
 		{
 			return false;
 		}

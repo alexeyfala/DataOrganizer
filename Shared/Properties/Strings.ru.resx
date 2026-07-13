@@ -591,9 +591,6 @@
   <data name="TryAgain" xml:space="preserve">
     <value>Попробуйте снова</value>
   </data>
-  <data name="ShiftDragToMove" xml:space="preserve">
-    <value>Shift + перетаскивание — переместить</value>
-  </data>
   <data name="ApplicationData" xml:space="preserve">
     <value>Данные приложения</value>
   </data>
