@@ -33,7 +33,7 @@
 					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Grid.Column="0"
 				Padding="{StaticResource RecordPadding}"
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
@@ -45,9 +45,9 @@
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Key, Mode=OneWay}" />
 				</Interaction.Behaviors>
-			</views:ClipboardTextBlock>
+			</views:DatasetFieldView>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Grid.Column="1"
 				Padding="{StaticResource RecordPadding}"
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
@@ -62,7 +62,7 @@
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
-			</views:ClipboardTextBlock>
+			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
@@ -86,7 +86,7 @@
 					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Padding="{StaticResource RecordPadding}"
 				IsHidden="{Binding IsHidden, Mode=TwoWay}"
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
@@ -99,7 +99,7 @@
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
-			</views:ClipboardTextBlock>
+			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
@@ -164,7 +164,7 @@
 									Kind="ChevronRight" />
 							</ToggleButton>
 
-							<views:ClipboardTextBlock
+							<views:DatasetFieldView
 								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
 								IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
@@ -175,7 +175,7 @@
 										Record="{Binding Mode=OneWay}"
 										Text="{Binding Name, Mode=OneWay}" />
 								</Interaction.Behaviors>
-							</views:ClipboardTextBlock>
+							</views:DatasetFieldView>
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>

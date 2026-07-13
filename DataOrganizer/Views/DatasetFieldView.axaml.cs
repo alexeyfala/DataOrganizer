@@ -22,7 +22,7 @@ using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.Views;
 
-internal sealed partial class ClipboardTextBlock : UserControl
+internal sealed partial class DatasetFieldView : UserControl
 {
 	#region Properties
 	/// <summary>
@@ -176,91 +176,91 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	/// Identifies the <see cref="AreaBrush" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Brush?> AreaBrushProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, Brush?>(name: nameof(AreaBrush));
+		.Register<DatasetFieldView, Brush?>(name: nameof(AreaBrush));
 
 	/// <summary>
 	/// Identifies the <see cref="ColorSampleBrush" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Brush?> ColorSampleBrushProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, Brush?>(name: nameof(ColorSampleBrush));
+		.Register<DatasetFieldView, Brush?>(name: nameof(ColorSampleBrush));
 
 	/// <summary>
 	/// Identifies the <see cref="DisplayText" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> DisplayTextProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, string?>(name: nameof(DisplayText));
+		.Register<DatasetFieldView, string?>(name: nameof(DisplayText));
 
 	/// <summary>
 	/// Identifies the <see cref="HighlightSignal" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<IObservable<Unit>?> HighlightSignalProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, IObservable<Unit>?>(name: nameof(HighlightSignal));
+		.Register<DatasetFieldView, IObservable<Unit>?>(name: nameof(HighlightSignal));
 
 	/// <summary>
 	/// Identifies the <see cref="IsColor" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsColorProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsColor));
+		.Register<DatasetFieldView, bool>(name: nameof(IsColor));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHiddenChangedCommand" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<ICommand?> IsHiddenChangedCommandProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, ICommand?>(name: nameof(IsHiddenChangedCommand));
+		.Register<DatasetFieldView, ICommand?>(name: nameof(IsHiddenChangedCommand));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHidden" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHiddenProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsHidden));
+		.Register<DatasetFieldView, bool>(name: nameof(IsHidden));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHideEnabled" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHideEnabledProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsHideEnabled));
+		.Register<DatasetFieldView, bool>(name: nameof(IsHideEnabled));
 
 	/// <summary>
 	/// Identifies the <see cref="IsHyperlink" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsHyperlinkProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsHyperlink));
+		.Register<DatasetFieldView, bool>(name: nameof(IsHyperlink));
 
 	/// <summary>
 	/// Identifies the <see cref="IsNoteVisible" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsNoteVisibleProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsNoteVisible));
+		.Register<DatasetFieldView, bool>(name: nameof(IsNoteVisible));
 
 	/// <summary>
 	/// Identifies the <see cref="IsSensitive" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(IsSensitive));
+		.Register<DatasetFieldView, bool>(name: nameof(IsSensitive));
 
 	/// <summary>
 	/// Identifies the <see cref="Note" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> NoteProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, string?>(name: nameof(Note));
+		.Register<DatasetFieldView, string?>(name: nameof(Note));
 
 	/// <summary>
 	/// Identifies the <see cref="ShowNote" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<bool> ShowNoteProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, bool>(name: nameof(ShowNote));
+		.Register<DatasetFieldView, bool>(name: nameof(ShowNote));
 
 	/// <summary>
 	/// Identifies the <see cref="TextBlockDoubleTappedCommand" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<ICommand?> TextBlockDoubleTappedCommandProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, ICommand?>(name: nameof(TextBlockDoubleTappedCommand));
+		.Register<DatasetFieldView, ICommand?>(name: nameof(TextBlockDoubleTappedCommand));
 
 	/// <summary>
 	/// Identifies the <see cref="Text" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> TextProperty = AvaloniaProperty
-		.Register<ClipboardTextBlock, string?>(name: nameof(Text));
+		.Register<DatasetFieldView, string?>(name: nameof(Text));
 	#endregion
 
 	#region Auto-Generated Commands
@@ -326,7 +326,7 @@ internal sealed partial class ClipboardTextBlock : UserControl
 	#endregion
 
 	#region Constructors
-	public ClipboardTextBlock() => InitializeComponent();
+	public DatasetFieldView() => InitializeComponent();
 	#endregion
 
 	#region Event Handlers
