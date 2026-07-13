@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using System;
 
@@ -23,7 +24,7 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 	}
 
 	/// <summary>
-	/// Amount scrolled when triggered.
+	/// Maximum pixels scrolled per timer tick, reached at full edge proximity.
 	/// </summary>
 	public double ScrollDelta
 	{
@@ -46,7 +47,41 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 		.Register<DatasetAutoScrollOnDragBehavior, double>(name: nameof(ScrollDelta), 24.0);
 	#endregion
 
+	#region Data
+	/// <summary>
+	/// Timer interval driving the continuous edge scroll.
+	/// </summary>
+	private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(30.0);
+
+	/// <summary>
+	/// Current scroll direction: <c>-1</c> up, <c>1</c> down, <c>0</c> idle.
+	/// </summary>
+	private int _direction;
+
+	/// <summary>
+	/// Edge-proximity factor in the range 0..1 scaling the per-tick step.
+	/// </summary>
+	private double _intensity;
+
+	/// <summary>
+	/// Timer scrolling continuously while the pointer rests near an edge.
+	/// </summary>
+	private DispatcherTimer? _timer;
+	#endregion
+
 	#region Event Handlers
+	/// <summary>
+	/// <see cref="DatasetDragRecordBehavior.DragEnded" /> handler stopping the scroll when the drag ends.
+	/// </summary>
+	private void DatasetDragRecordBehavior_DragEnded(
+		object? sender,
+		EventArgs e)
+	{
+		_direction = 0;
+
+		_timer?.Stop();
+	}
+
 	/// <summary>
 	/// <see cref="DragDrop.DragOverEvent" /> handler of <see cref="StyledElementBehavior{T}.AssociatedObject" />.
 	/// </summary>
@@ -58,25 +93,66 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 			|| AssociatedObject is null
 			|| e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is null)
 		{
+			_direction = 0;
+
 			return;
 		}
 
 		double y = e.GetPosition(AssociatedObject).Y;
 
+		double height = AssociatedObject.Bounds.Height;
+
+		double maxY = Math.Max(AssociatedObject.Extent.Height - height, 0.0);
+
+		// Arm an upward/downward direction only while there is room to scroll that way.
+		if (y < EdgeDistance && AssociatedObject.Offset.Y > 0.0)
+		{
+			_direction = -1;
+
+			_intensity = Math.Clamp((EdgeDistance - y) / EdgeDistance, 0.0, 1.0);
+		}
+		else if (y > height - EdgeDistance && AssociatedObject.Offset.Y < maxY)
+		{
+			_direction = 1;
+
+			_intensity = Math.Clamp((y - (height - EdgeDistance)) / EdgeDistance, 0.0, 1.0);
+		}
+		else
+		{
+			// Outside the edge zone: let the drop targets decide the cursor and stop scrolling.
+			_direction = 0;
+
+			return;
+		}
+
+		// Keep the cursor in the allowed state over edge gaps that host no drop target.
+		e.DragEffects = DragDropEffects.Move;
+
+		e.Handled = true;
+
+		_timer?.Start();
+	}
+
+	/// <summary>
+	/// <see cref="DispatcherTimer.Tick" /> handler scrolling by one proximity-scaled step.
+	/// </summary>
+	private void Timer_Tick(
+		object? sender,
+		EventArgs e)
+	{
+		if (AssociatedObject is null || _direction == 0)
+		{
+			return;
+		}
+
 		double offsetY = AssociatedObject.Offset.Y;
 
-		double newY = offsetY;
+		double maxY = Math.Max(AssociatedObject.Extent.Height - AssociatedObject.Bounds.Height, 0.0);
 
-		if (y < EdgeDistance)
-		{
-			newY = Math.Max(offsetY - ScrollDelta, 0.0);
-		}
-		else if (y > AssociatedObject.Bounds.Height - EdgeDistance)
-		{
-			double maxY = Math.Max(AssociatedObject.Extent.Height - AssociatedObject.Bounds.Height, 0.0);
+		// Floor the factor so the very inner edge of the zone still creeps rather than stalling.
+		double step = ScrollDelta * Math.Max(_intensity, 0.15) * _direction;
 
-			newY = Math.Min(offsetY + ScrollDelta, maxY);
-		}
+		double newY = Math.Clamp(offsetY + step, 0.0, maxY);
 
 		if (Math.Abs(newY - offsetY) > double.Epsilon)
 		{
@@ -89,16 +165,33 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 	/// <inheritdoc />
 	protected override void OnAttachedToVisualTree()
 	{
+		_timer = new DispatcherTimer { Interval = ScrollInterval };
+
+		_timer.Tick += Timer_Tick;
+
 		// handledEventsToo: record rows mark the drag-over as handled; the edge scroll still needs it.
 		AssociatedObject?.AddHandler(
 			DragDrop.DragOverEvent,
 			AssociatedObject_DragOver,
 			handledEventsToo: true);
+
+		DatasetDragRecordBehavior.DragEnded += DatasetDragRecordBehavior_DragEnded;
 	}
 
 	/// <inheritdoc />
 	protected override void OnDetachedFromVisualTree()
 	{
+		DatasetDragRecordBehavior.DragEnded -= DatasetDragRecordBehavior_DragEnded;
+
+		if (_timer is not null)
+		{
+			_timer.Stop();
+
+			_timer.Tick -= Timer_Tick;
+
+			_timer = null;
+		}
+
 		AssociatedObject?.RemoveHandler(DragDrop.DragOverEvent, AssociatedObject_DragOver);
 	}
 	#endregion

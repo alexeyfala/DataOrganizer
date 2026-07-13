@@ -91,6 +91,11 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 	/// Press event that seeds the drag operation.
 	/// </summary>
 	private PointerPressedEventArgs? _triggerEvent;
+
+	/// <summary>
+	/// Raised when a record drag operation ends, letting drag-aware behaviors (e.g. auto-scroll) stop.
+	/// </summary>
+	internal static event EventHandler? DragEnded;
 	#endregion
 
 	#region Event Handlers
@@ -283,6 +288,8 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 			finally
 			{
 				Reset();
+
+				DragEnded?.Invoke(null, EventArgs.Empty);
 			}
 		}
 	}
