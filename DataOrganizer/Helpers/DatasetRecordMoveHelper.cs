@@ -76,13 +76,23 @@ internal static class DatasetRecordMoveHelper
 			return false;
 		}
 
-		source.RemoveAt(oldIndex);
-
-		// Removing from the same collection shifts every following slot left by one.
-		if (ReferenceEquals(source, target) && targetIndex > oldIndex)
+		if (ReferenceEquals(source, target))
 		{
-			targetIndex--;
+			int newIndex = targetIndex > oldIndex
+				? targetIndex - 1
+				: targetIndex;
+
+			newIndex = Math.Clamp(newIndex, 0, source.Count - 1);
+
+			if (newIndex != oldIndex)
+			{
+				source.Move(oldIndex, newIndex);
+			}
+
+			return true;
 		}
+
+		source.RemoveAt(oldIndex);
 
 		targetIndex = Math.Clamp(targetIndex, 0, target.Count);
 
