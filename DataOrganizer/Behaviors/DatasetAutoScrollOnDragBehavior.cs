@@ -13,8 +13,9 @@ namespace DataOrganizer.Behaviors;
 /// Scrolls the associated <see cref="ScrollViewer" /> vertically while a record drag hovers near its
 /// top or bottom edge, so distant drop targets can be reached during the drag.
 /// </summary>
-internal sealed class DatasetAutoScrollOnDragBehavior
-	: StyledElementBehavior<ScrollViewer>, IRecipient<DatasetRecordDragEndedMessage>
+internal sealed class DatasetAutoScrollOnDragBehavior :
+	StyledElementBehavior<ScrollViewer>,
+	IRecipient<DatasetRecordDragEndedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -52,7 +53,7 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 
 	#region Data
 	/// <summary>
-	/// Timer interval driving the continuous edge scroll.
+	/// Poll interval driving the continuous edge scroll.
 	/// </summary>
 	private static readonly TimeSpan ScrollInterval = TimeSpan.FromMilliseconds(30.0);
 
@@ -67,9 +68,9 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 	private double _intensity;
 
 	/// <summary>
-	/// Timer scrolling continuously while the pointer rests near an edge.
+	/// <c>True</c> while the self-stopping scroll poll is running.
 	/// </summary>
-	private DispatcherTimer? _timer;
+	private bool _scrolling;
 	#endregion
 
 	#region Event Handlers
@@ -78,9 +79,8 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 	/// </summary>
 	public void Receive(DatasetRecordDragEndedMessage message)
 	{
+		// The poll loop stops itself on its next tick once the direction is cleared.
 		_direction = 0;
-
-		_timer?.Stop();
 	}
 
 	/// <summary>
@@ -131,19 +131,26 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 
 		e.Handled = true;
 
-		_timer?.Start();
+		// Start the self-stopping poll once; further DragOver events only update the direction.
+		if (!_scrolling)
+		{
+			_scrolling = true;
+
+			DispatcherTimer.Run(Poll, ScrollInterval);
+		}
 	}
 
 	/// <summary>
-	/// <see cref="DispatcherTimer.Tick" /> handler scrolling by one proximity-scaled step.
+	/// Applies one proximity-scaled scroll step; returns <c>false</c> to end the poll loop
+	/// once scrolling is no longer warranted.
 	/// </summary>
-	private void Timer_Tick(
-		object? sender,
-		EventArgs e)
+	private bool Poll()
 	{
 		if (AssociatedObject is null || _direction == 0)
 		{
-			return;
+			_scrolling = false;
+
+			return false;
 		}
 
 		double offsetY = AssociatedObject.Offset.Y;
@@ -159,6 +166,8 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 		{
 			AssociatedObject.Offset = new Vector(AssociatedObject.Offset.X, newY);
 		}
+
+		return true;
 	}
 	#endregion
 
@@ -166,10 +175,6 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 	/// <inheritdoc />
 	protected override void OnAttachedToVisualTree()
 	{
-		_timer = new DispatcherTimer { Interval = ScrollInterval };
-
-		_timer.Tick += Timer_Tick;
-
 		// handledEventsToo: record rows mark the drag-over as handled; the edge scroll still needs it.
 		AssociatedObject?.AddHandler(
 			DragDrop.DragOverEvent,
@@ -188,14 +193,8 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 			.Default
 			.UnregisterAll(this);
 
-		if (_timer is not null)
-		{
-			_timer.Stop();
-
-			_timer.Tick -= Timer_Tick;
-
-			_timer = null;
-		}
+		// Clear the direction so any running poll ends itself on its next tick.
+		_direction = 0;
 
 		AssociatedObject?.RemoveHandler(DragDrop.DragOverEvent, AssociatedObject_DragOver);
 	}
