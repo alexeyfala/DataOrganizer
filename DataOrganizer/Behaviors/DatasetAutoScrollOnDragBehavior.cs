@@ -80,15 +80,6 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 
 	#region Event Handlers
 	/// <summary>
-	/// Stops the scroll when a record drag ends.
-	/// </summary>
-	public void Receive(DatasetRecordDragEndedMessage message)
-	{
-		// The poll loop stops itself on its next tick once the direction is cleared.
-		_direction = 0;
-	}
-
-	/// <summary>
 	/// <see cref="DragDrop.DragOverEvent" /> handler of <see cref="StyledElementBehavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_DragOver(
@@ -144,7 +135,47 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 			DispatcherTimer.Run(Poll, ScrollInterval);
 		}
 	}
+	#endregion
 
+	#region Methods
+	/// <summary>
+	/// Stops the scroll when a record drag ends.
+	/// </summary>
+	public void Receive(DatasetRecordDragEndedMessage message)
+	{
+		// The poll loop stops itself on its next tick once the direction is cleared.
+		_direction = 0;
+	}
+
+	/// <inheritdoc />
+	protected override void OnAttachedToVisualTree()
+	{
+		// handledEventsToo: record rows mark the drag-over as handled; the edge scroll still needs it.
+		AssociatedObject?.AddHandler(
+			DragDrop.DragOverEvent,
+			AssociatedObject_DragOver,
+			handledEventsToo: true);
+
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
+	}
+
+	/// <inheritdoc />
+	protected override void OnDetachedFromVisualTree()
+	{
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
+
+		// Clear the direction so any running poll ends itself on its next tick.
+		_direction = 0;
+
+		AssociatedObject?.RemoveHandler(DragDrop.DragOverEvent, AssociatedObject_DragOver);
+	}
+	#endregion
+
+	#region Helpers
 	/// <summary>
 	/// Applies one proximity-scaled scroll step; returns <c>false</c> to end the poll loop
 	/// once scrolling is no longer warranted.
@@ -174,35 +205,6 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 		}
 
 		return true;
-	}
-	#endregion
-
-	#region Methods
-	/// <inheritdoc />
-	protected override void OnAttachedToVisualTree()
-	{
-		// handledEventsToo: record rows mark the drag-over as handled; the edge scroll still needs it.
-		AssociatedObject?.AddHandler(
-			DragDrop.DragOverEvent,
-			AssociatedObject_DragOver,
-			handledEventsToo: true);
-
-		WeakReferenceMessenger
-			.Default
-			.RegisterAll(this);
-	}
-
-	/// <inheritdoc />
-	protected override void OnDetachedFromVisualTree()
-	{
-		WeakReferenceMessenger
-			.Default
-			.UnregisterAll(this);
-
-		// Clear the direction so any running poll ends itself on its next tick.
-		_direction = 0;
-
-		AssociatedObject?.RemoveHandler(DragDrop.DragOverEvent, AssociatedObject_DragOver);
 	}
 	#endregion
 }
