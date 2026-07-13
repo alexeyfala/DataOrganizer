@@ -182,11 +182,6 @@
 							Command="{Binding ContainerLoadedCommand}"
 							CommandParameter="{Binding #RecordsItemsControl}" />
 					</EventTriggerBehavior>
-
-					<behaviors:DatasetDropRecordInsideBehavior
-						IsEnabled="{Binding IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
-						MovedCommand="{Binding RecordMovedCommand}"
-						Records="{Binding Records, Mode=OneTime}" />
 				</Interaction.Behaviors>
 
 				<ItemsRepeater.Layout>
