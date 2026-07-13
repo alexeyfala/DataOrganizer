@@ -48,10 +48,15 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 	/// Identifies the <see cref="ScrollDelta" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> ScrollDeltaProperty = AvaloniaProperty
-		.Register<DatasetAutoScrollOnDragBehavior, double>(name: nameof(ScrollDelta), 24.0);
+		.Register<DatasetAutoScrollOnDragBehavior, double>(name: nameof(ScrollDelta), 36.0);
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Slowest speed factor, applied at the inner boundary of the edge zone so scrolling still creeps.
+	/// </summary>
+	private const double MinSpeedFactor = 0.12;
+
 	/// <summary>
 	/// Poll interval driving the continuous edge scroll.
 	/// </summary>
@@ -157,8 +162,9 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 
 		double maxY = Math.Max(AssociatedObject.Extent.Height - AssociatedObject.Bounds.Height, 0.0);
 
-		// Floor the factor so the very inner edge of the zone still creeps rather than stalling.
-		double step = ScrollDelta * Math.Max(_intensity, 0.15) * _direction;
+		double factor = MinSpeedFactor + ((1.0 - MinSpeedFactor) * _intensity * _intensity);
+
+		double step = ScrollDelta * factor * _direction;
 
 		double newY = Math.Clamp(offsetY + step, 0.0, maxY);
 
