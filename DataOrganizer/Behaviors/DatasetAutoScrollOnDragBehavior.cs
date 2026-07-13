@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Messages;
 using System;
 
 namespace DataOrganizer.Behaviors;
@@ -11,7 +13,8 @@ namespace DataOrganizer.Behaviors;
 /// Scrolls the associated <see cref="ScrollViewer" /> vertically while a record drag hovers near its
 /// top or bottom edge, so distant drop targets can be reached during the drag.
 /// </summary>
-internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<ScrollViewer>
+internal sealed class DatasetAutoScrollOnDragBehavior
+	: StyledElementBehavior<ScrollViewer>, IRecipient<DatasetRecordDragEndedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -70,12 +73,23 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 	#endregion
 
 	#region Event Handlers
+	//// <summary>
+	//// <see cref="DatasetDragRecordBehavior.DragEnded" /> handler stopping the scroll when the drag ends.
+	//// </summary>
+	// Migrated to the messenger; see Receive below.
+	// private void DatasetDragRecordBehavior_DragEnded(
+	// 	object? sender,
+	// 	EventArgs e)
+	// {
+	// 	_direction = 0;
+	//
+	// 	_timer?.Stop();
+	// }
+
 	/// <summary>
-	/// <see cref="DatasetDragRecordBehavior.DragEnded" /> handler stopping the scroll when the drag ends.
+	/// Stops the scroll when a record drag ends.
 	/// </summary>
-	private void DatasetDragRecordBehavior_DragEnded(
-		object? sender,
-		EventArgs e)
+	public void Receive(DatasetRecordDragEndedMessage message)
 	{
 		_direction = 0;
 
@@ -175,13 +189,17 @@ internal sealed class DatasetAutoScrollOnDragBehavior : StyledElementBehavior<Sc
 			AssociatedObject_DragOver,
 			handledEventsToo: true);
 
-		DatasetDragRecordBehavior.DragEnded += DatasetDragRecordBehavior_DragEnded;
+		WeakReferenceMessenger
+			.Default
+			.RegisterAll(this);
 	}
 
 	/// <inheritdoc />
 	protected override void OnDetachedFromVisualTree()
 	{
-		DatasetDragRecordBehavior.DragEnded -= DatasetDragRecordBehavior_DragEnded;
+		WeakReferenceMessenger
+			.Default
+			.UnregisterAll(this);
 
 		if (_timer is not null)
 		{

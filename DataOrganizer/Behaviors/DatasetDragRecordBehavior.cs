@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Messages;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -91,11 +93,6 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 	/// Press event that seeds the drag operation.
 	/// </summary>
 	private PointerPressedEventArgs? _triggerEvent;
-
-	/// <summary>
-	/// Raised when a record drag operation ends, letting drag-aware behaviors (e.g. auto-scroll) stop.
-	/// </summary>
-	internal static event EventHandler? DragEnded;
 	#endregion
 
 	#region Event Handlers
@@ -289,7 +286,9 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 			{
 				Reset();
 
-				DragEnded?.Invoke(null, EventArgs.Empty);
+				WeakReferenceMessenger
+					.Default
+					.Send(new DatasetRecordDragEndedMessage());
 			}
 		}
 	}
