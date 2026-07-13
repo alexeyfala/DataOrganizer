@@ -149,16 +149,18 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Persists the dataset after records have been reordered.
+	/// Persists the dataset after records have been reordered and highlights the moved record.
 	/// </summary>
 	[RelayCommand]
-	internal Task RecordMoved()
+	internal Task RecordMoved(DatasetRecordBase? record)
 	{
 		// Do not check "IsReadOnly" in "CanExecute", the gesture is already gated at the drag source.
 		if (IsReadOnly || IsContentCorrupted)
 		{
 			return Task.CompletedTask;
 		}
+
+		_dispatcher.Post(() => record?.PulseHighlight(), DispatcherPriority.Background);
 
 		_logger.LogInformation("Records reordered by drag-and-drop");
 

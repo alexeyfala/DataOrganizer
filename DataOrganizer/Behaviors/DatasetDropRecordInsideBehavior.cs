@@ -156,7 +156,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 		if (DatasetRecordMoveHelper.Move(source, dragged, target, index))
 		{
-			MovedCommand?.Execute(null);
+			MovedCommand?.Execute(dragged);
 		}
 	}
 	#endregion
