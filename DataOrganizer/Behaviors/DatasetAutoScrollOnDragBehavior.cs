@@ -73,19 +73,6 @@ internal sealed class DatasetAutoScrollOnDragBehavior
 	#endregion
 
 	#region Event Handlers
-	//// <summary>
-	//// <see cref="DatasetDragRecordBehavior.DragEnded" /> handler stopping the scroll when the drag ends.
-	//// </summary>
-	// Migrated to the messenger; see Receive below.
-	// private void DatasetDragRecordBehavior_DragEnded(
-	// 	object? sender,
-	// 	EventArgs e)
-	// {
-	// 	_direction = 0;
-	//
-	// 	_timer?.Stop();
-	// }
-
 	/// <summary>
 	/// Stops the scroll when a record drag ends.
 	/// </summary>
