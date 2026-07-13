@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using System.Collections.ObjectModel;
 
@@ -56,16 +57,6 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 	/// Insertion indicator shown in the adorner layer while a valid drag is over the target.
 	/// </summary>
 	private Border? _adorner;
-
-	/// <summary>
-	/// Placement of the drop relative to the associated element.
-	/// </summary>
-	private enum DropPlacement
-	{
-		Before,
-		After,
-		Into
-	}
 	#endregion
 
 	#region Event Handlers
