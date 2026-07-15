@@ -21,16 +21,14 @@
 		<TrimmerRootDescriptor Include="Roots.xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop"
-						  Version="12.0.5" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Logo.icns" />
 	</ItemGroup>
 	<!-- Ship license and attribution files inside the .app bundle (Contents/Resources). -->
 	<ItemGroup>
-		<BundleResource Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt"
-						Link="%(Filename)%(Extension)" />
+		<BundleResource Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
