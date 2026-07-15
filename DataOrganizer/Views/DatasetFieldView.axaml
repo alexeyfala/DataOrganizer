@@ -1,5 +1,5 @@
 <UserControl
-	x:Class="DataOrganizer.Views.ClipboardTextBlock"
+	x:Class="DataOrganizer.Views.DatasetFieldView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
@@ -24,7 +24,7 @@
 
 	<Grid
 		ColumnDefinitions="*,Auto,Auto,Auto,Auto"
-		DataContext="{Binding $parent[views:ClipboardTextBlock]}">
+		DataContext="{Binding $parent[views:DatasetFieldView]}">
 
 		<!-- Text -->
 		<Grid
@@ -83,8 +83,6 @@
 			</Grid>
 
 			<Interaction.Behaviors>
-				<behaviors:DragTextOutBehavior Text="{Binding Text, Mode=OneWay}" />
-
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
 						Command="{Binding TextBlockDoubleTappedCommand}"

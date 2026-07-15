@@ -26,17 +26,28 @@
 
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource KeyValueRecordContextMenuTemplate}" />
+
+				<behaviors:DatasetDropRecordInsideBehavior
+					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
+					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Grid.Column="0"
 				Padding="{StaticResource RecordPadding}"
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Text="{Binding Key, Mode=OneWay}"
-				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
+				<Interaction.Behaviors>
+					<behaviors:DatasetDragRecordBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Key, Mode=OneWay}" />
+				</Interaction.Behaviors>
+			</views:DatasetFieldView>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Grid.Column="1"
 				Padding="{StaticResource RecordPadding}"
 				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
@@ -45,7 +56,13 @@
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
-				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}" />
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
+				<Interaction.Behaviors>
+					<behaviors:DatasetDragRecordBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Value, Mode=OneWay}" />
+				</Interaction.Behaviors>
+			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
@@ -62,16 +79,28 @@
 
 			<Interaction.Behaviors>
 				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource ValueRecordContextMenuTemplate}" />
+
+				<behaviors:DatasetDropRecordInsideBehavior
+					IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
+					MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+					Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 			</Interaction.Behaviors>
 
-			<views:ClipboardTextBlock
+			<views:DatasetFieldView
 				Padding="{StaticResource RecordPadding}"
+				HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 				IsHidden="{Binding IsHidden, Mode=TwoWay}"
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
-				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}" />
+				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}">
+				<Interaction.Behaviors>
+					<behaviors:DatasetDragRecordBehavior
+						Record="{Binding Mode=OneWay}"
+						Text="{Binding Value, Mode=OneWay}" />
+				</Interaction.Behaviors>
+			</views:DatasetFieldView>
 		</Grid>
 	</DataTemplate>
 
@@ -85,6 +114,7 @@
 			BorderBrush="DarkGray"
 			BorderThickness="1.5"
 			CornerRadius="4.0">
+
 			<Expander
 				HorizontalAlignment="Stretch"
 				Classes="RecordsGroupExpanderStyle"
@@ -111,6 +141,11 @@
 
 							<Interaction.Behaviors>
 								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+
+								<behaviors:DatasetDropRecordInsideBehavior
+									IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
+									MovedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).RecordMovedCommand}"
+									Records="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).Records, Mode=OneTime}" />
 							</Interaction.Behaviors>
 
 							<ToggleButton
@@ -128,12 +163,19 @@
 									Kind="ChevronRight" />
 							</ToggleButton>
 
-							<views:ClipboardTextBlock
+							<views:DatasetFieldView
 								Grid.Column="1"
 								Padding="{StaticResource RecordPadding}"
+								HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 								IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 								Note="{Binding Note, Mode=OneWay}"
-								Text="{Binding Name, Mode=OneWay}" />
+								Text="{Binding Name, Mode=OneWay}">
+								<Interaction.Behaviors>
+									<behaviors:DatasetDragRecordBehavior
+										Record="{Binding Mode=OneWay}"
+										Text="{Binding Name, Mode=OneWay}" />
+								</Interaction.Behaviors>
+							</views:DatasetFieldView>
 						</Grid>
 					</DataTemplate>
 				</Expander.HeaderTemplate>

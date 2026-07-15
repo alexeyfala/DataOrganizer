@@ -3,6 +3,10 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
+using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -10,10 +14,10 @@ using System.Threading.Tasks;
 namespace DataOrganizer.Behaviors;
 
 /// <summary>
-/// Enables dragging the associated element's <see cref="Text" /> out to other applications
-/// as plain text, bypassing the system clipboard.
+/// Drags the associated record with the mouse alone, carrying both an in-process payload for reordering
+/// inside the editor and plain text for other applications; the drop location decides which is consumed.
 /// </summary>
-internal sealed class DragTextOutBehavior : Behavior<Control>
+internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
@@ -26,16 +30,16 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// <c>True</c> disables dragging.
+	/// Record carried by the drag operation for in-editor reordering.
 	/// </summary>
-	public bool IsDisabled
+	public DatasetRecordBase? Record
 	{
-		get => GetValue(IsDisabledProperty);
-		set => SetValue(IsDisabledProperty, value);
+		get => GetValue(RecordProperty);
+		set => SetValue(RecordProperty, value);
 	}
 
 	/// <summary>
-	/// Text carried by the drag operation.
+	/// Text carried by the drag operation for other applications.
 	/// </summary>
 	public string? Text
 	{
@@ -49,22 +53,28 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	/// Identifies the <see cref="DragThreshold" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> DragThresholdProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, double>(name: nameof(DragThreshold), 4.0);
+		.Register<DatasetDragRecordBehavior, double>(name: nameof(DragThreshold), 4.0);
 
 	/// <summary>
-	/// Identifies the <see cref="IsDisabled" /> avalonia property.
+	/// Identifies the <see cref="Record" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<bool> IsDisabledProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, bool>(name: nameof(IsDisabled));
+	public static readonly StyledProperty<DatasetRecordBase?> RecordProperty = AvaloniaProperty
+		.Register<DatasetDragRecordBehavior, DatasetRecordBase?>(name: nameof(Record));
 
 	/// <summary>
 	/// Identifies the <see cref="Text" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> TextProperty = AvaloniaProperty
-		.Register<DragTextOutBehavior, string?>(name: nameof(Text));
+		.Register<DatasetDragRecordBehavior, string?>(name: nameof(Text));
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Application-private format carrying the dragged record; never serialized to other processes.
+	/// </summary>
+	public static readonly DataFormat<DatasetRecordBase> RecordFormat = DataFormat
+		.CreateInProcessFormat<DatasetRecordBase>("DataOrganizer.Dataset.RecordReorder");
+
 	/// <summary>
 	/// <c>True</c> once the drag operation has been started for the current press.
 	/// </summary>
@@ -101,12 +111,12 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerEventArgs e)
 	{
-		if (IsDisabled
+		if (!IsEnabled
 			|| !_pressed
 			|| _dragStarted
 			|| AssociatedObject is null
-			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed
-			|| string.IsNullOrWhiteSpace(Text))
+			|| (Record is null && string.IsNullOrWhiteSpace(Text))
+			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
 			return;
 		}
@@ -130,7 +140,7 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 		object? sender,
 		PointerPressedEventArgs e)
 	{
-		if (IsDisabled
+		if (!IsEnabled
 			|| AssociatedObject is null
 			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
@@ -215,6 +225,42 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 
 	#region Helpers
 	/// <summary>
+	/// Builds the drag payload: plain text for other applications and the record for in-editor reordering.
+	/// </summary>
+	private DataTransfer? CreateDataTransfer()
+	{
+		DataTransferItem? item = null;
+
+		if (!string.IsNullOrWhiteSpace(Text))
+		{
+			item = DataTransferItem.CreateText(Text);
+		}
+
+		if (Record is { } record)
+		{
+			if (item is null)
+			{
+				item = DataTransferItem.Create(RecordFormat, record);
+			}
+			else
+			{
+				item.Set(RecordFormat, record);
+			}
+		}
+
+		if (item is null)
+		{
+			return null;
+		}
+
+		DataTransfer data = new();
+
+		data.Add(item);
+
+		return data;
+	}
+
+	/// <summary>
 	/// Clears the pending drag-gesture state.
 	/// </summary>
 	private void Reset()
@@ -227,33 +273,41 @@ internal sealed class DragTextOutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// Runs a copy drag-and-drop operation carrying <see cref="Text" /> as plain text.
+	/// Runs the drag-and-drop operation, offering both copy (text) and move (reorder) effects.
 	/// </summary>
 	private async Task StartDragAsync()
 	{
-		if (_triggerEvent is not { } triggerEvent)
+		if (_triggerEvent is not { } triggerEvent || CreateDataTransfer() is not { } data)
 		{
 			return;
 		}
 
-		using DataTransfer data = new();
+		using (data)
+		{
+			try
+			{
+				DragDropEffects result = await DragDrop
+					.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy | DragDropEffects.Move)
+					.ConfigureAwait(true);
 
-		data.Add(DataTransferItem.CreateText(Text));
+				if (result.HasFlag(DragDropEffects.Copy))
+				{
+					(AssociatedObject as IHighlightable)?.PulseHighlight();
+				}
+			}
+			catch (Exception ex)
+			{
+				// A failed drag must not crash the app; the gesture is simply abandoned.
+				Trace.WriteLine(ex);
+			}
+			finally
+			{
+				Reset();
 
-		try
-		{
-			await DragDrop
-				.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy)
-				.ConfigureAwait(true);
-		}
-		catch (Exception ex)
-		{
-			// A failed drag must not crash the app; the gesture is simply abandoned.
-			Trace.WriteLine(ex);
-		}
-		finally
-		{
-			Reset();
+				WeakReferenceMessenger
+					.Default
+					.Send(new DatasetRecordDragEndedMessage());
+			}
 		}
 	}
 	#endregion
