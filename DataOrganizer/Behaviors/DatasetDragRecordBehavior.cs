@@ -229,21 +229,55 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 	/// </summary>
 	private DataTransfer? CreateDataTransfer()
 	{
-		DataTransfer? data = null;
+		// Old layout used one DataTransferItem per format; on macOS the native drag maps
+		// one drag image per item but the in-process RecordFormat produces no pasteboard
+		// entry, so AppKit throws (1 pasteboardItem vs 2 draggingItems). Both formats must
+		// live on a single DataTransferItem instead.
+		//// DataTransfer? data = null;
+		////
+		//// if (!string.IsNullOrWhiteSpace(Text))
+		//// {
+		//// 	data = new();
+		////
+		//// 	data.Add(DataTransferItem.CreateText(Text));
+		//// }
+		////
+		//// if (Record is { } record)
+		//// {
+		//// 	data ??= new();
+		////
+		//// 	data.Add(DataTransferItem.Create(RecordFormat, record));
+		//// }
+		////
+		//// return data;
+
+		DataTransferItem? item = null;
 
 		if (!string.IsNullOrWhiteSpace(Text))
 		{
-			data = new();
-
-			data.Add(DataTransferItem.CreateText(Text));
+			item = DataTransferItem.CreateText(Text);
 		}
 
 		if (Record is { } record)
 		{
-			data ??= new();
-
-			data.Add(DataTransferItem.Create(RecordFormat, record));
+			if (item is null)
+			{
+				item = DataTransferItem.Create(RecordFormat, record);
+			}
+			else
+			{
+				item.Set(RecordFormat, record);
+			}
 		}
+
+		if (item is null)
+		{
+			return null;
+		}
+
+		DataTransfer data = new();
+
+		data.Add(item);
 
 		return data;
 	}
