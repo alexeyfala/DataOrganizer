@@ -273,9 +273,14 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 		{
 			try
 			{
-				await DragDrop
+				DragDropEffects result = await DragDrop
 					.DoDragDropAsync(triggerEvent, data, DragDropEffects.Copy | DragDropEffects.Move)
 					.ConfigureAwait(true);
+
+				if (result.HasFlag(DragDropEffects.Copy))
+				{
+					Record?.PulseHighlight();
+				}
 			}
 			catch (Exception ex)
 			{
