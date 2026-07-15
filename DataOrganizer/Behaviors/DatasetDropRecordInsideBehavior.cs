@@ -283,52 +283,18 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 			return false;
 		}
 
-		switch (AssociatedObject.DataContext)
-		{
-			// Dropping onto a group places the record inside it, at the end.
-			case RecordsGroup group:
-				if (dragged is RecordsGroup draggedGroup
-					&& DatasetRecordMoveHelper.IsSelfOrDescendant(draggedGroup, group.Children))
-				{
-					return false;
-				}
+		double pointerYRatio = AssociatedObject.Bounds.Height > 0.0
+			? e.GetPosition(AssociatedObject).Y / AssociatedObject.Bounds.Height
+			: 0.0;
 
-				target = group.Children;
-
-				index = group.Children.Count;
-
-				return true;
-
-			// Dropping onto a record inserts before or after it, depending on the pointer half.
-			case DatasetRecordBase record:
-				if (ReferenceEquals(record, dragged)
-					|| DatasetRecordMoveHelper.FindOwner(Records, record) is not { } owner
-					|| (dragged is RecordsGroup group2
-						&& DatasetRecordMoveHelper.IsSelfOrDescendant(group2, owner)))
-				{
-					return false;
-				}
-
-				placement = e.GetPosition(AssociatedObject).Y > AssociatedObject.Bounds.Height / 2.0
-					? DropPlacement.After
-					: DropPlacement.Before;
-
-				target = owner;
-
-				index = owner.IndexOf(record) + (placement == DropPlacement.After ? 1 : 0);
-
-				return true;
-
-			// Dropping onto empty surface appends to the root collection.
-			default:
-				placement = DropPlacement.After;
-
-				target = Records;
-
-				index = Records.Count;
-
-				return true;
-		}
+		return DatasetRecordMoveHelper.TryResolveTarget(
+			Records,
+			dragged,
+			AssociatedObject.DataContext,
+			pointerYRatio,
+			out target,
+			out index,
+			out placement);
 	}
 	#endregion
 }

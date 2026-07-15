@@ -436,7 +436,7 @@ internal class ClipboardLogStoreTests
 
 			appEnvironment
 				.GetClipboardHistoryFilePath(Arg.Any<string>())
-				.Returns(call => Path.Combine("clip", call.Arg<string>()));
+				.Returns(call => Path.Combine("clip", call.Arg<string>()!));
 
 			builder.RegisterInstance(appEnvironment);
 

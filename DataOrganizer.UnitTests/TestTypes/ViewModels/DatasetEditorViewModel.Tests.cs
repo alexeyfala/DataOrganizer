@@ -113,13 +113,15 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut.AddKeyValueCommand.ExecuteAsync((RecordsGroup?)null);
+		await sut
+			.AddKeyValueCommand
+			.ExecuteAsync(null);
 
 		// Assert
 		await dialogService
 			.Received(1)
 			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isEncrypted),
+				Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
 				Arg.Any<CancellationToken>());
 	}
 
@@ -252,13 +254,15 @@ internal class DatasetEditorViewModelTests
 		}
 
 		// Act
-		await sut.AddValueCommand.ExecuteAsync((RecordsGroup?)null);
+		await sut
+			.AddValueCommand
+			.ExecuteAsync(null);
 
 		// Assert
 		await dialogService
 			.Received(1)
 			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isEncrypted),
+				Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
 				Arg.Any<CancellationToken>());
 	}
 
@@ -580,13 +584,15 @@ internal class DatasetEditorViewModelTests
 		};
 
 		// Act
-		await sut.EditKeyValueCommand.ExecuteAsync(record);
+		await sut
+			.EditKeyValueCommand
+			.ExecuteAsync(record);
 
 		// Assert
 		await dialogService
 			.Received(1)
 			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x.MaskValueInput == isHidden),
+				Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
 				Arg.Any<CancellationToken>());
 	}
 
@@ -705,13 +711,15 @@ internal class DatasetEditorViewModelTests
 		};
 
 		// Act
-		await sut.EditValueCommand.ExecuteAsync(record);
+		await sut
+			.EditValueCommand
+			.ExecuteAsync(record);
 
 		// Assert
 		await dialogService
 			.Received(1)
 			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x.MaskKeyInput == isHidden),
+				Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
 				Arg.Any<CancellationToken>());
 	}
 
@@ -898,6 +906,60 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.RecordMoved" />: persists the reorder and pulses the moved record's
+	/// highlight, doing neither when the dataset is read-only.
+	/// </summary>
+	[Test]
+	public async Task RecordMoved_Persists_And_Highlights_Only_When_Editable([Values] bool isReadOnly)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+
+			serializer
+				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
+			builder.RegisterInstance(serializer);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		KeyValueRecord record = new()
+		{
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		bool highlighted = false;
+
+		using IDisposable subscription = record.HighlightSignal.Subscribe(_ => highlighted = true);
+
+		// Act
+		await sut
+			.RecordMovedCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
+			Arg.Any<Guid>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+
+		highlighted
+			.Should()
+			.Be(!isReadOnly);
 	}
 
 	/// <summary>

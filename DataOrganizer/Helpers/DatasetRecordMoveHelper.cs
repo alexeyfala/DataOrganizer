@@ -1,4 +1,5 @@
 using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Enums;
 using System;
 using System.Collections.ObjectModel;
 
@@ -99,6 +100,75 @@ internal static class DatasetRecordMoveHelper
 		target.Insert(targetIndex, record);
 
 		return true;
+	}
+
+	/// <summary>
+	/// Resolves the drop target collection, insertion index and placement for a dragged record given
+	/// the element under the pointer (<paramref name="targetContext" />) and the pointer's vertical
+	/// position within it (<paramref name="pointerYRatio" />, 0 at the top .. 1 at the bottom).
+	/// Returns <c>false</c> when the drop is not allowed (onto itself, or a group into itself/a descendant).
+	/// </summary>
+	public static bool TryResolveTarget(
+		ObservableCollection<DatasetRecordBase> root,
+		DatasetRecordBase dragged,
+		object? targetContext,
+		double pointerYRatio,
+		out ObservableCollection<DatasetRecordBase> target,
+		out int index,
+		out DropPlacement placement)
+	{
+		target = null!;
+
+		index = 0;
+
+		placement = DropPlacement.Into;
+
+		switch (targetContext)
+		{
+			// Dropping onto a group places the record inside it, at the end.
+			case RecordsGroup group:
+				if (dragged is RecordsGroup draggedGroup
+					&& IsSelfOrDescendant(draggedGroup, group.Children))
+				{
+					return false;
+				}
+
+				target = group.Children;
+
+				index = group.Children.Count;
+
+				return true;
+
+			// Dropping onto a record inserts before or after it, depending on the pointer half.
+			case DatasetRecordBase record:
+				if (ReferenceEquals(record, dragged)
+					|| FindOwner(root, record) is not { } owner
+					|| (dragged is RecordsGroup group2
+						&& IsSelfOrDescendant(group2, owner)))
+				{
+					return false;
+				}
+
+				placement = pointerYRatio > 0.5
+					? DropPlacement.After
+					: DropPlacement.Before;
+
+				target = owner;
+
+				index = owner.IndexOf(record) + (placement == DropPlacement.After ? 1 : 0);
+
+				return true;
+
+			// Dropping onto empty surface appends to the root collection.
+			default:
+				placement = DropPlacement.After;
+
+				target = root;
+
+				index = root.Count;
+
+				return true;
+		}
 	}
 	#endregion
 }

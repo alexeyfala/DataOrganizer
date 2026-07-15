@@ -838,7 +838,7 @@ internal class ClipboardLogServiceTests
 			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
 
 		clipboard
-			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
 			.Returns([1, 0, 0, 0]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1077,7 +1077,7 @@ internal class ClipboardLogServiceTests
 			.Returns([DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.CanIncludeInClipboardHistory)]);
 
 		clipboard
-			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
+			.TryGetValueAsync(Arg.Is<DataFormat<byte[]>>(format => format!.Identifier == ClipboardSensitivityMarkers.CanIncludeInClipboardHistory))
 			.Returns([0, 0, 0, 0]);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
