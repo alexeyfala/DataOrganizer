@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Interfaces;
 using Material.Icons.Avalonia;
 using Shared.Common;
 using Shared.Extensions;
@@ -22,7 +23,7 @@ using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
 namespace DataOrganizer.Views;
 
-internal sealed partial class DatasetFieldView : UserControl
+internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 {
 	#region Properties
 	/// <summary>
@@ -368,6 +369,11 @@ internal sealed partial class DatasetFieldView : UserControl
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Plays a single highlight pulse on <see cref="AreaBrush" />.
+	/// </summary>
+	public void PulseHighlight() => _ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
+
 	/// <inheritdoc />
 	protected override void OnLoaded(RoutedEventArgs e)
 	{

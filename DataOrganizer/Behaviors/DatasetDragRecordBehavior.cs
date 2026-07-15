@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using System;
 using System.Diagnostics;
@@ -279,7 +280,7 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 
 				if (result.HasFlag(DragDropEffects.Copy))
 				{
-					Record?.PulseHighlight();
+					(AssociatedObject as IHighlightable)?.PulseHighlight();
 				}
 			}
 			catch (Exception ex)
