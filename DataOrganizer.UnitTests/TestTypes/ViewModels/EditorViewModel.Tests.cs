@@ -1229,10 +1229,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and persisted in the database.
+	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and the change is delegated to the property writer.
 	/// </summary>
 	[Test]
-	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database([Values] bool initialValue)
+	public async Task SetFavorite_Toggles_And_Delegates_To_Property_Writer([Values] bool initialValue)
 	{
 		// Arrange
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
