@@ -1379,9 +1379,6 @@ internal class EditorViewModelTests
 			.Received()
 			.UpdateIsFavoriteAsync(
 				dto,
-				Arg.Any<string>(),
-				Arg.Any<string>(),
-				Arg.Any<int>(),
 				Arg.Any<CancellationToken>());
 	}
 
