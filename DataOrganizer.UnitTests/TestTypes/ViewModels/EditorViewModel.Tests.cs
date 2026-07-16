@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
@@ -1356,7 +1357,7 @@ internal class EditorViewModelTests
 	public async Task SetFavorite_Sets_IsFavorite_Property_And_Saves_In_database([Values] bool initialValue)
 	{
 		// Arrange
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
 		FileModelDto dto = TestUtils.CreateFileDto();
 
@@ -1364,7 +1365,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(dbAccess));
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(propertyWriter));
 
 		// Act
 		await sut.SetFavorite(dto);
@@ -1374,9 +1375,14 @@ internal class EditorViewModelTests
 			.Should()
 			.NotBe(initialValue);
 
-		await dbAccess.Received().UpdateFilePropertiesAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+		await propertyWriter
+			.Received()
+			.UpdateIsFavoriteAsync(
+				dto,
+				Arg.Any<string>(),
+				Arg.Any<string>(),
+				Arg.Any<int>(),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

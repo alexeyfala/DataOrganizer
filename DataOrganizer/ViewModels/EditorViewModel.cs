@@ -36,7 +36,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -164,7 +163,7 @@ public partial class EditorViewModel :
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
 		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
-			_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
+			_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(oldValue));
 		}
 
 		if (newValue is null)
@@ -172,7 +171,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(newValue));
 	}
 
 	/// <summary>
@@ -568,7 +567,7 @@ public partial class EditorViewModel :
 
 		dto.IsFavorite = !dto.IsFavorite;
 
-		return UpdateFileIsFavoriteInDatabaseAsync(dto);
+		return _propertyWriter.UpdateIsFavoriteAsync(dto);
 	}
 
 	/// <summary>
@@ -1042,6 +1041,8 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
+	/// <inheritdoc cref="IEntityPropertyWriter" />
+	private readonly IEntityPropertyWriter _propertyWriter;
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
 	#endregion
@@ -1058,6 +1059,7 @@ public partial class EditorViewModel :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
+		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMapper mapper,
@@ -1089,6 +1091,8 @@ public partial class EditorViewModel :
 		_mapper = mapper;
 
 		_processUtils = processUtils;
+
+		_propertyWriter = propertyWriter;
 	}
 	#endregion
 
@@ -1249,7 +1253,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(message.Id, message.IsExpanded));
 	}
 
 	/// <inheritdoc />
@@ -1962,86 +1966,6 @@ public partial class EditorViewModel :
 		}
 
 		return true;
-	}
-
-	/// <summary>
-	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateFileIsFavoriteInDatabaseAsync(
-		FileModelDto dto,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(FileModelDto.IsFavorite);
-
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
-
-		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-		[
-			x => x.SetProperty(x => x.IsFavorite, dto.IsFavorite)
-		], token);
-	}
-
-	/// <summary>
-	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderExpandedChangedMessage payload,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(FolderModelDto.IsExpanded);
-
-		_logger.LogDebug(
-			$@"Update ""{propertyName}"" property in of folder ""{payload.Id}"" in database is requested",
-			filePath,
-			callerName,
-			lineNumber);
-
-		return _dbAccess.UpdateFolderPropertiesAsync(payload.Id,
-		[
-			x => x.SetProperty(x => x.IsExpanded, payload.IsExpanded)
-		], token);
-	}
-
-	/// <summary>
-	/// Updates the <see cref="ExplorerModelBaseDto.IsSelected" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateIsSelectedInDatabaseAsync(
-		ExplorerModelBaseDto dto,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(ExplorerModelBaseDto.IsSelected);
-
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
-
-		return dto.EntityType switch
-		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			_ => throw new NotImplementedException()
-		};
 	}
 	#endregion
 }
