@@ -49,18 +49,21 @@ internal class EditorViewModelTests
 
 		ExplorerModelBaseDto created = Substitute.For<ExplorerModelBaseDto>();
 
-		hierarchyEditor
-			.AddAsync(
-				Arg.Any<string>(),
-				Arg.Any<EntityType>(),
-				Arg.Any<FolderModelDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
-				Arg.Any<CancellationToken>())
-			.Returns(created);
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			hierarchyEditor
+				.AddAsync(
+					Arg.Any<string>(),
+					Arg.Any<EntityType>(),
+					Arg.Any<FolderModelDto>(),
+					Arg.Any<Collection<ExplorerModelBaseDto>>(),
+					Arg.Any<CancellationToken>())
+				.Returns(created);
 
-		using AutoMock mock = AutoMock.GetLoose();
+			builder.RegisterInstance(hierarchyEditor);
+		});
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(hierarchyEditor));
+		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		FolderModelDto? parent = hasParent ? TestUtils.CreateFolderDto() : null;
 
