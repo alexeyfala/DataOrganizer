@@ -18,7 +18,6 @@ using DataOrganizer.Windows;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -38,73 +37,55 @@ internal class EditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EditorViewModel.AddAsync" />: a new entity is created and, when a parent is given, linked to it and the parent is expanded.
+	/// <see cref="EditorViewModel.AddAsync" />: delegates to the hierarchy editor and, on success, refreshes the object count.
 	/// </summary>
 	[Test]
-	public async Task AddAsync_Returns_Entity(
+	public async Task AddAsync_Delegates_To_Hierarchy_Editor(
 		[Values] EntityType type,
 		[Values] bool hasParent)
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
-			dbAccess
-				.AddEntityAsync(Arg.Any<AddEntityParameters>())
-				.Returns(Substitute.For<ExplorerModelBase>());
+		ExplorerModelBaseDto created = Substitute.For<ExplorerModelBaseDto>();
 
-			builder.RegisterInstance(dbAccess);
+		hierarchyEditor
+			.AddAsync(
+				Arg.Any<string>(),
+				Arg.Any<EntityType>(),
+				Arg.Any<FolderModelDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(created);
 
-			IMapper mapper = Substitute.For<IMapper>();
+		using AutoMock mock = AutoMock.GetLoose();
 
-			mapper
-				.Map<ExplorerModelBase, ExplorerModelBaseDto>(Arg.Any<ExplorerModelBase>())
-				.Returns(Substitute.For<ExplorerModelBaseDto>());
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(hierarchyEditor));
 
-			builder.RegisterInstance(mapper);
-		});
+		FolderModelDto? parent = hasParent ? TestUtils.CreateFolderDto() : null;
 
-		FolderModelDto? parent = null;
-
-		if (hasParent)
-		{
-			parent = new()
-			{
-				Id = Guid.NewGuid(),
-				CreatedDate = default,
-				EntityType = EntityType.Folder,
-				Index = 0,
-				UpdatedDate = default
-			};
-		}
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
+		string name = AppUtils.CreateRandomString(10);
 
 		// Act
-		ExplorerModelBaseDto? entity = await sut.AddAsync(AppUtils.CreateRandomString(10), type, parent);
+		ExplorerModelBaseDto? entity = await sut.AddAsync(name, type, parent);
 
 		// Assert
 		entity
 			.Should()
+			.BeSameAs(created);
+
+		await hierarchyEditor
+			.Received()
+			.AddAsync(
+				name,
+				type,
+				parent,
+				sut.Hierarchy,
+				Arg.Any<CancellationToken>());
+
+		sut.BottomLeftCornerInfo
+			.Should()
 			.NotBeNull();
-
-		if (parent is null)
-		{
-			return;
-		}
-
-		entity.Parent
-			.Should()
-			.BeSameAs(parent);
-
-		parent.Children
-			.Should()
-			.Contain(entity);
-
-		parent.IsExpanded
-			.Should()
-			.BeTrue();
 	}
 
 	/// <summary>
@@ -339,38 +320,26 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DeleteAsync" />: on success the entity is removed from the hierarchy and from executing files.
+	/// <see cref="EditorViewModel.DeleteAsync" />: on success the deleted file is closed and removed from executing files.
 	/// </summary>
-	[TestCase(EntityType.Folder)]
-	[TestCase(EntityType.File)]
-	public async Task DeleteAsync_Deletes_Entity_In_Database_And_In_Treeview(EntityType type)
+	[Test]
+	public async Task DeleteAsync_Closes_File_On_Success()
 	{
 		// Arrange
-		ExplorerModelBaseDto toBeDeleted = type switch
-		{
-			EntityType.Folder => TestUtils.CreateFolderDto(),
-			EntityType.File => TestUtils.CreateFileDto(isExecuting: true),
-			_ => throw new NotImplementedException()
-		};
+		FileModelDto file = TestUtils.CreateFileDto(isExecuting: true);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			if (type == EntityType.Folder)
-			{
-				dbAccess
-					.DeleteFolderAsync(toBeDeleted.Id)
-					.Returns(true);
-			}
-			else
-			{
-				dbAccess
-					.DeleteFileAsync(toBeDeleted.Id)
-					.Returns(true);
-			}
-
-			builder.RegisterInstance(dbAccess);
+			builder.RegisterInstance(hierarchyEditor);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -378,90 +347,74 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		sut
-			.Hierarchy
-			.AddRange(toBeDeleted.ToEnumerable(TestUtils.CreateFoldersDto(5)));
-
-		if (type != EntityType.Folder)
-		{
-			sut
-				.ExecutingFiles
-				.Add((FileModelDto)toBeDeleted);
-		}
+			.ExecutingFiles
+			.Add(file);
 
 		// Act
-		bool result = await sut.DeleteAsync(toBeDeleted);
+		bool result = await sut.DeleteAsync(file);
 
 		// Assert
 		result
 			.Should()
 			.BeTrue();
 
-		sut.Hierarchy
-			.Should()
-			.NotContain(toBeDeleted);
-
-		if (toBeDeleted is not FileModelDto file)
-		{
-			return;
-		}
-
 		sut.ExecutingFiles
 			.Should()
 			.NotContain(file);
+
+		file.IsExecuting
+			.Should()
+			.BeFalse();
+
+		await hierarchyEditor
+			.Received()
+			.DeleteAsync(
+				file,
+				sut.Hierarchy,
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.DeleteAsync" />: when the database delete fails the entity stays in the hierarchy.
+	/// <see cref="EditorViewModel.DeleteAsync" />: when the editor reports failure the file is left open.
 	/// </summary>
-	[TestCase(EntityType.Folder)]
-	[TestCase(EntityType.File)]
-	public async Task DeleteAsync_Should_Not_Delete_Entity_In_Database_And_In_Treeview(EntityType type)
+	[Test]
+	public async Task DeleteAsync_Keeps_File_When_Editor_Fails()
 	{
 		// Arrange
-		ExplorerModelBaseDto entity = type switch
-		{
-			EntityType.Folder => TestUtils.CreateFolderDto(),
-			EntityType.File => TestUtils.CreateFileDto(),
-			_ => throw new NotImplementedException()
-		};
+		FileModelDto file = TestUtils.CreateFileDto(isExecuting: true);
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
-			if (type == EntityType.Folder)
-			{
-				dbAccess
-					.DeleteFolderAsync(entity.Id)
-					.Returns(false);
-			}
-			else
-			{
-				dbAccess
-					.DeleteFileAsync(entity.Id)
-					.Returns(false);
-			}
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(false);
 
-			builder.RegisterInstance(dbAccess);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(hierarchyEditor));
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		sut
-			.Hierarchy
-			.AddRange(entity.ToEnumerable(TestUtils.CreateFoldersDto(5)));
+			.ExecutingFiles
+			.Add(file);
 
 		// Act
-		bool result = await sut.DeleteAsync(entity);
+		bool result = await sut.DeleteAsync(file);
 
 		// Assert
 		result
 			.Should()
 			.BeFalse();
 
-		sut.Hierarchy
+		sut.ExecutingFiles
 			.Should()
-			.Contain(entity);
+			.Contain(file);
+
+		file.IsExecuting
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1214,84 +1167,6 @@ internal class EditorViewModelTests
 		result
 			.Should()
 			.Be(OverwriteHotkeysResult.SameHotkeys);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.RenameAsync" />: the dto name and updated date are changed and persisted in the database.
-	/// </summary>
-	[Test]
-	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
-	{
-		// Arrange
-		ExplorerModelBaseDto dto = Substitute.For<ExplorerModelBaseDto>();
-
-		string newName = AppUtils.CreateRandomString(10);
-
-		dto.Name = AppUtils.CreateRandomString(10);
-
-		DateTime updatedDate = DateTime.Now;
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess.UpdateFolderPropertiesAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
-			.Returns(true);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		bool result = await sut.RenameAsync(dto, newName, updatedDate);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-
-		dto.Name
-			.Should()
-			.Be(newName);
-
-		dto.UpdatedDate
-			.Should()
-			.Be(updatedDate);
-	}
-
-	/// <summary>
-	/// <see cref="EditorViewModel.RenameAsync" />: renaming to the same name does nothing and leaves the updated date unchanged.
-	/// </summary>
-	[Test]
-	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
-	{
-		// Arrange
-		ExplorerModelBaseDto toBeRenamed = Substitute.For<ExplorerModelBaseDto>();
-
-		string newName = AppUtils.CreateRandomString(10);
-
-		toBeRenamed.Name = newName;
-
-		DateTime updatedDate = DateTime.Now;
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EditorViewModel sut = mock.Create<EditorViewModel>();
-
-		// Act
-		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedDate);
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-
-		toBeRenamed.UpdatedDate
-			.Should()
-			.NotBe(updatedDate);
 	}
 
 	/// <summary>
