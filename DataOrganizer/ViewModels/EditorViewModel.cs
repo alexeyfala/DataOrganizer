@@ -433,7 +433,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Hides file contents.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	[RelayCommand(CanExecute = nameof(CanHideFileContents))]
 	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -461,7 +461,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -1618,7 +1618,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteFileContents(FileModelDto? dto)
+	private static bool CanHideFileContents(FileModelDto? dto)
 	{
 		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Decrypted;
 	}
@@ -1626,7 +1626,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFolderContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteHideFolderContents(FolderModelDto? dto)
+	private static bool CanHideFolderContents(FolderModelDto? dto)
 	{
 		return dto is not null
 			&& dto.EncryptionStatus.IsNotDefault()
@@ -1724,6 +1724,7 @@ public partial class EditorViewModel :
 			&& dto is not null
 			&& !IsOpened(dto);
 	}
+
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
