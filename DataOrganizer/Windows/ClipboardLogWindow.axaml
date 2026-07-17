@@ -209,12 +209,9 @@
 
 						<ItemsControl.Margin>
 							<MultiBinding Converter="{x:Static converters:AppConverters.ScrollGutter}">
-								<Binding
-									Path="Extent.Height"
-									RelativeSource="{RelativeSource AncestorType=ScrollViewer}" />
-								<Binding
-									Path="Viewport.Height"
-									RelativeSource="{RelativeSource AncestorType=ScrollViewer}" />
+								<Binding Path="$parent[ScrollViewer].Extent.Height" />
+
+								<Binding Path="$parent[ScrollViewer].Viewport.Height" />
 							</MultiBinding>
 						</ItemsControl.Margin>
 

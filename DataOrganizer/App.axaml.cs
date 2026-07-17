@@ -249,12 +249,15 @@ public sealed class App : Application
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
+		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
+		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INotificationService, NotificationService>();

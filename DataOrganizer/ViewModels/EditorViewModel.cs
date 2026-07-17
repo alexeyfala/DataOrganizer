@@ -8,7 +8,6 @@ using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Comparation;
 using DataOrganizer.Behaviors;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
@@ -25,7 +24,6 @@ using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Enums;
 using Entities.Models;
-using MapsterMapper;
 using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -34,9 +32,7 @@ using Shared.Extensions;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -164,7 +160,7 @@ public partial class EditorViewModel :
 		// to ensure that no attempt is made to save properties to the database for a non-existent object.
 		if (oldValue is not null && Hierarchy.ContainsId(oldValue.Id))
 		{
-			_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(oldValue));
+			_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(oldValue));
 		}
 
 		if (newValue is null)
@@ -172,7 +168,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(UpdateIsSelectedInDatabaseAsync(newValue));
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsSelectedAsync(newValue));
 	}
 
 	/// <summary>
@@ -433,7 +429,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Hides file contents.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanExecuteFileContents))]
+	[RelayCommand(CanExecute = nameof(CanHideFileContents))]
 	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
@@ -461,7 +457,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
-	[RelayCommand(CanExecute = nameof(CanExecuteHideFolderContents))]
+	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
@@ -568,7 +564,7 @@ public partial class EditorViewModel :
 
 		dto.IsFavorite = !dto.IsFavorite;
 
-		return UpdateFileIsFavoriteInDatabaseAsync(dto);
+		return _propertyWriter.UpdateIsFavoriteAsync(dto);
 	}
 
 	/// <summary>
@@ -900,10 +896,9 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		await RenameAsync(
-			toBeRenamed,
-			pair.Key,
-			DateTime.Now).ConfigureAwait(false);
+		await _hierarchyEditor
+			.RenameAsync(toBeRenamed, pair.Key, DateTime.Now)
+			.ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -965,7 +960,9 @@ public partial class EditorViewModel :
 
 		if (result.IsSaved)
 		{
-			await OverwriteFileHotkeysAsync(dto, result.NewHotkeys).ConfigureAwait(false);
+			await _fileHotkeyEditor
+				.OverwriteAsync(dto, result.NewHotkeys, Hierarchy)
+				.ConfigureAwait(false);
 		}
 
 		if (!_settingsManager
@@ -1034,13 +1031,17 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
-	/// <summary>
-	/// Mapper.
-	/// </summary>
-	private readonly IMapper _mapper;
+	/// <inheritdoc cref="IFileHotkeyEditor" />
+	private readonly IFileHotkeyEditor _fileHotkeyEditor;
+
+	/// <inheritdoc cref="IHierarchyEditor" />
+	private readonly IHierarchyEditor _hierarchyEditor;
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
+
+	/// <inheritdoc cref="IEntityPropertyWriter" />
+	private readonly IEntityPropertyWriter _propertyWriter;
 
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
@@ -1058,9 +1059,11 @@ public partial class EditorViewModel :
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
+		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
+		IFileHotkeyEditor fileHotkeyEditor,
+		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
-		IMapper mapper,
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler exceptionHandler,
@@ -1086,9 +1089,13 @@ public partial class EditorViewModel :
 
 		_dataExchange = dataExchange;
 
-		_mapper = mapper;
+		_fileHotkeyEditor = fileHotkeyEditor;
+
+		_hierarchyEditor = hierarchyEditor;
 
 		_processUtils = processUtils;
+
+		_propertyWriter = propertyWriter;
 	}
 	#endregion
 
@@ -1160,82 +1167,6 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Overrites hotkeys of a file.
-	/// </summary>
-	public async Task<OverwriteHotkeysResult> OverwriteFileHotkeysAsync(
-		FileModelDto dto,
-		CodeMaskPair[] newHotkeys,
-		CancellationToken token = default)
-	{
-		IEqualityComparer<HotkeyModelDto> comparer = Equality.Of<HotkeyModelDto>()
-			.By(x => x.Code)
-			.AndBy(x => x.Mask);
-
-		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto()];
-
-		if (dto
-			.Hotkeys
-			.SequenceEqual(temp, comparer))
-		{
-			return OverwriteHotkeysResult.SameHotkeys;
-		}
-
-		if (temp.IsNotEmpty() && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
-		{
-			string sequence = newHotkeys.GetHotkeysPresentation();
-
-			ShowWarningSnackbar(
-				$@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
-
-			return OverwriteHotkeysResult.AlreadyInUse;
-		}
-
-		try
-		{
-			if (dto.Hotkeys.Count > 0)
-			{
-				dto
-					.Hotkeys
-					.Clear();
-
-				await _dbAccess
-					.DeleteHotkeysAsync(dto.Id, token)
-					.ConfigureAwait(false);
-			}
-
-			if (newHotkeys.IsEmpty())
-			{
-				return OverwriteHotkeysResult.EmptySequence;
-			}
-
-			try
-			{
-				HotkeyModel[] createdHotkeys = await _dbAccess
-					.AddHotkeysAsync(dto.Id, newHotkeys, token)
-					.ConfigureAwait(false);
-
-				HotkeyModelDto[] mapped = _mapper.Map<HotkeyModel[], HotkeyModelDto[]>(createdHotkeys);
-
-				dto
-					.Hotkeys
-					.AddRange(mapped);
-
-				return OverwriteHotkeysResult.Rewritten;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				return OverwriteHotkeysResult.ExceptionThrown;
-			}
-		}
-		finally
-		{
-			dto.SetHotkeysToolTip();
-		}
-	}
-
-	/// <summary>
 	/// <inheritdoc />
 	/// </summary>
 	/// <remarks>
@@ -1249,7 +1180,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_exceptionHandler.Watch(UpdateFolderIsExpandedInDatabaseAsync(message));
+		_exceptionHandler.Watch(_propertyWriter.UpdateIsExpandedAsync(message.Id, message.IsExpanded));
 	}
 
 	/// <inheritdoc />
@@ -1262,65 +1193,6 @@ public partial class EditorViewModel :
 	public void Receive(ShowProgressBarMessage message)
 	{
 		IsActionInProgress = message.IsVisible;
-	}
-
-	/// <summary>
-	/// Renames <see cref="ExplorerModelBase" /> in the database and in the <see cref="TreeView" />.
-	/// </summary>
-	public async Task<bool> RenameAsync(
-		ExplorerModelBaseDto dto,
-		string newName,
-		DateTime updatedDate,
-		CancellationToken token = default)
-	{
-		if (newName.Equals(dto.Name, StringComparison.Ordinal))
-		{
-			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
-
-			ShowWarningSnackbar(warningText);
-
-			_logger.LogWarning(warningText);
-
-			return false;
-		}
-
-		Task<bool> task = dto.EntityType switch
-		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
-			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
-			], token),
-			_ => throw new NotImplementedException()
-		};
-
-		if (!await task.ConfigureAwait(false))
-		{
-			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
-
-			ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
-			return false;
-		}
-
-		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
-
-		ShowInfoSnackbar(successText);
-
-		_logger.LogInformation(successText);
-
-		dto.Name = newName;
-
-		dto.UpdatedDate = updatedDate;
-
-		return true;
 	}
 
 	/// <summary>
@@ -1401,76 +1273,16 @@ public partial class EditorViewModel :
 		FolderModelDto? parent,
 		CancellationToken token = default)
 	{
-		_logger.LogInformation($"Adding a {entityType switch
+		ExplorerModelBaseDto? dto = await _hierarchyEditor
+			.AddAsync(name, entityType, parent, Hierarchy, token)
+			.ConfigureAwait(false);
+
+		if (dto is not null)
 		{
-			EntityType.Folder => "folder",
-			EntityType.File => "file",
-			EntityType.DataSet => "dataset",
-			_ => throw new NotImplementedException()
-		}} to the database.");
-
-		AddEntityParameters parameters = new()
-		{
-			EntityType = entityType,
-			Index = parent is not null ? parent.Children.Count : Hierarchy.Count,
-			Name = name,
-			ParentId = parent?.Id
-		};
-
-		if (await _dbAccess
-			.AddEntityAsync(parameters, token)
-			.ConfigureAwait(false) is not { } entity)
-		{
-			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
-
-			ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
-			return null;
-		}
-
-		_logger.LogInformation($"The object has been added to the database:{entity.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBase.Id),
-			nameof(ExplorerModelBase.Name),
-			nameof(ExplorerModelBase.EntityType),
-			nameof(ExplorerModelBase.ParentId))}");
-
-		try
-		{
-			ExplorerModelBaseDto dto = _mapper.Map<ExplorerModelBase, ExplorerModelBaseDto>(entity);
-
-			dto.Parent = parent;
-
-			if (parent is not null)
-			{
-				dto.EncryptionStatus = parent.EncryptionStatus;
-			}
-
-			GetCollectionToAdd(parent, Hierarchy).Add(dto);
-
 			CountHierarchy();
-
-			if (parent?.IsExpanded == false)
-			{
-				parent.IsExpanded = true;
-			}
-
-			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
-
-			ShowInfoSnackbar(successText);
-
-			_logger.LogInformation(successText);
-
-			return dto;
 		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
 
-			return null;
-		}
+		return dto;
 	}
 
 	/// <summary>
@@ -1498,24 +1310,12 @@ public partial class EditorViewModel :
 		ExplorerModelBaseDto dto,
 		CancellationToken token = default)
 	{
-		bool result = dto.EntityType switch
+		if (!await _hierarchyEditor
+			.DeleteAsync(dto, Hierarchy, token)
+			.ConfigureAwait(false))
 		{
-			EntityType.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
-			_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
-		};
-
-		if (!result)
-		{
-			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
-
-			ShowErrorSnackbar(errorText);
-
-			_logger.LogError(errorText);
-
 			return false;
 		}
-
-		GetCollectionToDelete(dto, Hierarchy).Remove(dto);
 
 		if (dto is FileModelDto file)
 		{
@@ -1525,12 +1325,6 @@ public partial class EditorViewModel :
 		}
 
 		CountHierarchy();
-
-		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
-
-		ShowInfoSnackbar(text);
-
-		_logger.LogInformation(text);
 
 		return true;
 	}
@@ -1618,7 +1412,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteFileContents(FileModelDto? dto)
+	private static bool CanHideFileContents(FileModelDto? dto)
 	{
 		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Decrypted;
 	}
@@ -1626,34 +1420,11 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFolderContentsCommand" />.
 	/// </summary>
-	private static bool CanExecuteHideFolderContents(FolderModelDto? dto)
+	private static bool CanHideFolderContents(FolderModelDto? dto)
 	{
-		return dto is not null
-			&& dto.EncryptionStatus.IsNotDefault()
+		return dto?.EncryptionStatus.IsNotDefault() == true
 			&& dto.AnyChild(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 	}
-
-	/// <summary>
-	/// Returns a reference to the collection to add the object to.
-	/// </summary>
-	private static Collection<ExplorerModelBaseDto> GetCollectionToAdd(
-		FolderModelDto? parent,
-		Collection<ExplorerModelBaseDto> collection) => parent switch
-		{
-			not null => parent.Children,
-			null => collection
-		};
-
-	/// <summary>
-	/// Returns a reference to the collection containing the object to be removed.
-	/// </summary>
-	private static Collection<ExplorerModelBaseDto> GetCollectionToDelete(
-		ExplorerModelBaseDto target,
-		Collection<ExplorerModelBaseDto> collection) => target.Parent switch
-		{
-			not null => target.Parent.Children,
-			null => collection
-		};
 
 	/// <summary>
 	/// Returns a sequence with information on the properties of an object.
@@ -1724,6 +1495,7 @@ public partial class EditorViewModel :
 			&& dto is not null
 			&& !IsOpened(dto);
 	}
+
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
@@ -1961,86 +1733,6 @@ public partial class EditorViewModel :
 		}
 
 		return true;
-	}
-
-	/// <summary>
-	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateFileIsFavoriteInDatabaseAsync(
-		FileModelDto dto,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(FileModelDto.IsFavorite);
-
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
-
-		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-		[
-			x => x.SetProperty(x => x.IsFavorite, dto.IsFavorite)
-		], token);
-	}
-
-	/// <summary>
-	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateFolderIsExpandedInDatabaseAsync(
-		FolderExpandedChangedMessage payload,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(FolderModelDto.IsExpanded);
-
-		_logger.LogDebug(
-			$@"Update ""{propertyName}"" property in of folder ""{payload.Id}"" in database is requested",
-			filePath,
-			callerName,
-			lineNumber);
-
-		return _dbAccess.UpdateFolderPropertiesAsync(payload.Id,
-		[
-			x => x.SetProperty(x => x.IsExpanded, payload.IsExpanded)
-		], token);
-	}
-
-	/// <summary>
-	/// Updates the <see cref="ExplorerModelBaseDto.IsSelected" /> property of related object in the database.
-	/// </summary>
-	private Task<bool> UpdateIsSelectedInDatabaseAsync(
-		ExplorerModelBaseDto dto,
-		[CallerFilePath] string filePath = "",
-		[CallerMemberName] string callerName = "",
-		[CallerLineNumber] in int lineNumber = 0,
-		CancellationToken token = default)
-	{
-		const string propertyName = nameof(ExplorerModelBaseDto.IsSelected);
-
-		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
-			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
-			propertyName)}", filePath, callerName, lineNumber);
-
-		return dto.EntityType switch
-		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
-			[
-				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
-			], token),
-			_ => throw new NotImplementedException()
-		};
 	}
 	#endregion
 }

@@ -67,7 +67,7 @@
 					Grid.Column="4"
 					Margin="4.0,0.0"
 					Padding="0.0"
-					CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+					CommandParameter="{Binding $parent[Window]}"
 					Content="{materialIcons:MaterialIconTextExt Kind=Close}"
 					Foreground="{StaticResource LightForeground}"
 					Theme="{StaticResource MaterialFlatButton}"
@@ -83,7 +83,7 @@
 					<EventTriggerBehavior EventName="DoubleTapped">
 						<InvokeCommandAction
 							Command="{Binding ShowEditorCommand}"
-							CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+							CommandParameter="{Binding $parent[Window]}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 			</Grid>
@@ -258,7 +258,7 @@
 					<Button
 						Classes="primary"
 						Command="{Binding ShowEditorCommand}"
-						CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+						CommandParameter="{Binding $parent[Window]}"
 						Content="{materialIcons:MaterialIconTextExt Kind=FileTree,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
 						ToolTip.Tip="{x:Static prop:Strings.Editor}" />

@@ -74,7 +74,7 @@
 
 							<MenuItem
 								Command="{Binding ShowFavoritesCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								CommandParameter="{Binding $parent[Window]}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="StarOutline" />
@@ -98,7 +98,7 @@
 
 							<MenuItem
 								Command="{Binding RestartApplicationCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								CommandParameter="{Binding $parent[Window]}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="Restart" />
@@ -110,7 +110,7 @@
 
 							<MenuItem
 								Command="{Binding ExitCommand}"
-								CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+								CommandParameter="{Binding $parent[Window]}">
 								<MenuItem.Header>
 									<StackPanel>
 										<materialIcons:MaterialIcon Kind="LocationExit" />

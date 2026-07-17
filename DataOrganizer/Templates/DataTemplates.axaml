@@ -59,7 +59,7 @@
 					<MultiBinding>
 						<Binding />
 
-						<Binding RelativeSource="{RelativeSource AncestorType=SelectingItemsControl}" />
+						<Binding Path="$parent[SelectingItemsControl]" />
 					</MultiBinding>
 				</Button.CommandParameter>
 			</Button>

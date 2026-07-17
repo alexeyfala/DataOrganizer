@@ -153,7 +153,7 @@
 							Background="{StaticResource MaterialCardBackgroundBrush}"
 							Classes="primary"
 							Cursor="Hand"
-							IsVisible="{Binding IsPointerOver, RelativeSource={RelativeSource AncestorType=Button}}"
+							IsVisible="{Binding $parent[Button].IsPointerOver}"
 							Theme="{StaticResource MaterialFlatButton}"
 							ToolTip.Tip="{x:Static prop:Strings.Delete}">
 
@@ -187,9 +187,7 @@
 										Mode="OneWay"
 										Path="IsPinned" />
 
-									<Binding
-										Path="IsPointerOver"
-										RelativeSource="{RelativeSource AncestorType=Button}" />
+									<Binding Path="$parent[Button].IsPointerOver" />
 								</MultiBinding>
 							</ToggleButton.IsVisible>
 
@@ -267,9 +265,7 @@
 										</ReflectionBinding.FallbackValue>
 									</ReflectionBinding>
 
-									<Binding
-										Path="IsPointerOver"
-										RelativeSource="{RelativeSource AncestorType=Button}" />
+									<Binding Path="$parent[Button].IsPointerOver" />
 
 									<!-- Hide the eye while the pointer is over the type-glyph badge. -->
 									<Binding
