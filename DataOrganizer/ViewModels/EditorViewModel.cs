@@ -8,7 +8,6 @@ using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Comparation;
 using DataOrganizer.Behaviors;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
@@ -25,7 +24,6 @@ using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Enums;
 using Entities.Models;
-using MapsterMapper;
 using Material.Styles.Controls;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -962,7 +960,9 @@ public partial class EditorViewModel :
 
 		if (result.IsSaved)
 		{
-			await OverwriteFileHotkeysAsync(dto, result.NewHotkeys).ConfigureAwait(false);
+			await _fileHotkeyEditor
+				.OverwriteAsync(dto, result.NewHotkeys, Hierarchy)
+				.ConfigureAwait(false);
 		}
 
 		if (!_settingsManager
@@ -1031,13 +1031,11 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IDataExchangeService" />
 	private readonly IDataExchangeService _dataExchange;
 
+	/// <inheritdoc cref="IFileHotkeyEditor" />
+	private readonly IFileHotkeyEditor _fileHotkeyEditor;
+
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
-
-	/// <summary>
-	/// Mapper.
-	/// </summary>
-	private readonly IMapper _mapper;
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
@@ -1063,9 +1061,9 @@ public partial class EditorViewModel :
 		IEntityEncryption entityEncryption,
 		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
+		IFileHotkeyEditor fileHotkeyEditor,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
-		IMapper mapper,
 		IMessenger messenger,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler exceptionHandler,
@@ -1091,9 +1089,9 @@ public partial class EditorViewModel :
 
 		_dataExchange = dataExchange;
 
-		_hierarchyEditor = hierarchyEditor;
+		_fileHotkeyEditor = fileHotkeyEditor;
 
-		_mapper = mapper;
+		_hierarchyEditor = hierarchyEditor;
 
 		_processUtils = processUtils;
 
@@ -1166,82 +1164,6 @@ public partial class EditorViewModel :
 		}
 
 		IsInitialized = true;
-	}
-
-	/// <summary>
-	/// Overrites hotkeys of a file.
-	/// </summary>
-	public async Task<OverwriteHotkeysResult> OverwriteFileHotkeysAsync(
-		FileModelDto dto,
-		CodeMaskPair[] newHotkeys,
-		CancellationToken token = default)
-	{
-		IEqualityComparer<HotkeyModelDto> comparer = Equality.Of<HotkeyModelDto>()
-			.By(x => x.Code)
-			.AndBy(x => x.Mask);
-
-		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto()];
-
-		if (dto
-			.Hotkeys
-			.SequenceEqual(temp, comparer))
-		{
-			return OverwriteHotkeysResult.SameHotkeys;
-		}
-
-		if (temp.IsNotEmpty() && Hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
-		{
-			string sequence = newHotkeys.GetHotkeysPresentation();
-
-			ShowWarningSnackbar(
-				$@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
-
-			return OverwriteHotkeysResult.AlreadyInUse;
-		}
-
-		try
-		{
-			if (dto.Hotkeys.Count > 0)
-			{
-				dto
-					.Hotkeys
-					.Clear();
-
-				await _dbAccess
-					.DeleteHotkeysAsync(dto.Id, token)
-					.ConfigureAwait(false);
-			}
-
-			if (newHotkeys.IsEmpty())
-			{
-				return OverwriteHotkeysResult.EmptySequence;
-			}
-
-			try
-			{
-				HotkeyModel[] createdHotkeys = await _dbAccess
-					.AddHotkeysAsync(dto.Id, newHotkeys, token)
-					.ConfigureAwait(false);
-
-				HotkeyModelDto[] mapped = _mapper.Map<HotkeyModel[], HotkeyModelDto[]>(createdHotkeys);
-
-				dto
-					.Hotkeys
-					.AddRange(mapped);
-
-				return OverwriteHotkeysResult.Rewritten;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-
-				return OverwriteHotkeysResult.ExceptionThrown;
-			}
-		}
-		finally
-		{
-			dto.SetHotkeysToolTip();
-		}
 	}
 
 	/// <summary>
