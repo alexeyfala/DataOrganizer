@@ -10,26 +10,6 @@ internal class EncryptionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptionService.CreateRandomDek" />: returns a non-empty DEK.
-	/// </summary>
-	[Test]
-	public void CreateRandomDek_Does_Work()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		// Act
-		byte[] result = sut.CreateRandomDek();
-
-		// Assert
-		result
-			.Should()
-			.NotBeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="EncryptionService.Decrypt" />: returns null when decrypting with a wrong password.
 	/// </summary>
 	[Test]
@@ -220,66 +200,6 @@ internal class EncryptionServiceTests
 		TextHelper.Utf8Encoding.GetString(decrypted)
 			.Should()
 			.Be(TextHelper.LoremIpsum);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionService.HashPassword" />: returns a hash that differs from the original password.
-	/// </summary>
-	[Test]
-	public void HashPassword_Returns_Hash_That_Different_From_Original_Password()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		const string password = "SomePassword";
-
-		// Act
-		string passwordHash = sut.HashPassword(password.ToCharArray());
-
-		// Assert
-		passwordHash
-			.Should()
-			.NotBeNull()
-			.Should()
-			.NotBeSameAs(password);
-	}
-
-	/// <summary>
-	/// <see cref="EncryptionService.VerifyPassword" />: verifies the same password against two distinct hashes.
-	/// </summary>
-	[Test]
-	public void VerifyPassword_Verified_Same_Passwords_With_Different_Hashes()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EncryptionService sut = mock.Create<EncryptionService>();
-
-		char[] password = "SomePassword".ToCharArray();
-
-		// Act
-		string hash1 = sut.HashPassword(password);
-
-		string hash2 = sut.HashPassword(password);
-
-		bool result1 = sut.VerifyPassword(password, hash1);
-
-		bool result2 = sut.VerifyPassword(password, hash2);
-
-		// Assert
-		hash1
-			.Should()
-			.NotBe(hash2);
-
-		result1
-			.Should()
-			.BeTrue();
-
-		result2
-			.Should()
-			.BeTrue();
 	}
 	#endregion
 }

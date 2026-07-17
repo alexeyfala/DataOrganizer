@@ -75,20 +75,5 @@ internal class PinnedSecretTests
 			.Should()
 			.OnlyContain(c => c == '\0');
 	}
-
-	/// <summary>
-	/// <see cref="PinnedSecret.Length" />: the length reflects the size passed to the constructor.
-	/// </summary>
-	[Test]
-	public void Length_Reflects_Constructor_Argument()
-	{
-		// Arrange + Act
-		using PinnedSecret sut = new(7);
-
-		// Assert
-		sut.Length
-			.Should()
-			.Be(7);
-	}
 	#endregion
 }

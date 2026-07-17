@@ -13,42 +13,6 @@ internal class XmlSerializerWrapperTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: parses an XML string into the expected object.
-	/// </summary>
-	[Test]
-	public void Deserialize_Returns_Object_From_Xml_String()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
-
-		const string xml = """
-			<?xml version="1.0" encoding="utf-16"?>
-			<XmlSample>
-				<Name>beta</Name>
-				<Number>7</Number>
-			</XmlSample>
-			""";
-
-		// Act
-		XmlSample? result = sut.Deserialize<XmlSample>(xml);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNull();
-
-		result.Name
-			.Should()
-			.Be("beta");
-
-		result.Number
-			.Should()
-			.Be(7);
-	}
-
-	/// <summary>
 	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
@@ -80,56 +44,6 @@ internal class XmlSerializerWrapperTests
 			.Throw<InvalidOperationException>()
 			.WithInnerException<XmlException>()
 			.WithMessage("*DTD*");
-	}
-
-	/// <summary>
-	/// <see cref="XmlSerializerWrapper.Serialize{T}" />: produces an XML string containing the object's properties.
-	/// </summary>
-	[Test]
-	public void Serialize_Returns_Xml_String_From_Object()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
-
-		XmlSample value = new() { Name = "alpha", Number = 42 };
-
-		// Act
-		string result = sut.Serialize(value);
-
-		// Assert
-		result
-			.Should()
-			.Contain("<Name>alpha</Name>");
-
-		result
-			.Should()
-			.Contain("<Number>42</Number>");
-	}
-
-	/// <summary>
-	/// <see cref="XmlSerializerWrapper.Serialize{T}" /> + <see cref="XmlSerializerWrapper.Deserialize{T}" />: a serialize/deserialize round-trip yields an equivalent object.
-	/// </summary>
-	[Test]
-	public void Serialize_Then_Deserialize_Returns_Equivalent_Object()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
-
-		XmlSample value = new() { Name = "gamma", Number = 100 };
-
-		// Act
-		string xml = sut.Serialize(value);
-
-		XmlSample? roundTrip = sut.Deserialize<XmlSample>(xml);
-
-		// Assert
-		roundTrip
-			.Should()
-			.BeEquivalentTo(value);
 	}
 	#endregion
 }

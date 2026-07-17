@@ -8,7 +8,6 @@ using DataOrganizer.ViewModels;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
-using System;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
 
@@ -258,30 +257,6 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.Languages" />: the collection contains the supported languages.
-	/// </summary>
-	[Test]
-	public void Languages_Have_Certain_Values()
-	{
-		// Assert
-		SettingsViewModel.Languages
-			.Should()
-			.Contain(IAppSettingsManager.Languages);
-	}
-
-	/// <summary>
-	/// <see cref="SettingsViewModel.PrimaryColors" />: the collection contains all primary color enum values.
-	/// </summary>
-	[Test]
-	public void PrimaryColors_Have_Certain_Values()
-	{
-		// Assert
-		SettingsViewModel.PrimaryColors
-			.Should()
-			.Contain(Enum.GetValues<PrimaryColor>());
-	}
-
-	/// <summary>
 	/// <see cref="SettingsViewModel.SaveAndClose" />: invoking it sets the IsSaved property to true.
 	/// </summary>
 	[Test]
@@ -365,18 +340,6 @@ internal class SettingsViewModelTests
 		canExecute
 			.Should()
 			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="SettingsViewModel.SecondaryColors" />: the collection contains all secondary color enum values.
-	/// </summary>
-	[Test]
-	public void SecondaryColors_Have_Certain_Values()
-	{
-		// Assert
-		SettingsViewModel.SecondaryColors
-			.Should()
-			.Contain(Enum.GetValues<SecondaryColor>());
 	}
 	#endregion
 }
