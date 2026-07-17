@@ -177,6 +177,7 @@ public partial class EditorViewModel :
 	partial void OnViewWidthChanged(double value) => ((INavigationColumnViewModel)this).SetNavigationColumnWidth(value);
 	#endregion
 
+
 	#region Auto-Generated Commands
 	/// <summary>
 	/// Changes password for folder.
