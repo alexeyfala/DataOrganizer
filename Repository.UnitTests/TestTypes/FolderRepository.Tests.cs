@@ -1,10 +1,8 @@
 using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Repository.DbContexts;
 using Repository.Services;
+using Repository.UnitTests.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -145,40 +143,5 @@ internal class FolderRepositoryTests
 		EntityType = EntityType.Folder,
 		ParentId = parentId
 	};
-
-	/// <summary>
-	/// Owns an open in-memory SQLite connection and a schema-created context for one test.
-	/// </summary>
-	private sealed class TestDatabase : IDisposable
-	{
-		private readonly SqliteConnection _connection;
-
-		public TestDatabase()
-		{
-			_connection = new SqliteConnection("DataSource=:memory:");
-
-			_connection.Open();
-
-			DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
-				.UseSqlite(_connection)
-				.Options;
-
-			Context = new SqliteDbContext(options);
-
-			Context.Database.EnsureCreated();
-		}
-
-		/// <summary>
-		/// Context bound to the in-memory database.
-		/// </summary>
-		public SqliteDbContext Context { get; }
-
-		public void Dispose()
-		{
-			Context.Dispose();
-
-			_connection.Dispose();
-		}
-	}
 	#endregion
 }
