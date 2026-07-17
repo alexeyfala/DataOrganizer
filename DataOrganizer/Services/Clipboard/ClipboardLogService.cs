@@ -1396,7 +1396,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		{
 			await using MemoryStream output = new();
 
-			bitmap.Save(output);
+			bitmap.Save(output, PngBitmapEncoderOptions.Default);
 
 			return output.ToArray();
 		}
