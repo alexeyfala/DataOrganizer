@@ -223,21 +223,11 @@ public static partial class SerilogExtensions
 			DecodeUnicode(message, target),
 			CreateSourceInfo(filePath, callerName, lineNumber));
 	}
-	#endregion
-
-	#region Helpers
-	/// <summary>
-	/// Creates a message with information about the event source.
-	/// </summary>
-	private static string CreateSourceInfo(
-		string filePath,
-		string callerName,
-		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(AppUtils.GetPlatformEntryPath(filePath))}";
 
 	/// <summary>
 	/// Converts Unicode characters into readable ones.
 	/// </summary>
-	private static string? DecodeUnicode(string? value, ILogger logger)
+	internal static string? DecodeUnicode(string? value, ILogger logger)
 	{
 		try
 		{
@@ -257,6 +247,16 @@ public static partial class SerilogExtensions
 
 		return value;
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a message with information about the event source.
+	/// </summary>
+	private static string CreateSourceInfo(
+		string filePath,
+		string callerName,
+		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(AppUtils.GetPlatformEntryPath(filePath))}";
 
 	[GeneratedRegex(@"\\u(?<Value>[a-zA-Z0-9]{4})", RegexOptions.Compiled)]
 	private static partial Regex UnicodeCharRegex();

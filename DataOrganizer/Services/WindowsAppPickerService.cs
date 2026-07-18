@@ -100,14 +100,12 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 			.PickAppAsync(candidates, token)
 			.ConfigureAwait(false);
 	}
-	#endregion
 
-	#region Helpers
 	/// <summary>
 	/// Extracts the executable path from a Windows registry "open command" string,
 	/// handling both quoted ("C:\path\app.exe" "%1") and unquoted (app.exe %1) forms.
 	/// </summary>
-	private static string? ExtractExecutablePath(string command)
+	internal static string? ExtractExecutablePath(string command)
 	{
 		string trimmed = command.Trim();
 
@@ -122,7 +120,9 @@ public sealed partial class WindowsAppPickerService : IAppPickerService
 
 		return space < 0 ? trimmed : trimmed[..space];
 	}
+	#endregion
 
+	#region Helpers
 	/// <summary>
 	/// Resolves the display name of an application. <c>FriendlyAppName</c> may be a
 	/// literal ("Notepad") or an indirect resource pointer
