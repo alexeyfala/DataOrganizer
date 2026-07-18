@@ -262,6 +262,27 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 					"string:"
 			]);
 	}
+
+	/// <summary>
+	/// Decides whether a window title belongs to the requested folder.
+	/// </summary>
+	internal static bool TitleMatchesFolderName(string title, string folderName)
+	{
+		if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(folderName))
+		{
+			return false;
+		}
+
+		if (title.Equals(folderName, StringComparison.Ordinal))
+		{
+			return true;
+		}
+
+		// Title starts with folder name followed by a space — typical "<name> - <suffix>" format.
+		return title.Length > folderName.Length
+			&& title.AsSpan(0, folderName.Length).Equals(folderName.AsSpan(), StringComparison.Ordinal)
+			&& title[folderName.Length] == ' ';
+	}
 	#endregion
 
 	#region Service
@@ -383,28 +404,6 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 			}
 		}
 	}
-
-	/// <summary>
-	/// Decides whether a window title belongs to the requested folder.
-	/// </summary>
-	private static bool TitleMatchesFolderName(string title, string folderName)
-	{
-		if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(folderName))
-		{
-			return false;
-		}
-
-		if (title.Equals(folderName, StringComparison.Ordinal))
-		{
-			return true;
-		}
-
-		// Title starts with folder name followed by a space — typical "<name> - <suffix>" format.
-		return title.Length > folderName.Length
-			&& title.AsSpan(0, folderName.Length).Equals(folderName.AsSpan(), StringComparison.Ordinal)
-			&& title[folderName.Length] == ' ';
-	}
-
 	/// <summary>
 	/// Sends <c>_NET_ACTIVE_WINDOW</c> ClientMessage to the root window — the EWMH-standard way
 	/// to ask the window manager to raise, focus, and de-iconify the target window.

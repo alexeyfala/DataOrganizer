@@ -38,9 +38,7 @@ public static class CollectionExtensions
 			return;
 		}
 
-		TSource[] temp = sequence
-			.OrderBy(keySelector)
-			.ToArray();
+		TSource[] temp = [.. sequence.OrderBy(keySelector)];
 
 		sequence.Clear();
 
