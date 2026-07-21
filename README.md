@@ -6,6 +6,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, Data Organizer pr
 
 ---
 
+
 ## Why Data Organizer?
 
 Managing scattered notes, credentials, code snippets, configuration fragments, and structured records across multiple tools is painful. Data Organizer solves this by providing a single, local-first application with:
