@@ -43,6 +43,7 @@
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
+    <File Path="CONTRIBUTING.md" />
     <File Path="Directory.Build.props" />
     <File Path="README.md" />
     <File Path="SECURITY.md" />
