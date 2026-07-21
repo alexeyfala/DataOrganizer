@@ -10,12 +10,6 @@
     <File Path="app.metainfo.xml" />
     <File Path="app.pupnet.conf" />
   </Folder>
-  <Folder Name="/Deployment/PupNet/PupNet_Instructions/">
-    <File Path="PupNet_Instructions/1_Setup.md" />
-    <File Path="PupNet_Instructions/2_Config.md" />
-    <File Path="PupNet_Instructions/3_AppStream.md" />
-    <File Path="PupNet_Instructions/4_Build.md" />
-  </Folder>
   <Folder Name="/Deployment/WIX/">
     <Project Path="Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
@@ -28,6 +22,12 @@
   </Folder>
   <Folder Name="/Docs/">
     <File Path="Docs/Publish.md" />
+  </Folder>
+  <Folder Name="/Docs/PupNet_Instructions/">
+    <File Path="Docs/PupNet_Instructions/1_Setup.md" />
+    <File Path="Docs/PupNet_Instructions/2_Config.md" />
+    <File Path="Docs/PupNet_Instructions/3_AppStream.md" />
+    <File Path="Docs/PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Global/">
     <Project Path="Entities/Entities.csproj" />
