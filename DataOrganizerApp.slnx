@@ -28,10 +28,6 @@
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
   </Folder>
-  <Folder Name="/Docs/">
-    <File Path="Prerequisites.txt" />
-    <File Path="TerminalLaunch.txt" />
-  </Folder>
   <Folder Name="/Global/">
     <Project Path="Entities/Entities.csproj" />
     <Project Path="Shared/Shared.csproj" />
