@@ -19,7 +19,6 @@
     <File Path="PupNet_Instructions/4_Build.md" />
   </Folder>
   <Folder Name="/Deployment/WIX/">
-    <File Path="Useful.txt" />
     <Project Path="Bundle/Bundle.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0">
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
