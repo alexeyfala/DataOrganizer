@@ -1,5 +1,0 @@
-Windows:
-1. Open "CLI" and run:
-winget install --id Microsoft.DotNet.Runtime.10 --silent --accept-source-agreements --accept-package-agreements
-2. Check runtimes installed:
-dotnet --list-runtimes
