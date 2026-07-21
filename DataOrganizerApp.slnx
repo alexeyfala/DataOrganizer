@@ -5,9 +5,7 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Folder Name="/Deployment/">
-    <File Path="Publish.md" />
-  </Folder>
+  <Folder Name="/Deployment/" />
   <Folder Name="/Deployment/PupNet/">
     <File Path="app.metainfo.xml" />
     <File Path="app.pupnet.conf" />
@@ -27,6 +25,9 @@
       <Platform Solution="*|Any CPU" Project="x64" />
       <Build Solution="*|Any CPU" Project="false" />
     </Project>
+  </Folder>
+  <Folder Name="/Docs/">
+    <File Path="Docs/Publish.md" />
   </Folder>
   <Folder Name="/Global/">
     <Project Path="Entities/Entities.csproj" />
