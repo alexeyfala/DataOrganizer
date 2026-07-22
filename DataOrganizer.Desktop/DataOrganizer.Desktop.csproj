@@ -32,4 +32,18 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 	</ItemGroup>
+
+	<!-- Name the portable single-file. -->
+	<Target Name="PortableOutputName" AfterTargets="Publish"
+			Condition="'$(PublishSingleFile)' == 'true'">
+		<PropertyGroup>
+			<_RidOs>$(RuntimeIdentifier.Substring(0, $(RuntimeIdentifier.IndexOf('-'))))</_RidOs>
+			<_RidArch>$(RuntimeIdentifier.Substring($([MSBuild]::Add($(RuntimeIdentifier.LastIndexOf('-')), 1))))</_RidArch>
+			<_ExeExt Condition="'$(_RidOs)' == 'win'">.exe</_ExeExt>
+			<_PortableName>$(OutputBaseName)-$(_RidOs)-$(_RidArch)-portable$(_DebugSuffix)$(_ExeExt)</_PortableName>
+		</PropertyGroup>
+		<Delete Files="$([System.IO.Path]::Combine('$(PublishDir)', '$(_PortableName)'))" />
+		<Move SourceFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(AssemblyName)$(_ExeExt)'))"
+			  DestinationFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(_PortableName)'))" />
+	</Target>
 </Project>
