@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
+using System.IO;
 
 namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
 
@@ -14,7 +15,9 @@ internal class ClipboardFileSystemEntryTests
 	public void Name_Ignores_Trailing_Separator()
 	{
 		// Arrange
-		ClipboardFileSystemEntry sut = new("C:\\dir\\sub\\", IsFolder: true);
+		string path = Path.Combine("dir", "sub") + Path.DirectorySeparatorChar;
+
+		ClipboardFileSystemEntry sut = new(path, IsFolder: true);
 
 		// Act, Assert
 		sut.Name
