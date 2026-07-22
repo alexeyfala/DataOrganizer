@@ -1,5 +1,9 @@
 # Data Organizer
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+![.NET](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+
 **A cross-platform desktop application for organizing, managing, and securely storing structured data in a virtual file system.**
 
 Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, Data Organizer provides a hierarchical workspace where you can create files, folders, and datasets — encrypt sensitive content, assign global hotkeys for file contents, and keep everything organized in one place.
@@ -83,6 +87,22 @@ App/
 ---
 
 ## Getting Started
+
+### Build from Source
+
+**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+
+```bash
+git clone https://github.com/alexeyfala/DataOrganizer.git
+cd DataOrganizer
+dotnet run --project DataOrganizer.Desktop
+```
+
+On macOS, run the platform host instead:
+
+```bash
+dotnet run --project DataOrganizer.MacOS
+```
 
 ### Command-Line Options
 

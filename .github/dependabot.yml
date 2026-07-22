@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # NuGet dependencies across all projects in the repository.
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      # Bundle non-major updates into a single pull request to reduce noise.
+      nuget-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions used in workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions-all:
+        update-types:
+          - "minor"
+          - "patch"
