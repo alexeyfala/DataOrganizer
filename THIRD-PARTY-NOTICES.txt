@@ -40,7 +40,7 @@ repository listed above.
 --------------------------------------------------------------------------
 
   * Ben.Demystifier 0.4.1 - Copyright (c) Ben Adams
-  * Serilog 4.3.1 - Copyright (c) Serilog Contributors
+  * Serilog 4.4.0 - Copyright (c) Serilog Contributors
   * Serilog.Enrichers.Demystifier 1.0.3 - Copyright (c) Serilog Contributors
   * Serilog.Sinks.Async 2.1.0 - Copyright (c) Jezz Santos,Serilog Contributors
   * Serilog.Sinks.FileEx 5.1.8 - Copyright (c) Ashkan Shirian
@@ -59,25 +59,25 @@ repository listed above.
 3. MIT License (MIT)
 --------------------------------------------------------------------------
 
-  * Avalonia 12.0.5 - Copyright (c) Avalonia Team
+  * Avalonia 12.1.0 - Copyright (c) Avalonia Team
   * Avalonia.AvaloniaEdit 12.0.0 - Copyright (c) Avalonia Team
   * Avalonia.BuildServices 11.3.2 - Copyright (c) Avalonia Team
-  * Avalonia.Desktop 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Fonts.Inter 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop.AtSpi 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.HarfBuzz 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Native 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Remote.Protocol 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Skia 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Themes.Fluent 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.Win32 12.0.5 - Copyright (c) Avalonia Team
-  * Avalonia.X11 12.0.5 - Copyright (c) Avalonia Team
+  * Avalonia.Desktop 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Fonts.Inter 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop.AtSpi 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.HarfBuzz 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Native 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Remote.Protocol 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Skia 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Themes.Fluent 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.Win32 12.1.0 - Copyright (c) Avalonia Team
+  * Avalonia.X11 12.1.0 - Copyright (c) Avalonia Team
   * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) jpmikkers
   * BCrypt.Net-Next 4.2.0 - Copyright (c) Chris McKee, Ryan D. Emerl, Damien Miller
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
   * Comparation 0.1.7 - Copyright (c) Alexey Pepelev
-  * DialogHost.Avalonia 0.12.2 - Copyright (c) SKProCH
+  * DialogHost.Avalonia 0.12.3 - Copyright (c) SKProCH
   * DynamicData 9.4.33 - Copyright (c) Roland Pheasant
   * HarfBuzzSharp 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.Linux 8.3.1.3 - Copyright (c) Microsoft
@@ -85,46 +85,45 @@ repository listed above.
   * HarfBuzzSharp.NativeAssets.WebAssembly 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.Win32 8.3.1.3 - Copyright (c) Microsoft
   * Interop.UIAutomationClient 10.19041.0 - Copyright (c) Roemer
-  * Mapster 10.0.10 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.Core 10.0.10 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.DependencyInjection 10.0.10 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.Core 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.DependencyInjection 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
   * Material.Avalonia 3.17.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
   * Material.Icons 3.0.2 - Copyright (c) SKProCH
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
-  * MicroCom.Runtime 0.11.4 - Copyright (c) MicroCom.Runtime
-  * Microsoft.Data.Sqlite.Core 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Abstractions 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Analyzers 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Relational 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.EntityFrameworkCore.Sqlite.Core 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Abstractions 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Caching.Memory 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Configuration.Abstractions 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyInjection.Abstractions 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.DependencyModel 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Logging.Abstractions 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Options 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Extensions.Primitives 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.NET.ILLink.Tasks 10.0.9 - Copyright (c) Microsoft
-  * Microsoft.Win32.SystemEvents 10.0.9 - Copyright (c) Microsoft
+  * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
+  * Microsoft.Data.Sqlite.Core 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Abstractions 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Analyzers 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Relational 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.EntityFrameworkCore.Sqlite.Core 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Caching.Abstractions 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Caching.Memory 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Configuration.Abstractions 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyInjection 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyInjection.Abstractions 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.DependencyModel 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Logging 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Logging.Abstractions 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Options 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Extensions.Primitives 10.0.10 - Copyright (c) Microsoft
+  * Microsoft.Win32.SystemEvents 10.0.10 - Copyright (c) Microsoft
   * NSec.Cryptography 26.4.0 - Copyright (c) Klaus Hartke
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
   * ProItemsRepeater 12.0.0 - Copyright (c) Wiesław Šoltés
   * Serilog.Exceptions 8.4.0 - Copyright (c) Muhammad Rehan Saeed (RehanSaeed.com)
-  * SharpHook 7.1.2 - Copyright (c) Tolik Pylypchuk
+  * SharpHook 7.1.3 - Copyright (c) Tolik Pylypchuk
   * SkiaSharp 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Linux 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.macOS 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.WebAssembly 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Win32 3.119.4 - Copyright (c) Microsoft
-  * System.Drawing.Common 10.0.9 - Copyright (c) Microsoft
-  * System.Reactive 6.1.0 - Copyright (c) .NET Foundation and Contributors
+  * System.Drawing.Common 10.0.10 - Copyright (c) Microsoft
+  * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
   * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) Microsoft
-  * Tmds.DBus.Protocol 0.92.0 - Copyright (c) Tom Deseyn
+  * Tmds.DBus.Protocol 0.94.1 - Copyright (c) Tom Deseyn
   * Xaml.Behaviors 12.0.5 - Copyright (c) Wiesław Šoltés
   * ZString 2.6.0 - Copyright (c) Cysharp
 
