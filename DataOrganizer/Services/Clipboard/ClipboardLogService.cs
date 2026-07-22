@@ -351,7 +351,6 @@ public sealed class ClipboardLogService : IClipboardLogService
 			{
 				case ClipboardTextEntry textEntry:
 					_logger.LogInformation(
-
 						$"Restoring clipboard entry: {nameof(ClipboardTextEntry)}, {textEntry.Text.Length} chars" +
 						$"{(textEntry.IsHtml ? " + HTML" : string.Empty)}" +
 						$"{(textEntry.IsRtf ? " + RTF" : string.Empty)}.");
