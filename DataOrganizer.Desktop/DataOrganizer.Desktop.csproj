@@ -21,28 +21,35 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+		<PackageReference Include="Avalonia.Desktop"
+						  Version="12.1.0" />
 	</ItemGroup>
 
 	<!-- Ship license and attribution files alongside the published application. -->
 	<ItemGroup>
-		<None Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt"
+			  Link="%(Filename)%(Extension)"
+			  CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 	</ItemGroup>
 
-	<!-- Name the portable single-file. -->
-	<Target Name="PortableOutputName" AfterTargets="Publish"
+	<!-- Portable single-file naming (only meaningful when publishing with a RID). -->
+	<PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+		<_RidOs>$(RuntimeIdentifier.Substring(0, $(RuntimeIdentifier.IndexOf('-'))))</_RidOs>
+		<_RidArch>$(RuntimeIdentifier.Substring($([MSBuild]::Add($(RuntimeIdentifier.LastIndexOf('-')), 1))))</_RidArch>
+		<_PortableExt Condition="'$(_RidOs)' == 'win'">.exe</_PortableExt>
+		<PortableName>$(OutputBaseName)-$(_RidOs)-$(_RidArch)-portable$(_DebugSuffix)</PortableName>
+	</PropertyGroup>
+
+	<!-- Rename the portable single-file output to PortableName. -->
+	<Target Name="PortableOutputName"
+			AfterTargets="Publish"
 			Condition="'$(PublishSingleFile)' == 'true'">
-		<PropertyGroup>
-			<_RidOs>$(RuntimeIdentifier.Substring(0, $(RuntimeIdentifier.IndexOf('-'))))</_RidOs>
-			<_ExeExt Condition="'$(_RidOs)' == 'win'">.exe</_ExeExt>
-			<_PortableName>$(OutputBaseName)-$(_RidOs)-$(PlatformTarget)-portable$(_DebugSuffix)$(_ExeExt)</_PortableName>
-		</PropertyGroup>
-		<Delete Files="$([System.IO.Path]::Combine('$(PublishDir)', '$(_PortableName)'))" />
-		<Move SourceFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(AssemblyName)$(_ExeExt)'))"
-			  DestinationFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(_PortableName)'))" />
+		<Delete Files="$([System.IO.Path]::Combine('$(PublishDir)', '$(PortableName)$(_PortableExt)'))" />
+		<Move SourceFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(AssemblyName)$(_PortableExt)'))"
+			  DestinationFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(PortableName)$(_PortableExt)'))" />
 	</Target>
 </Project>
