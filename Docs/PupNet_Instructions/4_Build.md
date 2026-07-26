@@ -26,6 +26,14 @@ All recipes run in **WSL (Ubuntu)**. Each block is **self-contained — copy the
 
 > **Release vs Debug.** PupNet ignores the configuration selected in Visual Studio and builds **Release** by default. For a Debug build, add `-c Debug` to the `pupnet` command. PupNet then appends `.Debug` to the `AppId`, so the Debug package installs alongside the Release one instead of replacing it.
 
+> **Building this tree from both Windows and WSL?** The `obj/` folders cache MSBuild state per-OS. A cache written by a Windows/VS build makes the Linux build fail with `error MSB4018: The "ResolvePackageAssets" task failed unexpectedly. … Found invalid data while decoding.` Clear the caches once, then rebuild:
+>
+> ```bash
+> find "$DATAORG_REPO" -type d -name obj -exec rm -rf {} +
+> ```
+>
+> Only needed after switching OS — NuGet re-restores automatically on the next build.
+
 ### Debian (.deb)
 
 ```bash
