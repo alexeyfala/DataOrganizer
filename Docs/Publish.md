@@ -105,7 +105,7 @@ A separate staged workflow that runs in WSL/Ubuntu. Follow the stages in order:
 
 ## macOS
 
-Two output formats: a `.dmg` (recommended for end users — drag-to-Applications, uninstall by dragging to Trash) and a `.pkg` installer.
+Three output formats: a `.dmg` (recommended for end users — drag-to-Applications, uninstall by dragging to Trash), a `.pkg` installer, and a portable `.zip` (the `.app` bundle archived as-is — no installer, runs from anywhere).
 
 > Prerequisite: the notice generator runs under PowerShell (Core). Install `pwsh` once, e.g.
 > `brew install powershell/tap/powershell`.
@@ -175,4 +175,35 @@ dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:Publish
 rm -rf bin
 cd ../Publish
 open .
+```
+
+### Portable (`.zip`) — Release
+
+Open a terminal in macOS. Regenerate notices first:
+
+```bash
+cd DataOrganizer.MacOS
+pwsh ../tools/gen-third-party-notices.ps1
+dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable
+cd ..
+mkdir -p Publish
+ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
+rm -rf DataOrganizer.MacOS/bin
+open Publish
+```
+
+### Portable (`.zip`) — Debug
+
+Open a terminal in macOS.
+
+```bash
+cd DataOrganizer.MacOS
+dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:OutputBaseName)-osx-x64-portable-debug
+cd ..
+mkdir -p Publish
+ditto -c -k --keepParent "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" "Publish/$NAME.zip"
+rm -rf DataOrganizer.MacOS/bin
+open Publish
 ```
