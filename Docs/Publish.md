@@ -123,12 +123,12 @@ Open a terminal in macOS. Regenerate notices first:
 cd DataOrganizer.MacOS
 pwsh ../tools/gen-third-party-notices.ps1
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
-APP_VERSION=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:AppVersion)
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
 cd ..
 mkdir -p Publish/dmg-staging
 cp -R "DataOrganizer.MacOS/bin/Release/net10.0-macos/osx-x64/DataOrganizer.app" Publish/dmg-staging/
 ln -s /Applications Publish/dmg-staging/Applications
-hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/DataOrganizer-$APP_VERSION.dmg"
+hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
 rm -rf Publish/dmg-staging
 rm -rf DataOrganizer.MacOS/bin
 open Publish
@@ -141,12 +141,12 @@ Open a terminal in macOS.
 ```bash
 cd DataOrganizer.MacOS
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -p:CreatePackage=false -verbosity:diag
-APP_VERSION=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:AppVersion)
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
 cd ..
 mkdir -p Publish/dmg-staging
 cp -R "DataOrganizer.MacOS/bin/Debug/net10.0-macos/osx-x64/DataOrganizer.app" Publish/dmg-staging/
 ln -s /Applications Publish/dmg-staging/Applications
-hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/DataOrganizer-$APP_VERSION.dmg"
+hdiutil create -volname "Data Organizer" -srcfolder Publish/dmg-staging -ov -format UDZO "Publish/$NAME.dmg"
 rm -rf Publish/dmg-staging
 rm -rf DataOrganizer.MacOS/bin
 open Publish
@@ -159,7 +159,8 @@ Open a terminal in macOS. Regenerate notices first:
 ```bash
 cd DataOrganizer.MacOS
 pwsh ../tools/gen-third-party-notices.ps1
-dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
+dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
 cd ../Publish
 open .
@@ -171,7 +172,8 @@ Open a terminal in macOS.
 
 ```bash
 cd DataOrganizer.MacOS
-dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish"
+NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
+dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
 cd ../Publish
 open .
