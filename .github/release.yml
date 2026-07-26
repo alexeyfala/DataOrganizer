@@ -1,0 +1,24 @@
+# Configures the notes produced by the "Generate release notes" button on a GitHub release.
+# https://docs.github.com/repositories/releasing-projects-on-github/automatically-generated-release-notes
+changelog:
+  exclude:
+    # Add this label to a PR to keep it out of the generated notes entirely.
+    labels:
+      - ignore-for-release
+  categories:
+    - title: 🚀 Features
+      labels:
+        - enhancement
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+    - title: 📝 Documentation
+      labels:
+        - documentation
+    - title: 📦 Dependencies
+      labels:
+        - dependencies
+    # Catch-all for PRs without any of the labels above. Must stay last.
+    - title: 🔧 Other Changes
+      labels:
+        - "*"
