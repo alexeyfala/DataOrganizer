@@ -22,6 +22,7 @@ Managing scattered notes, credentials, code snippets, configuration fragments, a
 
 ---
 
+
 ## Features
 
 ### Virtual File System
