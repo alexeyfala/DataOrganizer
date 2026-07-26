@@ -162,8 +162,7 @@ pwsh ../tools/gen-third-party-notices.ps1
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Release)
 dotnet publish -c:Release -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
-cd ../Publish
-open .
+open ../Publish
 ```
 
 ### `.pkg` — Debug
@@ -175,8 +174,7 @@ cd DataOrganizer.MacOS
 NAME=$(dotnet msbuild DataOrganizer.MacOS.csproj -getProperty:MacInstallerName -p:Configuration=Debug)
 dotnet publish -c:Debug -r:osx-x64 -p:UseAppHost=true -verbosity:diag -p:PublishDir="../Publish" -p:PkgPackagePath="../Publish/$NAME.pkg"
 rm -rf bin
-cd ../Publish
-open .
+open ../Publish
 ```
 
 ### Portable (`.zip`) — Release
