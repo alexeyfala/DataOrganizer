@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
 		<DotNetVersion>10.0.9</DotNetVersion>
-		<OutputName>$(MsiOutputName)-Bundle</OutputName>
+		<OutputName>$(MsiOutputName)-bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
 		<LCID>1033</LCID>
