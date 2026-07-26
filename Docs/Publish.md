@@ -13,7 +13,6 @@ Cheat-sheet for producing Data Organizer builds on each platform.
 >
 > Review the console summary (watch for any `UNKNOWN` licenses) and commit the updated `THIRD-PARTY-NOTICES.txt`.
 
-
 ---
 
 ## Windows
