@@ -37,7 +37,8 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 
 **Clipboard history** — captured text, links, images, and files.
 
-![Clipboard history](Docs/Images/clipboard-log.png)
+<img src="Docs/Images/clipboard-log.png" width="360" alt="Clipboard history">
+
 
 ## System Requirements
 
