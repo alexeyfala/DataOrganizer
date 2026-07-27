@@ -10,6 +10,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 
 ## Features
 
+
 - **Virtual file system** — folders, files, and datasets arranged in a tree, saved to a local SQLite database.
 - **Global hotkeys** — bind a file to a Ctrl/Alt/Shift shortcut; pressing it from any application copies the file's contents to the clipboard.
 - **Favorites** — mark files for quick access; a dedicated searchable window groups them by parent folder.
