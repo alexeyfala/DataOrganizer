@@ -21,7 +21,14 @@
     </Project>
   </Folder>
   <Folder Name="/Docs/">
+    <File Path="Docs/GitHub_Release.md" />
     <File Path="Docs/Publish.md" />
+  </Folder>
+  <Folder Name="/Docs/Images/">
+    <File Path="Docs/Images/clipboard-log.png" />
+    <File Path="Docs/Images/dataset-editor.png" />
+    <File Path="Docs/Images/favorites.png" />
+    <File Path="Docs/Images/main-window.png" />
   </Folder>
   <Folder Name="/Docs/PupNet_Instructions/">
     <File Path="Docs/PupNet_Instructions/1_Setup.md" />
@@ -52,6 +59,7 @@
   <Folder Name="/Solution Items/.github/">
     <File Path=".github/dependabot.yml" />
     <File Path=".github/PULL_REQUEST_TEMPLATE.md" />
+    <File Path=".github/release.yml" />
   </Folder>
   <Folder Name="/Solution Items/.github/ISSUE_TEMPLATE/">
     <File Path=".github/ISSUE_TEMPLATE/bug_report.yml" />
