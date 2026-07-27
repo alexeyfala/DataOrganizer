@@ -21,6 +21,24 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Appearance** — Light, Dark, or System theme (Material Design), with configurable primary and secondary accent colors.
 - **Localization** — English and Russian; resource-based, ready for additional languages.
 
+## Screenshots
+
+**Main window** — hierarchical tree with the built-in text editor.
+
+![Main window](Docs/Images/main-window.png)
+
+**Dataset editor** — structured key-value records and groups.
+
+![Dataset editor](Docs/Images/dataset-editor.png)
+
+**Favorites** — quick access, grouped by parent folder.
+
+![Favorites](Docs/Images/favorites.png)
+
+**Clipboard history** — captured text, links, images, and files.
+
+![Clipboard history](Docs/Images/clipboard-log.png)
+
 ## System Requirements
 
 64-bit (x64) only. Builds are self-contained, so requirements follow the bundled .NET 10 runtime:
