@@ -21,6 +21,14 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Appearance** — Light, Dark, or System theme (Material Design), with configurable primary and secondary accent colors.
 - **Localization** — English and Russian; resource-based, ready for additional languages.
 
+## System Requirements
+
+64-bit (x64) only. Builds are self-contained, so requirements follow the bundled .NET 10 runtime:
+
+- **Windows** — Windows 10 version 1607 or later
+- **macOS** — macOS 12 (Monterey) or later (Apple Silicon via Rosetta 2)
+- **Linux** — a modern glibc-based distribution (e.g. Ubuntu 22.04+, Debian 12+, Fedora 42+); see [.NET 10 supported distributions](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md)
+
 ## Build from Source
 
 **Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
@@ -46,6 +54,14 @@ All application data is stored locally:
 /home/{username}/.local/share/DataOrganizer/                  (Linux)
 /Users/{username}/Library/Application Support/DataOrganizer/  (macOS)
 ```
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for build and workflow guidelines, and the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Vulnerability reports are handled privately — see [SECURITY.md](SECURITY.md). Avoid filing public issues for security matters.
 
 ## License
 
