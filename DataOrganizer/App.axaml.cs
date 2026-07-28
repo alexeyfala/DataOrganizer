@@ -111,6 +111,11 @@ public sealed class App : Application
 
 		Services = serviceProvider;
 
+		// The theme reads Application.Styles, therefore it is applied only after the XAML tree is loaded.
+		serviceProvider
+			.GetRequiredService<IAppSettingsManager>()
+			.ApplyMaterialTheme();
+
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
 		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());

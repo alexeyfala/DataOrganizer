@@ -8,7 +8,6 @@ using DataOrganizer.Services;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
-using Shared.Interfaces;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -24,7 +23,7 @@ internal class AppSettingsManagerTests
 	public void ApplyMaterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
 	{
 		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateStore(IAppSettingsManager.CreateDefaultSettings())));
 
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();
 
@@ -38,33 +37,17 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppSettingsManager" />: settings default to the created default settings when no file is present.
+	/// <see cref="AppSettingsManager.OverwriteSettings" />: overwrites the settings held by the store.
 	/// </summary>
 	[Test]
-	public void Obtained_Default_Settings()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		// Act
-		AppSettingsManager sut = mock.Create<AppSettingsManager>();
-
-		// Assert
-		sut.Settings
-			.Should()
-			.BeEquivalentTo(IAppSettingsManager.CreateDefaultSettings());
-	}
-
-	/// <summary>
-	/// <see cref="AppSettingsManager.OverwriteSettings" />: replaces the current settings with the provided ones.
-	/// </summary>
-	[Test]
-	public void OverwriteSettings_Overwrites_Settings()
+	public void OverwriteSettings_Overwrites_Settings_In_Store()
 	{
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings();
 
-		using AutoMock mock = AutoMock.GetLoose();
+		IAppSettingsStore store = CreateStore(settings);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
 
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();
 
@@ -72,57 +55,21 @@ internal class AppSettingsManagerTests
 		sut.OverwriteSettings(settings);
 
 		// Assert
-		sut.Settings
-			.Should()
-			.BeEquivalentTo(settings);
+		store
+			.Received()
+			.Overwrite(settings);
 	}
 
 	/// <summary>
-	/// <see cref="AppSettingsManager.SaveSettingsInFile" />: serializes the settings to a JSON file.
+	/// <see cref="AppSettingsManager.SaveSettingsInFile" />: saves the settings through the store.
 	/// </summary>
 	[Test]
-	public void SaveSettingsInFile_Saves_Settings_In_File()
+	public void SaveSettingsInFile_Saves_Settings_Through_Store()
 	{
 		// Arrange
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+		IAppSettingsStore store = CreateStore(TestUtils.CreateRandomSettings());
 
-		using AutoMock mock = AutoMock.GetLoose();
-
-		AppSettingsManager sut = mock.Create<AppSettingsManager>(TypedParameter.From(fileSystem));
-
-		// Act
-		sut.SaveSettingsInFile();
-
-		// Assert
-		fileSystem.Received().SerializeToJsonFile(
-			Arg.Any<AppSettings>(),
-			Arg.Any<string>(),
-			Arg.Any<bool>());
-	}
-
-	/// <summary>
-	/// <see cref="AppSettingsManager.SaveSettingsInFile" />: uses the settings file path obtained from the app environment.
-	/// </summary>
-	[Test]
-	public void SaveSettingsInFile_Uses_Path_From_AppEnvironment()
-	{
-		// Arrange
-		const string expectedPath = @"C:\fake\AppSettings.json";
-
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
-		IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
-
-		appEnvironment
-			.GetSettingsFilePath(Arg.Any<string>())
-			.Returns(expectedPath);
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(fileSystem);
-
-			builder.RegisterInstance(appEnvironment);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(store));
 
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();
 
@@ -130,9 +77,9 @@ internal class AppSettingsManagerTests
 		sut.SaveSettingsInFile();
 
 		// Assert
-		fileSystem
+		store
 			.Received()
-			.SerializeToJsonFile(Arg.Any<AppSettings>(), expectedPath, false);
+			.Save();
 	}
 
 	/// <summary>
@@ -159,24 +106,15 @@ internal class AppSettingsManagerTests
 	}
 
 	/// <summary>
-	/// <see cref="AppSettingsManager" />: settings are loaded from the deserialized settings file.
+	/// <see cref="AppSettingsManager.Settings" />: are the settings held by the store.
 	/// </summary>
 	[Test]
-	public void Settings_Obtained_From_File()
+	public void Settings_Are_Obtained_From_Store()
 	{
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings();
 
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
-
-			serializer
-				.FromFile<AppSettings>(Arg.Any<string>())
-				.Returns(settings);
-
-			builder.RegisterInstance(serializer);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateStore(settings)));
 
 		// Act
 		AppSettingsManager sut = mock.Create<AppSettingsManager>();
@@ -184,7 +122,23 @@ internal class AppSettingsManagerTests
 		// Assert
 		sut.Settings
 			.Should()
-			.BeEquivalentTo(settings);
+			.BeSameAs(settings);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a store substitute holding the specified <paramref name="settings" />.
+	/// </summary>
+	private static IAppSettingsStore CreateStore(AppSettings settings)
+	{
+		IAppSettingsStore store = Substitute.For<IAppSettingsStore>();
+
+		store
+			.Settings
+			.Returns(settings);
+
+		return store;
 	}
 	#endregion
 }
