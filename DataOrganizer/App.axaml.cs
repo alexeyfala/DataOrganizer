@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -62,54 +62,25 @@ public sealed class App : Application
 
 	#region Methods
 	/// <inheritdoc />
-	public override void Initialize() => AvaloniaXamlLoader.Load(this);
+	//public override void Initialize() => AvaloniaXamlLoader.Load(this);
+	public override void Initialize()
+	{
+		Bootstrap();
+
+		AvaloniaXamlLoader.Load(this);
+	}
 
 	public override void OnFrameworkInitializationCompleted()
 	{
 		base.OnFrameworkInitializationCompleted();
 
-		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop)
+			|| Services is not { } serviceProvider)
 		{
 			return;
 		}
 
 		desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-		AppLifetimeTimer.Start();
-
-		ServiceProvider? serviceProvider = null;
-
-		try
-		{
-			serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
-				.Args
-				.AsNotNull()));
-		}
-		catch (Exception ex)
-		{
-			Debug.Fail(ex.Message);
-
-			string filePath = Path.Combine(
-				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-				$"{AppUtils.AppName}_Critical_Errors{AppUtils.TxtExtension}");
-
-			File.AppendAllText(
-				filePath,
-				$"[{DateTime.Now}] {ex.Message} → {SerilogExtensions.GetSourceInfo()}" + Environment.NewLine);
-
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = filePath,
-				UseShellExecute = true
-			});
-		}
-
-		if (serviceProvider is null)
-		{
-			return;
-		}
-
-		Services = serviceProvider;
 
 		// The theme reads Application.Styles, therefore it is applied only after the XAML tree is loaded.
 		serviceProvider
@@ -142,6 +113,27 @@ public sealed class App : Application
 		}
 
 		return args;
+	}
+
+	/// <summary>
+	/// Applies the UI culture taken from the application settings.
+	/// A failure leaves the culture of the operating system in place.
+	/// </summary>
+	private static void ApplyUiCulture(IServiceProvider provider)
+	{
+		try
+		{
+			provider
+				.GetRequiredService<IUiCultureService>()
+				.Apply(provider
+					.GetRequiredService<IAppSettingsStore>()
+					.Settings
+					.Language);
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex.ToStringDemystified());
+		}
 	}
 
 	/// <summary>
@@ -184,6 +176,66 @@ public sealed class App : Application
 		{
 			Trace.WriteLine(ex.ToStringDemystified());
 		}
+	}
+
+	/// <summary>
+	/// Writes the critical error in a file and opens it.
+	/// </summary>
+	private static void ReportCriticalError(Exception ex)
+	{
+		Debug.Fail(ex.Message);
+
+		string filePath = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+			$"{AppUtils.AppName}_Critical_Errors{AppUtils.TxtExtension}");
+
+		File.AppendAllText(
+			filePath,
+			$"[{DateTime.Now}] {ex.Message} → {SerilogExtensions.GetSourceInfo()}" + Environment.NewLine);
+
+		Process.Start(new ProcessStartInfo
+		{
+			FileName = filePath,
+			UseShellExecute = true
+		});
+	}
+
+	/// <summary>
+	/// Configures the application services and applies the UI culture.
+	/// </summary>
+	/// <remarks>
+	/// Runs before the XAML tree is loaded, because application-level styles and themes resolve
+	/// localized strings at parse time. Nothing resolved here may depend on <see cref="ILogger" />
+	/// or on the visual tree: neither exists yet. Skipped without a desktop lifetime, which is the
+	/// case for headless tests and for the XAML previewer.
+	/// </remarks>
+	private void Bootstrap()
+	{
+		if (!this.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+		{
+			return;
+		}
+
+		AppLifetimeTimer.Start();
+
+		ServiceProvider serviceProvider;
+
+		try
+		{
+			serviceProvider = ConfigureServices(AddDebugCommandLineArgs(desktop
+				.Args
+				.AsNotNull()));
+		}
+		catch (Exception ex)
+		{
+			ReportCriticalError(ex);
+
+			return;
+		}
+
+		Services = serviceProvider;
+
+		ApplyUiCulture(serviceProvider);
 	}
 
 	/// <summary>
