@@ -1,4 +1,4 @@
-using Cysharp.Text;
+﻿using Cysharp.Text;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -50,8 +50,8 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
-	/// <inheritdoc cref="IAppSettingsManager" />
-	private readonly IAppSettingsManager _settingsManager;
+	/// <inheritdoc cref="IAppSettingsStore" />
+	private readonly IAppSettingsStore _settingsStore;
 
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
@@ -60,7 +60,7 @@ public sealed class AppController : IAppController
 	#region Constructors
 	public AppController(
 		IAppEnvironment appEnvironment,
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		ICommandLineOptions options,
@@ -93,7 +93,7 @@ public sealed class AppController : IAppController
 
 		_options = options;
 
-		_settingsManager = settingsManager;
+		_settingsStore = settingsStore;
 
 		_viewLauncher = viewLauncher;
 
@@ -148,7 +148,9 @@ public sealed class AppController : IAppController
 
 			_clipboardLogPersistence.Start();
 
-			if (_settingsManager.Settings.TrackClipboardHistory)
+			if (_settingsStore
+				.Settings
+				.TrackClipboardHistory)
 			{
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
@@ -207,7 +209,7 @@ public sealed class AppController : IAppController
 
 		_logger.LogInformationWithTemplate(builder.ToString());
 
-		_logger.LogInformationWithTemplate($"Application settings:{_settingsManager
+		_logger.LogInformationWithTemplate($"Application settings:{_settingsStore
 			.Settings
 			.GetPropertyValues(true)}");
 	}

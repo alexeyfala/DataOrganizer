@@ -113,7 +113,7 @@ internal class AppSettingsStoreTests
 		// Assert
 		sut.Settings
 			.Should()
-			.BeEquivalentTo(IAppSettingsManager.CreateDefaultSettings());
+			.BeEquivalentTo(IAppSettingsStore.CreateDefaultSettings());
 	}
 
 	/// <summary>

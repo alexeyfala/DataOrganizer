@@ -84,7 +84,7 @@ public sealed class App : Application
 
 		// The theme reads Application.Styles, therefore it is applied only after the XAML tree is loaded.
 		serviceProvider
-			.GetRequiredService<IAppSettingsManager>()
+			.GetRequiredService<IAppThemeService>()
 			.ApplyMaterialTheme();
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
@@ -340,8 +340,8 @@ public sealed class App : Application
 		services.AddSingleton<Application>(this);
 		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
-		services.AddSingleton<IAppSettingsManager, AppSettingsManager>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
+		services.AddSingleton<IAppThemeService, AppThemeService>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();

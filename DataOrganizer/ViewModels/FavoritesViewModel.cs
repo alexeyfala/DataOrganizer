@@ -192,7 +192,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 	#region Constructors
 	public FavoritesViewModel(
 		Application app,
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -205,7 +205,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
-			settingsManager,
+			settingsStore,
 			clipboard,
 			dbAccess,
 			dialogService,

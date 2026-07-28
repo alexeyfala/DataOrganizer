@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
@@ -38,8 +38,8 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// </summary>
 	private readonly TimeSpan _saveDebounce;
 
-	/// <inheritdoc cref="IAppSettingsManager" />
-	private readonly IAppSettingsManager _settingsManager;
+	/// <inheritdoc cref="IAppSettingsStore" />
+	private readonly IAppSettingsStore _settingsStore;
 
 	/// <inheritdoc cref="IClipboardLogStore" />
 	private readonly IClipboardLogStore _store;
@@ -60,13 +60,13 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 	#region Constructors
 	public ClipboardLogPersistenceCoordinator(
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardLogService сlipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger) : this(
-			  settingsManager,
+			  settingsStore,
 			  сlipboardLog,
 			  store,
 			  dispatcher,
@@ -80,7 +80,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// Test constructor that allows overriding the debounce delay.
 	/// </summary>
 	internal ClipboardLogPersistenceCoordinator(
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardLogService сlipboardLog,
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
@@ -94,7 +94,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		_messenger = messenger;
 
-		_settingsManager = settingsManager;
+		_settingsStore = settingsStore;
 
 		_store = store;
 
@@ -106,7 +106,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 	#region Properties
 	/// <inheritdoc />
-	public bool RequiresUnlock => _settingsManager.Settings.PersistClipboardHistory && !_store.IsUnlocked;
+	public bool RequiresUnlock => _settingsStore.Settings.PersistClipboardHistory && !_store.IsUnlocked;
 	#endregion
 
 	#region Methods

@@ -670,7 +670,9 @@ internal class EditorViewModelTests
 	public async Task HandleChangeSettingsAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
-		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
 		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
 
@@ -682,11 +684,13 @@ internal class EditorViewModelTests
 				.IsRunning
 				.Returns(true);
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(themeService);
 
 			builder.RegisterInstance(hook);
 		});
@@ -707,17 +711,17 @@ internal class EditorViewModelTests
 				.Received()
 				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 
-			settingsManager
+			settingsStore
 				.Received()
-				.OverwriteSettings(Arg.Any<AppSettings>());
+				.Overwrite(Arg.Any<AppSettings>());
 
-			settingsManager
+			settingsStore
 				.Received()
-				.SaveSettingsInFile();
+				.Save();
 		}
 		else
 		{
-			settingsManager
+			themeService
 				.Received()
 				.ApplyMaterialTheme();
 

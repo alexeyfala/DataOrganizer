@@ -46,11 +46,11 @@ internal class SettingsViewModelTests
 		// Arrange
 		const PrimaryColor primaryColor = PrimaryColor.Red;
 
-		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(settingsManager));
+		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
 
 		// Act
 		sut.PrimaryColor = primaryColor;
@@ -60,7 +60,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(primaryColor);
 
-		settingsManager.Received().SetAppMaterialTheme(
+		themeService.Received().SetAppMaterialTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
@@ -75,11 +75,11 @@ internal class SettingsViewModelTests
 		// Arrange
 		const SecondaryColor secondaryColor = SecondaryColor.Red;
 
-		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(settingsManager));
+		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
 
 		// Act
 		sut.SecondaryColor = secondaryColor;
@@ -89,7 +89,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(secondaryColor);
 
-		settingsManager.Received().SetAppMaterialTheme(
+		themeService.Received().SetAppMaterialTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
@@ -102,11 +102,11 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_Theme([Values] BaseThemeMode theme)
 	{
 		// Arrange
-		IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+		IAppThemeService themeService = Substitute.For<IAppThemeService>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(settingsManager));
+		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
 
 		sut.IsInheritTheme = false;
 
@@ -135,7 +135,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(theme);
 
-		settingsManager.Received().SetAppMaterialTheme(
+		themeService.Received().SetAppMaterialTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
@@ -154,13 +154,13 @@ internal class SettingsViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -187,13 +187,13 @@ internal class SettingsViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -218,13 +218,13 @@ internal class SettingsViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		// Act
@@ -287,13 +287,13 @@ internal class SettingsViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
@@ -320,13 +320,13 @@ internal class SettingsViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
 				.Returns(settings);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();

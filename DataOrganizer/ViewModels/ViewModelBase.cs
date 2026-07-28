@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -147,8 +147,8 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
-	/// <inheritdoc cref="IAppSettingsManager" />
-	protected readonly IAppSettingsManager _settingsManager;
+	/// <inheritdoc cref="IAppSettingsStore" />
+	protected readonly IAppSettingsStore _settingsStore;
 
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
@@ -160,7 +160,7 @@ public abstract partial class ViewModelBase :
 	#region Constructors
 	protected ViewModelBase(
 		Application app,
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -187,11 +187,11 @@ public abstract partial class ViewModelBase :
 
 		_keyboardInputHook = keyboardInputHook;
 
-		_settingsManager = settingsManager;
+		_settingsStore = settingsStore;
 
 		_viewLauncher = viewLauncher;
 
-		IsClipboardHistoryEnabled = settingsManager.Settings is { TrackClipboardHistory: true };
+		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 
 		messenger.RegisterAll(this);
 
@@ -200,7 +200,7 @@ public abstract partial class ViewModelBase :
 			_exceptionHandler.Watch(keyboardInputHook.Value.StopTrackingAsync());
 		}
 
-		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
+		if (settingsStore.Settings.IsDefault() || !settingsStore.Settings.TrackHotkeys)
 		{
 			return;
 		}

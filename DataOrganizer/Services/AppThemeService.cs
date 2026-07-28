@@ -11,13 +11,8 @@ using System;
 
 namespace DataOrganizer.Services;
 
-public sealed class AppSettingsManager : IAppSettingsManager
+public sealed class AppThemeService : IAppThemeService
 {
-	#region Properties
-	/// <inheritdoc cref="AppSettings" />
-	public AppSettings Settings => _store.Settings;
-	#endregion
-
 	#region Data
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -30,7 +25,7 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	#endregion
 
 	#region Constructors
-	public AppSettingsManager(
+	public AppThemeService(
 		Application app,
 		IAppSettingsStore store,
 		ILogger logger)
@@ -47,23 +42,20 @@ public sealed class AppSettingsManager : IAppSettingsManager
 	/// <inheritdoc />
 	public void ApplyMaterialTheme()
 	{
+		AppSettings settings = _store.Settings;
+
 		try
 		{
 			SetAppMaterialTheme(
-				Settings.Theme,
-				Settings.PrimaryColor,
-				Settings.SecondaryColor);
+				settings.Theme,
+				settings.PrimaryColor,
+				settings.SecondaryColor);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 		}
 	}
-
-	/// <inheritdoc />
-	public void OverwriteSettings(AppSettings value) => _store.Overwrite(value);
-
-	public void SaveSettingsInFile() => _store.Save();
 
 	/// <inheritdoc />
 	public void SetAppMaterialTheme(

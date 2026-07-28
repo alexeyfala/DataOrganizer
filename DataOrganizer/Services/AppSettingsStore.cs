@@ -62,7 +62,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	{
 		return jsonSerializer.FromFile<AppSettings>(GetFilePath()) is { } settings && settings.IsNotDefault()
 			? settings
-			: IAppSettingsManager.CreateDefaultSettings();
+			: IAppSettingsStore.CreateDefaultSettings();
 	}
 	#endregion
 }
