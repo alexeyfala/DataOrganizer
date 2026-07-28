@@ -304,6 +304,7 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion
 
 		#endregion
