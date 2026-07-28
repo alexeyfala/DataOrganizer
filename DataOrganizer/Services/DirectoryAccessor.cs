@@ -73,7 +73,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			if (AppUtils.IsWindows)
+			if (OperatingSystem.IsWindows())
 			{
 				try
 				{
@@ -87,7 +87,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					logger?.LogException(ex);
 				}
 			}
-			else if (AppUtils.IsLinux)
+			else if (OperatingSystem.IsLinux())
 			{
 				try
 				{

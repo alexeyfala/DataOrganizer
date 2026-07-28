@@ -3,7 +3,6 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using OSVersionExtension;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -14,6 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using OSVersion = OSVersionExtension.OSVersion;
 
 namespace DataOrganizer.Services;
 
@@ -184,17 +184,17 @@ public sealed class AppController : IAppController
 
 		builder.AppendLine($"{os} platform - {Environment.OSVersion.Platform}");
 
-		if (AppUtils.IsMacOs)
+		if (OperatingSystem.IsMacOS())
 		{
 			builder.AppendLine($"{os} type - macOS {Environment.OSVersion.Version}");
 		}
 
-		if (AppUtils.IsLinux)
+		if (OperatingSystem.IsLinux())
 		{
 			builder.AppendLine($"{os} type - Linux {Environment.OSVersion.Version}");
 		}
 
-		if (AppUtils.IsWindows)
+		if (OperatingSystem.IsWindows())
 		{
 			builder.AppendLine($"{os} type - {OSVersion.GetOperatingSystem()} {OSVersion.GetOSVersion().Version}");
 		}

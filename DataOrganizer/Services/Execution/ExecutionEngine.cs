@@ -4,7 +4,6 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -622,7 +621,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		string filePath,
 		CancellationToken token)
 	{
-		if (!AppUtils.IsWindows)
+		if (!OperatingSystem.IsWindows())
 		{
 			return (true, null);
 		}
