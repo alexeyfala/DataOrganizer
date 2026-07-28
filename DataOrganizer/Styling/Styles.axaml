@@ -124,7 +124,6 @@
 		</Setter>
 	</Style>
 
-
 	<Style Selector="TextBox.SearchTextBoxStyle">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="Padding" Value="0.0" />
