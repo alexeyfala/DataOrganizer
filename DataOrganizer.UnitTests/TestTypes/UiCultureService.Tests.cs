@@ -1,4 +1,5 @@
-﻿using AwesomeAssertions;
+﻿using Autofac.Extras.Moq;
+using AwesomeAssertions;
 using DataOrganizer.Services;
 using Shared.Properties;
 using System.Globalization;
@@ -30,7 +31,9 @@ internal class UiCultureServiceTests
 	public void Apply_Exposes_Applied_Culture()
 	{
 		// Arrange
-		UiCultureService sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
 
 		// Act
 		sut.Apply("ru-ru");
@@ -49,7 +52,9 @@ internal class UiCultureServiceTests
 	public void Apply_Sets_Culture_For_New_Threads()
 	{
 		// Arrange
-		UiCultureService sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
 
 		// Act
 		sut.Apply("ru-ru");
@@ -67,7 +72,9 @@ internal class UiCultureServiceTests
 	public void Apply_Switches_Resources_To_English()
 	{
 		// Arrange
-		UiCultureService sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
 
 		// Act
 		sut.Apply("en-us");
@@ -85,7 +92,9 @@ internal class UiCultureServiceTests
 	public void Apply_Switches_Resources_To_Russian()
 	{
 		// Arrange
-		UiCultureService sut = new();
+		using AutoMock mock = AutoMock.GetLoose();
+
+		UiCultureService sut = mock.Create<UiCultureService>();
 
 		// Act
 		sut.Apply("ru-ru");
@@ -102,8 +111,11 @@ internal class UiCultureServiceTests
 	[Test]
 	public void Current_Falls_Back_To_Ambient_Culture()
 	{
-		// Arrange & Act
-		UiCultureService sut = new();
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		// Act
+		UiCultureService sut = mock.Create<UiCultureService>();
 
 		// Assert
 		sut.Current
