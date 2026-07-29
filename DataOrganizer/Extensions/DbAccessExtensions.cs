@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Dataset;
+using DataOrganizer.DTO.Dataset;
 using DataOrganizer.Helpers.Text;
 using Entities.Enums;
 using Repository.DTO;

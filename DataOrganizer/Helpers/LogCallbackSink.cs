@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Extensions;
+using DataOrganizer.Extensions;
 using Serilog.Core;
 using Serilog.Events;
 using Shared.Common;

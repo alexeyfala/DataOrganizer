@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Extensions;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;

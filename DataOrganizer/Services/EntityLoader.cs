@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Entities;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;

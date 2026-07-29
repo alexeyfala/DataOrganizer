@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;

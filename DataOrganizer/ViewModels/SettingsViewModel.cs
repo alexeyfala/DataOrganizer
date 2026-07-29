@@ -1,4 +1,4 @@
-﻿using Baksteen.Extensions.DeepCopy;
+using Baksteen.Extensions.DeepCopy;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Settings;

@@ -1,4 +1,4 @@
-﻿using SharpHook.Data;
+using SharpHook.Data;
 
 namespace DataOrganizer.Extensions;
 

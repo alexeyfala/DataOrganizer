@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using Entities.Models;
 using Repository.DTO;

@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Settings;
+using DataOrganizer.DTO.Settings;
 
 namespace DataOrganizer.DTO;
 

@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// An interface with the <see cref="Name" /> property.

@@ -1,4 +1,4 @@
-﻿using SharpHook.Data;
+using SharpHook.Data;
 using System.Diagnostics;
 
 namespace Repository.DTO;

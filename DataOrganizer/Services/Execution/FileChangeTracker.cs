@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;

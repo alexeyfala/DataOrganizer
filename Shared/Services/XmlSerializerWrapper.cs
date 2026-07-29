@@ -1,4 +1,4 @@
-﻿using Shared.Interfaces;
+using Shared.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Xml;

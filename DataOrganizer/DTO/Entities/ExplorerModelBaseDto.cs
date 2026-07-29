@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Entities.Enums;

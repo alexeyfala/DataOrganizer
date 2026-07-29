@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums;
 
 /// <summary>
 /// Current theme of the application.

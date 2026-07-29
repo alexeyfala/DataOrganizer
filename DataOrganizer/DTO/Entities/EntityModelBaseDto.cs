@@ -1,4 +1,4 @@
-﻿using Entities.Models;
+using Entities.Models;
 using System;
 
 namespace DataOrganizer.DTO.Entities;

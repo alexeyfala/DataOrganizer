@@ -1,4 +1,4 @@
-﻿using Shared.Enums;
+using Shared.Enums;
 using Shared.Extensions;
 using System;
 using System.Diagnostics;

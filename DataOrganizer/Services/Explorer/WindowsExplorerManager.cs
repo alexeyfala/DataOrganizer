@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Interfaces.Explorer;
+using DataOrganizer.Interfaces.Explorer;
 using Interop.UIAutomationClient;
 using System;
 using System.IO;

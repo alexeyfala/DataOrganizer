@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit;

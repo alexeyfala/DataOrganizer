@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages;
 
 /// <summary>
 /// Notification raised to request when read-only mode changes in the editor.

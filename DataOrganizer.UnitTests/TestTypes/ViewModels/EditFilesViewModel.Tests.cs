@@ -1,4 +1,4 @@
-﻿using Autofac.Extras.Moq;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;

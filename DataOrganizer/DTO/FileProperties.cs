@@ -1,4 +1,4 @@
-﻿using AvaloniaEdit;
+using AvaloniaEdit;
 using System.Drawing;
 
 namespace DataOrganizer.DTO;

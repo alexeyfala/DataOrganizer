@@ -1,4 +1,4 @@
-﻿using Repository.DTO;
+using Repository.DTO;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels;

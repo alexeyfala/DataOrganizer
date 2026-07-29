@@ -1,4 +1,4 @@
-﻿using Autofac.Extras.Moq;
+using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;

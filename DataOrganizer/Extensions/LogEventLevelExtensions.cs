@@ -1,4 +1,4 @@
-﻿using Avalonia.Media;
+using Avalonia.Media;
 using Serilog.Events;
 
 namespace DataOrganizer.Extensions;

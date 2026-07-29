@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Settings;
+using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
 using Shared.Extensions;
 using Shared.Interfaces;

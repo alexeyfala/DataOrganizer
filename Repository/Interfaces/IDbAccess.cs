@@ -1,4 +1,4 @@
-﻿using Entities.Models;
+using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using Repository.Enums;
