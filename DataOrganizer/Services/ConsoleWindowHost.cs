@@ -79,20 +79,33 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 			ViewModel.IsWordWrap = settings.IsWordWrap;
 
-			window.Position = new(settings.X, settings.Y);
+			if (settings.Size is { Width: > 0, Height: > 0 })
+			{
+				window.Width = settings.Size.Width;
+
+				window.Height = settings.Size.Height;
+			}
+			else
+			{
+				IViewLauncher.SetDefaultSize(window);
+			}
+
+			PixelPoint savedPosition = new(settings.X, settings.Y);
+
+			if (IViewLauncher.IsWindowPositionOnScreen(window, savedPosition))
+			{
+				window.Position = savedPosition;
+			}
+			else
+			{
+				IViewLauncher.SetDefaultLocation(window);
+			}
 
 			window.Topmost = settings.IsTopmost;
 
 			window.WindowState = settings.WindowState == WindowState.Minimized
 				? WindowState.Normal
 				: settings.WindowState;
-
-			if (window.WindowState != WindowState.Maximized)
-			{
-				window.Width = settings.Size.Width;
-
-				window.Height = settings.Size.Height;
-			}
 		}
 		else
 		{
@@ -115,10 +128,10 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 					FontSize = ViewModel.FontSize,
 					IsTopmost = window.Topmost,
 					IsWordWrap = ViewModel.IsWordWrap,
-					WindowState = window.WindowState,
-					Size = new((int)window.Width, (int)window.Height),
-					X = window.Position.X,
-					Y = window.Position.Y
+					WindowState = window.Placement.WindowState,
+					Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+					X = window.Placement.Position.X,
+					Y = window.Placement.Position.Y
 				};
 
 				_fileSystem.SerializeToJsonFile(

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using DataOrganizer.DTO.Entities;
@@ -371,9 +371,9 @@ public class ViewLauncher : IViewLauncher
 			{
 				ActiveFilter = window.ViewModel.ActiveFilter,
 				KeepOpen = window.ViewModel.KeepOpen,
-				Size = new((int)window.Width, (int)window.Height),
-				X = window.Position.X,
-				Y = window.Position.Y,
+				Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y,
 			};
 
 			_fileSystem.SerializeToJsonFile(
@@ -392,25 +392,16 @@ public class ViewLauncher : IViewLauncher
 	{
 		try
 		{
-			Size size;
-
-			if (window.WindowState == WindowState.Maximized)
-			{
-				size = new((int)window.PreviousBounds.Width, (int)window.PreviousBounds.Height);
-			}
-			else
-			{
-				size = new((int)window.Width, (int)window.Height);
-			}
+			Size size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height);
 
 			EditorWindowSettings settings = new()
 			{
 				IsReadOnly = window.ViewModel.IsReadOnly,
 				NavigationColumnWidth = window.ViewModel.NavigationColumnWidth.Value,
 				Size = size,
-				WindowState = window.WindowState,
-				X = window.Position.X,
-				Y = window.Position.Y
+				WindowState = window.Placement.WindowState,
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
 			};
 
 			_fileSystem.SerializeToJsonFile(
@@ -458,8 +449,8 @@ public class ViewLauncher : IViewLauncher
 			{
 				PopupHeight = window.ViewModel.PopupHeight,
 				PopupWidth = window.ViewModel.PopupWidth,
-				X = window.Position.X,
-				Y = window.Position.Y
+				X = window.Placement.Position.X,
+				Y = window.Placement.Position.Y
 			};
 
 			_fileSystem.SerializeToJsonFile(
