@@ -74,11 +74,13 @@ public abstract partial class ViewModelBase :
 	/// </summary>
 	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
 
+	/*
 	/// <summary>
 	/// Snackbar's text color.
 	/// </summary>
 	[ObservableProperty]
 	public partial IBrush? SnackbarForeground { get; set; }
+	*/
 	#endregion
 
 	#region Auto-Generated Commands
@@ -359,6 +361,7 @@ public abstract partial class ViewModelBase :
 
 		_dispatcher.Post(() =>
 		{
+			/*
 			if (level == SnackbarMessageLevel.Information)
 			{
 				SnackbarForeground = _app.GetCurrentTheme() switch
@@ -377,6 +380,7 @@ public abstract partial class ViewModelBase :
 					_ => null
 				};
 			}
+			*/
 
 			bool isLoaded = IsSnackbarHostLoaded();
 
@@ -402,8 +406,9 @@ public abstract partial class ViewModelBase :
 				return;
 			}
 
+			// The level travels with the content so that the snackbar template colours its own text.
 			SnackbarHost.Post(
-				new SnackbarModel(text, TimeSpan.FromSeconds(5.0)),
+				new SnackbarModel(new ShowSnackbarMessage(text, level), TimeSpan.FromSeconds(5.0)),
 				null,
 				DispatcherPriority.Normal);
 		});

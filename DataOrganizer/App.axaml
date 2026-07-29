@@ -15,19 +15,19 @@
 				<ResourceInclude Source="/Styling/Resources.axaml" />
 
 				<ResourceInclude Source="/Styling/Themes.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/ClipboardLogTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/ContextMenuTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/DatasetTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/DataTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/EditorTreeViewTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/FavoritesTemplates.axaml" />
-				
+
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
@@ -38,6 +38,11 @@
 		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>
 		<!--#endregion-->
 	</Application.Resources>
+
+	<!-- Registered here because Material's SnackbarHost resolves its content by type, not by resource key. -->
+	<Application.DataTemplates>
+		<StaticResource ResourceKey="SnackbarMessageTemplate" />
+	</Application.DataTemplates>
 
 	<Application.Styles>
 		<!-- Nuget: Material.Avalonia -->
