@@ -5,6 +5,7 @@ How to cut a release on GitHub, plus a reusable description template. Pairs with
 
 ---
 
+
 ## Checklist
 
 1\. Build the artifacts per [Publish.md](Publish.md) — one installer + one portable per platform — into `Publish/`.
