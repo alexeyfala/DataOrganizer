@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.DTO.Settings;
+namespace DataOrganizer.DTO.Settings;
 
 public readonly struct EntityCreationViewSettings
 {

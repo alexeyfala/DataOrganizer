@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;

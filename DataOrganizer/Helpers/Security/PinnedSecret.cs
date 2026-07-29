@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Extensions;
+using DataOrganizer.Extensions;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;

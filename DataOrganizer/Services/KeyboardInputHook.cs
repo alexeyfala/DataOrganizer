@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;

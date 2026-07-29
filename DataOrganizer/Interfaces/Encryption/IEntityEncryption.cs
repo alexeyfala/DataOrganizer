@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Encryption;
+using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using System.Collections.Generic;

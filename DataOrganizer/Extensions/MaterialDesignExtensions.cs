@@ -1,4 +1,4 @@
-﻿using Avalonia.Media;
+using Avalonia.Media;
 using Material.Colors;
 
 namespace DataOrganizer.Extensions;

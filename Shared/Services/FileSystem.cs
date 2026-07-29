@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;

@@ -1,4 +1,4 @@
-﻿using Repository.DTO;
+using Repository.DTO;
 using System.Collections.Generic;
 
 namespace DataOrganizer.Interfaces.Encryption;

@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces;
 using Shared.Common;
 using Shared.Enums;
 using Shared.Extensions;

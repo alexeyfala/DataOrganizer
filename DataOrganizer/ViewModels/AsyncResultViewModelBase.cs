@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;

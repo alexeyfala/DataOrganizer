@@ -1,4 +1,4 @@
-﻿using Shared.Common;
+using Shared.Common;
 using System;
 using System.IO;
 

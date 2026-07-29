@@ -1,4 +1,4 @@
-﻿using Avalonia.Headless.NUnit;
+using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Views;

@@ -1,4 +1,4 @@
-﻿namespace Entities.Enums;
+namespace Entities.Enums;
 
 /// <summary>
 /// Type of entity.

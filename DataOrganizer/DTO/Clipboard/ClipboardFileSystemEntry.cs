@@ -1,4 +1,4 @@
-﻿using SystemPath = System.IO.Path;
+using SystemPath = System.IO.Path;
 
 namespace DataOrganizer.DTO.Clipboard;
 

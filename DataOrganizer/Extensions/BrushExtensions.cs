@@ -1,4 +1,4 @@
-﻿using Avalonia.Animation;
+using Avalonia.Animation;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Shared.Extensions;

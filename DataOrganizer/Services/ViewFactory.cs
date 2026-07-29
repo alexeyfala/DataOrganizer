@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using DataOrganizer.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System;

@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces;
 using System;
 using System.Runtime.InteropServices;
 

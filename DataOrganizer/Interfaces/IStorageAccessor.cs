@@ -1,4 +1,4 @@
-﻿using Avalonia.Platform.Storage;
+using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;

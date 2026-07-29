@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;

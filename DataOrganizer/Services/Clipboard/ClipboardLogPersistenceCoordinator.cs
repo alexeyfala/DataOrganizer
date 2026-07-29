@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;

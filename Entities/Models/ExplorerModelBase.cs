@@ -1,4 +1,4 @@
-﻿using Entities.Enums;
+using Entities.Enums;
 using System;
 using System.Diagnostics;
 using System.Text.Json.Serialization;

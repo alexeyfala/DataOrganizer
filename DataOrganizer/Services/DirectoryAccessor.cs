@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Explorer;
 using Serilog;
 using Shared.Common;

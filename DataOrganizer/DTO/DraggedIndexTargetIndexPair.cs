@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.DTO;
+namespace DataOrganizer.DTO;
 
 public readonly struct DraggedIndexTargetIndexPair
 {

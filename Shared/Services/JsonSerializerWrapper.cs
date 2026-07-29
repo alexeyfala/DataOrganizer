@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

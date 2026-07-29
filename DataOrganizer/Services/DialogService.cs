@@ -1,4 +1,4 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;

@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using System;
 using System.Text.RegularExpressions;
 

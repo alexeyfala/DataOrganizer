@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Execution;
+using DataOrganizer.DTO.Execution;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System.Reactive;
 using System.Reactive.Subjects;
 using System.Text.Json.Serialization;

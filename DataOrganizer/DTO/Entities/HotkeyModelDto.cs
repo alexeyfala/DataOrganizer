@@ -1,4 +1,4 @@
-﻿using Entities.Models;
+using Entities.Models;
 using SharpHook.Data;
 using System;
 using System.Diagnostics;

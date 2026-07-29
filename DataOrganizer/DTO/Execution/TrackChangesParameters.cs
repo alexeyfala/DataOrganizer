@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.DTO.Execution;
+namespace DataOrganizer.DTO.Execution;
 
 public sealed class TrackChangesParameters : ExecuteFileParametersBase
 {

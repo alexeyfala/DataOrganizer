@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Interfaces.Explorer;
+using DataOrganizer.Interfaces.Explorer;
 using System;
 using System.Diagnostics;
 using System.IO;

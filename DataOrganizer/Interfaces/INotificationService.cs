@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces;
 
 /// <summary>
 /// Provides methods for notifying the user.

@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using System;
 using System.Diagnostics;

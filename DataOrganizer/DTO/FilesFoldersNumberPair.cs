@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using Shared.Properties;
 using System.Diagnostics;
 

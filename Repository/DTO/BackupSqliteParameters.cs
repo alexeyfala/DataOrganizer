@@ -1,4 +1,4 @@
-﻿namespace Repository.DTO;
+namespace Repository.DTO;
 
 /// <summary>
 /// Parameters for SQlite database backup.

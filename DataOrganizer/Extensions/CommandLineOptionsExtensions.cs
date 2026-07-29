@@ -1,4 +1,4 @@
-﻿using DataOrganizer.Services;
+using DataOrganizer.Services;
 
 namespace DataOrganizer.Extensions;
 

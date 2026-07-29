@@ -1,4 +1,4 @@
-﻿using DataOrganizer.DTO.Settings;
+using DataOrganizer.DTO.Settings;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using System.Globalization;

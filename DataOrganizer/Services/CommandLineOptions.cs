@@ -1,4 +1,4 @@
-﻿using Cysharp.Text;
+using Cysharp.Text;
 using DataOrganizer.Interfaces;
 using Serilog.Events;
 using Shared.Extensions;

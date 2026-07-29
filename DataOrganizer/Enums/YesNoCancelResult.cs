@@ -1,4 +1,4 @@
-﻿namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums;
 
 /// <summary>
 /// The result of values: Yes, No, Cancel.
