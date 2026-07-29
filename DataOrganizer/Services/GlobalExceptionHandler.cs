@@ -1,6 +1,5 @@
 ﻿using DataOrganizer.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -55,7 +54,7 @@ internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 	{
 		e.SetObserved();
 
-		if (AppUtils.IsLinux && IsBenignDBusAppMenuFailure(e.Exception))
+		if (OperatingSystem.IsLinux() && IsBenignDBusAppMenuFailure(e.Exception))
 		{
 			// Avalonia's DBus menu exporter fires-and-forgets a call to the global AppMenu
 			// registrar; on Linux distributions that don't run "com.canonical.AppMenu.Registrar"

@@ -30,7 +30,7 @@ public class ClipboardTextEntry : ClipboardLogEntryBase
 	/// <summary>
 	/// <c>True</c> when <see cref="Text" /> heuristically looks like a password / secret token.
 	/// </summary>
-	public bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
+	public override bool IsSensitive => SensitiveTextDetector.LooksLikeSecret(Text);
 
 	/// <summary>
 	/// RTF version of <see cref="Text" /> when the source app provided one.

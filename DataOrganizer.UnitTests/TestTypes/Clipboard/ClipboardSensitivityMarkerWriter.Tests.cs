@@ -4,6 +4,7 @@ using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using NSubstitute;
 using Shared.Common;
+using System;
 
 namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
 
@@ -120,12 +121,12 @@ internal class ClipboardSensitivityMarkerWriterTests
 	/// </summary>
 	private static string ExpectedMarkerIdentifier()
 	{
-		if (AppUtils.IsWindows)
+		if (OperatingSystem.IsWindows())
 		{
 			return ClipboardSensitivityMarkers.ExcludeFromMonitorProcessing;
 		}
 
-		if (AppUtils.IsLinux)
+		if (OperatingSystem.IsLinux())
 		{
 			return ClipboardSensitivityMarkers.KdePasswordManagerHint;
 		}

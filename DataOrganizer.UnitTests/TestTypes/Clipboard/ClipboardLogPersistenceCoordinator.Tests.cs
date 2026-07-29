@@ -1,4 +1,4 @@
-using Autofac;
+﻿using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
@@ -475,14 +475,14 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// optional messenger (a substitute when none is supplied); the logger is auto-mocked.
 	/// </summary>
 	private static AutoMock CreateMock(
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardLogService log,
 		IClipboardLogStore store,
 		IMessenger? messenger = null)
 	{
 		return AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 
 			builder.RegisterInstance(log);
 
@@ -507,14 +507,14 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// where AutoMock cannot inject a custom debounce through the public constructor).
 	/// </summary>
 	private static ClipboardLogPersistenceCoordinator CreateSut(
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardLogService log,
 		IClipboardLogStore store,
 		IMessenger messenger,
 		TimeSpan saveDebounce)
 	{
 		return new ClipboardLogPersistenceCoordinator(
-			settingsManager,
+			settingsStore,
 			log,
 			store,
 			new InlineDispatcherAccessor(),
@@ -529,13 +529,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	private static byte[] Password(string value) => TextHelper.Utf8Encoding.GetBytes(value);
 
 	/// <summary>
-	/// A settings manager whose <see cref="AppSettings.PersistClipboardHistory" /> equals <paramref name="persist" />.
+	/// A settings store whose <see cref="AppSettings.PersistClipboardHistory" /> equals <paramref name="persist" />.
 	/// </summary>
-	private static IAppSettingsManager Settings(bool persist)
+	private static IAppSettingsStore Settings(bool persist)
 	{
-		IAppSettingsManager manager = Substitute.For<IAppSettingsManager>();
+		IAppSettingsStore store = Substitute.For<IAppSettingsStore>();
 
-		manager.Settings.Returns(new AppSettings
+		store.Settings.Returns(new AppSettings
 		{
 			Language = "en-us",
 			PrimaryColor = default,
@@ -544,7 +544,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			PersistClipboardHistory = persist
 		});
 
-		return manager;
+		return store;
 	}
 
 	/// <summary>

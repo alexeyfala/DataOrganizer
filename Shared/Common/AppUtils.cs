@@ -39,23 +39,8 @@ public static class AppUtils
 	/// <inheritdoc cref="IsDebugMode" />
 	public static bool IsDebug { get; } = IsDebugMode();
 
-	/// <summary>
-	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.Linux" />.
-	/// </summary>
-	public static bool IsLinux { get; } = CurrentOs == OperatingSystemType.Linux;
-
-	/// <summary>
-	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.MacOs" />.
-	/// </summary>
-	public static bool IsMacOs { get; } = CurrentOs == OperatingSystemType.MacOs;
-
 	/// <inheritdoc cref="IsReleaseMode" />
 	public static bool IsRelease { get; } = IsReleaseMode();
-
-	/// <summary>
-	/// <c>True</c> when the current operating system is <see cref="OperatingSystemType.Windows" />.
-	/// </summary>
-	public static bool IsWindows { get; } = CurrentOs == OperatingSystemType.Windows;
 
 	/// <summary>
 	/// Json serialization options.
@@ -137,7 +122,7 @@ public static class AppUtils
 	/// </remarks>
 	public static string GetPlatformEntryPath(string filePath)
 	{
-		return !IsLinux
+		return !OperatingSystem.IsLinux()
 			? filePath
 			: filePath.Replace('\\', Path.DirectorySeparatorChar);
 	}

@@ -21,7 +21,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Sequence of application languages.
 	/// </summary>
-	public static CultureInfo[] Languages { get; } = IAppSettingsManager.Languages;
+	public static CultureInfo[] Languages { get; } = IAppSettingsStore.Languages;
 
 	/// <summary>
 	/// The sequence of the primary colors of the application.
@@ -103,7 +103,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		_settingsManager.SetAppMaterialTheme(
+		_themeService.SetAppMaterialTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -125,7 +125,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		_settingsManager.SetAppMaterialTheme(
+		_themeService.SetAppMaterialTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -147,7 +147,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		_settingsManager.SetAppMaterialTheme(
+		_themeService.SetAppMaterialTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -187,7 +187,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		_settingsManager.SetAppMaterialTheme(
+		_themeService.SetAppMaterialTheme(
 			CurrentSettings.Theme,
 			value,
 			SecondaryColor);
@@ -202,7 +202,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		SaveAndCloseCommand.NotifyCanExecuteChanged();
 
-		_settingsManager.SetAppMaterialTheme(
+		_themeService.SetAppMaterialTheme(
 			CurrentSettings.Theme,
 			PrimaryColor,
 			value);
@@ -250,16 +250,23 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IAppSettingsManager" />
-	private readonly IAppSettingsManager _settingsManager;
+	/// <inheritdoc cref="IAppSettingsStore" />
+	private readonly IAppSettingsStore _settingsStore;
+
+	/// <inheritdoc cref="IAppThemeService" />
+	private readonly IAppThemeService _themeService;
 	#endregion
 
 	#region Constructors
-	public SettingsViewModel(IAppSettingsManager settingsManager)
+	public SettingsViewModel(
+		IAppSettingsStore settingsStore,
+		IAppThemeService themeService)
 	{
-		_settingsManager = settingsManager;
+		_settingsStore = settingsStore;
 
-		CurrentSettings = settingsManager.Settings.DeepCopy() ?? IAppSettingsManager.CreateDefaultSettings();
+		_themeService = themeService;
+
+		CurrentSettings = settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
 
 		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
 
@@ -285,6 +292,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>
-	private bool CanSaveAndClose() => !Equals(CurrentSettings, _settingsManager.Settings);
+	private bool CanSaveAndClose() => !Equals(CurrentSettings, _settingsStore.Settings);
 	#endregion
 }

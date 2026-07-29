@@ -57,7 +57,7 @@
 			Source="{Binding ImagePreview, Mode=OneTime}"
 			Stretch="Uniform" />
 	</DataTemplate>
-	
+
 	<!-- ClipboardFilesEntryTemplate -->
 	<DataTemplate
 		x:Key="ClipboardFilesEntryTemplate"
@@ -100,8 +100,7 @@
 			<Panel>
 				<ContentControl
 					Classes.revealed="{Binding #RevealEye.IsChecked, Mode=OneWay}"
-					Classes.sensitive="{ReflectionBinding IsSensitive,
-					                                      Mode=OneTime}"
+					Classes.sensitive="{Binding IsSensitive, Mode=OneTime}"
 					Content="{Binding}">
 					<ContentControl.Styles>
 						<Style Selector="ContentControl.sensitive:not(.revealed)">
@@ -228,8 +227,7 @@
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
 							Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
-							CommandParameter="{ReflectionBinding Url,
-							                                     Mode=OneTime}"
+							CommandParameter="{Binding}"
 							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
 							Cursor="Hand"
 							FontFamily="Segoe UI Emoji"
@@ -253,17 +251,9 @@
 
 							<ToggleButton.IsVisible>
 								<MultiBinding Converter="{x:Static BoolConverters.And}">
-									<ReflectionBinding
+									<Binding
 										Mode="OneTime"
-										Path="IsSensitive">
-										<!--
-											Real bool fallback for entries without IsSensitive (image / files); UnsetValue would be
-											dropped by BoolConverters.And and leak the eye onto them.
-										-->
-										<ReflectionBinding.FallbackValue>
-											<system:Boolean>False</system:Boolean>
-										</ReflectionBinding.FallbackValue>
-									</ReflectionBinding>
+										Path="IsSensitive" />
 
 									<Binding Path="$parent[Button].IsPointerOver" />
 

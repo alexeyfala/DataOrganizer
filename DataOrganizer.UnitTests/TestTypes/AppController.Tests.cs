@@ -34,11 +34,11 @@ internal class AppControllerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppSettingsManager settingsManager = Substitute.For<IAppSettingsManager>();
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
-			settingsManager
+			settingsStore
 				.Settings
-				.Returns(IAppSettingsManager.CreateDefaultSettings());
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
 
 			options
 				.PrintHelp
@@ -54,7 +54,7 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(settingsManager);
+			builder.RegisterInstance(settingsStore);
 		});
 
 		AppController sut = mock.Create<AppController>();

@@ -72,12 +72,12 @@ public sealed partial class ClipboardLogViewModel :
 	private Task Clear() => _clipboardLog.ClearAsync();
 
 	/// <summary>
-	/// Opens <paramref name="url" /> in the OS-default browser via shell-execute.
+	/// Opens the URL carried by <paramref name="entry" /> in the OS-default browser via shell-execute.
 	/// </summary>
 	[RelayCommand]
-	private void OpenUrl(string? url)
+	private void OpenUrl(ClipboardLogEntryBase? entry)
 	{
-		if (string.IsNullOrWhiteSpace(url))
+		if (entry is not ClipboardUrlEntry urlEntry || string.IsNullOrWhiteSpace(urlEntry.Url))
 		{
 			return;
 		}
@@ -86,7 +86,7 @@ public sealed partial class ClipboardLogViewModel :
 		{
 			Process.Start(new ProcessStartInfo
 			{
-				FileName = url,
+				FileName = urlEntry.Url,
 				UseShellExecute = true,
 			});
 		}

@@ -1,15 +1,14 @@
 ﻿using DataOrganizer.DTO.Settings;
 using Material.Colors;
-using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
 using System.Globalization;
 
 namespace DataOrganizer.Interfaces;
 
 /// <summary>
-/// Manages application settings.
+/// Holds the application settings and persists them in file.
 /// </summary>
-public interface IAppSettingsManager
+public interface IAppSettingsStore
 {
 	#region Properties
 	/// <summary>
@@ -38,26 +37,13 @@ public interface IAppSettingsManager
 	};
 
 	/// <summary>
-	/// Applies material theme from <see cref="Settings" />.
+	/// Overwrites <see cref="Settings" /> from <paramref name="value" />.
 	/// </summary>
-	void ApplyMaterialTheme();
-
-	/// <summary>
-	/// Overwrites <see cref="Settings" /> from <paramref name="value"/>.
-	/// </summary>
-	void OverwriteSettings(AppSettings value);
+	void Overwrite(AppSettings value);
 
 	/// <summary>
 	/// Saves <see cref="Settings" /> in file.
 	/// </summary>
-	void SaveSettingsInFile();
-
-	/// <summary>
-	/// Sets the application theme <see cref="MaterialTheme" />.
-	/// </summary>
-	void SetAppMaterialTheme(
-		BaseThemeMode mode,
-		PrimaryColor primaryColor,
-		SecondaryColor secondaryColor);
+	void Save();
 	#endregion
 }

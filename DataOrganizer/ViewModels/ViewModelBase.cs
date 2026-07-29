@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -74,11 +74,13 @@ public abstract partial class ViewModelBase :
 	/// </summary>
 	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
 
+	/*
 	/// <summary>
 	/// Snackbar's text color.
 	/// </summary>
 	[ObservableProperty]
 	public partial IBrush? SnackbarForeground { get; set; }
+	*/
 	#endregion
 
 	#region Auto-Generated Commands
@@ -147,8 +149,8 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	protected readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
 
-	/// <inheritdoc cref="IAppSettingsManager" />
-	protected readonly IAppSettingsManager _settingsManager;
+	/// <inheritdoc cref="IAppSettingsStore" />
+	protected readonly IAppSettingsStore _settingsStore;
 
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
@@ -160,7 +162,7 @@ public abstract partial class ViewModelBase :
 	#region Constructors
 	protected ViewModelBase(
 		Application app,
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
 		IClipboardAccessor clipboard,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -187,11 +189,11 @@ public abstract partial class ViewModelBase :
 
 		_keyboardInputHook = keyboardInputHook;
 
-		_settingsManager = settingsManager;
+		_settingsStore = settingsStore;
 
 		_viewLauncher = viewLauncher;
 
-		IsClipboardHistoryEnabled = settingsManager.Settings is { TrackClipboardHistory: true };
+		IsClipboardHistoryEnabled = settingsStore.Settings is { TrackClipboardHistory: true };
 
 		messenger.RegisterAll(this);
 
@@ -200,7 +202,7 @@ public abstract partial class ViewModelBase :
 			_exceptionHandler.Watch(keyboardInputHook.Value.StopTrackingAsync());
 		}
 
-		if (settingsManager.Settings.IsDefault() || !settingsManager.Settings.TrackHotkeys)
+		if (settingsStore.Settings.IsDefault() || !settingsStore.Settings.TrackHotkeys)
 		{
 			return;
 		}
@@ -359,6 +361,7 @@ public abstract partial class ViewModelBase :
 
 		_dispatcher.Post(() =>
 		{
+			/*
 			if (level == SnackbarMessageLevel.Information)
 			{
 				SnackbarForeground = _app.GetCurrentTheme() switch
@@ -377,6 +380,7 @@ public abstract partial class ViewModelBase :
 					_ => null
 				};
 			}
+			*/
 
 			bool isLoaded = IsSnackbarHostLoaded();
 
@@ -402,8 +406,9 @@ public abstract partial class ViewModelBase :
 				return;
 			}
 
+			// The level travels with the content so that the snackbar template colours its own text.
 			SnackbarHost.Post(
-				new SnackbarModel(text, TimeSpan.FromSeconds(5.0)),
+				new SnackbarModel(new ShowSnackbarMessage(text, level), TimeSpan.FromSeconds(5.0)),
 				null,
 				DispatcherPriority.Normal);
 		});

@@ -31,6 +31,11 @@ public abstract partial class ClipboardLogEntryBase : ObservableObject
 	public partial bool IsPinned { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when the entry content is treated as a secret.
+	/// </summary>
+	public virtual bool IsSensitive => false;
+
+	/// <summary>
 	/// <c>True</c> when this entry exposes an openable URL.
 	/// </summary>
 	public virtual bool IsUrl => false;

@@ -11,7 +11,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.Collections.Frozen;
@@ -705,7 +704,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// </summary>
 	private static DataFormat<byte[]>? GetGnomeCopiedFilesFormat()
 	{
-		return AppUtils.IsLinux
+		return OperatingSystem.IsLinux()
 			? DataFormat.CreateBytesPlatformFormat("x-special/gnome-copied-files")
 			: null;
 	}
@@ -715,11 +714,11 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// </summary>
 	private static DataFormat<byte[]>? GetHtmlFormat()
 	{
-		if (AppUtils.IsWindows)
+		if (OperatingSystem.IsWindows())
 		{
 			return DataFormat.CreateBytesPlatformFormat("HTML Format");
 		}
-		else if (AppUtils.IsMacOs)
+		else if (OperatingSystem.IsMacOS())
 		{
 			return DataFormat.CreateBytesPlatformFormat("public.html");
 		}
@@ -734,11 +733,11 @@ public sealed class ClipboardLogService : IClipboardLogService
 	/// </summary>
 	private static DataFormat<byte[]>? GetRtfFormat()
 	{
-		if (AppUtils.IsWindows)
+		if (OperatingSystem.IsWindows())
 		{
 			return DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 		}
-		else if (AppUtils.IsMacOs)
+		else if (OperatingSystem.IsMacOS())
 		{
 			return DataFormat.CreateBytesPlatformFormat("public.rtf");
 		}

@@ -3,10 +3,11 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:encEnums="using:DataOrganizer.Enums"
+	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:messages="using:DataOrganizer.Messages"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
 	xmlns:views="using:DataOrganizer.Views"
@@ -72,7 +73,7 @@
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
 				IsEnabled="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.FileIsOpenedToFalse}}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:EncryptionStatus.Encrypted}}">
 				<materialIcons:MaterialIcon.Styles>
 					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
 						<Setter Property="Kind" Value="EyeOutline" />
@@ -153,6 +154,18 @@
 				Grid.Column="2"
 				Text="{Binding Value, Mode=OneTime}" />
 		</Grid>
+	</DataTemplate>
+
+	<!-- SnackbarMessageTemplate -->
+	<DataTemplate
+		x:Key="SnackbarMessageTemplate"
+		x:DataType="messages:ShowSnackbarMessage"
+		DataType="messages:ShowSnackbarMessage">
+		<TextBlock
+			Classes="SnackbarTextBlockStyle"
+			Classes.Error="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Error}}"
+			Classes.Warning="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Warning}}"
+			Text="{Binding Text, Mode=OneTime}" />
 	</DataTemplate>
 
 	<!-- CopyHistoryTemplate -->

@@ -1,7 +1,7 @@
 using Avalonia.Input;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Clipboard;
-using Shared.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -90,7 +90,7 @@ internal static class ClipboardSensitivityMarkerWriter
 
 		byte[] dwordZero = [0, 0, 0, 0];
 
-		if (AppUtils.IsWindows)
+		if (OperatingSystem.IsWindows())
 		{
 			return
 			[
@@ -101,12 +101,12 @@ internal static class ClipboardSensitivityMarkerWriter
 			];
 		}
 
-		if (AppUtils.IsLinux)
+		if (OperatingSystem.IsLinux())
 		{
 			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextHelper.Utf8Encoding.GetBytes("secret"))];
 		}
 
-		if (AppUtils.IsMacOs)
+		if (OperatingSystem.IsMacOS())
 		{
 			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.NsPasteboardConcealedType), present)];
 		}

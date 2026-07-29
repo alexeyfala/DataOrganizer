@@ -965,7 +965,7 @@ public partial class EditorViewModel :
 				.ConfigureAwait(false);
 		}
 
-		if (!_settingsManager
+		if (!_settingsStore
 			.Settings
 			.TrackHotkeys)
 		{
@@ -1043,6 +1043,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
 
+	/// <inheritdoc cref="IAppThemeService" />
+	private readonly IAppThemeService _themeService;
+
 	/// <inheritdoc cref="EditingFilesViewModel" />
 	private EditingFilesViewModel? _editingFiles;
 	#endregion
@@ -1050,7 +1053,8 @@ public partial class EditorViewModel :
 	#region Constructors
 	public EditorViewModel(
 		Application app,
-		IAppSettingsManager settingsManager,
+		IAppSettingsStore settingsStore,
+		IAppThemeService themeService,
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
@@ -1070,7 +1074,7 @@ public partial class EditorViewModel :
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
-			settingsManager,
+			settingsStore,
 			clipboard,
 			dbAccess,
 			dialogService,
@@ -1096,6 +1100,8 @@ public partial class EditorViewModel :
 		_processUtils = processUtils;
 
 		_propertyWriter = propertyWriter;
+
+		_themeService = themeService;
 	}
 	#endregion
 
@@ -1362,19 +1368,19 @@ public partial class EditorViewModel :
 		CancellationToken token = default)
 	{
 		// Captured before overwrite so we can detect a persistence ON -> OFF transition below.
-		bool wasPersistingClipboard = _settingsManager
+		bool wasPersistingClipboard = _settingsStore
 			.Settings
 			.PersistClipboardHistory;
 
 		if (isSave)
 		{
-			_settingsManager.OverwriteSettings(settings);
+			_settingsStore.Overwrite(settings);
 
-			_settingsManager.SaveSettingsInFile();
+			_settingsStore.Save();
 		}
 		else
 		{
-			_settingsManager.ApplyMaterialTheme();
+			_themeService.ApplyMaterialTheme();
 		}
 
 		if (!isSave)

@@ -162,6 +162,23 @@
 		<Setter Property="VerticalAlignment" Value="Bottom" />
 	</Style>
 
+	<!-- Supporting text of a snackbar message. Mirrors Material's MaterialSnackbarHostSupportingTextBlock metrics. -->
+	<Style Selector="TextBlock.SnackbarTextBlockStyle">
+		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+		<Setter Property="MaxLines" Value="2" />
+		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+		<Setter Property="TextWrapping" Value="Wrap" />
+		<Setter Property="VerticalAlignment" Value="Center" />
+	</Style>
+
+	<Style Selector="TextBlock.SnackbarTextBlockStyle.Warning">
+		<Setter Property="Foreground" Value="Orange" />
+	</Style>
+
+	<Style Selector="TextBlock.SnackbarTextBlockStyle.Error">
+		<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+	</Style>
+
 	<Style Selector="HeaderedContentControl.ClassicGroupBoxStyle">
 		<Setter Property="Template">
 			<ControlTemplate>

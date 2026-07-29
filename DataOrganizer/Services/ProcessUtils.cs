@@ -47,7 +47,7 @@ public sealed class ProcessUtils : IProcessUtils
 	/// <inheritdoc />
 	public bool StartProcess(string filePath, out int processId)
 	{
-		using Process process = AppUtils.IsWindows
+		using Process process = OperatingSystem.IsWindows()
 			? CreateWindowsProcess(filePath)
 			: CreateNonWindowsProcess(filePath);
 

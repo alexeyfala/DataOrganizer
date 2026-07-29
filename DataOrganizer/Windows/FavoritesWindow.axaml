@@ -137,7 +137,6 @@
 								CloseOnClickAway="True">
 								<materialControls:SnackbarHost
 									x:Name="SnackbarHost"
-									Foreground="{Binding SnackbarForeground, Mode=OneWay}"
 									HostName="{Binding $self.Name}"
 									SnackbarHorizontalAlignment="Center">
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
