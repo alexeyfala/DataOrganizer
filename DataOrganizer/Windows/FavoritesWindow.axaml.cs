@@ -19,7 +19,7 @@ public sealed partial class FavoritesWindow : Window
 	{
 		InitializeComponent();
 
-		Placement = WindowPlacementTracker.Attach(this);
+		Placement = WindowPlacementTracker.Attach(this, sizeTracked: false);
 	}
 
 	public FavoritesWindow(FavoritesViewModel viewModel) : this() => DataContext = ViewModel = viewModel;

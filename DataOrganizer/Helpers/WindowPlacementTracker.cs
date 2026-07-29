@@ -46,11 +46,16 @@ internal sealed class WindowPlacementTracker
 	#endregion
 
 	#region Constructors
-	private WindowPlacementTracker(Window window)
+	private WindowPlacementTracker(Window window, bool isSizeTracked)
 	{
 		_window = window;
 
 		window.PositionChanged += Window_PositionChanged;
+
+		if (!isSizeTracked)
+		{
+			return;
+		}
 
 		window.Resized += Window_Resized;
 	}
@@ -90,6 +95,9 @@ internal sealed class WindowPlacementTracker
 	/// <summary>
 	/// Starts tracking the placement of the window.
 	/// </summary>
-	public static WindowPlacementTracker Attach(Window window) => new(window);
+	/// <param name="sizeTracked"><c>False</c> for a window of a fixed size.</param>
+	public static WindowPlacementTracker Attach(
+		Window window,
+		bool sizeTracked = true) => new(window, sizeTracked);
 	#endregion
 }
