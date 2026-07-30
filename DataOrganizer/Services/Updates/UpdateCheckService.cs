@@ -1,6 +1,7 @@
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.DTO.Updates;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Updates;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -12,7 +13,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Updates;
 
 public sealed class UpdateCheckService : IUpdateCheckService
 {
@@ -96,7 +97,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 
 		try
 		{
-			release = await FetchLatestReleaseAsync(token);
+			release = await FetchLatestReleaseAsync(token).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{

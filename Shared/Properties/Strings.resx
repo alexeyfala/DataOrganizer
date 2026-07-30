@@ -478,6 +478,9 @@
   <data name="Updated" xml:space="preserve">
     <value>Updated</value>
   </data>
+  <data name="UpdateAvailablePrompt" xml:space="preserve">
+    <value>A new version is available: {0}. Open the download page?</value>
+  </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>

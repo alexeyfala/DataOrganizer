@@ -498,6 +498,9 @@
   <data name="Updated" xml:space="preserve">
     <value>Изменен</value>
   </data>
+  <data name="UpdateAvailablePrompt" xml:space="preserve">
+    <value>Доступна новая версия: {0}. Открыть страницу загрузок?</value>
+  </data>
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
   </data>

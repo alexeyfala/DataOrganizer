@@ -2,7 +2,7 @@ using DataOrganizer.DTO.Updates;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Updates;
 
 /// <summary>
 /// Checks whether a newer application version is available.
