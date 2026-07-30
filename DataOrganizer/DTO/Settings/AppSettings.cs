@@ -1,5 +1,6 @@
 using Material.Colors;
 using Material.Styles.Themes.Base;
+using System;
 
 namespace DataOrganizer.DTO.Settings;
 
@@ -13,9 +14,19 @@ public record AppSettings
 {
 	#region Properties
 	/// <summary>
+	/// Indicates whether a check for a newer application version runs on startup.
+	/// </summary>
+	public bool CheckForUpdates { get; set; } = true;
+
+	/// <summary>
 	/// Application language.
 	/// </summary>
 	public required string Language { get; set; }
+
+	/// <summary>
+	/// Timestamp of the last completed update check, in UTC.
+	/// </summary>
+	public DateTimeOffset? LastUpdateCheckUtc { get; set; }
 
 	/// <summary>
 	/// Indicates whether the clipboard history should be persisted (encrypted) between sessions.
