@@ -41,6 +41,7 @@ using SharpHook.Data;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 
 namespace DataOrganizer;
 
@@ -176,6 +177,29 @@ public sealed class App : Application
 		{
 			Trace.WriteLine(ex.ToStringDemystified());
 		}
+	}
+
+	/// <summary>
+	/// Configures the <see cref="HttpClient" /> used to query the GitHub releases API.
+	/// </summary>
+	private static void ConfigureGitHubHttpClient(HttpClient client)
+	{
+		client.Timeout = TimeSpan.FromSeconds(10.0);
+
+		// GitHub requires a User-Agent; Accept and the API version pin the response format.
+		client
+			.DefaultRequestHeaders
+			.UserAgent
+			.ParseAdd($"{AppUtils.AppName}/{AppUtils.AppVersion}");
+
+		client
+			.DefaultRequestHeaders
+			.Accept
+			.ParseAdd("application/vnd.github+json");
+
+		client
+			.DefaultRequestHeaders
+			.Add("X-GitHub-Api-Version", "2022-11-28");
 	}
 
 	/// <summary>
@@ -334,6 +358,7 @@ public sealed class App : Application
 
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
+		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
 		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
@@ -342,6 +367,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
 		services.AddSingleton<IAppThemeService, AppThemeService>();
+		services.AddSingleton<IAppVersionProvider, AppVersionProvider>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
@@ -363,6 +389,7 @@ public sealed class App : Application
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<IUiCultureService, UiCultureService>();
+		services.AddSingleton<IUpdateCheckService, UpdateCheckService>();
 		#endregion
 
 		#endregion
