@@ -9,7 +9,7 @@
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-debug</_DebugSuffix>
 		<OutputBaseName>$(AppName)-$(AppVersion)</OutputBaseName>
 		<MsiOutputName>$(OutputBaseName)-win-$(Platform)$(_DebugSuffix)</MsiOutputName>
-		<SetupCulture>ru-ru</SetupCulture>
+		<SetupCulture>en-us</SetupCulture>
 	</PropertyGroup>
 
 	<!--
