@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
@@ -149,10 +150,6 @@ public sealed class AppController : IAppController
 
 			// TODO: Close splash screen here.
 
-			_viewLauncher
-				.ConfigureMainWindow(hierarchy)?
-				.Show();
-
 			_clipboardLogPersistence.Start();
 
 			if (_settingsStore
@@ -162,7 +159,16 @@ public sealed class AppController : IAppController
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
-			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(token));
+			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy);
+
+			mainWindow?.Show();
+
+			if (mainWindow?.DataContext is not IUpdatePrompt updatePrompt)
+			{
+				return;
+			}
+
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(updatePrompt, token));
 		}
 		catch (Exception ex)
 		{

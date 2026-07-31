@@ -11,9 +11,6 @@ namespace DataOrganizer.Services.Updates;
 public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data
-	/// <inheritdoc cref="IDialogService" />
-	private readonly IDialogService _dialogService;
-
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
@@ -23,12 +20,9 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Constructors
 	public UpdateNotifier(
-		IDialogService dialogService,
 		IProcessUtils processUtils,
 		IUpdateCheckService updateCheckService)
 	{
-		_dialogService = dialogService;
-
 		_processUtils = processUtils;
 
 		_updateCheckService = updateCheckService;
@@ -37,7 +31,9 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task NotifyIfUpdateAvailableAsync(CancellationToken token = default)
+	public async Task NotifyIfUpdateAvailableAsync(
+		IUpdatePrompt prompt,
+		CancellationToken token = default)
 	{
 		UpdateCheckResult result = await _updateCheckService
 			.CheckAsync(token)
@@ -48,17 +44,19 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			return;
 		}
 
-		string prompt = string.Format(
+		string text = string.Format(
 			CultureInfo.CurrentCulture,
 			Strings.UpdateAvailablePrompt,
 			result.LatestVersion);
 
-		if (await _dialogService
-			.RequestYesNoDialogAsync(prompt, token)
+		if (!await prompt
+			.ConfirmUpdateAsync(text, token)
 			.ConfigureAwait(true))
 		{
-			_processUtils.StartProcess(url, out _);
+			return;
 		}
+
+		_processUtils.StartProcess(url, out _);
 	}
 	#endregion
 }

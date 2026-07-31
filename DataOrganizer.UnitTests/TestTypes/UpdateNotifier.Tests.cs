@@ -30,17 +30,17 @@ internal class UpdateNotifierTests
 			ReleaseUrl = ReleaseUrl
 		};
 
-		Context context = CreateContext(result, dialogAnswer: false);
+		Context context = CreateContext(result, promptAnswer: false);
 
 		// Act
 		await context
 			.Sut
-			.NotifyIfUpdateAvailableAsync();
+			.NotifyIfUpdateAvailableAsync(context.Prompt);
 
 		// Assert
-		await context.DialogService
+		await context.Prompt
 			.Received(1)
-			.RequestYesNoDialogAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
 		context.ProcessUtils
 			.DidNotReceive()
@@ -48,23 +48,23 @@ internal class UpdateNotifierTests
 	}
 
 	/// <summary>
-	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no dialog when no update is available.
+	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no prompt when no update is available.
 	/// </summary>
 	[Test]
 	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_When_No_Update()
 	{
 		// Arrange
-		Context context = CreateContext(UpdateCheckResult.None, dialogAnswer: false);
+		Context context = CreateContext(UpdateCheckResult.None, promptAnswer: false);
 
 		// Act
 		await context
 			.Sut
-			.NotifyIfUpdateAvailableAsync();
+			.NotifyIfUpdateAvailableAsync(context.Prompt);
 
 		// Assert
-		await context.DialogService
+		await context.Prompt
 			.DidNotReceive()
-			.RequestYesNoDialogAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
 		context.ProcessUtils
 			.DidNotReceive()
@@ -72,7 +72,7 @@ internal class UpdateNotifierTests
 	}
 
 	/// <summary>
-	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no dialog when the release URL is missing.
+	/// <see cref="UpdateNotifier.NotifyIfUpdateAvailableAsync" />: shows no prompt when the release URL is missing.
 	/// </summary>
 	[Test]
 	public async Task NotifyIfUpdateAvailableAsync_Does_Nothing_When_Release_Url_Missing()
@@ -85,17 +85,17 @@ internal class UpdateNotifierTests
 			ReleaseUrl = null
 		};
 
-		Context context = CreateContext(result, dialogAnswer: true);
+		Context context = CreateContext(result, promptAnswer: true);
 
 		// Act
 		await context
 			.Sut
-			.NotifyIfUpdateAvailableAsync();
+			.NotifyIfUpdateAvailableAsync(context.Prompt);
 
 		// Assert
-		await context.DialogService
+		await context.Prompt
 			.DidNotReceive()
-			.RequestYesNoDialogAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
 		context.ProcessUtils
 			.DidNotReceive()
@@ -116,17 +116,17 @@ internal class UpdateNotifierTests
 			ReleaseUrl = ReleaseUrl
 		};
 
-		Context context = CreateContext(result, dialogAnswer: true);
+		Context context = CreateContext(result, promptAnswer: true);
 
 		// Act
 		await context
 			.Sut
-			.NotifyIfUpdateAvailableAsync();
+			.NotifyIfUpdateAvailableAsync(context.Prompt);
 
 		// Assert
-		await context.DialogService
+		await context.Prompt
 			.Received(1)
-			.RequestYesNoDialogAsync(Arg.Is<string>(static x => x != null && x.Contains("0.2.0")), Arg.Any<CancellationToken>());
+			.ConfirmUpdateAsync(Arg.Is<string>(static x => x != null && x.Contains("0.2.0")), Arg.Any<CancellationToken>());
 
 		context.ProcessUtils
 			.Received(1)
@@ -136,9 +136,9 @@ internal class UpdateNotifierTests
 
 	#region Helpers
 	/// <summary>
-	/// Builds a notifier under test wired with a canned check result and dialog answer.
+	/// Builds a notifier under test wired with a canned check result and prompt answer.
 	/// </summary>
-	private static Context CreateContext(UpdateCheckResult checkResult, bool dialogAnswer)
+	private static Context CreateContext(UpdateCheckResult checkResult, bool promptAnswer)
 	{
 		IUpdateCheckService updateCheckService = Substitute.For<IUpdateCheckService>();
 
@@ -146,19 +146,19 @@ internal class UpdateNotifierTests
 			.CheckAsync(Arg.Any<CancellationToken>())
 			.Returns(checkResult);
 
-		IDialogService dialogService = Substitute.For<IDialogService>();
+		IUpdatePrompt prompt = Substitute.For<IUpdatePrompt>();
 
-		dialogService
-			.RequestYesNoDialogAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-			.Returns(dialogAnswer);
+		prompt
+			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+			.Returns(promptAnswer);
 
 		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
 
 		return new Context
 		{
-			DialogService = dialogService,
+			Prompt = prompt,
 			ProcessUtils = processUtils,
-			Sut = new UpdateNotifier(dialogService, processUtils, updateCheckService)
+			Sut = new UpdateNotifier(processUtils, updateCheckService)
 		};
 	}
 	#endregion
@@ -170,10 +170,8 @@ internal class UpdateNotifierTests
 	private sealed class Context
 	{
 		#region Properties
-		public required IDialogService DialogService { get; init; }
-
 		public required IProcessUtils ProcessUtils { get; init; }
-
+		public required IUpdatePrompt Prompt { get; init; }
 		public required UpdateNotifier Sut { get; init; }
 		#endregion
 	}

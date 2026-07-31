@@ -20,6 +20,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Enums;
@@ -47,7 +48,8 @@ public partial class EditorViewModel :
 	INavigationColumnViewModel,
 	IRecipient<FolderExpandedChangedMessage>,
 	IRecipient<ShowInEditorMessage>,
-	IRecipient<ShowProgressBarMessage>
+	IRecipient<ShowProgressBarMessage>,
+	IUpdatePrompt
 {
 	#region Properties
 	/// <summary>
@@ -1112,6 +1114,14 @@ public partial class EditorViewModel :
 		Hierarchy.AddRange(hierarchy);
 
 		CountHierarchy();
+	}
+
+	/// <inheritdoc />
+	public Task<bool> ConfirmUpdateAsync(
+		string text,
+		CancellationToken token = default)
+	{
+		return _dialogService.RequestYesNoDialogAsync(text, token);
 	}
 
 	/// <summary>

@@ -12,6 +12,6 @@ public interface IUpdateNotifier
 	/// <summary>
 	/// Shows the update notification when a newer version is available.
 	/// </summary>
-	Task NotifyIfUpdateAvailableAsync(CancellationToken token = default);
+	Task NotifyIfUpdateAvailableAsync(IUpdatePrompt prompt, CancellationToken token = default);
 	#endregion
 }
