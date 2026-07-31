@@ -57,6 +57,28 @@ internal class UpdateCheckServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="UpdateCheckService.CheckAsync" />: records the offered version so it is not offered again.
+	/// </summary>
+	[Test]
+	public async Task CheckAsync_Records_Notified_Version_When_Update_Available()
+	{
+		// Arrange
+		Context context = CreateContext(
+			currentVersion: "0.1.0",
+			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+
+		// Act
+		await context
+			.Sut
+			.CheckAsync();
+
+		// Assert
+		context.Settings.LastNotifiedVersion
+			.Should()
+			.Be("0.2.0");
+	}
+
+	/// <summary>
 	/// <see cref="UpdateCheckService.CheckAsync" />: records the timestamp after a completed request.
 	/// </summary>
 	[Test]
@@ -112,6 +134,33 @@ internal class UpdateCheckServiceTests
 		result.UpdateAvailable
 			.Should()
 			.Be(expectedUpdate);
+	}
+
+	/// <summary>
+	/// <see cref="UpdateCheckService.CheckAsync" />: offers a version newer than the one already offered.
+	/// </summary>
+	[Test]
+	public async Task CheckAsync_Reports_Update_When_Newer_Than_Notified()
+	{
+		// Arrange
+		Context context = CreateContext(
+			currentVersion: "0.1.0",
+			lastNotifiedVersion: "0.2.0",
+			responseJson: Releases(("v0.3.0", "https://example.test/release", false)));
+
+		// Act
+		UpdateCheckResult result = await context
+			.Sut
+			.CheckAsync();
+
+		// Assert
+		result.UpdateAvailable
+			.Should()
+			.BeTrue();
+
+		result.LatestVersion
+			.Should()
+			.Be("0.3.0");
 	}
 
 	/// <summary>
@@ -264,6 +313,29 @@ internal class UpdateCheckServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="UpdateCheckService.CheckAsync" />: does not offer a version that was already offered.
+	/// </summary>
+	[Test]
+	public async Task CheckAsync_Skips_Version_Already_Notified()
+	{
+		// Arrange
+		Context context = CreateContext(
+			currentVersion: "0.1.0",
+			lastNotifiedVersion: "0.2.0",
+			responseJson: Releases(("v0.2.0", "https://example.test/release", false)));
+
+		// Act
+		UpdateCheckResult result = await context
+			.Sut
+			.CheckAsync();
+
+		// Assert
+		result.UpdateAvailable
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="UpdateCheckService.CheckAsync" />: does nothing when the opt-out is set.
 	/// </summary>
 	[Test]
@@ -328,6 +400,7 @@ internal class UpdateCheckServiceTests
 		bool checkForUpdates = true,
 		TimeSpan? sinceLastCheck = null,
 		string? currentVersion = "0.1.0",
+		string? lastNotifiedVersion = null,
 		string responseJson = "[]",
 		HttpStatusCode statusCode = HttpStatusCode.OK,
 		Exception? transportError = null)
@@ -337,6 +410,7 @@ internal class UpdateCheckServiceTests
 		AppSettings settings = TestUtils.CreateRandomSettings() with
 		{
 			CheckForUpdates = checkForUpdates,
+			LastNotifiedVersion = lastNotifiedVersion,
 			LastUpdateCheckUtc = sinceLastCheck is { } elapsed ? time.GetUtcNow() - elapsed : null
 		};
 

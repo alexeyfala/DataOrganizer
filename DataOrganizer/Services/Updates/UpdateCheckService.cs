@@ -106,17 +106,28 @@ public sealed class UpdateCheckService : IUpdateCheckService
 			return UpdateCheckResult.None;
 		}
 
-		// The request completed; record the moment so the throttle window applies to the next launch.
 		settings.LastUpdateCheckUtc = now;
+
+		string? latest = null;
+
+		bool updateAvailable = release?.TagName is { } tag && TryGetNewerVersion(
+			tag,
+			settings.LastNotifiedVersion,
+			out latest);
+
+		if (updateAvailable)
+		{
+			settings.LastNotifiedVersion = latest;
+		}
 
 		_settingsStore.Save();
 
-		return release?.TagName is { } tag && TryGetNewerVersion(tag, out string? latest)
+		return updateAvailable
 			? new UpdateCheckResult
 			{
 				UpdateAvailable = true,
 				LatestVersion = latest,
-				ReleaseUrl = release.HtmlUrl
+				ReleaseUrl = release?.HtmlUrl
 			}
 			: UpdateCheckResult.None;
 	}
@@ -180,15 +191,24 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	}
 
 	/// <summary>
-	/// Determines whether the given release tag denotes a version newer than the running one.
+	/// Determines whether the given release tag denotes a version newer than the running one
+	/// and newer than the version already offered to the user.
 	/// </summary>
-	private bool TryGetNewerVersion(string tag, [NotNullWhen(true)] out string? latest)
+	private bool TryGetNewerVersion(
+		string tag,
+		string? notifiedVersion,
+		[NotNullWhen(true)] out string? latest)
 	{
 		latest = null;
 
 		if (!TryParseVersion(tag, out Version? remote)
 			|| !TryParseVersion(_versionProvider.CurrentVersion, out Version? current)
 			|| remote <= current)
+		{
+			return false;
+		}
+
+		if (TryParseVersion(notifiedVersion, out Version? notified) && remote <= notified)
 		{
 			return false;
 		}

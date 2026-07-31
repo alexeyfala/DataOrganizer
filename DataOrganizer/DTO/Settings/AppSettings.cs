@@ -24,6 +24,11 @@ public record AppSettings
 	public required string Language { get; set; }
 
 	/// <summary>
+	/// Version already offered to the user, so it is not offered again.
+	/// </summary>
+	public string? LastNotifiedVersion { get; set; }
+
+	/// <summary>
 	/// Timestamp of the last completed update check, in UTC.
 	/// </summary>
 	public DateTimeOffset? LastUpdateCheckUtc { get; set; }
