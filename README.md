@@ -20,6 +20,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Import & export** — JSON, XML, and the full SQLite database.
 - **Appearance** — Light, Dark, or System theme (Material Design), with configurable primary and secondary accent colors.
 - **Localization** — English and Russian; resource-based, ready for additional languages.
+- **Update notifications** — checks GitHub for a newer release on startup and offers to open the download page; each version is announced once and the check can be disabled in settings.
 
 ## Screenshots
 
