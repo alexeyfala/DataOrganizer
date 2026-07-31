@@ -33,6 +33,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// </summary>
 	public static SecondaryColor[] SecondaryColors { get; } = Enum.GetValues<SecondaryColor>();
 
+	/// <inheritdoc cref="AppSettings.CheckForUpdates" />
+	[ObservableProperty]
+	public partial bool CheckForUpdates { get; set; }
+
 	/// <summary>
 	/// Current settings for user to change.
 	/// </summary>
@@ -87,6 +91,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Partial
+	/// <summary>
+	/// Called when <see cref="CheckForUpdates" /> changes.
+	/// </summary>
+	partial void OnCheckForUpdatesChanged(bool value)
+	{
+		CurrentSettings.CheckForUpdates = value;
+
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+	}
+
 	/// <summary>
 	/// Called when <see cref="IsDarkTheme" /> changes.
 	/// </summary>
@@ -267,6 +281,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		_themeService = themeService;
 
 		CurrentSettings = settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
+
+		CheckForUpdates = CurrentSettings.CheckForUpdates;
 
 		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
 

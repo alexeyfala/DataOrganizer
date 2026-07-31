@@ -501,6 +501,12 @@
   <data name="UpdateAvailablePrompt" xml:space="preserve">
     <value>Доступна новая версия: {0}. Открыть страницу загрузок?</value>
   </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Обновления</value>
+  </data>
+  <data name="CheckForUpdatesOnStartup" xml:space="preserve">
+    <value>Проверять обновления при запуске</value>
+  </data>
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
   </data>

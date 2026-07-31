@@ -33,7 +33,7 @@
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Auto">
 			<Grid
-				RowDefinitions="*,*,*,*"
+				RowDefinitions="*,*,*,*,*"
 				RowSpacing="{StaticResource ElementSpacing}">
 
 				<Grid.Resources>
@@ -197,6 +197,16 @@
 						Classes="HelpIconBorderStyle"
 						ToolTip.Tip="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
 				</Grid>
+
+				<HeaderedContentControl
+					Grid.Row="4"
+					Classes="ClassicGroupBoxStyle"
+					Header="{x:Static prop:Strings.Updates}">
+					<CheckBox
+						Margin="10.0"
+						Content="{x:Static prop:Strings.CheckForUpdatesOnStartup}"
+						IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
+				</HeaderedContentControl>
 			</Grid>
 		</ScrollViewer>
 	</Grid>
