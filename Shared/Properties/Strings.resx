@@ -563,7 +563,7 @@
     <value>Enable clipboard history tracking</value>
   </data>
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
-    <value>Used to keep a history of the system clipboard and to access it via the custom clipboard window</value>
+    <value>Used to keep a history of the system clipboard and to access it via the special window</value>
   </data>
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
     <value>Persist history between sessions (encrypted)</value>

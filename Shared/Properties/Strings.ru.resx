@@ -583,7 +583,7 @@
     <value>Включить отслеживание истории буфера обмена</value>
   </data>
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
-    <value>Используется для ведения истории буфера обмена системы и доступа к ней через кастомное окно буфера обмена</value>
+    <value>Используется для ведения истории буфера обмена системы и доступа к ней через специальное окно</value>
   </data>
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
     <value>Сохранять историю между сессиями (в зашифрованном виде)</value>

@@ -394,7 +394,7 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Used to keep a history of the system clipboard and to access it via the custom clipboard window.
+        ///   Looks up a localized string similar to Used to keep a history of the system clipboard and to access it via the special window.
         /// </summary>
         public static string DescriptionOfUseClipboard {
             get {
@@ -1472,7 +1472,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("UpdateAvailablePrompt", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Updated.
         /// </summary>
