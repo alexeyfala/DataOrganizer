@@ -23,6 +23,7 @@
   <Folder Name="/Docs/">
     <File Path="Docs/GitHub_Release.md" />
     <File Path="Docs/Publish.md" />
+    <File Path="Docs/release-notes.template.md" />
   </Folder>
   <Folder Name="/Docs/Images/">
     <File Path="Docs/Images/clipboard-log.png" />
@@ -86,6 +87,7 @@
   </Folder>
   <Folder Name="/Solution Items/tools/">
     <File Path="tools/gen-license-rtf.ps1" />
+    <File Path="tools/gen-release-notes.ps1" />
     <File Path="tools/gen-third-party-notices.ps1" />
   </Folder>
   <Folder Name="/Tests/">

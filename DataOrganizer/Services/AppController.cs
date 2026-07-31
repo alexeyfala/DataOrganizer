@@ -1,8 +1,10 @@
+using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Updates;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -53,6 +55,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
 
+	/// <inheritdoc cref="IUpdateNotifier" />
+	private readonly IUpdateNotifier _updateNotifier;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	private readonly IViewLauncher _viewLauncher;
 	#endregion
@@ -70,6 +75,7 @@ public sealed class AppController : IAppController
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
 		ITaskExceptionHandler exceptionHandler,
+		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
 		Lazy<IConsoleWindowHost> consoleWindowHost)
 	{
@@ -94,6 +100,8 @@ public sealed class AppController : IAppController
 		_options = options;
 
 		_settingsStore = settingsStore;
+
+		_updateNotifier = updateNotifier;
 
 		_viewLauncher = viewLauncher;
 
@@ -142,10 +150,6 @@ public sealed class AppController : IAppController
 
 			// TODO: Close splash screen here.
 
-			_viewLauncher
-				.ConfigureMainWindow(hierarchy)?
-				.Show();
-
 			_clipboardLogPersistence.Start();
 
 			if (_settingsStore
@@ -154,6 +158,17 @@ public sealed class AppController : IAppController
 			{
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
+
+			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy);
+
+			mainWindow?.Show();
+
+			if (mainWindow?.DataContext is not IUpdatePrompt updatePrompt)
+			{
+				return;
+			}
+
+			_exceptionHandler.Watch(_updateNotifier.NotifyIfUpdateAvailableAsync(updatePrompt, token));
 		}
 		catch (Exception ex)
 		{

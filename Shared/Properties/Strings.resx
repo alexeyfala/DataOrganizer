@@ -478,6 +478,15 @@
   <data name="Updated" xml:space="preserve">
     <value>Updated</value>
   </data>
+  <data name="UpdateAvailablePrompt" xml:space="preserve">
+    <value>A new version is available: {0}. Open the download page?</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="CheckForUpdatesOnStartup" xml:space="preserve">
+    <value>Check for updates on startup</value>
+  </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
@@ -554,7 +563,7 @@
     <value>Enable clipboard history tracking</value>
   </data>
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
-    <value>Used to keep a history of the system clipboard and to access it via the custom clipboard window</value>
+    <value>Used to keep a history of the system clipboard and to access it via the special window</value>
   </data>
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
     <value>Persist history between sessions (encrypted)</value>

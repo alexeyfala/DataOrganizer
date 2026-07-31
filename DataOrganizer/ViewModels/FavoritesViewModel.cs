@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Windows;
 using DynamicData;
 using Repository.Interfaces;
@@ -29,7 +30,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>FavoritesWindow</c>.
 /// </summary>
-public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
+public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUpdatePrompt
 {
 	#region Properties
 	/// <inheritdoc cref="FavoritesViewSettings" />
@@ -230,6 +231,31 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable
 		FavoritesSettings
 			.Categories
 			.AddRange(GetCategories(hierarchy));
+	}
+
+	/// <inheritdoc />
+	public Task<bool> ConfirmUpdateAsync(string text, CancellationToken token = default)
+	{
+		bool wasPopupOpen = IsPopupOpen;
+
+		ShowContentInPopup(FavoritesPopupContentType.Favorites);
+
+		return _dispatcher.PostAsync(async () =>
+		{
+			try
+			{
+				return await _dialogService
+					.RequestYesNoDialogAsync(text, token)
+					.ConfigureAwait(true);
+			}
+			finally
+			{
+				if (!wasPopupOpen)
+				{
+					IsPopupOpen = false;
+				}
+			}
+		}, DispatcherPriority.Background);
 	}
 
 	/// <summary>

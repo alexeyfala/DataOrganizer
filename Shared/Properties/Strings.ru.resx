@@ -498,6 +498,15 @@
   <data name="Updated" xml:space="preserve">
     <value>Изменен</value>
   </data>
+  <data name="UpdateAvailablePrompt" xml:space="preserve">
+    <value>Доступна новая версия: {0}. Открыть страницу загрузок?</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Обновления</value>
+  </data>
+  <data name="CheckForUpdatesOnStartup" xml:space="preserve">
+    <value>Проверять обновления при запуске</value>
+  </data>
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
   </data>
@@ -574,7 +583,7 @@
     <value>Включить отслеживание истории буфера обмена</value>
   </data>
   <data name="DescriptionOfUseClipboard" xml:space="preserve">
-    <value>Используется для ведения истории буфера обмена системы и доступа к ней через кастомное окно буфера обмена</value>
+    <value>Используется для ведения истории буфера обмена системы и доступа к ней через специальное окно</value>
   </data>
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
     <value>Сохранять историю между сессиями (в зашифрованном виде)</value>

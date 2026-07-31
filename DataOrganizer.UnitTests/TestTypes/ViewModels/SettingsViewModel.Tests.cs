@@ -16,6 +16,39 @@ internal class SettingsViewModelTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="SettingsViewModel.CheckForUpdates" />: toggling the flag updates the current settings value.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_CheckForUpdates()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.CheckForUpdates = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.CheckForUpdates = true;
+
+		// Assert
+		sut.CurrentSettings.CheckForUpdates
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="SettingsViewModel.Language" />: setting the language updates the current settings language.
 	/// </summary>
 	[Test]
@@ -254,6 +287,10 @@ internal class SettingsViewModelTests
 		sut.CurrentSettings.TrackClipboardHistory
 			.Should()
 			.Be(settings.TrackClipboardHistory);
+
+		sut.CurrentSettings.CheckForUpdates
+			.Should()
+			.Be(settings.CheckForUpdates);
 	}
 
 	/// <summary>

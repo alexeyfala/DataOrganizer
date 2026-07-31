@@ -3,13 +3,13 @@
 		<AppName>DataOrganizer</AppName>
 		<AppNameParted>Data Organizer</AppNameParted>
 		<AppIconPath>..\$(AppName)\Assets\Logo.ico</AppIconPath>
-		<AppVersion>0.1.0</AppVersion>
+		<AppVersion>0.2.0</AppVersion>
 		<Manufacturer>Alexey Fala</Manufacturer>
 		<License>Apache-2.0</License>
 		<_DebugSuffix Condition="'$(Configuration)' != 'Release'">-debug</_DebugSuffix>
 		<OutputBaseName>$(AppName)-$(AppVersion)</OutputBaseName>
 		<MsiOutputName>$(OutputBaseName)-win-$(Platform)$(_DebugSuffix)</MsiOutputName>
-		<SetupCulture>ru-ru</SetupCulture>
+		<SetupCulture>en-us</SetupCulture>
 	</PropertyGroup>
 
 	<!--
