@@ -21,8 +21,8 @@ It reads `AppVersion` from `Directory.Build.props`, fills the `{version}` placeh
 
 ```
 Wrote Publish/release-notes.md  (copied to clipboard)
-Tag:   v0.1.0
-Title: Data Organizer 0.1.0
+Tag:   v0.2.0
+Title: Data Organizer 0.2.0
 ```
 
 3\. Open **Releases → Create a new release** (`https://github.com/alexeyfala/DataOrganizer/releases/new`).

@@ -21,7 +21,7 @@
 		<TrimmerRootDescriptor Include="Roots.xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Include="Logo.icns" />

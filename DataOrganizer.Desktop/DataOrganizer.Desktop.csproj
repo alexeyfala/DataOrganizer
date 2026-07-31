@@ -21,15 +21,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop"
-						  Version="12.1.0" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
 	</ItemGroup>
 
 	<!-- Ship license and attribution files alongside the published application. -->
 	<ItemGroup>
-		<None Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt"
-			  Link="%(Filename)%(Extension)"
-			  CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\LICENSE;..\NOTICE;..\THIRD-PARTY-NOTICES.txt" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -45,11 +42,8 @@
 	</PropertyGroup>
 
 	<!-- Rename the portable single-file output to PortableName. -->
-	<Target Name="PortableOutputName"
-			AfterTargets="Publish"
-			Condition="'$(PublishSingleFile)' == 'true'">
+	<Target Name="PortableOutputName" AfterTargets="Publish" Condition="'$(PublishSingleFile)' == 'true'">
 		<Delete Files="$([System.IO.Path]::Combine('$(PublishDir)', '$(PortableName)$(_PortableExt)'))" />
-		<Move SourceFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(AssemblyName)$(_PortableExt)'))"
-			  DestinationFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(PortableName)$(_PortableExt)'))" />
+		<Move SourceFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(AssemblyName)$(_PortableExt)'))" DestinationFiles="$([System.IO.Path]::Combine('$(PublishDir)', '$(PortableName)$(_PortableExt)'))" />
 	</Target>
 </Project>
