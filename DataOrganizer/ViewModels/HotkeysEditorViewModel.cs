@@ -5,6 +5,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DialogHostAvalonia;
 using Repository.DTO;
+using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook;
@@ -93,6 +94,9 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <inheritdoc cref="IGlobalHook" />
 	private readonly IGlobalHook _hook;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <summary>
 	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
 	/// </summary>
@@ -100,7 +104,10 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
-	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler exceptionHandler)
+	public HotkeysEditorViewModel(
+		IGlobalHook hook,
+		ILogger logger,
+		ITaskExceptionHandler exceptionHandler)
 	{
 		hook.KeyReleased += Hook_KeyReleased;
 
@@ -113,6 +120,8 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 		}).DisposeWith(_disposables);
 
 		_hook = hook;
+
+		_logger = logger;
 
 		exceptionHandler.Watch(hook.RunAsync());
 	}
@@ -187,7 +196,15 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	{
 		base.AfterDispose();
 
-		_hook.Dispose();
+		try
+		{
+			_hook.Dispose();
+		}
+		catch (HookException ex)
+		{
+			// The native hook may already be stopped — disposal must never throw.
+			_logger.LogException(ex);
+		}
 
 		Buffer.Clear();
 	}

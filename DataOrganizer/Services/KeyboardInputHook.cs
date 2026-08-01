@@ -136,7 +136,15 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_hook.KeyReleased -= Hook_KeyReleased;
 
-		_hook.Dispose();
+		try
+		{
+			_hook.Dispose();
+		}
+		catch (HookException ex)
+		{
+			// The native hook may already be stopped — disposal must never throw.
+			_logger.LogException(ex);
+		}
 
 		Files.Clear();
 
