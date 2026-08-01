@@ -65,6 +65,11 @@ public sealed class DialogService : IDialogService
 			.Show(_viewFactory.CreateUserControl<HotkeysEditorView>(viewModel))
 			.ConfigureAwait(false);
 
+		// The native hook is process-wide, it must be fully down before the next one starts.
+		await viewModel
+			.StopHookAsync()
+			.ConfigureAwait(false);
+
 		try
 		{
 			return new(viewModel.IsSaved, [.. viewModel.Buffer]);

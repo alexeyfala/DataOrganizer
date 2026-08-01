@@ -17,6 +17,8 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
@@ -98,9 +100,19 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	private readonly ILogger _logger;
 
 	/// <summary>
+	/// Task of the running global hook.
+	/// </summary>
+	private readonly Task _runTask;
+
+	/// <summary>
 	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
 	/// </summary>
 	private bool _isClearBuffer;
+
+	/// <summary>
+	/// <c>True</c> when the native hook has reported itself as enabled.
+	/// </summary>
+	private bool _isHookEnabled;
 	#endregion
 
 	#region Constructors
@@ -109,12 +121,15 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 		ILogger logger,
 		ITaskExceptionHandler exceptionHandler)
 	{
+		hook.HookEnabled += Hook_HookEnabled;
+
 		hook.KeyReleased += Hook_KeyReleased;
 
 		Buffer.CollectionChanged += Buffer_CollectionChanged;
 
 		Disposable.Create(() =>
 		{
+			hook.HookEnabled -= Hook_HookEnabled;
 			hook.KeyReleased -= Hook_KeyReleased;
 			Buffer.CollectionChanged -= Buffer_CollectionChanged;
 		}).DisposeWith(_disposables);
@@ -123,7 +138,9 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 
 		_logger = logger;
 
-		exceptionHandler.Watch(hook.RunAsync());
+		_runTask = hook.RunAsync();
+
+		exceptionHandler.Watch(_runTask);
 	}
 	#endregion
 
@@ -131,10 +148,17 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// <see cref="ObservableCollection{T}.CollectionChanged" /> event handler of <see cref="Buffer" />.
 	/// </summary>
-	private void Buffer_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+	private void Buffer_CollectionChanged(
+		object? sender,
+		NotifyCollectionChangedEventArgs e)
 	{
 		MakePreview();
 	}
+
+	/// <summary>
+	/// <see cref="GlobalHookBase.HookEnabled" /> event handler.
+	/// </summary>
+	private void Hook_HookEnabled(object? sender, HookEventArgs e) => _isHookEnabled = true;
 
 	/// <summary>
 	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
@@ -148,6 +172,37 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Stops the global hook and waits until it is actually stopped.
+	/// </summary>
+	public async Task StopHookAsync(CancellationToken token = default)
+	{
+		try
+		{
+			// The native hook is installed asynchronously, stopping it earlier fails.
+			Func<bool> condition = () => _isHookEnabled || _runTask.IsCompleted;
+
+			await condition
+				.WaitAsync(100, 10, token)
+				.ConfigureAwait(false);
+
+			if (_hook.IsRunning)
+			{
+				_hook.Stop();
+			}
+
+			condition = () => !_hook.IsRunning;
+
+			await condition
+				.WaitAsync(100, 10, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
 	/// </summary>

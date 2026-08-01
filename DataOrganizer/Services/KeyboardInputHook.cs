@@ -204,6 +204,17 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 			InputStack.Clear();
 
 			_hook.Stop();
+
+			// The native hook shuts down asynchronously, another hook must not start before that.
+			Func<bool> condition = () => !IsRunning;
+
+			await condition
+				.WaitAsync(100, 10, token)
+				.ConfigureAwait(false);
+		}
+		catch (HookException ex)
+		{
+			_logger.LogException(ex);
 		}
 		finally
 		{

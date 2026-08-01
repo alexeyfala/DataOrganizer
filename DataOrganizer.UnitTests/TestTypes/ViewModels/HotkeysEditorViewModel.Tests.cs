@@ -5,13 +5,17 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Extensions;
 using DataOrganizer.ViewModels;
+using Moq;
 using Repository.DTO;
+using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
 
@@ -331,6 +335,91 @@ internal class HotkeysEditorViewModelTests
 		sut.IsSaved
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: leaves a hook that is not running untouched.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Does_Not_Stop_Hook_When_It_Is_Not_Running()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		Mock<IGlobalHook> hook = mock.Mock<IGlobalHook>();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		Func<Task> act = () => sut.StopHookAsync();
+
+		// Assert
+		await act
+			.Should()
+			.NotThrowAsync();
+
+		hook.Verify(x => x.Stop(), Times.Never);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: logs a failure of the native hook instead of propagating it.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Logs_Exception_When_Stop_Fails()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		Mock<IGlobalHook> hook = mock.Mock<IGlobalHook>();
+
+		hook.SetupGet(x => x.IsRunning)
+			.Returns(true);
+
+		hook.Setup(x => x.Stop())
+			.Throws(new HookException(UioHookResult.Failure));
+
+		Mock<ILogger> logger = mock.Mock<ILogger>();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		Func<Task> act = () => sut.StopHookAsync();
+
+		// Assert
+		await act
+			.Should()
+			.NotThrowAsync();
+
+		logger.Verify(
+			x => x.Error(It.IsAny<HookException>(), It.IsAny<string>(), It.IsAny<string>()),
+			Times.Once);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: stops a running hook.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Stops_Running_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+			TypedParameter.From<IGlobalHook>(hook));
+
+		hook.IsRunning
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.StopHookAsync();
+
+		// Assert
+		hook.IsRunning
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 }
