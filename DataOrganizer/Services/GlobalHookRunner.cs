@@ -86,7 +86,6 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 	/// <summary>
 	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
 	/// </summary>
-	//private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e) => KeyReleased?.Invoke(this, e);
 	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
 	{
 		_messenger.Send(new GlobalKeyReleasedMessage(

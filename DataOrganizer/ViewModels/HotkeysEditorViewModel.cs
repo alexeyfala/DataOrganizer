@@ -9,7 +9,6 @@ using DialogHostAvalonia;
 using Repository.DTO;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using SharpHook.Data;
 using System;
 using System.Collections.ObjectModel;
@@ -154,7 +153,7 @@ public sealed partial class HotkeysEditorViewModel :
 	public Task StopHookAsync(CancellationToken token = default) => _hookRunner.StopAsync(token);
 
 	/// <summary>
-	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// Handles a released key.
 	/// </summary>
 	internal void HandleKeyReleased(EventMask rawMask, KeyCode code)
 	{

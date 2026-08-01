@@ -15,7 +15,6 @@ using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
@@ -201,10 +200,6 @@ public sealed class KeyboardInputHook :
 				.StopAsync(token)
 				.ConfigureAwait(false);
 		}
-		catch (HookException ex)
-		{
-			_logger.LogException(ex);
-		}
 		finally
 		{
 			try
@@ -219,7 +214,7 @@ public sealed class KeyboardInputHook :
 	}
 
 	/// <summary>
-	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// Handles a released key.
 	/// </summary>
 	internal async Task HandleKeyReleasedAsync(
 		EventMask rawMask,
