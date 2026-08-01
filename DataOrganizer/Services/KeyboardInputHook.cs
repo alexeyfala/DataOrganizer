@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -7,13 +8,13 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
@@ -23,11 +24,13 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
 
-public sealed class KeyboardInputHook : IKeyboardInputHook
+public sealed class KeyboardInputHook :
+	IKeyboardInputHook,
+	IRecipient<GlobalKeyReleasedMessage>
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool IsRunning => _hook.IsRunning;
+	public bool IsRunning => _hookRunner.IsRunning;
 
 	/// <summary>
 	/// List of files with hotkeys.
@@ -59,11 +62,14 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	private readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IGlobalHook" />
-	private readonly IGlobalHook _hook;
+	/// <inheritdoc cref="IGlobalHookRunner" />
+	private readonly IGlobalHookRunner _hookRunner;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
+
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
 
 	/// <inheritdoc cref="INotificationService" />
 	private readonly INotificationService _notificationService;
@@ -84,8 +90,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		IDbAccess dbAccess,
 		IDispatcherAccessor dispatcher,
 		IEntityEncryption entityEncryption,
-		IGlobalHook hook,
+		IGlobalHookRunner hookRunner,
 		ILogger logger,
+		IMessenger messenger,
 		INotificationService notificationService,
 		ITaskExceptionHandler exceptionHandler)
 	{
@@ -101,29 +108,27 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_exceptionHandler = exceptionHandler;
 
-		_hook = hook;
+		_hookRunner = hookRunner;
 
 		_logger = logger;
 
+		_messenger = messenger;
+
 		_notificationService = notificationService;
 
-		hook.KeyReleased += Hook_KeyReleased;
-	}
-	#endregion
-
-	#region Event Handlers
-	/// <summary>
-	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
-	/// </summary>
-	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
-	{
-		_exceptionHandler.Watch(HandleKeyReleasedAsync(
-			e.RawEvent.Mask,
-			e.Data.KeyCode));
+		messenger.RegisterAll(this);
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void Receive(GlobalKeyReleasedMessage message)
+	{
+		_exceptionHandler.Watch(HandleKeyReleasedAsync(
+			message.Mask,
+			message.Code));
+	}
+
 	/// <inheritdoc />
 	public void Dispose()
 	{
@@ -134,9 +139,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 		_semaphore.Dispose();
 
-		_hook.KeyReleased -= Hook_KeyReleased;
-
-		_hook.Dispose();
+		_messenger.UnregisterAll(this);
 
 		Files.Clear();
 
@@ -161,13 +164,11 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 		{
 			_logger.LogInformation("Start global keyboard input tracking");
 
-			_exceptionHandler.Watch(_hook.RunAsync());
+			await _hookRunner
+				.StartAsync(token)
+				.ConfigureAwait(false);
 
-			condition = () => IsRunning;
-
-			if (!await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false))
+			if (!IsRunning)
 			{
 				return;
 			}
@@ -195,7 +196,9 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 
 			InputStack.Clear();
 
-			_hook.Stop();
+			await _hookRunner
+				.StopAsync(token)
+				.ConfigureAwait(false);
 		}
 		finally
 		{
@@ -211,7 +214,7 @@ public sealed class KeyboardInputHook : IKeyboardInputHook
 	}
 
 	/// <summary>
-	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// Handles a released key.
 	/// </summary>
 	internal async Task HandleKeyReleasedAsync(
 		EventMask rawMask,

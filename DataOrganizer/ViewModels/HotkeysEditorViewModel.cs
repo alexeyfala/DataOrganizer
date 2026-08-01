@@ -1,13 +1,14 @@
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DialogHostAvalonia;
 using Repository.DTO;
 using Shared.Extensions;
 using Shared.Properties;
-using SharpHook;
 using SharpHook.Data;
 using System;
 using System.Collections.ObjectModel;
@@ -16,13 +17,17 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
 /// View model for <c>HotkeysEditorView</c>.
 /// </summary>
-public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
+public sealed partial class HotkeysEditorViewModel :
+	ObservableDisposableBase,
+	IRecipient<GlobalKeyReleasedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -90,8 +95,8 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IGlobalHook" />
-	private readonly IGlobalHook _hook;
+	/// <inheritdoc cref="IGlobalHookRunner" />
+	private readonly IGlobalHookRunner _hookRunner;
 
 	/// <summary>
 	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
@@ -100,21 +105,24 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Constructors
-	public HotkeysEditorViewModel(IGlobalHook hook, ITaskExceptionHandler exceptionHandler)
+	public HotkeysEditorViewModel(
+		IGlobalHookRunner hookRunner,
+		IMessenger messenger,
+		ITaskExceptionHandler exceptionHandler)
 	{
-		hook.KeyReleased += Hook_KeyReleased;
+		messenger.RegisterAll(this);
 
 		Buffer.CollectionChanged += Buffer_CollectionChanged;
 
 		Disposable.Create(() =>
 		{
-			hook.KeyReleased -= Hook_KeyReleased;
+			messenger.UnregisterAll(this);
 			Buffer.CollectionChanged -= Buffer_CollectionChanged;
 		}).DisposeWith(_disposables);
 
-		_hook = hook;
+		_hookRunner = hookRunner;
 
-		exceptionHandler.Watch(hook.RunAsync());
+		exceptionHandler.Watch(hookRunner.StartAsync());
 	}
 	#endregion
 
@@ -122,25 +130,30 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	/// <summary>
 	/// <see cref="ObservableCollection{T}.CollectionChanged" /> event handler of <see cref="Buffer" />.
 	/// </summary>
-	private void Buffer_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+	private void Buffer_CollectionChanged(
+		object? sender,
+		NotifyCollectionChangedEventArgs e)
 	{
 		MakePreview();
-	}
-
-	/// <summary>
-	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
-	/// </summary>
-	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
-	{
-		HandleKeyReleased(
-			e.RawEvent.Mask,
-			e.Data.KeyCode);
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void Receive(GlobalKeyReleasedMessage message)
+	{
+		HandleKeyReleased(
+			message.Mask,
+			message.Code);
+	}
+
 	/// <summary>
-	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
+	/// Stops the global hook and waits until it is actually stopped.
+	/// </summary>
+	public Task StopHookAsync(CancellationToken token = default) => _hookRunner.StopAsync(token);
+
+	/// <summary>
+	/// Handles a released key.
 	/// </summary>
 	internal void HandleKeyReleased(EventMask rawMask, KeyCode code)
 	{
@@ -186,8 +199,6 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
-
-		_hook.Dispose();
 
 		Buffer.Clear();
 	}

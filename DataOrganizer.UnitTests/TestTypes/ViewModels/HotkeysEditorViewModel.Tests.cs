@@ -4,7 +4,11 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
+using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
+using Moq;
 using Repository.DTO;
 using Shared.Extensions;
 using Shared.Properties;
@@ -12,6 +16,8 @@ using SharpHook;
 using SharpHook.Data;
 using SharpHook.Testing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
 
@@ -44,18 +50,21 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ObservableDisposableBase.Dispose" />: clears the buffer and disposes the hook.
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears the buffer and leaves the shared hook alive.
 	/// </summary>
 	[Test]
-	public void Dispose_Disposes_Hook()
+	public void Dispose_Clears_Buffer_And_Keeps_Hook()
 	{
 		// Arrange
 		TestGlobalHook hook = new();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(
 			TypedParameter.From<IGlobalHook>(hook));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+			TypedParameter.From<IGlobalHookRunner>(runner));
 
 		sut
 			.Buffer
@@ -71,7 +80,7 @@ internal class HotkeysEditorViewModelTests
 
 		hook.IsDisposed
 			.Should()
-			.BeTrue();
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -314,6 +323,30 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.Receive" />: a released key message fills the buffer.
+	/// </summary>
+	[Test]
+	public void Receive_Adds_Pair_To_Buffer()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		sut.Receive(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
+
+		// Assert
+		sut.Buffer
+			.Should()
+			.ContainSingle();
+
+		sut.Buffer[0].Code
+			.Should()
+			.Be(KeyCode.VcA);
+	}
+
+	/// <summary>
 	/// <see cref="HotkeysEditorViewModel.SaveAndClose" />: sets the saved flag.
 	/// </summary>
 	[Test]
@@ -331,6 +364,59 @@ internal class HotkeysEditorViewModelTests
 		sut.IsSaved
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: hands the request over to the hook owner.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Delegates_To_Hook_Runner()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		Mock<IGlobalHookRunner> runner = mock.Mock<IGlobalHookRunner>();
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
+
+		// Act
+		await sut.StopHookAsync();
+
+		// Assert
+		runner.Verify(x => x.StopAsync(It.IsAny<CancellationToken>()), Times.Once);
+	}
+
+	/// <summary>
+	/// <see cref="HotkeysEditorViewModel.StopHookAsync" />: stops a running hook.
+	/// </summary>
+	[Test]
+	public async Task StopHookAsync_Stops_Running_Hook()
+	{
+		// Arrange
+		TestGlobalHook hook = new();
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(
+			TypedParameter.From<IGlobalHook>(hook));
+
+		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>(
+			TypedParameter.From<IGlobalHookRunner>(runner));
+
+		// The view model starts the runner in its constructor, this awaits that start.
+		await runner.StartAsync();
+
+		hook.IsRunning
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.StopHookAsync();
+
+		// Assert
+		hook.IsRunning
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 }

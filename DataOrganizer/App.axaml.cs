@@ -339,7 +339,6 @@ public sealed class App : Application
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
-		services.AddTransient<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
@@ -387,6 +386,8 @@ public sealed class App : Application
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
+		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
+		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
