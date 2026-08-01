@@ -79,6 +79,7 @@ public sealed class EncryptionService : IEncryptionService
 		}
 	}
 
+	/// <inheritdoc />
 	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
@@ -162,6 +163,7 @@ public sealed class EncryptionService : IEncryptionService
 		}
 	}
 
+	/// <inheritdoc />
 	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
@@ -291,6 +293,9 @@ public sealed class EncryptionService : IEncryptionService
 		}
 	}
 
+	/// <summary>
+	/// Imports raw key bytes as a key for the configured AEAD algorithm.
+	/// </summary>
 	private static Key ImportKey(byte[] blob)
 	{
 		return Key.Import(
