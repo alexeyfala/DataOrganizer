@@ -1,11 +1,12 @@
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DialogHostAvalonia;
 using Repository.DTO;
-using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook;
@@ -25,7 +26,9 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>HotkeysEditorView</c>.
 /// </summary>
-public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
+public sealed partial class HotkeysEditorViewModel :
+	ObservableDisposableBase,
+	IRecipient<GlobalKeyReleasedMessage>
 {
 	#region Properties
 	/// <summary>
@@ -93,54 +96,34 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IGlobalHook" />
-	private readonly IGlobalHook _hook;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
-	/// <summary>
-	/// Task of the running global hook.
-	/// </summary>
-	private readonly Task _runTask;
+	/// <inheritdoc cref="IGlobalHookRunner" />
+	private readonly IGlobalHookRunner _hookRunner;
 
 	/// <summary>
 	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
 	/// </summary>
 	private bool _isClearBuffer;
-
-	/// <summary>
-	/// <c>True</c> when the native hook has reported itself as enabled.
-	/// </summary>
-	private bool _isHookEnabled;
 	#endregion
 
 	#region Constructors
 	public HotkeysEditorViewModel(
-		IGlobalHook hook,
-		ILogger logger,
+		IGlobalHookRunner hookRunner,
+		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler)
 	{
-		hook.HookEnabled += Hook_HookEnabled;
-
-		hook.KeyReleased += Hook_KeyReleased;
+		messenger.RegisterAll(this);
 
 		Buffer.CollectionChanged += Buffer_CollectionChanged;
 
 		Disposable.Create(() =>
 		{
-			hook.HookEnabled -= Hook_HookEnabled;
-			hook.KeyReleased -= Hook_KeyReleased;
+			messenger.UnregisterAll(this);
 			Buffer.CollectionChanged -= Buffer_CollectionChanged;
 		}).DisposeWith(_disposables);
 
-		_hook = hook;
+		_hookRunner = hookRunner;
 
-		_logger = logger;
-
-		_runTask = hook.RunAsync();
-
-		exceptionHandler.Watch(_runTask);
+		exceptionHandler.Watch(hookRunner.StartAsync());
 	}
 	#endregion
 
@@ -154,54 +137,21 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	{
 		MakePreview();
 	}
-
-	/// <summary>
-	/// <see cref="GlobalHookBase.HookEnabled" /> event handler.
-	/// </summary>
-	private void Hook_HookEnabled(object? sender, HookEventArgs e) => _isHookEnabled = true;
-
-	/// <summary>
-	/// <see cref="GlobalHookBase.KeyReleased" /> event handler.
-	/// </summary>
-	private void Hook_KeyReleased(object? sender, KeyboardHookEventArgs e)
-	{
-		HandleKeyReleased(
-			e.RawEvent.Mask,
-			e.Data.KeyCode);
-	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void Receive(GlobalKeyReleasedMessage message)
+	{
+		HandleKeyReleased(
+			message.Mask,
+			message.Code);
+	}
+
 	/// <summary>
 	/// Stops the global hook and waits until it is actually stopped.
 	/// </summary>
-	public async Task StopHookAsync(CancellationToken token = default)
-	{
-		try
-		{
-			// The native hook is installed asynchronously, stopping it earlier fails.
-			Func<bool> condition = () => _isHookEnabled || _runTask.IsCompleted;
-
-			await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false);
-
-			if (_hook.IsRunning)
-			{
-				_hook.Stop();
-			}
-
-			condition = () => !_hook.IsRunning;
-
-			await condition
-				.WaitAsync(100, 10, token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-		}
-	}
+	public Task StopHookAsync(CancellationToken token = default) => _hookRunner.StopAsync(token);
 
 	/// <summary>
 	/// Handles the <see cref="IGlobalHook.KeyReleased" /> event.
@@ -250,16 +200,6 @@ public sealed partial class HotkeysEditorViewModel : ObservableDisposableBase
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
-
-		try
-		{
-			_hook.Dispose();
-		}
-		catch (HookException ex)
-		{
-			// The native hook may already be stopped — disposal must never throw.
-			_logger.LogException(ex);
-		}
 
 		Buffer.Clear();
 	}

@@ -8,7 +8,9 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages;
 using DataOrganizer.Services;
+using Moq;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -27,17 +29,19 @@ internal class KeyboardInputHookTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="KeyboardInputHook.Dispose" />: the underlying hook is disposed and the files and input stack are cleared.
+	/// <see cref="KeyboardInputHook.Dispose" />: the files and input stack are cleared and the shared hook stays alive.
 	/// </summary>
 	[Test]
-	public void Dispose_Disposes_Hook()
+	public void Dispose_Clears_State_And_Keeps_Hook()
 	{
 		// Arrange
 		TestGlobalHook hook = new();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHook>(hook));
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
 
 		sut
 			.Files
@@ -50,10 +54,9 @@ internal class KeyboardInputHookTests
 		// Act
 		sut.Dispose();
 
-		// Assert
 		hook.IsDisposed
 			.Should()
-			.BeTrue();
+			.BeFalse();
 
 		sut.Files
 			.Should()
@@ -142,6 +145,26 @@ internal class KeyboardInputHookTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyboardInputHook.Receive" />: a released key message is handed to the asynchronous handler.
+	/// </summary>
+	[Test]
+	public void Receive_Hands_Message_To_Handler()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		Mock<ITaskExceptionHandler> exceptionHandler = mock.Mock<ITaskExceptionHandler>();
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		// Act
+		sut.Receive(new GlobalKeyReleasedMessage(EventMask.LeftCtrl, KeyCode.VcA));
+
+		// Assert
+		exceptionHandler.Verify(x => x.Watch(It.IsAny<Task>()), Times.Once);
+	}
+
+	/// <summary>
 	/// <see cref="KeyboardInputHook.StopTrackingAsync" />: the running hook is stopped and the files and input stack are cleared.
 	/// </summary>
 	[Test]
@@ -152,7 +175,9 @@ internal class KeyboardInputHookTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHook>(hook));
+		GlobalHookRunner runner = mock.Create<GlobalHookRunner>(TypedParameter.From<IGlobalHook>(hook));
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>(TypedParameter.From<IGlobalHookRunner>(runner));
 
 		sut
 			.Files
@@ -162,7 +187,7 @@ internal class KeyboardInputHookTests
 			.InputStack
 			.AddRange(TestUtils.CreateCodeMaskPairs(5));
 
-		_ = hook.RunAsync();
+		await runner.StartAsync();
 
 		sut.IsRunning
 			.Should()
