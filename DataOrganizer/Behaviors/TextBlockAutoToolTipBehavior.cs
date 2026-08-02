@@ -10,6 +10,10 @@ using System.Reactive.Linq;
 
 namespace DataOrganizer.Behaviors;
 
+/// <summary>
+/// Trims the associated <see cref="TextBlock" /> with an ellipsis and shows its full text
+/// in a tooltip while the text stays trimmed.
+/// </summary>
 internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 {
 	#region Properties

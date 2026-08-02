@@ -458,6 +458,40 @@
 		</StackPanel>
 	</DataTemplate>
 
+	<!-- EditingFileTabContextMenuTemplate -->
+	<DataTemplate
+		x:Key="EditingFileTabContextMenuTemplate"
+		x:DataType="entities:FileModelDto">
+		<StackPanel Orientation="Vertical">
+			<StackPanel.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+					<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<wrappers:FlyoutButton
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseTabCommand}"
+				CommandParameter="{Binding}"
+				Header="{x:Static prop:Strings.Close}"
+				Icon="Close"
+				IconForeground="{StaticResource WarningBrush}" />
+
+			<wrappers:FlyoutButton
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseOtherTabsCommand}"
+				CommandParameter="{Binding}"
+				Header="{x:Static prop:Strings.CloseOtherTabs}"
+				Icon="CloseBoxMultipleOutline"
+				IconForeground="{StaticResource WarningBrush}" />
+
+			<wrappers:FlyoutButton
+				Command="{Binding $parent[UserControl].((vm:EditingFilesViewModel)DataContext).CloseAllTabsCommand}"
+				Header="{x:Static prop:Strings.CloseAllTabs}"
+				Icon="CloseBoxMultiple"
+				IconForeground="{StaticResource WarningBrush}" />
+		</StackPanel>
+	</DataTemplate>
+
 	<!-- FileInListContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInListContextMenuTemplate"

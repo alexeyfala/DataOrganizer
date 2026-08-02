@@ -3,33 +3,49 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
-	<TabControl
+	<wrappers:RightClickSelectableTabControl
 		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
 		AutoScrollToSelectedItem="True"
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-		Theme="{StaticResource ScrollableTabControl}">
+		Theme="{StaticResource ContentSizedTabControlTheme}">
 
-		<TabControl.KeyBindings>
+		<wrappers:RightClickSelectableTabControl.KeyBindings>
 			<KeyBinding
 				Command="{Binding SwitchToPreviousTabCommand}"
 				Gesture="Ctrl+Tab" />
-		</TabControl.KeyBindings>
+		</wrappers:RightClickSelectableTabControl.KeyBindings>
 
 		<Interaction.Behaviors>
+			<behaviors:MiddleClickTabCommandBehavior Command="{Binding CloseTabCommand}" />
+
 			<EventTriggerBehavior EventName="SelectionChanged">
 				<InvokeCommandAction
 					Command="{Binding SelectionChangedCommand}"
 					PassEventArgsToCommand="True" />
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
-	</TabControl>
+
+		<wrappers:RightClickSelectableTabControl.Styles>
+			<Style Selector="TabItem">
+				<Setter Property="(Interaction.Behaviors)">
+					<BehaviorCollectionTemplate>
+						<BehaviorCollection>
+							<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
+						</BehaviorCollection>
+					</BehaviorCollectionTemplate>
+				</Setter>
+			</Style>
+		</wrappers:RightClickSelectableTabControl.Styles>
+	</wrappers:RightClickSelectableTabControl>
 </UserControl>

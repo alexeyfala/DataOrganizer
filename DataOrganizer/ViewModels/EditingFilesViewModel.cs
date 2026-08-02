@@ -8,6 +8,7 @@ using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -31,6 +32,29 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	#endregion
 
 	#region Auto-Generated Commands
+	/// <summary>
+	/// Closes every tab in <see cref="TabControl" />.
+	/// </summary>
+	[RelayCommand]
+	internal void CloseAllTabs() => Items.ToArray().ForEach(CloseTab);
+
+	/// <summary>
+	/// Closes every tab in <see cref="TabControl" /> except the specified one.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanCloseOtherTabs))]
+	internal void CloseOtherTabs(FileModelDto dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		Items
+			.Where(x => !ReferenceEquals(x, dto))
+			.ToArray()
+			.ForEach(CloseTab);
+	}
+
 	/// <summary>
 	/// Closes a the tab in <see cref="TabControl" />.
 	/// </summary>
@@ -90,12 +114,19 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	[RelayCommand]
 	private void SwitchToPreviousTab()
 	{
-		if (_previousSelectedIndex < 0)
+		if (_previousSelectedItem is null)
 		{
 			return;
 		}
 
-		SelectedIndex = _previousSelectedIndex;
+		int index = Items.IndexOf(_previousSelectedItem);
+
+		if (index < 0)
+		{
+			return;
+		}
+
+		SelectedIndex = index;
 	}
 	#endregion
 
@@ -103,7 +134,12 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Called when <see cref="SelectedIndex" /> changes.
 	/// </summary>
-	partial void OnSelectedIndexChanged(int oldValue, int newValue) => _previousSelectedIndex = oldValue;
+	partial void OnSelectedIndexChanged(int oldValue, int newValue)
+	{
+		_previousSelectedItem = oldValue >= 0 && oldValue < Items.Count
+			? Items[oldValue]
+			: null;
+	}
 	#endregion
 
 	#region Data
@@ -114,9 +150,9 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	private readonly IViewCache _viewCache;
 
 	/// <summary>
-	/// Previous <see cref="SelectedIndex" /> value.
+	/// Item that was selected before the current one.
 	/// </summary>
-	private int _previousSelectedIndex;
+	private FileModelDto? _previousSelectedItem;
 	#endregion
 
 	#region Constructors
@@ -137,6 +173,8 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Remove(dto);
 
 		_viewCache.Remove(dto);
+
+		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -170,6 +208,15 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		Items.Add(dto);
 
 		SelectedIndex = Items.Count - 1;
+
+		CloseOtherTabsCommand.NotifyCanExecuteChanged();
 	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Validates <see cref="CloseOtherTabsCommand" />.
+	/// </summary>
+	private bool CanCloseOtherTabs() => Items.Count > 1;
 	#endregion
 }
