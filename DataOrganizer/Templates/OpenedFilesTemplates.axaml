@@ -80,7 +80,7 @@
 		x:DataType="entities:FileModelDto">
 		<StackPanel
 			Orientation="Horizontal"
-			Spacing="0.0">
+			Spacing="4.0">
 
 			<TextBlock
 				MaxWidth="128.0"
