@@ -79,8 +79,13 @@
 		x:Key="EditingFileTabControlHeaderTemplate"
 		x:DataType="entities:FileModelDto">
 		<StackPanel
+			Background="Transparent"
 			Orientation="Horizontal"
 			Spacing="4.0">
+
+			<Interaction.Behaviors>
+				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
+			</Interaction.Behaviors>
 
 			<TextBlock
 				MaxWidth="128.0"

@@ -583,4 +583,10 @@
   <data name="ApplicationData" xml:space="preserve">
     <value>Application Data</value>
   </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>Close Other Tabs</value>
+  </data>
+  <data name="CloseAllTabs" xml:space="preserve">
+    <value>Close All Tabs</value>
+  </data>
 </root>

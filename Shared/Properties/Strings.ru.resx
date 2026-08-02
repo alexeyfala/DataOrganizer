@@ -603,4 +603,10 @@
   <data name="ApplicationData" xml:space="preserve">
     <value>Данные приложения</value>
   </data>
+  <data name="CloseOtherTabs" xml:space="preserve">
+    <value>Закрыть другие вкладки</value>
+  </data>
+  <data name="CloseAllTabs" xml:space="preserve">
+    <value>Закрыть все вкладки</value>
+  </data>
 </root>
