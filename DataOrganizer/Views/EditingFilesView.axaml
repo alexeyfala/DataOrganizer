@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -32,5 +33,17 @@
 					PassEventArgsToCommand="True" />
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
+
+		<wrappers:RightClickSelectableTabControl.Styles>
+			<Style Selector="TabItem">
+				<Setter Property="(Interaction.Behaviors)">
+					<BehaviorCollectionTemplate>
+						<BehaviorCollection>
+							<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
+						</BehaviorCollection>
+					</BehaviorCollectionTemplate>
+				</Setter>
+			</Style>
+		</wrappers:RightClickSelectableTabControl.Styles>
 	</wrappers:RightClickSelectableTabControl>
 </UserControl>

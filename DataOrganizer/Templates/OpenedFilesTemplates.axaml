@@ -83,10 +83,6 @@
 			Orientation="Horizontal"
 			Spacing="4.0">
 
-			<Interaction.Behaviors>
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource EditingFileTabContextMenuTemplate}" />
-			</Interaction.Behaviors>
-
 			<TextBlock
 				MaxWidth="128.0"
 				Margin="0.0"
