@@ -16,7 +16,7 @@
 		ItemTemplate="{StaticResource EditingFileTabControlHeaderTemplate}"
 		ItemsSource="{Binding Items, Mode=OneTime}"
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-		Theme="{StaticResource ScrollableTabControl}">
+		Theme="{StaticResource ContentSizedTabControlTheme}">
 
 		<TabControl.KeyBindings>
 			<KeyBinding
