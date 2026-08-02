@@ -27,6 +27,8 @@
 		</wrappers:RightClickSelectableTabControl.KeyBindings>
 
 		<Interaction.Behaviors>
+			<behaviors:MiddleClickTabCommandBehavior Command="{Binding CloseTabCommand}" />
+
 			<EventTriggerBehavior EventName="SelectionChanged">
 				<InvokeCommandAction
 					Command="{Binding SelectionChangedCommand}"
