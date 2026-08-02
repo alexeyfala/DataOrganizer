@@ -6,10 +6,11 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	x:DataType="vm:EditingFilesViewModel"
 	mc:Ignorable="d">
 
-	<TabControl
+	<wrappers:RightClickSelectableTabControl
 		assists:TabControlAssist.TabHeaderHorizontalAlignment="Left"
 		AutoScrollToSelectedItem="True"
 		IsVisible="{Binding Items.Count, Mode=OneWay}"
@@ -18,11 +19,11 @@
 		SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
 		Theme="{StaticResource ContentSizedTabControlTheme}">
 
-		<TabControl.KeyBindings>
+		<wrappers:RightClickSelectableTabControl.KeyBindings>
 			<KeyBinding
 				Command="{Binding SwitchToPreviousTabCommand}"
 				Gesture="Ctrl+Tab" />
-		</TabControl.KeyBindings>
+		</wrappers:RightClickSelectableTabControl.KeyBindings>
 
 		<Interaction.Behaviors>
 			<EventTriggerBehavior EventName="SelectionChanged">
@@ -31,5 +32,5 @@
 					PassEventArgsToCommand="True" />
 			</EventTriggerBehavior>
 		</Interaction.Behaviors>
-	</TabControl>
+	</wrappers:RightClickSelectableTabControl>
 </UserControl>
