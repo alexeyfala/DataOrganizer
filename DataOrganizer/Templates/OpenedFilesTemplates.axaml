@@ -86,8 +86,11 @@
 				MaxWidth="128.0"
 				Margin="0.0"
 				VerticalAlignment="Center"
-				Text="{Binding Name, Mode=OneWay}"
-				TextTrimming="CharacterEllipsis" />
+				Text="{Binding Name, Mode=OneWay}">
+				<Interaction.Behaviors>
+					<behaviors:TextBlockAutoToolTipBehavior />
+				</Interaction.Behaviors>
+			</TextBlock>
 
 			<materialIcons:MaterialIcon
 				Background="Transparent"
