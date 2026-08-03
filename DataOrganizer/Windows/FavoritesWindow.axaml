@@ -64,9 +64,9 @@
 					ToolTip.Tip="{x:Static prop:Strings.Fix}">
 
 					<Interaction.Behaviors>
-						<EventTriggerBehavior EventName="PointerEntered">
-							<InvokeCommandAction Command="{Binding ShowPopupOnHoverCommand}" />
-						</EventTriggerBehavior>
+						<behaviors:PointerHoverCommandBehavior
+							Command="{Binding ShowPopupOnHoverCommand}"
+							Delay="300" />
 					</Interaction.Behaviors>
 				</ToggleSwitch>
 
