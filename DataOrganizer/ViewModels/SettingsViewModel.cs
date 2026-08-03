@@ -43,10 +43,26 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public AppSettings CurrentSettings { get; }
 
 	/// <summary>
+	/// <c>True</c> when the confirmation of closing with unsaved changes is displayed.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsConfirmingClose { get; set; }
+
+	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Dark" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsDarkTheme { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when the current settings differ from the saved ones.
+	/// </summary>
+	public bool IsDirty => !Equals(CurrentSettings, _settingsStore.Settings);
+
+	/// <summary>
+	/// <c>True</c> when the user has chosen to close the view without saving.
+	/// </summary>
+	public bool IsDiscarded { get; private set; }
 
 	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Inherit" /> theme is used.
@@ -259,12 +275,40 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 	#region Auto-Generated Commands
 	/// <summary>
+	/// Closes the view without saving the changes.
+	/// </summary>
+	[RelayCommand]
+	internal void DiscardAndClose()
+	{
+		IsDiscarded = true;
+
+		IsConfirmingClose = false;
+
+		if (AppDomain
+			.CurrentDomain
+			.IsRunningFromNUnit())
+		{
+			return;
+		}
+
+		DialogHost.Close(null);
+	}
+
+	/// <summary>
+	/// Dismisses the confirmation and returns to editing the settings.
+	/// </summary>
+	[RelayCommand]
+	internal void KeepEditing() => IsConfirmingClose = false;
+
+	/// <summary>
 	/// Saves settings and closes the view.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSaveAndClose))]
 	internal void SaveAndClose()
 	{
 		IsSaved = true;
+
+		IsConfirmingClose = false;
 
 		if (AppDomain
 			.CurrentDomain
@@ -324,6 +368,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>
-	private bool CanSaveAndClose() => !Equals(CurrentSettings, _settingsStore.Settings);
+	private bool CanSaveAndClose() => IsDirty;
 	#endregion
 }

@@ -4,8 +4,13 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
+using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
+using DataOrganizer.ViewModels;
+using DataOrganizer.Views.Settings;
+using DialogHostAvalonia;
 using NSubstitute;
 using System;
 using System.Threading.Tasks;
@@ -154,6 +159,82 @@ internal class DialogServiceTests
 		first
 			.Should()
 			.NotBeSameAs(second);
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.ShowSettingsAsync" />: closing the view with unsaved changes keeps it
+	/// open and asks for a confirmation, and discarding then closes it without saving.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task ShowSettingsAsync_Confirms_Closing_With_Unsaved_Changes()
+	{
+		// Arrange
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		settingsStore
+			.Settings
+			.Returns(TestUtils.CreateRandomSettings());
+
+		SettingsViewModel viewModel = new(settingsStore, Substitute.For<IAppThemeService>());
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		viewFactory
+			.CreateViewModel<SettingsViewModel>()
+			.Returns(viewModel);
+
+		viewFactory
+			.CreateUserControl<SettingsView>(Arg.Any<object[]>())
+			.Returns(new SettingsView(viewModel));
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new();
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		Task<ShowSettingsResult> showTask = sut.ShowSettingsAsync();
+
+		Dispatcher.UIThread.RunJobs();
+
+		viewModel.CheckForUpdates = !viewModel.CheckForUpdates;
+
+		// Act
+		DialogHost.Close(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		showTask.IsCompleted
+			.Should()
+			.BeFalse();
+
+		viewModel.IsConfirmingClose
+			.Should()
+			.BeTrue();
+
+		// Act
+		viewModel
+			.DiscardAndCloseCommand
+			.Execute(null);
+
+		// The command itself skips the real close when it runs under NUnit.
+		DialogHost.Close(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		ShowSettingsResult result = await showTask;
+
+		result.IsSaved
+			.Should()
+			.BeFalse();
 	}
 	#endregion
 }

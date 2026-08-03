@@ -598,4 +598,10 @@
   <data name="Behavior" xml:space="preserve">
     <value>Behavior</value>
   </data>
+  <data name="DoNotSave" xml:space="preserve">
+    <value>Don't Save</value>
+  </data>
+  <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
+    <value>The settings have unsaved changes</value>
+  </data>
 </root>

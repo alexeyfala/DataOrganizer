@@ -618,4 +618,10 @@
   <data name="Behavior" xml:space="preserve">
     <value>Поведение</value>
   </data>
+  <data name="DoNotSave" xml:space="preserve">
+    <value>Не сохранять</value>
+  </data>
+  <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
+    <value>В настройках есть несохранённые изменения</value>
+  </data>
 </root>

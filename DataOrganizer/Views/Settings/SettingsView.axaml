@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="using:DialogHostAvalonia"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -14,17 +15,33 @@
 	mc:Ignorable="d">
 
 	<Grid
-		RowDefinitions="Auto,*"
+		RowDefinitions="Auto,*,Auto"
 		RowSpacing="{StaticResource ElementSpacing}">
-		<Button
+		<StackPanel
 			Grid.Row="0"
 			HorizontalAlignment="Left"
-			Classes="primary"
-			Command="{Binding SaveAndCloseCommand}"
-			Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
-			                                            IconSize={StaticResource ToolBarIconSize}}"
-			Theme="{StaticResource MaterialFlatButton}"
-			ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<StackPanel.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding SaveAndCloseCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+		</StackPanel>
 
 		<Grid
 			Grid.Row="1"
@@ -110,5 +127,59 @@
 				</wrappers:MaxSizeSwitchPanel>
 			</ScrollViewer>
 		</Grid>
+
+		<!-- Shown instead of closing the dialog while there are unsaved changes. -->
+		<Border
+			Grid.Row="2"
+			Padding="{StaticResource DialogIndent}"
+			BorderBrush="{StaticResource MaterialDividerBrush}"
+			BorderThickness="1.0"
+			CornerRadius="4.0"
+			IsVisible="{Binding IsConfirmingClose, Mode=OneWay}">
+			<Grid
+				ColumnDefinitions="Auto,*,Auto"
+				ColumnSpacing="{StaticResource ElementSpacing}">
+				<Grid.Styles>
+					<Style Selector="Button">
+						<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+					</Style>
+				</Grid.Styles>
+
+				<materialIcons:MaterialIcon
+					Grid.Column="0"
+					Width="{StaticResource SmallButtonIconSize}"
+					Height="{StaticResource SmallButtonIconSize}"
+					VerticalAlignment="Center"
+					Foreground="{StaticResource WarningBrush}"
+					Kind="AlertOutline" />
+
+				<TextBlock
+					Grid.Column="1"
+					VerticalAlignment="Center"
+					Text="{x:Static prop:Strings.SettingsHaveUnsavedChanges}"
+					TextWrapping="Wrap" />
+
+				<StackPanel
+					Grid.Column="2"
+					Orientation="Horizontal"
+					Spacing="{StaticResource ElementSpacing}">
+					<Button
+						Classes="primary"
+						Command="{Binding SaveAndCloseCommand}"
+						Content="{x:Static prop:Strings.Save}"
+						IsDefault="True" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding DiscardAndCloseCommand}"
+						Content="{x:Static prop:Strings.DoNotSave}" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding KeepEditingCommand}"
+						Content="{x:Static prop:Strings.Cancel}" />
+				</StackPanel>
+			</Grid>
+		</Border>
 	</Grid>
 </UserControl>

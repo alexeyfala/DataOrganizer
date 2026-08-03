@@ -466,6 +466,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Don&apos;t Save.
+        /// </summary>
+        public static string DoNotSave {
+            get {
+                return ResourceManager.GetString("DoNotSave", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
         public static string Edit {
@@ -1299,6 +1308,15 @@ namespace Shared.Properties {
         public static string Settings {
             get {
                 return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The settings have unsaved changes.
+        /// </summary>
+        public static string SettingsHaveUnsavedChanges {
+            get {
+                return ResourceManager.GetString("SettingsHaveUnsavedChanges", resourceCulture);
             }
         }
         

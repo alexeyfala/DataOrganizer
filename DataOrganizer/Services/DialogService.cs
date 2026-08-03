@@ -292,8 +292,24 @@ public sealed class DialogService : IDialogService
 		SettingsViewModel viewModel = _viewFactory.CreateViewModel<SettingsViewModel>();
 
 		await DialogHost
-			.Show(_viewFactory.CreateUserControl<SettingsView>(viewModel))
+			.Show(_viewFactory.CreateUserControl<SettingsView>(viewModel), ClosingSettings)
 			.ConfigureAwait(false);
+
+		// Turns closing with unsaved changes (Escape, the close button, a click away) into
+		// an in-place confirmation instead of a silent discard.
+		void ClosingSettings(object sender, DialogClosingEventArgs args)
+		{
+			if (viewModel.IsSaved
+				|| viewModel.IsDiscarded
+				|| !viewModel.IsDirty)
+			{
+				return;
+			}
+
+			args.Cancel();
+
+			viewModel.IsConfirmingClose = true;
+		}
 
 		return new()
 		{
