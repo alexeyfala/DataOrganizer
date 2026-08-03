@@ -12,6 +12,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;

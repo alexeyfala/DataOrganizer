@@ -3,6 +3,7 @@ using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;

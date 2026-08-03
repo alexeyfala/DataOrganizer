@@ -8,6 +8,7 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;

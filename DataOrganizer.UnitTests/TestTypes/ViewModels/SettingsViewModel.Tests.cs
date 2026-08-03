@@ -4,6 +4,8 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.ViewModels;
 using Material.Colors;
 using Material.Styles.Themes.Base;
@@ -416,6 +418,45 @@ internal class SettingsViewModelTests
 		canExecute
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.SelectedCategoryIndex" />: starts from the category kept for the session
+	/// and writes the newly selected one back to it.
+	/// </summary>
+	[Test]
+	public void SelectedCategoryIndex_Is_Restored_From_And_Written_To_The_Session_State()
+	{
+		// Arrange
+		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(TestUtils.CreateRandomSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<ISettingsSessionState>(sessionState);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Assert
+		sut.SelectedCategoryIndex
+			.Should()
+			.Be(2);
+
+		// Act
+		sut.SelectedCategoryIndex = 3;
+
+		// Assert
+		sessionState.LastCategoryIndex
+			.Should()
+			.Be(3);
 	}
 	#endregion
 }

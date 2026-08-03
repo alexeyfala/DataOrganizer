@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DialogHostAvalonia;
 using Material.Colors;
 using Material.Styles.Themes.Base;
@@ -96,6 +97,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <inheritdoc cref="AppSettings.SecondaryColor" />
 	[ObservableProperty]
 	public partial SecondaryColor SecondaryColor { get; set; }
+
+	/// <summary>
+	/// Index of the settings category displayed in the view.
+	/// </summary>
+	[ObservableProperty]
+	public partial int SelectedCategoryIndex { get; set; }
 
 	/// <inheritdoc cref="AppSettings.ShowFavoritesOnHover" />
 	[ObservableProperty]
@@ -243,6 +250,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="SelectedCategoryIndex" /> changes.
+	/// </summary>
+	partial void OnSelectedCategoryIndexChanged(int value) => _sessionState.LastCategoryIndex = value;
+
+	/// <summary>
 	/// Called when <see cref="ShowFavoritesOnHover" /> changes.
 	/// </summary>
 	partial void OnShowFavoritesOnHoverChanged(bool value)
@@ -322,6 +334,9 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="ISettingsSessionState" />
+	private readonly ISettingsSessionState _sessionState;
+
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
 
@@ -332,11 +347,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#region Constructors
 	public SettingsViewModel(
 		IAppSettingsStore settingsStore,
-		IAppThemeService themeService)
+		IAppThemeService themeService,
+		ISettingsSessionState sessionState)
 	{
+		_sessionState = sessionState;
+
 		_settingsStore = settingsStore;
 
 		_themeService = themeService;
+
+		SelectedCategoryIndex = sessionState.LastCategoryIndex;
 
 		CurrentSettings = settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
 

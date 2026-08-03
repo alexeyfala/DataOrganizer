@@ -7,6 +7,7 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views.Settings;
@@ -175,7 +176,10 @@ internal class DialogServiceTests
 			.Settings
 			.Returns(TestUtils.CreateRandomSettings());
 
-		SettingsViewModel viewModel = new(settingsStore, Substitute.For<IAppThemeService>());
+		SettingsViewModel viewModel = new(
+			settingsStore,
+			Substitute.For<IAppThemeService>(),
+			Substitute.For<ISettingsSessionState>());
 
 		IViewFactory viewFactory = Substitute.For<IViewFactory>();
 

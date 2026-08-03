@@ -1,6 +1,7 @@
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.DTO.Updates;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Serilog;
 using Shared.Extensions;

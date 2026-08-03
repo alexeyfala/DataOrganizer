@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Styling;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using Material.Colors;
 using Material.Styles.Themes;
 using Material.Styles.Themes.Base;
