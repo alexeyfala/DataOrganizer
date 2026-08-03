@@ -129,6 +129,39 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="SettingsViewModel.ShowFavoritesOnHover" />: enabling the flag updates the current settings value.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_ShowFavoritesOnHover()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.ShowFavoritesOnHover = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.ShowFavoritesOnHover = true;
+
+		// Assert
+		sut.CurrentSettings.ShowFavoritesOnHover
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="SettingsViewModel.IsInheritTheme" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
 	/// </summary>
 	[Test]
@@ -249,6 +282,8 @@ internal class SettingsViewModelTests
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings();
 
+		settings.ShowFavoritesOnHover = true;
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
@@ -291,6 +326,10 @@ internal class SettingsViewModelTests
 		sut.CurrentSettings.CheckForUpdates
 			.Should()
 			.Be(settings.CheckForUpdates);
+
+		sut.CurrentSettings.ShowFavoritesOnHover
+			.Should()
+			.Be(settings.ShowFavoritesOnHover);
 	}
 
 	/// <summary>
