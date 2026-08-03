@@ -110,7 +110,6 @@
 	<Style Selector="TextBlock.DtoNameTextBlockStyle">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="Margin" Value="4.0,0.0,0.0,0.0" />
-		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
 		<Setter Property="VerticalAlignment" Value="Center" />
 	</Style>
 

@@ -12,29 +12,11 @@ namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Trims the associated <see cref="TextBlock" /> with an ellipsis and shows its full text
-/// in a tooltip while the text stays trimmed.
+/// in a tooltip while the text stays trimmed. The tooltip is suppressed while <see cref="Behavior.IsEnabled" />
+/// is <c>false</c>.
 /// </summary>
 internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 {
-	#region Properties
-	/// <summary>
-	/// <c>True</c> when the tooltip should not be displayed.
-	/// </summary>
-	public bool IsDisabled
-	{
-		get => GetValue(IsDisabledProperty);
-		set => SetValue(IsDisabledProperty, value);
-	}
-	#endregion
-
-	#region Styled Properties
-	/// <summary>
-	/// Identifies the <see cref="IsDisabled" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> IsDisabledProperty = AvaloniaProperty
-		.Register<TextBlockAutoToolTipBehavior, bool>(name: nameof(IsDisabled));
-	#endregion
-
 	#region Data
 	/// <inheritdoc cref="CompositeDisposable" />
 	private readonly CompositeDisposable _disposables = [];
@@ -52,9 +34,9 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	private void AssociatedObject_TextProperty_Changed(string? value) => SetOrRemoveToolTip();
 
 	/// <summary>
-	/// <see cref="IsDisabledProperty" /> changed handler.
+	/// <see cref="Behavior.IsEnabledProperty" /> changed handler.
 	/// </summary>
-	private void IsDisabledProperty_Changed(bool value) => SetOrRemoveToolTip();
+	private void IsEnabledProperty_Changed(bool value) => SetOrRemoveToolTip();
 	#endregion
 
 	#region Methods
@@ -71,8 +53,8 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 		AssociatedObject.TextTrimming = TextTrimming.CharacterEllipsis;
 
 		this
-			.GetObservable(IsDisabledProperty)
-			.Subscribe(IsDisabledProperty_Changed)
+			.GetObservable(IsEnabledProperty)
+			.Subscribe(IsEnabledProperty_Changed)
 			.DisposeWith(_disposables);
 
 		AssociatedObject
@@ -107,7 +89,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 			return;
 		}
 
-		if (IsDisabled)
+		if (!IsEnabled)
 		{
 			if (ToolTip.GetTip(AssociatedObject) is not null)
 			{

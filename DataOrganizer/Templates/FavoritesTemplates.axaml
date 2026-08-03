@@ -58,7 +58,11 @@
 			<TextBlock
 				Grid.Column="1"
 				Classes="DtoNameTextBlockStyle"
-				Text="{Binding Name, Mode=OneTime}" />
+				Text="{Binding Name, Mode=OneTime}">
+				<Interaction.Behaviors>
+					<behaviors:TextBlockAutoToolTipBehavior />
+				</Interaction.Behaviors>
+			</TextBlock>
 
 			<views:IconsBlock
 				Grid.Column="2"
