@@ -60,6 +60,7 @@
 				Margin="6.0,0.0"
 				AllowSpin="True"
 				Background="Transparent"
+				Foreground="{StaticResource MaterialBodyBrush}"
 				ToolTip.Tip="{x:Static prop:Strings.FontSize}">
 
 				<Interaction.Behaviors>
