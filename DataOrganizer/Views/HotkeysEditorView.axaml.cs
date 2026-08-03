@@ -3,7 +3,7 @@ using DataOrganizer.Wrappers;
 
 namespace DataOrganizer.Views;
 
-public partial class HotkeysEditorView : CustomUserControl
+public partial class HotkeysEditorView : DialogViewBase
 {
 	#region Constructors
 	public HotkeysEditorView() => InitializeComponent();

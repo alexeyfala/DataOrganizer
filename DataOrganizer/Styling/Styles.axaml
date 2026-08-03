@@ -238,6 +238,20 @@
 		</Setter>
 	</Style>
 
+	<!-- Help icon with a tooltip, shown next to a settings group. -->
+	<Style Selector="Border.HelpIconBorderStyle">
+		<Setter Property="VerticalAlignment" Value="Center" />
+		<Setter Property="Background" Value="Transparent" />
+		<Setter Property="Cursor" Value="Help" />
+		<Setter Property="Child">
+			<Template>
+				<materialIcons:MaterialIcon
+					Foreground="DodgerBlue"
+					Kind="HelpCircleOutline" />
+			</Template>
+		</Setter>
+	</Style>
+
 	<Style Selector="Image.AppImageStyle">
 		<Setter Property="Height" Value="16.0" />
 		<Setter Property="Source" Value="/Assets/Logo.ico" />

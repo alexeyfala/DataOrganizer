@@ -124,6 +124,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Appearance.
+        /// </summary>
+        public static string Appearance {
+            get {
+                return ResourceManager.GetString("Appearance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Application Data.
         /// </summary>
         public static string ApplicationData {
@@ -156,6 +165,15 @@ namespace Shared.Properties {
         public static string AssigningHotkeys {
             get {
                 return ResourceManager.GetString("AssigningHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Behavior.
+        /// </summary>
+        public static string Behavior {
+            get {
+                return ResourceManager.GetString("Behavior", resourceCulture);
             }
         }
         

@@ -5,6 +5,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using DataOrganizer.Views.Settings;
 using DialogHostAvalonia;
 using Entities.Enums;
 using Repository.DTO;

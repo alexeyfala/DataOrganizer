@@ -22,6 +22,7 @@ using DataOrganizer.Services.Explorer;
 using DataOrganizer.Services.Updates;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using DataOrganizer.Views.Settings;
 using DataOrganizer.Windows;
 using Mapster;
 using Microsoft.Data.Sqlite;

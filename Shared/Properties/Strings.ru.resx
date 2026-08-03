@@ -612,4 +612,10 @@
   <data name="ShowFavoritesOnHover" xml:space="preserve">
     <value>Показывать панель при наведении на переключатель</value>
   </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Внешний вид</value>
+  </data>
+  <data name="Behavior" xml:space="preserve">
+    <value>Поведение</value>
+  </data>
 </root>

@@ -22,6 +22,9 @@
 
 	<system:Double x:Key="EntityTypeIconSize">28.0</system:Double>
 
+	<!-- Height of a combo box inside a settings group box. -->
+	<system:Double x:Key="SettingsComboBoxHeight">18.0</system:Double>
+
 	<system:Double x:Key="SmallButtonIconSize">20.0</system:Double>
 
 	<system:Double x:Key="ToolBarIconSize">24.0</system:Double>

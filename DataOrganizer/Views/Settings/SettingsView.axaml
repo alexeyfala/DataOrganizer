@@ -1,16 +1,14 @@
 <UserControl
-	x:Class="DataOrganizer.Views.SettingsView"
+	x:Class="DataOrganizer.Views.Settings.SettingsView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:globalization="using:System.Globalization"
-	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:system="using:System"
+	xmlns:settings="using:DataOrganizer.Views.Settings"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	MinWidth="500.0"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Padding="{StaticResource DialogIndent}"
 	x:DataType="vm:SettingsViewModel"
 	mc:Ignorable="d">
@@ -28,196 +26,89 @@
 			Theme="{StaticResource MaterialFlatButton}"
 			ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
 
-		<ScrollViewer
+		<Grid
 			Grid.Row="1"
-			HorizontalScrollBarVisibility="Disabled"
-			VerticalScrollBarVisibility="Auto">
-			<Grid
-				RowDefinitions="*,*,*,*,*,*"
-				RowSpacing="{StaticResource ElementSpacing}">
+			ColumnDefinitions="Auto,*"
+			ColumnSpacing="{StaticResource ElementSpacing}">
+			<Grid.Styles>
+				<Style Selector="ListBoxItem materialIcons|MaterialIcon">
+					<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
+					<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
+				</Style>
 
-				<Grid.Resources>
-					<system:Double x:Key="ComboBoxHeight">18.0</system:Double>
-				</Grid.Resources>
+				<Style Selector="ListBoxItem TextBlock">
+					<Setter Property="VerticalAlignment" Value="Center" />
+				</Style>
+			</Grid.Styles>
 
-				<Grid.Styles>
-					<Style Selector="Border.HelpIconBorderStyle">
-						<Setter Property="VerticalAlignment" Value="Center" />
-						<Setter Property="Background" Value="Transparent" />
-						<Setter Property="Cursor" Value="Help" />
-						<Setter Property="Child">
-							<Template>
-								<materialIcons:MaterialIcon
-									Foreground="DodgerBlue"
-									Kind="HelpCircleOutline" />
-							</Template>
-						</Setter>
-					</Style>
-				</Grid.Styles>
-
-				<HeaderedContentControl
-					Grid.Row="0"
-					Classes="ClassicGroupBoxStyle"
-					Header="{x:Static prop:Strings.ColorScheme}">
-					<StackPanel
-						Margin="{StaticResource DialogIndent}"
-						Orientation="Vertical"
-						Spacing="{StaticResource ElementSpacing}">
-
-						<HeaderedContentControl
-							Classes="GroupBoxStyle"
-							Header="{x:Static prop:Strings.Theme}">
-							<materialControls:Card>
-								<materialControls:Card.Styles>
-									<Style Selector="RadioButton">
-										<Setter Property="HorizontalContentAlignment" Value="Center" />
-										<Setter Property="Theme" Value="{StaticResource MaterialButtonlikeRadioButton}" />
-									</Style>
-								</materialControls:Card.Styles>
-
-								<UniformGrid Columns="3">
-									<RadioButton
-										Classes="accent"
-										Content="{x:Static prop:Strings.System}"
-										IsChecked="{Binding IsInheritTheme, Mode=TwoWay}" />
-
-									<RadioButton
-										Classes="accent"
-										Content="{x:Static prop:Strings.Light}"
-										IsChecked="{Binding IsLightTheme, Mode=TwoWay}" />
-
-									<RadioButton
-										Classes="accent"
-										Content="{x:Static prop:Strings.Dark}"
-										IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
-								</UniformGrid>
-							</materialControls:Card>
-						</HeaderedContentControl>
-
-						<UniformGrid
-							ColumnSpacing="{StaticResource ElementSpacing}"
-							Columns="2">
-							<HeaderedContentControl
-								Classes="ClassicGroupBoxStyle"
-								Header="{x:Static prop:Strings.PrimaryColor}">
-								<ComboBox
-									Height="{StaticResource ComboBoxHeight}"
-									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
-									ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
-									SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
-							</HeaderedContentControl>
-
-							<HeaderedContentControl
-								Classes="ClassicGroupBoxStyle"
-								Header="{x:Static prop:Strings.SecondaryColor}">
-								<ComboBox
-									Height="{StaticResource ComboBoxHeight}"
-									ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
-									ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
-									SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
-							</HeaderedContentControl>
-						</UniformGrid>
-					</StackPanel>
-				</HeaderedContentControl>
-
-				<Grid
-					Grid.Row="1"
-					ColumnDefinitions="*,Auto"
-					ColumnSpacing="{StaticResource ElementSpacing}">
-					<HeaderedContentControl
-						Grid.Column="0"
-						Classes="ClassicGroupBoxStyle"
-						Header="{x:Static prop:Strings.Hotkeys}">
-						<CheckBox
-							Margin="10.0"
-							Content="{x:Static prop:Strings.EnableHotkeyTracking}"
-							IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
-					</HeaderedContentControl>
-
-					<Border
-						Grid.Column="1"
-						Margin="0.0,9.0,0.0,0.0"
-						Classes="HelpIconBorderStyle"
-						ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseHotkeys}" />
-				</Grid>
-
-				<Grid
-					Grid.Row="2"
-					ColumnDefinitions="*,Auto"
-					ColumnSpacing="{StaticResource ElementSpacing}">
-					<HeaderedContentControl
-						Grid.Column="0"
-						Classes="ClassicGroupBoxStyle"
-						Header="{x:Static prop:Strings.Clipboard}">
+			<ScrollViewer
+				Grid.Column="0"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto">
+				<ListBox
+					Name="CategoriesListBox"
+					SelectedIndex="0"
+					SelectionMode="AlwaysSelected">
+					<ListBoxItem>
 						<StackPanel
-							Margin="10.0"
-							Orientation="Vertical"
+							Orientation="Horizontal"
 							Spacing="{StaticResource ElementSpacing}">
-							<CheckBox
-								Content="{x:Static prop:Strings.EnableClipboardHistoryTracking}"
-								IsChecked="{Binding TrackClipboardHistory, Mode=TwoWay}" />
+							<materialIcons:MaterialIcon Kind="Cog" />
 
-							<CheckBox
-								Content="{x:Static prop:Strings.PersistHistoryBetweenSessions}"
-								IsChecked="{Binding PersistClipboardHistory, Mode=TwoWay}"
-								IsEnabled="{Binding TrackClipboardHistory, Mode=OneWay}" />
+							<TextBlock Text="{x:Static prop:Strings.General}" />
 						</StackPanel>
-					</HeaderedContentControl>
+					</ListBoxItem>
 
-					<Border
-						Grid.Column="1"
-						Margin="0.0,9.0,0.0,0.0"
-						Classes="HelpIconBorderStyle"
-						ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
-				</Grid>
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="Palette" />
 
-				<HeaderedContentControl
-					Grid.Row="3"
-					Classes="ClassicGroupBoxStyle"
-					Header="{x:Static prop:Strings.Favorites}">
-					<CheckBox
-						Margin="10.0"
-						Content="{x:Static prop:Strings.ShowFavoritesOnHover}"
-						IsChecked="{Binding ShowFavoritesOnHover, Mode=TwoWay}" />
-				</HeaderedContentControl>
+							<TextBlock Text="{x:Static prop:Strings.Appearance}" />
+						</StackPanel>
+					</ListBoxItem>
 
-				<Grid
-					Grid.Row="4"
-					ColumnDefinitions="*,Auto"
-					ColumnSpacing="{StaticResource ElementSpacing}">
-					<HeaderedContentControl
-						Grid.Column="0"
-						Classes="ClassicGroupBoxStyle"
-						Header="{x:Static prop:Strings.Language}">
-						<ComboBox
-							Height="{StaticResource ComboBoxHeight}"
-							ItemsSource="{Binding Languages, Mode=OneTime}"
-							SelectedItem="{Binding Language, Mode=TwoWay}">
-							<ComboBox.ItemTemplate>
-								<DataTemplate x:DataType="globalization:CultureInfo">
-									<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
-								</DataTemplate>
-							</ComboBox.ItemTemplate>
-						</ComboBox>
-					</HeaderedContentControl>
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="GestureTapButton" />
 
-					<Border
-						Grid.Column="1"
-						Margin="0.0,7.0,0.0,0.0"
-						Classes="HelpIconBorderStyle"
-						ToolTip.Tip="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
-				</Grid>
+							<TextBlock Text="{x:Static prop:Strings.Behavior}" />
+						</StackPanel>
+					</ListBoxItem>
 
-				<HeaderedContentControl
-					Grid.Row="5"
-					Classes="ClassicGroupBoxStyle"
-					Header="{x:Static prop:Strings.Updates}">
-					<CheckBox
-						Margin="10.0"
-						Content="{x:Static prop:Strings.CheckForUpdatesOnStartup}"
-						IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
-				</HeaderedContentControl>
-			</Grid>
-		</ScrollViewer>
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="ClipboardOutline" />
+
+							<TextBlock Text="{x:Static prop:Strings.Clipboard}" />
+						</StackPanel>
+					</ListBoxItem>
+				</ListBox>
+			</ScrollViewer>
+
+			<!--
+				The panel keeps the height of the tallest section, so switching a category does not
+				resize the dialog; the scroll viewer only kicks in once that height outgrows the window.
+			-->
+			<ScrollViewer
+				Grid.Column="1"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto">
+				<wrappers:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesListBox.SelectedIndex, Mode=OneWay}">
+					<settings:SettingsGeneralView />
+
+					<settings:SettingsAppearanceView />
+
+					<settings:SettingsBehaviorView />
+
+					<settings:SettingsClipboardView />
+				</wrappers:MaxSizeSwitchPanel>
+			</ScrollViewer>
+		</Grid>
 	</Grid>
 </UserControl>

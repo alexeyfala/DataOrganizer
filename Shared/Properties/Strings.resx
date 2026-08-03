@@ -592,4 +592,10 @@
   <data name="ShowFavoritesOnHover" xml:space="preserve">
     <value>Show the panel on hovering over the toggle</value>
   </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Behavior" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
 </root>
