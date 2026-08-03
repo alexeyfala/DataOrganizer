@@ -589,4 +589,7 @@
   <data name="CloseAllTabs" xml:space="preserve">
     <value>Close All Tabs</value>
   </data>
+  <data name="ShowFavoritesOnHover" xml:space="preserve">
+    <value>Show the panel on hovering over the toggle</value>
+  </data>
 </root>

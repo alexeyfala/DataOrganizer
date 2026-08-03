@@ -609,4 +609,7 @@
   <data name="CloseAllTabs" xml:space="preserve">
     <value>Закрыть все вкладки</value>
   </data>
+  <data name="ShowFavoritesOnHover" xml:space="preserve">
+    <value>Показывать панель при наведении на переключатель</value>
+  </data>
 </root>

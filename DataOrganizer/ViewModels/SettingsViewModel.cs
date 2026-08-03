@@ -81,6 +81,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	[ObservableProperty]
 	public partial SecondaryColor SecondaryColor { get; set; }
 
+	/// <inheritdoc cref="AppSettings.ShowFavoritesOnHover" />
+	[ObservableProperty]
+	public partial bool ShowFavoritesOnHover { get; set; }
+
 	/// <inheritdoc cref="AppSettings.TrackClipboardHistory" />
 	[ObservableProperty]
 	public partial bool TrackClipboardHistory { get; set; }
@@ -223,6 +227,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 
 	/// <summary>
+	/// Called when <see cref="ShowFavoritesOnHover" /> changes.
+	/// </summary>
+	partial void OnShowFavoritesOnHoverChanged(bool value)
+	{
+		CurrentSettings.ShowFavoritesOnHover = value;
+
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+	}
+
+	/// <summary>
 	/// Called when <see cref="TrackClipboardHistory" /> changes.
 	/// </summary>
 	partial void OnTrackClipboardHistoryChanged(bool value)
@@ -289,6 +303,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		PersistClipboardHistory = CurrentSettings.PersistClipboardHistory;
 
 		TrackHotkeys = CurrentSettings.TrackHotkeys;
+
+		ShowFavoritesOnHover = CurrentSettings.ShowFavoritesOnHover;
 
 		SecondaryColor = CurrentSettings.SecondaryColor;
 

@@ -33,7 +33,7 @@
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Auto">
 			<Grid
-				RowDefinitions="*,*,*,*,*"
+				RowDefinitions="*,*,*,*,*,*"
 				RowSpacing="{StaticResource ElementSpacing}">
 
 				<Grid.Resources>
@@ -171,8 +171,18 @@
 						ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
 				</Grid>
 
-				<Grid
+				<HeaderedContentControl
 					Grid.Row="3"
+					Classes="ClassicGroupBoxStyle"
+					Header="{x:Static prop:Strings.Favorites}">
+					<CheckBox
+						Margin="10.0"
+						Content="{x:Static prop:Strings.ShowFavoritesOnHover}"
+						IsChecked="{Binding ShowFavoritesOnHover, Mode=TwoWay}" />
+				</HeaderedContentControl>
+
+				<Grid
+					Grid.Row="4"
 					ColumnDefinitions="*,Auto"
 					ColumnSpacing="{StaticResource ElementSpacing}">
 					<HeaderedContentControl
@@ -199,7 +209,7 @@
 				</Grid>
 
 				<HeaderedContentControl
-					Grid.Row="4"
+					Grid.Row="5"
 					Classes="ClassicGroupBoxStyle"
 					Header="{x:Static prop:Strings.Updates}">
 					<CheckBox
