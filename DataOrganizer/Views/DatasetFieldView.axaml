@@ -145,11 +145,7 @@
 					Kind="NoteTextOutline">
 
 					<Interaction.Behaviors>
-						<EventTriggerBehavior EventName="PointerEntered">
-							<InvokeCommandAction
-								Command="{Binding NotePointerEnteredCommand}"
-								CommandParameter="{Binding #Icon}" />
-						</EventTriggerBehavior>
+						<behaviors:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
 					</Interaction.Behaviors>
 				</materialIcons:MaterialIcon>
 

@@ -8,8 +8,6 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
-using Material.Icons.Avalonia;
-using Shared.Common;
 using Shared.Extensions;
 using System;
 using System.ComponentModel;
@@ -300,25 +298,11 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// <see cref="InputElement.PointerEntered" /> event handler of control for "Note".
 	/// </summary>
+	/// <remarks>
+	/// The hover delay and the pointer check are handled by <c>PointerHoverCommandBehavior</c>.
+	/// </remarks>
 	[RelayCommand]
-	private async Task NotePointerEntered(MaterialIcon? icon)
-	{
-		if (icon is null)
-		{
-			return;
-		}
-
-		await Task
-			.Delay(AppUtils.TipDelay)
-			.ConfigureAwait(true);
-
-		if (!icon.IsPointerOver)
-		{
-			return;
-		}
-
-		ShowNote = true;
-	}
+	private void NotePointerEntered() => ShowNote = true;
 	#endregion
 
 	#region Data
