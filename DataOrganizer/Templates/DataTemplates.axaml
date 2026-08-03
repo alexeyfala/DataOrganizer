@@ -3,8 +3,8 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:messages="using:DataOrganizer.Messages"
@@ -102,7 +102,11 @@
 			<TextBlock
 				Grid.Column="2"
 				Classes="DtoNameTextBlockStyle"
-				Text="{Binding Name, Mode=OneWay}" />
+				Text="{Binding Name, Mode=OneWay}">
+				<Interaction.Behaviors>
+					<behaviors:TextBlockAutoToolTipBehavior />
+				</Interaction.Behaviors>
+			</TextBlock>
 
 			<views:IconsBlock
 				Grid.Column="3"

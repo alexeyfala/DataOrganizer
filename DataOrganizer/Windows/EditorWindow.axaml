@@ -311,13 +311,13 @@
 							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
 
-						<!-- ScrollViewer.HorizontalScrollBarVisibility="Disabled" -->
 						<TreeView
 							Grid.Row="0"
 							Grid.Column="0"
 							AutoScrollToSelectedItem="True"
 							Classes="VirtualizedTreeViewStyle"
 							ItemsSource="{Binding Hierarchy, Mode=OneTime}"
+							ScrollViewer.HorizontalScrollBarVisibility="Disabled"
 							SelectedItem="{Binding SelectedObject, Mode=TwoWay}">
 
 							<TreeView.Styles>
