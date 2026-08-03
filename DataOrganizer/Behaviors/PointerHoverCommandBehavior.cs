@@ -1,9 +1,8 @@
 using Avalonia;
 using Avalonia.Input;
-using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 using Shared.Common;
-using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace DataOrganizer.Behaviors;
@@ -42,17 +41,6 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 		get => GetValue(DelayProperty);
 		set => SetValue(DelayProperty, value);
 	}
-
-	/*
-	/// <summary>
-	/// Time the pointer has to rest over <see cref="AssociatedObject" /> before the command runs.
-	/// </summary>
-	public TimeSpan Delay
-	{
-		get => GetValue(DelayProperty);
-		set => SetValue(DelayProperty, value);
-	}
-	*/
 	#endregion
 
 	#region Styled Properties
@@ -71,53 +59,11 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 			AppUtils.TipDelay);
 	#endregion
 
-	#region Data
-	/// <summary>
-	/// Subscription of the pending hover timer.
-	/// </summary>
-	private IDisposable? _timer;
-	#endregion
-
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="InputElement.PointerEntered" /> handler of <see cref="AssociatedObject" />.
 	/// </summary>
-	private void AssociatedObject_PointerEntered(object? sender, PointerEventArgs e)
-	{
-		StopTimer();
-
-		_timer = DispatcherTimer.RunOnce(Timer_Tick, TimeSpan.FromMilliseconds(Delay));
-
-		// _timer = DispatcherTimer.RunOnce(Timer_Tick, Delay);
-	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerExited" /> handler of <see cref="AssociatedObject" />.
-	/// </summary>
-	private void AssociatedObject_PointerExited(object? sender, PointerEventArgs e) => StopTimer();
-
-	/// <summary>
-	/// Handler of the elapsed hover timer.
-	/// </summary>
-	private void Timer_Tick()
-	{
-		// The one-shot timer has already elapsed, so there is nothing left to stop.
-		_timer = null;
-
-		if (AssociatedObject is not { IsPointerOver: true } || Command is not { } command)
-		{
-			return;
-		}
-
-		object? parameter = CommandParameter ?? AssociatedObject;
-
-		if (!command.CanExecute(parameter))
-		{
-			return;
-		}
-
-		command.Execute(parameter);
-	}
+	private void AssociatedObject_PointerEntered(object? sender, PointerEventArgs e) => _ = ExecuteAfterDelayAsync();
 	#endregion
 
 	#region Methods
@@ -132,8 +78,6 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 		}
 
 		AssociatedObject.PointerEntered += AssociatedObject_PointerEntered;
-
-		AssociatedObject.PointerExited += AssociatedObject_PointerExited;
 	}
 
 	/// <inheritdoc />
@@ -141,28 +85,39 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	{
 		base.OnDetaching();
 
-		StopTimer();
-
 		if (AssociatedObject is null)
 		{
 			return;
 		}
 
 		AssociatedObject.PointerEntered -= AssociatedObject_PointerEntered;
-
-		AssociatedObject.PointerExited -= AssociatedObject_PointerExited;
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Cancels the pending hover timer.
+	/// Executes <see cref="Command" /> when the pointer is still over <see cref="AssociatedObject" />
+	/// after <see cref="Delay" />.
 	/// </summary>
-	private void StopTimer()
+	private async Task ExecuteAfterDelayAsync()
 	{
-		_timer?.Dispose();
+		await Task
+			.Delay(Delay)
+			.ConfigureAwait(true);
 
-		_timer = null;
+		if (AssociatedObject is not { IsPointerOver: true } || Command is not { } command)
+		{
+			return;
+		}
+
+		object? parameter = CommandParameter ?? AssociatedObject;
+
+		if (!command.CanExecute(parameter))
+		{
+			return;
+		}
+
+		command.Execute(parameter);
 	}
 	#endregion
 }
