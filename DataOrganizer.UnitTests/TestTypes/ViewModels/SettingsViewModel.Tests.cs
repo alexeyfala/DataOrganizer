@@ -336,10 +336,10 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.ResetToDefaultsCommand" /> CanExecute.
+	/// <see cref="SettingsViewModel.RestoreDefaultSettingsCommand" /> CanExecute.
 	/// </summary>
 	[Test]
-	public void ResetToDefaultsCommand_CanExecute_Returns_False_When_The_View_Already_Holds_Defaults()
+	public void RestoreDefaultSettingsCommand_CanExecute_Returns_False_When_The_View_Already_Holds_Defaults()
 	{
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
@@ -358,29 +358,29 @@ internal class SettingsViewModelTests
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Assert
-		sut.ResetToDefaultsCommand
+		sut.RestoreDefaultSettingsCommand
 			.CanExecute(null)
 			.Should()
 			.BeTrue();
 
 		// Act
 		sut
-			.ResetToDefaultsCommand
+			.RestoreDefaultSettingsCommand
 			.Execute(null);
 
 		// Assert
-		sut.ResetToDefaultsCommand
+		sut.RestoreDefaultSettingsCommand
 			.CanExecute(null)
 			.Should()
 			.BeFalse();
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.ResetToDefaultsCommand" />: fills the view with the default values,
+	/// <see cref="SettingsViewModel.RestoreDefaultSettingsCommand" />: fills the view with the default values,
 	/// keeps the update bookkeeping and leaves the result unsaved.
 	/// </summary>
 	[Test]
-	public void ResetToDefaultsCommand_Fills_Defaults_Without_Saving()
+	public void RestoreDefaultSettingsCommand_Fills_Defaults_Without_Saving()
 	{
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
@@ -403,7 +403,7 @@ internal class SettingsViewModelTests
 
 		// Act
 		sut
-			.ResetToDefaultsCommand
+			.RestoreDefaultSettingsCommand
 			.Execute(null);
 
 		// Assert

@@ -316,8 +316,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <summary>
 	/// Fills the view with the default values, leaving them unsaved.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanResetToDefaults))]
-	internal void ResetToDefaults()
+	[RelayCommand(CanExecute = nameof(CanRestoreDefaultSettings))]
+	internal void RestoreDefaultSettings()
 	{
 		AppSettings defaults = CreateDefaults();
 
@@ -423,15 +423,15 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		base.OnPropertyChanged(e);
 
-		ResetToDefaultsCommand.NotifyCanExecuteChanged();
+		RestoreDefaultSettingsCommand.NotifyCanExecuteChanged();
 	}
 	#endregion
 
 	#region Helpers
 	/// <summary>
-	/// Validates <see cref="ResetToDefaultsCommand" />.
+	/// Validates <see cref="RestoreDefaultSettingsCommand" />.
 	/// </summary>
-	private bool CanResetToDefaults() => !Equals(CurrentSettings, CreateDefaults());
+	private bool CanRestoreDefaultSettings() => !Equals(CurrentSettings, CreateDefaults());
 
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.

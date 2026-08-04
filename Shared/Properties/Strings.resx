@@ -604,7 +604,7 @@
   <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
     <value>The settings have unsaved changes</value>
   </data>
-  <data name="ResetToDefaults" xml:space="preserve">
-    <value>Reset To Defaults</value>
+  <data name="RestoreDefaultSettings" xml:space="preserve">
+    <value>Restore Default Settings</value>
   </data>
 </root>

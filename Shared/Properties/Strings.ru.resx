@@ -624,7 +624,7 @@
   <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
     <value>В настройках есть несохранённые изменения</value>
   </data>
-  <data name="ResetToDefaults" xml:space="preserve">
-    <value>Сбросить настройки</value>
+  <data name="RestoreDefaultSettings" xml:space="preserve">
+    <value>Восстановить настройки по умолчанию</value>
   </data>
 </root>
