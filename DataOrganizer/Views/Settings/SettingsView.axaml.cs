@@ -1,9 +1,9 @@
 using DataOrganizer.ViewModels;
 using DataOrganizer.Wrappers;
 
-namespace DataOrganizer.Views;
+namespace DataOrganizer.Views.Settings;
 
-public partial class SettingsView : CustomUserControl
+public partial class SettingsView : DialogViewBase
 {
 	#region Constructors
 	public SettingsView() => InitializeComponent();

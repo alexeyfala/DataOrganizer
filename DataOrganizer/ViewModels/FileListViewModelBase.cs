@@ -16,7 +16,6 @@ using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -80,15 +79,6 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	private async Task PreviewPointerEntered(MaterialIcon? icon)
 	{
 		if (icon?.DataContext is not FileModelDto file)
-		{
-			return;
-		}
-
-		await Task
-			.Delay(AppUtils.TipDelay)
-			.ConfigureAwait(true);
-
-		if (!icon.IsPointerOver)
 		{
 			return;
 		}

@@ -4,6 +4,7 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Repository.Interfaces;
 using Serilog;

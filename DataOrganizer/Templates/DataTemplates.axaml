@@ -85,11 +85,9 @@
 				</materialIcons:MaterialIcon.Styles>
 
 				<Interaction.Behaviors>
-					<EventTriggerBehavior EventName="PointerEntered">
-						<InvokeCommandAction
-							Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
-							CommandParameter="{Binding #Icon}" />
-					</EventTriggerBehavior>
+					<behaviors:PointerHoverCommandBehavior
+						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
+						CommandParameter="{Binding #Icon}" />
 
 					<EventTriggerBehavior EventName="PointerExited">
 						<InvokeCommandAction

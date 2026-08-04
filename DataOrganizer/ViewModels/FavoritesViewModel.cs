@@ -13,6 +13,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Windows;
 using DynamicData;
@@ -40,12 +41,14 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <c>True</c> when the popup should be fixed.
 	/// </summary>
 	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
 	public partial bool IsPopupFixed { get; set; }
 
 	/// <summary>
 	/// Controls the display of the popup panel.
 	/// </summary>
 	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
 	public partial bool IsPopupOpen { get; set; }
 
 	/// <inheritdoc cref="FavoritesPopupContentType" />
@@ -59,6 +62,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
 	public partial double PopupWidth { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when opening the popup on hover is enabled in settings.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
+	public partial bool ShowOnHoverEnabled { get; set; }
 	#endregion
 
 	#region Partial
@@ -135,6 +145,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		ShowContentInPopup(FavoritesPopupContentType.Favorites);
 	}
+
+	/// <summary>
+	/// Opens the popup with the restored content on hovering over the fix toggle.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanShowPopupOnHover))]
+	internal void ShowPopupOnHover() => _dispatcher.Post(RestorePopupContent, DispatcherPriority.Background);
 
 	/// <summary>
 	/// Handles the display of the favorites.
@@ -219,6 +235,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			viewLauncher,
 			keyboardInputHook)
 	{
+		ShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
 	}
 	#endregion
 
@@ -405,6 +422,11 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
 	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
+
+	/// <summary>
+	/// Validates <see cref="ShowPopupOnHoverCommand" />.
+	/// </summary>
+	private bool CanShowPopupOnHover() => ShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
 
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.

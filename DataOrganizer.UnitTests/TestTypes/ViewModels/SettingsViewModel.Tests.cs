@@ -4,10 +4,13 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.ViewModels;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
+using System;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
 
@@ -126,6 +129,39 @@ internal class SettingsViewModelTests
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.ShowFavoritesOnHover" />: enabling the flag updates the current settings value.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_ShowFavoritesOnHover()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.ShowFavoritesOnHover = false;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.ShowFavoritesOnHover = true;
+
+		// Assert
+		sut.CurrentSettings.ShowFavoritesOnHover
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -249,6 +285,8 @@ internal class SettingsViewModelTests
 		// Arrange
 		AppSettings settings = TestUtils.CreateRandomSettings();
 
+		settings.ShowFavoritesOnHover = true;
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
@@ -291,6 +329,119 @@ internal class SettingsViewModelTests
 		sut.CurrentSettings.CheckForUpdates
 			.Should()
 			.Be(settings.CheckForUpdates);
+
+		sut.CurrentSettings.ShowFavoritesOnHover
+			.Should()
+			.Be(settings.ShowFavoritesOnHover);
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.RestoreDefaultSettingsCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void RestoreDefaultSettingsCommand_CanExecute_Returns_False_When_The_View_Already_Holds_Defaults()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Assert
+		sut.RestoreDefaultSettingsCommand
+			.CanExecute(null)
+			.Should()
+			.BeTrue();
+
+		// Act
+		sut
+			.RestoreDefaultSettingsCommand
+			.Execute(null);
+
+		// Assert
+		sut.RestoreDefaultSettingsCommand
+			.CanExecute(null)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.RestoreDefaultSettingsCommand" />: fills the view with the default values,
+	/// keeps the update bookkeeping and leaves the result unsaved.
+	/// </summary>
+	[Test]
+	public void RestoreDefaultSettingsCommand_Fills_Defaults_Without_Saving()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+
+		settings.LastNotifiedVersion = "9.9.9";
+
+		settings.LastUpdateCheckUtc = DateTimeOffset.UnixEpoch;
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		settingsStore
+			.Settings
+			.Returns(settings);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(settingsStore));
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		AppSettings defaults = IAppSettingsStore.CreateDefaultSettings();
+
+		// Act
+		sut
+			.RestoreDefaultSettingsCommand
+			.Execute(null);
+
+		// Assert
+		sut.TrackHotkeys
+			.Should()
+			.Be(defaults.TrackHotkeys);
+
+		sut.CurrentSettings.Theme
+			.Should()
+			.Be(defaults.Theme);
+
+		sut.CurrentSettings.PrimaryColor
+			.Should()
+			.Be(defaults.PrimaryColor);
+
+		sut.CurrentSettings.Language
+			.Should()
+			.Be(defaults.Language);
+
+		sut.CurrentSettings.LastNotifiedVersion
+			.Should()
+			.Be("9.9.9");
+
+		sut.CurrentSettings.LastUpdateCheckUtc
+			.Should()
+			.Be(DateTimeOffset.UnixEpoch);
+
+		sut.IsDirty
+			.Should()
+			.BeTrue();
+
+		settingsStore
+			.DidNotReceive()
+			.Save();
+
+		settingsStore
+			.DidNotReceive()
+			.Overwrite(Arg.Any<AppSettings>());
 	}
 
 	/// <summary>
@@ -336,7 +487,9 @@ internal class SettingsViewModelTests
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Act
-		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+		bool canExecute = sut
+			.SaveAndCloseCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -371,12 +524,53 @@ internal class SettingsViewModelTests
 		// Act
 		sut.TrackHotkeys = true;
 
-		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+		bool canExecute = sut
+			.SaveAndCloseCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.SelectedCategoryIndex" />: starts from the category kept for the session
+	/// and writes the newly selected one back to it.
+	/// </summary>
+	[Test]
+	public void SelectedCategoryIndex_Is_Restored_From_And_Written_To_The_Session_State()
+	{
+		// Arrange
+		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(TestUtils.CreateRandomSettings());
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance<ISettingsSessionState>(sessionState);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Assert
+		sut.SelectedCategoryIndex
+			.Should()
+			.Be(2);
+
+		// Act
+		sut.SelectedCategoryIndex = 3;
+
+		// Assert
+		sessionState.LastCategoryIndex
+			.Should()
+			.Be(3);
 	}
 	#endregion
 }

@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
 using Material.Styles.Controls;
 using Material.Styles.Models;

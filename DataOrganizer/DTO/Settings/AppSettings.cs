@@ -49,6 +49,11 @@ public record AppSettings
 	public required SecondaryColor SecondaryColor { get; set; }
 
 	/// <summary>
+	/// Indicates whether the favorites popup opens on hovering over the fix toggle.
+	/// </summary>
+	public bool ShowFavoritesOnHover { get; set; }
+
+	/// <summary>
 	/// Theme.
 	/// </summary>
 	public required BaseThemeMode Theme { get; set; }

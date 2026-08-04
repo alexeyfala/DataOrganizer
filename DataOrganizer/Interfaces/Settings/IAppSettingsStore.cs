@@ -3,7 +3,7 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using System.Globalization;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Settings;
 
 /// <summary>
 /// Holds the application settings and persists them in file.

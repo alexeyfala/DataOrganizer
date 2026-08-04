@@ -1,0 +1,47 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Settings.SettingsGeneralView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:globalization="using:System.Globalization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:SettingsViewModel"
+	mc:Ignorable="d">
+
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Language}">
+			<StackPanel Orientation="Vertical">
+				<ComboBox
+					Height="{StaticResource SettingsComboBoxHeight}"
+					ItemsSource="{Binding Languages, Mode=OneTime}"
+					SelectedItem="{Binding Language, Mode=TwoWay}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate x:DataType="globalization:CultureInfo">
+							<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+
+				<TextBlock
+					Margin="10.0,4.0,0.0,0.0"
+					Classes="SupportingTextBlockStyle"
+					Text="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
+			</StackPanel>
+		</HeaderedContentControl>
+
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Updates}">
+			<CheckBox
+				Margin="10.0"
+				Content="{x:Static prop:Strings.CheckForUpdatesOnStartup}"
+				IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
+		</HeaderedContentControl>
+	</StackPanel>
+</UserControl>

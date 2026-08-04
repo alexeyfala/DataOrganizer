@@ -13,15 +13,18 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Explorer;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Services;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.Services.Execution;
 using DataOrganizer.Services.Explorer;
+using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Updates;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
+using DataOrganizer.Views.Settings;
 using DataOrganizer.Windows;
 using Mapster;
 using Microsoft.Data.Sqlite;
@@ -392,6 +395,7 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		services.AddSingleton<IUpdateCheckService, UpdateCheckService>();
 		#endregion

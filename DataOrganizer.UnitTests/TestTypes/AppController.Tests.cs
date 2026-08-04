@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using NSubstitute;
 using Repository.Interfaces;

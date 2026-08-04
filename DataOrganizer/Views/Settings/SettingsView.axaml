@@ -1,0 +1,198 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Settings.SettingsView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogHostAvalonia="using:DialogHostAvalonia"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:settings="using:DataOrganizer.Views.Settings"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:wrappers="using:DataOrganizer.Wrappers"
+	MaxWidth="620.0"
+	Padding="{StaticResource DialogIndent}"
+	x:DataType="vm:SettingsViewModel"
+	mc:Ignorable="d">
+
+	<Grid
+		RowDefinitions="Auto,*,Auto"
+		RowSpacing="{StaticResource ElementSpacing}">
+		<StackPanel
+			Grid.Row="0"
+			HorizontalAlignment="Left"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<StackPanel.Styles>
+				<Style Selector="Button">
+					<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+				</Style>
+			</StackPanel.Styles>
+
+			<Button
+				Classes="primary"
+				Command="{Binding SaveAndCloseCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=ContentSaveOutline,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.SaveAndClose}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RelativeSource={RelativeSource AncestorType=dialogHostAvalonia:DialogHost}, Path=CloseDialogCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=Close,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding RestoreDefaultSettingsCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=BackupRestore,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.RestoreDefaultSettings}" />
+		</StackPanel>
+
+		<Grid
+			Grid.Row="1"
+			ColumnDefinitions="Auto,*"
+			ColumnSpacing="{StaticResource ElementSpacing}">
+			<Grid.Styles>
+				<!-- A long label of a setting wraps instead of being cut off by the width of the dialog. -->
+				<Style Selector="CheckBox TextBlock">
+					<Setter Property="TextWrapping" Value="Wrap" />
+				</Style>
+
+				<Style Selector="ListBoxItem materialIcons|MaterialIcon">
+					<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
+					<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
+				</Style>
+
+				<Style Selector="ListBoxItem TextBlock">
+					<Setter Property="VerticalAlignment" Value="Center" />
+				</Style>
+			</Grid.Styles>
+
+			<ScrollViewer
+				Grid.Column="0"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto">
+				<ListBox
+					Name="CategoriesListBox"
+					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
+					SelectionMode="AlwaysSelected">
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="Cog" />
+
+							<TextBlock Text="{x:Static prop:Strings.General}" />
+						</StackPanel>
+					</ListBoxItem>
+
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="Palette" />
+
+							<TextBlock Text="{x:Static prop:Strings.Appearance}" />
+						</StackPanel>
+					</ListBoxItem>
+
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="GestureTapButton" />
+
+							<TextBlock Text="{x:Static prop:Strings.Behavior}" />
+						</StackPanel>
+					</ListBoxItem>
+
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="ClipboardOutline" />
+
+							<TextBlock Text="{x:Static prop:Strings.Clipboard}" />
+						</StackPanel>
+					</ListBoxItem>
+				</ListBox>
+			</ScrollViewer>
+
+			<!--
+				The panel keeps the height of the tallest section, so switching a category does not
+				resize the dialog; the scroll viewer only kicks in once that height outgrows the window.
+			-->
+			<ScrollViewer
+				Grid.Column="1"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto">
+				<wrappers:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesListBox.SelectedIndex, Mode=OneWay}">
+					<settings:SettingsGeneralView />
+
+					<settings:SettingsAppearanceView />
+
+					<settings:SettingsBehaviorView />
+
+					<settings:SettingsClipboardView />
+				</wrappers:MaxSizeSwitchPanel>
+			</ScrollViewer>
+		</Grid>
+
+		<!-- Shown instead of closing the dialog while there are unsaved changes. -->
+		<Border
+			Grid.Row="2"
+			Padding="{StaticResource DialogIndent}"
+			BorderBrush="{StaticResource MaterialDividerBrush}"
+			BorderThickness="1.0"
+			CornerRadius="4.0"
+			IsVisible="{Binding IsConfirmingClose, Mode=OneWay}">
+			<Grid
+				ColumnDefinitions="Auto,*,Auto"
+				ColumnSpacing="{StaticResource ElementSpacing}">
+				<Grid.Styles>
+					<Style Selector="Button">
+						<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+					</Style>
+				</Grid.Styles>
+
+				<materialIcons:MaterialIcon
+					Grid.Column="0"
+					Width="{StaticResource SmallButtonIconSize}"
+					Height="{StaticResource SmallButtonIconSize}"
+					VerticalAlignment="Center"
+					Foreground="{StaticResource WarningBrush}"
+					Kind="AlertOutline" />
+
+				<TextBlock
+					Grid.Column="1"
+					VerticalAlignment="Center"
+					Text="{x:Static prop:Strings.SettingsHaveUnsavedChanges}"
+					TextWrapping="Wrap" />
+
+				<StackPanel
+					Grid.Column="2"
+					Orientation="Horizontal"
+					Spacing="{StaticResource ElementSpacing}">
+					<Button
+						Classes="primary"
+						Command="{Binding SaveAndCloseCommand}"
+						Content="{x:Static prop:Strings.Save}"
+						IsDefault="True" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding DiscardAndCloseCommand}"
+						Content="{x:Static prop:Strings.DoNotSave}" />
+
+					<Button
+						Classes="primary"
+						Command="{Binding KeepEditingCommand}"
+						Content="{x:Static prop:Strings.Cancel}" />
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

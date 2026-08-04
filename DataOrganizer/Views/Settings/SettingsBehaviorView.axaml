@@ -1,0 +1,40 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Settings.SettingsBehaviorView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:SettingsViewModel"
+	mc:Ignorable="d">
+
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Hotkeys}">
+			<StackPanel
+				Margin="10.0"
+				Orientation="Vertical">
+				<CheckBox
+					Content="{x:Static prop:Strings.EnableHotkeyTracking}"
+					IsChecked="{Binding TrackHotkeys, Mode=TwoWay}" />
+
+				<TextBlock
+					Classes="SupportingTextBlockStyle"
+					Text="{x:Static prop:Strings.DescriptionOfUseHotkeys}" />
+			</StackPanel>
+		</HeaderedContentControl>
+
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Favorites}">
+			<CheckBox
+				Margin="10.0"
+				Content="{x:Static prop:Strings.ShowFavoritesOnHover}"
+				IsChecked="{Binding ShowFavoritesOnHover, Mode=TwoWay}" />
+		</HeaderedContentControl>
+	</StackPanel>
+</UserControl>

@@ -6,7 +6,10 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using NSubstitute;
@@ -281,6 +284,168 @@ internal class FavoritesViewModelTests
 			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>(),
 			Arg.Any<IEnumerable<FileModelDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowOnHoverEnabled" />: is initialized from the application settings.
+	/// </summary>
+	[Test]
+	public void ShowOnHoverEnabled_Initialization()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.ShowFavoritesOnHover = true;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		// Act
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Assert
+		sut.ShowOnHoverEnabled
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHover" />: opens the popup with the restored content
+	/// without fixing it.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHover_Opens_Popup()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>());
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowOnHoverEnabled = true;
+
+		// Act
+		sut.ShowPopupOnHover();
+
+		// Assert
+		sut.IsPopupOpen
+			.Should()
+			.BeTrue();
+
+		sut.PopupContent
+			.Should()
+			.Be(FavoritesPopupContentType.Favorites);
+
+		sut.IsPopupFixed
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Disabled_In_Settings()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Fixed()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowOnHoverEnabled = true;
+
+		// Act
+		sut.IsPopupFixed = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_False_When_Popup_Opened()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.ShowOnHoverEnabled = true;
+
+		// Act
+		sut.IsPopupOpen = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="FavoritesViewModel.ShowPopupOnHoverCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ShowPopupOnHoverCommand_CanExecute_Returns_True_When_Enabled_And_Popup_Closed()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		// Act
+		sut.ShowOnHoverEnabled = true;
+
+		bool canExecute = sut
+			.ShowPopupOnHoverCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeTrue();
 	}
 	#endregion
 }

@@ -5,6 +5,7 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.DTO.Updates;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Updates;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

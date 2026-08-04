@@ -609,4 +609,22 @@
   <data name="CloseAllTabs" xml:space="preserve">
     <value>Закрыть все вкладки</value>
   </data>
+  <data name="ShowFavoritesOnHover" xml:space="preserve">
+    <value>Показывать панель при наведении на переключатель</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Внешний вид</value>
+  </data>
+  <data name="Behavior" xml:space="preserve">
+    <value>Поведение</value>
+  </data>
+  <data name="DoNotSave" xml:space="preserve">
+    <value>Не сохранять</value>
+  </data>
+  <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
+    <value>В настройках есть несохранённые изменения</value>
+  </data>
+  <data name="RestoreDefaultSettings" xml:space="preserve">
+    <value>Восстановить настройки по умолчанию</value>
+  </data>
 </root>

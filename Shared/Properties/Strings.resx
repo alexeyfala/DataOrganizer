@@ -589,4 +589,22 @@
   <data name="CloseAllTabs" xml:space="preserve">
     <value>Close All Tabs</value>
   </data>
+  <data name="ShowFavoritesOnHover" xml:space="preserve">
+    <value>Show the panel on hovering over the toggle</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Behavior" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
+  <data name="DoNotSave" xml:space="preserve">
+    <value>Don't Save</value>
+  </data>
+  <data name="SettingsHaveUnsavedChanges" xml:space="preserve">
+    <value>The settings have unsaved changes</value>
+  </data>
+  <data name="RestoreDefaultSettings" xml:space="preserve">
+    <value>Restore Default Settings</value>
+  </data>
 </root>

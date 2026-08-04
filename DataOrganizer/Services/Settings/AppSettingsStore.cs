@@ -1,9 +1,10 @@
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Settings;
 using Shared.Extensions;
 using Shared.Interfaces;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Settings;
 
 public sealed class AppSettingsStore : IAppSettingsStore
 {

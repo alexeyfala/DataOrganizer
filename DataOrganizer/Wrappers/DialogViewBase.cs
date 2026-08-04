@@ -6,7 +6,11 @@ using System;
 
 namespace DataOrganizer.Wrappers;
 
-public abstract class CustomUserControl : UserControl
+/// <summary>
+/// A <see cref="UserControl" /> that takes the focus once loaded and closes the current
+/// dialog on <see cref="Key.Escape" />.
+/// </summary>
+public abstract class DialogViewBase : UserControl
 {
 	#region Properties
 	/// <inheritdoc />
@@ -14,7 +18,7 @@ public abstract class CustomUserControl : UserControl
 	#endregion
 
 	#region Constructors
-	protected CustomUserControl() => Focusable = true;
+	protected DialogViewBase() => Focusable = true;
 	#endregion
 
 	#region Methods

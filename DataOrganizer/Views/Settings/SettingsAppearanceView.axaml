@@ -1,0 +1,70 @@
+<UserControl
+	x:Class="DataOrganizer.Views.Settings.SettingsAppearanceView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialControls="using:Material.Styles.Controls"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	x:DataType="vm:SettingsViewModel"
+	mc:Ignorable="d">
+
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Theme}">
+			<materialControls:Card>
+				<materialControls:Card.Styles>
+					<Style Selector="RadioButton">
+						<Setter Property="HorizontalContentAlignment" Value="Center" />
+						<Setter Property="Theme" Value="{StaticResource MaterialButtonlikeRadioButton}" />
+					</Style>
+				</materialControls:Card.Styles>
+
+				<UniformGrid Columns="3">
+					<RadioButton
+						Classes="accent"
+						Content="{x:Static prop:Strings.System}"
+						IsChecked="{Binding IsInheritTheme, Mode=TwoWay}" />
+
+					<RadioButton
+						Classes="accent"
+						Content="{x:Static prop:Strings.Light}"
+						IsChecked="{Binding IsLightTheme, Mode=TwoWay}" />
+
+					<RadioButton
+						Classes="accent"
+						Content="{x:Static prop:Strings.Dark}"
+						IsChecked="{Binding IsDarkTheme, Mode=TwoWay}" />
+				</UniformGrid>
+			</materialControls:Card>
+		</HeaderedContentControl>
+
+		<UniformGrid
+			ColumnSpacing="{StaticResource ElementSpacing}"
+			Columns="2">
+			<HeaderedContentControl
+				Classes="ClassicGroupBoxStyle"
+				Header="{x:Static prop:Strings.PrimaryColor}">
+				<ComboBox
+					Height="{StaticResource SettingsComboBoxHeight}"
+					ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
+					ItemsSource="{Binding PrimaryColors, Mode=OneTime}"
+					SelectedItem="{Binding PrimaryColor, Mode=TwoWay}" />
+			</HeaderedContentControl>
+
+			<HeaderedContentControl
+				Classes="ClassicGroupBoxStyle"
+				Header="{x:Static prop:Strings.SecondaryColor}">
+				<ComboBox
+					Height="{StaticResource SettingsComboBoxHeight}"
+					ItemTemplate="{StaticResource MaterialDesignColorSampleTemplate}"
+					ItemsSource="{Binding SecondaryColors, Mode=OneTime}"
+					SelectedItem="{Binding SecondaryColor, Mode=TwoWay}" />
+			</HeaderedContentControl>
+		</UniformGrid>
+	</StackPanel>
+</UserControl>
