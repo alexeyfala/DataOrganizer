@@ -13,13 +13,10 @@
 	<StackPanel
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
-		<Grid
-			ColumnDefinitions="*,Auto"
-			ColumnSpacing="{StaticResource ElementSpacing}">
-			<HeaderedContentControl
-				Grid.Column="0"
-				Classes="ClassicGroupBoxStyle"
-				Header="{x:Static prop:Strings.Language}">
+		<HeaderedContentControl
+			Classes="ClassicGroupBoxStyle"
+			Header="{x:Static prop:Strings.Language}">
+			<StackPanel Orientation="Vertical">
 				<ComboBox
 					Height="{StaticResource SettingsComboBoxHeight}"
 					ItemsSource="{Binding Languages, Mode=OneTime}"
@@ -30,14 +27,13 @@
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
-			</HeaderedContentControl>
 
-			<Border
-				Grid.Column="1"
-				Margin="0.0,7.0,0.0,0.0"
-				Classes="HelpIconBorderStyle"
-				ToolTip.Tip="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
-		</Grid>
+				<TextBlock
+					Margin="10.0,4.0,0.0,0.0"
+					Classes="SupportingTextBlockStyle"
+					Text="{x:Static prop:Strings.ThisSettingWillBeAppliedAfterRestartingApplication}" />
+			</StackPanel>
+		</HeaderedContentControl>
 
 		<HeaderedContentControl
 			Classes="ClassicGroupBoxStyle"

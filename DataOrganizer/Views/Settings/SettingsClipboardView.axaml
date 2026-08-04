@@ -9,32 +9,27 @@
 	x:DataType="vm:SettingsViewModel"
 	mc:Ignorable="d">
 
-	<Grid
-		ColumnDefinitions="*,Auto"
-		ColumnSpacing="{StaticResource ElementSpacing}">
-		<HeaderedContentControl
-			Grid.Column="0"
-			Classes="ClassicGroupBoxStyle"
-			Header="{x:Static prop:Strings.Clipboard}">
-			<StackPanel
-				Margin="10.0"
-				Orientation="Vertical"
-				Spacing="{StaticResource ElementSpacing}">
+	<HeaderedContentControl
+		Classes="ClassicGroupBoxStyle"
+		Header="{x:Static prop:Strings.Clipboard}">
+		<StackPanel
+			Margin="10.0"
+			Orientation="Vertical"
+			Spacing="{StaticResource ElementSpacing}">
+			<StackPanel Orientation="Vertical">
 				<CheckBox
 					Content="{x:Static prop:Strings.EnableClipboardHistoryTracking}"
 					IsChecked="{Binding TrackClipboardHistory, Mode=TwoWay}" />
 
-				<CheckBox
-					Content="{x:Static prop:Strings.PersistHistoryBetweenSessions}"
-					IsChecked="{Binding PersistClipboardHistory, Mode=TwoWay}"
-					IsEnabled="{Binding TrackClipboardHistory, Mode=OneWay}" />
+				<TextBlock
+					Classes="SupportingTextBlockStyle"
+					Text="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
 			</StackPanel>
-		</HeaderedContentControl>
 
-		<Border
-			Grid.Column="1"
-			Margin="0.0,9.0,0.0,0.0"
-			Classes="HelpIconBorderStyle"
-			ToolTip.Tip="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
-	</Grid>
+			<CheckBox
+				Content="{x:Static prop:Strings.PersistHistoryBetweenSessions}"
+				IsChecked="{Binding PersistClipboardHistory, Mode=TwoWay}"
+				IsEnabled="{Binding TrackClipboardHistory, Mode=OneWay}" />
+		</StackPanel>
+	</HeaderedContentControl>
 </UserControl>

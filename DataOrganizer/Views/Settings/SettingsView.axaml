@@ -10,6 +10,7 @@
 	xmlns:settings="using:DataOrganizer.Views.Settings"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	xmlns:wrappers="using:DataOrganizer.Wrappers"
+	MaxWidth="620.0"
 	Padding="{StaticResource DialogIndent}"
 	x:DataType="vm:SettingsViewModel"
 	mc:Ignorable="d">
@@ -55,6 +56,11 @@
 			ColumnDefinitions="Auto,*"
 			ColumnSpacing="{StaticResource ElementSpacing}">
 			<Grid.Styles>
+				<!-- A long label of a setting wraps instead of being cut off by the width of the dialog. -->
+				<Style Selector="CheckBox TextBlock">
+					<Setter Property="TextWrapping" Value="Wrap" />
+				</Style>
+
 				<Style Selector="ListBoxItem materialIcons|MaterialIcon">
 					<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
 					<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
