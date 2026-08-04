@@ -41,6 +41,13 @@
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+			<Button
+				Classes="primary"
+				Command="{Binding ResetToDefaultsCommand}"
+				Content="{materialIcons:MaterialIconTextExt Kind=BackupRestore,
+				                                            IconSize={StaticResource ToolBarIconSize}}"
+				ToolTip.Tip="{x:Static prop:Strings.ResetToDefaults}" />
 		</StackPanel>
 
 		<Grid

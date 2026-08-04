@@ -10,6 +10,7 @@ using DataOrganizer.ViewModels;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
+using System;
 
 namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
 
@@ -332,6 +333,115 @@ internal class SettingsViewModelTests
 		sut.CurrentSettings.ShowFavoritesOnHover
 			.Should()
 			.Be(settings.ShowFavoritesOnHover);
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.ResetToDefaultsCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void ResetToDefaultsCommand_CanExecute_Returns_False_When_The_View_Already_Holds_Defaults()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Assert
+		sut.ResetToDefaultsCommand
+			.CanExecute(null)
+			.Should()
+			.BeTrue();
+
+		// Act
+		sut
+			.ResetToDefaultsCommand
+			.Execute(null);
+
+		// Assert
+		sut.ResetToDefaultsCommand
+			.CanExecute(null)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="SettingsViewModel.ResetToDefaultsCommand" />: fills the view with the default values,
+	/// keeps the update bookkeeping and leaves the result unsaved.
+	/// </summary>
+	[Test]
+	public void ResetToDefaultsCommand_Fills_Defaults_Without_Saving()
+	{
+		// Arrange
+		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+
+		settings.LastNotifiedVersion = "9.9.9";
+
+		settings.LastUpdateCheckUtc = DateTimeOffset.UnixEpoch;
+
+		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+		settingsStore
+			.Settings
+			.Returns(settings);
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(settingsStore));
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		AppSettings defaults = IAppSettingsStore.CreateDefaultSettings();
+
+		// Act
+		sut
+			.ResetToDefaultsCommand
+			.Execute(null);
+
+		// Assert
+		sut.TrackHotkeys
+			.Should()
+			.Be(defaults.TrackHotkeys);
+
+		sut.CurrentSettings.Theme
+			.Should()
+			.Be(defaults.Theme);
+
+		sut.CurrentSettings.PrimaryColor
+			.Should()
+			.Be(defaults.PrimaryColor);
+
+		sut.CurrentSettings.Language
+			.Should()
+			.Be(defaults.Language);
+
+		sut.CurrentSettings.LastNotifiedVersion
+			.Should()
+			.Be("9.9.9");
+
+		sut.CurrentSettings.LastUpdateCheckUtc
+			.Should()
+			.Be(DateTimeOffset.UnixEpoch);
+
+		sut.IsDirty
+			.Should()
+			.BeTrue();
+
+		settingsStore
+			.DidNotReceive()
+			.Save();
+
+		settingsStore
+			.DidNotReceive()
+			.Overwrite(Arg.Any<AppSettings>());
 	}
 
 	/// <summary>

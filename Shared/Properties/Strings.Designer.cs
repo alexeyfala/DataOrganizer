@@ -1204,6 +1204,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset To Defaults.
+        /// </summary>
+        public static string ResetToDefaults {
+            get {
+                return ResourceManager.GetString("ResetToDefaults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Restart.
         /// </summary>
         public static string Restart {

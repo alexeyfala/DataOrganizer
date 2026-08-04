@@ -9,6 +9,7 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using Shared.Extensions;
 using System;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace DataOrganizer.ViewModels;
@@ -313,6 +314,38 @@ public sealed partial class SettingsViewModel : ObservableObject
 	internal void KeepEditing() => IsConfirmingClose = false;
 
 	/// <summary>
+	/// Fills the view with the default values, leaving them unsaved.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanResetToDefaults))]
+	internal void ResetToDefaults()
+	{
+		AppSettings defaults = CreateDefaults();
+
+		CheckForUpdates = defaults.CheckForUpdates;
+
+		TrackClipboardHistory = defaults.TrackClipboardHistory;
+
+		PersistClipboardHistory = defaults.PersistClipboardHistory;
+
+		TrackHotkeys = defaults.TrackHotkeys;
+
+		ShowFavoritesOnHover = defaults.ShowFavoritesOnHover;
+
+		SecondaryColor = defaults.SecondaryColor;
+
+		PrimaryColor = defaults.PrimaryColor;
+
+		Language = new(defaults.Language);
+
+		// A handler of a theme flag acts on the selected one only, so the order of the assignments does not matter.
+		IsLightTheme = defaults.Theme == BaseThemeMode.Light;
+
+		IsInheritTheme = defaults.Theme == BaseThemeMode.Inherit;
+
+		IsDarkTheme = defaults.Theme == BaseThemeMode.Dark;
+	}
+
+	/// <summary>
 	/// Saves settings and closes the view.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSaveAndClose))]
@@ -384,10 +417,39 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 	#endregion
 
+	#region Methods
+	/// <inheritdoc />
+	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+	{
+		base.OnPropertyChanged(e);
+
+		ResetToDefaultsCommand.NotifyCanExecuteChanged();
+	}
+	#endregion
+
 	#region Helpers
+	/// <summary>
+	/// Validates <see cref="ResetToDefaultsCommand" />.
+	/// </summary>
+	private bool CanResetToDefaults() => !Equals(CurrentSettings, CreateDefaults());
+
 	/// <summary>
 	/// Validates <see cref="SaveAndCloseCommand" />.
 	/// </summary>
 	private bool CanSaveAndClose() => IsDirty;
+
+	/// <summary>
+	/// Builds the default settings, keeping the values that the view does not display.
+	/// </summary>
+	private AppSettings CreateDefaults()
+	{
+		AppSettings defaults = IAppSettingsStore.CreateDefaultSettings();
+
+		defaults.LastNotifiedVersion = CurrentSettings.LastNotifiedVersion;
+
+		defaults.LastUpdateCheckUtc = CurrentSettings.LastUpdateCheckUtc;
+
+		return defaults;
+	}
 	#endregion
 }
