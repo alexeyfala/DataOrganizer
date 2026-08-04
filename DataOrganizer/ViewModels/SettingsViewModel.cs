@@ -9,7 +9,6 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using Shared.Extensions;
 using System;
-using System.ComponentModel;
 using System.Globalization;
 
 namespace DataOrganizer.ViewModels;
@@ -126,7 +125,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.CheckForUpdates = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -143,7 +142,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings.Theme = theme;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 
 		_themeService.SetAppMaterialTheme(
 			theme,
@@ -165,7 +164,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings.Theme = theme;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 
 		_themeService.SetAppMaterialTheme(
 			theme,
@@ -187,7 +186,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings.Theme = theme;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 
 		_themeService.SetAppMaterialTheme(
 			theme,
@@ -207,7 +206,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CurrentSettings.Language = value.Name;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -217,7 +216,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.PersistClipboardHistory = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -227,7 +226,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.PrimaryColor = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 
 		_themeService.SetAppMaterialTheme(
 			CurrentSettings.Theme,
@@ -242,7 +241,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.SecondaryColor = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 
 		_themeService.SetAppMaterialTheme(
 			CurrentSettings.Theme,
@@ -262,7 +261,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.ShowFavoritesOnHover = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -272,7 +271,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.TrackClipboardHistory = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 
 	/// <summary>
@@ -282,7 +281,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 	{
 		CurrentSettings.TrackHotkeys = value;
 
-		SaveAndCloseCommand.NotifyCanExecuteChanged();
+		NotifyCommandsCanExecuteChanged();
 	}
 	#endregion
 
@@ -417,16 +416,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	}
 	#endregion
 
-	#region Methods
-	/// <inheritdoc />
-	protected override void OnPropertyChanged(PropertyChangedEventArgs e)
-	{
-		base.OnPropertyChanged(e);
-
-		RestoreDefaultSettingsCommand.NotifyCanExecuteChanged();
-	}
-	#endregion
-
 	#region Helpers
 	/// <summary>
 	/// Validates <see cref="RestoreDefaultSettingsCommand" />.
@@ -450,6 +439,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 		defaults.LastUpdateCheckUtc = CurrentSettings.LastUpdateCheckUtc;
 
 		return defaults;
+	}
+
+	/// <summary>
+	/// Refreshes the commands validated against the edited settings.
+	/// </summary>
+	private void NotifyCommandsCanExecuteChanged()
+	{
+		SaveAndCloseCommand.NotifyCanExecuteChanged();
+
+		RestoreDefaultSettingsCommand.NotifyCanExecuteChanged();
 	}
 	#endregion
 }
