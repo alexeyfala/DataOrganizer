@@ -33,6 +33,13 @@
 		<ProjectReference Include="..\DataOrganizer\DataOrganizer.csproj" />
 	</ItemGroup>
 
+	<!-- Drop debug symbols of native dependencies from the published output. -->
+	<Target Name="ExcludeNativeSymbolsFromPublish" AfterTargets="ComputeFilesToPublish">
+		<ItemGroup>
+			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish->WithMetadataValue('AssetType', 'native')->WithMetadataValue('Extension', '.pdb'))" />
+		</ItemGroup>
+	</Target>
+
 	<!-- Portable single-file naming (only meaningful when publishing with a RID). -->
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
 		<_RidOs>$(RuntimeIdentifier.Substring(0, $(RuntimeIdentifier.IndexOf('-'))))</_RidOs>

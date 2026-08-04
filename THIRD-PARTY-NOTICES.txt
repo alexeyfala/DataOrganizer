@@ -88,7 +88,7 @@ repository listed above.
   * Mapster 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
   * Mapster.Core 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
   * Mapster.DependencyInjection 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Material.Avalonia 3.17.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
+  * Material.Avalonia 3.18.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
   * Material.Icons 3.0.2 - Copyright (c) SKProCH
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime

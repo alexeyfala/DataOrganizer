@@ -363,6 +363,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		DialogHost.Close(null);
 	}
+
+	/// <summary>
+	/// Closes the dialog, leaving the closing handler to intercept the unsaved changes.
+	/// </summary>
+	[RelayCommand]
+	private static void Close() => DialogHost.Close(null);
 	#endregion
 
 	#region Data
