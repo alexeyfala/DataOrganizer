@@ -487,7 +487,9 @@ internal class SettingsViewModelTests
 		SettingsViewModel sut = mock.Create<SettingsViewModel>();
 
 		// Act
-		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+		bool canExecute = sut
+			.SaveAndCloseCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
@@ -522,7 +524,9 @@ internal class SettingsViewModelTests
 		// Act
 		sut.TrackHotkeys = true;
 
-		bool canExecute = sut.SaveAndCloseCommand.CanExecute(null);
+		bool canExecute = sut
+			.SaveAndCloseCommand
+			.CanExecute(null);
 
 		// Assert
 		canExecute
