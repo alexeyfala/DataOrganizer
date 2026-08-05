@@ -142,16 +142,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Controls the display of popup for note.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public bool ShowNote
-	{
-		get => GetValue(ShowNoteProperty);
-		set => SetValue(ShowNoteProperty, value);
-	}
-
-	/// <summary>
 	/// Text.
 	/// </summary>
 	public string? Text
@@ -244,12 +234,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		.Register<DatasetFieldView, string?>(name: nameof(Note));
 
 	/// <summary>
-	/// Identifies the <see cref="ShowNote" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> ShowNoteProperty = AvaloniaProperty
-		.Register<DatasetFieldView, bool>(name: nameof(ShowNote));
-
-	/// <summary>
 	/// Identifies the <see cref="TextBlockDoubleTappedCommand" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<ICommand?> TextBlockDoubleTappedCommandProperty = AvaloniaProperty
@@ -263,12 +247,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	#endregion
 
 	#region Auto-Generated Commands
-	/// <summary>
-	/// Copies the currently selected text of the note <see cref="SelectableTextBlock" /> to clipboard.
-	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanCopySelectedNote))]
-	private void CopySelectedNote(SelectableTextBlock? target) => target?.Copy();
-
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
@@ -294,15 +272,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 			_ = BrushExtensions.ApplyLimeGreenColorAnimation(() => AreaBrush);
 		}
 	}
-
-	/// <summary>
-	/// <see cref="InputElement.PointerEntered" /> event handler of control for "Note".
-	/// </summary>
-	/// <remarks>
-	/// The hover delay and the pointer check are handled by <c>PointerHoverCommandBehavior</c>.
-	/// </remarks>
-	[RelayCommand]
-	private void NotePointerEntered() => ShowNote = true;
 	#endregion
 
 	#region Data
@@ -400,14 +369,6 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Validates <see cref="CopySelectedNoteCommand" />.
-	/// </summary>
-	private static bool CanCopySelectedNote(SelectableTextBlock? noteView)
-	{
-		return noteView is not null && noteView.SelectionStart != noteView.SelectionEnd;
-	}
-
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Text" /> is not null.
 	/// </summary>

@@ -15,7 +15,7 @@
 			<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
 		</Style>
 
-		<Style Selector="materialIcons|MaterialIcon">
+		<Style Selector="materialIcons|MaterialIcon.NoteIconStyle">
 			<Setter Property="Background" Value="Transparent" />
 			<Setter Property="Cursor" Value="Help" />
 			<Setter Property="Foreground" Value="{StaticResource MaterialPrimaryMidBrush}" />
@@ -30,6 +30,7 @@
 		<!-- Encrypted -->
 		<materialIcons:MaterialIcon
 			Grid.Row="0"
+			Classes="NoteIconStyle"
 			IsVisible="{Binding IsLocked, Mode=OneWay}"
 			ToolTip.Tip="{x:Static prop:Strings.ContentIsEncrypted}" />
 
@@ -37,6 +38,7 @@
 		<materialIcons:MaterialIcon
 			x:Name="Icon"
 			Grid.Row="0"
+			Classes="NoteIconStyle"
 			IsVisible="{Binding !IsLocked, Mode=OneWay}">
 
 			<Interaction.Behaviors>
@@ -72,6 +74,7 @@
 						HorizontalAlignment="Right"
 						Content="{materialIcons:MaterialIconTextExt Kind=Close,
 						                                            IconSize={StaticResource ToolBarIconSize}}"
+						Cursor="Arrow"
 						Foreground="{StaticResource MaterialPaperBrush}"
 						IsChecked="{Binding !ShowNote, Mode=TwoWay}"
 						Theme="{StaticResource MaterialFlatButton}"
