@@ -1,0 +1,117 @@
+<UserControl
+	x:Class="DataOrganizer.Views.NoteView"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:views="using:DataOrganizer.Views"
+	mc:Ignorable="d">
+
+	<UserControl.Styles>
+		<Style Selector="ToolTip">
+			<Setter Property="Theme" Value="{StaticResource MaterialToolTip}" />
+		</Style>
+
+		<Style Selector="materialIcons|MaterialIcon">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="Cursor" Value="Help" />
+			<Setter Property="Foreground" Value="{StaticResource MaterialPrimaryMidBrush}" />
+			<Setter Property="Kind" Value="NoteTextOutline" />
+		</Style>
+	</UserControl.Styles>
+
+	<Grid
+		DataContext="{Binding $parent[views:NoteView]}"
+		RowDefinitions="*,Auto">
+
+		<!-- Encrypted -->
+		<materialIcons:MaterialIcon
+			Grid.Row="0"
+			IsVisible="{Binding IsLocked, Mode=OneWay}"
+			ToolTip.Tip="{x:Static prop:Strings.ContentIsEncrypted}" />
+
+		<!-- Readable -->
+		<materialIcons:MaterialIcon
+			x:Name="Icon"
+			Grid.Row="0"
+			IsVisible="{Binding !IsLocked, Mode=OneWay}">
+
+			<Interaction.Behaviors>
+				<behaviors:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
+			</Interaction.Behaviors>
+		</materialIcons:MaterialIcon>
+
+		<Popup
+			Grid.Row="1"
+			MaxWidth="500.0"
+			MaxHeight="500.0"
+			IsLightDismissEnabled="True"
+			IsOpen="{Binding ShowNote, Mode=TwoWay}"
+			Placement="Bottom"
+			PlacementTarget="{Binding #Icon}"
+			VerticalOffset="8.0">
+
+			<Interaction.Behaviors>
+				<EventTriggerBehavior EventName="Closed">
+					<InvokeCommandAction Command="{Binding NoteClosedCommand}" />
+				</EventTriggerBehavior>
+			</Interaction.Behaviors>
+
+			<Border
+				Padding="8.0"
+				Background="{StaticResource MaterialToolTipBackgroundBrush}"
+				CornerRadius="4.0">
+				<Grid RowDefinitions="Auto,*">
+					<ToggleButton
+						Grid.Row="0"
+						Margin="0.0,0.0,0.0,8.0"
+						Padding="0.0"
+						HorizontalAlignment="Right"
+						Content="{materialIcons:MaterialIconTextExt Kind=Close,
+						                                            IconSize={StaticResource ToolBarIconSize}}"
+						Foreground="{StaticResource MaterialPaperBrush}"
+						IsChecked="{Binding !ShowNote, Mode=TwoWay}"
+						Theme="{StaticResource MaterialFlatButton}"
+						ToolTip.Tip="{x:Static prop:Strings.Close}" />
+
+					<ScrollViewer
+						Grid.Row="1"
+						HorizontalScrollBarVisibility="Disabled"
+						VerticalScrollBarVisibility="Auto">
+						<SelectableTextBlock
+							x:Name="NoteTextBlock"
+							FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+							FontSize="14.0"
+							Foreground="{StaticResource MaterialPaperBrush}"
+							TextWrapping="Wrap">
+							<SelectableTextBlock.Styles>
+								<Style Selector="MenuItem">
+									<Setter Property="Cursor" Value="Arrow" />
+									<Setter Property="MaxHeight" Value="24.0" />
+								</Style>
+							</SelectableTextBlock.Styles>
+
+							<SelectableTextBlock.ContextFlyout>
+								<MenuFlyout>
+									<MenuItem
+										Command="{Binding CopySelectedNoteCommand}"
+										CommandParameter="{Binding #NoteTextBlock}"
+										Header="{x:Static prop:Strings.Copy}"
+										InputGesture="{OnPlatform Default='Ctrl+C',
+										                          macOS='⌘+C'}" />
+								</MenuFlyout>
+							</SelectableTextBlock.ContextFlyout>
+
+							<Interaction.Behaviors>
+								<behaviors:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
+							</Interaction.Behaviors>
+						</SelectableTextBlock>
+					</ScrollViewer>
+				</Grid>
+			</Border>
+		</Popup>
+	</Grid>
+</UserControl>
