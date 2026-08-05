@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -20,7 +20,7 @@ namespace Repository.Migrations.Migrations
                     EntityType = table.Column<int>(type: "INTEGER", nullable: false),
                     IsSelected = table.Column<bool>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Note = table.Column<string>(type: "TEXT", nullable: true),
+                    Note = table.Column<byte[]>(type: "BLOB", nullable: true),
                     ParentId = table.Column<Guid>(type: "TEXT", nullable: true),
                     UpdatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     EncryptedDek = table.Column<byte[]>(type: "BLOB", nullable: true),
@@ -47,7 +47,7 @@ namespace Repository.Migrations.Migrations
                     EntityType = table.Column<int>(type: "INTEGER", nullable: false),
                     IsSelected = table.Column<bool>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Note = table.Column<string>(type: "TEXT", nullable: true),
+                    Note = table.Column<byte[]>(type: "BLOB", nullable: true),
                     ParentId = table.Column<Guid>(type: "TEXT", nullable: true),
                     UpdatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Contents = table.Column<byte[]>(type: "BLOB", nullable: false),

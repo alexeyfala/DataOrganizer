@@ -49,7 +49,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// <summary>
 	/// Note.
 	/// </summary>
-	public string? Note { get; init; }
+	public byte[]? Note { get; init; }
 
 	/// <summary>
 	/// Reference to the parent object.
