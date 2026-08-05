@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Notes;
 
 /// <summary>
 /// Provides the note of an object as plain text.

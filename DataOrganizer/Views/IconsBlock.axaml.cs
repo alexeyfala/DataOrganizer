@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using DataOrganizer.Enums;
+using DataOrganizer.Interfaces.Notes;
 
 namespace DataOrganizer.Views;
 
@@ -12,6 +13,15 @@ internal sealed partial class IconsBlock : UserControl
 	{
 		get => GetValue(EncryptionStatusProperty);
 		set => SetValue(EncryptionStatusProperty, value);
+	}
+
+	/// <summary>
+	/// <c>True</c> when the object has a note.
+	/// </summary>
+	public bool HasNote
+	{
+		get => GetValue(HasNoteProperty);
+		set => SetValue(HasNoteProperty, value);
 	}
 
 	/// <summary>
@@ -49,6 +59,20 @@ internal sealed partial class IconsBlock : UserControl
 		get => GetValue(IsFavoriteProperty);
 		set => SetValue(IsFavoriteProperty, value);
 	}
+
+	/// <inheritdoc cref="NoteView.NoteItem" />
+	public object? NoteItem
+	{
+		get => GetValue(NoteItemProperty);
+		set => SetValue(NoteItemProperty, value);
+	}
+
+	/// <inheritdoc cref="INoteReader" />
+	public INoteReader? NoteReader
+	{
+		get => GetValue(NoteReaderProperty);
+		set => SetValue(NoteReaderProperty, value);
+	}
 	#endregion
 
 	#region Styled Properties
@@ -57,6 +81,12 @@ internal sealed partial class IconsBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<EncryptionStatus> EncryptionStatusProperty = AvaloniaProperty
 		.Register<IconsBlock, EncryptionStatus>(name: nameof(EncryptionStatus));
+
+	/// <summary>
+	/// Identifies the <see cref="HasNote" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> HasNoteProperty = AvaloniaProperty
+		.Register<IconsBlock, bool>(name: nameof(HasNote));
 
 	/// <summary>
 	/// Identifies the <see cref="HotkeysToolTip" /> avalonia property.
@@ -81,6 +111,18 @@ internal sealed partial class IconsBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsFavoriteProperty = AvaloniaProperty
 		.Register<IconsBlock, bool>(name: nameof(IsFavorite));
+
+	/// <summary>
+	/// Identifies the <see cref="NoteItem" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<object?> NoteItemProperty = AvaloniaProperty
+		.Register<IconsBlock, object?>(name: nameof(NoteItem));
+
+	/// <summary>
+	/// Identifies the <see cref="NoteReader" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<INoteReader?> NoteReaderProperty = AvaloniaProperty
+		.Register<IconsBlock, INoteReader?>(name: nameof(NoteReader));
 	#endregion
 
 	#region Constructors

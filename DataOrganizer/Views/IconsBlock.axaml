@@ -23,6 +23,12 @@
 			</Style>
 		</StackPanel.Styles>
 
+		<views:NoteView
+			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}"
+			IsVisible="{Binding HasNote, Mode=OneWay}"
+			NoteItem="{Binding NoteItem, Mode=OneWay}"
+			NoteReader="{Binding NoteReader, Mode=OneWay}" />
+
 		<materialIcons:MaterialIcon
 			Foreground="LimeGreen"
 			IsVisible="{Binding IsEditing, Mode=OneWay}"

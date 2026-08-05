@@ -34,7 +34,7 @@
 					<StackPanel Orientation="Vertical">
 						<TextBlock
 							Classes="NameInFlyoutTextBlockStyle"
-							Text="{Binding Name, Mode=OneTime}" />
+							Text="{Binding Name, Mode=OneWay}" />
 
 						<wrappers:FlyoutButton
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"

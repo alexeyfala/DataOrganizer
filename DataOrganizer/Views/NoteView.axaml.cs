@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notes;
 using System.ComponentModel;
 
 namespace DataOrganizer.Views;

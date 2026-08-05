@@ -8,6 +8,7 @@
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:messages="using:DataOrganizer.Messages"
+	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
 	xmlns:views="using:DataOrganizer.Views"
@@ -72,8 +73,19 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsEnabled="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.FileIsOpenedToFalse}}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:EncryptionStatus.Encrypted}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:EncryptionStatus.Encrypted}}">
+				<materialIcons:MaterialIcon.IsEnabled>
+					<MultiBinding Converter="{x:Static BoolConverters.And}">
+						<Binding
+							Mode="OneWay"
+							Path="!IsEditing" />
+
+						<Binding
+							Mode="OneWay"
+							Path="!IsExecuting" />
+					</MultiBinding>
+				</materialIcons:MaterialIcon.IsEnabled>
+
 				<materialIcons:MaterialIcon.Styles>
 					<Style Selector="materialIcons|MaterialIcon:not(:disabled)">
 						<Setter Property="Kind" Value="EyeOutline" />
@@ -109,9 +121,12 @@
 			<views:IconsBlock
 				Grid.Column="3"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
-				IsExecuting="{Binding IsExecuting, Mode=OneWay}" />
+				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
+				NoteItem="{Binding Mode=OneWay}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>
 				<behaviors:DisableRightClickSelectionBehavior />
@@ -133,12 +148,12 @@
 			<TextBlock
 				Grid.Column="0"
 				Margin="0.0,0.0,6.0,0.0"
-				Text="{Binding Mode=OneTime}" />
+				Text="{Binding Mode=OneWay}" />
 
 			<Rectangle
 				Grid.Column="1"
 				Classes="ColorSampleStyle"
-				Fill="{Binding Mode=OneTime, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
+				Fill="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
 		</Grid>
 	</DataTemplate>
 

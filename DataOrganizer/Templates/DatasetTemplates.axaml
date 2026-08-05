@@ -118,8 +118,8 @@
 			<Expander
 				HorizontalAlignment="Stretch"
 				Classes="RecordsGroupExpanderStyle"
-				Content="{Binding Children, Mode=OneTime}"
-				Header="{Binding Mode=OneTime}"
+				Content="{Binding Children, Mode=OneWay}"
+				Header="{Binding Mode=OneWay}"
 				IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
 
 				<Expander.Styles>
@@ -182,7 +182,7 @@
 
 				<Expander.ContentTemplate>
 					<DataTemplate>
-						<ItemsControl ItemsSource="{Binding Mode=OneTime}">
+						<ItemsControl ItemsSource="{Binding Mode=OneWay}">
 							<ItemsControl.ItemTemplate>
 								<templateSelectors:DatasetRecordTemplateSelector>
 									<StaticResource ResourceKey="KeyValueRecordTemplate" />

@@ -4,7 +4,9 @@
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -48,7 +50,10 @@
 
 			<views:IconsBlock
 				Grid.Column="2"
-				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}" />
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
+				NoteItem="{Binding Mode=OneWay}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 		</Grid>
 	</TreeDataTemplate>
 
@@ -80,7 +85,7 @@
 				Width="{StaticResource EntityTypeIconSize}"
 				Height="{StaticResource EntityTypeIconSize}"
 				Foreground="{StaticResource FileBrush}"
-				Kind="{Binding EntityType, Mode=OneTime, Converter={x:Static converters:AppConverters.EntityTypeToIconKind}}" />
+				Kind="{Binding EntityType, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityTypeToIconKind}}" />
 
 			<TextBlock
 				Grid.Column="1"
@@ -94,10 +99,13 @@
 			<views:IconsBlock
 				Grid.Column="2"
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
+				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
 				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
-				IsFavorite="{Binding IsFavorite, Mode=OneWay}" />
+				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
+				NoteItem="{Binding Mode=OneWay}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 		</Grid>
 	</DataTemplate>
 </ResourceDictionary>

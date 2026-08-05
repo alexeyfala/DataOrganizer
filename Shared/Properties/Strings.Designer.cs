@@ -628,6 +628,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to read the note.
+        /// </summary>
+        public static string FailedToReadNote {
+            get {
+                return ResourceManager.GetString("FailedToReadNote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to rename.
         /// </summary>
         public static string FailedToRename {

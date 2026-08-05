@@ -445,6 +445,9 @@
   <data name="FailedToProcessContents" xml:space="preserve">
     <value>Failed to process contents</value>
   </data>
+  <data name="FailedToReadNote" xml:space="preserve">
+    <value>Failed to read the note</value>
+  </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Failed to show file contents</value>
   </data>

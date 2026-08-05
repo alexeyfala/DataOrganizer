@@ -23,7 +23,7 @@
 					SelectedItem="{Binding Language, Mode=TwoWay}">
 					<ComboBox.ItemTemplate>
 						<DataTemplate x:DataType="globalization:CultureInfo">
-							<TextBlock Text="{Binding EnglishName, Mode=OneTime}" />
+							<TextBlock Text="{Binding EnglishName, Mode=OneWay}" />
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
