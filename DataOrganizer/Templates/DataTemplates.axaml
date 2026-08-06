@@ -125,6 +125,7 @@
 				HotkeysToolTip="{Binding HotkeysToolTip, Mode=OneWay}"
 				IsEditing="{Binding IsEditing, Mode=OneWay}"
 				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
+				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
 				NoteItem="{Binding Mode=OneWay}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
