@@ -14,12 +14,12 @@
 	<StackPanel
 		DataContext="{Binding $parent[views:IconsBlock]}"
 		Orientation="Horizontal"
-		Spacing="4.0">
+		Spacing="2.0">
 		<StackPanel.Styles>
 			<Style Selector="materialIcons|MaterialIcon">
 				<Setter Property="Background" Value="Transparent" />
-				<Setter Property="Height" Value="{StaticResource ToolBarIconSize}" />
-				<Setter Property="Width" Value="{StaticResource ToolBarIconSize}" />
+				<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
+				<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
 			</Style>
 		</StackPanel.Styles>
 
