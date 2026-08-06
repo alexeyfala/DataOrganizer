@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using DataOrganizer.DTO.Entities;
+using DataOrganizer.DTO.Favorites;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using Entities.Enums;
@@ -60,6 +62,18 @@ internal static class AppConverters
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
 
+	/// <summary>
+	/// <c>True</c> when the folder of a favorites category has a note.
+	/// </summary>
+	public static FuncValueConverter<FavoriteCategory?, bool> FavoriteCategoryHasNote { get; } =
+		new(category => GetFolder(category)?.Note is not null);
+
+	/// <summary>
+	/// The folder a favorites category is built from; <c>null</c> for the category of the root objects.
+	/// </summary>
+	public static FuncValueConverter<FavoriteCategory?, FolderModelDto?> FavoriteCategoryToFolder { get; } =
+		new(GetFolder);
+
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch
 		{
@@ -76,5 +90,18 @@ internal static class AppConverters
 		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// The parent folder of the objects of a favorites category; a category always has children.
+	/// </summary>
+	private static FolderModelDto? GetFolder(FavoriteCategory? category)
+	{
+		return category
+			?.Children
+			.FirstOrDefault()
+			?.Parent;
+	}
 	#endregion
 }
