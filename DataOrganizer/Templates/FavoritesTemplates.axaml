@@ -5,6 +5,7 @@
 	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -66,7 +67,10 @@
 
 			<views:IconsBlock
 				Grid.Column="2"
-				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}" />
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}"
+				HasNote="{Binding Children[0].Parent.Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
+				NoteItem="{Binding Children[0].Parent, Mode=OneWay}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
