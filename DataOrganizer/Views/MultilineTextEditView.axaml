@@ -22,7 +22,12 @@
 			AcceptsTab="True"
 			FontSize="14.0"
 			Text="{Binding Text, Mode=TwoWay}"
-			TextWrapping="Wrap" />
+			TextWrapping="Wrap">
+			<Interaction.Behaviors>
+				<AutoFocusBehavior />
+				<AutoSelectBehavior />
+			</Interaction.Behaviors>
+		</TextBox>
 
 		<UniformGrid
 			Grid.Row="1"
