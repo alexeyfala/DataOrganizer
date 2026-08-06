@@ -18,7 +18,7 @@
 		<Style Selector="materialIcons|MaterialIcon.NoteIconStyle">
 			<Setter Property="Background" Value="Transparent" />
 			<Setter Property="Cursor" Value="Help" />
-			<Setter Property="Foreground" Value="{StaticResource MaterialPrimaryMidBrush}" />
+			<Setter Property="Foreground" Value="{StaticResource NoteBrush}" />
 			<Setter Property="Kind" Value="NoteTextOutline" />
 		</Style>
 	</UserControl.Styles>

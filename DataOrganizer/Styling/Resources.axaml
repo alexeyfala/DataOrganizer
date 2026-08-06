@@ -4,6 +4,23 @@
 	xmlns:icons="using:Material.Icons"
 	xmlns:system="using:System">
 
+	<!--#region Icon Colors-->
+	<!--
+		The icon colors below are single values that keep at least a 3:1 contrast
+		on the light paper, on the dark paper and on the dark card background.
+	-->
+
+	<Brush x:Key="EditingBrush">#FF2196F3</Brush>
+
+	<Brush x:Key="ExecutingBrush">#FF26A69A</Brush>
+
+	<Brush x:Key="FavoriteBrush">DarkGoldenrod</Brush>
+
+	<Brush x:Key="HotkeysBrush">#FF78909C</Brush>
+
+	<Brush x:Key="NoteBrush">#FFA1887F</Brush>
+	<!--#endregion-->
+
 	<Brush x:Key="FileBrush">DarkGoldenrod</Brush>
 
 	<Brush x:Key="FolderBrush">Peru</Brush>
