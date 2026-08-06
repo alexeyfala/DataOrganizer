@@ -468,6 +468,15 @@
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Не удалось прочитать примечание</value>
   </data>
+  <data name="FailedToSaveNote" xml:space="preserve">
+    <value>Не удалось сохранить примечание</value>
+  </data>
+  <data name="NoteHasBeenDeleted" xml:space="preserve">
+    <value>Примечание удалено</value>
+  </data>
+  <data name="NoteHasBeenSaved" xml:space="preserve">
+    <value>Примечание сохранено</value>
+  </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Не удалось показать содержимое файлов</value>
   </data>

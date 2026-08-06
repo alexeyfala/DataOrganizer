@@ -448,6 +448,15 @@
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Failed to read the note</value>
   </data>
+  <data name="FailedToSaveNote" xml:space="preserve">
+    <value>Failed to save the note</value>
+  </data>
+  <data name="NoteHasBeenDeleted" xml:space="preserve">
+    <value>The note has been deleted</value>
+  </data>
+  <data name="NoteHasBeenSaved" xml:space="preserve">
+    <value>The note has been saved</value>
+  </data>
   <data name="FailedToShowFileContents" xml:space="preserve">
     <value>Failed to show file contents</value>
   </data>

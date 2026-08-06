@@ -269,6 +269,14 @@
 			<Separator />
 
 			<wrappers:FlyoutButton
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditNoteCommand}"
+				CommandParameter="{Binding}"
+				Header="{x:Static prop:Strings.Note}"
+				Icon="NoteTextOutline" />
+
+			<Separator />
+
+			<wrappers:FlyoutButton
 				Header="{x:Static prop:Strings.Encryption}"
 				Icon="LockOutline">
 				<Button.Flyout>
@@ -402,6 +410,14 @@
 				Header="{x:Static prop:Strings.CopyContent}"
 				Icon="ContentCopy"
 				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityType.File}}" />
+
+			<Separator />
+
+			<wrappers:FlyoutButton
+				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditNoteCommand}"
+				CommandParameter="{Binding}"
+				Header="{x:Static prop:Strings.Note}"
+				Icon="NoteTextOutline" />
 
 			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}" />
 
