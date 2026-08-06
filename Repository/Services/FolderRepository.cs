@@ -6,6 +6,7 @@ using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,20 @@ public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepos
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
+	}
+
+	/// <inheritdoc />
+	public Task<int> UpdatePropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		CancellationToken token = default)
+	{
+		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
+
+		static KeyValuePair<Expression<Func<FolderModel, bool>>, Action<UpdateSettersBuilder<FolderModel>>[]> ToFilter(
+			KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> entry)
+		{
+			return new(x => x.Id == entry.Key, entry.Value);
+		}
 	}
 	#endregion Methods
 }

@@ -626,6 +626,15 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to process the notes.
+        /// </summary>
+        public static string FailedToProcessNotes {
+            get {
+                return ResourceManager.GetString("FailedToProcessNotes", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to read the note.

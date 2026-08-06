@@ -465,6 +465,9 @@
   <data name="FailedToProcessContents" xml:space="preserve">
     <value>Не удалось обработать содержимое</value>
   </data>
+  <data name="FailedToProcessNotes" xml:space="preserve">
+    <value>Не удалось обработать примечания</value>
+  </data>
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Не удалось прочитать примечание</value>
   </data>

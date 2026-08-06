@@ -8,6 +8,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
+using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -93,6 +94,116 @@ internal class EntityEncryptionTests
 		folder.PasswordHash
 			.Should()
 			.NotBeEquivalentTo(passwordHash);
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.DecryptFolderAsync" />: the notes of the whole subtree are decrypted and persisted.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Decrypts_Notes()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.Note = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		FolderModelDto subfolder = TestUtils.CreateFolderDto();
+
+		subfolder.Note = TestUtils.CreateRandomBytes(10);
+
+		folder
+			.Children
+			.Add(subfolder);
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file.Note = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [file];
+
+		byte[] decryptedNote = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns([]);
+
+			encryption
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(decryptedNote);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.Returns(true);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		await dbAccess
+			.Received(1)
+			.UpdateFolderPropertiesAsync(Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>(x =>
+				x != null && x.ContainsKey(folder.Id) && x.ContainsKey(subfolder.Id)));
+
+		folder.Note
+			.Should()
+			.BeSameAs(decryptedNote);
+
+		subfolder.Note
+			.Should()
+			.BeSameAs(decryptedNote);
+
+		file.Note
+			.Should()
+			.BeSameAs(decryptedNote);
 	}
 
 	/// <summary>
@@ -274,6 +385,69 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
+	/// <see cref="EntityEncryption.EncryptFolderAsync" />: nothing is persisted when a note cannot be encrypted.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Does_Not_Persist_When_A_Note_Cannot_Be_Encrypted()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		files[0].Note = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns([]);
+
+			encryption
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		await dbAccess
+			.DidNotReceive()
+			.BackupDatabaseAsync();
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.EncryptFolderAsync" />: encrypts the folder and persists the updated file properties.
 	/// </summary>
 	[Test]
@@ -328,6 +502,85 @@ internal class EntityEncryptionTests
 		await dbAccess
 			.Received()
 			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.EncryptFolderAsync" />: the note of an object is encrypted with the DEK of the folder.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Encrypts_Notes()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file.Note = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [file];
+
+		byte[] encryptedNote = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns([]);
+
+			encryption
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(encryptedNote);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateRandomFileName(10));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(true);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		file.Note
+			.Should()
+			.BeSameAs(encryptedNote);
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>());
 	}
 
 	/// <summary>
@@ -871,6 +1124,7 @@ internal class EntityEncryptionTests
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			NewStatus = default,
+			Notes = [],
 			PasswordHash = null
 		};
 
@@ -902,6 +1156,65 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
+	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: returns FailedToSaveFolderPropertiesInDb and restores the backup when the notes of the folders cannot be saved.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Notes_In_Database()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = null,
+			Files = [],
+			Folder = folder,
+			NewStatus = default,
+			Notes = [new NoteUpdate(folder.Id, EntityType.Folder, TestUtils.CreateRandomBytes(10))],
+			PasswordHash = null
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(fileSystem);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(Arg.Any<string>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: returns FailedToSaveFolderPropertiesInDb and restores the backup and erases the file on failure.
 	/// </summary>
 	[Test]
@@ -916,6 +1229,7 @@ internal class EntityEncryptionTests
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			NewStatus = default,
+			Notes = [],
 			PasswordHash = null
 		};
 
@@ -974,6 +1288,7 @@ internal class EntityEncryptionTests
 			Files = files,
 			Folder = folder,
 			NewStatus = newStatus,
+			Notes = [],
 			PasswordHash = AppUtils.CreateRandomString(10)
 		};
 
@@ -1017,6 +1332,101 @@ internal class EntityEncryptionTests
 		fileSystem
 			.Received()
 			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.UpdateDatabaseAsync" />: the processed notes are persisted and applied to the objects.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Saves_Notes()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FolderModelDto subfolder = TestUtils.CreateFolderDto();
+
+		folder
+			.Children
+			.Add(subfolder);
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		byte[] folderNote = TestUtils.CreateRandomBytes(10);
+
+		byte[] subfolderNote = TestUtils.CreateRandomBytes(10);
+
+		byte[] fileNote = TestUtils.CreateRandomBytes(10);
+
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			Contents =
+			[
+				new ContentsIsValidPair
+				{
+					Contents = TestUtils.CreateRandomBytes(10),
+					Id = file.Id,
+					IsValid = true
+				}
+			],
+			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			Files = [file],
+			Folder = folder,
+			NewStatus = EncryptionStatus.Encrypted,
+			Notes =
+			[
+				new NoteUpdate(folder.Id, EntityType.Folder, folderNote),
+				new NoteUpdate(subfolder.Id, EntityType.Folder, subfolderNote),
+				new NoteUpdate(file.Id, EntityType.File, fileNote)
+			],
+			PasswordHash = AppUtils.CreateRandomString(10)
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.Returns(true);
+
+			dbAccess
+				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.Done);
+
+		await dbAccess
+			.Received(1)
+			.UpdateFolderPropertiesAsync(Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>(x =>
+				x != null && x.ContainsKey(folder.Id) && x.ContainsKey(subfolder.Id) && !x.ContainsKey(file.Id)));
+
+		folder.Note
+			.Should()
+			.BeSameAs(folderNote);
+
+		subfolder.Note
+			.Should()
+			.BeSameAs(subfolderNote);
+
+		file.Note
+			.Should()
+			.BeSameAs(fileNote);
 	}
 	#endregion
 }

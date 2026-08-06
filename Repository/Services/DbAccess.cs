@@ -999,6 +999,42 @@ public sealed class DbAccess : IDbAccess
 			}
 		}
 	}
+
+	/// <inheritdoc />
+	public async Task<bool> UpdateFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			int count = await _folderRepository
+				.UpdatePropertiesAsync(updates, token)
+				.ConfigureAwait(false);
+
+			return count > 0;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
 	#endregion
 
 	#region Helpers

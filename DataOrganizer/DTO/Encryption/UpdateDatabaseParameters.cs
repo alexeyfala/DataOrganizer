@@ -33,6 +33,11 @@ public sealed record UpdateDatabaseParameters
 	/// </summary>
 	public required EncryptionStatus NewStatus { get; init; }
 
+	/// <summary>
+	/// The processed notes of the folder and of its objects.
+	/// </summary>
+	public required NoteUpdate[] Notes { get; init; }
+
 	/// <inheritdoc cref="FolderModelDto.PasswordHash" />
 	public required string? PasswordHash { get; init; }
 	#endregion
