@@ -25,7 +25,6 @@
 			TextWrapping="Wrap">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
-				<AutoSelectBehavior />
 			</Interaction.Behaviors>
 		</TextBox>
 
