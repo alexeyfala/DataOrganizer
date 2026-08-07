@@ -85,7 +85,8 @@
 						Margin="0.0,0.0,8.0,8.0"
 						Classes="HeaderTextBlockStyle"
 						Foreground="{StaticResource MaterialPaperBrush}"
-						Text="{Binding NoteName, Mode=OneWay, Converter={x:Static converters:AppConverters.NoteHeader}}" />
+						Text="{Binding NoteName, Mode=OneWay, Converter={x:Static converters:AppConverters.NoteHeader}}"
+						TextTrimming="CharacterEllipsis" />
 
 					<ToggleButton
 						Grid.Row="0"
