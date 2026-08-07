@@ -30,6 +30,11 @@ public interface IEncryptionService
 	byte[]? DecryptWithDek(byte[] input, byte[] dek);
 
 	/// <summary>
+	/// Decrypts data using a session identifier (runs HKDF). For unwrap of the session encrypted DEK.
+	/// </summary>
+	byte[]? DecryptWithSessionId(byte[] input, byte[] sessionId);
+
+	/// <summary>
 	/// Encrypts data using a password (runs KDF). For wrap/unwrap of DEK.
 	/// </summary>
 	byte[]? Encrypt(byte[] input, byte[] password);
@@ -43,6 +48,11 @@ public interface IEncryptionService
 	/// Encrypts data using a DEK directly (no KDF). For content encryption.
 	/// </summary>
 	byte[]? EncryptWithDek(byte[] input, byte[] dek);
+
+	/// <summary>
+	/// Encrypts data using a session identifier (runs HKDF). For wrap of the DEK within a session.
+	/// </summary>
+	byte[]? EncryptWithSessionId(byte[] input, byte[] sessionId);
 
 	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
 	string HashPassword(char[] password);

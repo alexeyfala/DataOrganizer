@@ -297,7 +297,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek)
 	{
-		if (_encryption.Decrypt(
+		if (_encryption.DecryptWithSessionId(
 			sessionEncryptedDek,
 			GetSessionId()) is not { } decryptedDek)
 		{
@@ -428,7 +428,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek)
 	{
-		if (_encryption.Decrypt(
+		if (_encryption.DecryptWithSessionId(
 			sessionEncryptedDek,
 			GetSessionId()) is not { } decryptedDek)
 		{
@@ -544,7 +544,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				if (_encryption.Encrypt(
+				if (_encryption.EncryptWithSessionId(
 					dek,
 					GetSessionId()) is not { } sessionEncryptedDek)
 				{
@@ -973,7 +973,9 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			if (_encryption.Encrypt(dek, GetSessionId()) is not { } sessionEncryptedDek)
+			if (_encryption.EncryptWithSessionId(
+				dek,
+				GetSessionId()) is not { } sessionEncryptedDek)
 			{
 				return false;
 			}

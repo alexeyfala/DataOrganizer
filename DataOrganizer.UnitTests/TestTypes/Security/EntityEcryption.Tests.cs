@@ -283,7 +283,7 @@ internal class EntityEncryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -307,7 +307,7 @@ internal class EntityEncryptionTests
 
 		encryption
 			.Received(1)
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 
 		encryption
 			.Received(1)
@@ -326,7 +326,7 @@ internal class EntityEncryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(encryption);
@@ -346,7 +346,7 @@ internal class EntityEncryptionTests
 
 		encryption
 			.Received(1)
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -361,7 +361,7 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
@@ -595,7 +595,7 @@ internal class EntityEncryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(encryption);
@@ -615,7 +615,7 @@ internal class EntityEncryptionTests
 
 		encryption
 			.DidNotReceive()
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -630,7 +630,7 @@ internal class EntityEncryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -658,7 +658,7 @@ internal class EntityEncryptionTests
 
 		encryption
 			.Received()
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -673,7 +673,7 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -819,7 +819,7 @@ internal class EntityEncryptionTests
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(dialogService);
@@ -882,7 +882,7 @@ internal class EntityEncryptionTests
 				.Returns([]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -939,7 +939,7 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
@@ -994,7 +994,7 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
