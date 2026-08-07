@@ -53,7 +53,7 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 
 	/// <inheritdoc cref="ExplorerModelBase.Note" />
 	[ObservableProperty]
-	public partial string? Note { get; set; }
+	public partial byte[]? Note { get; set; }
 
 	/// <inheritdoc cref="ExplorerModelBase.Parent" />
 	public FolderModelDto? Parent { get; set; }

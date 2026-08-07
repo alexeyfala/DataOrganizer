@@ -240,6 +240,17 @@ public sealed class EntityEncryption : IEntityEncryption
 						return;
 					}
 
+					if (ProcessNotes(
+						folder,
+						files,
+						decryptedDek,
+						encrypt: false) is not { } notes)
+					{
+						SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+						return;
+					}
+
 					if (await _dbAccess
 						.BackupDatabaseAsync(token)
 						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
@@ -257,6 +268,7 @@ public sealed class EntityEncryption : IEntityEncryption
 						Files = files,
 						Folder = folder,
 						NewStatus = EncryptionStatus.None,
+						Notes = notes,
 						PasswordHash = null
 					};
 
@@ -359,6 +371,17 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				try
 				{
+					if (ProcessNotes(
+						folder,
+						files,
+						dek,
+						encrypt: true) is not { } notes)
+					{
+						SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+						return;
+					}
+
 					if (await _dbAccess
 						.BackupDatabaseAsync(token)
 						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
@@ -376,6 +399,7 @@ public sealed class EntityEncryption : IEntityEncryption
 						Files = files,
 						Folder = folder,
 						NewStatus = EncryptionStatus.Encrypted,
+						Notes = notes,
 						PasswordHash = _encryption.HashPassword(password)
 					};
 
@@ -714,6 +738,17 @@ public sealed class EntityEncryption : IEntityEncryption
 				};
 			});
 
+			// A note of a file is stored in the same transaction as its contents.
+			foreach (NoteUpdate note in parameters.Notes.Where(x => !x.IsFolderNote()))
+			{
+				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileModel>>[]? setters))
+				{
+					continue;
+				}
+
+				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
+			}
+
 			if (!await _dbAccess
 				.UpdateFilePropertiesAsync(updates, token)
 				.ConfigureAwait(false))
@@ -746,14 +781,38 @@ public sealed class EntityEncryption : IEntityEncryption
 				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
 
-			ExplorerModelBaseDto[] objects =
-			[
-				.. parameters.Folder.ToEnumerable(),
-				.. parameters.Folder.Children.GetFolders(),
-				.. parameters.Files
-			];
+			Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderNotes = parameters
+				.Notes
+				.Where(x => x.IsFolderNote())
+				.ToDictionary(x => x.Id, note =>
+			{
+				return new Action<UpdateSettersBuilder<FolderModel>>[]
+				{
+					builder => builder.SetProperty(x => x.Note, note.Note),
+					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
+				};
+			});
+
+			if (folderNotes.Count > 0 && !await _dbAccess
+				.UpdateFolderPropertiesAsync(folderNotes, token)
+				.ConfigureAwait(false))
+			{
+				SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+				await _dbAccess
+					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+					.ConfigureAwait(false);
+
+				DeleteFile(parameters.BackupFilePath);
+
+				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
+			}
+
+			ExplorerModelBaseDto[] objects = GetObjects(parameters.Folder, parameters.Files);
 
 			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
+
+			ApplyNotes(objects, parameters.Notes);
 
 			parameters
 				.Folder
@@ -790,6 +849,34 @@ public sealed class EntityEncryption : IEntityEncryption
 
 	#region Helpers
 	/// <summary>
+	/// Applies the processed notes to the objects, wiping the replaced buffers.
+	/// </summary>
+	private static void ApplyNotes(ExplorerModelBaseDto[] objects, NoteUpdate[] notes)
+	{
+		if (notes.Length == 0)
+		{
+			return;
+		}
+
+		Dictionary<Guid, byte[]> processed = notes.ToDictionary(x => x.Id, x => x.Note);
+
+		foreach (ExplorerModelBaseDto item in objects)
+		{
+			if (!processed.TryGetValue(item.Id, out byte[]? note))
+			{
+				continue;
+			}
+
+			byte[]? replaced = item.Note;
+
+			item.Note = note;
+
+			// The replaced buffer holds the note in plain text after an encryption.
+			replaced?.ZeroMemory();
+		}
+	}
+
+	/// <summary>
 	/// <c>True</c> when the contents are valid.
 	/// </summary>
 	private static bool AreContentsValid(ContentsIsValidPair[] contents, int shouldBe)
@@ -808,9 +895,59 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <summary>
+	/// Returns the folder itself, its subfolders and the given files as one sequence.
+	/// </summary>
+	private static ExplorerModelBaseDto[] GetObjects(FolderModelDto folder, FileModelDto[] files)
+	{
+		return
+		[
+			.. folder.ToEnumerable(),
+			.. folder.Children.GetFolders(),
+			.. files
+		];
+	}
+
+	/// <summary>
 	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
 	/// </summary>
 	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+
+	/// <summary>
+	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK;
+	/// <c>null</c> when a note cannot be converted.
+	/// </summary>
+	private NoteUpdate[]? ProcessNotes(
+		FolderModelDto folder,
+		FileModelDto[] files,
+		byte[] dek,
+		bool encrypt)
+	{
+		List<NoteUpdate> notes = [];
+
+		foreach (ExplorerModelBaseDto item in GetObjects(folder, files))
+		{
+			if (item.Note is not { } note || note.IsEmpty())
+			{
+				continue;
+			}
+
+			byte[]? processed = encrypt
+				? _encryption.EncryptWithDek(note, dek)
+				: _encryption.DecryptWithDek(note, dek);
+
+			if (processed is null)
+			{
+				return null;
+			}
+
+			notes.Add(new NoteUpdate(
+				item.Id,
+				item.EntityType,
+				processed));
+		}
+
+		return [.. notes];
+	}
 
 	/// <summary>
 	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.

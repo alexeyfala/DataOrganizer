@@ -2,8 +2,10 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using DataOrganizer.DTO.Entities;
+using DataOrganizer.DTO.Favorites;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Notes;
 using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
@@ -26,43 +28,52 @@ internal static class AppConverters
 
 	#region Properties
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
-			new(status => status switch
-			{
-				EncryptionStatus.Decrypted => Brushes.OrangeRed,
-				EncryptionStatus.Encrypted => Brushes.ForestGreen,
-				_ => Brushes.Transparent
-			});
+		new(status => status switch
+		{
+			EncryptionStatus.Decrypted => Brushes.OrangeRed,
+			EncryptionStatus.Encrypted => Brushes.ForestGreen,
+			_ => Brushes.Transparent
+		});
 
 	public static FuncValueConverter<EncryptionStatus, string?> EncryptionStatusToIconDescription { get; } =
-			new(status => status switch
-			{
-				EncryptionStatus.Decrypted => Strings.ContentIsDecrypted,
-				EncryptionStatus.Encrypted => Strings.ContentIsEncrypted,
-				_ => null
-			});
+		new(status => status switch
+		{
+			EncryptionStatus.Decrypted => Strings.ContentIsDecrypted,
+			EncryptionStatus.Encrypted => Strings.ContentIsEncrypted,
+			_ => null
+		});
 
 	public static FuncValueConverter<EncryptionStatus, MaterialIconKind> EncryptionStatusToIconKind { get; } =
-			new(status => status switch
-			{
-				EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariantOutline,
-				EncryptionStatus.Encrypted => MaterialIconKind.Lock,
-				_ => default
-			});
+		new(status => status switch
+		{
+			EncryptionStatus.Decrypted => MaterialIconKind.LockOpenVariantOutline,
+			EncryptionStatus.Encrypted => MaterialIconKind.Lock,
+			_ => default
+		});
 
 	public static FuncValueConverter<EntityType, MaterialIconKind> EntityTypeToIconKind { get; } =
-			new(type => type switch
-			{
-				EntityType.Folder => MaterialIconKind.Folder,
-				EntityType.File => MaterialIconKind.FileOutline,
-				EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
-				_ => default
-			});
+		new(type => type switch
+		{
+			EntityType.Folder => MaterialIconKind.Folder,
+			EntityType.File => MaterialIconKind.FileOutline,
+			EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
+			_ => default
+		});
 
 	/// <inheritdoc cref="EnumToBoolConverter" />
 	public static EnumToBoolConverter EnumToBool { get; } = new();
 
-	public static FuncValueConverter<FileModelDto, bool> FileIsOpenedToFalse { get; } =
-		new(file => file is { } opened && !opened.IsOpened());
+	/// <summary>
+	/// <c>True</c> when the folder of a favorites category has a note.
+	/// </summary>
+	public static FuncValueConverter<FavoriteCategory?, bool> FavoriteCategoryHasNote { get; } =
+		new(category => GetFolder(category)?.Note is not null);
+
+	/// <summary>
+	/// The folder a favorites category is built from; <c>null</c> for the category of the root objects.
+	/// </summary>
+	public static FuncValueConverter<FavoriteCategory?, FolderModelDto?> FavoriteCategoryToFolder { get; } =
+		new(GetFolder);
 
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
 		new(value => value switch
@@ -72,6 +83,9 @@ internal static class AppConverters
 			_ => Brushes.Transparent
 		});
 
+	/// <inheritdoc cref="NoteHelper.BuildHeader" />
+	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHelper.BuildHeader);
+
 	/// <summary>
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
 	/// Inputs: [Extent.Height, Viewport.Height].
@@ -80,5 +94,18 @@ internal static class AppConverters
 		new(values => values.ToArray() is [double extent, double viewport] && extent > viewport
 			? new Thickness(0.0, 0.0, ScrollBarThickness, 0.0)
 			: default);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// The parent folder of the objects of a favorites category; a category always has children.
+	/// </summary>
+	private static FolderModelDto? GetFolder(FavoriteCategory? category)
+	{
+		return category
+			?.Children
+			.FirstOrDefault()
+			?.Parent;
+	}
 	#endregion
 }

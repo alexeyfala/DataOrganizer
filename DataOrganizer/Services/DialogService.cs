@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -139,9 +140,14 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default)
+	public async Task<ValueIsValidPair> RequestMultilineTextAsync(
+		string? text,
+		string? name = null,
+		CancellationToken token = default)
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
+
+		viewModel.Header = NoteHelper.BuildHeader(name);
 
 		viewModel.Text = text;
 

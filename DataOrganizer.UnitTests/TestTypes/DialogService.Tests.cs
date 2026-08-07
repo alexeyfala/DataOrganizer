@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
@@ -10,9 +11,11 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
+using DataOrganizer.Views;
 using DataOrganizer.Views.Settings;
 using DialogHostAvalonia;
 using NSubstitute;
+using Shared.Properties;
 using System;
 using System.Threading.Tasks;
 
@@ -105,6 +108,62 @@ internal class DialogServiceTests
 		typed
 			.Should()
 			.Be(new string('\0', typed.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.RequestMultilineTextAsync" />: the header of the dialog carries the given name,
+	/// a blank name leaves the label alone.
+	/// </summary>
+	[AvaloniaTest]
+	public async Task RequestMultilineTextAsync_Heads_The_Dialog([Values(null, "", "   ", "Name")] string? name)
+	{
+		// Arrange
+		MultilineTextEditViewModel viewModel = new(
+			Application.Current!,
+			Substitute.For<ITaskExceptionHandler>());
+
+		IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+		viewFactory
+			.CreateViewModel<MultilineTextEditViewModel>()
+			.Returns(viewModel);
+
+		viewFactory
+			.CreateUserControl<MultilineTextEditView>(Arg.Any<object[]>())
+			.Returns(new MultilineTextEditView(viewModel));
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(viewFactory));
+
+		DialogService sut = mock.Create<DialogService>();
+
+		DialogHost host = new();
+
+		Window window = new() { Content = host };
+
+		window.Show();
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Act
+		Task<ValueIsValidPair> task = sut.RequestMultilineTextAsync("text", name);
+
+		Dispatcher.UIThread.RunJobs();
+
+		// Assert
+		viewModel.Header
+			.Should()
+			.Be(string.IsNullOrWhiteSpace(name) ? Strings.Note : $"{Strings.Note}: {name}");
+
+		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
+		await viewModel
+			.CancelCommand
+			.ExecuteAsync(null);
+
+		Dispatcher.UIThread.RunJobs();
+
+		await task;
+
+		window.Close();
 	}
 
 	/// <summary>

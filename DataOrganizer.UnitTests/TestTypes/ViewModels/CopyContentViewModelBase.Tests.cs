@@ -1,3 +1,5 @@
+using Autofac;
+using Autofac.Extras.Moq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
@@ -34,40 +36,45 @@ internal class CopyContentViewModelBaseTests
 		// Arrange
 		string content = AppUtils.CreateRandomString(20);
 
-		FileModelDto file = TestUtils.CreateFileDto(
-			encryptionStatus: isEncrypted ? EncryptionStatus.Encrypted : EncryptionStatus.None);
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: isEncrypted
+			? EncryptionStatus.Encrypted
+			: EncryptionStatus.None);
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		dbAccess
-			.IsExistsAsync(file.Id, Arg.Any<CancellationToken>())
-			.Returns(true);
+			dbAccess
+				.IsExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
 
-		dbAccess
-			.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-			.Returns(new ContentsIsValidPair
-			{
-				Contents = TestUtils.CreateRandomBytes(8),
-				IsValid = true
-			});
+			dbAccess
+				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(new ContentsIsValidPair
+				{
+					Contents = TestUtils.CreateRandomBytes(8),
+					IsValid = true
+				});
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
 
-		entityEncryption
-			.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-			.Returns(Encoding.UTF8.GetBytes(content));
+			entityEncryption
+				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(Encoding.UTF8.GetBytes(content));
 
-		TestCopyContentViewModel sut = new(
-			Application.Current!,
-			clipboard,
-			dbAccess,
-			Substitute.For<IDialogService>(),
-			entityEncryption,
-			Substitute.For<ILogger>(),
-			Substitute.For<IMessenger>(),
-			Substitute.For<ITaskExceptionHandler>());
+			builder.RegisterInstance(clipboard);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityEncryption);
+
+			// The running headless application, since Application cannot be substituted.
+			builder.RegisterInstance(Application.Current!);
+		});
+
+		TestCopyContentViewModel sut = mock.Create<TestCopyContentViewModel>();
 
 		// Act
 		await sut.InvokeCopyContentAsync(file, new ItemsControl());
@@ -125,8 +132,10 @@ internal class CopyContentViewModelBaseTests
 		#endregion
 
 		#region Methods
-		public Task InvokeCopyContentAsync(FileModelDto file, ItemsControl container) =>
-			CopyContentAsync(file, container, updateView: false);
+		public Task InvokeCopyContentAsync(FileModelDto file, ItemsControl container)
+		{
+			return CopyContentAsync(file, container, updateView: false);
+		}
 		#endregion
 	}
 	#endregion

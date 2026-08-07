@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.DTO.Settings;
@@ -12,6 +13,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
@@ -76,14 +78,12 @@ internal class EditorViewModelTests
 			.Should()
 			.BeSameAs(created);
 
-		await hierarchyEditor
-			.Received()
-			.AddAsync(
-				name,
-				type,
-				parent,
-				sut.Hierarchy,
-				Arg.Any<CancellationToken>());
+		await hierarchyEditor.Received().AddAsync(
+			name,
+			type,
+			parent,
+			sut.Hierarchy,
+			Arg.Any<CancellationToken>());
 
 		sut.BottomLeftCornerInfo
 			.Should()
@@ -368,12 +368,10 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		await hierarchyEditor
-			.Received()
-			.DeleteAsync(
-				file,
-				sut.Hierarchy,
-				Arg.Any<CancellationToken>());
+		await hierarchyEditor.Received().DeleteAsync(
+			file,
+			sut.Hierarchy,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -417,6 +415,151 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditNote" />: the note of the dialog is stored through the note editor.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Delegates_To_Note_Editor()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		string storedNote = AppUtils.CreateRandomString(20);
+
+		string editedNote = AppUtils.CreateRandomString(20);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		INoteEditor noteEditor = Substitute.For<INoteEditor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair(true, editedNote));
+
+			INoteReader noteReader = Substitute.For<INoteReader>();
+
+			noteReader
+				.ReadNote(file)
+				.Returns(storedNote);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(noteEditor);
+
+			builder.RegisterInstance(noteReader);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.EditNote(file);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			storedNote,
+			file.Name,
+			Arg.Any<CancellationToken>());
+
+		await noteEditor.Received(1).EditAsync(
+			file,
+			editedNote,
+			Arg.Any<DateTime>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditNote" />: a cancelled dialog leaves the note untouched.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Keeps_Note_When_Dialog_Is_Cancelled()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		INoteEditor noteEditor = Substitute.For<INoteEditor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(noteEditor);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.EditNote(file);
+
+		// Assert
+		await noteEditor.DidNotReceive().EditAsync(
+			Arg.Any<ExplorerModelBaseDto>(),
+			Arg.Any<string>(),
+			Arg.Any<DateTime>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditNoteCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void EditNoteCommand_CanExecute_Is_Denied_In_Read_Only_Mode_And_For_An_Encrypted_Object(
+		[Values] bool isReadOnly,
+		[Values] EncryptionStatus encryptionStatus)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.IsReadOnly = isReadOnly;
+
+		// Act
+		bool canExecute = sut
+			.EditNoteCommand
+			.CanExecute(TestUtils.CreateFileDto(encryptionStatus: encryptionStatus));
+
+		// Assert
+		canExecute
+			.Should()
+			.Be(!isReadOnly && encryptionStatus != EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditNoteCommand" /> CanExecute.
+	/// </summary>
+	[Test]
+	public void EditNoteCommand_CanExecute_Returns_False_Without_An_Object()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool canExecute = sut
+			.EditNoteCommand
+			.CanExecute(null);
+
+		// Assert
+		canExecute
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
@@ -1113,9 +1256,7 @@ internal class EditorViewModelTests
 
 		await propertyWriter
 			.Received()
-			.UpdateIsFavoriteAsync(
-				dto,
-				Arg.Any<CancellationToken>());
+			.UpdateIsFavoriteAsync(dto, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

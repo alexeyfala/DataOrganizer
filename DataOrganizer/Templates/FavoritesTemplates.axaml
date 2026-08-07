@@ -2,9 +2,11 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
+	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -66,7 +68,11 @@
 
 			<views:IconsBlock
 				Grid.Column="2"
-				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}" />
+				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}"
+				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryHasNote}}"
+				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryToFolder}}"
+				NoteName="{Binding Name, Mode=OneTime}"
+				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">

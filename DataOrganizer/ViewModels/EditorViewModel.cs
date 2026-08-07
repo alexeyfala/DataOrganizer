@@ -20,6 +20,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Messages;
@@ -241,6 +242,33 @@ public partial class EditorViewModel :
 
 		await _entityEncryption
 			.DecryptFolderAsync(dto, files)
+			.ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Displays the note editing dialog box.
+	/// </summary>
+	[RelayCommand(CanExecute = nameof(CanEditNote))]
+	internal async Task EditNote(ExplorerModelBaseDto? dto)
+	{
+		if (dto is null)
+		{
+			return;
+		}
+
+		_logger.LogInformation("Editing a note of an object using dialog");
+
+		ValueIsValidPair result = await _dialogService
+			.RequestMultilineTextAsync(_noteReader.ReadNote(dto), dto.Name)
+			.ConfigureAwait(false);
+
+		if (!result.IsValid)
+		{
+			return;
+		}
+
+		await _noteEditor
+			.EditAsync(dto, result.Value, DateTime.Now)
 			.ConfigureAwait(false);
 	}
 
@@ -1040,6 +1068,12 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
+	/// <inheritdoc cref="INoteEditor" />
+	private readonly INoteEditor _noteEditor;
+
+	/// <inheritdoc cref="INoteReader" />
+	private readonly INoteReader _noteReader;
+
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
@@ -1072,6 +1106,8 @@ public partial class EditorViewModel :
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
 		IMessenger messenger,
+		INoteEditor noteEditor,
+		INoteReader noteReader,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
@@ -1099,6 +1135,10 @@ public partial class EditorViewModel :
 		_fileHotkeyEditor = fileHotkeyEditor;
 
 		_hierarchyEditor = hierarchyEditor;
+
+		_noteEditor = noteEditor;
+
+		_noteReader = noteReader;
 
 		_processUtils = processUtils;
 
@@ -1548,6 +1588,17 @@ public partial class EditorViewModel :
 		return !IsReadOnly
 			&& !IsActionInProgress
 			&& (dto is not null || SelectedObject is not null);
+	}
+
+	/// <summary>
+	/// Validates <see cref="EditNoteCommand" />.
+	/// </summary>
+	private bool CanEditNote(ExplorerModelBaseDto? dto)
+	{
+		return !IsReadOnly
+			&& !IsActionInProgress
+			&& dto is not null
+			&& dto.EncryptionStatus != EncryptionStatus.Encrypted;
 	}
 
 	/// <summary>

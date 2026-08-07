@@ -153,5 +153,12 @@ public interface IDbAccess : IDisposable
 		Guid id,
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Updates properties of multiple <see cref="FolderModel" /> entities in a single transaction.
+	/// </summary>
+	Task<bool> UpdateFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		CancellationToken token = default);
 	#endregion
 }

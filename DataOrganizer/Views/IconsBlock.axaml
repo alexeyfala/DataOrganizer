@@ -14,23 +14,30 @@
 	<StackPanel
 		DataContext="{Binding $parent[views:IconsBlock]}"
 		Orientation="Horizontal"
-		Spacing="4.0">
+		Spacing="2.0">
 		<StackPanel.Styles>
 			<Style Selector="materialIcons|MaterialIcon">
 				<Setter Property="Background" Value="Transparent" />
-				<Setter Property="Height" Value="{StaticResource ToolBarIconSize}" />
-				<Setter Property="Width" Value="{StaticResource ToolBarIconSize}" />
+				<Setter Property="Height" Value="{StaticResource SmallButtonIconSize}" />
+				<Setter Property="Width" Value="{StaticResource SmallButtonIconSize}" />
 			</Style>
 		</StackPanel.Styles>
 
+		<views:NoteView
+			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}"
+			IsVisible="{Binding HasNote, Mode=OneWay}"
+			NoteItem="{Binding NoteItem, Mode=OneWay}"
+			NoteName="{Binding NoteName, Mode=OneWay}"
+			NoteReader="{Binding NoteReader, Mode=OneWay}" />
+
 		<materialIcons:MaterialIcon
-			Foreground="LimeGreen"
+			Foreground="{StaticResource EditingBrush}"
 			IsVisible="{Binding IsEditing, Mode=OneWay}"
 			Kind="TextBoxEditOutline"
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInEditor}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="LimeGreen"
+			Foreground="{StaticResource ExecutingBrush}"
 			IsVisible="{Binding IsExecuting, Mode=OneWay}"
 			Kind="{OnPlatform Default=MicrosoftWindows,
 			                  macOS=Apple,
@@ -38,13 +45,13 @@
 			ToolTip.Tip="{x:Static prop:Strings.OpenedInTheOperatingSystem}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="{StaticResource FileBrush}"
+			Foreground="{StaticResource HotkeysBrush}"
 			IsVisible="{Binding HotkeysToolTip, Mode=OneWay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
 			Kind="KeyboardVariant"
 			ToolTip.Tip="{Binding HotkeysToolTip, Mode=OneWay}" />
 
 		<materialIcons:MaterialIcon
-			Foreground="{StaticResource FileBrush}"
+			Foreground="{StaticResource FavoriteBrush}"
 			IsVisible="{Binding IsFavorite, Mode=OneWay}"
 			Kind="StarOutline"
 			ToolTip.Tip="{x:Static prop:Strings.Favorite}" />

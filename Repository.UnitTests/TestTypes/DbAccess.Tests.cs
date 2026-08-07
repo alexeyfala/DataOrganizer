@@ -965,7 +965,41 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns false when the folder does not exist.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
+	/// </summary>
+	[Test]
+	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
+	{
+		// Arrange
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFolderRepository repository = Substitute.For<IFolderRepository>();
+
+			repository
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.Returns(0);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFolderPropertiesAsync(updates);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderModel}}[], System.Threading.CancellationToken)" />: returns false when the folder does not exist.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Folder_Does_Not_Exist()
@@ -1001,7 +1035,46 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync" />: returns true and forwards the setters when the folder was updated.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderModel}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
+	/// </summary>
+	[Test]
+	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
+	{
+		// Arrange
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))],
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestUtils.CreateRandomIntFrom10To100())]
+		};
+
+		IFolderRepository repository = Substitute.For<IFolderRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			repository
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.Returns(updates.Count);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFolderPropertiesAsync(updates);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await repository
+			.Received()
+			.UpdatePropertiesAsync(updates);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderModel}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the folder was updated.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Folder_Was_Updated()

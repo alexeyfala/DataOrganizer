@@ -626,6 +626,24 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to process the notes.
+        /// </summary>
+        public static string FailedToProcessNotes {
+            get {
+                return ResourceManager.GetString("FailedToProcessNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to read the note.
+        /// </summary>
+        public static string FailedToReadNote {
+            get {
+                return ResourceManager.GetString("FailedToReadNote", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to rename.
@@ -633,6 +651,15 @@ namespace Shared.Properties {
         public static string FailedToRename {
             get {
                 return ResourceManager.GetString("FailedToRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save the note.
+        /// </summary>
+        public static string FailedToSaveNote {
+            get {
+                return ResourceManager.GetString("FailedToSaveNote", resourceCulture);
             }
         }
         
@@ -975,6 +1002,24 @@ namespace Shared.Properties {
         public static string Note {
             get {
                 return ResourceManager.GetString("Note", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The note has been deleted.
+        /// </summary>
+        public static string NoteHasBeenDeleted {
+            get {
+                return ResourceManager.GetString("NoteHasBeenDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The note has been saved.
+        /// </summary>
+        public static string NoteHasBeenSaved {
+            get {
+                return ResourceManager.GetString("NoteHasBeenSaved", resourceCulture);
             }
         }
         

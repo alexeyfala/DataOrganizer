@@ -12,21 +12,37 @@
 
 	<Grid
 		ColumnDefinitions="*,Auto"
-		RowDefinitions="*,Auto"
-		RowSpacing="{StaticResource ElementSpacing}">
-		<TextBox
+		RowDefinitions="Auto,*,Auto">
+		<TextBlock
 			Grid.Row="0"
 			Grid.Column="0"
-			Grid.ColumnSpan="3"
+			Grid.ColumnSpan="2"
+			Classes="HeaderTextBlockStyle"
+			Text="{Binding Header, Mode=OneWay}"
+			TextTrimming="CharacterEllipsis" />
+
+		<!--
+			The negative offset compensates the band the theme reserves above the text for a floating placeholder.
+		-->
+		<TextBox
+			Grid.Row="1"
+			Grid.Column="0"
+			Grid.ColumnSpan="2"
+			Margin="0.0,-10.0,0.0,0.0"
 			AcceptsReturn="True"
 			AcceptsTab="True"
 			FontSize="14.0"
 			Text="{Binding Text, Mode=TwoWay}"
-			TextWrapping="Wrap" />
+			TextWrapping="Wrap">
+			<Interaction.Behaviors>
+				<AutoFocusBehavior />
+			</Interaction.Behaviors>
+		</TextBox>
 
 		<UniformGrid
-			Grid.Row="1"
+			Grid.Row="2"
 			Grid.Column="1"
+			Margin="0.0,10.0,0.0,0.0"
 			ColumnSpacing="{StaticResource ElementSpacing}"
 			Columns="2">
 			<UniformGrid.Styles>

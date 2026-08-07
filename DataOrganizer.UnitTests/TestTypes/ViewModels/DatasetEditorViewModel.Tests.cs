@@ -118,11 +118,9 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
-				Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isEncrypted),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -259,11 +257,9 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(null);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
-				Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isEncrypted),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -589,11 +585,9 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
-				Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskValueInput == isHidden),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -648,6 +642,131 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note dialog of a group is headed by its name.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Heads_The_Dialog_Of_A_Group_With_Its_Name()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		RecordsGroup record = new()
+		{
+			Name = AppUtils.CreateRandomString(10),
+			Note = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.EditNoteCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			record.Note,
+			record.Name,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note dialog of a key-value record is headed by its key.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Heads_The_Dialog_Of_A_Key_Value_Record_With_Its_Key()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		KeyValueRecord record = new()
+		{
+			Key = AppUtils.CreateRandomString(10),
+			Note = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.EditNoteCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			record.Note,
+			record.Key,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: a record without a name is left without a header,
+	/// its value never becomes one.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Leaves_A_Value_Record_Without_A_Header()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		ValueRecord record = new()
+		{
+			Note = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.EditNoteCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			record.Note,
+			null,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -716,11 +835,9 @@ internal class DatasetEditorViewModelTests
 			.ExecuteAsync(record);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestKeyValueInputAsync(
-				Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
-				Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.MaskKeyInput == isHidden),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

@@ -362,8 +362,16 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
+		// The value of a record never becomes a header: it is masked when IsHidden is set.
+		string? header = record switch
+		{
+			RecordsGroup group => group.Name,
+			KeyValueRecord keyValue => keyValue.Key,
+			_ => null
+		};
+
 		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(record.Note)
+			.RequestMultilineTextAsync(record.Note, header)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)

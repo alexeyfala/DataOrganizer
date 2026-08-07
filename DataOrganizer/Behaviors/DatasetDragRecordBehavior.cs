@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Dataset;
@@ -142,6 +143,7 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 	{
 		if (!IsEnabled
 			|| AssociatedObject is null
+			|| !IsInsideAssociatedObject(e.Source)
 			|| !e.GetCurrentPoint(AssociatedObject).Properties.IsLeftButtonPressed)
 		{
 			return;
@@ -258,6 +260,20 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 		data.Add(item);
 
 		return data;
+	}
+
+	/// <summary>
+	/// <c>True</c> when the event source belongs to the visual subtree of <see cref="StyledElementBehavior{T}.AssociatedObject" />.
+	/// </summary>
+	/// <remarks>
+	/// Routed events travel the logical tree, so input from a popup opened inside the element still
+	/// reaches the gesture even though the popup content lives in a visual root of its own.
+	/// </remarks>
+	private bool IsInsideAssociatedObject(object? source)
+	{
+		return AssociatedObject is { } target
+			&& source is Visual visual
+			&& (ReferenceEquals(visual, target) || target.IsVisualAncestorOf(visual));
 	}
 
 	/// <summary>
