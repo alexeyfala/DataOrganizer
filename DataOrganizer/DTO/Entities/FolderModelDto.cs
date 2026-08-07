@@ -23,6 +23,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	[ObservableProperty]
 	public override partial bool IsExpanded { get; set; }
 
+
 	/// <inheritdoc cref="FolderModel.PasswordHash" />
 	public string? PasswordHash { get; set; }
 
