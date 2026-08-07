@@ -71,6 +71,7 @@
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneTime}"
 				HasNote="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryHasNote}}"
 				NoteItem="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.FavoriteCategoryToFolder}}"
+				NoteName="{Binding Name, Mode=OneTime}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>

@@ -48,6 +48,15 @@ internal sealed partial class NoteView : UserControl
 		set => SetValue(NoteItemProperty, value);
 	}
 
+	/// <summary>
+	/// Name of the object the note belongs to, shown in the header of the popup.
+	/// </summary>
+	public string? NoteName
+	{
+		get => GetValue(NoteNameProperty);
+		set => SetValue(NoteNameProperty, value);
+	}
+
 	/// <inheritdoc cref="INoteReader" />
 	public INoteReader? NoteReader
 	{
@@ -84,6 +93,12 @@ internal sealed partial class NoteView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<object?> NoteItemProperty = AvaloniaProperty
 		.Register<NoteView, object?>(name: nameof(NoteItem));
+
+	/// <summary>
+	/// Identifies the <see cref="NoteName" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> NoteNameProperty = AvaloniaProperty
+		.Register<NoteView, string?>(name: nameof(NoteName));
 
 	/// <summary>
 	/// Identifies the <see cref="Note" /> avalonia property.

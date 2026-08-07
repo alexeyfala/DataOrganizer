@@ -27,6 +27,7 @@
 			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}"
 			IsVisible="{Binding HasNote, Mode=OneWay}"
 			NoteItem="{Binding NoteItem, Mode=OneWay}"
+			NoteName="{Binding NoteName, Mode=OneWay}"
 			NoteReader="{Binding NoteReader, Mode=OneWay}" />
 
 		<materialIcons:MaterialIcon

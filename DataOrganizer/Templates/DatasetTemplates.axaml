@@ -55,6 +55,7 @@
 				IsHiddenChangedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsHiddenChangedCommand}"
 				IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 				Note="{Binding Note, Mode=OneWay}"
+				NoteName="{Binding Key, Mode=OneWay}"
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
@@ -169,6 +170,7 @@
 								HighlightSignal="{Binding HighlightSignal, Mode=OneWay}"
 								IsSensitive="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsEncrypted, Mode=OneWay}"
 								Note="{Binding Note, Mode=OneWay}"
+								NoteName="{Binding Name, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}">
 								<Interaction.Behaviors>
 									<behaviors:DatasetDragRecordBehavior

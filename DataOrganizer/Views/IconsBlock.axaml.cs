@@ -67,6 +67,13 @@ internal sealed partial class IconsBlock : UserControl
 		set => SetValue(NoteItemProperty, value);
 	}
 
+	/// <inheritdoc cref="NoteView.NoteName" />
+	public string? NoteName
+	{
+		get => GetValue(NoteNameProperty);
+		set => SetValue(NoteNameProperty, value);
+	}
+
 	/// <inheritdoc cref="INoteReader" />
 	public INoteReader? NoteReader
 	{
@@ -117,6 +124,12 @@ internal sealed partial class IconsBlock : UserControl
 	/// </summary>
 	public static readonly StyledProperty<object?> NoteItemProperty = AvaloniaProperty
 		.Register<IconsBlock, object?>(name: nameof(NoteItem));
+
+	/// <summary>
+	/// Identifies the <see cref="NoteName" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> NoteNameProperty = AvaloniaProperty
+		.Register<IconsBlock, string?>(name: nameof(NoteName));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteReader" /> avalonia property.

@@ -127,6 +127,7 @@
 				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
 				NoteItem="{Binding Mode=OneWay}"
+				NoteName="{Binding Name, Mode=OneWay}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>

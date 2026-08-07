@@ -141,6 +141,13 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 		set => SetValue(NoteProperty, value);
 	}
 
+	/// <inheritdoc cref="NoteView.NoteName" />
+	public string? NoteName
+	{
+		get => GetValue(NoteNameProperty);
+		set => SetValue(NoteNameProperty, value);
+	}
+
 	/// <summary>
 	/// Text.
 	/// </summary>
@@ -226,6 +233,12 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// </summary>
 	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
 		.Register<DatasetFieldView, bool>(name: nameof(IsSensitive));
+
+	/// <summary>
+	/// Identifies the <see cref="NoteName" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> NoteNameProperty = AvaloniaProperty
+		.Register<DatasetFieldView, string?>(name: nameof(NoteName));
 
 	/// <summary>
 	/// Identifies the <see cref="Note" /> avalonia property.

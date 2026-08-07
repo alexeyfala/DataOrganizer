@@ -135,7 +135,8 @@
 			Grid.Column="2"
 			Margin="{StaticResource ElementMargin}"
 			IsVisible="{Binding IsNoteVisible, Mode=OneWay}"
-			Note="{Binding Note, Mode=OneWay}" />
+			Note="{Binding Note, Mode=OneWay}"
+			NoteName="{Binding NoteName, Mode=OneWay}" />
 
 		<Button
 			Grid.Column="3"

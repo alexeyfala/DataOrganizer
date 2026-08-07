@@ -53,6 +53,7 @@
 				EncryptionStatus="{Binding EncryptionStatus, Mode=OneWay}"
 				HasNote="{Binding Note, Mode=OneWay, Converter={x:Static ObjectConverters.IsNotNull}}"
 				NoteItem="{Binding Mode=OneWay}"
+				NoteName="{Binding Name, Mode=OneWay}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 		</Grid>
 	</TreeDataTemplate>
@@ -105,6 +106,7 @@
 				IsExecuting="{Binding IsExecuting, Mode=OneWay}"
 				IsFavorite="{Binding IsFavorite, Mode=OneWay}"
 				NoteItem="{Binding Mode=OneWay}"
+				NoteName="{Binding Name, Mode=OneWay}"
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 		</Grid>
 	</DataTemplate>

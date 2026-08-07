@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -146,9 +147,7 @@ public sealed class DialogService : IDialogService
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
 
-		viewModel.Header = string.IsNullOrWhiteSpace(name)
-			? Strings.Note
-			: $"{Strings.Note}: {name}";
+		viewModel.Header = NoteHelper.BuildHeader(name);
 
 		viewModel.Text = text;
 

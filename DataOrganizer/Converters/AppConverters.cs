@@ -5,6 +5,7 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Favorites;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Notes;
 using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
@@ -81,6 +82,9 @@ internal static class AppConverters
 			SecondaryColor secondary => secondary.GetBrush(),
 			_ => Brushes.Transparent
 		});
+
+	/// <inheritdoc cref="NoteHelper.BuildHeader" />
+	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHelper.BuildHeader);
 
 	/// <summary>
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
