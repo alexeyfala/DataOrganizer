@@ -40,11 +40,11 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Requests the user to enter a multiline text; a blank <paramref name="header" /> is replaced with a stub.
+	/// Requests the user to enter a multiline text; <paramref name="name" /> is put into the header of the dialog.
 	/// </summary>
 	Task<ValueIsValidPair> RequestMultilineTextAsync(
 		string? text,
-		string? header = null,
+		string? name = null,
 		CancellationToken token = default);
 
 	/// <summary>

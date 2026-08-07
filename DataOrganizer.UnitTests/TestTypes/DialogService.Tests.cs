@@ -111,11 +111,11 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="DialogService.RequestMultilineTextAsync" />: a header is passed to the dialog as it is,
-	/// a blank one is replaced with a stub.
+	/// <see cref="DialogService.RequestMultilineTextAsync" />: the header of the dialog carries the given name,
+	/// a blank name leaves the label alone.
 	/// </summary>
 	[AvaloniaTest]
-	public async Task RequestMultilineTextAsync_Heads_The_Dialog([Values(null, "", "   ", "Header")] string? header)
+	public async Task RequestMultilineTextAsync_Heads_The_Dialog([Values(null, "", "   ", "Name")] string? name)
 	{
 		// Arrange
 		MultilineTextEditViewModel viewModel = new(
@@ -145,14 +145,14 @@ internal class DialogServiceTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		Task<ValueIsValidPair> task = sut.RequestMultilineTextAsync("text", header);
+		Task<ValueIsValidPair> task = sut.RequestMultilineTextAsync("text", name);
 
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
 		viewModel.Header
 			.Should()
-			.Be(string.IsNullOrWhiteSpace(header) ? Strings.Note : header);
+			.Be(string.IsNullOrWhiteSpace(name) ? Strings.Note : $"{Strings.Note}: {name}");
 
 		// The dialog and the window are closed here, otherwise the host leaks into the following tests.
 		await viewModel

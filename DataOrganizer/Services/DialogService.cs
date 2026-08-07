@@ -141,14 +141,14 @@ public sealed class DialogService : IDialogService
 	/// <inheritdoc />
 	public async Task<ValueIsValidPair> RequestMultilineTextAsync(
 		string? text,
-		string? header = null,
+		string? name = null,
 		CancellationToken token = default)
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
 
-		viewModel.Header = string.IsNullOrWhiteSpace(header)
+		viewModel.Header = string.IsNullOrWhiteSpace(name)
 			? Strings.Note
-			: header;
+			: $"{Strings.Note}: {name}";
 
 		viewModel.Text = text;
 

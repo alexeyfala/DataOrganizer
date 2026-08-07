@@ -17,7 +17,7 @@
 		<TextBlock
 			Grid.Row="0"
 			Grid.Column="0"
-			Grid.ColumnSpan="3"
+			Grid.ColumnSpan="2"
 			Classes="HeaderTextBlockStyle"
 			Text="{Binding Header, Mode=OneWay}"
 			TextTrimming="CharacterEllipsis" />
@@ -25,7 +25,7 @@
 		<TextBox
 			Grid.Row="1"
 			Grid.Column="0"
-			Grid.ColumnSpan="3"
+			Grid.ColumnSpan="2"
 			AcceptsReturn="True"
 			AcceptsTab="True"
 			FontSize="14.0"
