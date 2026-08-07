@@ -437,7 +437,10 @@ internal class EditorViewModelTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dialogService
-				.RequestMultilineTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair(true, editedNote));
 
 			INoteReader noteReader = Substitute.For<INoteReader>();
@@ -459,9 +462,10 @@ internal class EditorViewModelTests
 		await sut.EditNote(file);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestMultilineTextAsync(storedNote, Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			storedNote,
+			file.Name,
+			Arg.Any<CancellationToken>());
 
 		await noteEditor.Received(1).EditAsync(
 			file,
@@ -486,7 +490,10 @@ internal class EditorViewModelTests
 			IDialogService dialogService = Substitute.For<IDialogService>();
 
 			dialogService
-				.RequestMultilineTextAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 
 			builder.RegisterInstance(dialogService);

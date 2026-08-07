@@ -139,9 +139,16 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default)
+	public async Task<ValueIsValidPair> RequestMultilineTextAsync(
+		string? text,
+		string? header = null,
+		CancellationToken token = default)
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
+
+		viewModel.Header = string.IsNullOrWhiteSpace(header)
+			? Strings.Note
+			: header;
 
 		viewModel.Text = text;
 

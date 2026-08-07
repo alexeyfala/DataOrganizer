@@ -40,9 +40,12 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Requests the user to enter a multiline text.
+	/// Requests the user to enter a multiline text; a blank <paramref name="header" /> is replaced with a stub.
 	/// </summary>
-	Task<ValueIsValidPair> RequestMultilineTextAsync(string? text, CancellationToken token = default);
+	Task<ValueIsValidPair> RequestMultilineTextAsync(
+		string? text,
+		string? header = null,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Requests a password from user.

@@ -13,6 +13,12 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 {
 	#region Properties
 	/// <summary>
+	/// Header.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Header { get; set; }
+
+	/// <summary>
 	/// Text.
 	/// </summary>
 	[ObservableProperty]

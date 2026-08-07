@@ -259,7 +259,7 @@ public partial class EditorViewModel :
 		_logger.LogInformation("Editing a note of an object using dialog");
 
 		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(_noteReader.ReadNote(dto))
+			.RequestMultilineTextAsync(_noteReader.ReadNote(dto), dto.Name)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
