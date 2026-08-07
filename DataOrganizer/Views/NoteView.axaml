@@ -67,6 +67,15 @@
 				Padding="8.0"
 				Background="{StaticResource MaterialToolTipBackgroundBrush}"
 				CornerRadius="4.0">
+
+				<!--
+					Routed events travel the logical tree, so a double tap inside the popup would reach
+					the row the icon belongs to and toggle it.
+				-->
+				<Interaction.Behaviors>
+					<DoubleTappedTrigger MarkAsHandled="True" />
+				</Interaction.Behaviors>
+
 				<Grid
 					ColumnDefinitions="*,Auto"
 					RowDefinitions="Auto,*">
