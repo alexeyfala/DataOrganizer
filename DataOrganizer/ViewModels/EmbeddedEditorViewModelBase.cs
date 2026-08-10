@@ -46,7 +46,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// <c>True</c> when the file contents are encrypted with a session key.
 	/// </summary>
-	public bool IsEncrypted => SessionEncryptedDek is not null;
+	public bool IsEncrypted => KeeperId is not null;
 
 	/// <summary>
 	/// <c>True</c> when the editor has been initialized at least once.
@@ -60,9 +60,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
-	/// Encrypted within the session DEK.
+	/// Identifier of the password keeper holding the key of the file.
 	/// </summary>
-	public byte[]? SessionEncryptedDek { get; set; }
+	public Guid? KeeperId { get; set; }
 
 	/// <summary>
 	/// Callback to set object's properties.
@@ -113,28 +113,28 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IEntityEncryption" />
-	private readonly IEntityEncryption _entityEncryption;
-
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
-		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
 
-		_entityEncryption = entityEncryption;
+		_sessionKeyStore = sessionKeyStore;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -182,9 +182,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_messenger.UnregisterAll(this);
 
-		SessionEncryptedDek?.ZeroMemory();
-
-		SessionEncryptedDek = null;
+		KeeperId = null;
 	}
 
 	/// <summary>
@@ -241,14 +239,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// </summary>
 	protected byte[]? TryToDecrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null || input.IsEmpty())
+		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{
 			return input;
 		}
 
-		return _entityEncryption.DecryptSessionContents(
-			input,
-			SessionEncryptedDek);
+		return _sessionKeyStore.Decrypt(keeperId, input);
 	}
 
 	/// <summary>
@@ -256,14 +252,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// </summary>
 	protected byte[]? TryToEncrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null || input.IsEmpty())
+		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{
 			return input;
 		}
 
-		return _entityEncryption.EncryptSessionContents(
-			input,
-			SessionEncryptedDek);
+		return _sessionKeyStore.Encrypt(keeperId, input);
 	}
 	#endregion
 }

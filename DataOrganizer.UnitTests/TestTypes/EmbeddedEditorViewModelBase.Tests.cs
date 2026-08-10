@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.ViewModels;
 using NSubstitute;
+using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -11,27 +12,27 @@ internal class EmbeddedEditorViewModelBaseTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: delegates to the encryption service when a session key is present.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: delegates to the key store when a keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToDecrypt_Delegates_To_Encryption_When_Session_Key_Present()
+	public void TryToDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		byte[] dek = [9, 9];
-
 		byte[] decrypted = [7];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		Guid keeperId = Guid.NewGuid();
 
-		encryption
-			.DecryptSessionContents(input, dek)
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		sessionKeyStore
+			.Decrypt(keeperId, input)
 			.Returns(decrypted);
 
-		TestEditor sut = new(encryption)
+		TestEditor sut = new(sessionKeyStore)
 		{
-			SessionEncryptedDek = dek
+			KeeperId = keeperId
 		};
 
 		// Act
@@ -42,9 +43,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(decrypted);
 
-		encryption
+		sessionKeyStore
 			.Received(1)
-			.DecryptSessionContents(input, dek);
+			.Decrypt(keeperId, input);
 	}
 
 	/// <summary>
@@ -56,11 +57,11 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		TestEditor sut = new(encryption)
+		TestEditor sut = new(sessionKeyStore)
 		{
-			SessionEncryptedDek = [9, 9]
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
@@ -71,23 +72,23 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		encryption
+		sessionKeyStore
 			.DidNotReceive()
-			.DecryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: returns the input unchanged when no session key is present.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: returns the input unchanged when no keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToDecrypt_Returns_Input_When_No_Session_Key()
+	public void TryToDecrypt_Returns_Input_When_No_Keeper()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		TestEditor sut = new(encryption);
+		TestEditor sut = new(sessionKeyStore);
 
 		// Act
 		byte[]? result = sut.InvokeTryToDecrypt(input);
@@ -97,33 +98,33 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		encryption
+		sessionKeyStore
 			.DidNotReceive()
-			.DecryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: delegates to the encryption service when a session key is present.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: delegates to the key store when a keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToEncrypt_Delegates_To_Encryption_When_Session_Key_Present()
+	public void TryToEncrypt_Delegates_To_Store_When_Keeper_Is_Known()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		byte[] dek = [9, 9];
-
 		byte[] encrypted = [7];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		Guid keeperId = Guid.NewGuid();
 
-		encryption
-			.EncryptSessionContents(input, dek)
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		sessionKeyStore
+			.Encrypt(keeperId, input)
 			.Returns(encrypted);
 
-		TestEditor sut = new(encryption)
+		TestEditor sut = new(sessionKeyStore)
 		{
-			SessionEncryptedDek = dek
+			KeeperId = keeperId
 		};
 
 		// Act
@@ -134,9 +135,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(encrypted);
 
-		encryption
+		sessionKeyStore
 			.Received(1)
-			.EncryptSessionContents(input, dek);
+			.Encrypt(keeperId, input);
 	}
 
 	/// <summary>
@@ -148,11 +149,11 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		TestEditor sut = new(encryption)
+		TestEditor sut = new(sessionKeyStore)
 		{
-			SessionEncryptedDek = [9, 9]
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
@@ -163,23 +164,23 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		encryption
+		sessionKeyStore
 			.DidNotReceive()
-			.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: returns the input unchanged when no session key is present.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: returns the input unchanged when no keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToEncrypt_Returns_Input_When_No_Session_Key()
+	public void TryToEncrypt_Returns_Input_When_No_Keeper()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		IEntityEncryption encryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		TestEditor sut = new(encryption);
+		TestEditor sut = new(sessionKeyStore);
 
 		// Act
 		byte[]? result = sut.InvokeTryToEncrypt(input);
@@ -189,9 +190,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		encryption
+		sessionKeyStore
 			.DidNotReceive()
-			.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
 	}
 	#endregion
 }
@@ -205,8 +206,14 @@ internal class EmbeddedEditorViewModelBaseTests
 /// </summary>
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
-	public TestEditor(IEntityEncryption entityEncryption)
-		: base(null!, null!, entityEncryption, null!, null!, Substitute.For<IMessenger>(), null!)
+	public TestEditor(ISessionKeyStore sessionKeyStore) : base(
+		null!,
+		null!,
+		null!,
+		null!,
+		Substitute.For<IMessenger>(),
+		sessionKeyStore,
+		null!)
 	{
 	}
 

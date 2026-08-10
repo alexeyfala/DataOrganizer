@@ -19,15 +19,11 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Execution;
 
-/// <inheritdoc cref="IFileChangeTracker" />
 public class FileChangeTracker : IFileChangeTracker
 {
 	#region Data
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
-
-	/// <inheritdoc cref="IEntityEncryption" />
-	private readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
@@ -37,19 +33,22 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
 	public FileChangeTracker(
 		IDbAccess dbAccess,
-		IEntityEncryption entityEncryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore)
 	{
 		_dbAccess = dbAccess;
 
-		_entityEncryption = entityEncryption;
+		_sessionKeyStore = sessionKeyStore;
 
 		_fileSystem = fileSystem;
 
@@ -123,9 +122,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 						try
 						{
-							if (parameters.SessionEncryptedDek is not null)
+							if (parameters.KeeperId is { } keeperId)
 							{
-								if (_entityEncryption.EncryptSessionContents(bytes, parameters.SessionEncryptedDek) is not { } encrypted)
+								if (_sessionKeyStore.Encrypt(keeperId, bytes) is not { } encrypted)
 								{
 									PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
@@ -189,10 +188,6 @@ public class FileChangeTracker : IFileChangeTracker
 		}
 		finally
 		{
-			parameters
-				.SessionEncryptedDek?
-				.ZeroMemory();
-
 			parameters
 				.Contents
 				.ZeroMemory();

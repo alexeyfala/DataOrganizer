@@ -5,18 +5,19 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
 using Shared.Extensions;
+using System;
 
 namespace DataOrganizer.Services.Notes;
 
 public sealed class NoteCipher : INoteCipher
 {
 	#region Data
-	/// <inheritdoc cref="IEntityEncryption" />
-	private readonly IEntityEncryption _entityEncryption;
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
-	public NoteCipher(IEntityEncryption entityEncryption) => _entityEncryption = entityEncryption;
+	public NoteCipher(ISessionKeyStore sessionKeyStore) => _sessionKeyStore = sessionKeyStore;
 	#endregion
 
 	#region Methods
@@ -33,8 +34,7 @@ public sealed class NoteCipher : INoteCipher
 			return ToText(note);
 		}
 
-		if (FindSessionEncryptedDek(item) is not { } sessionEncryptedDek
-			|| _entityEncryption.DecryptSessionContents(note, sessionEncryptedDek) is not { } decrypted)
+		if (FindKeeperId(item) is not { } keeperId || _sessionKeyStore.Decrypt(keeperId, note) is not { } decrypted)
 		{
 			return null;
 		}
@@ -68,8 +68,8 @@ public sealed class NoteCipher : INoteCipher
 
 		try
 		{
-			return FindSessionEncryptedDek(item) is { } sessionEncryptedDek
-				? _entityEncryption.EncryptSessionContents(decoded, sessionEncryptedDek)
+			return FindKeeperId(item) is { } keeperId
+				? _sessionKeyStore.Encrypt(keeperId, decoded)
 				: null;
 		}
 		finally
@@ -81,19 +81,18 @@ public sealed class NoteCipher : INoteCipher
 
 	#region Helpers
 	/// <summary>
-	/// Session encrypted DEK of the password keeper <paramref name="item" /> belongs to; <c>null</c>
-	/// when there is no such keeper or it is locked.
+	/// Identifier of the password keeper <paramref name="item" /> belongs to; <c>null</c> when there is no such keeper.
 	/// </summary>
 	/// <remarks>
 	/// A password keeper protects its own note as well, hence the check of the folder itself.
 	/// </remarks>
-	private static byte[]? FindSessionEncryptedDek(ExplorerModelBaseDto item)
+	private static Guid? FindKeeperId(ExplorerModelBaseDto item)
 	{
 		FolderModelDto? keeper = item is FolderModelDto folder
 			? folder.FindPasswordKeeperOrSelf()
 			: item.FindParent(x => x.IsPasswordKeeper());
 
-		return keeper?.SessionEncryptedDek;
+		return keeper?.Id;
 	}
 
 	/// <summary>

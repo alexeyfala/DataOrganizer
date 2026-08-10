@@ -601,17 +601,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
-			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
+			sessionKeyStore,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;

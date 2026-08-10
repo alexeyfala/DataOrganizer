@@ -27,11 +27,6 @@ public interface IEntityEncryption
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Decrypts contents using the session encrypted DEK.
-	/// </summary>
-	byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek);
-
-	/// <summary>
 	/// Encrypts files in folder.
 	/// </summary>
 	Task EncryptFolderAsync(
@@ -40,24 +35,20 @@ public interface IEntityEncryption
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Encrypts contents using the session encrypted DEK.
+	/// Hides contents of the whole hierarchy.
 	/// </summary>
-	byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek);
+	void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Returns a session identifier.
+	/// Hides file contents.
 	/// </summary>
-	byte[] GetSessionId();
+	void HideFileContents(FileModelDto file);
 
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy);
-
-	/// <summary>
-	/// Resets the session identifier.
-	/// </summary>
-	void ResetSessionId();
+	//void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy);
+	void HideFolderContents(FolderModelDto folder);
 
 	/// <summary>
 	/// Shows file contents.

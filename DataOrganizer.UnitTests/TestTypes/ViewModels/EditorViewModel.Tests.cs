@@ -889,6 +889,8 @@ internal class EditorViewModelTests
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -898,6 +900,8 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEncryption);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -912,11 +916,16 @@ internal class EditorViewModelTests
 		// Assert
 		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEditing && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsEditing);
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuting && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsExecuting);
+
+		// Marking the objects and dropping the keys belongs to the encryption service.
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
 
 	/// <summary>
@@ -930,6 +939,8 @@ internal class EditorViewModelTests
 			? TestUtils.CreateFileDto(isEditing: true)
 			: TestUtils.CreateFileDto(isExecuting: true);
 
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -940,6 +951,8 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
+			builder.RegisterInstance(entityEncryption);
+
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
@@ -949,9 +962,10 @@ internal class EditorViewModelTests
 		await sut.HideFileContents(file);
 
 		// Assert
-		file.EncryptionStatus
-			.Should()
-			.Be(EncryptionStatus.Encrypted);
+		// Marking the object and dropping the key belongs to the encryption service.
+		entityEncryption
+			.Received(1)
+			.HideFileContents(file);
 
 		file.IsEditing
 			.Should()
@@ -1016,7 +1030,7 @@ internal class EditorViewModelTests
 
 		entityEncryption
 			.Received()
-			.HideFolderContents(Arg.Any<FolderModelDto>(), Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideFolderContents(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>

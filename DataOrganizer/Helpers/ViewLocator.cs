@@ -103,10 +103,9 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 		void Initialize(EmbeddedEditorViewModelBase viewModel)
 		{
 			if (file.EncryptionStatus == Enums.EncryptionStatus.Decrypted
-				&& file.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } sessionEncryptedDek)
+				&& file.FindParent(x => x.IsPasswordKeeper()) is { } keeper)
 			{
-				// It is important not to pass a reference to the array.
-				viewModel.SessionEncryptedDek = [.. sessionEncryptedDek];
+				viewModel.KeeperId = keeper.Id;
 			}
 
 			viewModel.FileId = file.Id;

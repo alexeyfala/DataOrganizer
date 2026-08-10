@@ -95,7 +95,7 @@ internal class FileChangeTrackerTests
 		// Arrange		
 		using CancellationTokenSource cts = new();
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -127,8 +127,8 @@ internal class FileChangeTrackerTests
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
-			entityEncryption
-				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
 				.Returns(encryptedContents);
 
 			dbAccess
@@ -145,7 +145,7 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -158,16 +158,16 @@ internal class FileChangeTrackerTests
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
 		await sut.TrackChangesAsync(parameters, cts.Token);
 
 		// Assert
-		entityEncryption
+		sessionKeyStore
 			.Received(1)
-			.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
@@ -280,15 +280,15 @@ internal class FileChangeTrackerTests
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(previousHash, currentHash);
 
-			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-			entityEncryption
-				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -303,7 +303,7 @@ internal class FileChangeTrackerTests
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
@@ -313,7 +313,7 @@ internal class FileChangeTrackerTests
 			.Should()
 			.NotBeNull();
 
-		receivedSnackbar!
+		receivedSnackbar
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);

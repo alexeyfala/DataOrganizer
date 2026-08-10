@@ -385,16 +385,13 @@ public partial class EditorViewModel :
 
 		byte[] contents = result.Contents;
 
-		byte[]? sessionEncryptedDek = null;
+		Guid? keeperId = null;
 
-		if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-			&& dto.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } encryptedDek)
+		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindParent(x => x.IsPasswordKeeper()) is { } keeper)
 		{
-			sessionEncryptedDek = [.. encryptedDek];
+			keeperId = keeper.Id;
 
-			byte[]? decryptedContents = _entityEncryption.DecryptSessionContents(
-				contents,
-				sessionEncryptedDek);
+			byte[]? decryptedContents = _entityEncryption.TryToDecrypt(dto, contents);
 
 			if (decryptedContents is null)
 			{
@@ -411,7 +408,7 @@ public partial class EditorViewModel :
 			Contents = contents,
 			File = dto,
 			IsReadOnly = IsReadOnly,
-			SessionEncryptedDek = sessionEncryptedDek,
+			KeeperId = keeperId,
 		};
 
 		if (!await _executionEngine
@@ -450,9 +447,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		Hierarchy
-			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
-			.ForEach(dto => dto.EncryptionStatus = EncryptionStatus.Encrypted);
+		_entityEncryption.HideAllContents(Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -482,7 +477,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide file contents");
 
-		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+		_entityEncryption.HideFileContents(dto);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -507,7 +502,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide files in a folder");
 
-		_entityEncryption.HideFolderContents(dto, Hierarchy);
+		_entityEncryption.HideFolderContents(dto);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}

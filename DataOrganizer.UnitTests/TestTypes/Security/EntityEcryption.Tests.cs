@@ -272,119 +272,6 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns null when the DEK cannot be decrypted.
-	/// </summary>
-	[Test]
-	public void DecryptSessionContents_Cannot_Decrypt_Binary()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
-
-			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? result = sut.DecryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		encryption
-			.Received(1)
-			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-
-		encryption
-			.Received(1)
-			.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns null when the encrypted DEK cannot be decrypted.
-	/// </summary>
-	[Test]
-	public void DecryptSessionContents_Cannot_Decrypt_Encrypted_Password()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? result = sut.DecryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		encryption
-			.Received(1)
-			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.DecryptSessionContents" />: returns non-empty decrypted contents on success.
-	/// </summary>
-	[Test]
-	public void DecryptSessionContents_Does_Work()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
-
-			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? output = sut.DecryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		output
-			.Should()
-			.NotBeNullOrEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="EntityEncryption.EncryptFolderAsync" />: nothing is persisted when a note cannot be encrypted.
 	/// </summary>
 	[Test]
@@ -584,167 +471,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns null and never encrypts when the DEK cannot be decrypted.
-	/// </summary>
-	[Test]
-	public void EncryptSessionContents_Cannot_Decrypt_Encrypted_Password()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? result = sut.EncryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		encryption
-			.DidNotReceive()
-			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns null when encrypting with the DEK fails.
-	/// </summary>
-	[Test]
-	public void EncryptSessionContents_Cannot_Encrypt_Binary()
-	{
-		// Arrange
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
-
-			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? result = sut.EncryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-
-		encryption
-			.Received()
-			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-
-		encryption
-			.Received()
-			.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>());
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.EncryptSessionContents" />: returns non-empty encrypted contents on success.
-	/// </summary>
-	[Test]
-	public void EncryptSessionContents_Does_Work()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
-
-			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
-
-			builder.RegisterInstance(encryption);
-		});
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[]? output = sut.EncryptSessionContents(
-			TestUtils.CreateRandomBytes(10),
-			TestUtils.CreateRandomBytes(10));
-
-		// Assert
-		output
-			.Should()
-			.NotBeNullOrEmpty();
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.GetSessionId" />: yields a different value after the session id is reset.
-	/// </summary>
-	[Test]
-	public void GetSessionId_Returns_Different_Values_Between_Sessions()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[] first = sut.GetSessionId();
-
-		sut.ResetSessionId();
-
-		byte[] second = sut.GetSessionId();
-
-		// Assert
-		first
-			.Should()
-			.NotBeEquivalentTo(second);
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.GetSessionId" />: returns the same value on repeated calls within a session.
-	/// </summary>
-	[Test]
-	public void GetSessionId_Returns_Same_Value_During_Session()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose();
-
-		EntityEncryption sut = mock.Create<EntityEncryption>();
-
-		// Act
-		byte[] value = sut.GetSessionId();
-
-		// Assert
-		for (int i = 0; i < 10; i++)
-		{
-			sut.GetSessionId()
-				.Should()
-				.BeEquivalentTo(value);
-		}
-	}
-
-	/// <summary>
-	/// <see cref="EntityEncryption.HideFolderContents" />: clears the session DEK and marks the folder and all children as encrypted.
+	/// <see cref="EntityEncryption.HideFolderContents" />: locks the keeper and marks the folder and all children as encrypted.
 	/// </summary>
 	[Test]
 	public void HideFolderContents_Does_Work()
@@ -756,25 +483,74 @@ internal class EntityEncryptionTests
 			.Children
 			.AddRange(TestUtils.CreateFilesDto(5));
 
-		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		using AutoMock mock = AutoMock.GetLoose();
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
 
 		// Act
-		sut.HideFolderContents(folder, []);
+		sut.HideFolderContents(folder);
 
 		// Assert
-		folder.SessionEncryptedDek
-			.Should()
-			.BeNull();
+		sessionKeyStore
+			.Received(1)
+			.Lock(folder.Id);
 
 		folder.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Encrypted);
 
 		folder.GetAllChildren()
+			.Should()
+			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.HideFolderContents" />: hiding a nested folder keeps the key of the keeper
+	/// while anything else under it is still shown.
+	/// </summary>
+	[Test]
+	public void HideFolderContents_Keeps_The_Key_While_The_Keeper_Has_Shown_Content()
+	{
+		// Arrange
+		FolderModelDto keeper = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		keeper.PasswordHash = AppUtils.CreateRandomString(10);
+
+		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		nested.Parent = keeper;
+
+		keeper
+			.Children
+			.Add(nested);
+
+		nested
+			.Children
+			.AddRange(TestUtils.CreateFilesDto(3, encryptionStatus: EncryptionStatus.Decrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		sut.HideFolderContents(nested);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(Arg.Any<Guid>());
+
+		nested.GetAllChildren()
 			.Should()
 			.OnlyContain(x => x.EncryptionStatus == EncryptionStatus.Encrypted);
 	}
@@ -800,6 +576,12 @@ internal class EntityEncryptionTests
 
 		file.Parent = folder;
 
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		sessionKeyStore
+			.Unlock(Arg.Any<Guid>(), Arg.Any<byte[]>())
+			.Returns(true);
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -825,6 +607,8 @@ internal class EntityEncryptionTests
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(sessionKeyStore);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -837,9 +621,9 @@ internal class EntityEncryptionTests
 			.Should()
 			.BeTrue();
 
-		folder.SessionEncryptedDek
-			.Should()
-			.NotBeEmpty();
+		sessionKeyStore
+			.Received(1)
+			.Unlock(folder.Id, Arg.Any<byte[]>());
 
 		file.EncryptionStatus
 			.Should()
@@ -862,6 +646,12 @@ internal class EntityEncryptionTests
 		folder
 			.Children
 			.AddRange(TestUtils.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		sessionKeyStore
+			.Unlock(Arg.Any<Guid>(), Arg.Any<byte[]>())
+			.Returns(true);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -888,6 +678,8 @@ internal class EntityEncryptionTests
 			builder.RegisterInstance(encryption);
 
 			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(sessionKeyStore);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -904,9 +696,9 @@ internal class EntityEncryptionTests
 			.Should()
 			.OnlyContain(x => x == EncryptionStatus.Decrypted);
 
-		folder.SessionEncryptedDek
-			.Should()
-			.NotBeNullOrEmpty();
+		sessionKeyStore
+			.Received(1)
+			.Unlock(folder.Id, Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -923,8 +715,6 @@ internal class EntityEncryptionTests
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
 		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
-		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
 
 		folder
 			.Children
@@ -946,7 +736,15 @@ internal class EntityEncryptionTests
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
 			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(sessionKeyStore);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -979,8 +777,6 @@ internal class EntityEncryptionTests
 
 		folder.PasswordHash = AppUtils.CreateRandomString(10);
 
-		folder.SessionEncryptedDek = TestUtils.CreateRandomBytes(10);
-
 		folder
 			.Children
 			.Add(file);
@@ -1001,7 +797,15 @@ internal class EntityEncryptionTests
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
+
 			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(sessionKeyStore);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();

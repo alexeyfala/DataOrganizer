@@ -463,7 +463,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					File = parameters.File,
 					FileName = fileName,
 					FilePath = filePath,
-					SessionEncryptedDek = parameters.SessionEncryptedDek
+					KeeperId = parameters.KeeperId
 				};
 
 				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);

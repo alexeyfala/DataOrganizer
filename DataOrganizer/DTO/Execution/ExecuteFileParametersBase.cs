@@ -1,4 +1,5 @@
 using DataOrganizer.DTO.Entities;
+using System;
 
 namespace DataOrganizer.DTO.Execution;
 
@@ -14,8 +15,8 @@ public abstract class ExecuteFileParametersBase
 	public required FileModelDto File { get; init; }
 
 	/// <summary>
-	/// Encrypted within the session DEK.
+	/// Identifier of the password keeper holding the key of the file; <c>null</c> for plain contents.
 	/// </summary>
-	public byte[]? SessionEncryptedDek { get; init; }
+	public Guid? KeeperId { get; init; }
 	#endregion
 }

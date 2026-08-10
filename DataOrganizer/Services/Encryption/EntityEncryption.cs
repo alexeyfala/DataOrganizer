@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,13 +45,8 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
-	/// <inheritdoc cref="Lock" />
-	private readonly Lock _mutex = new();
-
-	/// <summary>
-	/// Encryption session identifier.
-	/// </summary>
-	private byte[]? _sessionId;
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
@@ -62,7 +56,8 @@ public sealed class EntityEncryption : IEntityEncryption
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore)
 	{
 		_dbAccess = dbAccess;
 
@@ -75,6 +70,8 @@ public sealed class EntityEncryption : IEntityEncryption
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_sessionKeyStore = sessionKeyStore;
 	}
 	#endregion
 
@@ -295,26 +292,6 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <inheritdoc />
-	public byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek)
-	{
-		if (_encryption.DecryptWithSessionId(
-			sessionEncryptedDek,
-			GetSessionId()) is not { } decryptedDek)
-		{
-			return null;
-		}
-
-		try
-		{
-			return _encryption.DecryptWithDek(encryptedContents, decryptedDek);
-		}
-		finally
-		{
-			decryptedDek.ZeroMemory();
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task EncryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
@@ -426,79 +403,32 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <inheritdoc />
-	public byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek)
+	public void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		if (_encryption.DecryptWithSessionId(
-			sessionEncryptedDek,
-			GetSessionId()) is not { } decryptedDek)
-		{
-			return null;
-		}
+		hierarchy
+			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
+			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
-		try
-		{
-			return _encryption.EncryptWithDek(decryptedContents, decryptedDek);
-		}
-		finally
-		{
-			decryptedDek.ZeroMemory();
-		}
+		_sessionKeyStore.LockAll();
 	}
 
 	/// <inheritdoc />
-	public byte[] GetSessionId()
+	public void HideFileContents(FileModelDto file)
 	{
-		lock (_mutex)
-		{
-			if (_sessionId?.IsNotEmpty() == true)
-			{
-				return _sessionId;
-			}
+		file.EncryptionStatus = EncryptionStatus.Encrypted;
 
-			int length = RandomNumberGenerator.GetInt32(32, 65);
-
-			_sessionId = RandomNumberGenerator.GetBytes(length);
-
-			return _sessionId;
-		}
+		LockKeeperOf(file);
 	}
 
 	/// <inheritdoc />
-	public void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public void HideFolderContents(FolderModelDto folder)
 	{
-		folder
-			.SessionEncryptedDek?
-			.ZeroMemory();
-
-		folder.SessionEncryptedDek = null;
-
 		folder
 			.ToEnumerable()
 			.Concat(folder.GetAllChildren())
 			.ForEach(x => x.EncryptionStatus = EncryptionStatus.Encrypted);
 
-		if (hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted))
-		{
-			return;
-		}
-
-		ResetSessionId();
-	}
-
-	/// <inheritdoc />
-	public void ResetSessionId()
-	{
-		lock (_mutex)
-		{
-			if (_sessionId is null)
-			{
-				return;
-			}
-
-			_sessionId.ZeroMemory();
-
-			_sessionId = null;
-		}
+		LockKeeperOf(folder);
 	}
 
 	/// <inheritdoc />
@@ -544,14 +474,10 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				if (_encryption.EncryptWithSessionId(
-					dek,
-					GetSessionId()) is not { } sessionEncryptedDek)
+				if (!_sessionKeyStore.Unlock(root.Id, dek))
 				{
 					return false;
 				}
-
-				root.SessionEncryptedDek = sessionEncryptedDek;
 
 				file.EncryptionStatus = EncryptionStatus.Decrypted;
 
@@ -633,8 +559,9 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
 	{
-		return file.FindParent(x => x.IsPasswordKeeper()) is { } root && root.SessionEncryptedDek is not null
-			? DecryptSessionContents(input, root.SessionEncryptedDek)
+		// The store answers with null for a locked keeper, so no separate state check is needed.
+		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
+			? _sessionKeyStore.Decrypt(root.Id, input)
 			: null;
 	}
 
@@ -913,6 +840,26 @@ public sealed class EntityEncryption : IEntityEncryption
 	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
 
 	/// <summary>
+	/// Drops the key of the keeper the object belongs to, but only once nothing under that keeper is shown.
+	/// </summary>
+	private void LockKeeperOf(ExplorerModelBaseDto item)
+	{
+		FolderModelDto? keeper = item is FolderModelDto folder
+			? folder.FindPasswordKeeperOrSelf()
+			: item.FindParent(x => x.IsPasswordKeeper());
+
+		if (keeper?
+			.ToEnumerable()
+			.Concat(keeper.GetAllChildren())
+			.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted) != false)
+		{
+			return;
+		}
+
+		_sessionKeyStore.Lock(keeper.Id);
+	}
+
+	/// <summary>
 	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK;
 	/// <c>null</c> when a note cannot be converted.
 	/// </summary>
@@ -973,14 +920,10 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			if (_encryption.EncryptWithSessionId(
-				dek,
-				GetSessionId()) is not { } sessionEncryptedDek)
+			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
 				return false;
 			}
-
-			root.SessionEncryptedDek = sessionEncryptedDek;
 
 			folder
 				.ToEnumerable()
