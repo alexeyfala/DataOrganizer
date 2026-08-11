@@ -5,20 +5,30 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
+using Serilog;
 using Shared.Extensions;
 using System;
+using System.Security.Cryptography;
 
 namespace DataOrganizer.Services.Notes;
 
 public sealed class NoteCipher : INoteCipher
 {
 	#region Data
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="ISessionKeyStore" />
 	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
-	public NoteCipher(ISessionKeyStore sessionKeyStore) => _sessionKeyStore = sessionKeyStore;
+	public NoteCipher(ILogger logger, ISessionKeyStore sessionKeyStore)
+	{
+		_logger = logger;
+
+		_sessionKeyStore = sessionKeyStore;
+	}
 	#endregion
 
 	#region Methods
@@ -35,19 +45,31 @@ public sealed class NoteCipher : INoteCipher
 			return ToText(note);
 		}
 
-		if (FindKeeperId(item) is not { } keeperId
-			|| _sessionKeyStore.Decrypt(keeperId, ContentIdentity.ForNote(item.Id), note) is not { } decrypted)
-		{
-			return null;
-		}
-
 		try
 		{
-			return ToText(decrypted);
+			if (FindKeeperId(item) is not { } keeperId || _sessionKeyStore.Decrypt(
+				keeperId,
+				ContentIdentity.ForNote(item.Id),
+				note) is not { } decrypted)
+			{
+				return null;
+			}
+
+			try
+			{
+				return ToText(decrypted);
+			}
+			finally
+			{
+				decrypted.ZeroMemory();
+			}
 		}
-		finally
+		catch (CryptographicException ex)
 		{
-			decrypted.ZeroMemory();
+			// A note is read while the interface is being rendered, so nothing may escape to the caller.
+			_logger.LogException(ex);
+
+			return null;
 		}
 	}
 
@@ -73,6 +95,13 @@ public sealed class NoteCipher : INoteCipher
 			return FindKeeperId(item) is { } keeperId
 				? _sessionKeyStore.Encrypt(keeperId, ContentIdentity.ForNote(item.Id), decoded)
 				: null;
+		}
+		catch (CryptographicException ex)
+		{
+			// A failure here must not take the note editor down; the caller reports the refusal.
+			_logger.LogException(ex);
+
+			return null;
 		}
 		finally
 		{

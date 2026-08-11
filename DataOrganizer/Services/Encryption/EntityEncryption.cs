@@ -19,7 +19,10 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -164,6 +167,10 @@ public sealed class EntityEncryption : IEntityEncryption
 					.ZeroMemory();
 			}
 		}
+		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		{
+			ReportCryptographicFailure(ex);
+		}
 		finally
 		{
 			MemoryMarshal
@@ -226,6 +233,8 @@ public sealed class EntityEncryption : IEntityEncryption
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } decryptedDek)
 				{
+					SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
+
 					return;
 				}
 
@@ -283,6 +292,10 @@ public sealed class EntityEncryption : IEntityEncryption
 			{
 				passwordBinary.ZeroMemory();
 			}
+		}
+		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		{
+			ReportCryptographicFailure(ex);
 		}
 		finally
 		{
@@ -347,6 +360,8 @@ public sealed class EntityEncryption : IEntityEncryption
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } encryptedDek)
 				{
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+
 					return;
 				}
 
@@ -395,6 +410,10 @@ public sealed class EntityEncryption : IEntityEncryption
 			{
 				dek.ZeroMemory();
 			}
+		}
+		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		{
+			ReportCryptographicFailure(ex);
 		}
 		finally
 		{
@@ -495,6 +514,12 @@ public sealed class EntityEncryption : IEntityEncryption
 				dek.ZeroMemory();
 			}
 		}
+		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		{
+			ReportCryptographicFailure(ex);
+
+			return false;
+		}
 		finally
 		{
 			MemoryMarshal
@@ -551,6 +576,10 @@ public sealed class EntityEncryption : IEntityEncryption
 				passwordBinary.ZeroMemory();
 			}
 		}
+		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		{
+			ReportCryptographicFailure(ex);
+		}
 		finally
 		{
 			MemoryMarshal
@@ -564,10 +593,22 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
 	{
-		// The store answers with null for a locked keeper, so no separate state check is needed.
-		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
-			? _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input)
-			: null;
+		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
+		{
+			return null;
+		}
+
+		try
+		{
+			return _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input);
+		}
+		catch (CryptographicException ex)
+		{
+			// Contents are read while a list is being rendered, so the failure only reaches the log.
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 
 	/// <inheritdoc />
@@ -638,6 +679,12 @@ public sealed class EntityEncryption : IEntityEncryption
 
 					decryptedDek.ZeroMemory();
 				}
+			}
+			catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+			{
+				ReportCryptographicFailure(ex);
+
+				return null;
 			}
 			finally
 			{
@@ -907,6 +954,25 @@ public sealed class EntityEncryption : IEntityEncryption
 		}
 
 		return [.. notes];
+	}
+
+	/// <summary>
+	/// Reports a failed cryptographic operation to the log and to the user.
+	/// </summary>
+	private void ReportCryptographicFailure(Exception exception, [CallerMemberName] string callerName = "")
+	{
+		if (exception is InvalidCredentialException)
+		{
+			_logger.LogWarning($"The password has been rejected: {callerName}");
+
+			SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
+
+			return;
+		}
+
+		_logger.LogException(exception);
+
+		SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
 	}
 
 	/// <summary>

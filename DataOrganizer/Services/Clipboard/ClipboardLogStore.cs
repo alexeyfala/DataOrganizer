@@ -12,6 +12,8 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -171,6 +173,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				? await UnlockExistingAsync(password, token).ConfigureAwait(false)
 				: await CreateNewKeyAsync(password, token).ConfigureAwait(false);
 		}
+		catch (InvalidCredentialException)
+		{
+			_logger.LogWarning("The password of the clipboard history has been rejected.");
+
+			return new(ClipboardLogStatus.WrongPassword, []);
+		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, assertDebug: false);
@@ -193,7 +201,21 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_historyFilePath, token)
 			.ConfigureAwait(false);
 
-		if (_encryption.DecryptWithDek(ciphertext, dek, []) is not { } plaintext)
+		byte[]? plaintext;
+
+		try
+		{
+			plaintext = _encryption.DecryptWithDek(ciphertext, dek, []);
+		}
+		catch (CryptographicException ex)
+		{
+			// The key is right, so the journal itself is damaged; the unlock still stands.
+			_logger.LogException(ex);
+
+			return [];
+		}
+
+		if (plaintext is null)
 		{
 			_logger.LogWarning("Clipboard history journal could not be decrypted; treating as empty.");
 

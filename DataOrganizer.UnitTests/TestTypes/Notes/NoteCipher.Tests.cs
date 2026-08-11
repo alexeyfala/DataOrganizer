@@ -8,8 +8,10 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Notes;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shared.Common;
 using System;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace DataOrganizer.UnitTests.TestTypes.Notes;
@@ -180,6 +182,40 @@ internal class NoteCipherTests
 		result
 			.Should()
 			.Be(text);
+	}
+
+	/// <summary>
+	/// <see cref="NoteCipher.Decode" />: a note that fails authentication is reported as unreadable,
+	/// so the failure never reaches the interface being rendered.
+	/// </summary>
+	[Test]
+	public void Decode_Does_Not_Propagate_A_Failure()
+	{
+		// Arrange
+		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
+
+		keeper.Note = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())!
+				.Throws(new AuthenticationTagMismatchException());
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		NoteCipher sut = mock.Create<NoteCipher>();
+
+		// Act
+		string? result = sut.Decode(keeper);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>

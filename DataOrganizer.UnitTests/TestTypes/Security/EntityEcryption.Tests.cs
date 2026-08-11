@@ -2,26 +2,32 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Messages;
 using DataOrganizer.Services.Encryption;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.Security;
@@ -703,6 +709,56 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
+	/// <see cref="EntityEncryption.ShowFolderContentsAsync" />: a key that fails authentication is reported as damaged data.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Reports_Damaged_Data()
+	{
+		// Act
+		ShowSnackbarMessage? received = await RunShowFolderContentsAsync(new AuthenticationTagMismatchException());
+
+		// Assert
+		received
+			.Should()
+			.NotBeNull();
+
+		received
+			.Text
+			.Should()
+			.Be(Strings.EncryptedDataIsDamaged);
+
+		received
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.ShowFolderContentsAsync" />: rejected credentials are reported as a wrong password.
+	/// </summary>
+	[Test]
+	public async Task ShowFolderContentsAsync_Reports_Wrong_Password()
+	{
+		// Act
+		ShowSnackbarMessage? received = await RunShowFolderContentsAsync(new InvalidCredentialException());
+
+		// Assert
+		received
+			.Should()
+			.NotBeNull();
+
+		received
+			.Text
+			.Should()
+			.Be(Strings.IncorrectPassword);
+
+		received
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.TryToDecrypt" />: returns non-empty contents that differ from the input.
 	/// </summary>
 	[Test]
@@ -1232,6 +1288,60 @@ internal class EntityEncryptionTests
 		file.Note
 			.Should()
 			.BeSameAs(fileNote);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Unwraps the key of a folder with an unwrap that fails with <paramref name="failure" />
+	/// and returns the snackbar message the service has sent.
+	/// </summary>
+	private static async Task<ShowSnackbarMessage?> RunShowFolderContentsAsync(Exception failure)
+	{
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.PasswordHash = AppUtils.CreateRandomString(10);
+
+		StrongReferenceMessenger messenger = new();
+
+		ShowSnackbarMessage? received = null;
+
+		object recipient = new();
+
+		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => received = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
+				.Returns(true);
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+				.Throws(failure);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		await sut.ShowFolderContentsAsync(folder);
+
+		return received;
 	}
 	#endregion
 }
