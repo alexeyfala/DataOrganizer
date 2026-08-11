@@ -36,6 +36,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -391,16 +392,18 @@ public partial class EditorViewModel :
 		{
 			keeperId = keeper.Id;
 
-			byte[]? decryptedContents = _entityEncryption.TryToDecrypt(dto, contents);
-
-			if (decryptedContents is null)
+			try
 			{
+				contents = _entityEncryption.Decrypt(dto, contents);
+			}
+			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+			{
+				_logger.LogException(ex);
+
 				ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
-
-			contents = decryptedContents;
 		}
 
 		ExecuteFileParameters parameters = new()

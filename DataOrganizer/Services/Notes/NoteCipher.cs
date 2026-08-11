@@ -45,15 +45,18 @@ public sealed class NoteCipher : INoteCipher
 			return ToText(note);
 		}
 
+		// A protected note stays unreadable while its keeper is locked, so the store is left alone.
+		if (item.EncryptionStatus != EncryptionStatus.Decrypted || FindKeeperId(item) is not { } keeperId)
+		{
+			return null;
+		}
+
 		try
 		{
-			if (FindKeeperId(item) is not { } keeperId || _sessionKeyStore.Decrypt(
+			byte[] decrypted = _sessionKeyStore.Decrypt(
 				keeperId,
 				ContentIdentity.ForNote(item.Id),
-				note) is not { } decrypted)
-			{
-				return null;
-			}
+				note);
 
 			try
 			{
@@ -64,7 +67,7 @@ public sealed class NoteCipher : INoteCipher
 				decrypted.ZeroMemory();
 			}
 		}
-		catch (CryptographicException ex)
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
 		{
 			// A note is read while the interface is being rendered, so nothing may escape to the caller.
 			_logger.LogException(ex);
@@ -92,11 +95,12 @@ public sealed class NoteCipher : INoteCipher
 
 		try
 		{
-			return FindKeeperId(item) is { } keeperId
+			// A protected note can only be written while its keeper is unlocked.
+			return item.EncryptionStatus == EncryptionStatus.Decrypted && FindKeeperId(item) is { } keeperId
 				? _sessionKeyStore.Encrypt(keeperId, ContentIdentity.ForNote(item.Id), decoded)
 				: null;
 		}
-		catch (CryptographicException ex)
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
 		{
 			// A failure here must not take the note editor down; the caller reports the refusal.
 			_logger.LogException(ex);

@@ -1,7 +1,9 @@
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +19,13 @@ public interface IEntityEncryption
 	/// Changes the password.
 	/// </summary>
 	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
+
+	/// <summary>
+	/// Decrypts the content of a file whose keeper is unlocked.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The content does not belong to the file or has been altered.</exception>
+	byte[] Decrypt(FileModelDto file, byte[] input);
 
 	/// <summary>
 	/// Decrypts files in folder.
@@ -47,7 +56,6 @@ public interface IEntityEncryption
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	//void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy);
 	void HideFolderContents(FolderModelDto folder);
 
 	/// <summary>
@@ -59,11 +67,6 @@ public interface IEntityEncryption
 	/// Shows file contents in folder.
 	/// </summary>
 	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
-	byte[]? TryToDecrypt(FileModelDto file, byte[] input);
 
 	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.

@@ -243,7 +243,7 @@ internal class NoteCipherTests
 
 			sessionKeyStore
 				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns((byte[]?)null);
+				.Throws(new AuthenticationTagMismatchException());
 
 			builder.RegisterInstance(sessionKeyStore);
 		});
@@ -260,7 +260,7 @@ internal class NoteCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="NoteCipher.Decode" />: returns <c>null</c> when the store refuses to decrypt for a locked password keeper.
+	/// <see cref="NoteCipher.Decode" />: a locked password keeper is never asked for its key.
 	/// </summary>
 	[Test]
 	public void Decode_Returns_Null_When_Keeper_Is_Locked()
@@ -280,10 +280,6 @@ internal class NoteCipherTests
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		sessionKeyStore
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
-
 		using AutoMock mock = AutoMock.GetLoose();
 
 		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
@@ -297,8 +293,8 @@ internal class NoteCipherTests
 			.BeNull();
 
 		sessionKeyStore
-			.Received(1)
-			.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note);
+			.DidNotReceive()
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -443,7 +439,7 @@ internal class NoteCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="NoteCipher.Encode" />: returns <c>null</c> when the store refuses to encrypt for a locked password keeper.
+	/// <see cref="NoteCipher.Encode" />: a locked password keeper is never asked for its key.
 	/// </summary>
 	[Test]
 	public void Encode_Returns_Null_When_Keeper_Is_Locked()
@@ -461,10 +457,6 @@ internal class NoteCipherTests
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		sessionKeyStore
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
-
 		using AutoMock mock = AutoMock.GetLoose();
 
 		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
@@ -478,8 +470,8 @@ internal class NoteCipherTests
 			.BeNull();
 
 		sessionKeyStore
-			.Received(1)
-			.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.DidNotReceive()
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>

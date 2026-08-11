@@ -88,10 +88,10 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="SessionKeyStore.Decrypt" />: returns null once the keeper has been locked.
+	/// <see cref="SessionKeyStore.Decrypt" />: refuses to work once the keeper has been locked.
 	/// </summary>
 	[Test]
-	public void Decrypt_Returns_Null_After_Lock()
+	public void Decrypt_Refuses_After_Lock()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
@@ -114,16 +114,18 @@ internal class SessionKeyStoreTests
 		sut.Lock(keeperId);
 
 		// Assert
-		sut.Decrypt(keeperId, _identity, encrypted!)
+		Action act = () => sut.Decrypt(keeperId, _identity, encrypted!);
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<InvalidOperationException>();
 	}
 
 	/// <summary>
-	/// <see cref="SessionKeyStore.Decrypt" />: returns null for a keeper that was never unlocked.
+	/// <see cref="SessionKeyStore.Decrypt" />: refuses to work for a keeper that was never unlocked.
 	/// </summary>
 	[Test]
-	public void Decrypt_Returns_Null_For_Unknown_Keeper()
+	public void Decrypt_Refuses_For_Unknown_Keeper()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
@@ -131,9 +133,11 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		sut.Decrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64))
+		Action act = () => sut.Decrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64));
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<InvalidOperationException>();
 	}
 
 	/// <summary>
@@ -197,10 +201,10 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="SessionKeyStore.Encrypt" />: returns null for a keeper that is not unlocked.
+	/// <see cref="SessionKeyStore.Encrypt" />: refuses to work for a keeper that is not unlocked.
 	/// </summary>
 	[Test]
-	public void Encrypt_Returns_Null_For_Locked_Keeper()
+	public void Encrypt_Refuses_For_Locked_Keeper()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
@@ -208,9 +212,11 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		sut.Encrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64))
+		Action act = () => sut.Encrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64));
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<InvalidOperationException>();
 	}
 
 	/// <summary>

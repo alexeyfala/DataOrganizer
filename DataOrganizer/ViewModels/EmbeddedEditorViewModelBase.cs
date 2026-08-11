@@ -19,6 +19,7 @@ using Shared.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -246,7 +247,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Tries to decrypt the content, if it has been decrypted.
+	/// Decrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
 	protected byte[]? TryToDecrypt(byte[] input)
 	{
@@ -255,14 +256,23 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		return _sessionKeyStore.Decrypt(
-			keeperId,
-			ContentIdentity.ForContents(FileId),
-			input);
+		try
+		{
+			return _sessionKeyStore.Decrypt(
+				keeperId,
+				ContentIdentity.ForContents(FileId),
+				input);
+		}
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 
 	/// <summary>
-	/// Tries to encrypt the content, if it has been decrypted.
+	/// Encrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
 	protected byte[]? TryToEncrypt(byte[] input)
 	{
@@ -271,10 +281,19 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		return _sessionKeyStore.Encrypt(
-			keeperId,
-			ContentIdentity.ForContents(FileId),
-			input);
+		try
+		{
+			return _sessionKeyStore.Encrypt(
+				keeperId,
+				ContentIdentity.ForContents(FileId),
+				input);
+		}
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 	#endregion
 }

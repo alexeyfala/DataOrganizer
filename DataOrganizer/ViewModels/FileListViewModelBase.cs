@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -98,12 +99,17 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
-			if (_entityEncryption.TryToDecrypt(file, contents) is not { } decrypted)
+			try
 			{
+				contents = _entityEncryption.Decrypt(file, contents);
+			}
+			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+			{
+				// A preview is rendered on demand, so the failure only reaches the log.
+				_logger.LogException(ex);
+
 				return;
 			}
-
-			contents = decrypted;
 		}
 
 		try

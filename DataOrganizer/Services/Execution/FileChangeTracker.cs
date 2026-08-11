@@ -79,7 +79,6 @@ public class FileChangeTracker : IFileChangeTracker
 					return;
 				}
 
-				// Polling interval between change checks.
 				await Task
 					.Delay(800, token)
 					.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
@@ -100,10 +99,6 @@ public class FileChangeTracker : IFileChangeTracker
 		}
 		finally
 		{
-			//parameters
-			//	.SessionEncryptedDek?
-			//	.ZeroMemory();
-
 			parameters
 				.Contents
 				.ZeroMemory();
@@ -172,11 +167,19 @@ public class FileChangeTracker : IFileChangeTracker
 					{
 						if (parameters.KeeperId is { } keeperId)
 						{
-							if (_sessionKeyStore.Encrypt(
-								keeperId,
-								ContentIdentity.ForContents(parameters.File.Id),
-								bytes) is not { } encrypted)
+							byte[] encrypted;
+
+							try
 							{
+								encrypted = _sessionKeyStore.Encrypt(
+									keeperId,
+									ContentIdentity.ForContents(parameters.File.Id),
+									bytes);
+							}
+							catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+							{
+								_logger.LogException(ex);
+
 								PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 								return false;

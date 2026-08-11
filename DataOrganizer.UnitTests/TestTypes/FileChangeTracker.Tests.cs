@@ -13,6 +13,7 @@ using DataOrganizer.Services.Execution;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System;
@@ -343,7 +344,7 @@ internal class FileChangeTrackerTests
 
 			sessionKeyStore
 				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
+				.Throws(new CryptographicException());
 
 			builder.RegisterInstance(fileSystem);
 

@@ -44,14 +44,14 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[]? Decrypt(Guid keeperId, ContentIdentity identity, byte[] encryptedContents)
+	public byte[] Decrypt(
+		Guid keeperId,
+		ContentIdentity identity,
+		byte[] encryptedContents)
 	{
 		lock (_mutex)
 		{
-			if (Unwrap(keeperId) is not { } dek)
-			{
-				return null;
-			}
+			byte[] dek = Unwrap(keeperId);
 
 			try
 			{
@@ -71,18 +71,18 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	public void Dispose() => LockAll();
 
 	/// <inheritdoc />
-	public byte[]? Encrypt(Guid keeperId, ContentIdentity identity, byte[] contents)
+	public byte[] Encrypt(Guid keeperId, ContentIdentity identity, byte[] contents)
 	{
 		lock (_mutex)
 		{
-			if (Unwrap(keeperId) is not { } dek)
-			{
-				return null;
-			}
+			byte[] dek = Unwrap(keeperId);
 
 			try
 			{
-				return _encryption.EncryptWithDek(contents, dek, identity.ToAssociatedData());
+				return _encryption.EncryptWithDek(
+					contents,
+					dek,
+					identity.ToAssociatedData());
 			}
 			finally
 			{
@@ -231,14 +231,14 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	}
 
 	/// <summary>
-	/// Unwraps the stored key of a keeper. Returns <c>null</c> when the keeper is locked
-	/// or the stored key no longer matches the session secret.
+	/// Unwraps the stored key of a keeper.
 	/// </summary>
-	private byte[]? Unwrap(Guid keeperId)
+	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
+	private byte[] Unwrap(Guid keeperId)
 	{
 		if (_sessionId is null || !_wrappedDeks.TryGetValue(keeperId, out PinnedBuffer? wrappedDek))
 		{
-			return null;
+			throw new InvalidOperationException($@"The keeper ""{keeperId}"" is locked.");
 		}
 
 		byte[] sessionId = GetSessionId();

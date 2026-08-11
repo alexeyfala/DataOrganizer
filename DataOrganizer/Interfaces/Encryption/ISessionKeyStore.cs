@@ -1,5 +1,6 @@
 using DataOrganizer.Helpers.Security;
 using System;
+using System.Security.Cryptography;
 
 namespace DataOrganizer.Interfaces.Encryption;
 
@@ -11,19 +12,20 @@ public interface ISessionKeyStore
 {
 	#region Methods
 	/// <summary>
-	/// Decrypts contents with the key of an unlocked keeper. Returns <c>null</c> when the keeper is locked
-	/// or the contents do not belong to <paramref name="identity" />.
+	/// Decrypts contents with the key of an unlocked keeper.
 	/// </summary>
-	byte[]? Decrypt(
+	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The contents do not belong to <paramref name="identity" /> or have been altered.</exception>
+	byte[] Decrypt(
 		Guid keeperId,
 		ContentIdentity identity,
 		byte[] encryptedContents);
 
 	/// <summary>
 	/// Encrypts contents with the key of an unlocked keeper, binding them to <paramref name="identity" />.
-	/// Returns <c>null</c> when the keeper is locked.
 	/// </summary>
-	byte[]? Encrypt(
+	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
+	byte[] Encrypt(
 		Guid keeperId,
 		ContentIdentity identity,
 		byte[] contents);

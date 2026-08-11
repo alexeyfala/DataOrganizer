@@ -177,6 +177,18 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <inheritdoc />
+	public byte[] Decrypt(FileModelDto file, byte[] input)
+	{
+		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
+		{
+			throw new InvalidOperationException(
+				$@"The file ""{file.Id}"" is marked as decrypted but belongs to no password keeper.");
+		}
+
+		return _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input);
+	}
+
+	/// <inheritdoc />
 	public async Task DecryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
@@ -575,27 +587,6 @@ public sealed class EntityEncryption : IEntityEncryption
 	}
 
 	/// <inheritdoc />
-	public byte[]? TryToDecrypt(FileModelDto file, byte[] input)
-	{
-		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
-		{
-			return null;
-		}
-
-		try
-		{
-			return _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input);
-		}
-		catch (CryptographicException ex)
-		{
-			// Contents are read while a list is being rendered, so the failure only reaches the log.
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task<byte[]?> TryToDecryptContentsAsync(
 		FileModelDto file,
 		byte[] contents,
@@ -667,7 +658,16 @@ public sealed class EntityEncryption : IEntityEncryption
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)
 		{
-			return TryToDecrypt(file, contents);
+			try
+			{
+				return Decrypt(file, contents);
+			}
+			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+			{
+				ReportCryptographicFailure(ex);
+
+				return null;
+			}
 		}
 
 		return contents;
@@ -939,7 +939,11 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		_logger.LogException(exception);
 
-		SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
+		string message = exception is CryptographicException
+			? Strings.EncryptedDataIsDamaged
+			: Strings.FailedToProcessContents;
+
+		SendMessage(message, SnackbarMessageLevel.Error);
 	}
 
 	/// <summary>
