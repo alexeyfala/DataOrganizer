@@ -26,35 +26,6 @@ internal class SessionKeyStoreTests
 
 	#region Methods
 	/// <summary>
-	/// Contents are bound to the object owning them: a blob moved to another file of the same keeper is rejected.
-	/// </summary>
-	[Test]
-	public void Contents_Are_Bound_To_Their_Owner()
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
-
-		SessionKeyStore sut = mock.Create<SessionKeyStore>();
-
-		Guid keeperId = Guid.NewGuid();
-
-		byte[] contents = TestUtils.CreateRandomBytes(64);
-
-		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
-
-		// Act
-		byte[]? encrypted = sut.Encrypt(
-			keeperId,
-			ContentIdentity.ForContents(Guid.NewGuid()),
-			contents);
-
-		// Assert
-		sut.Decrypt(keeperId, ContentIdentity.ForContents(Guid.NewGuid()), encrypted!)
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
 	/// Contents are bound to the field they are stored in: a note cannot be read back as the contents of the same object.
 	/// </summary>
 	[Test]
@@ -81,6 +52,36 @@ internal class SessionKeyStoreTests
 		sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!)
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// Contents are deliberately not bound to the object owning them: an import gives every object
+	/// a new identifier, and binding would leave imported data impossible to open.
+	/// </summary>
+	[Test]
+	public void Contents_Are_Not_Bound_To_Their_Owner()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		byte[] contents = TestUtils.CreateRandomBytes(64);
+
+		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(
+			keeperId,
+			ContentIdentity.ForContents(Guid.NewGuid()),
+			contents);
+
+		// Assert
+		sut.Decrypt(keeperId, ContentIdentity.ForContents(Guid.NewGuid()), encrypted!)
+			.Should()
+			.Equal(contents);
 	}
 
 	/// <summary>

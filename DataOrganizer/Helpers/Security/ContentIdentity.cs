@@ -4,16 +4,16 @@ using System;
 namespace DataOrganizer.Helpers.Security;
 
 /// <summary>
-/// The place a ciphertext belongs to: the object owning it and the field it is stored in.
-/// Travels with the data as authenticated associated data, so a blob moved elsewhere fails to open.
+/// The place a ciphertext belongs to, rendered as authenticated associated data.
+/// The identifier stays out of it: an import renumbers every object.
 /// </summary>
 public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 {
 	#region Data
 	/// <summary>
-	/// Size of the associated data: the label, the purpose byte and the identifier.
+	/// Size of the associated data: the label and the purpose byte.
 	/// </summary>
-	private const int AssociatedDataSize = LabelSize + 1 + 16;
+	private const int AssociatedDataSize = LabelSize + 1;
 
 	/// <summary>
 	/// Size of <see cref="Label" />.
@@ -52,8 +52,6 @@ public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 		Label.CopyTo(result);
 
 		result[LabelSize] = (byte)Purpose;
-
-		Id.TryWriteBytes(result.AsSpan(LabelSize + 1));
 
 		return result;
 	}
