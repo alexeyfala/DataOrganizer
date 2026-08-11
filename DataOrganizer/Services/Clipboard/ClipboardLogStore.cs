@@ -138,7 +138,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		try
 		{
-			// TODO: bind the journal to its own identity; the clipboard history is a separate step.
 			if (_encryption.EncryptWithDek(plaintext, dek, []) is not { } ciphertext)
 			{
 				_logger.LogWarning("Failed to encrypt clipboard history; skipping save.");
@@ -194,7 +193,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_historyFilePath, token)
 			.ConfigureAwait(false);
 
-		// TODO: bind the journal to its own identity; the clipboard history is a separate step.
 		if (_encryption.DecryptWithDek(ciphertext, dek, []) is not { } plaintext)
 		{
 			_logger.LogWarning("Clipboard history journal could not be decrypted; treating as empty.");
@@ -240,7 +238,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		byte[] dek = _encryption.CreateRandomDek();
 
-		// TODO: bind the journal key to its own identity; the clipboard history is a separate step.
 		if (_encryption.Encrypt(dek, password, []) is not { } wrapped)
 		{
 			dek.ZeroMemory();
@@ -341,7 +338,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
-		// TODO: bind the journal key to its own identity; the clipboard history is a separate step.
 		if (_encryption.Decrypt(wrapped, password, []) is not { } dek)
 		{
 			return new(ClipboardLogStatus.WrongPassword, []);
