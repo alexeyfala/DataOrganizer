@@ -440,6 +440,16 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideAllFiles))]
 	internal async Task HideAllFileContents()
 	{
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.
+		if (!await FlushEditorsAsync().ConfigureAwait(true))
+		{
+			_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
+
+			ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+			return;
+		}
+
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
@@ -1722,6 +1732,22 @@ public partial class EditorViewModel :
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
 	/// <summary>
+	/// Asks every open editor to persist its pending changes and awaits all of them.
+	/// </summary>
+	private async Task<bool> FlushEditorsAsync(CancellationToken token = default)
+	{
+		FlushEditorsMessage request = new();
+
+		_messenger.Send(request);
+
+		IReadOnlyCollection<bool> responses = await request
+			.GetResponsesAsync(token)
+			.ConfigureAwait(true);
+
+		return responses.All(x => x);
+	}
+
+	/// <summary>
 	/// Tries to remove value from copy history.
 	/// </summary>
 	private void RemoveFromCopyHistory(FileModelDto file)
@@ -1773,7 +1799,6 @@ public partial class EditorViewModel :
 
 		IsRightSideSheetOpened = true;
 	}
-
 	/// <summary>
 	/// Tries to close editing or executing files if any.
 	/// </summary>

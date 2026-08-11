@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace DataOrganizer.Services.Encryption;
 
-public sealed class SessionKeyStore : ISessionKeyStore
+public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 {
 	#region Data
 	/// <inheritdoc cref="IEncryptionService" />
@@ -54,6 +54,9 @@ public sealed class SessionKeyStore : ISessionKeyStore
 			}
 		}
 	}
+
+	/// <inheritdoc />
+	public void Dispose() => LockAll();
 
 	/// <inheritdoc />
 	public byte[]? Encrypt(Guid keeperId, byte[] contents)

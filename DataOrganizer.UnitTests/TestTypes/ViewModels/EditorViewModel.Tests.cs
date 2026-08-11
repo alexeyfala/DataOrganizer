@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
@@ -15,6 +16,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Messages;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -925,6 +927,52 @@ internal class EditorViewModelTests
 		// Marking the objects and dropping the keys belongs to the encryption service.
 		entityEncryption
 			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideAllFileContents" />: nothing is hidden and no file is closed while an editor
+	/// cannot persist its changes, so hiding never discards them.
+	/// </summary>
+	[Test]
+	public async Task HideAllFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeTrue();
+
+		entityEncryption
+			.DidNotReceive()
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
 

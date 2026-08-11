@@ -207,6 +207,16 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// Intended to skip persistence when the text matches what is already stored.
 	/// </summary>
 	private byte[]? _lastSavedContentHash;
+
+	/// <summary>
+	/// <c>True</c> when the last processed save did not reach the database.
+	/// </summary>
+	private bool _lastSaveFailed;
+
+	/// <summary>
+	/// Number of queued contents the save channel consumer has not processed yet.
+	/// </summary>
+	private int _pendingSaves;
 	#endregion
 
 	#region Constructors
@@ -259,9 +269,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		_saveChannel.Writer.TryWrite(TextHelper
-			.Utf8Encoding
-			.GetBytes(editor.Text));
+		EnqueueSave(editor);
 	}
 	#endregion
 
@@ -292,6 +300,27 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		}
 
 		base.AfterDispose();
+	}
+
+	/// <inheritdoc />
+	protected override async Task<bool> FlushAsync(CancellationToken token = default)
+	{
+		if (IsContentCorrupted || IsReadOnly)
+		{
+			return true;
+		}
+
+		// The text change handler is debounced, so the newest text may not be queued yet.
+		if (_editor is { } editor)
+		{
+			EnqueueSave(editor);
+		}
+
+		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
+
+		return await isDrained
+			.WaitAsync(millisecondsDelay: 100, maxRepeat: 50, token)
+			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed);
 	}
 	#endregion
 
@@ -333,6 +362,27 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			SelectionLength = editor.SelectionLength,
 			SelectionStart = editor.SelectionStart
 		};
+	}
+
+	/// <summary>
+	/// Queues the current text of the editor for saving.
+	/// </summary>
+	private void EnqueueSave(TextEditor editor)
+	{
+		byte[] contents = TextHelper
+			.Utf8Encoding
+			.GetBytes(editor.Text);
+
+		if (_saveChannel
+			.Writer
+			.TryWrite(contents))
+		{
+			Interlocked.Increment(ref _pendingSaves);
+
+			return;
+		}
+
+		contents.ZeroMemory();
 	}
 
 	/// <summary>
@@ -405,47 +455,67 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			// Drain the channel — keep only the latest, ZeroMemory the rest.
 			byte[] latest = contents;
 
-			// Insurance in case of:
-			// - slow encryption (large file)
-			// - slow DB (disk under load)
-			// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
-			while (reader.TryRead(out byte[]? newer))
-			{
-				latest.ZeroMemory();
-
-				latest = newer;
-			}
-
-			byte[] hash = SHA256.HashData(latest);
-
-			if (_lastSavedContentHash is { } previous && hash.AsSpan().SequenceEqual(previous))
-			{
-				latest.ZeroMemory();
-
-				continue;
-			}
-
-			if (TryToEncrypt(latest) is not { } output)
-			{
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-				latest.ZeroMemory();
-
-				continue;
-			}
+			// Counted, not decremented yet: the batch stays pending until it has been persisted.
+			int taken = 1;
 
 			try
 			{
-				if (await SaveContentsAsync(output).ConfigureAwait(false))
+				// Insurance in case of:
+				// - slow encryption (large file)
+				// - slow DB (disk under load)
+				// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
+				while (reader.TryRead(out byte[]? newer))
 				{
-					_lastSavedContentHash = hash;
+					taken++;
+
+					latest.ZeroMemory();
+
+					latest = newer;
+				}
+
+				byte[] hash = SHA256.HashData(latest);
+
+				if (_lastSavedContentHash is { } previous && hash.AsSpan().SequenceEqual(previous))
+				{
+					latest.ZeroMemory();
+
+					Volatile.Write(ref _lastSaveFailed, false);
+
+					continue;
+				}
+
+				if (TryToEncrypt(latest) is not { } output)
+				{
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+
+					latest.ZeroMemory();
+
+					Volatile.Write(ref _lastSaveFailed, true);
+
+					continue;
+				}
+
+				try
+				{
+					bool isSaved = await SaveContentsAsync(output).ConfigureAwait(false);
+
+					if (isSaved)
+					{
+						_lastSavedContentHash = hash;
+					}
+
+					Volatile.Write(ref _lastSaveFailed, !isSaved);
+				}
+				finally
+				{
+					latest.ZeroMemory();
+
+					output.ZeroMemory();
 				}
 			}
 			finally
 			{
-				latest.ZeroMemory();
-
-				output.ZeroMemory();
+				Interlocked.Add(ref _pendingSaves, -taken);
 			}
 		}
 	}

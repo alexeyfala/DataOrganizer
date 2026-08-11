@@ -25,7 +25,8 @@ namespace DataOrganizer.ViewModels;
 
 public abstract partial class EmbeddedEditorViewModelBase :
 	ObservableDisposableBase,
-	IRecipient<EditorReadOnlyModeChangedMessage>
+	IRecipient<EditorReadOnlyModeChangedMessage>,
+	IRecipient<FlushEditorsMessage>
 {
 	#region Properties
 	/// <summary>
@@ -171,6 +172,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <inheritdoc />
+	public void Receive(FlushEditorsMessage message) => message.Reply(FlushAsync(message.CancellationToken));
+
+	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
@@ -184,6 +188,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		KeeperId = null;
 	}
+
+	/// <summary>
+	/// Persists the pending changes of the editor. <c>False</c> when the contents could not be saved,
+	/// which keeps the caller from dropping the key.
+	/// </summary>
+	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
 	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.

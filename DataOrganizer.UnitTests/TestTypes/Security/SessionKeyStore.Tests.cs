@@ -69,6 +69,30 @@ internal class SessionKeyStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="SessionKeyStore.Dispose" />: leaving the process takes the keys with it.
+	/// </summary>
+	[Test]
+	public void Dispose_Locks_Every_Keeper()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		sut.IsUnlocked(keeperId)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="SessionKeyStore.Encrypt" />, <see cref="SessionKeyStore.Decrypt" />: contents survive a round trip through an unlocked keeper.
 	/// </summary>
 	[Test]

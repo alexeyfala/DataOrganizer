@@ -107,8 +107,6 @@ internal class FileChangeTrackerTests
 
 			byte[] encryptedContents = TestUtils.CreateRandomBytes(48);
 
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
-
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -125,7 +123,7 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
 			sessionKeyStore
 				.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
@@ -234,6 +232,68 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a change made right before the stop is still persisted,
+	/// so hiding the contents cannot discard it.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Persists_The_Last_Change_On_Stop()
+	{
+		// Arrange
+		using CancellationTokenSource cts = new();
+
+		await cts.CancelAsync();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.IsFileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(TestUtils.CreateRandomBytes(32)));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(TestUtils.CreateRandomBytes(32));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10)
+		};
+
+		// Act
+		await sut.TrackChangesAsync(parameters, cts.Token);
+
+		// Assert
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			parameters.File.Id,
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
 	[Test]
@@ -260,8 +320,6 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
-
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -278,7 +336,7 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -345,8 +403,6 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
-
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -363,7 +419,7 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
 			dbAccess
 				.UpdateFilePropertiesAsync(
