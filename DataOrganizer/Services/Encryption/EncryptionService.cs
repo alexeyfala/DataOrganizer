@@ -3,10 +3,9 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;
 using Repository.DTO;
-using Serilog;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using BC = BCrypt.Net.BCrypt;
 
@@ -51,13 +50,6 @@ public sealed class EncryptionService : IEncryptionService
 	/// Domain separation label for the session key derivation.
 	/// </summary>
 	private static readonly byte[] _sessionKeyInfo = "DataOrganizer.SessionDek.v1"u8.ToArray();
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-	#endregion
-
-	#region Constructors
-	public EncryptionService(ILogger logger) => _logger = logger;
 	#endregion
 
 	#region Methods
@@ -65,7 +57,7 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
 	/// <inheritdoc />
-	public byte[]? Decrypt(
+	public byte[] Decrypt(
 		byte[] input,
 		byte[] password,
 		byte[] associatedData)
@@ -84,27 +76,20 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (DecryptWithDek(
-				item.Contents,
-				dek,
-				ContentIdentity.ForContents(item.Id).ToAssociatedData()) is { } output)
+			yield return new()
 			{
-				yield return new()
-				{
-					Contents = output,
-					Id = item.Id,
-					IsValid = true
-				};
-			}
-			else
-			{
-				yield break;
-			}
+				Contents = DecryptWithDek(
+					item.Contents,
+					dek,
+					ContentIdentity.ForContents(item.Id).ToAssociatedData()),
+				Id = item.Id,
+				IsValid = true
+			};
 		}
 	}
 
 	/// <inheritdoc />
-	public byte[]? DecryptWithDek(
+	public byte[] DecryptWithDek(
 		byte[] input,
 		byte[] dek,
 		byte[] associatedData)
@@ -119,7 +104,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? DecryptWithSessionId(
+	public byte[] DecryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
 		byte[] associatedData)
@@ -134,7 +119,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? Encrypt(
+	public byte[] Encrypt(
 		byte[] input,
 		byte[] password,
 		byte[] associatedData)
@@ -153,27 +138,20 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (EncryptWithDek(
-				item.Contents,
-				dek,
-				ContentIdentity.ForContents(item.Id).ToAssociatedData()) is { } output)
+			yield return new()
 			{
-				yield return new()
-				{
-					Contents = output,
-					Id = item.Id,
-					IsValid = true
-				};
-			}
-			else
-			{
-				yield break;
-			}
+				Contents = EncryptWithDek(
+					item.Contents,
+					dek,
+					ContentIdentity.ForContents(item.Id).ToAssociatedData()),
+				Id = item.Id,
+				IsValid = true
+			};
 		}
 	}
 
 	/// <inheritdoc />
-	public byte[]? EncryptWithDek(
+	public byte[] EncryptWithDek(
 		byte[] input,
 		byte[] dek,
 		byte[] associatedData)
@@ -188,7 +166,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? EncryptWithSessionId(
+	public byte[] EncryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
 		byte[] associatedData)
@@ -218,20 +196,23 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? RewrapDek(
+	public byte[] RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
 		byte[] newPassword,
 		byte[] associatedData)
 	{
-		if (Decrypt(wrappedDek, oldPassword, associatedData) is not { } dek)
-		{
-			return null;
-		}
+		byte[] dek = Decrypt(
+			wrappedDek,
+			oldPassword,
+			associatedData);
 
 		try
 		{
-			return Encrypt(dek, newPassword, associatedData);
+			return Encrypt(
+				dek,
+				newPassword,
+				associatedData);
 		}
 		finally
 		{
@@ -256,6 +237,58 @@ public sealed class EncryptionService : IEncryptionService
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// Decrypts a blob laid out as <c>[version][salt][nonce][ciphertext+tag]</c>.
+	/// A zero <paramref name="saltSize" /> means the format carries no salt.
+	/// </summary>
+	private static byte[] DecryptCore(
+		byte[] input,
+		byte[] secret,
+		byte[] associatedData,
+		byte version,
+		int saltSize,
+		KeyFactory keyFactory)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
+		if (input.Length < 1 + saltSize + _algorithm.NonceSize + _algorithm.TagSize || input[0] != version)
+		{
+			//return null;
+			throw new CryptographicException(
+				$"Encrypted data of {input.Length} bytes marked {input[0]:X2} cannot be read as the format {version:X2}.");
+		}
+
+		byte[]? plaintext;
+
+		try
+		{
+			ReadOnlySpan<byte> salt = input.AsSpan(1, saltSize);
+
+			using Key key = keyFactory(secret, salt);
+
+			ReadOnlySpan<byte> nonce = input.AsSpan(1 + saltSize, _algorithm.NonceSize);
+
+			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + saltSize + _algorithm.NonceSize);
+
+			plaintext = OpenAead(key, nonce, ciphertext, associatedData);
+		}
+		catch (Exception ex)
+		{
+			throw new CryptographicException($"Decryption of the format {version:X2} failed.", ex);
+		}
+
+		if (plaintext is not null)
+		{
+			return plaintext;
+		}
+
+		// The password format is the only one where a failed tag points at the secret rather than at the data.
+		throw version == FormatVersionPasswordV1
+			? new InvalidCredentialException("The password does not fit the encrypted data.")
+			: new AuthenticationTagMismatchException();
+	}
+
 	/// <summary>
 	/// Derives a key.
 	/// </summary>
@@ -309,6 +342,51 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <summary>
+	/// Encrypts into a blob laid out as <c>[version][salt][nonce][ciphertext+tag]</c>.
+	/// A zero <paramref name="saltSize" /> means the format carries no salt.
+	/// </summary>
+	private static byte[] EncryptCore(
+		byte[] input,
+		byte[] secret,
+		byte[] associatedData,
+		byte version,
+		int saltSize,
+		KeyFactory keyFactory)
+	{
+		try
+		{
+			int nonceSize = _algorithm.NonceSize;
+
+			byte[] result = new byte[1 + saltSize + nonceSize + input.Length + _algorithm.TagSize];
+
+			result[0] = version;
+
+			Span<byte> saltSpan = result.AsSpan(1, saltSize);
+
+			RandomNumberGenerator.Fill(saltSpan);
+
+			using Key key = keyFactory(secret, saltSpan);
+
+			Span<byte> nonceSpan = result.AsSpan(1 + saltSize, nonceSize);
+
+			RandomNumberGenerator.Fill(nonceSpan);
+
+			_algorithm.Encrypt(
+				key: key,
+				nonce: nonceSpan,
+				associatedData: associatedData,
+				plaintext: input,
+				ciphertext: result.AsSpan(1 + saltSize + nonceSize));
+
+			return result;
+		}
+		catch (Exception ex)
+		{
+			throw new CryptographicException($"Encryption of the format {version:X2} failed.", ex);
+		}
+	}
+
+	/// <summary>
 	/// Adapts <see cref="ImportKey" /> to <see cref="KeyFactory" />; the DEK format carries no salt.
 	/// </summary>
 	private static Key ImportDekAsKey(byte[] dek, ReadOnlySpan<byte> _) => ImportKey(dek);
@@ -347,94 +425,6 @@ public sealed class EncryptionService : IEncryptionService
 			associatedData: associatedData,
 			ciphertext: ciphertext,
 			plaintext: plaintext) ? plaintext : null;
-	}
-
-	/// <summary>
-	/// Decrypts a blob laid out as <c>[version][salt][nonce][ciphertext+tag]</c>.
-	/// A zero <paramref name="saltSize" /> means the format carries no salt.
-	/// </summary>
-	private byte[]? DecryptCore(
-		byte[] input,
-		byte[] secret,
-		byte[] associatedData,
-		byte version,
-		int saltSize,
-		KeyFactory keyFactory)
-	{
-		ArgumentNullException.ThrowIfNull(input);
-
-		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
-		if (input.Length < 1 + saltSize + _algorithm.NonceSize + _algorithm.TagSize
-			|| input[0] != version)
-		{
-			return null;
-		}
-
-		try
-		{
-			ReadOnlySpan<byte> salt = input.AsSpan(1, saltSize);
-
-			using Key key = keyFactory(secret, salt);
-
-			ReadOnlySpan<byte> nonce = input.AsSpan(1 + saltSize, _algorithm.NonceSize);
-
-			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + saltSize + _algorithm.NonceSize);
-
-			return OpenAead(key, nonce, ciphertext, associatedData);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
-	}
-
-	/// <summary>
-	/// Encrypts into a blob laid out as <c>[version][salt][nonce][ciphertext+tag]</c>.
-	/// A zero <paramref name="saltSize" /> means the format carries no salt.
-	/// </summary>
-	private byte[]? EncryptCore(
-		byte[] input,
-		byte[] secret,
-		byte[] associatedData,
-		byte version,
-		int saltSize,
-		KeyFactory keyFactory)
-	{
-		try
-		{
-			int nonceSize = _algorithm.NonceSize;
-
-			byte[] result = new byte[1 + saltSize + nonceSize + input.Length + _algorithm.TagSize];
-
-			result[0] = version;
-
-			Span<byte> saltSpan = result.AsSpan(1, saltSize);
-
-			RandomNumberGenerator.Fill(saltSpan);
-
-			using Key key = keyFactory(secret, saltSpan);
-
-			Span<byte> nonceSpan = result.AsSpan(1 + saltSize, nonceSize);
-
-			RandomNumberGenerator.Fill(nonceSpan);
-
-			_algorithm.Encrypt(
-				key: key,
-				nonce: nonceSpan,
-				associatedData: associatedData,
-				plaintext: input,
-				ciphertext: result.AsSpan(1 + saltSize + nonceSize));
-
-			return result;
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
 	}
 	#endregion
 }

@@ -312,8 +312,8 @@ internal class EntityEncryptionTests
 				.Returns([]);
 
 			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns((byte[]?)null);
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+				.Throws(new CryptographicException());
 
 			dbAccess
 				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())

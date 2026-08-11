@@ -3,6 +3,9 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
+using System;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 
 namespace DataOrganizer.UnitTests.TestTypes.Security;
 
@@ -11,7 +14,7 @@ internal class EncryptionServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptionService.Decrypt" />: returns null when decrypting with a wrong password.
+	/// <see cref="EncryptionService.Decrypt" />: a wrong password is reported as rejected credentials.
 	/// </summary>
 	[Test]
 	public void Decrypt_Cannot_Decrypt_With_Wrong_Password()
@@ -35,18 +38,18 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNull();
 
-		byte[]? result = sut.Decrypt(
+		Action act = () => sut.Decrypt(
 			encrypted,
 			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
 			[]);
 
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<InvalidCredentialException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.Decrypt" />: returns null for input produced by the session-based path.
+	/// <see cref="EncryptionService.Decrypt" />: input produced by the session-based path is refused as a foreign format.
 	/// </summary>
 	[Test]
 	public void Decrypt_Rejects_Session_Encrypted_Input()
@@ -69,19 +72,19 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.Decrypt(encrypted, sessionId, []);
+		Action act = () => sut.Decrypt(encrypted, sessionId, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.Decrypt" />: returns null on malformed input.
+	/// <see cref="EncryptionService.Decrypt" />: malformed input is refused as damaged data.
 	/// </summary>
 	[Test]
-	public void Decrypt_Returns_Null_On_Malformed_Input()
+	public void Decrypt_Throws_On_Malformed_Input()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -93,12 +96,12 @@ internal class EncryptionServiceTests
 			.GetBytes("SomePassword");
 
 		// Act
-		byte[]? result = sut.Decrypt([1, 2, 3], password, []);
+		Action act = () => sut.Decrypt([1, 2, 3], password, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
@@ -129,13 +132,17 @@ internal class EncryptionServiceTests
 			.NotBeNull();
 
 		// Assert
-		sut.DecryptWithDek(encrypted, dek, TestUtils.CreateRandomBytes(37))
-			.Should()
-			.BeNull();
+		Action withOtherData = () => sut.DecryptWithDek(encrypted, dek, TestUtils.CreateRandomBytes(37));
 
-		sut.DecryptWithDek(encrypted, dek, [])
+		withOtherData
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
+
+		Action withoutData = () => sut.DecryptWithDek(encrypted, dek, []);
+
+		withoutData
+			.Should()
+			.ThrowExactly<AuthenticationTagMismatchException>();
 
 		sut.DecryptWithDek(encrypted, dek, associatedData)
 			.Should()
@@ -143,7 +150,7 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithDek" />: returns null when decrypting with a wrong DEK.
+	/// <see cref="EncryptionService.DecryptWithDek" />: a wrong DEK is reported as a tag mismatch.
 	/// </summary>
 	[Test]
 	public void DecryptWithDek_Cannot_Decrypt_With_Wrong_Dek()
@@ -168,19 +175,19 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNull();
 
-		byte[]? result = sut.DecryptWithDek(encrypted, wrongDek, []);
+		Action act = () => sut.DecryptWithDek(encrypted, wrongDek, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithDek" />: returns null on malformed input.
+	/// <see cref="EncryptionService.DecryptWithDek" />: malformed input is refused as damaged data.
 	/// </summary>
 	[Test]
-	public void DecryptWithDek_Returns_Null_On_Malformed_Input()
+	public void DecryptWithDek_Throws_On_Malformed_Input()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -190,16 +197,16 @@ internal class EncryptionServiceTests
 		byte[] dek = sut.CreateRandomDek();
 
 		// Act
-		byte[]? result = sut.DecryptWithDek([1, 2, 3], dek, []);
+		Action act = () => sut.DecryptWithDek([1, 2, 3], dek, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithSessionId" />: returns null when decrypting with a wrong session identifier.
+	/// <see cref="EncryptionService.DecryptWithSessionId" />: a wrong session identifier is reported as a tag mismatch.
 	/// </summary>
 	[Test]
 	public void DecryptWithSessionId_Cannot_Decrypt_With_Wrong_Session_Id()
@@ -224,16 +231,16 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.DecryptWithSessionId(encrypted, wrongSessionId, []);
+		Action act = () => sut.DecryptWithSessionId(encrypted, wrongSessionId, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithSessionId" />: returns null for input produced by the password-based path.
+	/// <see cref="EncryptionService.DecryptWithSessionId" />: input produced by the password-based path is refused as a foreign format.
 	/// </summary>
 	[Test]
 	public void DecryptWithSessionId_Rejects_Password_Encrypted_Input()
@@ -258,19 +265,19 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.DecryptWithSessionId(encrypted, password, []);
+		Action act = () => sut.DecryptWithSessionId(encrypted, password, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithSessionId" />: returns null on malformed input.
+	/// <see cref="EncryptionService.DecryptWithSessionId" />: malformed input is refused as damaged data.
 	/// </summary>
 	[Test]
-	public void DecryptWithSessionId_Returns_Null_On_Malformed_Input()
+	public void DecryptWithSessionId_Throws_On_Malformed_Input()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -280,12 +287,12 @@ internal class EncryptionServiceTests
 		byte[] sessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		byte[]? result = sut.DecryptWithSessionId([1, 2, 3], sessionId, []);
+		Action act = () => sut.DecryptWithSessionId([1, 2, 3], sessionId, []);
 
 		// Assert
-		result
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>

@@ -242,7 +242,7 @@ internal class ClipboardLogStoreTests
 		// ...but encrypting the journal fails.
 		encryption
 			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
+			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);
 
@@ -416,7 +416,7 @@ internal class ClipboardLogStoreTests
 
 		encryption
 			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
+			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);
 

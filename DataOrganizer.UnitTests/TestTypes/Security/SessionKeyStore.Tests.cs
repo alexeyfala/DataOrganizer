@@ -6,6 +6,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using System;
+using System.Security.Cryptography;
 
 namespace DataOrganizer.UnitTests.TestTypes.Security;
 
@@ -49,9 +50,11 @@ internal class SessionKeyStoreTests
 			TestUtils.CreateRandomBytes(64));
 
 		// Assert
-		sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!)
+		Action act = () => sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!);
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
@@ -264,9 +267,11 @@ internal class SessionKeyStoreTests
 		byte[]? encrypted = sut.Encrypt(firstKeeperId, _identity, TestUtils.CreateRandomBytes(64));
 
 		// Assert
-		sut.Decrypt(secondKeeperId, _identity, encrypted!)
+		Action act = () => sut.Decrypt(secondKeeperId, _identity, encrypted!);
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
@@ -381,9 +386,11 @@ internal class SessionKeyStoreTests
 			.BeTrue();
 
 		// Assert
-		sut.Decrypt(keeperId, _identity, staleEncrypted!)
+		Action act = () => sut.Decrypt(keeperId, _identity, staleEncrypted!);
+
+		act
 			.Should()
-			.BeNull();
+			.ThrowExactly<AuthenticationTagMismatchException>();
 
 		byte[]? encrypted = sut.Encrypt(keeperId, _identity, contents);
 

@@ -55,19 +55,10 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 
 			try
 			{
-				if (_encryption.DecryptWithDek(
+				return _encryption.DecryptWithDek(
 					encryptedContents,
 					dek,
-					identity.ToAssociatedData()) is { } decrypted)
-				{
-					return decrypted;
-				}
-
-				// The key is there, so the contents either do not belong to this place or have been altered.
-				_logger.LogWarning(
-					$@"Contents of the unlocked keeper ""{keeperId}"" failed authentication: {identity.Purpose} of ""{identity.Id}""");
-
-				return null;
+					identity.ToAssociatedData());
 			}
 			finally
 			{
@@ -153,11 +144,16 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 
 			try
 			{
-				// The stored key is bound to its keeper, so a wrapped key cannot be moved between keepers.
-				if (_encryption.EncryptWithSessionId(
-					dek,
-					sessionId,
-					ContentIdentity.ForDek(keeperId).ToAssociatedData()) is not { } wrappedDek)
+				byte[] wrappedDek;
+
+				try
+				{
+					wrappedDek = _encryption.EncryptWithSessionId(
+						dek,
+						sessionId,
+						ContentIdentity.ForDek(keeperId).ToAssociatedData());
+				}
+				catch
 				{
 					// Nothing has been stored, so a session secret created just now is not needed.
 					if (_wrappedDeks.Count == 0)
@@ -165,7 +161,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 						DropSessionId();
 					}
 
-					return false;
+					throw;
 				}
 
 				try

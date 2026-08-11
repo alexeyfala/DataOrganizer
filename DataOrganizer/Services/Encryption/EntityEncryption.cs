@@ -127,14 +127,11 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				try
 				{
-					if (_encryption.RewrapDek(
+					byte[] encryptedDek = _encryption.RewrapDek(
 						folder.EncryptedDek,
 						oldPasswordBinary,
 						newPasswordBinary,
-						ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } encryptedDek)
-					{
-						return;
-					}
+						ContentIdentity.ForDek(folder.Id).ToAssociatedData());
 
 					string passwordHash = _encryption.HashPassword(newPassword);
 
@@ -228,15 +225,10 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				if (_encryption.Decrypt(
+				byte[] decryptedDek = _encryption.Decrypt(
 					folder.EncryptedDek,
 					passwordBinary,
-					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } decryptedDek)
-				{
-					SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
-
-					return;
-				}
+					ContentIdentity.ForDek(folder.Id).ToAssociatedData());
 
 				try
 				{
@@ -355,15 +347,10 @@ public sealed class EntityEncryption : IEntityEncryption
 					.Utf8Encoding
 					.GetBytes(password);
 
-				if (_encryption.Encrypt(
+				byte[] encryptedDek = _encryption.Encrypt(
 					dek,
 					passwordBinary,
-					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } encryptedDek)
-				{
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-					return;
-				}
+					ContentIdentity.ForDek(folder.Id).ToAssociatedData());
 
 				try
 				{
@@ -488,13 +475,10 @@ public sealed class EntityEncryption : IEntityEncryption
 				.Utf8Encoding
 				.GetBytes(password);
 
-			if (_encryption.Decrypt(
+			byte[] dek = _encryption.Decrypt(
 				root.EncryptedDek,
 				passwordBinary,
-				ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } dek)
-			{
-				return false;
-			}
+				ContentIdentity.ForDek(root.Id).ToAssociatedData());
 
 			try
 			{
@@ -649,29 +633,17 @@ public sealed class EntityEncryption : IEntityEncryption
 					.Utf8Encoding
 					.GetBytes(password);
 
-				if (_encryption.Decrypt(
+				byte[] decryptedDek = _encryption.Decrypt(
 					root.EncryptedDek,
 					passwordBinary,
-					ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } decryptedDek)
-				{
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-					return null;
-				}
+					ContentIdentity.ForDek(root.Id).ToAssociatedData());
 
 				try
 				{
-					if (_encryption.DecryptWithDek(
+					return _encryption.DecryptWithDek(
 						contents,
 						decryptedDek,
-						ContentIdentity.ForContents(file.Id).ToAssociatedData()) is not { } decrypted)
-					{
-						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-						return null;
-					}
-
-					return decrypted;
+						ContentIdentity.ForContents(file.Id).ToAssociatedData());
 				}
 				finally
 				{
@@ -938,14 +910,9 @@ public sealed class EntityEncryption : IEntityEncryption
 				.ForNote(item.Id)
 				.ToAssociatedData();
 
-			byte[]? processed = encrypt
+			byte[] processed = encrypt
 				? _encryption.EncryptWithDek(note, dek, associatedData)
 				: _encryption.DecryptWithDek(note, dek, associatedData);
-
-			if (processed is null)
-			{
-				return null;
-			}
 
 			notes.Add(new NoteUpdate(
 				item.Id,
@@ -990,15 +957,15 @@ public sealed class EntityEncryption : IEntityEncryption
 		FolderModelDto folder,
 		byte[] password)
 	{
-		if (folder.FindPasswordKeeperOrSelf() is not { } root
-			|| root.EncryptedDek is null
-			|| _encryption.Decrypt(
-				root.EncryptedDek,
-				password,
-				ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } dek)
+		if (folder.FindPasswordKeeperOrSelf() is not { } root || root.EncryptedDek is null)
 		{
 			return false;
 		}
+
+		byte[] dek = _encryption.Decrypt(
+			root.EncryptedDek,
+			password,
+			ContentIdentity.ForDek(root.Id).ToAssociatedData());
 
 		try
 		{
