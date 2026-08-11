@@ -440,13 +440,9 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideAllFiles))]
 	internal async Task HideAllFileContents()
 	{
-		// The contents cannot be hidden while an editor holds changes it was unable to persist.
-		if (!await FlushEditorsAsync().ConfigureAwait(true))
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.		
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
 		{
-			_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
-
-			ShowErrorSnackbar(Strings.FailedToProcessContents);
-
 			return;
 		}
 
@@ -469,6 +465,12 @@ public partial class EditorViewModel :
 	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
+		{
+			return;
+		}
+
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
 		{
 			return;
 		}
@@ -497,6 +499,12 @@ public partial class EditorViewModel :
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
+		{
+			return;
+		}
+
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
 		{
 			return;
 		}
@@ -1799,6 +1807,7 @@ public partial class EditorViewModel :
 
 		IsRightSideSheetOpened = true;
 	}
+
 	/// <summary>
 	/// Tries to close editing or executing files if any.
 	/// </summary>
@@ -1821,6 +1830,24 @@ public partial class EditorViewModel :
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Persists the pending changes of the open editors before the key is dropped;
+	/// <c>False</c> reports the failure to the user and keeps the caller from hiding anything.
+	/// </summary>
+	private async Task<bool> TryFlushEditorsAsync(CancellationToken token = default)
+	{
+		if (await FlushEditorsAsync(token).ConfigureAwait(true))
+		{
+			return true;
+		}
+
+		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
+
+		ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+		return false;
 	}
 	#endregion
 }

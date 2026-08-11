@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -122,14 +123,6 @@ public sealed class KeyboardInputHook :
 
 	#region Methods
 	/// <inheritdoc />
-	public void Receive(GlobalKeyReleasedMessage message)
-	{
-		_exceptionHandler.Watch(HandleKeyReleasedAsync(
-			message.Mask,
-			message.Code));
-	}
-
-	/// <inheritdoc />
 	public void Dispose()
 	{
 		if (Interlocked.Exchange(ref _isDisposed, true))
@@ -144,6 +137,14 @@ public sealed class KeyboardInputHook :
 		Files.Clear();
 
 		InputStack.Clear();
+	}
+
+	/// <inheritdoc />
+	public void Receive(GlobalKeyReleasedMessage message)
+	{
+		_exceptionHandler.Watch(HandleKeyReleasedAsync(
+			message.Mask,
+			message.Code));
 	}
 
 	/// <inheritdoc />
@@ -282,31 +283,44 @@ public sealed class KeyboardInputHook :
 					return;
 				}
 
-				string text = TextHelper
-					.Utf8Encoding
-					.GetString(contents);
-
-				if (string.IsNullOrEmpty(text))
+				try
 				{
-					_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+					string text = TextHelper
+						.Utf8Encoding
+						.GetString(contents);
+
+					if (string.IsNullOrEmpty(text))
+					{
+						_logger.LogInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
+
+						return;
+					}
+
+					try
+					{
+						// Protected contents carry the markers that keep them out of the clipboard
+						// history and hand them to the auto-clear, same as the copy command does.
+						await (file.EncryptionStatus != EncryptionStatus.None
+							? _clipboard.SetDataAsync(ClipboardSensitivityMarkerWriter.CreateSensitiveText(text))
+							: _clipboard.SetTextAsync(text))
+							.ConfigureAwait(false);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogException(ex);
+					}
+
+					_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 
 					return;
 				}
-
-				try
+				finally
 				{
-					await _clipboard
-						.SetTextAsync(text)
-						.ConfigureAwait(false);
+					if (file.EncryptionStatus != EncryptionStatus.None)
+					{
+						contents.ZeroMemory();
+					}
 				}
-				catch (Exception ex)
-				{
-					_logger.LogException(ex);
-				}
-
-				_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
-
-				return;
 			}
 		}
 		catch (Exception ex)
