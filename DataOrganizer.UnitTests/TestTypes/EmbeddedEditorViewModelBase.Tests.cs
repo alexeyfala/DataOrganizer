@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.ViewModels;
 using NSubstitute;
@@ -27,7 +28,7 @@ internal class EmbeddedEditorViewModelBaseTests
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		sessionKeyStore
-			.Decrypt(keeperId, input)
+			.Decrypt(keeperId, Arg.Any<ContentIdentity>(), input)
 			.Returns(decrypted);
 
 		TestEditor sut = new(sessionKeyStore)
@@ -45,7 +46,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.Received(1)
-			.Decrypt(keeperId, input);
+			.Decrypt(keeperId, Arg.Any<ContentIdentity>(), input);
 	}
 
 	/// <summary>
@@ -74,7 +75,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -100,7 +101,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -119,7 +120,7 @@ internal class EmbeddedEditorViewModelBaseTests
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		sessionKeyStore
-			.Encrypt(keeperId, input)
+			.Encrypt(keeperId, Arg.Any<ContentIdentity>(), input)
 			.Returns(encrypted);
 
 		TestEditor sut = new(sessionKeyStore)
@@ -137,7 +138,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.Received(1)
-			.Encrypt(keeperId, input);
+			.Encrypt(keeperId, Arg.Any<ContentIdentity>(), input);
 	}
 
 	/// <summary>
@@ -166,7 +167,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -192,7 +193,7 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 	#endregion
 }

@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using System;
@@ -16,9 +17,72 @@ internal class SessionKeyStoreTests
 	/// Key size of the AEAD algorithm behind the encryption service.
 	/// </summary>
 	private const int DekSize = 32;
+
+	/// <summary>
+	/// Place the contents of these tests belong to.
+	/// </summary>
+	private static readonly ContentIdentity _identity = ContentIdentity.ForContents(Guid.NewGuid());
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Contents are bound to the object owning them: a blob moved to another file of the same keeper is rejected.
+	/// </summary>
+	[Test]
+	public void Contents_Are_Bound_To_Their_Owner()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		byte[] contents = TestUtils.CreateRandomBytes(64);
+
+		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(
+			keeperId,
+			ContentIdentity.ForContents(Guid.NewGuid()),
+			contents);
+
+		// Assert
+		sut.Decrypt(keeperId, ContentIdentity.ForContents(Guid.NewGuid()), encrypted!)
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// Contents are bound to the field they are stored in: a note cannot be read back as the contents of the same object.
+	/// </summary>
+	[Test]
+	public void Contents_Are_Bound_To_Their_Purpose()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterType<EncryptionService>().As<IEncryptionService>());
+
+		SessionKeyStore sut = mock.Create<SessionKeyStore>();
+
+		Guid keeperId = Guid.NewGuid();
+
+		Guid fileId = Guid.NewGuid();
+
+		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(
+			keeperId,
+			ContentIdentity.ForNote(fileId),
+			TestUtils.CreateRandomBytes(64));
+
+		// Assert
+		sut.Decrypt(keeperId, ContentIdentity.ForContents(fileId), encrypted!)
+			.Should()
+			.BeNull();
+	}
+
 	/// <summary>
 	/// <see cref="SessionKeyStore.Decrypt" />: returns null once the keeper has been locked.
 	/// </summary>
@@ -36,7 +100,7 @@ internal class SessionKeyStoreTests
 			.Should()
 			.BeTrue();
 
-		byte[]? encrypted = sut.Encrypt(keeperId, TestUtils.CreateRandomBytes(64));
+		byte[]? encrypted = sut.Encrypt(keeperId, _identity, TestUtils.CreateRandomBytes(64));
 
 		encrypted
 			.Should()
@@ -46,7 +110,7 @@ internal class SessionKeyStoreTests
 		sut.Lock(keeperId);
 
 		// Assert
-		sut.Decrypt(keeperId, encrypted!)
+		sut.Decrypt(keeperId, _identity, encrypted!)
 			.Should()
 			.BeNull();
 	}
@@ -63,7 +127,7 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		sut.Decrypt(Guid.NewGuid(), TestUtils.CreateRandomBytes(64))
+		sut.Decrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64))
 			.Should()
 			.BeNull();
 	}
@@ -112,7 +176,7 @@ internal class SessionKeyStoreTests
 			.BeTrue();
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(keeperId, contents);
+		byte[]? encrypted = sut.Encrypt(keeperId, _identity, contents);
 
 		encrypted
 			.Should()
@@ -120,7 +184,7 @@ internal class SessionKeyStoreTests
 			.And
 			.NotEqual(contents);
 
-		byte[]? decrypted = sut.Decrypt(keeperId, encrypted);
+		byte[]? decrypted = sut.Decrypt(keeperId, _identity, encrypted);
 
 		// Assert
 		decrypted
@@ -140,7 +204,7 @@ internal class SessionKeyStoreTests
 		SessionKeyStore sut = mock.Create<SessionKeyStore>();
 
 		// Act, Assert
-		sut.Encrypt(Guid.NewGuid(), TestUtils.CreateRandomBytes(64))
+		sut.Encrypt(Guid.NewGuid(), _identity, TestUtils.CreateRandomBytes(64))
 			.Should()
 			.BeNull();
 	}
@@ -196,10 +260,10 @@ internal class SessionKeyStoreTests
 		sut.Unlock(secondKeeperId, TestUtils.CreateRandomBytes(DekSize));
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(firstKeeperId, TestUtils.CreateRandomBytes(64));
+		byte[]? encrypted = sut.Encrypt(firstKeeperId, _identity, TestUtils.CreateRandomBytes(64));
 
 		// Assert
-		sut.Decrypt(secondKeeperId, encrypted!)
+		sut.Decrypt(secondKeeperId, _identity, encrypted!)
 			.Should()
 			.BeNull();
 	}
@@ -225,13 +289,13 @@ internal class SessionKeyStoreTests
 
 		sut.Unlock(secondKeeperId, TestUtils.CreateRandomBytes(DekSize));
 
-		byte[]? encrypted = sut.Encrypt(secondKeeperId, contents);
+		byte[]? encrypted = sut.Encrypt(secondKeeperId, _identity, contents);
 
 		// Act
 		sut.Lock(firstKeeperId);
 
 		// Assert
-		sut.Decrypt(secondKeeperId, encrypted!)
+		sut.Decrypt(secondKeeperId, _identity, encrypted!)
 			.Should()
 			.Equal(contents);
 	}
@@ -308,7 +372,7 @@ internal class SessionKeyStoreTests
 
 		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize));
 
-		byte[]? staleEncrypted = sut.Encrypt(keeperId, contents);
+		byte[]? staleEncrypted = sut.Encrypt(keeperId, _identity, contents);
 
 		// Act
 		sut.Unlock(keeperId, TestUtils.CreateRandomBytes(DekSize))
@@ -316,13 +380,13 @@ internal class SessionKeyStoreTests
 			.BeTrue();
 
 		// Assert
-		sut.Decrypt(keeperId, staleEncrypted!)
+		sut.Decrypt(keeperId, _identity, staleEncrypted!)
 			.Should()
 			.BeNull();
 
-		byte[]? encrypted = sut.Encrypt(keeperId, contents);
+		byte[]? encrypted = sut.Encrypt(keeperId, _identity, contents);
 
-		sut.Decrypt(keeperId, encrypted!)
+		sut.Decrypt(keeperId, _identity, encrypted!)
 			.Should()
 			.Equal(contents);
 	}

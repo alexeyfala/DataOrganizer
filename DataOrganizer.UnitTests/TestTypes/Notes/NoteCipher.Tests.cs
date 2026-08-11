@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Notes;
 using NSubstitute;
@@ -17,6 +18,41 @@ namespace DataOrganizer.UnitTests.TestTypes.Notes;
 internal class NoteCipherTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="NoteCipher.Decode" />: the note is read as the note of its own object,
+	/// so the ciphertext is bound to the object and to the field.
+	/// </summary>
+	[Test]
+	public void Decode_Binds_The_Note_To_Its_Object()
+	{
+		// Arrange
+		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
+
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper
+			.Children
+			.Add(file);
+
+		file.Parent = keeper;
+
+		file.Note = TestUtils.CreateRandomBytes(10);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		NoteCipher sut = mock.Create<NoteCipher>();
+
+		// Act
+		sut.Decode(file);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Decrypt(keeper.Id, ContentIdentity.ForNote(file.Id), file.Note);
+	}
+
 	/// <summary>
 	/// <see cref="NoteCipher.Decode" />: a password keeper protects its own note as well.
 	/// </summary>
@@ -35,7 +71,7 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(keeper.Id, keeper.Note)
+				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), keeper.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -86,7 +122,7 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(keeper.Id, file.Note)
+				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -129,7 +165,7 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(keeper.Id, file.Note)
+				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -170,7 +206,7 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -209,7 +245,7 @@ internal class NoteCipherTests
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		sessionKeyStore
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 			.Returns((byte[]?)null);
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -226,7 +262,7 @@ internal class NoteCipherTests
 
 		sessionKeyStore
 			.Received(1)
-			.Decrypt(keeper.Id, file.Note);
+			.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note);
 	}
 
 	/// <summary>
@@ -256,7 +292,7 @@ internal class NoteCipherTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -312,7 +348,7 @@ internal class NoteCipherTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -343,11 +379,11 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Encrypt(keeper.Id, Arg.Any<byte[]>())
+				.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					// A copy is required: the source buffer is zeroed right after the call.
-					passedText = [.. x.ArgAt<byte[]>(1)];
+					passedText = [.. x.ArgAt<byte[]>(2)];
 
 					return encrypted;
 				});
@@ -390,7 +426,7 @@ internal class NoteCipherTests
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		sessionKeyStore
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 			.Returns((byte[]?)null);
 
 		using AutoMock mock = AutoMock.GetLoose();
@@ -407,7 +443,7 @@ internal class NoteCipherTests
 
 		sessionKeyStore
 			.Received(1)
-			.Encrypt(keeper.Id, Arg.Any<byte[]>());
+			.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -459,7 +495,7 @@ internal class NoteCipherTests
 
 		sessionKeyStore
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -478,10 +514,10 @@ internal class NoteCipherTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Encrypt(keeper.Id, Arg.Any<byte[]>())
+				.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(x =>
 				{
-					passedText = x.ArgAt<byte[]>(1);
+					passedText = x.ArgAt<byte[]>(2);
 
 					return TestUtils.CreateRandomBytes(10);
 				});

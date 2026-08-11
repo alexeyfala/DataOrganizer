@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
@@ -254,7 +255,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		return _sessionKeyStore.Decrypt(keeperId, input);
+		return _sessionKeyStore.Decrypt(
+			keeperId,
+			ContentIdentity.ForContents(FileId),
+			input);
 	}
 
 	/// <summary>
@@ -267,7 +271,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		return _sessionKeyStore.Encrypt(keeperId, input);
+		return _sessionKeyStore.Encrypt(
+			keeperId,
+			ContentIdentity.ForContents(FileId),
+			input);
 	}
 	#endregion
 }

@@ -65,11 +65,15 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
 
 	/// <inheritdoc />
-	public byte[]? Decrypt(byte[] input, byte[] password)
+	public byte[]? Decrypt(
+		byte[] input,
+		byte[] password,
+		byte[] associatedData)
 	{
 		return DecryptCore(
 			input,
 			password,
+			associatedData,
 			FormatVersionPasswordV1,
 			SaltSize,
 			DeriveKey);
@@ -80,7 +84,10 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (DecryptWithDek(item.Contents, dek) is { } output)
+			if (DecryptWithDek(
+				item.Contents,
+				dek,
+				ContentIdentity.ForContents(item.Id).ToAssociatedData()) is { } output)
 			{
 				yield return new()
 				{
@@ -97,33 +104,45 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? DecryptWithDek(byte[] input, byte[] dek)
+	public byte[]? DecryptWithDek(
+		byte[] input,
+		byte[] dek,
+		byte[] associatedData)
 	{
 		return DecryptCore(
 			input,
 			dek,
+			associatedData,
 			FormatVersionDekV1,
 			saltSize: 0,
 			ImportDekAsKey);
 	}
 
 	/// <inheritdoc />
-	public byte[]? DecryptWithSessionId(byte[] input, byte[] sessionId)
+	public byte[]? DecryptWithSessionId(
+		byte[] input,
+		byte[] sessionId,
+		byte[] associatedData)
 	{
 		return DecryptCore(
 			input,
 			sessionId,
+			associatedData,
 			FormatVersionSessionV1,
 			SaltSize,
 			DeriveSessionKey);
 	}
 
 	/// <inheritdoc />
-	public byte[]? Encrypt(byte[] input, byte[] password)
+	public byte[]? Encrypt(
+		byte[] input,
+		byte[] password,
+		byte[] associatedData)
 	{
 		return EncryptCore(
 			input,
 			password,
+			associatedData,
 			FormatVersionPasswordV1,
 			SaltSize,
 			DeriveKey);
@@ -134,7 +153,10 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			if (EncryptWithDek(item.Contents, dek) is { } output)
+			if (EncryptWithDek(
+				item.Contents,
+				dek,
+				ContentIdentity.ForContents(item.Id).ToAssociatedData()) is { } output)
 			{
 				yield return new()
 				{
@@ -151,22 +173,30 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public byte[]? EncryptWithDek(byte[] input, byte[] dek)
+	public byte[]? EncryptWithDek(
+		byte[] input,
+		byte[] dek,
+		byte[] associatedData)
 	{
 		return EncryptCore(
 			input,
 			dek,
+			associatedData,
 			FormatVersionDekV1,
 			saltSize: 0,
 			ImportDekAsKey);
 	}
 
 	/// <inheritdoc />
-	public byte[]? EncryptWithSessionId(byte[] input, byte[] sessionId)
+	public byte[]? EncryptWithSessionId(
+		byte[] input,
+		byte[] sessionId,
+		byte[] associatedData)
 	{
 		return EncryptCore(
 			input,
 			sessionId,
+			associatedData,
 			FormatVersionSessionV1,
 			SaltSize,
 			DeriveSessionKey);
@@ -191,16 +221,17 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[]? RewrapDek(
 		byte[] wrappedDek,
 		byte[] oldPassword,
-		byte[] newPassword)
+		byte[] newPassword,
+		byte[] associatedData)
 	{
-		if (Decrypt(wrappedDek, oldPassword) is not { } dek)
+		if (Decrypt(wrappedDek, oldPassword, associatedData) is not { } dek)
 		{
 			return null;
 		}
 
 		try
 		{
-			return Encrypt(dek, newPassword);
+			return Encrypt(dek, newPassword, associatedData);
 		}
 		finally
 		{
@@ -300,7 +331,8 @@ public sealed class EncryptionService : IEncryptionService
 	private static byte[]? OpenAead(
 		Key key,
 		ReadOnlySpan<byte> nonce,
-		ReadOnlySpan<byte> ciphertext)
+		ReadOnlySpan<byte> ciphertext,
+		ReadOnlySpan<byte> associatedData)
 	{
 		if (ciphertext.Length < _algorithm.TagSize)
 		{
@@ -312,7 +344,7 @@ public sealed class EncryptionService : IEncryptionService
 		return _algorithm.Decrypt(
 			key: key,
 			nonce: nonce,
-			associatedData: [],
+			associatedData: associatedData,
 			ciphertext: ciphertext,
 			plaintext: plaintext) ? plaintext : null;
 	}
@@ -324,6 +356,7 @@ public sealed class EncryptionService : IEncryptionService
 	private byte[]? DecryptCore(
 		byte[] input,
 		byte[] secret,
+		byte[] associatedData,
 		byte version,
 		int saltSize,
 		KeyFactory keyFactory)
@@ -347,7 +380,7 @@ public sealed class EncryptionService : IEncryptionService
 
 			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + saltSize + _algorithm.NonceSize);
 
-			return OpenAead(key, nonce, ciphertext);
+			return OpenAead(key, nonce, ciphertext, associatedData);
 		}
 		catch (Exception ex)
 		{
@@ -364,6 +397,7 @@ public sealed class EncryptionService : IEncryptionService
 	private byte[]? EncryptCore(
 		byte[] input,
 		byte[] secret,
+		byte[] associatedData,
 		byte version,
 		int saltSize,
 		KeyFactory keyFactory)
@@ -389,7 +423,7 @@ public sealed class EncryptionService : IEncryptionService
 			_algorithm.Encrypt(
 				key: key,
 				nonce: nonceSpan,
-				associatedData: [],
+				associatedData: associatedData,
 				plaintext: input,
 				ciphertext: result.AsSpan(1 + saltSize + nonceSize));
 

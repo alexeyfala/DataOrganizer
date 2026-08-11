@@ -5,6 +5,7 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
@@ -61,7 +62,7 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
@@ -144,7 +145,7 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -152,7 +153,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(decryptedNote);
 
 			dbAccess
@@ -238,7 +239,7 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -301,11 +302,11 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns((byte[]?)null);
 
 			dbAccess
@@ -366,7 +367,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			dbAccess
@@ -425,11 +426,11 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(encryptedNote);
 
 			dbAccess
@@ -597,11 +598,11 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(dialogService);
@@ -668,11 +669,11 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
-				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -729,17 +730,17 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -790,17 +791,17 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -861,11 +862,11 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);

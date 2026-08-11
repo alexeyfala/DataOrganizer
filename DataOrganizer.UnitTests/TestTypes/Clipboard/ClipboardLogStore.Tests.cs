@@ -119,7 +119,7 @@ internal class ClipboardLogStoreTests
 			Version = PersistedClipboardLog.CurrentVersion + 1
 		});
 
-		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek)!;
+		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek, [])!;
 
 		// Act
 		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(dek, default);
@@ -233,12 +233,12 @@ internal class ClipboardLogStoreTests
 
 		// Wrapping the key succeeds (so the store unlocks)...
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 			.Returns([1, 2, 3]);
 
 		// ...but encrypting the journal fails.
 		encryption
-			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 			.Returns((byte[]?)null);
 
 		using AutoMock mock = CreateMock(files, encryption);
@@ -328,7 +328,7 @@ internal class ClipboardLogStoreTests
 			.Returns(new byte[32]);
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 			.Returns((byte[]?)null);
 
 		using AutoMock mock = CreateMock(files, encryption);

@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Execution;
@@ -126,7 +127,7 @@ internal class FileChangeTrackerTests
 				.Returns(currentHash);
 
 			sessionKeyStore
-				.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(encryptedContents);
 
 			dbAccess
@@ -165,7 +166,7 @@ internal class FileChangeTrackerTests
 		// Assert
 		sessionKeyStore
 			.Received(1)
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
@@ -341,7 +342,7 @@ internal class FileChangeTrackerTests
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Encrypt(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(default(byte[]));
 
 			builder.RegisterInstance(fileSystem);

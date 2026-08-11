@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers.Security;
 using System;
 
 namespace DataOrganizer.Interfaces.Encryption;
@@ -10,14 +11,22 @@ public interface ISessionKeyStore
 {
 	#region Methods
 	/// <summary>
-	/// Decrypts contents with the key of an unlocked keeper. Returns <c>null</c> when the keeper is locked.
+	/// Decrypts contents with the key of an unlocked keeper. Returns <c>null</c> when the keeper is locked
+	/// or the contents do not belong to <paramref name="identity" />.
 	/// </summary>
-	byte[]? Decrypt(Guid keeperId, byte[] encryptedContents);
+	byte[]? Decrypt(
+		Guid keeperId,
+		ContentIdentity identity,
+		byte[] encryptedContents);
 
 	/// <summary>
-	/// Encrypts contents with the key of an unlocked keeper. Returns <c>null</c> when the keeper is locked.
+	/// Encrypts contents with the key of an unlocked keeper, binding them to <paramref name="identity" />.
+	/// Returns <c>null</c> when the keeper is locked.
 	/// </summary>
-	byte[]? Encrypt(Guid keeperId, byte[] contents);
+	byte[]? Encrypt(
+		Guid keeperId,
+		ContentIdentity identity,
+		byte[] contents);
 
 	/// <summary>
 	/// Indicates whether the key of a keeper is currently held.

@@ -3,6 +3,7 @@ using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
@@ -126,7 +127,8 @@ public sealed class EntityEncryption : IEntityEncryption
 					if (_encryption.RewrapDek(
 						folder.EncryptedDek,
 						oldPasswordBinary,
-						newPasswordBinary) is not { } encryptedDek)
+						newPasswordBinary,
+						ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } encryptedDek)
 					{
 						return;
 					}
@@ -221,7 +223,8 @@ public sealed class EntityEncryption : IEntityEncryption
 			{
 				if (_encryption.Decrypt(
 					folder.EncryptedDek,
-					passwordBinary) is not { } decryptedDek)
+					passwordBinary,
+					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } decryptedDek)
 				{
 					return;
 				}
@@ -341,7 +344,8 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				if (_encryption.Encrypt(
 					dek,
-					passwordBinary) is not { } encryptedDek)
+					passwordBinary,
+					ContentIdentity.ForDek(folder.Id).ToAssociatedData()) is not { } encryptedDek)
 				{
 					return;
 				}
@@ -467,7 +471,8 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (_encryption.Decrypt(
 				root.EncryptedDek,
-				passwordBinary) is not { } dek)
+				passwordBinary,
+				ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } dek)
 			{
 				return false;
 			}
@@ -561,7 +566,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	{
 		// The store answers with null for a locked keeper, so no separate state check is needed.
 		return file.FindParent(x => x.IsPasswordKeeper()) is { } root
-			? _sessionKeyStore.Decrypt(root.Id, input)
+			? _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input)
 			: null;
 	}
 
@@ -605,7 +610,8 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				if (_encryption.Decrypt(
 					root.EncryptedDek,
-					passwordBinary) is not { } decryptedDek)
+					passwordBinary,
+					ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } decryptedDek)
 				{
 					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
@@ -614,7 +620,10 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				try
 				{
-					if (_encryption.DecryptWithDek(contents, decryptedDek) is not { } decrypted)
+					if (_encryption.DecryptWithDek(
+						contents,
+						decryptedDek,
+						ContentIdentity.ForContents(file.Id).ToAssociatedData()) is not { } decrypted)
 					{
 						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
@@ -878,9 +887,13 @@ public sealed class EntityEncryption : IEntityEncryption
 				continue;
 			}
 
+			byte[] associatedData = ContentIdentity
+				.ForNote(item.Id)
+				.ToAssociatedData();
+
 			byte[]? processed = encrypt
-				? _encryption.EncryptWithDek(note, dek)
-				: _encryption.DecryptWithDek(note, dek);
+				? _encryption.EncryptWithDek(note, dek, associatedData)
+				: _encryption.DecryptWithDek(note, dek, associatedData);
 
 			if (processed is null)
 			{
@@ -913,7 +926,10 @@ public sealed class EntityEncryption : IEntityEncryption
 	{
 		if (folder.FindPasswordKeeperOrSelf() is not { } root
 			|| root.EncryptedDek is null
-			|| _encryption.Decrypt(root.EncryptedDek, password) is not { } dek)
+			|| _encryption.Decrypt(
+				root.EncryptedDek,
+				password,
+				ContentIdentity.ForDek(root.Id).ToAssociatedData()) is not { } dek)
 		{
 			return false;
 		}

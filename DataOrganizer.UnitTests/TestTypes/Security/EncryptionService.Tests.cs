@@ -28,7 +28,8 @@ internal class EncryptionServiceTests
 		// Act, Assert
 		byte[]? encrypted = sut.Encrypt(
 			input,
-			TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+			TextHelper.Utf8Encoding.GetBytes("SomePassword"),
+			[]);
 
 		encrypted
 			.Should()
@@ -36,7 +37,8 @@ internal class EncryptionServiceTests
 
 		byte[]? result = sut.Decrypt(
 			encrypted,
-			TextHelper.Utf8Encoding.GetBytes("WrongPassword"));
+			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
+			[]);
 
 		result
 			.Should()
@@ -61,13 +63,13 @@ internal class EncryptionServiceTests
 		byte[] sessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.Decrypt(encrypted, sessionId);
+		byte[]? result = sut.Decrypt(encrypted, sessionId, []);
 
 		// Assert
 		result
@@ -91,12 +93,53 @@ internal class EncryptionServiceTests
 			.GetBytes("SomePassword");
 
 		// Act
-		byte[]? result = sut.Decrypt([1, 2, 3], password);
+		byte[]? result = sut.Decrypt([1, 2, 3], password, []);
 
 		// Assert
 		result
 			.Should()
 			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.DecryptWithDek" />: the associated data is authenticated, so
+	/// neither a different value nor an absent one opens the ciphertext.
+	/// </summary>
+	[Test]
+	public void DecryptWithDek_Cannot_Decrypt_With_Wrong_Associated_Data()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		byte[] dek = sut.CreateRandomDek();
+
+		byte[] associatedData = TestUtils.CreateRandomBytes(37);
+
+		// Act
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, associatedData);
+
+		encrypted
+			.Should()
+			.NotBeNull();
+
+		// Assert
+		sut.DecryptWithDek(encrypted, dek, TestUtils.CreateRandomBytes(37))
+			.Should()
+			.BeNull();
+
+		sut.DecryptWithDek(encrypted, dek, [])
+			.Should()
+			.BeNull();
+
+		sut.DecryptWithDek(encrypted, dek, associatedData)
+			.Should()
+			.Equal(input);
 	}
 
 	/// <summary>
@@ -119,13 +162,13 @@ internal class EncryptionServiceTests
 		byte[] wrongDek = sut.CreateRandomDek();
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithDek(input, dek);
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, []);
 
 		encrypted
 			.Should()
 			.NotBeNull();
 
-		byte[]? result = sut.DecryptWithDek(encrypted, wrongDek);
+		byte[]? result = sut.DecryptWithDek(encrypted, wrongDek, []);
 
 		// Assert
 		result
@@ -147,7 +190,7 @@ internal class EncryptionServiceTests
 		byte[] dek = sut.CreateRandomDek();
 
 		// Act
-		byte[]? result = sut.DecryptWithDek([1, 2, 3], dek);
+		byte[]? result = sut.DecryptWithDek([1, 2, 3], dek, []);
 
 		// Assert
 		result
@@ -175,13 +218,13 @@ internal class EncryptionServiceTests
 		byte[] wrongSessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.DecryptWithSessionId(encrypted, wrongSessionId);
+		byte[]? result = sut.DecryptWithSessionId(encrypted, wrongSessionId, []);
 
 		// Assert
 		result
@@ -209,13 +252,13 @@ internal class EncryptionServiceTests
 			.GetBytes("SomePassword");
 
 		// Act
-		byte[]? encrypted = sut.Encrypt(input, password);
+		byte[]? encrypted = sut.Encrypt(input, password, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? result = sut.DecryptWithSessionId(encrypted, password);
+		byte[]? result = sut.DecryptWithSessionId(encrypted, password, []);
 
 		// Assert
 		result
@@ -237,7 +280,7 @@ internal class EncryptionServiceTests
 		byte[] sessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		byte[]? result = sut.DecryptWithSessionId([1, 2, 3], sessionId);
+		byte[]? result = sut.DecryptWithSessionId([1, 2, 3], sessionId, []);
 
 		// Assert
 		result
@@ -265,13 +308,13 @@ internal class EncryptionServiceTests
 			.GetBytes("SomePassword");
 
 		// Act, Assert
-		byte[]? encrypted = sut.Encrypt(input, password);
+		byte[]? encrypted = sut.Encrypt(input, password, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? decrypted = sut.Decrypt(encrypted, password);
+		byte[]? decrypted = sut.Decrypt(encrypted, password, []);
 
 		decrypted
 			.Should()
@@ -311,11 +354,11 @@ internal class EncryptionServiceTests
 		byte[] secret = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		byte[]? password = sut.Encrypt(input, secret);
+		byte[]? password = sut.Encrypt(input, secret, []);
 
-		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek());
+		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), []);
 
-		byte[]? session = sut.EncryptWithSessionId(input, secret);
+		byte[]? session = sut.EncryptWithSessionId(input, secret, []);
 
 		// Assert
 		password
@@ -361,13 +404,13 @@ internal class EncryptionServiceTests
 		byte[] dek = sut.CreateRandomDek();
 
 		// Act, Assert
-		byte[]? encrypted = sut.EncryptWithDek(input, dek);
+		byte[]? encrypted = sut.EncryptWithDek(input, dek, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? decrypted = sut.DecryptWithDek(encrypted, dek);
+		byte[]? decrypted = sut.DecryptWithDek(encrypted, dek, []);
 
 		decrypted
 			.Should()
@@ -400,13 +443,13 @@ internal class EncryptionServiceTests
 		byte[] sessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act, Assert
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, []);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
 
-		byte[]? decrypted = sut.DecryptWithSessionId(encrypted, sessionId);
+		byte[]? decrypted = sut.DecryptWithSessionId(encrypted, sessionId, []);
 
 		decrypted
 			.Should()

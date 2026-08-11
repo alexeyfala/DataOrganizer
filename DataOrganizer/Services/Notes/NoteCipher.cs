@@ -1,6 +1,7 @@
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
@@ -34,7 +35,8 @@ public sealed class NoteCipher : INoteCipher
 			return ToText(note);
 		}
 
-		if (FindKeeperId(item) is not { } keeperId || _sessionKeyStore.Decrypt(keeperId, note) is not { } decrypted)
+		if (FindKeeperId(item) is not { } keeperId
+			|| _sessionKeyStore.Decrypt(keeperId, ContentIdentity.ForNote(item.Id), note) is not { } decrypted)
 		{
 			return null;
 		}
@@ -69,7 +71,7 @@ public sealed class NoteCipher : INoteCipher
 		try
 		{
 			return FindKeeperId(item) is { } keeperId
-				? _sessionKeyStore.Encrypt(keeperId, decoded)
+				? _sessionKeyStore.Encrypt(keeperId, ContentIdentity.ForNote(item.Id), decoded)
 				: null;
 		}
 		finally

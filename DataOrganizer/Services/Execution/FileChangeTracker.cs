@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages;
@@ -171,7 +172,10 @@ public class FileChangeTracker : IFileChangeTracker
 					{
 						if (parameters.KeeperId is { } keeperId)
 						{
-							if (_sessionKeyStore.Encrypt(keeperId, bytes) is not { } encrypted)
+							if (_sessionKeyStore.Encrypt(
+								keeperId,
+								ContentIdentity.ForContents(parameters.File.Id),
+								bytes) is not { } encrypted)
 							{
 								PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
