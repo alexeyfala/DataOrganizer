@@ -74,7 +74,6 @@ repository listed above.
   * Avalonia.Win32 12.1.1 - Copyright (c) Avalonia Team
   * Avalonia.X11 12.1.1 - Copyright (c) Avalonia Team
   * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) jpmikkers
-  * BCrypt.Net-Next 4.2.0 - Copyright (c) Chris McKee, Ryan D. Emerl, Damien Miller
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
   * Comparation 0.1.7 - Copyright (c) Alexey Pepelev
   * DialogHost.Avalonia 0.12.3 - Copyright (c) SKProCH

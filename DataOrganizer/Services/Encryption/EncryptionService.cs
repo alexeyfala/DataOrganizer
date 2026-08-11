@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Security.Cryptography;
-using BC = BCrypt.Net.BCrypt;
 
 namespace DataOrganizer.Services.Encryption;
 
@@ -178,61 +177,6 @@ public sealed class EncryptionService : IEncryptionService
 			FormatVersionSessionV1,
 			SaltSize,
 			DeriveSessionKey);
-	}
-
-	/// <inheritdoc />
-	public string HashPassword(char[] password)
-	{
-		string temp = new(password);
-
-		try
-		{
-			return BC.EnhancedHashPassword(temp);
-		}
-		finally
-		{
-			SecureStringHelper.WipeString(temp);
-		}
-	}
-
-	/// <inheritdoc />
-	public byte[] RewrapDek(
-		byte[] wrappedDek,
-		byte[] oldPassword,
-		byte[] newPassword,
-		byte[] associatedData)
-	{
-		byte[] dek = Decrypt(
-			wrappedDek,
-			oldPassword,
-			associatedData);
-
-		try
-		{
-			return Encrypt(
-				dek,
-				newPassword,
-				associatedData);
-		}
-		finally
-		{
-			dek.ZeroMemory();
-		}
-	}
-
-	/// <inheritdoc />
-	public bool VerifyPassword(char[] password, string hash)
-	{
-		string temp = new(password);
-
-		try
-		{
-			return BC.EnhancedVerify(temp, hash);
-		}
-		finally
-		{
-			SecureStringHelper.WipeString(temp);
-		}
 	}
 	#endregion
 

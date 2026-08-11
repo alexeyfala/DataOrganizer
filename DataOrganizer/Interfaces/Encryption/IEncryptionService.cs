@@ -82,22 +82,5 @@ public interface IEncryptionService
 		byte[] input,
 		byte[] sessionId,
 		byte[] associatedData);
-
-	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedHashPassword(string)" />
-	string HashPassword(char[] password);
-
-	/// <summary>
-	/// Rewraps the DEK (Data Encryption Key) with new password.
-	/// </summary>
-	/// <exception cref="InvalidCredentialException">The old password does not fit the wrapped key.</exception>
-	/// <exception cref="CryptographicException">The wrapped key is damaged or the operation failed.</exception>
-	byte[] RewrapDek(
-		byte[] wrappedDek,
-		byte[] oldPassword,
-		byte[] newPassword,
-		byte[] associatedData);
-
-	/// <inheritdoc cref="BCrypt.Net.BCrypt.EnhancedVerify" />
-	bool VerifyPassword(char[] password, string hash);
 	#endregion
 }

@@ -83,7 +83,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		if (folder.EncryptedDek is null || folder.PasswordHash is null)
+		if (folder.EncryptedDek is null)
 		{
 			return;
 		}
@@ -99,69 +99,75 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		try
 		{
-			if (!_encryption.VerifyPassword(oldPassword, folder.PasswordHash))
-			{
-				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
+			byte[] oldPasswordBinary = TextHelper
+				.Utf8Encoding
+				.GetBytes(oldPassword);
 
-				return;
+			byte[] dek;
+
+			try
+			{
+				dek = _encryption.Decrypt(
+					folder.EncryptedDek,
+					oldPasswordBinary,
+					ContentIdentity.ForDek(folder.Id).ToAssociatedData());
 			}
-
-			char[] newPassword = await _dialogService
-				.RequestPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
-				.ConfigureAwait(false);
-
-			if (newPassword.IsEmpty())
+			finally
 			{
-				return;
+				oldPasswordBinary.ZeroMemory();
 			}
 
 			try
 			{
-				byte[] oldPasswordBinary = TextHelper
-					.Utf8Encoding
-					.GetBytes(oldPassword);
+				char[] newPassword = await _dialogService
+					.RequestPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
+					.ConfigureAwait(false);
 
-				byte[] newPasswordBinary = TextHelper
-					.Utf8Encoding
-					.GetBytes(newPassword);
+				if (newPassword.IsEmpty())
+				{
+					return;
+				}
 
 				try
 				{
-					byte[] encryptedDek = _encryption.RewrapDek(
-						folder.EncryptedDek,
-						oldPasswordBinary,
-						newPasswordBinary,
-						ContentIdentity.ForDek(folder.Id).ToAssociatedData());
+					byte[] newPasswordBinary = TextHelper
+						.Utf8Encoding
+						.GetBytes(newPassword);
 
-					string passwordHash = _encryption.HashPassword(newPassword);
-
-					if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
-						[
-							x => x.SetProperty(x => x.PasswordHash, passwordHash),
-							x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
-						], token).ConfigureAwait(false))
+					try
 					{
-						return;
+						byte[] encryptedDek = _encryption.Encrypt(
+							dek,
+							newPasswordBinary,
+							ContentIdentity.ForDek(folder.Id).ToAssociatedData());
+
+						if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
+							[
+								x => x.SetProperty(x => x.EncryptedDek, encryptedDek)
+							], token).ConfigureAwait(false))
+						{
+							return;
+						}
+
+						folder.EncryptedDek = encryptedDek;
+
+						SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
 					}
-
-					folder.PasswordHash = passwordHash;
-
-					folder.EncryptedDek = encryptedDek;
-
-					SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
+					finally
+					{
+						newPasswordBinary.ZeroMemory();
+					}
 				}
 				finally
 				{
-					oldPasswordBinary.ZeroMemory();
-
-					newPasswordBinary.ZeroMemory();
+					MemoryMarshal
+						.AsBytes(newPassword.AsSpan())
+						.ZeroMemory();
 				}
 			}
 			finally
 			{
-				MemoryMarshal
-					.AsBytes(newPassword.AsSpan())
-					.ZeroMemory();
+				dek.ZeroMemory();
 			}
 		}
 		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
@@ -194,7 +200,7 @@ public sealed class EntityEncryption : IEntityEncryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		if (folder.EncryptedDek is null || folder.PasswordHash is null)
+		if (folder.EncryptedDek is null)
 		{
 			return;
 		}
@@ -212,89 +218,84 @@ public sealed class EntityEncryption : IEntityEncryption
 		{
 			ShowProgressBar();
 
-			if (!_encryption.VerifyPassword(password, folder.PasswordHash))
-			{
-				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
-
-				return;
-			}
-
-			ContentsIsValidPair[] contents = await _dbAccess
-				.GetFilesContentsAsync(files.Select(x => x.Id), token)
-				.ToArrayAsync(token)
-				.ConfigureAwait(false);
-
-			if (!AreLoadedContentsValid(contents, files.Length))
-			{
-				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
-
-				return;
-			}
-
 			byte[] passwordBinary = TextHelper
 				.Utf8Encoding
 				.GetBytes(password);
 
+			byte[] decryptedDek;
+
 			try
 			{
-				byte[] decryptedDek = _encryption.Decrypt(
+				// Unwrapping is the password check, so a wrong password never pulls the contents into memory.
+				decryptedDek = _encryption.Decrypt(
 					folder.EncryptedDek,
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id).ToAssociatedData());
-
-				try
-				{
-					ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
-
-					if (!AreContentsValid(result, contents.Length))
-					{
-						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					if (ProcessNotes(
-						folder,
-						files,
-						decryptedDek,
-						encrypt: false) is not { } notes)
-					{
-						SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					if (await _dbAccess
-						.BackupDatabaseAsync(token)
-						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
-					{
-						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					UpdateDatabaseParameters parameters = new()
-					{
-						BackupFilePath = backupFilePath,
-						Contents = result,
-						EncryptedDek = null,
-						Files = files,
-						Folder = folder,
-						NewStatus = EncryptionStatus.None,
-						Notes = notes,
-						PasswordHash = null
-					};
-
-					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
-				}
-				finally
-				{
-					decryptedDek.ZeroMemory();
-				}
 			}
 			finally
 			{
 				passwordBinary.ZeroMemory();
+			}
+
+			try
+			{
+				ContentsIsValidPair[] contents = await _dbAccess
+					.GetFilesContentsAsync(files.Select(x => x.Id), token)
+					.ToArrayAsync(token)
+					.ConfigureAwait(false);
+
+				if (!AreLoadedContentsValid(contents, files.Length))
+				{
+					SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
+
+				if (!AreContentsValid(result, contents.Length))
+				{
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				if (ProcessNotes(
+					folder,
+					files,
+					decryptedDek,
+					encrypt: false) is not { } notes)
+				{
+					SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				if (await _dbAccess
+					.BackupDatabaseAsync(token)
+					.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+				{
+					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backupFilePath,
+					Contents = result,
+					EncryptedDek = null,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.None,
+					Notes = notes
+				};
+
+				await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
+			}
+			finally
+			{
+				decryptedDek.ZeroMemory();
 			}
 		}
 		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
@@ -394,8 +395,7 @@ public sealed class EntityEncryption : IEntityEncryption
 						Files = files,
 						Folder = folder,
 						NewStatus = EncryptionStatus.Encrypted,
-						Notes = notes,
-						PasswordHash = _encryption.HashPassword(password)
+						Notes = notes
 					};
 
 					await UpdateDatabaseAsync(parameters, token).ConfigureAwait(false);
@@ -456,9 +456,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public async Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
-		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-			|| root.EncryptedDek is null
-			|| root.PasswordHash is null)
+		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root || root.EncryptedDek is null)
 		{
 			return false;
 		}
@@ -475,13 +473,6 @@ public sealed class EntityEncryption : IEntityEncryption
 		try
 		{
 			ShowProgressBar();
-
-			if (!_encryption.VerifyPassword(password, root.PasswordHash))
-			{
-				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
-
-				return false;
-			}
 
 			byte[] passwordBinary = TextHelper
 				.Utf8Encoding
@@ -529,7 +520,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		if (folder.FindPasswordKeeperOrSelf() is not { } root || root.PasswordHash is null)
+		if (folder.FindPasswordKeeperOrSelf() is null)
 		{
 			return;
 		}
@@ -546,13 +537,6 @@ public sealed class EntityEncryption : IEntityEncryption
 		try
 		{
 			ShowProgressBar();
-
-			if (!_encryption.VerifyPassword(password, root.PasswordHash))
-			{
-				SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
-
-				return;
-			}
 
 			byte[] passwordBinary = TextHelper
 				.Utf8Encoding
@@ -606,17 +590,8 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root
-					|| root.EncryptedDek is null
-					|| root.PasswordHash is null)
+				if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root || root.EncryptedDek is null)
 				{
-					return null;
-				}
-
-				if (!_encryption.VerifyPassword(password, root.PasswordHash))
-				{
-					SendMessage(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
-
 					return null;
 				}
 
@@ -721,7 +696,6 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			if (!await _dbAccess.UpdateFolderPropertiesAsync(parameters.Folder.Id,
 				[
-					x => x.SetProperty(x => x.PasswordHash, parameters.PasswordHash),
 					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
 				], token).ConfigureAwait(false))
 			{
@@ -768,10 +742,6 @@ public sealed class EntityEncryption : IEntityEncryption
 			objects.ForEach(x => x.EncryptionStatus = parameters.NewStatus);
 
 			ApplyNotes(objects, parameters.Notes);
-
-			parameters
-				.Folder
-				.PasswordHash = parameters.PasswordHash;
 
 			parameters
 				.Folder

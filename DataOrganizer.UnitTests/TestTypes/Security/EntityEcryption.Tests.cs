@@ -37,7 +37,7 @@ internal class EntityEncryptionTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EntityEncryption.ChangePasswordAsync" />: rewraps the DEK and updates the password hash on the folder.
+	/// <see cref="EntityEncryption.ChangePasswordAsync" />: rewraps the DEK with the new password.
 	/// </summary>
 	[Test]
 	public async Task ChangePasswordAsync_Does_Work()
@@ -47,11 +47,7 @@ internal class EntityEncryptionTests
 
 		byte[] encryptedDek = TestUtils.CreateRandomBytes(10);
 
-		string passwordHash = AppUtils.CreateRandomString(10);
-
 		folder.EncryptedDek = encryptedDek;
-
-		folder.PasswordHash = passwordHash;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -64,16 +60,12 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
-
-			encryption
-				.RewrapDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.HashPassword(Arg.Any<char[]>())
-				.Returns(AppUtils.CreateRandomString(10));
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(10));
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -97,10 +89,6 @@ internal class EntityEncryptionTests
 		folder.EncryptedDek
 			.Should()
 			.NotBeEquivalentTo(encryptedDek);
-
-		folder.PasswordHash
-			.Should()
-			.NotBeEquivalentTo(passwordHash);
 	}
 
 	/// <summary>
@@ -115,8 +103,6 @@ internal class EntityEncryptionTests
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
-
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
 
 		folder
 			.Children
@@ -179,8 +165,6 @@ internal class EntityEncryptionTests
 
 		folder.Note = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		FolderModelDto subfolder = TestUtils.CreateFolderDto();
 
 		subfolder.Note = TestUtils.CreateRandomBytes(10);
@@ -206,10 +190,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -287,8 +267,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -300,10 +278,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -553,8 +527,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
@@ -589,8 +561,6 @@ internal class EntityEncryptionTests
 		FolderModelDto keeper = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
-
-		keeper.PasswordHash = AppUtils.CreateRandomString(10);
 
 		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -634,8 +604,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
@@ -659,10 +627,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -709,8 +673,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		folder
 			.Children
 			.AddRange(TestUtils.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
@@ -730,10 +692,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -832,8 +790,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		folder
 			.Children
 			.Add(file);
@@ -893,8 +849,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		folder
 			.Children
 			.Add(file);
@@ -912,10 +866,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
@@ -985,8 +935,7 @@ internal class EntityEncryptionTests
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			NewStatus = default,
-			Notes = [],
-			PasswordHash = null
+			Notes = []
 		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1033,8 +982,7 @@ internal class EntityEncryptionTests
 			Files = [],
 			Folder = folder,
 			NewStatus = default,
-			Notes = [new NoteUpdate(folder.Id, EntityType.Folder, TestUtils.CreateRandomBytes(10))],
-			PasswordHash = null
+			Notes = [new NoteUpdate(folder.Id, EntityType.Folder, TestUtils.CreateRandomBytes(10))]
 		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1090,8 +1038,7 @@ internal class EntityEncryptionTests
 			Files = [],
 			Folder = TestUtils.CreateFolderDto(),
 			NewStatus = default,
-			Notes = [],
-			PasswordHash = null
+			Notes = []
 		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1149,8 +1096,7 @@ internal class EntityEncryptionTests
 			Files = files,
 			Folder = folder,
 			NewStatus = newStatus,
-			Notes = [],
-			PasswordHash = AppUtils.CreateRandomString(10)
+			Notes = []
 		};
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -1239,8 +1185,7 @@ internal class EntityEncryptionTests
 				new NoteUpdate(folder.Id, EntityType.Folder, folderNote),
 				new NoteUpdate(subfolder.Id, EntityType.Folder, subfolderNote),
 				new NoteUpdate(file.Id, EntityType.File, fileNote)
-			],
-			PasswordHash = AppUtils.CreateRandomString(10)
+			]
 		};
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1302,8 +1247,6 @@ internal class EntityEncryptionTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		folder.PasswordHash = AppUtils.CreateRandomString(10);
-
 		StrongReferenceMessenger messenger = new();
 
 		ShowSnackbarMessage? received = null;
@@ -1321,10 +1264,6 @@ internal class EntityEncryptionTests
 				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.VerifyPassword(Arg.Any<char[]>(), Arg.Any<string>())
-				.Returns(true);
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!

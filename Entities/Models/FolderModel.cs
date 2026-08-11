@@ -29,10 +29,5 @@ public sealed class FolderModel : ExplorerModelBase
 	[JsonIgnore]
 	[XmlIgnore]
 	public bool IsExpanded { get; init; }
-
-	/// <summary>
-	/// Hash of password for encryption.
-	/// </summary>
-	public string? PasswordHash { get; init; }
 	#endregion
 }

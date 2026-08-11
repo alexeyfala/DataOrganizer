@@ -22,9 +22,6 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <inheritdoc cref="FolderModel.IsExpanded" />
 	[ObservableProperty]
 	public override partial bool IsExpanded { get; set; }
-
-	/// <inheritdoc cref="FolderModel.PasswordHash" />
-	public string? PasswordHash { get; set; }
 	#endregion
 
 	#region Partial
@@ -165,13 +162,8 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	}
 
 	/// <summary>
-	/// <c>True</c> when <see cref="EncryptedDek" />, <see cref="PasswordHash" /> have values.
+	/// <c>True</c> when <see cref="EncryptedDek" /> has a value.
 	/// </summary>
-	public bool IsPasswordKeeper()
-	{
-		return EncryptedDek is { } dek
-			&& dek.IsNotEmpty()
-			&& !string.IsNullOrEmpty(PasswordHash);
-	}
+	public bool IsPasswordKeeper() => EncryptedDek?.IsNotEmpty() ?? false;
 	#endregion
 }

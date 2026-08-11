@@ -578,8 +578,6 @@ internal class NoteCipherTests
 
 		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		keeper.PasswordHash = AppUtils.CreateRandomString(10);
-
 		return keeper;
 	}
 	#endregion
