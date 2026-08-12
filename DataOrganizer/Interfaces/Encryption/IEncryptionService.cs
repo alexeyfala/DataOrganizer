@@ -27,14 +27,14 @@ public interface IEncryptionService
 		byte[] associatedData);
 
 	/// <summary>
-	/// Decrypts a sequence of contents using a DEK directly; each item is bound to its own identifier.
+	/// Decrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
 	/// </summary>
 	IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek);
 
 	/// <summary>
 	/// Decrypts data using a DEK directly (no KDF). For content encryption.
 	/// </summary>
-	/// <exception cref="AuthenticationTagMismatchException">The data does not belong here or has been altered.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The key or the associated data does not fit the input, or the input has been altered.</exception>
 	/// <exception cref="CryptographicException">The data is damaged or the operation failed.</exception>
 	byte[] DecryptWithDek(
 		byte[] input,
@@ -44,7 +44,7 @@ public interface IEncryptionService
 	/// <summary>
 	/// Decrypts data using a session identifier (runs HKDF). For unwrap of the session encrypted DEK.
 	/// </summary>
-	/// <exception cref="AuthenticationTagMismatchException">The data does not belong here or has been altered.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The key or the associated data does not fit the input, or the input has been altered.</exception>
 	/// <exception cref="CryptographicException">The data is damaged or the operation failed.</exception>
 	byte[] DecryptWithSessionId(
 		byte[] input,
@@ -61,7 +61,7 @@ public interface IEncryptionService
 		byte[] associatedData);
 
 	/// <summary>
-	/// Encrypts a sequence of contents using a DEK directly; each item is bound to its own identifier.
+	/// Encrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
 	/// </summary>
 	IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] dek);
 

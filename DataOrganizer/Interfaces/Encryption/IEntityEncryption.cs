@@ -24,7 +24,7 @@ public interface IEntityEncryption
 	/// Decrypts the content of a file whose keeper is unlocked.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
-	/// <exception cref="AuthenticationTagMismatchException">The content does not belong to the file or has been altered.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The key or the purpose does not fit the content, or the content has been altered.</exception>
 	byte[] Decrypt(FileModelDto file, byte[] input);
 
 	/// <summary>
