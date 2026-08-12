@@ -198,7 +198,6 @@ public sealed class EncryptionService : IEncryptionService
 		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
 		if (input.Length < 1 + saltSize + _algorithm.NonceSize + _algorithm.TagSize || input[0] != version)
 		{
-			//return null;
 			throw new CryptographicException(
 				$"Encrypted data of {input.Length} bytes marked {input[0]:X2} cannot be read as the format {version:X2}.");
 		}
