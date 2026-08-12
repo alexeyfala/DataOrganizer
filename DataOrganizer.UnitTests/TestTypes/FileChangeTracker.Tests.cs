@@ -89,10 +89,10 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a session DEK is provided.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a keeper is known.
 	/// </summary>
 	[Test]
-	public async Task TrackChangesAsync_Encrypts_Contents_When_Session_Dek_Is_Provided()
+	public async Task TrackChangesAsync_Encrypts_Contents_When_A_Keeper_Is_Known()
 	{
 		// Arrange		
 		using CancellationTokenSource cts = new();

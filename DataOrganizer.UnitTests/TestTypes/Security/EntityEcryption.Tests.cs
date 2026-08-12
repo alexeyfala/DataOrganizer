@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes.Security;
@@ -36,6 +37,61 @@ namespace DataOrganizer.UnitTests.TestTypes.Security;
 internal class EntityEncryptionTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="EntityEncryption.ChangePasswordAsync" />: a wrong old password is reported before a new one is asked for.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Does_Not_Ask_For_A_New_Password_When_The_Old_One_Is_Wrong()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		byte[] encryptedDek = TestUtils.CreateRandomBytes(10);
+
+		folder.EncryptedDek = encryptedDek;
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Throws(new InvalidCredentialException());
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		await dialogService
+			.Received(1)
+			.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+
+		await dbAccess
+			.DidNotReceive()
+			.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>());
+
+		folder.EncryptedDek
+			.Should()
+			.BeSameAs(encryptedDek);
+	}
+
 	/// <summary>
 	/// <see cref="EntityEncryption.ChangePasswordAsync" />: rewraps the DEK with the new password.
 	/// </summary>
@@ -117,10 +173,6 @@ internal class EntityEncryptionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
-
-			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
@@ -193,7 +245,7 @@ internal class EntityEncryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
+				.Returns(TestUtils.CreateRandomBytes(32));
 
 			encryption
 				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
@@ -255,6 +307,53 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
+	/// <see cref="EntityEncryption.DecryptFolderAsync" />: a wrong password never pulls the contents of the files into memory.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Does_Not_Load_Contents_When_The_Password_Is_Wrong()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Throws(new InvalidCredentialException());
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		dbAccess
+			.DidNotReceive()
+			.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>());
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.DecryptFolderAsync" />: decrypts the folder and persists the updated file properties.
 	/// </summary>
 	[Test]
@@ -281,7 +380,7 @@ internal class EntityEncryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
+				.Returns(TestUtils.CreateRandomBytes(32));
 
 			encryption
 				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
@@ -594,7 +693,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityEncryption.ShowFileContentsAsync" />: sets the session DEK and marks the file as decrypted, returning true.
+	/// <see cref="EntityEncryption.ShowFileContentsAsync" />: unlocks the keeper and marks the file as decrypted, returning true.
 	/// </summary>
 	[Test]
 	public async Task ShowFileContentsAsync_Does_Work()
@@ -632,10 +731,6 @@ internal class EntityEncryptionTests
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
-			encryption
-				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
-
 			builder.RegisterInstance(dialogService);
 
 			builder.RegisterInstance(encryption);
@@ -663,7 +758,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityEncryption.ShowFolderContentsAsync" />: marks the folder and all children as decrypted and sets the session DEK.
+	/// <see cref="EntityEncryption.ShowFolderContentsAsync" />: unlocks the keeper and marks the folder and all children as decrypted.
 	/// </summary>
 	[Test]
 	public async Task ShowFolderContentsAsync_Does_Work()
@@ -695,11 +790,7 @@ internal class EntityEncryptionTests
 
 			encryption
 				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns([]);
-
-			encryption
-				.EncryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestUtils.CreateRandomBytes(32));
 
 			builder.RegisterInstance(encryption);
 
@@ -778,7 +869,7 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: decrypts using the session DEK when the file is already decrypted.
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: decrypts through the key store when the file is already decrypted.
 	/// </summary>
 	[Test]
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
@@ -801,10 +892,6 @@ internal class EntityEncryptionTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-			encryption
-				.DecryptWithSessionId(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())

@@ -3,6 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;
+using DataOrganizer.Enums;
 using DataOrganizer.Services;
 using Entities.Models;
 using Mapster;
@@ -70,6 +71,67 @@ internal class EntityLoaderTests
 		hierarchy.Length
 			.Should()
 			.Be(folderCount + fileCount);
+	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.Map" />: a folder holding a wrapped key and everything under it are marked as encrypted.
+	/// </summary>
+	[Test]
+	public void Map_Marks_The_Subtree_Of_A_Password_Keeper_As_Encrypted()
+	{
+		// Arrange
+		FolderModelDto keeper = TestUtils.CreateFolderDto();
+
+		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FolderModelDto plainFolder = TestUtils.CreateFolderDto();
+
+		FileModelDto keptFile = TestUtils.CreateFileDto();
+
+		keptFile.ParentId = keeper.Id;
+
+		FileModelDto plainFile = TestUtils.CreateFileDto();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IMapper mapper = Substitute.For<IMapper>();
+
+			mapper
+				.Config
+				.Returns(Substitute.For<TypeAdapterConfig>());
+
+			mapper
+				.Map<IEnumerable<FileModel>, FileModelDto[]>(Arg.Any<IEnumerable<FileModel>>())
+				.Returns([keptFile, plainFile]);
+
+			mapper
+				.Map<IEnumerable<FolderModel>, FolderModelDto[]>(Arg.Any<IEnumerable<FolderModel>>())
+				.Returns([keeper, plainFolder]);
+
+			builder.RegisterInstance(mapper);
+		});
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		sut.Map([], []);
+
+		// Assert
+		keeper.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		keptFile.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+
+		plainFolder.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.None);
+
+		plainFile.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.None);
 	}
 	#endregion
 }
