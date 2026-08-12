@@ -286,10 +286,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private void EnsureDirectory()
 	{
-		if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory)
+		if (Path.GetDirectoryName(_historyFilePath) is not { Length: > 0 } directory)
 		{
-			_fileSystem.CreateDirectory(directory);
+			return;
 		}
+
+		_fileSystem.CreateDirectory(directory);
 	}
 
 	/// <summary>
