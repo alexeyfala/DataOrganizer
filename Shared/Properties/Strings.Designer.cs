@@ -511,6 +511,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The encrypted data is damaged.
+        /// </summary>
+        public static string EncryptedDataIsDamaged {
+            get {
+                return ResourceManager.GetString("EncryptedDataIsDamaged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Encrypt Files.
         /// </summary>
         public static string EncryptFiles {

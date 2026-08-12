@@ -13,7 +13,7 @@ Built with [Avalonia UI](https://avaloniaui.net/) and .NET 10, following the MVV
 - **Virtual file system** — folders, files, and datasets arranged in a tree, saved to a local SQLite database.
 - **Global hotkeys** — bind a file to a Ctrl/Alt/Shift shortcut; pressing it from any application copies the file's contents to the clipboard.
 - **Favorites** — mark files for quick access; a dedicated searchable window groups them by parent folder.
-- **Encryption** — password-protect folders. Passwords are hashed with BCrypt; contents are encrypted with XChaCha20-Poly1305 using a per-folder Data Encryption Key (DEK).
+- **Encryption** — password-protect folders. Contents are encrypted with XChaCha20-Poly1305 using a per-folder Data Encryption Key (DEK); the DEK is wrapped with a key derived from the password (Argon2id), and no password verifier is stored.
 - **Datasets** — structured key-value records with a built-in editor for grouping and editing.
 - **Clipboard history** — a cross-platform journal that captures plain text, formatted text (HTML/RTF), URLs, images, and files/folders. Entries can be browsed, searched, and restored; duplicates are merged, the list is capped, and password-manager secrets are skipped. Kept in memory by default, optionally persisted to an encrypted file (XChaCha20-Poly1305 + Argon2id).
 - **File execution** — launch files with their OS-default application; execution history is tracked.

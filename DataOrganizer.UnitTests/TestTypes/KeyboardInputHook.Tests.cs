@@ -1,8 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using Avalonia.Headless.NUnit;
+using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
@@ -65,6 +68,79 @@ internal class KeyboardInputHookTests
 		sut.InputStack
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="KeyboardInputHook.HandleKeyReleasedAsync" />: protected contents are flagged sensitive (written via <see cref="IClipboardAccessor.SetDataAsync" />).
+	/// </summary>
+	[AvaloniaTest]
+	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
+	{
+		// Arrange
+		FileModelDto dto = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		const KeyCode code = KeyCode.VcA;
+
+		const EventMask mask = EventMask.LeftCtrl;
+
+		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		{
+			Code = code,
+			Mask = mask
+		}, 5)];
+
+		dto
+			.Hotkeys
+			.AddRange(pairs.ToHotkeyModelsDto());
+
+		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFileContentsAsync(Arg.Any<Guid>())
+				.Returns(new ContentsIsValidPair
+				{
+					Contents = TestUtils.CreateRandomBytes(10),
+					IsValid = true
+				});
+
+			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+			entityEncryption
+				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.Returns(TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum));
+
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(clipboard);
+		});
+
+		KeyboardInputHook sut = mock.Create<KeyboardInputHook>();
+
+		sut
+			.Files
+			.Add(dto);
+
+		sut
+			.InputStack
+			.AddRange(pairs);
+
+		// Act
+		await sut.HandleKeyReleasedAsync(mask, code);
+
+		// Assert
+		await clipboard
+			.Received(1)
+			.SetDataAsync(Arg.Any<DataTransfer>());
+
+		await clipboard
+			.DidNotReceive()
+			.SetTextAsync(Arg.Any<string>());
 	}
 
 	/// <summary>

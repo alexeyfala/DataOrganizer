@@ -111,9 +111,6 @@ namespace Repository.Migrations.Migrations
                     b.Property<bool>("IsExpanded")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
-
                     b.ToTable("Folders", (string)null);
                 });
 

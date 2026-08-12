@@ -127,7 +127,7 @@ internal class FolderModelDtoTests
 	public void FindPasswordKeeperOrSelf_Returns_Parent_Keeper_When_Self_Is_Not()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1], passwordHash: "hash");
+		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
 		FolderModelDto child = CreateFolder("child");
 
@@ -149,7 +149,7 @@ internal class FolderModelDtoTests
 	public void FindPasswordKeeperOrSelf_Returns_Self_When_Self_Is_Password_Keeper()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1], passwordHash: "hash");
+		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
 		// Act
 		FolderModelDto? result = keeper.FindPasswordKeeperOrSelf();
@@ -239,7 +239,7 @@ internal class FolderModelDtoTests
 	public void IsPasswordKeeper_Returns_False_When_Dek_Empty()
 	{
 		// Arrange
-		FolderModelDto folder = CreateFolder("folder", encryptedDek: [], passwordHash: "hash");
+		FolderModelDto folder = CreateFolder("folder", encryptedDek: []);
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -257,7 +257,7 @@ internal class FolderModelDtoTests
 	public void IsPasswordKeeper_Returns_False_When_Dek_Missing()
 	{
 		// Arrange
-		FolderModelDto folder = CreateFolder("folder", passwordHash: "hash");
+		FolderModelDto folder = CreateFolder("folder");
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -269,31 +269,13 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns false when the password hash is missing.
+	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns true when the encrypted DEK is present.
 	/// </summary>
 	[Test]
-	public void IsPasswordKeeper_Returns_False_When_Hash_Missing()
+	public void IsPasswordKeeper_Returns_True_When_Dek_Present()
 	{
 		// Arrange
 		FolderModelDto folder = CreateFolder("folder", encryptedDek: [1]);
-
-		// Act
-		bool result = folder.IsPasswordKeeper();
-
-		// Assert
-		result
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
-	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns true when both the encrypted DEK and the hash are present.
-	/// </summary>
-	[Test]
-	public void IsPasswordKeeper_Returns_True_When_Dek_And_Hash_Present()
-	{
-		// Arrange
-		FolderModelDto folder = CreateFolder("folder", encryptedDek: [1], passwordHash: "hash");
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -334,8 +316,7 @@ internal class FolderModelDtoTests
 	/// </summary>
 	private static FolderModelDto CreateFolder(
 		string name = "",
-		byte[]? encryptedDek = null,
-		string? passwordHash = null) => new()
+		byte[]? encryptedDek = null) => new()
 		{
 			Id = Guid.NewGuid(),
 			Index = 0,
@@ -343,8 +324,7 @@ internal class FolderModelDtoTests
 			CreatedDate = DateTime.UtcNow,
 			UpdatedDate = DateTime.UtcNow,
 			EntityType = EntityType.Folder,
-			EncryptedDek = encryptedDek,
-			PasswordHash = passwordHash
+			EncryptedDek = encryptedDek
 		};
 	#endregion
 }

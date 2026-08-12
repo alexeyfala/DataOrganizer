@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
@@ -15,6 +16,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Messages;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -889,6 +891,8 @@ internal class EditorViewModelTests
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -898,6 +902,8 @@ internal class EditorViewModelTests
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEncryption);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -912,11 +918,62 @@ internal class EditorViewModelTests
 		// Assert
 		editingFiles
 			.Should()
-			.OnlyContain(x => !x.IsEditing && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsEditing);
 
 		executingFiles
 			.Should()
-			.OnlyContain(x => !x.IsExecuting && x.EncryptionStatus == EncryptionStatus.Encrypted);
+			.OnlyContain(x => !x.IsExecuting);
+
+		// Marking the objects and dropping the keys belongs to the encryption service.
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideAllFileContents" />: nothing is hidden and no file is closed while an editor
+	/// cannot persist its changes, so hiding never discards them.
+	/// </summary>
+	[Test]
+	public async Task HideAllFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		// Act
+		await sut.HideAllFileContents();
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeTrue();
+
+		entityEncryption
+			.DidNotReceive()
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
 
 	/// <summary>
@@ -930,6 +987,8 @@ internal class EditorViewModelTests
 			? TestUtils.CreateFileDto(isEditing: true)
 			: TestUtils.CreateFileDto(isExecuting: true);
 
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -940,6 +999,8 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
+			builder.RegisterInstance(entityEncryption);
+
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
 
@@ -949,9 +1010,10 @@ internal class EditorViewModelTests
 		await sut.HideFileContents(file);
 
 		// Assert
-		file.EncryptionStatus
-			.Should()
-			.Be(EncryptionStatus.Encrypted);
+		// Marking the object and dropping the key belongs to the encryption service.
+		entityEncryption
+			.Received(1)
+			.HideFileContents(file);
 
 		file.IsEditing
 			.Should()
@@ -960,6 +1022,53 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideFileContents" />: a single file is not hidden while an editor cannot persist its changes.
+	/// </summary>
+	[Test]
+	public async Task HideFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideFileContents(file);
+
+		// Assert
+		await dialogService
+			.DidNotReceive()
+			.RequestCloseFilesAsync();
+
+		entityEncryption
+			.DidNotReceive()
+			.HideFileContents(Arg.Any<FileModelDto>());
 	}
 
 	/// <summary>
@@ -1016,7 +1125,56 @@ internal class EditorViewModelTests
 
 		entityEncryption
 			.Received()
-			.HideFolderContents(Arg.Any<FolderModelDto>(), Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideFolderContents(Arg.Any<FolderModelDto>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HideFolderContents" />: a folder is not hidden while an editor cannot persist its changes.
+	/// </summary>
+	[Test]
+	public async Task HideFolderContents_Keeps_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.HideFolderContents(folder);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeTrue();
+
+		entityEncryption
+			.DidNotReceive()
+			.HideFolderContents(Arg.Any<FolderModelDto>());
 	}
 
 	/// <summary>

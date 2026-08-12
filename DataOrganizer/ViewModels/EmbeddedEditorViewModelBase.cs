@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
@@ -18,6 +19,7 @@ using Shared.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,7 +27,8 @@ namespace DataOrganizer.ViewModels;
 
 public abstract partial class EmbeddedEditorViewModelBase :
 	ObservableDisposableBase,
-	IRecipient<EditorReadOnlyModeChangedMessage>
+	IRecipient<EditorReadOnlyModeChangedMessage>,
+	IRecipient<FlushEditorsMessage>
 {
 	#region Properties
 	/// <summary>
@@ -46,7 +49,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// <c>True</c> when the file contents are encrypted with a session key.
 	/// </summary>
-	public bool IsEncrypted => SessionEncryptedDek is not null;
+	public bool IsEncrypted => KeeperId is not null;
 
 	/// <summary>
 	/// <c>True</c> when the editor has been initialized at least once.
@@ -60,9 +63,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public partial bool IsReadOnly { get; set; }
 
 	/// <summary>
-	/// Encrypted within the session DEK.
+	/// Identifier of the password keeper holding the key of the file.
 	/// </summary>
-	public byte[]? SessionEncryptedDek { get; set; }
+	public Guid? KeeperId { get; set; }
 
 	/// <summary>
 	/// Callback to set object's properties.
@@ -113,28 +116,28 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
-	/// <inheritdoc cref="IEntityEncryption" />
-	private readonly IEntityEncryption _entityEncryption;
-
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
 		IDbAccess dbAccess,
-		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
 
-		_entityEncryption = entityEncryption;
+		_sessionKeyStore = sessionKeyStore;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -171,6 +174,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <inheritdoc />
+	public void Receive(FlushEditorsMessage message) => message.Reply(FlushAsync(message.CancellationToken));
+
+	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
 		base.AfterDispose();
@@ -182,10 +188,14 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_messenger.UnregisterAll(this);
 
-		SessionEncryptedDek?.ZeroMemory();
-
-		SessionEncryptedDek = null;
+		KeeperId = null;
 	}
+
+	/// <summary>
+	/// Persists the pending changes of the editor. <c>False</c> when the contents could not be saved,
+	/// which keeps the caller from dropping the key.
+	/// </summary>
+	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
 	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.
@@ -237,33 +247,53 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Tries to decrypt the content, if it has been decrypted.
+	/// Decrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
 	protected byte[]? TryToDecrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null || input.IsEmpty())
+		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{
 			return input;
 		}
 
-		return _entityEncryption.DecryptSessionContents(
-			input,
-			SessionEncryptedDek);
+		try
+		{
+			return _sessionKeyStore.Decrypt(
+				keeperId,
+				ContentIdentity.ForContents(FileId),
+				input);
+		}
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 
 	/// <summary>
-	/// Tries to encrypt the content, if it has been decrypted.
+	/// Encrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
 	protected byte[]? TryToEncrypt(byte[] input)
 	{
-		if (SessionEncryptedDek is null || input.IsEmpty())
+		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{
 			return input;
 		}
 
-		return _entityEncryption.EncryptSessionContents(
-			input,
-			SessionEncryptedDek);
+		try
+		{
+			return _sessionKeyStore.Encrypt(
+				keeperId,
+				ContentIdentity.ForContents(FileId),
+				input);
+		}
+		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+		{
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 	#endregion
 }

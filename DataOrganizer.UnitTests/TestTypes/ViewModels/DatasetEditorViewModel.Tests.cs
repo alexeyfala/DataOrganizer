@@ -109,7 +109,7 @@ internal class DatasetEditorViewModelTests
 
 		if (isEncrypted)
 		{
-			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+			sut.KeeperId = Guid.NewGuid();
 		}
 
 		// Act
@@ -214,7 +214,7 @@ internal class DatasetEditorViewModelTests
 
 		if (isEncrypted)
 		{
-			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+			sut.KeeperId = Guid.NewGuid();
 		}
 
 		// Act
@@ -248,7 +248,7 @@ internal class DatasetEditorViewModelTests
 
 		if (isEncrypted)
 		{
-			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+			sut.KeeperId = Guid.NewGuid();
 		}
 
 		// Act
@@ -351,7 +351,7 @@ internal class DatasetEditorViewModelTests
 
 		if (isEncrypted)
 		{
-			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+			sut.KeeperId = Guid.NewGuid();
 		}
 
 		// Act
@@ -477,7 +477,7 @@ internal class DatasetEditorViewModelTests
 
 		if (isEncrypted)
 		{
-			sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+			sut.KeeperId = Guid.NewGuid();
 		}
 
 		KeyValueRecord record = new()
@@ -966,10 +966,10 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: reflects whether a session key is present.
+	/// <see cref="EmbeddedEditorViewModelBase.IsEncrypted" />: reflects whether a password keeper is known.
 	/// </summary>
 	[Test]
-	public void IsEncrypted_Reflects_SessionEncryptedDek()
+	public void IsEncrypted_Reflects_KeeperId()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -982,7 +982,7 @@ internal class DatasetEditorViewModelTests
 			.BeFalse();
 
 		// Act
-		sut.SessionEncryptedDek = TestUtils.CreateRandomBytes(16);
+		sut.KeeperId = Guid.NewGuid();
 
 		// Assert
 		sut.IsEncrypted

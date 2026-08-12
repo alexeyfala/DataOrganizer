@@ -1,7 +1,9 @@
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,17 +21,19 @@ public interface IEntityEncryption
 	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
 
 	/// <summary>
+	/// Decrypts the content of a file whose keeper is unlocked.
+	/// </summary>
+	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The content does not belong to the file or has been altered.</exception>
+	byte[] Decrypt(FileModelDto file, byte[] input);
+
+	/// <summary>
 	/// Decrypts files in folder.
 	/// </summary>
 	Task DecryptFolderAsync(
 		FolderModelDto folder,
 		FileModelDto[] files,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Decrypts contents using the session encrypted DEK.
-	/// </summary>
-	byte[]? DecryptSessionContents(byte[] encryptedContents, byte[] sessionEncryptedDek);
 
 	/// <summary>
 	/// Encrypts files in folder.
@@ -40,24 +44,19 @@ public interface IEntityEncryption
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Encrypts contents using the session encrypted DEK.
+	/// Hides contents of the whole hierarchy.
 	/// </summary>
-	byte[]? EncryptSessionContents(byte[] decryptedContents, byte[] sessionEncryptedDek);
+	void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy);
 
 	/// <summary>
-	/// Returns a session identifier.
+	/// Hides file contents.
 	/// </summary>
-	byte[] GetSessionId();
+	void HideFileContents(FileModelDto file);
 
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	void HideFolderContents(FolderModelDto folder, IEnumerable<ExplorerModelBaseDto> hierarchy);
-
-	/// <summary>
-	/// Resets the session identifier.
-	/// </summary>
-	void ResetSessionId();
+	void HideFolderContents(FolderModelDto folder);
 
 	/// <summary>
 	/// Shows file contents.
@@ -68,11 +67,6 @@ public interface IEntityEncryption
 	/// Shows file contents in folder.
 	/// </summary>
 	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
-
-	/// <summary>
-	/// Tries to decrypt the content, if it is decrypted.
-	/// </summary>
-	byte[]? TryToDecrypt(FileModelDto file, byte[] input);
 
 	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.

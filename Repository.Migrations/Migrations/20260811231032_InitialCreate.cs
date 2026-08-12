@@ -25,7 +25,6 @@ namespace Repository.Migrations.Migrations
                     UpdatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     EncryptedDek = table.Column<byte[]>(type: "BLOB", nullable: true),
                     IsExpanded = table.Column<bool>(type: "INTEGER", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
                     Index = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

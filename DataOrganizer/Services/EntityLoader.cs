@@ -111,7 +111,7 @@ public sealed class EntityLoader : IEntityLoader
 			.SortByIndexRecursively();
 
 		hierarchy
-			.GetFoldersBy(x => !string.IsNullOrEmpty(x.PasswordHash))
+			.GetFoldersBy(x => x.IsPasswordKeeper())
 			.ForEach(folder =>
 			{
 				const EncryptionStatus status = EncryptionStatus.Encrypted;

@@ -1,32 +1,26 @@
 using DataOrganizer.Extensions;
 using System;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace DataOrganizer.Helpers.Security;
 
 /// <summary>
-/// A fixed-size character buffer for secrets: never relocated by the GC and wiped on disposal.
+/// A fixed-size byte buffer for key material: never relocated by the GC and wiped on disposal.
 /// </summary>
-internal sealed class PinnedSecret : IDisposable
+internal sealed class PinnedBuffer : IDisposable
 {
 	#region Properties
 	/// <summary>
-	/// Number of characters the buffer holds.
+	/// Number of bytes the buffer holds.
 	/// </summary>
 	public int Length => _buffer.Length;
 	#endregion
 
 	#region Data
 	/// <summary>
-	/// Pinned storage of the secret.
+	/// Pinned storage of the key material.
 	/// </summary>
-	private readonly char[] _buffer;
-
-	/// <summary>
-	/// Pin that keeps the buffer at a fixed address.
-	/// </summary>
-	private readonly GCHandle _handle;
+	private readonly byte[] _buffer;
 
 	/// <summary>
 	/// <c>True</c> when the buffer has already been disposed.
@@ -38,24 +32,28 @@ internal sealed class PinnedSecret : IDisposable
 	/// <summary>
 	/// Creates a zero-filled buffer of the given length.
 	/// </summary>
-	public PinnedSecret(int length)
+	public PinnedBuffer(int length)
 	{
-		_buffer = new char[length];
-
-		_handle = GCHandle.Alloc(_buffer, GCHandleType.Pinned); // Don't let GC copy
+		// Pinned object heap: the array never moves, so a compacting GC cannot leave a copy behind.
+		_buffer = GC.AllocateArray<byte>(length, pinned: true);
 	}
+
+	/// <summary>
+	/// Creates a buffer holding a copy of the source bytes.
+	/// </summary>
+	public PinnedBuffer(ReadOnlySpan<byte> source) : this(source.Length) => source.CopyTo(_buffer);
 	#endregion
 
 	#region Methods
 	/// <summary>
 	/// Read-only view over the contents.
 	/// </summary>
-	public ReadOnlySpan<char> AsReadOnlySpan() => _buffer.AsSpan();
+	public ReadOnlySpan<byte> AsReadOnlySpan() => _buffer.AsSpan();
 
 	/// <summary>
 	/// Writable view over the contents.
 	/// </summary>
-	public Span<char> AsSpan() => _buffer.AsSpan();
+	public Span<byte> AsSpan() => _buffer.AsSpan();
 
 	/// <inheritdoc />
 	public void Dispose()
@@ -65,11 +63,9 @@ internal sealed class PinnedSecret : IDisposable
 			return;
 		}
 
-		MemoryMarshal
-			.AsBytes(_buffer.AsSpan())
+		_buffer
+			.AsSpan()
 			.ZeroMemory();
-
-		_handle.Free();
 	}
 	#endregion
 }

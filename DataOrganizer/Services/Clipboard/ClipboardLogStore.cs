@@ -12,6 +12,8 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -138,12 +140,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		try
 		{
-			if (_encryption.EncryptWithDek(plaintext, dek) is not { } ciphertext)
-			{
-				_logger.LogWarning("Failed to encrypt clipboard history; skipping save.");
-
-				return;
-			}
+			byte[] ciphertext = _encryption.EncryptWithDek(
+				plaintext,
+				dek,
+				[]);
 
 			EnsureDirectory();
 
@@ -171,6 +171,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 				? await UnlockExistingAsync(password, token).ConfigureAwait(false)
 				: await CreateNewKeyAsync(password, token).ConfigureAwait(false);
 		}
+		catch (InvalidCredentialException)
+		{
+			_logger.LogWarning("The password of the clipboard history has been rejected.");
+
+			return new(ClipboardLogStatus.WrongPassword, []);
+		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, assertDebug: false);
@@ -193,9 +199,19 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_historyFilePath, token)
 			.ConfigureAwait(false);
 
-		if (_encryption.DecryptWithDek(ciphertext, dek) is not { } plaintext)
+		byte[] plaintext;
+
+		try
 		{
-			_logger.LogWarning("Clipboard history journal could not be decrypted; treating as empty.");
+			plaintext = _encryption.DecryptWithDek(
+				ciphertext,
+				dek,
+				[]);
+		}
+		catch (CryptographicException ex)
+		{
+			// The key is right, so the journal itself is damaged; the unlock still stands.
+			_logger.LogException(ex);
 
 			return [];
 		}
@@ -238,13 +254,20 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		byte[] dek = _encryption.CreateRandomDek();
 
-		if (_encryption.Encrypt(dek, password) is not { } wrapped)
+		byte[] wrapped;
+
+		try
+		{
+			wrapped = _encryption.Encrypt(
+				dek,
+				password,
+				[]);
+		}
+		catch
 		{
 			dek.ZeroMemory();
 
-			_logger.LogWarning("Failed to wrap a new clipboard history key.");
-
-			return new(ClipboardLogStatus.Failed, []);
+			throw;
 		}
 
 		EnsureDirectory();
@@ -263,10 +286,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private void EnsureDirectory()
 	{
-		if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory)
+		if (Path.GetDirectoryName(_historyFilePath) is not { Length: > 0 } directory)
 		{
-			_fileSystem.CreateDirectory(directory);
+			return;
 		}
+
+		_fileSystem.CreateDirectory(directory);
 	}
 
 	/// <summary>
@@ -338,10 +363,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
-		if (_encryption.Decrypt(wrapped, password) is not { } dek)
-		{
-			return new(ClipboardLogStatus.WrongPassword, []);
-		}
+		byte[] dek = _encryption.Decrypt(
+			wrapped,
+			password,
+			[]);
 
 		SetKey(dek);
 

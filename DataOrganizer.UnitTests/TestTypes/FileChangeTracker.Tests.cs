@@ -6,12 +6,14 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Execution;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System;
@@ -87,15 +89,15 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a session DEK is provided.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: changed contents are encrypted and the file is updated when a keeper is known.
 	/// </summary>
 	[Test]
-	public async Task TrackChangesAsync_Encrypts_Contents_When_Session_Dek_Is_Provided()
+	public async Task TrackChangesAsync_Encrypts_Contents_When_A_Keeper_Is_Known()
 	{
 		// Arrange		
 		using CancellationTokenSource cts = new();
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -106,8 +108,6 @@ internal class FileChangeTrackerTests
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
 			byte[] encryptedContents = TestUtils.CreateRandomBytes(48);
-
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
 
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
@@ -125,10 +125,10 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
-			entityEncryption
-				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(encryptedContents);
 
 			dbAccess
@@ -145,7 +145,7 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -158,16 +158,16 @@ internal class FileChangeTrackerTests
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
 		await sut.TrackChangesAsync(parameters, cts.Token);
 
 		// Assert
-		entityEncryption
+		sessionKeyStore
 			.Received(1)
-			.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>());
+			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
@@ -234,6 +234,68 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: a change made right before the stop is still persisted,
+	/// so hiding the contents cannot discard it.
+	/// </summary>
+	[Test]
+	public async Task TrackChangesAsync_Persists_The_Last_Change_On_Stop()
+	{
+		// Arrange
+		using CancellationTokenSource cts = new();
+
+		await cts.CancelAsync();
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+			fileSystem
+				.IsFileExists(Arg.Any<string>())
+				.Returns(true);
+
+			fileSystem
+				.OpenRead(Arg.Any<string>())
+				.Returns(_ => new MemoryStream(TestUtils.CreateRandomBytes(32)));
+
+			fileSystem
+				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(TestUtils.CreateRandomBytes(32));
+
+			dbAccess
+				.UpdateFilePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			builder.RegisterInstance(fileSystem);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FileChangeTracker sut = mock.Create<FileChangeTracker>();
+
+		TrackChangesParameters parameters = new()
+		{
+			Contents = TestUtils.CreateRandomBytes(10),
+			File = TestUtils.CreateFileDto(),
+			FileName = TestUtils.CreateRandomFileName(10),
+			FilePath = TestUtils.CreateRandomFileName(10)
+		};
+
+		// Act
+		await sut.TrackChangesAsync(parameters, cts.Token);
+
+		// Assert
+		await dbAccess.Received(1).UpdateFilePropertiesAsync(
+			parameters.File.Id,
+			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
 	[Test]
@@ -260,8 +322,6 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
-
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -278,17 +338,17 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
-			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-			entityEncryption
-				.EncryptSessionContents(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-				.Returns(default(byte[]));
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Throws(new CryptographicException());
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -303,7 +363,7 @@ internal class FileChangeTrackerTests
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
-			SessionEncryptedDek = TestUtils.CreateRandomBytes(16)
+			KeeperId = Guid.NewGuid()
 		};
 
 		// Act
@@ -313,7 +373,7 @@ internal class FileChangeTrackerTests
 			.Should()
 			.NotBeNull();
 
-		receivedSnackbar!
+		receivedSnackbar
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
@@ -345,8 +405,6 @@ internal class FileChangeTrackerTests
 
 			byte[] currentContents = TestUtils.CreateRandomBytes(32);
 
-			byte[] previousHash = TestUtils.CreateRandomBytes(32);
-
 			byte[] currentHash = TestUtils.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -363,7 +421,7 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(previousHash, currentHash);
+				.Returns(currentHash);
 
 			dbAccess
 				.UpdateFilePropertiesAsync(

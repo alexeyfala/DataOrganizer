@@ -36,6 +36,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
@@ -385,25 +386,24 @@ public partial class EditorViewModel :
 
 		byte[] contents = result.Contents;
 
-		byte[]? sessionEncryptedDek = null;
+		Guid? keeperId = null;
 
-		if (dto.EncryptionStatus == EncryptionStatus.Decrypted
-			&& dto.FindParent(x => x.IsPasswordKeeper())?.SessionEncryptedDek is { } encryptedDek)
+		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindParent(x => x.IsPasswordKeeper()) is { } keeper)
 		{
-			sessionEncryptedDek = [.. encryptedDek];
+			keeperId = keeper.Id;
 
-			byte[]? decryptedContents = _entityEncryption.DecryptSessionContents(
-				contents,
-				sessionEncryptedDek);
-
-			if (decryptedContents is null)
+			try
 			{
+				contents = _entityEncryption.Decrypt(dto, contents);
+			}
+			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+			{
+				_logger.LogException(ex);
+
 				ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
-
-			contents = decryptedContents;
 		}
 
 		ExecuteFileParameters parameters = new()
@@ -411,7 +411,7 @@ public partial class EditorViewModel :
 			Contents = contents,
 			File = dto,
 			IsReadOnly = IsReadOnly,
-			SessionEncryptedDek = sessionEncryptedDek,
+			KeeperId = keeperId,
 		};
 
 		if (!await _executionEngine
@@ -443,6 +443,12 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanHideAllFiles))]
 	internal async Task HideAllFileContents()
 	{
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.		
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
+		{
+			return;
+		}
+
 		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
@@ -450,9 +456,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		Hierarchy
-			.FilterBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted)
-			.ForEach(dto => dto.EncryptionStatus = EncryptionStatus.Encrypted);
+		_entityEncryption.HideAllContents(Hierarchy);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -464,6 +468,12 @@ public partial class EditorViewModel :
 	internal async Task HideFileContents(FileModelDto? dto)
 	{
 		if (dto is null)
+		{
+			return;
+		}
+
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
 		{
 			return;
 		}
@@ -482,7 +492,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide file contents");
 
-		dto.EncryptionStatus = EncryptionStatus.Encrypted;
+		_entityEncryption.HideFileContents(dto);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -492,6 +502,12 @@ public partial class EditorViewModel :
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
 		if (dto is null)
+		{
+			return;
+		}
+
+		// The contents cannot be hidden while an editor holds changes it was unable to persist.
+		if (!await TryFlushEditorsAsync().ConfigureAwait(true))
 		{
 			return;
 		}
@@ -507,7 +523,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide files in a folder");
 
-		_entityEncryption.HideFolderContents(dto, Hierarchy);
+		_entityEncryption.HideFolderContents(dto);
 
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 	}
@@ -1727,6 +1743,22 @@ public partial class EditorViewModel :
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
 
 	/// <summary>
+	/// Asks every open editor to persist its pending changes and awaits all of them.
+	/// </summary>
+	private async Task<bool> FlushEditorsAsync(CancellationToken token = default)
+	{
+		FlushEditorsMessage request = new();
+
+		_messenger.Send(request);
+
+		IReadOnlyCollection<bool> responses = await request
+			.GetResponsesAsync(token)
+			.ConfigureAwait(true);
+
+		return responses.All(x => x);
+	}
+
+	/// <summary>
 	/// Tries to remove value from copy history.
 	/// </summary>
 	private void RemoveFromCopyHistory(FileModelDto file)
@@ -1801,6 +1833,24 @@ public partial class EditorViewModel :
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Persists the pending changes of the open editors before the key is dropped;
+	/// <c>False</c> reports the failure to the user and keeps the caller from hiding anything.
+	/// </summary>
+	private async Task<bool> TryFlushEditorsAsync(CancellationToken token = default)
+	{
+		if (await FlushEditorsAsync(token).ConfigureAwait(true))
+		{
+			return true;
+		}
+
+		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
+
+		ShowErrorSnackbar(Strings.FailedToProcessContents);
+
+		return false;
 	}
 	#endregion
 }

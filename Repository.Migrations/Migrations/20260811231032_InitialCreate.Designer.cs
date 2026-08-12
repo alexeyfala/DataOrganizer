@@ -11,7 +11,7 @@ using Repository.DbContexts;
 namespace Repository.Migrations.Migrations
 {
     [DbContext(typeof(SqliteDbContext))]
-    [Migration("20260805204918_InitialCreate")]
+    [Migration("20260811231032_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -113,9 +113,6 @@ namespace Repository.Migrations.Migrations
 
                     b.Property<bool>("IsExpanded")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
 
                     b.ToTable("Folders", (string)null);
                 });

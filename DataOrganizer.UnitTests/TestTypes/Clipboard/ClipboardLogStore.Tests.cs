@@ -11,9 +11,12 @@ using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Shared.Interfaces;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -119,7 +122,7 @@ internal class ClipboardLogStoreTests
 			Version = PersistedClipboardLog.CurrentVersion + 1
 		});
 
-		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek)!;
+		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek, [])!;
 
 		// Act
 		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(dek, default);
@@ -233,13 +236,13 @@ internal class ClipboardLogStoreTests
 
 		// Wrapping the key succeeds (so the store unlocks)...
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 			.Returns([1, 2, 3]);
 
 		// ...but encrypting the journal fails.
 		encryption
-			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
+			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);
 
@@ -313,6 +316,90 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_Journal_Is_Rejected_Returns_Empty()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("data")]);
+		}
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Returns(new byte[32]);
+
+		encryption
+			.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+			.Throws(new AuthenticationTagMismatchException());
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Unlocked);
+
+		result.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: rejected credentials yield WrongPassword.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_Key_Unwrap_Is_Rejected_Returns_WrongPassword()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+		}
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+			.Throws(new InvalidCredentialException());
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.WrongPassword);
+
+		reader.IsUnlocked
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a failure to wrap a new key yields Failed.
 	/// </summary>
 	[Test]
@@ -328,8 +415,8 @@ internal class ClipboardLogStoreTests
 			.Returns(new byte[32]);
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Returns((byte[]?)null);
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);
 

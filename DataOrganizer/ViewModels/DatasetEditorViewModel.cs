@@ -601,17 +601,17 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IEntityEncryption entityEncryption,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			dbAccess,
-			entityEncryption,
 			jsonSerializer,
 			logger,
 			messenger,
+			sessionKeyStore,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;
@@ -911,6 +911,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}
 
 		return SaveContentsAsync(token);
+	}
+
+	/// <inheritdoc />
+	protected override Task<bool> FlushAsync(CancellationToken token = default)
+	{
+		return IsReadOnly || IsContentCorrupted
+			? Task.FromResult(true)
+			: SaveContentsAsync(token);
 	}
 	#endregion
 
@@ -1250,7 +1258,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
-	private async Task SaveContentsAsync(CancellationToken token = default)
+	private async Task<bool> SaveContentsAsync(CancellationToken token = default)
 	{
 		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
@@ -1258,12 +1266,14 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		{
 			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
 
-			return;
+			contents.ZeroMemory();
+
+			return false;
 		}
 
 		try
 		{
-			await SaveContentsAsync(
+			return await SaveContentsAsync(
 				output,
 				token: token).ConfigureAwait(false);
 		}
