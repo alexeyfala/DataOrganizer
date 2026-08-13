@@ -18,7 +18,6 @@
 		</Style>
 	</UserControl.Styles>
 
-	<!--  A stack, not a grid: a hidden child takes no spacing, so the optional value input leaves no gap.  -->
 	<StackPanel
 		Orientation="Vertical"
 		Spacing="{StaticResource ElementSpacing}">
