@@ -48,11 +48,13 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Requests a password from user.
+	/// Requests a password from user. <see cref="PasswordPromptMode.Create" /> asks for a
+	/// confirmation and holds the input to the length policy.
 	/// </summary>
 	Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
+		PasswordPromptMode mode = PasswordPromptMode.Verify,
 		CancellationToken token = default);
 
 	/// <summary>

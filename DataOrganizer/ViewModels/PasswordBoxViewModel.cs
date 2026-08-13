@@ -2,6 +2,8 @@ using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces;
+using Shared.Properties;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.ViewModels;
@@ -11,12 +13,46 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 {
+	#region Data
+	/// <summary>
+	/// Least number of characters a new password is accepted with.
+	/// </summary>
+	public const int MinimumPasswordLength = 8;
+	#endregion
+
 	#region Properties
+	/// <summary>
+	/// Assistive text under the confirmation input; <c>null</c> while the two inputs agree.
+	/// </summary>
+	public string? ConfirmationHint => IsConfirmationMismatched
+		? Strings.PasswordsDoNotMatch
+		: null;
+
 	/// <summary>
 	/// Dialog header.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Header { get; set; }
+
+	/// <summary>
+	/// <c>True</c> while the confirmation input holds something other than the password.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(ConfirmationHint))]
+	public partial bool IsConfirmationMismatched { get; set; }
+
+	/// <summary>
+	/// <c>True</c> when a new password is being set, so it is confirmed in a second input.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyPropertyChangedFor(nameof(PasswordHint))]
+	public partial bool IsConfirmationVisible { get; set; }
+
+	/// <summary>
+	/// <c>True</c> while the password input holds fewer characters than the policy asks for.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsPasswordTooShort { get; set; }
 
 	/// <summary>
 	/// Validity flag driven by the view's code-behind so the password string itself
@@ -31,6 +67,13 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Label { get; set; }
+
+	/// <summary>
+	/// Assistive text under the password input; <c>null</c> while an existing password is entered.
+	/// </summary>
+	public string? PasswordHint => IsConfirmationVisible
+		? string.Format(CultureInfo.CurrentCulture, Strings.PasswordMinimumLength, MinimumPasswordLength)
+		: null;
 	#endregion
 
 	#region Auto-Generated Commands

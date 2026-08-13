@@ -167,6 +167,7 @@ public sealed class DialogService : IDialogService
 	public Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
+		PasswordPromptMode mode = PasswordPromptMode.Verify,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation("Show password box");
@@ -183,6 +184,8 @@ public sealed class DialogService : IDialogService
 
 				viewModel.Label = label ?? Strings.Password;
 
+				viewModel.IsConfirmationVisible = mode == PasswordPromptMode.Create;
+
 				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>(viewModel);
 
 				_exceptionHandler.Watch(DialogHost.Show(view));
@@ -191,7 +194,10 @@ public sealed class DialogService : IDialogService
 					.GetResultAsync(token)
 					.ConfigureAwait(true);
 
-				source.SetResult(CapturePasswordAndScrub(view.PasswordInput, confirmed));
+				source.SetResult(CapturePasswordAndScrub(
+					view.PasswordInput,
+					confirmed,
+					view.ConfirmationInput));
 			}
 			catch (Exception ex)
 			{
@@ -326,10 +332,15 @@ public sealed class DialogService : IDialogService
 
 	/// <summary>
 	/// Captures the password into a pinned buffer when confirmed with non-blank input,
-	/// then scrubs and clears the source <see cref="TextBox" /> on every path.
+	/// then scrubs and clears both source <see cref="TextBox" /> instances on every path.
 	/// </summary>
-	/// <returns>The captured characters, or an empty array when not confirmed or blank.</returns>
-	internal static char[] CapturePasswordAndScrub(TextBox input, bool confirmed)
+	/// <returns>
+	/// The captured characters, or an empty array when not confirmed or blank.
+	/// </returns>
+	internal static char[] CapturePasswordAndScrub(
+		TextBox input,
+		bool confirmed,
+		TextBox? confirmation = null)
 	{
 		try
 		{
@@ -346,12 +357,22 @@ public sealed class DialogService : IDialogService
 		}
 		finally
 		{
-			if (!string.IsNullOrEmpty(input.Text))
+			Scrub(input);
+
+			if (confirmation is not null)
 			{
-				SecureStringHelper.WipeString(input.Text);
+				Scrub(confirmation);
+			}
+		}
+
+		static void Scrub(TextBox target)
+		{
+			if (!string.IsNullOrEmpty(target.Text))
+			{
+				SecureStringHelper.WipeString(target.Text);
 			}
 
-			input.Text = null;
+			target.Text = null;
 		}
 	}
 	#endregion

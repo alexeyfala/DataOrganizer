@@ -295,6 +295,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Confirm Password.
+        /// </summary>
+        public static string ConfirmPassword {
+            get {
+                return ResourceManager.GetString("ConfirmPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Console.
         /// </summary>
         public static string Console {
@@ -372,6 +381,15 @@ namespace Shared.Properties {
         public static string Created {
             get {
                 return ResourceManager.GetString("Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create the password to protect saved history.
+        /// </summary>
+        public static string CreateThePasswordToProtectSavedHistory {
+            get {
+                return ResourceManager.GetString("CreateThePasswordToProtectSavedHistory", resourceCulture);
             }
         }
         
@@ -635,7 +653,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to process the notes.
         /// </summary>
@@ -1155,6 +1173,24 @@ namespace Shared.Properties {
         public static string PasswordChanged {
             get {
                 return ResourceManager.GetString("PasswordChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least {0} characters.
+        /// </summary>
+        public static string PasswordMinimumLength {
+            get {
+                return ResourceManager.GetString("PasswordMinimumLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Passwords do not match.
+        /// </summary>
+        public static string PasswordsDoNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
         

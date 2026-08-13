@@ -56,9 +56,12 @@ internal class EntityEncryptionTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dialogService
-				.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-				.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+			dialogService.RequestPasswordAsync(
+				Arg.Any<string>(),
+				Arg.Any<string>(),
+				Arg.Any<PasswordPromptMode>(),
+				Arg.Any<CancellationToken>())
+			.Returns(AppUtils.CreateRandomString(10).ToCharArray());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -81,7 +84,7 @@ internal class EntityEncryptionTests
 		// Assert
 		await dialogService
 			.Received(1)
-			.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+			.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<PasswordPromptMode>(), Arg.Any<CancellationToken>());
 
 		await dbAccess
 			.DidNotReceive()

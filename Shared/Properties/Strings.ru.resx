@@ -645,4 +645,16 @@
   <data name="RestoreDefaultSettings" xml:space="preserve">
     <value>Восстановить настройки по умолчанию</value>
   </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Подтверждение пароля</value>
+  </data>
+  <data name="CreateThePasswordToProtectSavedHistory" xml:space="preserve">
+    <value>Создайте пароль для защиты сохраняемой истории</value>
+  </data>
+  <data name="PasswordMinimumLength" xml:space="preserve">
+    <value>Не менее {0} символов</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Пароли не совпадают</value>
+  </data>
 </root>

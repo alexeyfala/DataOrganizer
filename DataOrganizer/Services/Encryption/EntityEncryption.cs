@@ -88,9 +88,10 @@ public sealed class EntityEncryption : IEntityEncryption
 			return;
 		}
 
-		char[] oldPassword = await _dialogService
-			.RequestPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
-			.ConfigureAwait(false);
+		char[] oldPassword = await _dialogService.RequestPasswordAsync(
+			header: Strings.ChangePassword,
+			label: Strings.OldPassword,
+			token: token).ConfigureAwait(false);
 
 		if (oldPassword.IsEmpty())
 		{
@@ -119,9 +120,10 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				char[] newPassword = await _dialogService
-					.RequestPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
-					.ConfigureAwait(false);
+				char[] newPassword = await _dialogService.RequestPasswordAsync(
+					header: Strings.ChangePassword,
+					label: Strings.NewPassword,
+					token: token).ConfigureAwait(false);
 
 				if (newPassword.IsEmpty())
 				{
