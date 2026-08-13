@@ -369,6 +369,7 @@ public sealed class App : Application
 		#region Singletons
 		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
 		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
+		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
 		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);

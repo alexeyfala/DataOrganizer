@@ -28,6 +28,16 @@ public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 
 	#region Methods
 	/// <summary>
+	/// Identity of the data encryption key of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ForClipboardDek(Guid id) => new(id, ContentPurpose.ClipboardDek);
+
+	/// <summary>
+	/// Identity of the journal of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ForClipboardJournal(Guid id) => new(id, ContentPurpose.ClipboardJournal);
+
+	/// <summary>
 	/// Identity of the contents of a file.
 	/// </summary>
 	public static ContentIdentity ForContents(Guid id) => new(id, ContentPurpose.Contents);

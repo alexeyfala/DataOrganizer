@@ -3,9 +3,11 @@ using DataOrganizer.DTO.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -24,22 +26,18 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool IsUnlocked
-	{
-		get
-		{
-			lock (_keyLock)
-			{
-				return _dek is not null;
-			}
-		}
-	}
+	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(_historyKeyId);
 
 	/// <inheritdoc />
 	public bool KeyFileExists => _fileSystem.IsFileExists(_keyFilePath);
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Service key of the session key store dedicated to the clipboard history.
+	/// </summary>
+	public const string SessionKeyStoreKey = "ClipboardHistory";
+
 	/// <summary>
 	/// File name of the encrypted journal.
 	/// </summary>
@@ -49,6 +47,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// File name of the password-wrapped data encryption key.
 	/// </summary>
 	private const string KeyFileName = "History.key";
+
+	/// <summary>
+	/// Identifier the data encryption key is held under in the session key store.
+	/// </summary>
+	private static readonly Guid _historyKeyId = new("6f0a1c74-6c8e-4f2b-9a3d-7e5b1c0d8a42");
 
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
@@ -66,18 +69,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private readonly string _keyFilePath;
 
-	/// <summary>
-	/// Guards access to <see cref="_dek" />.
-	/// </summary>
-	private readonly Lock _keyLock = new();
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <summary>
-	/// The unwrapped data encryption key for this session; <c>null</c> until unlocked.
-	/// </summary>
-	private byte[]? _dek;
+	/// <inheritdoc cref="ISessionKeyStore" />
+	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
@@ -85,13 +81,16 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		IAppEnvironment appEnvironment,
 		IEncryptionService encryption,
 		IFileSystem fileSystem,
-		ILogger logger)
+		ILogger logger,
+		[FromKeyedServices(SessionKeyStoreKey)] ISessionKeyStore sessionKeyStore)
 	{
 		_encryption = encryption;
 
 		_fileSystem = fileSystem;
 
 		_logger = logger;
+
+		_sessionKeyStore = sessionKeyStore;
 
 		_historyFilePath = appEnvironment.GetClipboardHistoryFilePath(HistoryFileName);
 
@@ -101,15 +100,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 	#region Methods
 	/// <inheritdoc />
-	public void Dispose()
-	{
-		lock (_keyLock)
-		{
-			_dek?.ZeroMemory();
-
-			_dek = null;
-		}
-	}
+	public void Dispose() => _sessionKeyStore.Lock(_historyKeyId);
 
 	/// <inheritdoc />
 	public void EraseAll()
@@ -129,9 +120,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task SaveAsync(IReadOnlyList<ClipboardLogEntryBase> entries, CancellationToken token = default)
 	{
-		byte[]? dek = GetKey();
-
-		if (dek is null)
+		if (!IsUnlocked)
 		{
 			return;
 		}
@@ -140,10 +129,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		try
 		{
-			byte[] ciphertext = _encryption.EncryptWithDek(
-				plaintext,
-				dek,
-				[]);
+			byte[] ciphertext = _sessionKeyStore.Encrypt(
+				_historyKeyId,
+				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				plaintext);
 
 			EnsureDirectory();
 
@@ -188,7 +177,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Decrypts and maps the journal with the current key; empty on missing / corrupt / unknown-version data.
 	/// </summary>
-	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(byte[] dek, CancellationToken token)
+	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(CancellationToken token)
 	{
 		if (!_fileSystem.IsFileExists(_historyFilePath))
 		{
@@ -203,10 +192,10 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 
 		try
 		{
-			plaintext = _encryption.DecryptWithDek(
-				ciphertext,
-				dek,
-				[]);
+			plaintext = _sessionKeyStore.Decrypt(
+				_historyKeyId,
+				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				ciphertext);
 		}
 		catch (CryptographicException ex)
 		{
@@ -254,31 +243,27 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		byte[] dek = _encryption.CreateRandomDek();
 
-		byte[] wrapped;
-
 		try
 		{
-			wrapped = _encryption.Encrypt(
+			byte[] wrapped = _encryption.Encrypt(
 				dek,
 				password,
-				[]);
+				ContentIdentity.ForClipboardDek(_historyKeyId).ToAssociatedData());
+
+			EnsureDirectory();
+
+			await _fileSystem
+				.WriteAllBytesAsync(_keyFilePath, wrapped, token)
+				.ConfigureAwait(false);
+
+			return _sessionKeyStore.Unlock(_historyKeyId, dek)
+				? new(ClipboardLogStatus.Unlocked, [])
+				: new(ClipboardLogStatus.Failed, []);
 		}
-		catch
+		finally
 		{
 			dek.ZeroMemory();
-
-			throw;
 		}
-
-		EnsureDirectory();
-
-		await _fileSystem
-			.WriteAllBytesAsync(_keyFilePath, wrapped, token)
-			.ConfigureAwait(false);
-
-		SetKey(dek);
-
-		return new(ClipboardLogStatus.Unlocked, []);
 	}
 
 	/// <summary>
@@ -292,30 +277,6 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 
 		_fileSystem.CreateDirectory(directory);
-	}
-
-	/// <summary>
-	/// Returns the current session key (a snapshot), or <c>null</c> when locked.
-	/// </summary>
-	private byte[]? GetKey()
-	{
-		lock (_keyLock)
-		{
-			return _dek;
-		}
-	}
-
-	/// <summary>
-	/// Stores the unwrapped session key, wiping any previous one.
-	/// </summary>
-	private void SetKey(byte[] dek)
-	{
-		lock (_keyLock)
-		{
-			_dek?.ZeroMemory();
-
-			_dek = dek;
-		}
 	}
 
 	/// <summary>
@@ -366,11 +327,21 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		byte[] dek = _encryption.Decrypt(
 			wrapped,
 			password,
-			[]);
+			ContentIdentity.ForClipboardDek(_historyKeyId).ToAssociatedData());
 
-		SetKey(dek);
+		try
+		{
+			if (!_sessionKeyStore.Unlock(_historyKeyId, dek))
+			{
+				return new(ClipboardLogStatus.Failed, []);
+			}
+		}
+		finally
+		{
+			dek.ZeroMemory();
+		}
 
-		IReadOnlyList<ClipboardLogEntryBase> entries = await LoadEntriesAsync(dek, token).ConfigureAwait(false);
+		IReadOnlyList<ClipboardLogEntryBase> entries = await LoadEntriesAsync(token).ConfigureAwait(false);
 
 		return new(ClipboardLogStatus.Unlocked, entries);
 	}

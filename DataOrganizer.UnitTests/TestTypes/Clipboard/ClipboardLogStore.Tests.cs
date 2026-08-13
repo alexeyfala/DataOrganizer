@@ -33,6 +33,36 @@ internal class ClipboardLogStoreTests
 
 	#region Methods
 	/// <summary>
+	/// <see cref="ClipboardLogStore.Dispose" />: the key is given up, so nothing is written afterwards.
+	/// </summary>
+	[Test]
+	public async Task Dispose_Locks_The_Store_And_Stops_Saving()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		// Act
+		sut.Dispose();
+
+		await sut.SaveAsync([TextEntry("data")]);
+
+		// Assert
+		sut.IsUnlocked
+			.Should()
+			.BeFalse();
+
+		files.Files
+			.Should()
+			.NotContainKey(BinPath);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.EraseAll" />: removes both journal and key files and locks the store.
 	/// </summary>
 	[Test]
@@ -109,23 +139,26 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		using AutoMock mock = CreateMock(files);
-
-		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
-
-		IEncryptionService encryption = mock.Create<IEncryptionService>();
-
-		byte[] dek = encryption.CreateRandomDek();
-
 		byte[] plaintext = JsonSerializer.SerializeToUtf8Bytes(new PersistedClipboardLog
 		{
 			Version = PersistedClipboardLog.CurrentVersion + 1
 		});
 
-		files.Files[BinPath] = encryption.EncryptWithDek(plaintext, dek, [])!;
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		sessionKeyStore
+			.Decrypt(default, default, default!)
+			.ReturnsForAnyArgs(plaintext);
+
+		using AutoMock mock = CreateMock(files, sessionKeyStore: sessionKeyStore);
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		// The key store is faked, so the stored bytes are never read as a real ciphertext.
+		files.Files[BinPath] = [1, 2, 3];
 
 		// Act
-		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(dek, default);
+		IReadOnlyList<ClipboardLogEntryBase> result = await sut.LoadEntriesAsync(default);
 
 		// Assert
 		result
@@ -228,23 +261,23 @@ internal class ClipboardLogStoreTests
 		// Arrange
 		InMemoryFileSystem files = new();
 
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
-		encryption
-			.CreateRandomDek()
-			.Returns(new byte[32]);
+		// The key is taken (so the store unlocks)...
+		sessionKeyStore
+			.Unlock(default, default!)
+			.ReturnsForAnyArgs(true);
 
-		// Wrapping the key succeeds (so the store unlocks)...
-		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Returns([1, 2, 3]);
+		sessionKeyStore
+			.IsUnlocked(default)
+			.ReturnsForAnyArgs(true);
 
 		// ...but encrypting the journal fails.
-		encryption
-			.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
-			.Throws(new CryptographicException());
+		sessionKeyStore
+			.Encrypt(default, default, default!)
+			.ThrowsForAnyArgs(new CryptographicException());
 
-		using AutoMock mock = CreateMock(files, encryption);
+		using AutoMock mock = CreateMock(files, sessionKeyStore: sessionKeyStore);
 
 		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
 
@@ -335,13 +368,10 @@ internal class ClipboardLogStoreTests
 
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
+		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 		encryption
 			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
 			.Returns(new byte[32]);
-
-		encryption
-			.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
-			.Throws(new AuthenticationTagMismatchException());
 
 		using AutoMock second = CreateMock(files, encryption);
 
@@ -550,13 +580,19 @@ internal class ClipboardLogStoreTests
 
 	#region Helpers
 	/// <summary>
-	/// Builds an auto-mock container backed by the supplied in-memory file system and a real
-	/// <see cref="EncryptionService" /> (its logger is auto-mocked).
+	/// Builds an auto-mock container backed by the supplied in-memory file system, a real
+	/// <see cref="EncryptionService" /> and a real <see cref="SessionKeyStore" /> holding the key.
 	/// </summary>
-	private static AutoMock CreateMock(InMemoryFileSystem files, IEncryptionService? encryption = null)
+	private static AutoMock CreateMock(
+		InMemoryFileSystem files,
+		IEncryptionService? encryption = null,
+		ISessionKeyStore? sessionKeyStore = null)
 	{
 		return AutoMock.GetLoose(builder =>
 		{
+			// The key store keeps a real encryption service even when the store itself gets a substituted one.
+			builder.RegisterInstance(sessionKeyStore ?? new SessionKeyStore(new EncryptionService()));
+
 			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
 
 			appEnvironment
