@@ -262,6 +262,35 @@ internal class EntityEncryptionTests
 	}
 
 	/// <summary>
+	/// <see cref="EntityEncryption.Decrypt" />: empty contents are stored unencrypted, so they come
+	/// back untouched and the key store stays out of it.
+	/// </summary>
+	[Test]
+	public void Decrypt_Hands_Empty_Contents_Back()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		byte[] output = sut.Decrypt(file, []);
+
+		// Assert
+		output
+			.Should()
+			.BeEmpty();
+
+		sessionKeyStore
+			.DidNotReceiveWithAnyArgs()
+			.Decrypt(default, default, default!);
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.DecryptFolderAsync" />: the notes of the whole subtree are decrypted and persisted.
 	/// </summary>
 	[Test]
@@ -1077,6 +1106,36 @@ internal class EntityEncryptionTests
 		result
 			.Should()
 			.NotBeEquivalentTo(contents);
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: empty contents come back untouched
+	/// and no password is asked for.
+	/// </summary>
+	[Test]
+	public async Task TryToDecryptContentsAsync_Hands_Empty_Contents_Back()
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		byte[]? result = await sut.TryToDecryptContentsAsync(
+			TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted),
+			[],
+			string.Empty);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+
+		await dialogService
+			.DidNotReceiveWithAnyArgs()
+			.RequestPasswordAsync(default!);
 	}
 
 	/// <summary>

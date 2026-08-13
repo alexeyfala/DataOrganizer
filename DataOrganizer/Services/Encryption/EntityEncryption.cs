@@ -188,6 +188,12 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[] Decrypt(FileModelDto file, byte[] input)
 	{
+		// Empty content is written without encryption, so there is nothing to open here.
+		if (input.IsEmpty())
+		{
+			return input;
+		}
+
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
 		{
 			throw new InvalidOperationException(
@@ -581,6 +587,12 @@ public sealed class EntityEncryption : IEntityEncryption
 		string header,
 		CancellationToken token = default)
 	{
+		// Empty content is written without encryption, so neither a password nor a key is needed.
+		if (contents.IsEmpty())
+		{
+			return contents;
+		}
+
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			char[] password = await _dialogService

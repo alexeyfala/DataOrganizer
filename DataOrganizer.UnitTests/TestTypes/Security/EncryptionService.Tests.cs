@@ -81,10 +81,13 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.Decrypt" />: malformed input is refused as damaged data.
+	/// <see cref="EncryptionService.Decrypt" />: malformed input is refused as damaged data,
+	/// an empty one included.
 	/// </summary>
 	[Test]
-	public void Decrypt_Throws_On_Malformed_Input()
+	[TestCase(new byte[] { 1, 2, 3 })]
+	[TestCase(new byte[0])]
+	public void Decrypt_Throws_On_Malformed_Input(byte[] input)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -96,7 +99,7 @@ internal class EncryptionServiceTests
 			.GetBytes("SomePassword");
 
 		// Act
-		Action act = () => sut.Decrypt([1, 2, 3], password, []);
+		Action act = () => sut.Decrypt(input, password, []);
 
 		// Assert
 		act
@@ -184,10 +187,13 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithDek" />: malformed input is refused as damaged data.
+	/// <see cref="EncryptionService.DecryptWithDek" />: malformed input is refused as damaged data,
+	/// an empty one included.
 	/// </summary>
 	[Test]
-	public void DecryptWithDek_Throws_On_Malformed_Input()
+	[TestCase(new byte[] { 1, 2, 3 })]
+	[TestCase(new byte[0])]
+	public void DecryptWithDek_Throws_On_Malformed_Input(byte[] input)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -197,7 +203,7 @@ internal class EncryptionServiceTests
 		byte[] dek = sut.CreateRandomDek();
 
 		// Act
-		Action act = () => sut.DecryptWithDek([1, 2, 3], dek, []);
+		Action act = () => sut.DecryptWithDek(input, dek, []);
 
 		// Assert
 		act
@@ -274,10 +280,13 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="EncryptionService.DecryptWithSessionId" />: malformed input is refused as damaged data.
+	/// <see cref="EncryptionService.DecryptWithSessionId" />: malformed input is refused as damaged data,
+	/// an empty one included.
 	/// </summary>
 	[Test]
-	public void DecryptWithSessionId_Throws_On_Malformed_Input()
+	[TestCase(new byte[] { 1, 2, 3 })]
+	[TestCase(new byte[0])]
+	public void DecryptWithSessionId_Throws_On_Malformed_Input(byte[] input)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -287,7 +296,7 @@ internal class EncryptionServiceTests
 		byte[] sessionId = TestUtils.CreateRandomBytes(32);
 
 		// Act
-		Action act = () => sut.DecryptWithSessionId([1, 2, 3], sessionId, []);
+		Action act = () => sut.DecryptWithSessionId(input, sessionId, []);
 
 		// Assert
 		act

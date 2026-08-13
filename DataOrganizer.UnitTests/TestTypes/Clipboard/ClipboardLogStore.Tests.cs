@@ -477,6 +477,44 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal truncated to nothing is treated as
+	/// damaged data, so the session still opens.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_With_Empty_Journal_Returns_Empty()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("data")]);
+		}
+
+		files.Files[BinPath] = [];
+
+		// Act
+		using AutoMock second = CreateMock(files);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Unlocked);
+
+		result.Entries
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a wrong password is rejected.
 	/// </summary>
 	[Test]
