@@ -696,13 +696,19 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task UnlockClipboardHistoryIfRequiredAsync()
 	{
-		string label = $"{Strings.EnterThePasswordToLoadSavedHistory} ({Strings.OrCancelToKeepSessionInMemory})";
+		string? label = null;
 
 		while (_clipboardLogPersistence.RequiresUnlock)
 		{
-			char[] password = await _dialogService
-				.RequestPasswordAsync(Strings.ClipboardHistory, label)
-				.ConfigureAwait(true);
+			// The first password of the history is created here, every later one is only checked.
+			bool hasPassword = _clipboardLogPersistence.HasPassword;
+
+			label ??= $"{(hasPassword ? Strings.EnterThePasswordToLoadSavedHistory : Strings.NewPasswordForSavedHistory)} ({Strings.OrCancelToKeepSessionInMemory})";
+
+			char[] password = await _dialogService.RequestPasswordAsync(
+					Strings.ClipboardHistory,
+					label,
+					hasPassword ? PasswordPromptMode.Verify : PasswordPromptMode.Create).ConfigureAwait(true);
 
 			if (password.IsEmpty())
 			{

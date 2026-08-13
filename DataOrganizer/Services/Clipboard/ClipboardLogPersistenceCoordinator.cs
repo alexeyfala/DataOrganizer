@@ -107,6 +107,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 	#region Properties
 	/// <inheritdoc />
+	public bool HasPassword => _store.KeyFileExists;
+
+	/// <inheritdoc />
 	public bool RequiresUnlock => _settingsStore.Settings.PersistClipboardHistory && !_store.IsUnlocked;
 	#endregion
 

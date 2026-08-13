@@ -13,6 +13,12 @@ public interface IClipboardLogPersistenceCoordinator : IAsyncDisposable
 {
 	#region Properties
 	/// <summary>
+	/// <c>True</c> when a password has already been set for the on-disk history, so the next
+	/// unlock checks against it instead of creating a new one.
+	/// </summary>
+	bool HasPassword { get; }
+
+	/// <summary>
 	/// <c>True</c> when persistence is enabled in settings but the on-disk history has not
 	/// been unlocked yet this session (the caller should prompt for a password).
 	/// </summary>

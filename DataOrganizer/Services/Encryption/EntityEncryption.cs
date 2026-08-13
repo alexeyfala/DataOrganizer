@@ -123,6 +123,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				char[] newPassword = await _dialogService.RequestPasswordAsync(
 					header: Strings.ChangePassword,
 					label: Strings.NewPassword,
+					mode: PasswordPromptMode.Create,
 					token: token).ConfigureAwait(false);
 
 				if (newPassword.IsEmpty())
@@ -320,9 +321,10 @@ public sealed class EntityEncryption : IEntityEncryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.EncryptFiles, token: token)
-			.ConfigureAwait(false);
+		char[] password = await _dialogService.RequestPasswordAsync(
+			header: Strings.EncryptFiles,
+			mode: PasswordPromptMode.Create,
+			token: token).ConfigureAwait(false);
 
 		if (password.IsEmpty())
 		{
