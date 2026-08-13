@@ -167,6 +167,7 @@ public sealed class DialogService : IDialogService
 	public Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
+		string? description = null,
 		PasswordPromptMode mode = PasswordPromptMode.Verify,
 		CancellationToken token = default)
 	{
@@ -183,6 +184,8 @@ public sealed class DialogService : IDialogService
 				viewModel.Header = header;
 
 				viewModel.Label = label ?? Strings.Password;
+
+				viewModel.Description = description;
 
 				viewModel.IsConfirmationVisible = mode == PasswordPromptMode.Create;
 

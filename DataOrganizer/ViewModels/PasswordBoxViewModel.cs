@@ -22,6 +22,12 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 
 	#region Properties
 	/// <summary>
+	/// Explanation shown under the header; hidden when empty.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? Description { get; set; }
+
+	/// <summary>
 	/// Dialog header.
 	/// </summary>
 	[ObservableProperty]

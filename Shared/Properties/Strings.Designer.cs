@@ -547,15 +547,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter the password to load saved history.
-        /// </summary>
-        public static string EnterThePasswordToLoadSavedHistory {
-            get {
-                return ResourceManager.GetString("EnterThePasswordToLoadSavedHistory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Exit.
         /// </summary>
         public static string Exit {
@@ -1006,11 +997,11 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to New password for saved history.
+        ///   Looks up a localized string similar to New password for the saved history. The session stays in memory only when cancelled..
         /// </summary>
-        public static string NewPasswordForSavedHistory {
+        public static string NewSavedHistoryPasswordDescription {
             get {
-                return ResourceManager.GetString("NewPasswordForSavedHistory", resourceCulture);
+                return ResourceManager.GetString("NewSavedHistoryPasswordDescription", resourceCulture);
             }
         }
         
@@ -1146,15 +1137,6 @@ namespace Shared.Properties {
         public static string Options {
             get {
                 return ResourceManager.GetString("Options", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to or cancel to keep this session in memory only.
-        /// </summary>
-        public static string OrCancelToKeepSessionInMemory {
-            get {
-                return ResourceManager.GetString("OrCancelToKeepSessionInMemory", resourceCulture);
             }
         }
         
@@ -1335,6 +1317,15 @@ namespace Shared.Properties {
         public static string SaveAs {
             get {
                 return ResourceManager.GetString("SaveAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the password of the saved history. The session stays in memory only when cancelled..
+        /// </summary>
+        public static string SavedHistoryPasswordDescription {
+            get {
+                return ResourceManager.GetString("SavedHistoryPasswordDescription", resourceCulture);
             }
         }
         

@@ -703,12 +703,19 @@ public class ViewLauncher : IViewLauncher
 			// The first password of the history is created here, every later one is only checked.
 			bool hasPassword = _clipboardLogPersistence.HasPassword;
 
-			label ??= $"{(hasPassword ? Strings.EnterThePasswordToLoadSavedHistory : Strings.NewPasswordForSavedHistory)} ({Strings.OrCancelToKeepSessionInMemory})";
+			label ??= hasPassword
+				? Strings.Password
+				: Strings.NewPassword;
 
 			char[] password = await _dialogService.RequestPasswordAsync(
-					Strings.ClipboardHistory,
-					label,
-					hasPassword ? PasswordPromptMode.Verify : PasswordPromptMode.Create).ConfigureAwait(true);
+				header: Strings.ClipboardHistory,
+				label: label,
+				description: hasPassword
+					? Strings.SavedHistoryPasswordDescription
+					: Strings.NewSavedHistoryPasswordDescription,
+				mode: hasPassword
+					? PasswordPromptMode.Verify
+					: PasswordPromptMode.Create).ConfigureAwait(true);
 
 			if (password.IsEmpty())
 			{
@@ -730,7 +737,7 @@ public class ViewLauncher : IViewLauncher
 					return;
 				}
 
-				label = $"{Strings.IncorrectPassword}. {Strings.TryAgain} ({Strings.OrCancelToKeepSessionInMemory})";
+				label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
 			}
 			finally
 			{

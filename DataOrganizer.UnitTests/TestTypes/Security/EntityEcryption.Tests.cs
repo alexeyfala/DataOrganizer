@@ -59,6 +59,7 @@ internal class EntityEncryptionTests
 			dialogService.RequestPasswordAsync(
 				Arg.Any<string>(),
 				Arg.Any<string>(),
+				Arg.Any<string>(),
 				Arg.Any<PasswordPromptMode>(),
 				Arg.Any<CancellationToken>())
 			.Returns(AppUtils.CreateRandomString(10).ToCharArray());
@@ -82,9 +83,12 @@ internal class EntityEncryptionTests
 		await sut.ChangePasswordAsync(folder);
 
 		// Assert
-		await dialogService
-			.Received(1)
-			.RequestPasswordAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<PasswordPromptMode>(), Arg.Any<CancellationToken>());
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<PasswordPromptMode>(),
+			Arg.Any<CancellationToken>());
 
 		await dbAccess
 			.DidNotReceive()

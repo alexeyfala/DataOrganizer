@@ -589,12 +589,6 @@
   <data name="ClipboardHistory" xml:space="preserve">
     <value>Clipboard history</value>
   </data>
-  <data name="OrCancelToKeepSessionInMemory" xml:space="preserve">
-    <value>or cancel to keep this session in memory only</value>
-  </data>
-  <data name="EnterThePasswordToLoadSavedHistory" xml:space="preserve">
-    <value>Enter the password to load saved history</value>
-  </data>
   <data name="TryAgain" xml:space="preserve">
     <value>Try again</value>
   </data>
@@ -628,8 +622,11 @@
   <data name="ConfirmPassword" xml:space="preserve">
     <value>Confirm Password</value>
   </data>
-  <data name="NewPasswordForSavedHistory" xml:space="preserve">
-    <value>New password for saved history</value>
+  <data name="NewSavedHistoryPasswordDescription" xml:space="preserve">
+    <value>New password for the saved history. The session stays in memory only when cancelled.</value>
+  </data>
+  <data name="SavedHistoryPasswordDescription" xml:space="preserve">
+    <value>Enter the password of the saved history. The session stays in memory only when cancelled.</value>
   </data>
   <data name="PasswordMinimumLength" xml:space="preserve">
     <value>At least {0} characters</value>
