@@ -1,7 +1,6 @@
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
-using Serilog;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
@@ -15,9 +14,6 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	#region Data
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
-
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="System.Threading.Lock" />
 	private readonly Lock _mutex = new();
@@ -34,12 +30,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	#endregion
 
 	#region Constructors
-	public SessionKeyStore(IEncryptionService encryption, ILogger logger)
-	{
-		_encryption = encryption;
-
-		_logger = logger;
-	}
+	public SessionKeyStore(IEncryptionService encryption) => _encryption = encryption;
 	#endregion
 
 	#region Methods
