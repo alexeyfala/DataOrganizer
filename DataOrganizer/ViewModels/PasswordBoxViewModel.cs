@@ -41,6 +41,12 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	public partial bool IsConfirmationVisible { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when the password input alone satisfies the policy, the confirmation aside.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsPasswordAccepted { get; set; }
+
+	/// <summary>
 	/// Validity flag driven by the view's code-behind so the password string itself
 	/// is never bound into a managed property on this view model.
 	/// </summary>

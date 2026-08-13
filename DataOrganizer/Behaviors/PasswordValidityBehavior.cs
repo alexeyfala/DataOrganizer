@@ -44,6 +44,15 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	}
 
 	/// <summary>
+	/// <c>True</c> when the password input alone satisfies the policy, the confirmation aside.
+	/// </summary>
+	public bool IsPasswordAccepted
+	{
+		get => GetValue(IsPasswordAcceptedProperty);
+		set => SetValue(IsPasswordAcceptedProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> while the password input holds fewer characters than <see cref="MinimumLength" />.
 	/// </summary>
 	public bool IsPasswordTooShort
@@ -110,6 +119,14 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// </summary>
 	public static readonly StyledProperty<bool> IsConfirmationRequiredProperty = AvaloniaProperty
 		.Register<PasswordValidityBehavior, bool>(name: nameof(IsConfirmationRequired));
+
+	/// <summary>
+	/// Identifies the <see cref="IsPasswordAccepted" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsPasswordAcceptedProperty = AvaloniaProperty
+		.Register<PasswordValidityBehavior, bool>(
+			name: nameof(IsPasswordAccepted),
+			defaultBindingMode: BindingMode.OneWayToSource);
 
 	/// <summary>
 	/// Identifies the <see cref="IsPasswordTooShort" /> avalonia property.
@@ -261,7 +278,9 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 			&& confirmation is { Length: > 0 }
 			&& !isConfirmed;
 
-		IsValid = isAccepted && (!IsConfirmationRequired || (password!.Length >= MinimumLength && isConfirmed));
+		IsPasswordAccepted = isAccepted && (!IsConfirmationRequired || password!.Length >= MinimumLength);
+
+		IsValid = IsPasswordAccepted && (!IsConfirmationRequired || isConfirmed);
 
 		Report(
 			AssociatedObject,
