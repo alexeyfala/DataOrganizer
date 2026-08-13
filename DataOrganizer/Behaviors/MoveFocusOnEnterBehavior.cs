@@ -6,7 +6,7 @@ namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Moves the focus from the attached <see cref="InputElement" /> to <see cref="Target" />
-/// when Enter is pressed, so the key does not reach the default button.
+/// when <see cref="Key.Enter" /> is pressed, so the key does not reach the default button.
 /// </summary>
 internal sealed class MoveFocusOnEnterBehavior : Behavior<InputElement>
 {

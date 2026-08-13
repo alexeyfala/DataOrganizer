@@ -20,6 +20,11 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial string? DefaultButtonText { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when <see cref="Key" /> holds something other than whitespace.
+	/// </summary>
+	public bool IsKeyAccepted => !string.IsNullOrWhiteSpace(Key);
+
+	/// <summary>
 	/// <c>True</c> when the <see cref="Key" /> input field is masked with a reveal button.
 	/// </summary>
 	[ObservableProperty]
@@ -42,6 +47,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DefaultPressedCommand))]
+	[NotifyPropertyChangedFor(nameof(IsKeyAccepted))]
 	public partial string? Key { get; set; }
 
 	/// <summary>

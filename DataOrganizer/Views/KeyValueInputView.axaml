@@ -3,6 +3,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
+	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
@@ -17,15 +18,12 @@
 		</Style>
 	</UserControl.Styles>
 
-	<Grid
-		ColumnDefinitions="*,Auto"
-		RowDefinitions="*,*,Auto"
-		RowSpacing="{StaticResource ElementSpacing}">
+	<!--  A stack, not a grid: a hidden child takes no spacing, so the optional value input leaves no gap.  -->
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
 
 		<TextBox
-			Grid.Row="0"
-			Grid.Column="0"
-			Grid.ColumnSpan="3"
 			assists:TextFieldAssist.Label="{Binding KeyHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsKeyMasked, Mode=OneWay}"
 			Classes.revealPasswordButton="{Binding IsKeyMasked, Mode=OneWay}"
@@ -34,13 +32,15 @@
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
 				<AutoSelectBehavior />
+
+				<behaviors:MoveFocusOnEnterBehavior
+					IsMoveAllowed="{Binding IsKeyAccepted, Mode=OneWay}"
+					Target="{Binding #ValueInput}" />
 			</Interaction.Behaviors>
 		</TextBox>
 
 		<TextBox
-			Grid.Row="1"
-			Grid.Column="0"
-			Grid.ColumnSpan="3"
+			x:Name="ValueInput"
 			assists:TextFieldAssist.Label="{Binding ValueHint, Mode=OneWay}"
 			Classes.clearButton="{Binding !IsValueMasked, Mode=OneWay}"
 			Classes.revealPasswordButton="{Binding IsValueMasked, Mode=OneWay}"
@@ -49,8 +49,7 @@
 			UseFloatingPlaceholder="True" />
 
 		<UniformGrid
-			Grid.Row="2"
-			Grid.Column="1"
+			HorizontalAlignment="Right"
 			ColumnSpacing="{StaticResource ElementSpacing}"
 			Columns="2">
 			<UniformGrid.Styles>
@@ -71,5 +70,5 @@
 				Content="{x:Static prop:Strings.Cancel}"
 				IsCancel="True" />
 		</UniformGrid>
-	</Grid>
+	</StackPanel>
 </UserControl>
