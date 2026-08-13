@@ -81,6 +81,45 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: the confirmation input is wiped and
+	/// cleared as well, and only the password is handed out.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Confirmed_Wipes_The_Confirmation_Too()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		string repeated = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new()
+		{
+			Text = typed
+		};
+
+		TextBox confirmation = new()
+		{
+			Text = repeated
+		};
+
+		// Act
+		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true, confirmation);
+
+		// Assert
+		result
+			.Should()
+			.Equal('s', 'e', 'c', 'r', 'e', 't');
+
+		confirmation.Text
+			.Should()
+			.BeNull();
+
+		repeated
+			.Should()
+			.Be(new string('\0', repeated.Length));
+	}
+
+	/// <summary>
 	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel, returns an empty array,
 	/// wipes the typed text in place and clears the input.
 	/// </summary>
@@ -108,6 +147,45 @@ internal class DialogServiceTests
 		typed
 			.Should()
 			.Be(new string('\0', typed.Length));
+	}
+
+	/// <summary>
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel the confirmation input is
+	/// wiped and cleared as well.
+	/// </summary>
+	[AvaloniaTest]
+	public void CapturePasswordAndScrub_When_Not_Confirmed_Wipes_The_Confirmation_Too()
+	{
+		// Arrange
+		string typed = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		string repeated = new(['s', 'e', 'c', 'r', 'e', 't']);
+
+		TextBox input = new()
+		{
+			Text = typed
+		};
+
+		TextBox confirmation = new()
+		{
+			Text = repeated
+		};
+
+		// Act
+		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: false, confirmation);
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+
+		confirmation.Text
+			.Should()
+			.BeNull();
+
+		repeated
+			.Should()
+			.Be(new string('\0', repeated.Length));
 	}
 
 	/// <summary>

@@ -17,6 +17,7 @@ using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -654,6 +655,76 @@ internal class ViewLauncherTests
 			CurrentWindow.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewLauncher.ShowClipboardLogWindowAsync" />: the first password of the saved
+	/// history is created with a confirmation, a later one is only checked.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase(false, PasswordPromptMode.Create)]
+	[TestCase(true, PasswordPromptMode.Verify)]
+	public async Task ShowClipboardLogWindowAsync_Asks_For_The_History_Password(bool hasPassword, PasswordPromptMode expected)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			using AutoMock windowMock = AutoMock.GetLoose();
+
+			windowMock.Mock<IClipboardLogService>()
+				.SetupGet(x => x.Entries)
+				.Returns([]);
+
+			ClipboardLogViewModel viewModel = windowMock.Create<ClipboardLogViewModel>();
+
+			ClipboardLogWindow clipboardWindow = windowMock.Create<ClipboardLogWindow>(TypedParameter.From(viewModel));
+
+			IViewFactory viewFactory = Substitute.For<IViewFactory>();
+
+			viewFactory
+				.CreateViewModel<ClipboardLogViewModel>()
+				.Returns(viewModel);
+
+			viewFactory
+				.CreateWindow<ClipboardLogWindow>(Arg.Any<object[]>())
+				.Returns(clipboardWindow);
+
+			IClipboardLogPersistenceCoordinator persistence = Substitute.For<IClipboardLogPersistenceCoordinator>();
+
+			persistence
+				.RequiresUnlock
+				.Returns(true);
+
+			persistence
+				.HasPassword
+				.Returns(hasPassword);
+
+			// A cancelled prompt leaves the session in memory, which is enough to reach the assert.
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs([]);
+
+			builder.RegisterInstance(viewFactory);
+
+			builder.RegisterInstance(persistence);
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		ViewLauncher sut = mock.Create<ViewLauncher>();
+
+		// Act
+		await sut.ShowClipboardLogWindowAsync(new Window());
+
+		// Assert
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			expected,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>

@@ -38,6 +38,58 @@ internal class EntityEncryptionTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="EntityEncryption.ChangePasswordAsync" />: the old password is only checked, while
+	/// the new one is confirmed.
+	/// </summary>
+	[Test]
+	public async Task ChangePasswordAsync_Confirms_Only_The_New_Password()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns(TestUtils.CreateRandomBytes(32));
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(encryption);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.ChangePasswordAsync(folder);
+
+		// Assert
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Strings.OldPassword,
+			Arg.Any<string>(),
+			PasswordPromptMode.Verify,
+			Arg.Any<CancellationToken>());
+
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Strings.NewPassword,
+			Arg.Any<string>(),
+			PasswordPromptMode.Create,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EntityEncryption.ChangePasswordAsync" />: a wrong old password is reported before a new one is asked for.
 	/// </summary>
 	[Test]
@@ -417,6 +469,44 @@ internal class EntityEncryptionTests
 		await dbAccess
 			.Received()
 			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.EncryptFolderAsync" />: the password of a new keeper is asked for
+	/// with a confirmation, so a typo cannot lock the files away.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Asks_For_A_New_Password()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files = [TestUtils.CreateFileDto()];
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			// An empty result stops the flow right after the prompt, which is all this test looks at.
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs([]);
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		await dialogService.Received(1).RequestPasswordAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			PasswordPromptMode.Create,
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
