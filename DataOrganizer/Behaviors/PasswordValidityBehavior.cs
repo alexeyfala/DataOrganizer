@@ -70,6 +70,24 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 		get => GetValue(MinimumLengthProperty);
 		set => SetValue(MinimumLengthProperty, value);
 	}
+
+	/// <summary>
+	/// Message reported on the confirmation input while it disagrees with the password.
+	/// </summary>
+	public string? MismatchMessage
+	{
+		get => GetValue(MismatchMessageProperty);
+		set => SetValue(MismatchMessageProperty, value);
+	}
+
+	/// <summary>
+	/// Message reported on the password input while it is shorter than <see cref="MinimumLength" />.
+	/// </summary>
+	public string? TooShortMessage
+	{
+		get => GetValue(TooShortMessageProperty);
+		set => SetValue(TooShortMessageProperty, value);
+	}
 	#endregion
 
 	#region Styled Properties
@@ -113,6 +131,18 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// </summary>
 	public static readonly StyledProperty<int> MinimumLengthProperty = AvaloniaProperty
 		.Register<PasswordValidityBehavior, int>(name: nameof(MinimumLength));
+
+	/// <summary>
+	/// Identifies the <see cref="MismatchMessage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> MismatchMessageProperty = AvaloniaProperty
+		.Register<PasswordValidityBehavior, string?>(name: nameof(MismatchMessage));
+
+	/// <summary>
+	/// Identifies the <see cref="TooShortMessage" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<string?> TooShortMessageProperty = AvaloniaProperty
+		.Register<PasswordValidityBehavior, string?>(name: nameof(TooShortMessage));
 	#endregion
 
 	#region Data
@@ -187,6 +217,22 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 
 	#region Helpers
 	/// <summary>
+	/// Raises or clears the validation state of an input, which drives its error styling.
+	/// </summary>
+	private static void Report(
+		TextBox? input,
+		bool hasError,
+		string? message)
+	{
+		if (input is null)
+		{
+			return;
+		}
+
+		DataValidationErrors.SetError(input, hasError ? new DataValidationException(message) : null);
+	}
+
+	/// <summary>
 	/// Recomputes the flags from both inputs; the confirmation and the minimum length
 	/// only weigh in while a new password is being set.
 	/// </summary>
@@ -215,8 +261,17 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 			&& confirmation is { Length: > 0 }
 			&& !isConfirmed;
 
-		IsValid = isAccepted
-			&& (!IsConfirmationRequired || (password!.Length >= MinimumLength && isConfirmed));
+		IsValid = isAccepted && (!IsConfirmationRequired || (password!.Length >= MinimumLength && isConfirmed));
+
+		Report(
+			AssociatedObject,
+			IsPasswordTooShort,
+			TooShortMessage);
+
+		Report(
+			ConfirmationInput,
+			IsConfirmationMismatched,
+			MismatchMessage);
 	}
 	#endregion
 }

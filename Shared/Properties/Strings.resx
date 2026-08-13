@@ -628,8 +628,8 @@
   <data name="ConfirmPassword" xml:space="preserve">
     <value>Confirm Password</value>
   </data>
-  <data name="CreateThePasswordToProtectSavedHistory" xml:space="preserve">
-    <value>Create the password to protect saved history</value>
+  <data name="NewPasswordForSavedHistory" xml:space="preserve">
+    <value>New password for saved history</value>
   </data>
   <data name="PasswordMinimumLength" xml:space="preserve">
     <value>At least {0} characters</value>

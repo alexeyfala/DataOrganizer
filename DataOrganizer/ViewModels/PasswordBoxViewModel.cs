@@ -22,24 +22,10 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 
 	#region Properties
 	/// <summary>
-	/// Assistive text under the confirmation input; <c>null</c> while the two inputs agree.
-	/// </summary>
-	public string? ConfirmationHint => IsConfirmationMismatched
-		? Strings.PasswordsDoNotMatch
-		: null;
-
-	/// <summary>
 	/// Dialog header.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Header { get; set; }
-
-	/// <summary>
-	/// <c>True</c> while the confirmation input holds something other than the password.
-	/// </summary>
-	[ObservableProperty]
-	[NotifyPropertyChangedFor(nameof(ConfirmationHint))]
-	public partial bool IsConfirmationMismatched { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when a new password is being set, so it is confirmed in a second input.
@@ -47,12 +33,6 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	[ObservableProperty]
 	[NotifyPropertyChangedFor(nameof(PasswordHint))]
 	public partial bool IsConfirmationVisible { get; set; }
-
-	/// <summary>
-	/// <c>True</c> while the password input holds fewer characters than the policy asks for.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsPasswordTooShort { get; set; }
 
 	/// <summary>
 	/// Validity flag driven by the view's code-behind so the password string itself

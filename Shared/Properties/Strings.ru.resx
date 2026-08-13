@@ -648,8 +648,8 @@
   <data name="ConfirmPassword" xml:space="preserve">
     <value>Подтверждение пароля</value>
   </data>
-  <data name="CreateThePasswordToProtectSavedHistory" xml:space="preserve">
-    <value>Создайте пароль для защиты сохраняемой истории</value>
+  <data name="NewPasswordForSavedHistory" xml:space="preserve">
+    <value>Новый пароль для сохраняемой истории</value>
   </data>
   <data name="PasswordMinimumLength" xml:space="preserve">
     <value>Не менее {0} символов</value>

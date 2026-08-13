@@ -385,15 +385,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Create the password to protect saved history.
-        /// </summary>
-        public static string CreateThePasswordToProtectSavedHistory {
-            get {
-                return ResourceManager.GetString("CreateThePasswordToProtectSavedHistory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Dark.
         /// </summary>
         public static string Dark {
@@ -1011,6 +1002,15 @@ namespace Shared.Properties {
         public static string NewPassword {
             get {
                 return ResourceManager.GetString("NewPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New password for saved history.
+        /// </summary>
+        public static string NewPasswordForSavedHistory {
+            get {
+                return ResourceManager.GetString("NewPasswordForSavedHistory", resourceCulture);
             }
         }
         
