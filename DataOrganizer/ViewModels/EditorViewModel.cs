@@ -458,7 +458,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideAllContents(Hierarchy);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -494,7 +494,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideFileContents(dto);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
@@ -525,7 +525,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideFolderContents(dto);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -676,7 +676,7 @@ public partial class EditorViewModel :
 			.ShowFolderContentsAsync(dto)
 			.ConfigureAwait(true);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -1069,6 +1069,9 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IAutoLockService" />
+	private readonly IAutoLockService _autoLock;
+
 	/// <inheritdoc cref="IClipboardLogService" />
 	private readonly IClipboardLogService _clipboardLog;
 
@@ -1108,6 +1111,7 @@ public partial class EditorViewModel :
 		Application app,
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
+		IAutoLockService autoLock,
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
@@ -1142,6 +1146,8 @@ public partial class EditorViewModel :
 			viewLauncher,
 			keyboardInputHook)
 	{
+		_autoLock = autoLock;
+
 		_clipboardLog = clipboardLog;
 
 		_clipboardLogPersistence = clipboardLogPersistence;
@@ -1439,6 +1445,11 @@ public partial class EditorViewModel :
 			.Settings
 			.PersistClipboardHistory;
 
+		// Captured before overwrite so that only a changed delay restarts the countdown.
+		int previousAutoLockMinutes = _settingsStore
+			.Settings
+			.AutoLockMinutes;
+
 		if (isSave)
 		{
 			_settingsStore.Overwrite(settings);
@@ -1453,6 +1464,12 @@ public partial class EditorViewModel :
 		if (!isSave)
 		{
 			return;
+		}
+
+		// A changed delay takes effect at once: the countdown restarts from it, and no auto-lock stops it.
+		if (settings.AutoLockMinutes != previousAutoLockMinutes)
+		{
+			NotifyDecryptedContentsChanged();
 		}
 
 		await ApplyClipboardHistorySettingAsync(
@@ -1478,6 +1495,24 @@ public partial class EditorViewModel :
 		}
 
 		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
+	}
+
+	/// <summary>
+	/// Refreshes the command that hides everything and keeps the auto-lock countdown
+	/// in step with the decrypted contents.
+	/// </summary>
+	internal void NotifyDecryptedContentsChanged()
+	{
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+
+		if (CanHideAllFiles())
+		{
+			_autoLock.Arm();
+		}
+		else
+		{
+			_autoLock.Stop();
+		}
 	}
 	#endregion
 
@@ -1782,7 +1817,8 @@ public partial class EditorViewModel :
 			return false;
 		}
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		// HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 
 		return true;
 	}

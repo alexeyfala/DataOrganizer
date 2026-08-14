@@ -810,6 +810,47 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: a changed auto-lock delay restarts the countdown at once.
+	/// </summary>
+	[Test]
+	public async Task HandleChangeSettingsAsync_Applies_A_Changed_Auto_Lock_Delay()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		AppSettings saved = TestUtils.CreateRandomSettings();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(saved);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(autoLock);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		AppSettings changed = TestUtils.CreateRandomSettings();
+
+		changed.AutoLockMinutes = 5;
+
+		// Act
+		await sut.HandleChangeSettingsAsync(true, changed);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
 	/// </summary>
 	[Test]
@@ -872,6 +913,49 @@ internal class EditorViewModelTests
 				.ApplyMaterialTheme();
 
 		}
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: an unchanged auto-lock delay leaves the countdown running.
+	/// </summary>
+	[Test]
+	public async Task HandleChangeSettingsAsync_Keeps_An_Unchanged_Auto_Lock_Delay()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.AutoLockMinutes = 5;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(autoLock);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		// Act
+		await sut.HandleChangeSettingsAsync(true, settings);
+
+		// Assert
+		autoLock
+			.DidNotReceive()
+			.Arm();
+
+		autoLock
+			.DidNotReceive()
+			.Stop();
 	}
 
 	/// <summary>
@@ -1329,6 +1413,62 @@ internal class EditorViewModelTests
 		sut.NavigationColumnWidth.Value
 			.Should()
 			.BeLessThan(sut.ViewWidth);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.NotifyDecryptedContentsChanged" />: decrypted contents keep the countdown running.
+	/// </summary>
+	[Test]
+	public void NotifyDecryptedContentsChanged_Arms_The_Countdown_For_Decrypted_Contents()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		// Act
+		sut.NotifyDecryptedContentsChanged();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
+
+		autoLock
+			.DidNotReceive()
+			.Stop();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.NotifyDecryptedContentsChanged" />: nothing left decrypted stops the countdown.
+	/// </summary>
+	[Test]
+	public void NotifyDecryptedContentsChanged_Stops_The_Countdown_Without_Decrypted_Contents()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted)]);
+
+		// Act
+		sut.NotifyDecryptedContentsChanged();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
+
+		autoLock
+			.DidNotReceive()
+			.Arm();
 	}
 
 	/// <summary>

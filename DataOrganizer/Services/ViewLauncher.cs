@@ -250,9 +250,7 @@ public class ViewLauncher : IViewLauncher
 			.ExecutingFiles
 			.AddRange(executingFiles);
 
-		viewModel
-			.HideAllFileContentsCommand
-			.NotifyCanExecuteChanged();
+		viewModel.NotifyDecryptedContentsChanged();
 
 		if (showObjectId.IsNotDefault())
 		{
