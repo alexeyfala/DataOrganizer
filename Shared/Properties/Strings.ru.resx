@@ -669,4 +669,7 @@
   <data name="MinutesShortFormat" xml:space="preserve">
     <value>{0} мин</value>
   </data>
+  <data name="ContentsHiddenByAutoLock" xml:space="preserve">
+    <value>Содержимое файлов скрыто автоблокировкой</value>
+  </data>
 </root>

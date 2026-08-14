@@ -21,6 +21,7 @@ using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Properties;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,7 +39,8 @@ namespace DataOrganizer.ViewModels;
 public abstract partial class ViewModelBase :
 	CopyContentViewModelBase,
 	IRecipient<ShowSnackbarMessage>,
-	IRecipient<CloseExecutingFileMessage>
+	IRecipient<CloseExecutingFileMessage>,
+	IRecipient<SessionAutoLockedMessage>
 {
 	#region Properties
 	/// <inheritdoc cref="CopyHistoryViewSettings" />
@@ -253,6 +255,12 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <inheritdoc />
+	public void Receive(SessionAutoLockedMessage message)
+	{
+		_exceptionHandler.Watch(LockAsync());
+	}
+
+	/// <inheritdoc />
 	public void Receive(ShowSnackbarMessage message)
 	{
 		ShowSnackbar(message.Text, message.Level);
@@ -281,6 +289,31 @@ public abstract partial class ViewModelBase :
 	/// </summary>
 	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
 
+	/// <summary>
+	/// Closes editing and executing files.
+	/// </summary>
+	internal void CloseFiles(
+		IEnumerable<FileModelDto> editingFiles,
+		IEnumerable<FileModelDto> executingFiles)
+	{
+		foreach (FileModelDto file in editingFiles)
+		{
+			CloseEditingFile(file);
+		}
+
+		foreach (FileModelDto file in executingFiles)
+		{
+			CloseExecutingFile(file);
+		}
+	}
+
+	/// <summary>
+	/// Reacts to a change of the decrypted contents in <see cref="Hierarchy" />.
+	/// </summary>
+	protected internal virtual void NotifyDecryptedContentsChanged()
+	{
+	}
+
 	/// <inheritdoc />
 	protected override void AfterDispose()
 	{
@@ -292,6 +325,43 @@ public abstract partial class ViewModelBase :
 		}
 
 		_messenger.UnregisterAll(this);
+	}
+
+	/// <summary>
+	/// Closes editing file.
+	/// </summary>
+	protected virtual void CloseEditingFile(FileModelDto file) => file.IsEditing = false;
+
+	/// <summary>
+	/// Closes file that is being edited or executed;
+	/// </summary>
+	protected void CloseFile(FileModelDto file)
+	{
+		if (file.IsEditing)
+		{
+			CloseEditingFile(file);
+		}
+
+		if (file.IsExecuting)
+		{
+			CloseExecutingFile(file);
+		}
+	}
+
+	/// <summary>
+	/// Asks every open editor to persist its pending changes and awaits all of them.
+	/// </summary>
+	protected async Task<bool> FlushEditorsAsync(CancellationToken token = default)
+	{
+		FlushEditorsMessage request = new();
+
+		_messenger.Send(request);
+
+		IReadOnlyCollection<bool> responses = await request
+			.GetResponsesAsync(token)
+			.ConfigureAwait(true);
+
+		return responses.All(x => x);
 	}
 
 	/// <summary>
@@ -319,6 +389,31 @@ public abstract partial class ViewModelBase :
 		return typeof(SnackbarHost)
 			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
 			?.GetValue(null) is IDictionary registered && registered.Count > 0;
+	}
+
+	/// <summary>
+	/// Hides the decrypted contents after the auto-lock expiry, closing the open files first.
+	/// </summary>
+	private async Task LockAsync()
+	{
+		_logger.LogInformation("Auto-lock: hiding the decrypted contents");
+
+		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
+		await FlushEditorsAsync().ConfigureAwait(true);
+
+		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
+
+		CloseFiles(
+			openedFiles.Where(x => x.IsEditing),
+			openedFiles.Where(x => x.IsExecuting));
+
+		OpenedInEditorFiles.Clear();
+
+		_entityEncryption.HideAllContents(Hierarchy);
+
+		NotifyDecryptedContentsChanged();
+
+		ShowInfoSnackbar(Strings.ContentsHiddenByAutoLock);
 	}
 
 	/// <inheritdoc cref="SaveCopyHistory()" />

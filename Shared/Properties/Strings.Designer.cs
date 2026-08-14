@@ -358,6 +358,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file contents are hidden by the auto-lock.
+        /// </summary>
+        public static string ContentsHiddenByAutoLock {
+            get {
+                return ResourceManager.GetString("ContentsHiddenByAutoLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy.
         /// </summary>
         public static string Copy {

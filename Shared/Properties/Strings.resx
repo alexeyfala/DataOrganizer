@@ -649,4 +649,7 @@
   <data name="MinutesShortFormat" xml:space="preserve">
     <value>{0} min</value>
   </data>
+  <data name="ContentsHiddenByAutoLock" xml:space="preserve">
+    <value>The file contents are hidden by the auto-lock</value>
+  </data>
 </root>

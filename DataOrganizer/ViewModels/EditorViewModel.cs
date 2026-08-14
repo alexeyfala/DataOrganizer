@@ -1365,24 +1365,6 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Closes editing and executing files.
-	/// </summary>
-	internal void CloseFiles(
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
-	{
-		foreach (FileModelDto file in editingFiles)
-		{
-			CloseEditingFile(file);
-		}
-
-		foreach (FileModelDto file in executingFiles)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
 	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	internal async Task<bool> DeleteAsync(
@@ -1501,7 +1483,7 @@ public partial class EditorViewModel :
 	/// Refreshes the command that hides everything and keeps the auto-lock countdown
 	/// in step with the decrypted contents.
 	/// </summary>
-	internal void NotifyDecryptedContentsChanged()
+	protected internal override void NotifyDecryptedContentsChanged()
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
@@ -1512,6 +1494,19 @@ public partial class EditorViewModel :
 		else
 		{
 			_autoLock.Stop();
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void CloseEditingFile(FileModelDto file)
+	{
+		if (_editingFiles is not null)
+		{
+			_editingFiles.CloseTab(file);
+		}
+		else
+		{
+			file.IsEditing = false;
 		}
 	}
 	#endregion
@@ -1742,56 +1737,9 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Closes editing file.
-	/// </summary>
-	private void CloseEditingFile(FileModelDto file)
-	{
-		if (_editingFiles is not null)
-		{
-			_editingFiles.CloseTab(file);
-		}
-		else
-		{
-			file.IsEditing = false;
-		}
-	}
-
-	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	private void CloseFile(FileModelDto file)
-	{
-		if (file.IsEditing)
-		{
-			CloseEditingFile(file);
-		}
-
-		if (file.IsExecuting)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
 	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
-
-	/// <summary>
-	/// Asks every open editor to persist its pending changes and awaits all of them.
-	/// </summary>
-	private async Task<bool> FlushEditorsAsync(CancellationToken token = default)
-	{
-		FlushEditorsMessage request = new();
-
-		_messenger.Send(request);
-
-		IReadOnlyCollection<bool> responses = await request
-			.GetResponsesAsync(token)
-			.ConfigureAwait(true);
-
-		return responses.All(x => x);
-	}
 
 	/// <summary>
 	/// Tries to remove value from copy history.

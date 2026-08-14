@@ -1472,6 +1472,133 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Closes_Files_And_Hides_Contents()
+	{
+		// Arrange
+		FileModelDto editingFile = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileModelDto executingFile = TestUtils.CreateFileDto(
+			isExecuting: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([editingFile, executingFile]);
+
+		sut
+			.OpenedInEditorFiles
+			.Add(editingFile);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		editingFile.IsEditing
+			.Should()
+			.BeFalse();
+
+		executingFile.IsExecuting
+			.Should()
+			.BeFalse();
+
+		sut.OpenedInEditorFiles
+			.Should()
+			.BeEmpty();
+
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: an editor that cannot persist its changes
+	/// does not keep the contents decrypted.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Hides_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeFalse();
+
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ResetSelectedObject" />: SelectedObject is cleared and the object's IsSelected is reset.
 	/// </summary>
 	[Test]
