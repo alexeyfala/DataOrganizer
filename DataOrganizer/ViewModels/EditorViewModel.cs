@@ -341,7 +341,7 @@ public partial class EditorViewModel :
 
 			if (!await _dialogService
 				.RequestYesCancelDialogAsync(text)
-				.ConfigureAwait(false))
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -353,14 +353,14 @@ public partial class EditorViewModel :
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
 			return;
 		}
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(dto.Id)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		if (!result.IsValid)
 		{
@@ -416,7 +416,7 @@ public partial class EditorViewModel :
 
 		if (!await _executionEngine
 			.ExecuteAsync(parameters)
-			.ConfigureAwait(false))
+			.ConfigureAwait(true))
 		{
 			return;
 		}
