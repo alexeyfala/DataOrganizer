@@ -12,6 +12,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
+using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Serilog;
 using System;
@@ -40,19 +41,18 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		log.Entries.Returns([TextEntry("a", [1])]);
 
-		ClipboardLogPersistenceCoordinator sut = CreateSut(
+		Context context = CreateContext(
 			Settings(persist: true),
 			log,
 			store,
-			new WeakReferenceMessenger(),
-			SaveDebounce);
+			new WeakReferenceMessenger());
 
 		// Act
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+		context.Sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
 
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedByUser));
+		context.Sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedByUser));
 
-		await Task.Delay(SaveSettleDelay);
+		await context.SettleAsync();
 
 		// Assert
 		await store
@@ -81,9 +81,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		log.Entries.Returns([TextEntry("a", [1])]);
 
-		ClipboardLogPersistenceCoordinator sut = CreateSut(Settings(persist: true), log, store, messenger, SaveDebounce);
+		Context context = CreateContext(
+			Settings(persist: true),
+			log,
+			store,
+			messenger);
 
-		sut.Start();
+		context.Sut.Start();
 
 		// Act (three rapid changes — each cancels the previous pending save).
 		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
@@ -92,7 +96,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
 
-		await Task.Delay(SaveSettleDelay);
+		await context.SettleAsync();
 
 		// Assert
 		await store
@@ -140,16 +144,20 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		log.Entries.Returns([TextEntry("a", [1])]);
 
-		ClipboardLogPersistenceCoordinator sut = CreateSut(Settings(persist: true), log, store, messenger, SaveDebounce);
+		Context context = CreateContext(
+			Settings(persist: true),
+			log,
+			store,
+			messenger);
 
-		sut.Start();
+		context.Sut.Start();
 
-		await sut.DisposeAsync();
+		await context.Sut.DisposeAsync();
 
 		// Act (a change after dispose must not be handled).
 		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
 
-		await Task.Delay(SaveSettleDelay);
+		await context.SettleAsync();
 
 		// Assert (the single save is the dispose-time flush; the post-dispose change added none).
 		await store
@@ -412,14 +420,16 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(false);
 
-		using AutoMock mock = CreateMock(Settings(persist: true), Substitute.For<IClipboardLogService>(), store);
-
-		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
+		Context context = CreateContext(
+			Settings(persist: true),
+			Substitute.For<IClipboardLogService>(),
+			store,
+			new WeakReferenceMessenger());
 
 		// Act
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
+		context.Sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
 
-		await Task.Delay(SaveSettleDelay);
+		await context.SettleAsync();
 
 		// Assert
 		await store
@@ -444,14 +454,18 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		log.Entries.Returns([TextEntry("a", [1])]);
 
-		ClipboardLogPersistenceCoordinator sut = CreateSut(Settings(persist: true), log, store, messenger, SaveDebounce);
+		Context context = CreateContext(
+			Settings(persist: true),
+			log,
+			store,
+			messenger);
 
-		sut.Start();
+		context.Sut.Start();
 
 		// Act
 		messenger.Send(new ClipboardLogChangedMessage(ClipboardLogChangeKind.Updated));
 
-		await Task.Delay(SaveSettleDelay);
+		await context.SettleAsync();
 
 		// Assert
 		await store
@@ -467,9 +481,40 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(30.0);
 
 	/// <summary>
-	/// Wait long enough for a debounced save to either fire or be proven cancelled.
+	/// Builds a coordinator on a fake clock, capturing every save it schedules, so the debounce can be
+	/// driven and awaited instead of waited out.
 	/// </summary>
-	private static readonly TimeSpan SaveSettleDelay = TimeSpan.FromMilliseconds(250.0);
+	private static Context CreateContext(
+		IAppSettingsStore settingsStore,
+		IClipboardLogService log,
+		IClipboardLogStore store,
+		IMessenger messenger)
+	{
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		FakeTimeProvider time = new();
+
+		Context context = new()
+		{
+			Sut = new ClipboardLogPersistenceCoordinator(
+				settingsStore,
+				log,
+				store,
+				new InlineDispatcherAccessor(),
+				Substitute.For<ILogger>(),
+				messenger,
+				exceptionHandler,
+				time,
+				SaveDebounce),
+			Time = time
+		};
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => context.Scheduled.Add(callInfo.Arg<Task>()));
+
+		return context;
+	}
 
 	/// <summary>
 	/// Builds an auto-mock container with the supplied collaborators, a synchronous dispatcher and an
@@ -495,33 +540,16 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 			builder.RegisterInstance(messenger ?? Substitute.For<IMessenger>());
 
+			builder
+				.RegisterInstance(TimeProvider.System)
+				.As<TimeProvider>();
+
 			// The coordinator is IAsyncDisposable; let the test own its lifetime so AutoMock's
 			// synchronous scope disposal does not try (and fail) to dispose it.
 			builder
 				.RegisterType<ClipboardLogPersistenceCoordinator>()
 				.ExternallyOwned();
 		});
-	}
-
-	/// <summary>
-	/// Builds a coordinator directly with an explicit messenger and debounce delay (for the timing tests,
-	/// where AutoMock cannot inject a custom debounce through the public constructor).
-	/// </summary>
-	private static ClipboardLogPersistenceCoordinator CreateSut(
-		IAppSettingsStore settingsStore,
-		IClipboardLogService log,
-		IClipboardLogStore store,
-		IMessenger messenger,
-		TimeSpan saveDebounce)
-	{
-		return new ClipboardLogPersistenceCoordinator(
-			settingsStore,
-			log,
-			store,
-			new InlineDispatcherAccessor(),
-			Substitute.For<ILogger>(),
-			messenger,
-			saveDebounce);
 	}
 
 	/// <summary>
@@ -558,5 +586,36 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		Rtf = null,
 		Hash = hash
 	};
+	#endregion
+
+	#region Nested Types
+	/// <summary>
+	/// Bundles the coordinator under test with its fake clock and the saves it scheduled.
+	/// </summary>
+	private sealed class Context
+	{
+		#region Properties
+		/// <summary>
+		/// Debounced saves handed to the exception handler, in scheduling order.
+		/// </summary>
+		public List<Task> Scheduled { get; } = [];
+
+		public required ClipboardLogPersistenceCoordinator Sut { get; init; }
+
+		public required FakeTimeProvider Time { get; init; }
+		#endregion
+
+		#region Methods
+		/// <summary>
+		/// Moves the clock past the debounce and awaits every save scheduled so far.
+		/// </summary>
+		public async Task SettleAsync()
+		{
+			Time.Advance(SaveDebounce);
+
+			await Task.WhenAll([.. Scheduled]);
+		}
+		#endregion
+	}
 	#endregion
 }
