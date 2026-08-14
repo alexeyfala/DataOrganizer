@@ -295,6 +295,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Confirm Password.
+        /// </summary>
+        public static string ConfirmPassword {
+            get {
+                return ResourceManager.GetString("ConfirmPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Console.
         /// </summary>
         public static string Console {
@@ -538,15 +547,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enter the password to load saved history.
-        /// </summary>
-        public static string EnterThePasswordToLoadSavedHistory {
-            get {
-                return ResourceManager.GetString("EnterThePasswordToLoadSavedHistory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Exit.
         /// </summary>
         public static string Exit {
@@ -635,7 +635,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("FailedToProcessContents", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Failed to process the notes.
         /// </summary>
@@ -997,6 +997,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New password for the saved history. The session stays in memory only when cancelled..
+        /// </summary>
+        public static string NewSavedHistoryPasswordDescription {
+            get {
+                return ResourceManager.GetString("NewSavedHistoryPasswordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
@@ -1132,15 +1141,6 @@ namespace Shared.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to or cancel to keep this session in memory only.
-        /// </summary>
-        public static string OrCancelToKeepSessionInMemory {
-            get {
-                return ResourceManager.GetString("OrCancelToKeepSessionInMemory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
         public static string Password {
@@ -1155,6 +1155,24 @@ namespace Shared.Properties {
         public static string PasswordChanged {
             get {
                 return ResourceManager.GetString("PasswordChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At least {0} characters.
+        /// </summary>
+        public static string PasswordMinimumLength {
+            get {
+                return ResourceManager.GetString("PasswordMinimumLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Passwords do not match.
+        /// </summary>
+        public static string PasswordsDoNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
         
@@ -1299,6 +1317,15 @@ namespace Shared.Properties {
         public static string SaveAs {
             get {
                 return ResourceManager.GetString("SaveAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the password of the saved history. The session stays in memory only when cancelled..
+        /// </summary>
+        public static string SavedHistoryPasswordDescription {
+            get {
+                return ResourceManager.GetString("SavedHistoryPasswordDescription", resourceCulture);
             }
         }
         

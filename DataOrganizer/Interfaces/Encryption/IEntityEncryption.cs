@@ -21,10 +21,11 @@ public interface IEntityEncryption
 	Task ChangePasswordAsync(FolderModelDto dto, CancellationToken token = default);
 
 	/// <summary>
-	/// Decrypts the content of a file whose keeper is unlocked.
+	/// Decrypts the content of a file whose keeper is unlocked. Empty content is stored as is,
+	/// so it is handed back untouched.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
-	/// <exception cref="AuthenticationTagMismatchException">The content does not belong to the file or has been altered.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The key or the purpose does not fit the content, or the content has been altered.</exception>
 	byte[] Decrypt(FileModelDto file, byte[] input);
 
 	/// <summary>
@@ -70,6 +71,7 @@ public interface IEntityEncryption
 
 	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.
+	/// Empty content is handed back untouched, without asking for a password.
 	/// </summary>
 	Task<byte[]?> TryToDecryptContentsAsync(
 		FileModelDto file,

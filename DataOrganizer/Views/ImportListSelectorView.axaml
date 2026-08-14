@@ -10,21 +10,14 @@
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 
-	<Grid
-		ColumnDefinitions="*,Auto"
-		RowDefinitions="Auto,*,Auto"
-		RowSpacing="{StaticResource ElementSpacing}">
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
 		<TextBlock
-			Grid.Row="0"
-			Grid.Column="0"
-			Grid.ColumnSpan="2"
 			Classes="HeaderTextBlockStyle"
 			Text="{Binding Header, Mode=OneWay}" />
 
 		<StackPanel
-			Grid.Row="1"
-			Grid.Column="0"
-			Grid.ColumnSpan="2"
 			Orientation="Vertical"
 			Spacing="{StaticResource ElementSpacing}">
 			<RadioButton
@@ -37,8 +30,7 @@
 		</StackPanel>
 
 		<UniformGrid
-			Grid.Row="2"
-			Grid.Column="1"
+			HorizontalAlignment="Right"
 			ColumnSpacing="{StaticResource ElementSpacing}"
 			Columns="2">
 			<UniformGrid.Styles>
@@ -59,5 +51,5 @@
 				Content="{x:Static prop:Strings.Cancel}"
 				IsCancel="True" />
 		</UniformGrid>
-	</Grid>
+	</StackPanel>
 </UserControl>

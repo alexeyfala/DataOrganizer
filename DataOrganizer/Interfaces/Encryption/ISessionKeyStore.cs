@@ -15,14 +15,14 @@ public interface ISessionKeyStore
 	/// Decrypts contents with the key of an unlocked keeper.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
-	/// <exception cref="AuthenticationTagMismatchException">The contents do not belong to <paramref name="identity" /> or have been altered.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The contents do not fit the purpose of <paramref name="identity" /> or have been altered.</exception>
 	byte[] Decrypt(
 		Guid keeperId,
 		ContentIdentity identity,
 		byte[] encryptedContents);
 
 	/// <summary>
-	/// Encrypts contents with the key of an unlocked keeper, binding them to <paramref name="identity" />.
+	/// Encrypts contents with the key of an unlocked keeper, binding them to the purpose of <paramref name="identity" />.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
 	byte[] Encrypt(

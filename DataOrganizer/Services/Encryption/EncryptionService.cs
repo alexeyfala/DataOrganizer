@@ -195,11 +195,16 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		ArgumentNullException.ThrowIfNull(input);
 
-		// Guard: enough bytes for [version][salt][nonce][tag] and the version byte must match.
-		if (input.Length < 1 + saltSize + _algorithm.NonceSize + _algorithm.TagSize || input[0] != version)
+		if (input.Length < 1 + saltSize + _algorithm.NonceSize + _algorithm.TagSize)
 		{
 			throw new CryptographicException(
-				$"Encrypted data of {input.Length} bytes marked {input[0]:X2} cannot be read as the format {version:X2}.");
+				$"Encrypted data of {input.Length} bytes is too short for the format {version:X2}.");
+		}
+
+		if (input[0] != version)
+		{
+			throw new CryptographicException(
+				$"Encrypted data marked {input[0]:X2} cannot be read as the format {version:X2}.");
 		}
 
 		byte[]? plaintext;

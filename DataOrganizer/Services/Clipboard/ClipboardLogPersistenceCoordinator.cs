@@ -28,6 +28,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	private readonly IDispatcherAccessor _dispatcher;
 
+	/// <inheritdoc cref="ITaskExceptionHandler" />
+	private readonly ITaskExceptionHandler _exceptionHandler;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -44,6 +47,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 	/// <inheritdoc cref="IClipboardLogStore" />
 	private readonly IClipboardLogStore _store;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
 
 	/// <inheritdoc cref="IClipboardLogService" />
 	private readonly IClipboardLogService _сlipboardLog;
@@ -66,13 +72,17 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		IClipboardLogStore store,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IMessenger messenger) : this(
+		IMessenger messenger,
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider) : this(
 			  settingsStore,
 			  сlipboardLog,
 			  store,
 			  dispatcher,
 			  logger,
 			  messenger,
+			  exceptionHandler,
+			  timeProvider,
 			  DefaultSaveDebounce)
 	{
 	}
@@ -87,9 +97,13 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
 		IMessenger messenger,
+		ITaskExceptionHandler exceptionHandler,
+		TimeProvider timeProvider,
 		TimeSpan saveDebounce)
 	{
 		_dispatcher = dispatcher;
+
+		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
 
@@ -99,6 +113,8 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 		_store = store;
 
+		_timeProvider = timeProvider;
+
 		_сlipboardLog = сlipboardLog;
 
 		_saveDebounce = saveDebounce;
@@ -106,6 +122,9 @@ public sealed class ClipboardLogPersistenceCoordinator :
 	#endregion
 
 	#region Properties
+	/// <inheritdoc />
+	public bool HasPassword => _store.KeyFileExists;
+
 	/// <inheritdoc />
 	public bool RequiresUnlock => _settingsStore.Settings.PersistClipboardHistory && !_store.IsUnlocked;
 	#endregion
@@ -239,7 +258,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 		try
 		{
 			await Task
-				.Delay(_saveDebounce, cancellation.Token)
+				.Delay(_saveDebounce, _timeProvider, cancellation.Token)
 				.ConfigureAwait(false);
 
 			await SaveSnapshotAsync(cancellation.Token).ConfigureAwait(false);
@@ -297,7 +316,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 			// Already completed and disposed — nothing to do.
 		}
 
-		_ = RunDebouncedSaveAsync(cancellation);
+		_exceptionHandler.Watch(RunDebouncedSaveAsync(cancellation));
 	}
 	#endregion
 }

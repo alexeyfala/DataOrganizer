@@ -19,5 +19,15 @@ public enum ContentPurpose : byte
 	/// <summary>
 	/// Data encryption key of a password keeper.
 	/// </summary>
-	Dek = 3
+	Dek = 3,
+
+	/// <summary>
+	/// Data encryption key of the clipboard history.
+	/// </summary>
+	ClipboardDek = 4,
+
+	/// <summary>
+	/// Journal of the clipboard history.
+	/// </summary>
+	ClipboardJournal = 5
 }

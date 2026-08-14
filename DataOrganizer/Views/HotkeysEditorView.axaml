@@ -19,11 +19,10 @@
 		</EventTriggerBehavior>
 	</Interaction.Behaviors>
 
-	<Grid
-		RowDefinitions="Auto,*,Auto"
-		RowSpacing="{StaticResource ElementSpacing}">
+	<StackPanel
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
 		<StackPanel
-			Grid.Row="0"
 			Orientation="Horizontal"
 			Spacing="{StaticResource ElementSpacing}">
 			<StackPanel.Styles>
@@ -48,16 +47,15 @@
 		</StackPanel>
 
 		<TextBlock
-			Grid.Row="1"
 			HorizontalAlignment="Center"
 			FontSize="24.0"
 			FontWeight="SemiBold"
 			Text="{Binding Preview, Mode=OneWay}" />
 
-		<TextBlock Grid.Row="2">
+		<TextBlock>
 			<Run Text="{Binding Buffer.Count, Mode=OneWay}" />
 			<Run Text="/" />
 			<Run Text="{Binding MaxHotkeys, Mode=OneTime}" />
 		</TextBlock>
-	</Grid>
+	</StackPanel>
 </UserControl>

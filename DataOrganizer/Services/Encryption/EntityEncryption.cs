@@ -88,9 +88,10 @@ public sealed class EntityEncryption : IEntityEncryption
 			return;
 		}
 
-		char[] oldPassword = await _dialogService
-			.RequestPasswordAsync(Strings.ChangePassword, Strings.OldPassword, token)
-			.ConfigureAwait(false);
+		char[] oldPassword = await _dialogService.RequestPasswordAsync(
+			header: Strings.ChangePassword,
+			label: Strings.OldPassword,
+			token: token).ConfigureAwait(false);
 
 		if (oldPassword.IsEmpty())
 		{
@@ -119,9 +120,11 @@ public sealed class EntityEncryption : IEntityEncryption
 
 			try
 			{
-				char[] newPassword = await _dialogService
-					.RequestPasswordAsync(Strings.ChangePassword, Strings.NewPassword, token)
-					.ConfigureAwait(false);
+				char[] newPassword = await _dialogService.RequestPasswordAsync(
+					header: Strings.ChangePassword,
+					label: Strings.NewPassword,
+					mode: PasswordPromptMode.Create,
+					token: token).ConfigureAwait(false);
 
 				if (newPassword.IsEmpty())
 				{
@@ -185,6 +188,12 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public byte[] Decrypt(FileModelDto file, byte[] input)
 	{
+		// Empty content is written without encryption, so there is nothing to open here.
+		if (input.IsEmpty())
+		{
+			return input;
+		}
+
 		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
 		{
 			throw new InvalidOperationException(
@@ -318,9 +327,10 @@ public sealed class EntityEncryption : IEntityEncryption
 		FileModelDto[] files,
 		CancellationToken token = default)
 	{
-		char[] password = await _dialogService
-			.RequestPasswordAsync(Strings.EncryptFiles, token: token)
-			.ConfigureAwait(false);
+		char[] password = await _dialogService.RequestPasswordAsync(
+			header: Strings.EncryptFiles,
+			mode: PasswordPromptMode.Create,
+			token: token).ConfigureAwait(false);
 
 		if (password.IsEmpty())
 		{
@@ -577,6 +587,12 @@ public sealed class EntityEncryption : IEntityEncryption
 		string header,
 		CancellationToken token = default)
 	{
+		// Empty content is written without encryption, so neither a password nor a key is needed.
+		if (contents.IsEmpty())
+		{
+			return contents;
+		}
+
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
 			char[] password = await _dialogService

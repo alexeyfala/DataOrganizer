@@ -53,6 +53,8 @@ public interface IDialogService
 	Task<char[]> RequestPasswordAsync(
 		string header,
 		string? label = null,
+		string? description = null,
+		PasswordPromptMode mode = PasswordPromptMode.Verify,
 		CancellationToken token = default);
 
 	/// <summary>

@@ -4,8 +4,8 @@ using System;
 namespace DataOrganizer.Helpers.Security;
 
 /// <summary>
-/// The place a ciphertext belongs to, rendered as authenticated associated data.
-/// The identifier stays out of it: an import renumbers every object.
+/// The field a ciphertext belongs to, rendered as authenticated associated data.
+/// Only the purpose is authenticated: the identifier stays out, as an import renumbers every object.
 /// </summary>
 public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 {
@@ -28,6 +28,16 @@ public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 
 	#region Methods
 	/// <summary>
+	/// Identity of the data encryption key of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ForClipboardDek(Guid id) => new(id, ContentPurpose.ClipboardDek);
+
+	/// <summary>
+	/// Identity of the journal of the clipboard history.
+	/// </summary>
+	public static ContentIdentity ForClipboardJournal(Guid id) => new(id, ContentPurpose.ClipboardJournal);
+
+	/// <summary>
 	/// Identity of the contents of a file.
 	/// </summary>
 	public static ContentIdentity ForContents(Guid id) => new(id, ContentPurpose.Contents);
@@ -43,7 +53,8 @@ public readonly record struct ContentIdentity(Guid Id, ContentPurpose Purpose)
 	public static ContentIdentity ForNote(Guid id) => new(id, ContentPurpose.Note);
 
 	/// <summary>
-	/// Renders the identity as the associated data of an authenticated encryption.
+	/// Renders the purpose as the associated data of an authenticated encryption;
+	/// <see cref="Id" /> is not part of it, so ciphertexts of one purpose stay interchangeable.
 	/// </summary>
 	public byte[] ToAssociatedData()
 	{

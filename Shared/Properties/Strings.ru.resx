@@ -609,12 +609,6 @@
   <data name="ClipboardHistory" xml:space="preserve">
     <value>История буфера обмена</value>
   </data>
-  <data name="OrCancelToKeepSessionInMemory" xml:space="preserve">
-    <value>или отмените, чтобы сохранить эту сессию только в памяти</value>
-  </data>
-  <data name="EnterThePasswordToLoadSavedHistory" xml:space="preserve">
-    <value>Введите пароль для загрузки сохраненной истории</value>
-  </data>
   <data name="TryAgain" xml:space="preserve">
     <value>Попробуйте снова</value>
   </data>
@@ -644,5 +638,20 @@
   </data>
   <data name="RestoreDefaultSettings" xml:space="preserve">
     <value>Восстановить настройки по умолчанию</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Подтверждение пароля</value>
+  </data>
+  <data name="NewSavedHistoryPasswordDescription" xml:space="preserve">
+    <value>Новый пароль для сохраняемой истории. При отмене сессия останется только в памяти.</value>
+  </data>
+  <data name="SavedHistoryPasswordDescription" xml:space="preserve">
+    <value>Введите пароль от сохраненной истории. При отмене сессия останется только в памяти.</value>
+  </data>
+  <data name="PasswordMinimumLength" xml:space="preserve">
+    <value>Не менее {0} символов</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Пароли не совпадают</value>
   </data>
 </root>
