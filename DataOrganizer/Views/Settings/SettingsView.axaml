@@ -117,6 +117,16 @@
 							<TextBlock Text="{x:Static prop:Strings.Clipboard}" />
 						</StackPanel>
 					</ListBoxItem>
+
+					<ListBoxItem>
+						<StackPanel
+							Orientation="Horizontal"
+							Spacing="{StaticResource ElementSpacing}">
+							<materialIcons:MaterialIcon Kind="ShieldLockOutline" />
+
+							<TextBlock Text="{x:Static prop:Strings.Security}" />
+						</StackPanel>
+					</ListBoxItem>
 				</ListBox>
 			</ScrollViewer>
 
@@ -136,6 +146,8 @@
 					<settings:SettingsBehaviorView />
 
 					<settings:SettingsClipboardView />
+
+					<settings:SettingsSecurityView />
 				</wrappers:MaxSizeSwitchPanel>
 			</ScrollViewer>
 		</Grid>

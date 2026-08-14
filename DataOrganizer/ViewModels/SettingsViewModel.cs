@@ -20,6 +20,11 @@ public sealed partial class SettingsViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
+	/// Selectable auto-lock delays in minutes, where <c>0</c> stands for no auto-lock.
+	/// </summary>
+	public static int[] AutoLockDelays { get; } = [0, 1, 3, 5, 10, 15, 30, 60];
+
+	/// <summary>
 	/// Sequence of application languages.
 	/// </summary>
 	public static CultureInfo[] Languages { get; } = IAppSettingsStore.Languages;
@@ -33,6 +38,10 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// The sequence of the accent colors of the application.
 	/// </summary>
 	public static SecondaryColor[] SecondaryColors { get; } = Enum.GetValues<SecondaryColor>();
+
+	/// <inheritdoc cref="AppSettings.AutoLockMinutes" />
+	[ObservableProperty]
+	public partial int AutoLockMinutes { get; set; }
 
 	/// <inheritdoc cref="AppSettings.CheckForUpdates" />
 	[ObservableProperty]
@@ -118,6 +127,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 	#endregion
 
 	#region Partial
+	/// <summary>
+	/// Called when <see cref="AutoLockMinutes" /> changes.
+	/// </summary>
+	partial void OnAutoLockMinutesChanged(int value)
+	{
+		CurrentSettings.AutoLockMinutes = value;
+
+		NotifyCommandsCanExecuteChanged();
+	}
+
 	/// <summary>
 	/// Called when <see cref="CheckForUpdates" /> changes.
 	/// </summary>
@@ -322,6 +341,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		CheckForUpdates = defaults.CheckForUpdates;
 
+		AutoLockMinutes = defaults.AutoLockMinutes;
+
 		TrackClipboardHistory = defaults.TrackClipboardHistory;
 
 		PersistClipboardHistory = defaults.PersistClipboardHistory;
@@ -399,6 +420,8 @@ public sealed partial class SettingsViewModel : ObservableObject
 		CurrentSettings = settingsStore.Settings.DeepCopy() ?? IAppSettingsStore.CreateDefaultSettings();
 
 		CheckForUpdates = CurrentSettings.CheckForUpdates;
+
+		AutoLockMinutes = CurrentSettings.AutoLockMinutes;
 
 		TrackClipboardHistory = CurrentSettings.TrackClipboardHistory;
 

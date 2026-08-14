@@ -654,4 +654,19 @@
   <data name="PasswordsDoNotMatch" xml:space="preserve">
     <value>Пароли не совпадают</value>
   </data>
+  <data name="Security" xml:space="preserve">
+    <value>Безопасность</value>
+  </data>
+  <data name="AutoLock" xml:space="preserve">
+    <value>Автоблокировка</value>
+  </data>
+  <data name="AutoLockDescription" xml:space="preserve">
+    <value>Расшифрованное содержимое файлов скрывается по истечении выбранного времени.</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Никогда</value>
+  </data>
+  <data name="MinutesShortFormat" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
 </root>

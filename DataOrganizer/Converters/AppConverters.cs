@@ -10,6 +10,7 @@ using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
 using Shared.Properties;
+using System.Globalization;
 using System.Linq;
 
 namespace DataOrganizer.Converters;
@@ -27,6 +28,14 @@ internal static class AppConverters
 	#endregion
 
 	#region Properties
+	/// <summary>
+	/// Caption of an auto-lock delay in minutes, where <c>0</c> stands for no auto-lock.
+	/// </summary>
+	public static FuncValueConverter<int, string> AutoLockDelay { get; } =
+		new(minutes => minutes <= 0
+			? Strings.Never
+			: string.Format(CultureInfo.CurrentCulture, Strings.MinutesShortFormat, minutes));
+
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch
 		{

@@ -169,6 +169,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-Lock.
+        /// </summary>
+        public static string AutoLock {
+            get {
+                return ResourceManager.GetString("AutoLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The decrypted file contents are hidden after the selected period..
+        /// </summary>
+        public static string AutoLockDescription {
+            get {
+                return ResourceManager.GetString("AutoLockDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Behavior.
         /// </summary>
         public static string Behavior {
@@ -961,6 +979,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} min.
+        /// </summary>
+        public static string MinutesShortFormat {
+            get {
+                return ResourceManager.GetString("MinutesShortFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing files.
         /// </summary>
         public static string MissingFiles {
@@ -984,6 +1011,15 @@ namespace Shared.Properties {
         public static string NameAndExtension {
             get {
                 return ResourceManager.GetString("NameAndExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never.
+        /// </summary>
+        public static string Never {
+            get {
+                return ResourceManager.GetString("Never", resourceCulture);
             }
         }
         
@@ -1362,6 +1398,15 @@ namespace Shared.Properties {
         public static string SecondaryColor {
             get {
                 return ResourceManager.GetString("SecondaryColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security.
+        /// </summary>
+        public static string Security {
+            get {
+                return ResourceManager.GetString("Security", resourceCulture);
             }
         }
         

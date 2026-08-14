@@ -14,6 +14,11 @@ public record AppSettings
 {
 	#region Properties
 	/// <summary>
+	/// Minutes of inactivity after which the decrypted contents are hidden; <c>0</c> disables the auto-lock.
+	/// </summary>
+	public int AutoLockMinutes { get; set; }
+
+	/// <summary>
 	/// Indicates whether a check for a newer application version runs on startup.
 	/// </summary>
 	public bool CheckForUpdates { get; set; } = true;
