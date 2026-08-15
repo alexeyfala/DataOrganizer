@@ -19,6 +19,28 @@ internal class SettingsViewModelTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="SettingsViewModel.AutoLockMinutes" />: selecting a delay updates the current settings value.
+	/// </summary>
+	[Test]
+	public void CurrentSettings_Applies_AutoLockMinutes()
+	{
+		// Arrange
+		const int minutes = 5;
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		SettingsViewModel sut = mock.Create<SettingsViewModel>();
+
+		// Act
+		sut.AutoLockMinutes = minutes;
+
+		// Assert
+		sut.CurrentSettings.AutoLockMinutes
+			.Should()
+			.Be(minutes);
+	}
+
+	/// <summary>
 	/// <see cref="SettingsViewModel.CheckForUpdates" />: toggling the flag updates the current settings value.
 	/// </summary>
 	[Test]

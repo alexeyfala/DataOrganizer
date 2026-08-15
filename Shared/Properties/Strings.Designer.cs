@@ -169,6 +169,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-Lock.
+        /// </summary>
+        public static string AutoLock {
+            get {
+                return ResourceManager.GetString("AutoLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The decrypted file contents are hidden after the selected period..
+        /// </summary>
+        public static string AutoLockDescription {
+            get {
+                return ResourceManager.GetString("AutoLockDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Behavior.
         /// </summary>
         public static string Behavior {
@@ -336,6 +354,15 @@ namespace Shared.Properties {
         public static string ContentIsEncrypted {
             get {
                 return ResourceManager.GetString("ContentIsEncrypted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file contents are hidden by the auto-lock.
+        /// </summary>
+        public static string ContentsHiddenByAutoLock {
+            get {
+                return ResourceManager.GetString("ContentsHiddenByAutoLock", resourceCulture);
             }
         }
         
@@ -952,11 +979,29 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Locking in {0}.
+        /// </summary>
+        public static string LockedInFormat {
+            get {
+                return ResourceManager.GetString("LockedInFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Menu.
         /// </summary>
         public static string Menu {
             get {
                 return ResourceManager.GetString("Menu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} min.
+        /// </summary>
+        public static string MinutesShortFormat {
+            get {
+                return ResourceManager.GetString("MinutesShortFormat", resourceCulture);
             }
         }
         
@@ -984,6 +1029,15 @@ namespace Shared.Properties {
         public static string NameAndExtension {
             get {
                 return ResourceManager.GetString("NameAndExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never.
+        /// </summary>
+        public static string Never {
+            get {
+                return ResourceManager.GetString("Never", resourceCulture);
             }
         }
         
@@ -1285,6 +1339,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A click starts the auto-lock countdown over.
+        /// </summary>
+        public static string RestartAutoLockHint {
+            get {
+                return ResourceManager.GetString("RestartAutoLockHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Restore Default Settings.
         /// </summary>
         public static string RestoreDefaultSettings {
@@ -1362,6 +1425,15 @@ namespace Shared.Properties {
         public static string SecondaryColor {
             get {
                 return ResourceManager.GetString("SecondaryColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Security.
+        /// </summary>
+        public static string Security {
+            get {
+                return ResourceManager.GetString("Security", resourceCulture);
             }
         }
         

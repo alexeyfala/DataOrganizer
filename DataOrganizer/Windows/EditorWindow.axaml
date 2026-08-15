@@ -7,7 +7,9 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -384,17 +386,73 @@
 
 							<StackPanel
 								Grid.Column="2"
-								IsVisible="{Binding IsReadOnly, Mode=OneWay}"
-								Orientation="Horizontal">
+								Orientation="Horizontal"
+								Spacing="{StaticResource ElementSpacing}">
 
-								<TextBlock
-									Foreground="{StaticResource WarningBrush}"
-									Text="{x:Static prop:Strings.ReadOnlyMode}" />
+								<StackPanel
+									IsVisible="{Binding IsReadOnly, Mode=OneWay}"
+									Orientation="Horizontal">
 
-								<materialIcons:MaterialIcon
-									Margin="3.0,0.0"
-									Foreground="{StaticResource WarningBrush}"
-									Kind="PencilOffOutline" />
+									<materialIcons:MaterialIcon
+										Margin="3.0,0.0"
+										Foreground="{StaticResource WarningBrush}"
+										Kind="PencilOffOutline" />
+
+									<TextBlock
+										Foreground="{StaticResource WarningBrush}"
+										Text="{x:Static prop:Strings.ReadOnlyMode}" />
+								</StackPanel>
+
+								<Grid
+									x:DataType="encryption:IAutoLockService"
+									Classes.expiring="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
+									ColumnDefinitions="Auto,Auto"
+									Cursor="Hand"
+									DataContext="{markup:Resolve {x:Type encryption:IAutoLockService}}"
+									IsVisible="{Binding IsArmed, Mode=OneWay}"
+									ToolTip.Tip="{x:Static prop:Strings.RestartAutoLockHint}">
+									<Grid.Styles>
+										<Style Selector="Grid">
+											<Setter Property="Background" Value="Transparent" />
+										</Style>
+
+										<Style Selector="Grid:pointerover">
+											<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+										</Style>
+
+										<Style Selector="Grid > TextBlock">
+											<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+										</Style>
+
+										<Style Selector="Grid > materialIcons|MaterialIcon">
+											<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
+										</Style>
+
+										<Style Selector="Grid.expiring > TextBlock">
+											<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+										</Style>
+
+										<Style Selector="Grid.expiring > materialIcons|MaterialIcon">
+											<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+										</Style>
+									</Grid.Styles>
+
+									<materialIcons:MaterialIcon
+										Grid.Column="0"
+										Margin="2.0,0.0,3.0,0.0"
+										Kind="TimerLockOutline" />
+
+									<TextBlock
+										Grid.Column="1"
+										Margin="0.0,0.0,2.0,0.0"
+										Text="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
+
+									<Interaction.Behaviors>
+										<EventTriggerBehavior EventName="Tapped">
+											<InvokeCommandAction Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RestartAutoLockCommand}" />
+										</EventTriggerBehavior>
+									</Interaction.Behaviors>
+								</Grid>
 							</StackPanel>
 
 							<ProgressBar

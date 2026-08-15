@@ -341,7 +341,7 @@ public partial class EditorViewModel :
 
 			if (!await _dialogService
 				.RequestYesCancelDialogAsync(text)
-				.ConfigureAwait(false))
+				.ConfigureAwait(true))
 			{
 				return;
 			}
@@ -353,14 +353,14 @@ public partial class EditorViewModel :
 			nameof(FileModelDto.Name),
 			nameof(FileModelDto.EntityType))}");
 
-		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(false))
+		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
 			return;
 		}
 
 		ContentsIsValidPair result = await _dbAccess
 			.GetFileContentsAsync(dto.Id)
-			.ConfigureAwait(false);
+			.ConfigureAwait(true);
 
 		if (!result.IsValid)
 		{
@@ -416,7 +416,7 @@ public partial class EditorViewModel :
 
 		if (!await _executionEngine
 			.ExecuteAsync(parameters)
-			.ConfigureAwait(false))
+			.ConfigureAwait(true))
 		{
 			return;
 		}
@@ -458,7 +458,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideAllContents(Hierarchy);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -494,7 +494,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideFileContents(dto);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
@@ -525,7 +525,7 @@ public partial class EditorViewModel :
 
 		_entityEncryption.HideFolderContents(dto);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -676,7 +676,7 @@ public partial class EditorViewModel :
 			.ShowFolderContentsAsync(dto)
 			.ConfigureAwait(true);
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 	}
 
 	/// <summary>
@@ -949,6 +949,12 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
+	/// Starts the auto-lock countdown over from the delay currently in the settings.
+	/// </summary>
+	[RelayCommand]
+	private void RestartAutoLock() => _autoLock.Arm();
+
+	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
@@ -1069,6 +1075,9 @@ public partial class EditorViewModel :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IAutoLockService" />
+	private readonly IAutoLockService _autoLock;
+
 	/// <inheritdoc cref="IClipboardLogService" />
 	private readonly IClipboardLogService _clipboardLog;
 
@@ -1108,6 +1117,7 @@ public partial class EditorViewModel :
 		Application app,
 		IAppSettingsStore settingsStore,
 		IAppThemeService themeService,
+		IAutoLockService autoLock,
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
@@ -1142,6 +1152,8 @@ public partial class EditorViewModel :
 			viewLauncher,
 			keyboardInputHook)
 	{
+		_autoLock = autoLock;
+
 		_clipboardLog = clipboardLog;
 
 		_clipboardLogPersistence = clipboardLogPersistence;
@@ -1359,24 +1371,6 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Closes editing and executing files.
-	/// </summary>
-	internal void CloseFiles(
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
-	{
-		foreach (FileModelDto file in editingFiles)
-		{
-			CloseEditingFile(file);
-		}
-
-		foreach (FileModelDto file in executingFiles)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
 	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	internal async Task<bool> DeleteAsync(
@@ -1439,6 +1433,11 @@ public partial class EditorViewModel :
 			.Settings
 			.PersistClipboardHistory;
 
+		// Captured before overwrite so that only a changed delay restarts the countdown.
+		int previousAutoLockMinutes = _settingsStore
+			.Settings
+			.AutoLockMinutes;
+
 		if (isSave)
 		{
 			_settingsStore.Overwrite(settings);
@@ -1453,6 +1452,12 @@ public partial class EditorViewModel :
 		if (!isSave)
 		{
 			return;
+		}
+
+		// A changed delay takes effect at once: the countdown restarts from it, and no auto-lock stops it.
+		if (settings.AutoLockMinutes != previousAutoLockMinutes)
+		{
+			NotifyDecryptedContentsChanged();
 		}
 
 		await ApplyClipboardHistorySettingAsync(
@@ -1478,6 +1483,37 @@ public partial class EditorViewModel :
 		}
 
 		_exceptionHandler.Watch(_keyboardInputHook.Value.StartTrackingAsync(Hierarchy, token));
+	}
+
+	/// <summary>
+	/// Refreshes the command that hides everything and keeps the auto-lock countdown
+	/// in step with the decrypted contents.
+	/// </summary>
+	protected internal override void NotifyDecryptedContentsChanged()
+	{
+		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+
+		if (CanHideAllFiles())
+		{
+			_autoLock.Arm();
+		}
+		else
+		{
+			_autoLock.Stop();
+		}
+	}
+
+	/// <inheritdoc />
+	protected override void CloseEditingFile(FileModelDto file)
+	{
+		if (_editingFiles is not null)
+		{
+			_editingFiles.CloseTab(file);
+		}
+		else
+		{
+			file.IsEditing = false;
+		}
 	}
 	#endregion
 
@@ -1707,56 +1743,9 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Closes editing file.
-	/// </summary>
-	private void CloseEditingFile(FileModelDto file)
-	{
-		if (_editingFiles is not null)
-		{
-			_editingFiles.CloseTab(file);
-		}
-		else
-		{
-			file.IsEditing = false;
-		}
-	}
-
-	/// <summary>
-	/// Closes file that is being edited or executed;
-	/// </summary>
-	private void CloseFile(FileModelDto file)
-	{
-		if (file.IsEditing)
-		{
-			CloseEditingFile(file);
-		}
-
-		if (file.IsExecuting)
-		{
-			CloseExecutingFile(file);
-		}
-	}
-
-	/// <summary>
 	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
-
-	/// <summary>
-	/// Asks every open editor to persist its pending changes and awaits all of them.
-	/// </summary>
-	private async Task<bool> FlushEditorsAsync(CancellationToken token = default)
-	{
-		FlushEditorsMessage request = new();
-
-		_messenger.Send(request);
-
-		IReadOnlyCollection<bool> responses = await request
-			.GetResponsesAsync(token)
-			.ConfigureAwait(true);
-
-		return responses.All(x => x);
-	}
 
 	/// <summary>
 	/// Tries to remove value from copy history.
@@ -1782,7 +1771,8 @@ public partial class EditorViewModel :
 			return false;
 		}
 
-		HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		// HideAllFileContentsCommand.NotifyCanExecuteChanged();
+		NotifyDecryptedContentsChanged();
 
 		return true;
 	}

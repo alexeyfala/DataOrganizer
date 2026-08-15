@@ -9,6 +9,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -37,6 +38,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IAppEnvironment" />
 	private readonly IAppEnvironment _appEnvironment;
+
+	/// <inheritdoc cref="IAutoLockService" />
+	private readonly IAutoLockService _autoLock;
 
 	/// <inheritdoc cref="IClipboardLogService" />
 	private readonly IClipboardLogService _clipboardLog;
@@ -75,6 +79,7 @@ public class ViewLauncher : IViewLauncher
 	public ViewLauncher(
 		Application app,
 		IAppEnvironment appEnvironment,
+		IAutoLockService autoLock,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
 		IDialogService dialogService,
@@ -90,6 +95,8 @@ public class ViewLauncher : IViewLauncher
 		_app = app;
 
 		_appEnvironment = appEnvironment;
+
+		_autoLock = autoLock;
 
 		_clipboardLog = clipboardLog;
 
@@ -250,9 +257,7 @@ public class ViewLauncher : IViewLauncher
 			.ExecutingFiles
 			.AddRange(executingFiles);
 
-		viewModel
-			.HideAllFileContentsCommand
-			.NotifyCanExecuteChanged();
+		viewModel.NotifyDecryptedContentsChanged();
 
 		if (showObjectId.IsNotDefault())
 		{
@@ -609,6 +614,8 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
+		_autoLock.Stop();
+
 		if (_keyboardInputHook.IsValueCreated && _keyboardInputHook.Value.IsRunning)
 		{
 			await _keyboardInputHook

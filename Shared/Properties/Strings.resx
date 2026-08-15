@@ -634,4 +634,28 @@
   <data name="PasswordsDoNotMatch" xml:space="preserve">
     <value>Passwords do not match</value>
   </data>
+  <data name="Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="AutoLock" xml:space="preserve">
+    <value>Auto-Lock</value>
+  </data>
+  <data name="AutoLockDescription" xml:space="preserve">
+    <value>The decrypted file contents are hidden after the selected period.</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="MinutesShortFormat" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="ContentsHiddenByAutoLock" xml:space="preserve">
+    <value>The file contents are hidden by the auto-lock</value>
+  </data>
+  <data name="LockedInFormat" xml:space="preserve">
+    <value>Locking in {0}</value>
+  </data>
+  <data name="RestartAutoLockHint" xml:space="preserve">
+    <value>A click starts the auto-lock countdown over</value>
+  </data>
 </root>

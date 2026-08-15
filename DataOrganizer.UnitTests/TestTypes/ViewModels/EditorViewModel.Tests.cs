@@ -810,6 +810,47 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: a changed auto-lock delay restarts the countdown at once.
+	/// </summary>
+	[Test]
+	public async Task HandleChangeSettingsAsync_Applies_A_Changed_Auto_Lock_Delay()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		AppSettings saved = TestUtils.CreateRandomSettings();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(saved);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(autoLock);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		AppSettings changed = TestUtils.CreateRandomSettings();
+
+		changed.AutoLockMinutes = 5;
+
+		// Act
+		await sut.HandleChangeSettingsAsync(true, changed);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
 	/// </summary>
 	[Test]
@@ -872,6 +913,49 @@ internal class EditorViewModelTests
 				.ApplyMaterialTheme();
 
 		}
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: an unchanged auto-lock delay leaves the countdown running.
+	/// </summary>
+	[Test]
+	public async Task HandleChangeSettingsAsync_Keeps_An_Unchanged_Auto_Lock_Delay()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		AppSettings settings = TestUtils.CreateRandomSettings();
+
+		settings.AutoLockMinutes = 5;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(settings);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(autoLock);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		// Act
+		await sut.HandleChangeSettingsAsync(true, settings);
+
+		// Assert
+		autoLock
+			.DidNotReceive()
+			.Arm();
+
+		autoLock
+			.DidNotReceive()
+			.Stop();
 	}
 
 	/// <summary>
@@ -1332,6 +1416,189 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.NotifyDecryptedContentsChanged" />: decrypted contents keep the countdown running.
+	/// </summary>
+	[Test]
+	public void NotifyDecryptedContentsChanged_Arms_The_Countdown_For_Decrypted_Contents()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
+
+		// Act
+		sut.NotifyDecryptedContentsChanged();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
+
+		autoLock
+			.DidNotReceive()
+			.Stop();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.NotifyDecryptedContentsChanged" />: nothing left decrypted stops the countdown.
+	/// </summary>
+	[Test]
+	public void NotifyDecryptedContentsChanged_Stops_The_Countdown_Without_Decrypted_Contents()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted)]);
+
+		// Act
+		sut.NotifyDecryptedContentsChanged();
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Stop();
+
+		autoLock
+			.DidNotReceive()
+			.Arm();
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the expiry closes the open files and hides every content.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Closes_Files_And_Hides_Contents()
+	{
+		// Arrange
+		FileModelDto editingFile = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		FileModelDto executingFile = TestUtils.CreateFileDto(
+			isExecuting: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([editingFile, executingFile]);
+
+		sut
+			.OpenedInEditorFiles
+			.Add(editingFile);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		editingFile.IsEditing
+			.Should()
+			.BeFalse();
+
+		executingFile.IsExecuting
+			.Should()
+			.BeFalse();
+
+		sut.OpenedInEditorFiles
+			.Should()
+			.BeEmpty();
+
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: an editor that cannot persist its changes
+	/// does not keep the contents decrypted.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Hides_Contents_When_An_Editor_Cannot_Save()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new StrongReferenceMessenger();
+
+		object recipient = new();
+
+		messenger.Register<FlushEditorsMessage>(recipient, static (_, message) => message.Reply(false));
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeFalse();
+
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.ResetSelectedObject" />: SelectedObject is cleared and the object's IsSelected is reset.
 	/// </summary>
 	[Test]
@@ -1385,6 +1652,30 @@ internal class EditorViewModelTests
 		processUtils
 			.Received()
 			.StartProcess(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.RestartAutoLock" />: the countdown starts over from the delay in the settings.
+	/// </summary>
+	[Test]
+	public void RestartAutoLock_Starts_The_Countdown_Over()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.RestartAutoLockCommand
+			.Execute(null);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
 	}
 
 	/// <summary>

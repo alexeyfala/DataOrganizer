@@ -379,6 +379,7 @@ public sealed class App : Application
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
 		services.AddSingleton<IAppThemeService, AppThemeService>();
 		services.AddSingleton<IAppVersionProvider, AppVersionProvider>();
+		services.AddSingleton<IAutoLockService, AutoLockService>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
 		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();

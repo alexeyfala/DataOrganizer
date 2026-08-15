@@ -4,11 +4,14 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
+using DataOrganizer.Messages;
 using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -246,6 +249,67 @@ internal class FavoritesViewModelTests
 		sut.CopyHistorySettings.Items[0]
 			.Should()
 			.Be(file.Id);
+	}
+
+	/// <summary>
+	/// <see cref="ViewModelBase.Receive(SessionAutoLockedMessage)" />: the favorites window hides the contents as well.
+	/// </summary>
+	[Test]
+	public async Task Receive_SessionAutoLocked_Hides_Contents()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(
+			isEditing: true,
+			encryptionStatus: EncryptionStatus.Decrypted);
+
+		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+
+		IMessenger messenger = new WeakReferenceMessenger();
+
+		List<Task> scheduled = [];
+
+		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
+
+		exceptionHandler
+			.When(static x => x.Watch(Arg.Any<Task>()))
+			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(entityEncryption);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance(exceptionHandler);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
+
+		sut.AddHierarchy([file]);
+
+		sut
+			.OpenedInEditorFiles
+			.Add(file);
+
+		// Act
+		messenger.Send(new SessionAutoLockedMessage());
+
+		await Task.WhenAll([.. scheduled]);
+
+		// Assert
+		file.IsEditing
+			.Should()
+			.BeFalse();
+
+		sut.OpenedInEditorFiles
+			.Should()
+			.BeEmpty();
+
+		entityEncryption
+			.Received(1)
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
 
 	/// <summary>
