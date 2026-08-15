@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Enums;
+using Repository.Interceptors;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -773,7 +774,7 @@ public sealed class DbAccess : IDbAccess
 
 			using SqliteConnection connection = new(connectionString);
 
-			connection.Open();
+			SqlitePragmas.Open(connection);
 
 			using SqliteCommand cmd = connection.CreateCommand();
 
@@ -1055,9 +1056,9 @@ public sealed class DbAccess : IDbAccess
 
 		using SqliteConnection dest = new(destBuilder.ToString());
 
-		source.Open();
+		SqlitePragmas.Open(source);
 
-		dest.Open();
+		SqlitePragmas.Open(dest);
 
 		source.BackupDatabase(dest);
 
@@ -1094,6 +1095,7 @@ public sealed class DbAccess : IDbAccess
 
 		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
 			.UseSqlite(builder.ToString())
+			.AddInterceptors(new SqlitePragmaInterceptor())
 			.Options;
 
 		return new(options);
