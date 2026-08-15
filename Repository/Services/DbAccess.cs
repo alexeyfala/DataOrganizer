@@ -254,7 +254,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<string?> BackupDatabaseAsync(CancellationToken token = default)
+	public async Task<DatabaseBackup?> BackupDatabaseAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -286,7 +286,10 @@ public sealed class DbAccess : IDbAccess
 				return null;
 			}
 
-			return backupFilePath;
+			return new DatabaseBackup(
+				backupFilePath,
+				_fileSystem,
+				_logger);
 		}
 		catch (Exception ex)
 		{

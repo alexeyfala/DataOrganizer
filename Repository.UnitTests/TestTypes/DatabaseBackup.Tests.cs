@@ -1,0 +1,123 @@
+using AwesomeAssertions;
+using NSubstitute;
+using Repository.Services;
+using Serilog.Core;
+using Shared.Interfaces;
+using System;
+
+namespace Repository.UnitTests.TestTypes;
+
+[TestFixture(Description = $@"Tests of ""{nameof(DatabaseBackup)}"" type")]
+internal class DatabaseBackupTests
+{
+	#region Data
+	/// <summary>
+	/// Path of the copy used in the tests.
+	/// </summary>
+	private const string FilePath = @"C:\Database\Backup.sqlite";
+	#endregion
+
+	#region Methods
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: erases the copy of the database.
+	/// </summary>
+	[Test]
+	public void Dispose_Erases_The_Copy()
+	{
+		// Arrange
+		IFileSystem fileSystem = CreateFileSystem();
+
+		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: erases the copy no more than once.
+	/// </summary>
+	[Test]
+	public void Dispose_Erases_The_Copy_Only_Once()
+	{
+		// Arrange
+		IFileSystem fileSystem = CreateFileSystem();
+
+		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+
+		// Act
+		sut.Dispose();
+
+		sut.Dispose();
+
+		// Assert
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(FilePath);
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: a copy that is already gone is left alone.
+	/// </summary>
+	[Test]
+	public void Dispose_Skips_A_Missing_Copy()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+
+		// Act
+		sut.Dispose();
+
+		// Assert
+		fileSystem
+			.DidNotReceive()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DatabaseBackup.Dispose" />: a failure to erase does not leave the disposal throwing.
+	/// </summary>
+	[Test]
+	public void Dispose_Survives_A_Failure_To_Erase()
+	{
+		// Arrange
+		IFileSystem fileSystem = CreateFileSystem();
+
+		fileSystem
+			.When(x => x.EraseAndDeleteFile(FilePath))
+			.Throw(new UnauthorizedAccessException());
+
+		DatabaseBackup sut = new(FilePath, fileSystem, Logger.None);
+
+		// Act
+		Action act = sut.Dispose;
+
+		// Assert
+		act
+			.Should()
+			.NotThrow();
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a file system in which the copy exists.
+	/// </summary>
+	private static IFileSystem CreateFileSystem()
+	{
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		fileSystem
+			.IsFileExists(FilePath)
+			.Returns(true);
+
+		return fileSystem;
+	}
+	#endregion
+}
