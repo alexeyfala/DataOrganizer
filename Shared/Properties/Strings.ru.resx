@@ -676,6 +676,6 @@
     <value>Блокировка через {0}</value>
   </data>
   <data name="RestartAutoLockHint" xml:space="preserve">
-    <value>Клик запускает отсчёт автоблокировки заново</value>
+    <value>Нажатие запускает отсчёт автоблокировки заново</value>
   </data>
 </root>

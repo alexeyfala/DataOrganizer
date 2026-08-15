@@ -391,14 +391,14 @@
 									IsVisible="{Binding IsReadOnly, Mode=OneWay}"
 									Orientation="Horizontal">
 
-									<TextBlock
-										Foreground="{StaticResource WarningBrush}"
-										Text="{x:Static prop:Strings.ReadOnlyMode}" />
-
 									<materialIcons:MaterialIcon
 										Margin="3.0,0.0"
 										Foreground="{StaticResource WarningBrush}"
 										Kind="PencilOffOutline" />
+
+									<TextBlock
+										Foreground="{StaticResource WarningBrush}"
+										Text="{x:Static prop:Strings.ReadOnlyMode}" />
 								</StackPanel>
 
 								<Grid
