@@ -108,30 +108,17 @@ public sealed class DbMaintenance : IDbMaintenance
 	/// <inheritdoc />
 	public void ErasePendingBackups()
 	{
-		string databaseFilePath = _dbContextService.GetDbFilePath();
+		string directoryPath = DatabaseBackup.GetDirectoryPath(_dbContextService.GetDbFilePath());
 
-		string directoryPath = DatabaseBackup.GetDirectoryPath(databaseFilePath);
-
-		if (_fileSystem.IsDirectoryExists(directoryPath))
+		if (!_fileSystem.IsDirectoryExists(directoryPath))
 		{
-			foreach (string filePath in _fileSystem.EnumerateFiles(directoryPath))
-			{
-				Erase(filePath);
-			}
+			return;
 		}
 
-		// The copies of the previous versions lay next to the database itself.
-		Erase(DatabaseBackup.GetLegacyFilePath(databaseFilePath));
-
-		void Erase(string filePath)
+		foreach (string filePath in _fileSystem.EnumerateFiles(directoryPath))
 		{
 			try
 			{
-				if (!_fileSystem.IsFileExists(filePath))
-				{
-					return;
-				}
-
 				_fileSystem.EraseAndDeleteFile(filePath);
 
 				_logger.LogInformation($@"Erased a leftover copy of the database ""{filePath}""");

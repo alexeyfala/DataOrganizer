@@ -159,21 +159,6 @@ internal class DatabaseBackupTests
 			.Should()
 			.NotBe(Path.GetDirectoryName(DatabaseFilePath));
 	}
-
-	/// <summary>
-	/// <see cref="DatabaseBackup.GetLegacyFilePath" />: the copy of the previous versions lies next to the database.
-	/// </summary>
-	[Test]
-	public void GetLegacyFilePath_Points_Next_To_The_Database()
-	{
-		// Act
-		string filePath = DatabaseBackup.GetLegacyFilePath(DatabaseFilePath);
-
-		// Assert
-		filePath
-			.Should()
-			.Be(Path.Combine(Path.GetDirectoryName(DatabaseFilePath)!, "Backup" + AppUtils.SQLiteExtension));
-	}
 	#endregion
 
 	#region Helpers

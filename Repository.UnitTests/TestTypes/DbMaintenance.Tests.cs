@@ -126,7 +126,7 @@ internal class DbMaintenanceTests
 	}
 
 	/// <summary>
-	/// <see cref="DbMaintenance.ErasePendingBackups" />: erases the copies of an interrupted session, the legacy one included.
+	/// <see cref="DbMaintenance.ErasePendingBackups" />: erases the copies left by an interrupted session.
 	/// </summary>
 	[Test]
 	public void ErasePendingBackups_Erases_The_Leftover_Copies()
@@ -154,10 +154,6 @@ internal class DbMaintenanceTests
 				.Received(1)
 				.EraseAndDeleteFile(filePath);
 		}
-
-		fileSystem
-			.Received(1)
-			.EraseAndDeleteFile(DatabaseBackup.GetLegacyFilePath(DatabaseFilePath));
 	}
 
 	/// <summary>
@@ -211,7 +207,7 @@ internal class DbMaintenanceTests
 		"DataOrganizer.sqlite");
 
 	/// <summary>
-	/// Creates a file system holding the given copies of the database and the legacy one.
+	/// Creates a file system holding the given copies of the database.
 	/// </summary>
 	private static IFileSystem CreateFileSystem(string[] leftovers)
 	{
@@ -226,10 +222,6 @@ internal class DbMaintenanceTests
 		fileSystem
 			.EnumerateFiles(directoryPath)
 			.Returns(leftovers);
-
-		fileSystem
-			.IsFileExists(Arg.Any<string>())
-			.Returns(true);
 
 		return fileSystem;
 	}

@@ -19,11 +19,6 @@ public sealed class DatabaseBackup : IDisposable
 	/// </summary>
 	private const string DirectoryName = "Backups";
 
-	/// <summary>
-	/// Name a copy had before the copies moved into a folder of their own.
-	/// </summary>
-	private const string LegacyFileName = "Backup" + AppUtils.SQLiteExtension;
-
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
@@ -74,14 +69,6 @@ public sealed class DatabaseBackup : IDisposable
 	public static string GetDirectoryPath(string databaseFilePath)
 	{
 		return Path.Combine(GetDatabaseDirectoryPath(databaseFilePath), DirectoryName);
-	}
-
-	/// <summary>
-	/// Returns the path a copy of the given database had in the previous versions.
-	/// </summary>
-	public static string GetLegacyFilePath(string databaseFilePath)
-	{
-		return Path.Combine(GetDatabaseDirectoryPath(databaseFilePath), LegacyFileName);
 	}
 
 	/// <inheritdoc />
