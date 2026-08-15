@@ -392,6 +392,7 @@ public sealed class App : Application
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IDbMaintenance, DbMaintenance>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();

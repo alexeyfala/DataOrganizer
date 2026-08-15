@@ -34,6 +34,9 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
+	/// <inheritdoc cref="IDbMaintenance" />
+	private readonly IDbMaintenance _dbMaintenance;
+
 	/// <inheritdoc cref="IFolderRepository" />
 	private readonly IFileRepository _fileRepository;
 
@@ -61,6 +64,7 @@ public sealed class DbAccess : IDbAccess
 	#region Constructors
 	public DbAccess(
 		IDbContextService dbContextService,
+		IDbMaintenance dbMaintenance,
 		IExplorerModelBaseRepository baseRepository,
 		IFileRepository fileRepository,
 		IFileSystem fileSystem,
@@ -71,6 +75,8 @@ public sealed class DbAccess : IDbAccess
 		_baseRepository = baseRepository;
 
 		_dbContextService = dbContextService;
+
+		_dbMaintenance = dbMaintenance;
 
 		_fileRepository = fileRepository;
 
@@ -382,6 +388,10 @@ public sealed class DbAccess : IDbAccess
 			await (_dbContextService.HasMigrations()
 				? _dbContextService.MigrateAsync(token)
 				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+
+			await _dbMaintenance
+				.EraseFreePagesOnceAsync(token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
