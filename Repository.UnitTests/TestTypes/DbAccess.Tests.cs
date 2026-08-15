@@ -4,15 +4,20 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using Entities.Enums;
 using Entities.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.DTO;
 using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
+using Repository.UnitTests.Helpers;
 using Shared.Common;
+using Shared.Interfaces;
+using Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -217,6 +222,60 @@ internal class DbAccessTests
 		await dbConnection
 			.Received()
 			.SaveChangesAsync();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.BackupDatabaseAsync" />: the copy appears in the folder of the copies and is gone once released.
+	/// </summary>
+	[Test]
+	public async Task BackupDatabaseAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		dbContextService
+			.GetDbFilePath()
+			.Returns(file.FilePath);
+
+		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializerWrapper>());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbContextService),
+			TypedParameter.From(fileSystem));
+
+		// Act
+		DatabaseBackup? backup = await sut.BackupDatabaseAsync();
+
+		// Assert
+		backup
+			.Should()
+			.NotBeNull();
+
+		Path
+			.GetDirectoryName(backup.FilePath)
+			.Should()
+			.Be(DatabaseBackup.GetDirectoryPath(file.FilePath));
+
+		File
+			.Exists(backup.FilePath)
+			.Should()
+			.BeTrue();
+
+		backup.Dispose();
+
+		File
+			.Exists(backup.FilePath)
+			.Should()
+			.BeFalse();
 	}
 
 	/// <summary>
