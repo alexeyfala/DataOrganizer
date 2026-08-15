@@ -3,6 +3,7 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -69,6 +70,12 @@ public sealed class FileSystem : IFileSystem
 		}
 
 		Directory.Delete(directoryPath, recursive: true);
+	}
+
+	/// <inheritdoc />
+	public IEnumerable<string> EnumerateFiles(string directoryPath)
+	{
+		return Directory.EnumerateFiles(directoryPath);
 	}
 
 	/// <inheritdoc />

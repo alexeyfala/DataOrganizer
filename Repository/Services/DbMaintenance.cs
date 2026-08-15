@@ -2,6 +2,8 @@ using Repository.Interceptors;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
+using Shared.Interfaces;
+using System;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
@@ -21,14 +23,22 @@ public sealed class DbMaintenance : IDbMaintenance
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
+	/// <inheritdoc cref="IFileSystem" />
+	private readonly IFileSystem _fileSystem;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 	#endregion
 
 	#region Constructors
-	public DbMaintenance(IDbContextService dbContextService, ILogger logger)
+	public DbMaintenance(
+		IDbContextService dbContextService,
+		IFileSystem fileSystem,
+		ILogger logger)
 	{
 		_dbContextService = dbContextService;
+
+		_fileSystem = fileSystem;
 
 		_logger = logger;
 	}
@@ -91,6 +101,44 @@ public sealed class DbMaintenance : IDbMaintenance
 				await connection
 					.CloseAsync()
 					.ConfigureAwait(false);
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public void ErasePendingBackups()
+	{
+		string databaseFilePath = _dbContextService.GetDbFilePath();
+
+		string directoryPath = DatabaseBackup.GetDirectoryPath(databaseFilePath);
+
+		if (_fileSystem.IsDirectoryExists(directoryPath))
+		{
+			foreach (string filePath in _fileSystem.EnumerateFiles(directoryPath))
+			{
+				Erase(filePath);
+			}
+		}
+
+		// The copies of the previous versions lay next to the database itself.
+		Erase(DatabaseBackup.GetLegacyFilePath(databaseFilePath));
+
+		void Erase(string filePath)
+		{
+			try
+			{
+				if (!_fileSystem.IsFileExists(filePath))
+				{
+					return;
+				}
+
+				_fileSystem.EraseAndDeleteFile(filePath);
+
+				_logger.LogInformation($@"Erased a leftover copy of the database ""{filePath}""");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogException(ex);
 			}
 		}
 	}

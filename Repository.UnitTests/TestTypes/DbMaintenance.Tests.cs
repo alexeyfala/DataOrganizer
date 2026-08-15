@@ -6,6 +6,8 @@ using NSubstitute;
 using Repository.Interfaces;
 using Repository.Services;
 using Repository.UnitTests.Helpers;
+using Shared.Interfaces;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Repository.UnitTests.TestTypes;
@@ -102,6 +104,91 @@ internal class DbMaintenanceTests
 			.Should()
 			.Be(1L);
 	}
+
+	/// <summary>
+	/// <see cref="DbMaintenance.ErasePendingBackups" />: nothing is erased when there is nothing left behind.
+	/// </summary>
+	[Test]
+	public void ErasePendingBackups_Erases_Nothing_Without_Leftovers()
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		DbMaintenance sut = CreateSut(fileSystem);
+
+		// Act
+		sut.ErasePendingBackups();
+
+		// Assert
+		fileSystem
+			.DidNotReceive()
+			.EraseAndDeleteFile(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DbMaintenance.ErasePendingBackups" />: erases the copies of an interrupted session, the legacy one included.
+	/// </summary>
+	[Test]
+	public void ErasePendingBackups_Erases_The_Leftover_Copies()
+	{
+		// Arrange
+		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
+
+		string[] leftovers =
+		[
+			Path.Combine(directoryPath, "first.sqlite"),
+			Path.Combine(directoryPath, "second.sqlite-journal")
+		];
+
+		IFileSystem fileSystem = CreateFileSystem(leftovers);
+
+		DbMaintenance sut = CreateSut(fileSystem);
+
+		// Act
+		sut.ErasePendingBackups();
+
+		// Assert
+		foreach (string filePath in leftovers)
+		{
+			fileSystem
+				.Received(1)
+				.EraseAndDeleteFile(filePath);
+		}
+
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(DatabaseBackup.GetLegacyFilePath(DatabaseFilePath));
+	}
+
+	/// <summary>
+	/// <see cref="DbMaintenance.ErasePendingBackups" />: a copy that cannot be erased does not stop the others.
+	/// </summary>
+	[Test]
+	public void ErasePendingBackups_Survives_A_Failure_To_Erase()
+	{
+		// Arrange
+		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
+
+		string lockedFilePath = Path.Combine(directoryPath, "locked.sqlite");
+
+		string nextFilePath = Path.Combine(directoryPath, "next.sqlite");
+
+		IFileSystem fileSystem = CreateFileSystem([lockedFilePath, nextFilePath]);
+
+		fileSystem
+			.When(x => x.EraseAndDeleteFile(lockedFilePath))
+			.Throw(new IOException());
+
+		DbMaintenance sut = CreateSut(fileSystem);
+
+		// Act
+		sut.ErasePendingBackups();
+
+		// Assert
+		fileSystem
+			.Received(1)
+			.EraseAndDeleteFile(nextFilePath);
+	}
 	#endregion
 
 	#region Helpers
@@ -114,6 +201,56 @@ internal class DbMaintenanceTests
 	/// Query reporting the stamp of the maintenance.
 	/// </summary>
 	private const string VersionQuery = "PRAGMA user_version;";
+
+	/// <summary>
+	/// Path of the database used in the tests of the leftover copies.
+	/// </summary>
+	private static readonly string DatabaseFilePath = Path.Combine(
+		Path.GetTempPath(),
+		"Database",
+		"DataOrganizer.sqlite");
+
+	/// <summary>
+	/// Creates a file system holding the given copies of the database and the legacy one.
+	/// </summary>
+	private static IFileSystem CreateFileSystem(string[] leftovers)
+	{
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
+
+		fileSystem
+			.IsDirectoryExists(directoryPath)
+			.Returns(true);
+
+		fileSystem
+			.EnumerateFiles(directoryPath)
+			.Returns(leftovers);
+
+		fileSystem
+			.IsFileExists(Arg.Any<string>())
+			.Returns(true);
+
+		return fileSystem;
+	}
+
+	/// <summary>
+	/// Builds the service over the given file system.
+	/// </summary>
+	private static DbMaintenance CreateSut(IFileSystem fileSystem)
+	{
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		dbContextService
+			.GetDbFilePath()
+			.Returns(DatabaseFilePath);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		return mock.Create<DbMaintenance>(
+			TypedParameter.From(dbContextService),
+			TypedParameter.From(fileSystem));
+	}
 
 	/// <summary>
 	/// Builds the service over the given connection.

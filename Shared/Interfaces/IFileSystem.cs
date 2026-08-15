@@ -1,4 +1,5 @@
 using Serilog;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
@@ -53,6 +54,9 @@ public interface IFileSystem
 	void DeleteDirectoryRecursively(
 		string directoryPath,
 		bool removeFileReadonlySign = false);
+
+	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
+	IEnumerable<string> EnumerateFiles(string directoryPath);
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />

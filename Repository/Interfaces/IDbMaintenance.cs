@@ -13,5 +13,10 @@ public interface IDbMaintenance
 	/// Rewrites the database once to drop the free pages left over from before secure deletion was in place.
 	/// </summary>
 	Task EraseFreePagesOnceAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Erases the copies of the database left behind by an interrupted session.
+	/// </summary>
+	void ErasePendingBackups();
 	#endregion
 }

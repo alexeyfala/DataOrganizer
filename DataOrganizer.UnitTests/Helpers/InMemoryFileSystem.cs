@@ -36,6 +36,13 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		}
 	}
 
+	public IEnumerable<string> EnumerateFiles(string directoryPath)
+	{
+		return [.. Files
+			.Keys
+			.Where(key => Path.GetDirectoryName(key) == directoryPath)];
+	}
+
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,

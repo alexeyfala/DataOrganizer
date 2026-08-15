@@ -9,7 +9,6 @@ using Repository.Enums;
 using Repository.Interceptors;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -264,12 +263,14 @@ public sealed class DbAccess : IDbAccess
 
 			string dbFilePath = GetDbFilePath();
 
-			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
+			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 			{
 				return null;
 			}
 
-			string backupFilePath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+			string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
+
+			_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
 
 			BackupSqliteParameters parameters = new()
 			{
@@ -387,6 +388,8 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			_logger.LogInformation("Connecting to the database.");
+
+			_dbMaintenance.ErasePendingBackups();
 
 			await (_dbContextService.HasMigrations()
 				? _dbContextService.MigrateAsync(token)
