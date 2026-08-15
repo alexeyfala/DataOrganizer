@@ -1655,6 +1655,30 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.RestartAutoLock" />: the countdown starts over from the delay in the settings.
+	/// </summary>
+	[Test]
+	public void RestartAutoLock_Starts_The_Countdown_Over()
+	{
+		// Arrange
+		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(autoLock));
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		sut
+			.RestartAutoLockCommand
+			.Execute(null);
+
+		// Assert
+		autoLock
+			.Received(1)
+			.Arm();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.SetFavorite" />: the IsFavorite flag is toggled and the change is delegated to the property writer.
 	/// </summary>
 	[Test]

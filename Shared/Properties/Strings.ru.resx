@@ -672,4 +672,10 @@
   <data name="ContentsHiddenByAutoLock" xml:space="preserve">
     <value>Содержимое файлов скрыто автоблокировкой</value>
   </data>
+  <data name="LockedInFormat" xml:space="preserve">
+    <value>Блокировка через {0}</value>
+  </data>
+  <data name="RestartAutoLockHint" xml:space="preserve">
+    <value>Клик запускает отсчёт автоблокировки заново</value>
+  </data>
 </root>

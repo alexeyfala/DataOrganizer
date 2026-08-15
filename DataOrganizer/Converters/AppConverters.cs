@@ -10,6 +10,7 @@ using Entities.Enums;
 using Material.Colors;
 using Material.Icons;
 using Shared.Properties;
+using System;
 using System.Globalization;
 using System.Linq;
 
@@ -25,6 +26,11 @@ internal static class AppConverters
 	/// Material vertical scrollbar thickness; the right gutter reserved while content overflows.
 	/// </summary>
 	private const double ScrollBarThickness = 10.0;
+
+	/// <summary>
+	/// Time left at which the auto-lock countdown starts warning.
+	/// </summary>
+	private static readonly TimeSpan AutoLockWarningThreshold = TimeSpan.FromSeconds(20.0);
 	#endregion
 
 	#region Properties
@@ -35,6 +41,25 @@ internal static class AppConverters
 		new(minutes => minutes <= 0
 			? Strings.Never
 			: string.Format(CultureInfo.CurrentCulture, Strings.MinutesShortFormat, minutes));
+
+	/// <summary>
+	/// <c>True</c> while the auto-lock countdown is about to run out.
+	/// </summary>
+	public static FuncValueConverter<TimeSpan?, bool> AutoLockIsExpiring { get; } =
+		new(remaining => remaining is { } left && left <= AutoLockWarningThreshold);
+
+	/// <summary>
+	/// Caption of the time left before the auto-lock.
+	/// </summary>
+	public static FuncValueConverter<TimeSpan?, string?> AutoLockRemaining { get; } =
+		new(remaining => remaining is not { } left
+			? null
+			: string.Format(
+				CultureInfo.CurrentCulture,
+				Strings.LockedInFormat,
+				left.ToString(
+					left.TotalHours >= 1.0 ? @"h\:mm\:ss" : @"mm\:ss",
+					CultureInfo.CurrentCulture)));
 
 	public static FuncValueConverter<EncryptionStatus, IBrush?> EncryptionStatusToIconBrush { get; } =
 		new(status => status switch

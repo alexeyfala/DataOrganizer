@@ -979,6 +979,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Locking in {0}.
+        /// </summary>
+        public static string LockedInFormat {
+            get {
+                return ResourceManager.GetString("LockedInFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Menu.
         /// </summary>
         public static string Menu {
@@ -1326,6 +1335,15 @@ namespace Shared.Properties {
         public static string Restart {
             get {
                 return ResourceManager.GetString("Restart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A click starts the auto-lock countdown over.
+        /// </summary>
+        public static string RestartAutoLockHint {
+            get {
+                return ResourceManager.GetString("RestartAutoLockHint", resourceCulture);
             }
         }
         

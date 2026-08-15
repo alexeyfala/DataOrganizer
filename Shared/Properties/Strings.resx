@@ -652,4 +652,10 @@
   <data name="ContentsHiddenByAutoLock" xml:space="preserve">
     <value>The file contents are hidden by the auto-lock</value>
   </data>
+  <data name="LockedInFormat" xml:space="preserve">
+    <value>Locking in {0}</value>
+  </data>
+  <data name="RestartAutoLockHint" xml:space="preserve">
+    <value>A click starts the auto-lock countdown over</value>
+  </data>
 </root>

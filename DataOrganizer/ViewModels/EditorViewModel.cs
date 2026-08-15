@@ -55,6 +55,9 @@ public partial class EditorViewModel :
 	IUpdatePrompt
 {
 	#region Properties
+	/// <inheritdoc cref="IAutoLockService" />
+	public IAutoLockService AutoLock => _autoLock;
+
 	/// <summary>
 	/// Information in the lower left corner.
 	/// </summary>
@@ -948,6 +951,11 @@ public partial class EditorViewModel :
 			.ConfigureAwait(false);
 	}
 
+	/// <summary>
+	/// Starts the auto-lock countdown over from the delay currently in the settings.
+	/// </summary>
+	[RelayCommand]
+	private void RestartAutoLock() => _autoLock.Arm();
 	/// <summary>
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
