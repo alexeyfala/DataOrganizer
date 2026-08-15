@@ -7,7 +7,9 @@
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -402,10 +404,12 @@
 								</StackPanel>
 
 								<Grid
-									Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
+									x:DataType="encryption:IAutoLockService"
+									Classes.expiring="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
 									ColumnDefinitions="Auto,Auto"
 									Cursor="Hand"
-									IsVisible="{Binding AutoLock.IsArmed, Mode=OneWay}"
+									DataContext="{markup:Resolve {x:Type encryption:IAutoLockService}}"
+									IsVisible="{Binding IsArmed, Mode=OneWay}"
 									ToolTip.Tip="{x:Static prop:Strings.RestartAutoLockHint}">
 									<Grid.Styles>
 										<Style Selector="Grid">
@@ -441,11 +445,11 @@
 									<TextBlock
 										Grid.Column="1"
 										Margin="0.0,0.0,2.0,0.0"
-										Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
+										Text="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
 
 									<Interaction.Behaviors>
 										<EventTriggerBehavior EventName="Tapped">
-											<InvokeCommandAction Command="{Binding RestartAutoLockCommand}" />
+											<InvokeCommandAction Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RestartAutoLockCommand}" />
 										</EventTriggerBehavior>
 									</Interaction.Behaviors>
 								</Grid>
