@@ -402,13 +402,20 @@
 								</StackPanel>
 
 								<Grid
-									Classes="PointerOverBackgroundStyle"
 									Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
 									ColumnDefinitions="Auto,Auto"
 									Cursor="Hand"
 									IsVisible="{Binding AutoLock.IsArmed, Mode=OneWay}"
 									ToolTip.Tip="{x:Static prop:Strings.RestartAutoLockHint}">
 									<Grid.Styles>
+										<Style Selector="Grid">
+											<Setter Property="Background" Value="Transparent" />
+										</Style>
+
+										<Style Selector="Grid:pointerover">
+											<Setter Property="Background" Value="{StaticResource MaterialDividerBrush}" />
+										</Style>
+
 										<Style Selector="Grid > TextBlock">
 											<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 										</Style>
@@ -426,7 +433,6 @@
 										</Style>
 									</Grid.Styles>
 
-									<!-- Grid has no padding, so the gutters of the highlighted block are margins of its content. -->
 									<materialIcons:MaterialIcon
 										Grid.Column="0"
 										Margin="2.0,0.0,3.0,0.0"
