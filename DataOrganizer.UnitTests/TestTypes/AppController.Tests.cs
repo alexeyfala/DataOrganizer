@@ -2,12 +2,14 @@ using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -16,6 +18,46 @@ namespace DataOrganizer.UnitTests.TestTypes;
 internal class AppControllerTests
 {
 	#region Methods
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: sweeps the sandbox before a window can open a file again.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Erases_The_Sandbox_Before_The_Main_Window()
+	{
+		// Arrange
+		IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			builder.RegisterInstance(sandbox);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		Received.InOrder(() =>
+		{
+			sandbox.EraseAsync(Arg.Any<CancellationToken>());
+
+			viewLauncher.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+		});
+	}
+
 	/// <summary>
 	/// <see cref="AppController.LaunchAppAsync" />: connects to the database, loads entities and configures the main window.
 	/// </summary>

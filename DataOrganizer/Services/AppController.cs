@@ -4,6 +4,7 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using Repository.Interfaces;
@@ -53,6 +54,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
+	/// <inheritdoc cref="IExecutionSandbox" />
+	private readonly IExecutionSandbox _sandbox;
+
 	/// <inheritdoc cref="IAppSettingsStore" />
 	private readonly IAppSettingsStore _settingsStore;
 
@@ -72,6 +76,7 @@ public sealed class AppController : IAppController
 		ICommandLineOptions options,
 		IDbAccess dbAccess,
 		IEntityLoader entityLoader,
+		IExecutionSandbox sandbox,
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
@@ -100,6 +105,8 @@ public sealed class AppController : IAppController
 
 		_options = options;
 
+		_sandbox = sandbox;
+
 		_settingsStore = settingsStore;
 
 		_updateNotifier = updateNotifier;
@@ -117,6 +124,10 @@ public sealed class AppController : IAppController
 		try
 		{
 			_fileSystem.CreateDirectory(_appEnvironment.AppDataDirectoryPath);
+
+			await _sandbox
+				.EraseAsync(token)
+				.ConfigureAwait(true);
 
 			if (_options.IsConsoleNeeded)
 			{
