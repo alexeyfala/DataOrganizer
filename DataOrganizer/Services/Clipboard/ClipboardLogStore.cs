@@ -152,7 +152,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	}
 
 	/// <inheritdoc />
-	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(byte[] password, CancellationToken token = default)
+	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
 		try
 		{
@@ -239,7 +239,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Creates a fresh DEK, wraps it with <paramref name="password" />, and stores the wrapped key.
 	/// </summary>
-	private async Task<ClipboardLogUnlockResult> CreateNewKeyAsync(byte[] password, CancellationToken token)
+	private async Task<ClipboardLogUnlockResult> CreateNewKeyAsync(PinnedBuffer password, CancellationToken token)
 	{
 		byte[] dek = _encryption.CreateRandomDek();
 
@@ -318,7 +318,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <summary>
 	/// Unwraps an existing key with <paramref name="password" /> and loads the previous journal.
 	/// </summary>
-	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(byte[] password, CancellationToken token)
+	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(PinnedBuffer password, CancellationToken token)
 	{
 		byte[] wrapped = await _fileSystem
 			.ReadAllBytesAsync(_keyFilePath, token)

@@ -4,6 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.DTO.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
@@ -370,7 +371,7 @@ internal class ClipboardLogStoreTests
 
 		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 			.Returns(new byte[32]);
 
 		using AutoMock second = CreateMock(files, encryption);
@@ -409,7 +410,7 @@ internal class ClipboardLogStoreTests
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())!
 			.Throws(new InvalidCredentialException());
 
 		using AutoMock second = CreateMock(files, encryption);
@@ -445,7 +446,7 @@ internal class ClipboardLogStoreTests
 			.Returns(new byte[32]);
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);
@@ -621,7 +622,7 @@ internal class ClipboardLogStoreTests
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
-	private static byte[] Password(string value) => TextHelper.Utf8Encoding.GetBytes(value);
+	private static PinnedBuffer Password(string value) => new(TextHelper.Utf8Encoding.GetBytes(value));
 
 	/// <summary>
 	/// A minimal text entry.

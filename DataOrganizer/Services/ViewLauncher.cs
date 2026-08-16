@@ -6,7 +6,7 @@ using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers.Text;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
@@ -22,7 +22,6 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
@@ -673,7 +672,7 @@ public class ViewLauncher : IViewLauncher
 				? Strings.Password
 				: Strings.NewPassword;
 
-			char[] password = await _dialogService.RequestPasswordAsync(
+			using PinnedSecret password = await _dialogService.RequestPasswordAsync(
 				header: Strings.ClipboardHistory,
 				label: label,
 				description: hasPassword
@@ -683,36 +682,23 @@ public class ViewLauncher : IViewLauncher
 					? PasswordPromptMode.Verify
 					: PasswordPromptMode.Create).ConfigureAwait(true);
 
-			if (password.IsEmpty())
+			if (password.IsEmpty)
 			{
 				return;
 			}
 
-			byte[] passwordBytes = TextHelper
-				.Utf8Encoding
-				.GetBytes(password);
+			using PinnedBuffer passwordBytes = password.ToUtf8Buffer();
 
-			try
+			ClipboardLogStatus status = await _clipboardLogPersistence
+				.TryUnlockAndMergeAsync(passwordBytes)
+				.ConfigureAwait(true);
+
+			if (status == ClipboardLogStatus.Unlocked)
 			{
-				ClipboardLogStatus status = await _clipboardLogPersistence
-					.TryUnlockAndMergeAsync(passwordBytes)
-					.ConfigureAwait(true);
-
-				if (status == ClipboardLogStatus.Unlocked)
-				{
-					return;
-				}
-
-				label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
+				return;
 			}
-			finally
-			{
-				passwordBytes.ZeroMemory();
 
-				MemoryMarshal
-					.AsBytes(password.AsSpan())
-					.ZeroMemory();
-			}
+			label = $"{Strings.IncorrectPassword}. {Strings.TryAgain}";
 		}
 	}
 	#endregion

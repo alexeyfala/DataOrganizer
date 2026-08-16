@@ -1,4 +1,5 @@
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Text;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -8,9 +9,14 @@ namespace DataOrganizer.Helpers.Security;
 /// <summary>
 /// A fixed-size character buffer for secrets: never relocated by the GC and wiped on disposal.
 /// </summary>
-internal sealed class PinnedSecret : IDisposable
+public sealed class PinnedSecret : IDisposable
 {
 	#region Properties
+	/// <summary>
+	/// <c>True</c> when the buffer holds no characters.
+	/// </summary>
+	public bool IsEmpty => _buffer.Length == 0;
+
 	/// <summary>
 	/// Number of characters the buffer holds.
 	/// </summary>
@@ -70,6 +76,24 @@ internal sealed class PinnedSecret : IDisposable
 			.ZeroMemory();
 
 		_handle.Free();
+	}
+
+	/// <summary>
+	/// Encodes the contents as UTF-8 into a new pinned buffer owned by the caller.
+	/// </summary>
+	public PinnedBuffer ToUtf8Buffer()
+	{
+		ReadOnlySpan<char> characters = AsReadOnlySpan();
+
+		PinnedBuffer buffer = new(TextHelper
+			.Utf8Encoding
+			.GetByteCount(characters));
+
+		TextHelper
+			.Utf8Encoding
+			.GetBytes(characters, buffer.AsSpan());
+
+		return buffer;
 	}
 	#endregion
 }

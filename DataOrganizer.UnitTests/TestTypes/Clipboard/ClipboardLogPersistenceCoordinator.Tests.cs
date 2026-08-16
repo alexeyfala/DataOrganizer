@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -345,7 +346,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogEntryBase[] loaded = [TextEntry("A", [1])];
 
 		store
-			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+			.TryUnlockAsync(Arg.Any<PinnedBuffer>(), Arg.Any<CancellationToken>())
 			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.Unlocked, loaded));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
@@ -383,7 +384,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
 
 		store
-			.TryUnlockAsync(Arg.Any<byte[]>(), Arg.Any<CancellationToken>())
+			.TryUnlockAsync(Arg.Any<PinnedBuffer>(), Arg.Any<CancellationToken>())
 			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.WrongPassword, []));
 
 		IClipboardLogService log = Substitute.For<IClipboardLogService>();
@@ -555,7 +556,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
-	private static byte[] Password(string value) => TextHelper.Utf8Encoding.GetBytes(value);
+	private static PinnedBuffer Password(string value) => new(TextHelper.Utf8Encoding.GetBytes(value));
 
 	/// <summary>
 	/// A settings store whose <see cref="AppSettings.PersistClipboardHistory" /> equals <paramref name="persist" />.

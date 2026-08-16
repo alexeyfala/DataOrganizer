@@ -16,7 +16,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Produces the AEAD key of a format from its secret and the per-message salt.
 	/// </summary>
-	private delegate Key KeyFactory(byte[] secret, ReadOnlySpan<byte> salt);
+	private delegate Key KeyFactory(ReadOnlySpan<byte> secret, ReadOnlySpan<byte> salt);
 	#endregion
 
 	#region Data
@@ -58,12 +58,14 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] Decrypt(
 		byte[] input,
-		byte[] password,
+		PinnedBuffer password,
 		byte[] associatedData)
 	{
+		ArgumentNullException.ThrowIfNull(password);
+
 		return DecryptCore(
 			input,
-			password,
+			password.AsReadOnlySpan(),
 			associatedData,
 			FormatVersionPasswordV1,
 			SaltSize,
@@ -120,12 +122,14 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] Encrypt(
 		byte[] input,
-		byte[] password,
+		PinnedBuffer password,
 		byte[] associatedData)
 	{
+		ArgumentNullException.ThrowIfNull(password);
+
 		return EncryptCore(
 			input,
-			password,
+			password.AsReadOnlySpan(),
 			associatedData,
 			FormatVersionPasswordV1,
 			SaltSize,
@@ -187,7 +191,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static byte[] DecryptCore(
 		byte[] input,
-		byte[] secret,
+		ReadOnlySpan<byte> secret,
 		byte[] associatedData,
 		byte version,
 		int saltSize,
@@ -240,7 +244,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Derives a key.
 	/// </summary>
-	private static Key DeriveKey(byte[] password, ReadOnlySpan<byte> salt)
+	private static Key DeriveKey(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt)
 	{
 		Argon2id kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(new()
 		{
@@ -268,7 +272,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// Derives a key from a session identifier. HKDF is enough here: unlike a password,
 	/// the session identifier is high-entropy random material, so a memory-hard KDF buys nothing.
 	/// </summary>
-	private static Key DeriveSessionKey(byte[] sessionId, ReadOnlySpan<byte> salt)
+	private static Key DeriveSessionKey(ReadOnlySpan<byte> sessionId, ReadOnlySpan<byte> salt)
 	{
 		byte[] blob = new byte[_algorithm.KeySize];
 
@@ -295,7 +299,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static byte[] EncryptCore(
 		byte[] input,
-		byte[] secret,
+		ReadOnlySpan<byte> secret,
 		byte[] associatedData,
 		byte version,
 		int saltSize,
@@ -337,12 +341,12 @@ public sealed class EncryptionService : IEncryptionService
 	/// <summary>
 	/// Adapts <see cref="ImportKey" /> to <see cref="KeyFactory" />; the DEK format carries no salt.
 	/// </summary>
-	private static Key ImportDekAsKey(byte[] dek, ReadOnlySpan<byte> _) => ImportKey(dek);
+	private static Key ImportDekAsKey(ReadOnlySpan<byte> dek, ReadOnlySpan<byte> _) => ImportKey(dek);
 
 	/// <summary>
 	/// Imports raw key bytes as a key for the configured AEAD algorithm.
 	/// </summary>
-	private static Key ImportKey(byte[] blob)
+	private static Key ImportKey(ReadOnlySpan<byte> blob)
 	{
 		return Key.Import(
 			algorithm: _algorithm,

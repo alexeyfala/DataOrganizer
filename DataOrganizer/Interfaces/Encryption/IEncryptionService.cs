@@ -1,3 +1,4 @@
+using DataOrganizer.Helpers.Security;
 using Repository.DTO;
 using System.Collections.Generic;
 using System.Security.Authentication;
@@ -23,7 +24,7 @@ public interface IEncryptionService
 	/// <exception cref="CryptographicException">The data is damaged or the operation failed.</exception>
 	byte[] Decrypt(
 		byte[] input,
-		byte[] password,
+		PinnedBuffer password,
 		byte[] associatedData);
 
 	/// <summary>
@@ -57,7 +58,7 @@ public interface IEncryptionService
 	/// <exception cref="CryptographicException">The operation failed.</exception>
 	byte[] Encrypt(
 		byte[] input,
-		byte[] password,
+		PinnedBuffer password,
 		byte[] associatedData);
 
 	/// <summary>

@@ -7,7 +7,7 @@ namespace DataOrganizer.Helpers.Security;
 /// <summary>
 /// A fixed-size byte buffer for key material: never relocated by the GC and wiped on disposal.
 /// </summary>
-internal sealed class PinnedBuffer : IDisposable
+public sealed class PinnedBuffer : IDisposable
 {
 	#region Properties
 	/// <summary>

@@ -9,6 +9,7 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Services;
@@ -704,7 +705,7 @@ internal class ViewLauncherTests
 			// A cancelled prompt leaves the session in memory, which is enough to reach the assert.
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs([]);
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
 
 			builder.RegisterInstance(viewFactory);
 

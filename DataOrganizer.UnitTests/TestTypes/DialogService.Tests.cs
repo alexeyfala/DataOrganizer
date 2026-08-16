@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
@@ -27,7 +28,7 @@ internal class DialogServiceTests
 	#region Methods
 	/// <summary>
 	/// <see cref="DialogService.CapturePasswordAndScrub" />: when confirmed but the input is blank,
-	/// returns an empty array and clears the input.
+	/// returns an empty secret and clears the input.
 	/// </summary>
 	[AvaloniaTest]
 	public void CapturePasswordAndScrub_When_Confirmed_But_Blank_Returns_Empty()
@@ -39,12 +40,12 @@ internal class DialogServiceTests
 		TextBox input = new() { Text = typed };
 
 		// Act
-		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
 
 		// Assert
-		result
+		result.IsEmpty
 			.Should()
-			.BeEmpty();
+			.BeTrue();
 
 		input.Text
 			.Should()
@@ -64,10 +65,12 @@ internal class DialogServiceTests
 		TextBox input = new() { Text = typed };
 
 		// Act
-		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true);
 
 		// Assert
 		result
+			.AsReadOnlySpan()
+			.ToArray()
 			.Should()
 			.Equal('s', 'e', 'c', 'r', 'e', 't');
 
@@ -103,10 +106,12 @@ internal class DialogServiceTests
 		};
 
 		// Act
-		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: true, confirmation);
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: true, confirmation);
 
 		// Assert
 		result
+			.AsReadOnlySpan()
+			.ToArray()
 			.Should()
 			.Equal('s', 'e', 'c', 'r', 'e', 't');
 
@@ -120,7 +125,7 @@ internal class DialogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel, returns an empty array,
+	/// <see cref="DialogService.CapturePasswordAndScrub" />: on cancel, returns an empty secret,
 	/// wipes the typed text in place and clears the input.
 	/// </summary>
 	[AvaloniaTest]
@@ -133,12 +138,12 @@ internal class DialogServiceTests
 		TextBox input = new() { Text = typed };
 
 		// Act
-		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: false);
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: false);
 
 		// Assert
-		result
+		result.IsEmpty
 			.Should()
-			.BeEmpty();
+			.BeTrue();
 
 		input.Text
 			.Should()
@@ -172,12 +177,12 @@ internal class DialogServiceTests
 		};
 
 		// Act
-		char[] result = DialogService.CapturePasswordAndScrub(input, confirmed: false, confirmation);
+		using PinnedSecret result = DialogService.CapturePasswordAndScrub(input, confirmed: false, confirmation);
 
 		// Assert
-		result
+		result.IsEmpty
 			.Should()
-			.BeEmpty();
+			.BeTrue();
 
 		confirmation.Text
 			.Should()
@@ -258,7 +263,7 @@ internal class DialogServiceTests
 		DialogService sut = mock.Create<DialogService>();
 
 		// Act
-		Task<char[]> task = sut.RequestPasswordAsync("header");
+		Task<PinnedSecret> task = sut.RequestPasswordAsync("header");
 
 		// Assert
 		task.IsCompleted
@@ -289,9 +294,9 @@ internal class DialogServiceTests
 		DialogService sut = mock.Create<DialogService>();
 
 		// Act
-		Task<char[]> first = sut.RequestPasswordAsync("h1");
+		Task<PinnedSecret> first = sut.RequestPasswordAsync("h1");
 
-		Task<char[]> second = sut.RequestPasswordAsync("h2");
+		Task<PinnedSecret> second = sut.RequestPasswordAsync("h2");
 
 		// Assert
 		first

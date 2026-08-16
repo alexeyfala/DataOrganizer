@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -20,7 +21,6 @@ using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
 using Repository.Interfaces;
 using Repository.Services;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -56,12 +56,12 @@ internal class EntityEncryptionTests
 		{
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(32));
 
 			builder.RegisterInstance(dialogService);
@@ -115,12 +115,12 @@ internal class EntityEncryptionTests
 				Arg.Any<string>(),
 				Arg.Any<PasswordPromptMode>(),
 				Arg.Any<CancellationToken>())
-			.Returns(AppUtils.CreateRandomString(10).ToCharArray());
+			.Returns(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Throws(new InvalidCredentialException());
 
 			builder.RegisterInstance(dialogService);
@@ -171,16 +171,16 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -328,12 +328,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(32));
 
 			encryption
@@ -416,12 +416,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Throws(new InvalidCredentialException());
 
 			builder.RegisterInstance(dialogService);
@@ -463,12 +463,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(32));
 
 			encryption
@@ -520,7 +520,7 @@ internal class EntityEncryptionTests
 			// An empty result stops the flow right after the prompt, which is all this test looks at.
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs([]);
+				.ReturnsForAnyArgs(new PinnedSecret(length: 0));
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -560,7 +560,7 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -569,7 +569,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -621,7 +621,7 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			dbAccess
 				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
@@ -634,7 +634,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			dbAccess
@@ -684,7 +684,7 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -693,7 +693,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			encryption
@@ -765,7 +765,7 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -774,7 +774,7 @@ internal class EntityEncryptionTests
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns([]);
 
 			dbAccess
@@ -937,12 +937,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(dialogService);
@@ -998,12 +998,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(32));
 
 			builder.RegisterInstance(encryption);
@@ -1080,6 +1080,38 @@ internal class EntityEncryptionTests
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.TryToDecryptContentsAsync" />: a file belonging to no password keeper
+	/// cannot be decrypted, so no password is asked for.
+	/// </summary>
+	[Test]
+	public async Task TryToDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		byte[]? result = await sut.TryToDecryptContentsAsync(
+			file,
+			TestUtils.CreateRandomBytes(10),
+			string.Empty);
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+
+		await dialogService
+			.DidNotReceiveWithAnyArgs()
+			.RequestPasswordAsync(default!);
 	}
 
 	/// <summary>
@@ -1164,12 +1196,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			encryption
@@ -1575,12 +1607,12 @@ internal class EntityEncryptionTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Decrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())!
+				.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())!
 				.Throws(failure);
 
 			builder.RegisterInstance(dialogService);
