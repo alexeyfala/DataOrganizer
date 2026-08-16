@@ -21,7 +21,6 @@ using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -68,6 +67,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ISandbox" />
+	private readonly ISandbox _sandbox;
+
 	/// <inheritdoc cref="ServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
 
@@ -87,6 +89,7 @@ public class ViewLauncher : IViewLauncher
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		ISandbox sandbox,
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
@@ -115,6 +118,8 @@ public class ViewLauncher : IViewLauncher
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
+
+		_sandbox = sandbox;
 
 		_serviceProvider = serviceProvider;
 
@@ -546,52 +551,6 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <summary>
-	/// Tries to delete directory multiple times.
-	/// </summary>
-	private async Task DeleteDirectoryAsync(
-		string directoryPath,
-		int maxAttepmts,
-		int currentAttepmt = 0)
-	{
-		if (!_fileSystem.IsDirectoryExists(directoryPath))
-		{
-			_logger.LogInformation($@"Folder ""{directoryPath}"" does not exist");
-
-			return;
-		}
-
-		if (currentAttepmt >= maxAttepmts)
-		{
-			_logger.LogInformation($@"Can't delete folder ""{directoryPath}"" with {currentAttepmt} attepmts");
-
-			return;
-		}
-
-		currentAttepmt++;
-
-		await Task
-			.Delay(300)
-			.ConfigureAwait(false);
-
-		_logger.LogInformation(
-			$@"Trying to delete folder ""{directoryPath}"". Attepmt №{currentAttepmt}");
-
-		try
-		{
-			_fileSystem.DeleteDirectoryRecursively(directoryPath, true);
-
-			_logger.LogInformation($@"Folder ""{directoryPath}"" is deleted");
-		}
-		catch (IOException)
-		{
-			await DeleteDirectoryAsync(
-				directoryPath,
-				maxAttepmts,
-				currentAttepmt).ConfigureAwait(false);
-		}
-	}
-
-	/// <summary>
 	/// Returns <see cref="FavoritesViewSettings" /> settings from file.
 	/// </summary>
 	private FavoritesViewSettings GetFavoritesSettingsFromFile()
@@ -672,9 +631,9 @@ public class ViewLauncher : IViewLauncher
 					.ConfigureAwait(false);
 			}
 
-			await DeleteDirectoryAsync(
-				directoryPath: _appEnvironment.SandboxDirectoryPath,
-				maxAttepmts: 10).ConfigureAwait(false);
+			await _sandbox
+				.EraseAsync()
+				.ConfigureAwait(false);
 
 			if (_app is App app)
 			{

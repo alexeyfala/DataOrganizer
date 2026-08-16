@@ -18,9 +18,6 @@ namespace DataOrganizer.Services.Execution;
 public sealed class ExecutionEngine : IExecutionEngine
 {
 	#region Data
-	/// <inheritdoc cref="IAppEnvironment" />
-	private readonly IAppEnvironment _appEnvironment;
-
 	/// <inheritdoc cref="IAppPickerService" />
 	private readonly IAppPickerService _appPicker;
 
@@ -44,6 +41,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
+	/// <inheritdoc cref="ISandbox" />
+	private readonly ISandbox _sandbox;
+
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
 
@@ -55,17 +55,15 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	#region Constructors
 	public ExecutionEngine(
-		IAppEnvironment appEnvironment,
 		IAppPickerService appPicker,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils,
+		ISandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
-		_appEnvironment = appEnvironment;
-
 		_appPicker = appPicker;
 
 		_changeTracker = changeTracker;
@@ -79,6 +77,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 		_logger = logger;
 
 		_processUtils = processUtils;
+
+		_sandbox = sandbox;
 	}
 	#endregion
 
@@ -269,9 +269,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			return false;
 		}
 
-		string directoryPath = Path.Combine(
-			_appEnvironment.SandboxDirectoryPath,
-			parameters.File.Id.ToString());
+		string directoryPath = _sandbox.GetFileDirectoryPath(parameters.File.Id);
 
 		// To prevent a directory traversal attack, all directory components must be removed from the file name.
 		string fileName = Path.GetFileName(parameters

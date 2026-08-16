@@ -58,21 +58,6 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void DeleteDirectoryRecursively(
-		string directoryPath,
-		bool removeFileReadOnlySign = false)
-	{
-		if (removeFileReadOnlySign)
-		{
-			Directory
-				.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
-				.ForEach(x => SetFileReadOnly(x, false));
-		}
-
-		Directory.Delete(directoryPath, recursive: true);
-	}
-
-	/// <inheritdoc />
 	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
 		return Directory.EnumerateFiles(directoryPath);

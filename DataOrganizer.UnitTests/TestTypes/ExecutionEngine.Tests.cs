@@ -39,10 +39,10 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+			ISandbox sandbox = Substitute.For<ISandbox>();
 
-			appEnvironment
-				.SandboxDirectoryPath
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
 			fileSystem
@@ -70,7 +70,7 @@ internal class ExecutionEngineTests
 
 			builder.RegisterInstance(processUtils);
 
-			builder.RegisterInstance(appEnvironment);
+			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileAssociation);
 		});
@@ -266,10 +266,10 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+			ISandbox sandbox = Substitute.For<ISandbox>();
 
-			appEnvironment
-				.SandboxDirectoryPath
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
 			processUtils
@@ -285,7 +285,7 @@ internal class ExecutionEngineTests
 				.FindApplicationByExtension(Arg.Any<string>())
 				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
 
-			builder.RegisterInstance(appEnvironment);
+			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
 
@@ -431,10 +431,10 @@ internal class ExecutionEngineTests
 	{
 		return AutoMock.GetLoose(builder =>
 		{
-			IAppEnvironment appEnvironment = Substitute.For<IAppEnvironment>();
+			ISandbox sandbox = Substitute.For<ISandbox>();
 
-			appEnvironment
-				.SandboxDirectoryPath
+			sandbox
+				.GetFileDirectoryPath(Arg.Any<Guid>())
 				.Returns(TestUtils.CreateRandomDirectoryName());
 
 			processUtils
@@ -450,7 +450,7 @@ internal class ExecutionEngineTests
 				.FindApplicationByExtension(Arg.Any<string>())
 				.Returns(Path.Combine(Path.GetTempPath(), "test.exe"));
 
-			builder.RegisterInstance(appEnvironment);
+			builder.RegisterInstance(sandbox);
 
 			builder.RegisterInstance(fileSystem);
 

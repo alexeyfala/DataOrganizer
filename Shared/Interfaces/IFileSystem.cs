@@ -46,16 +46,6 @@ public interface IFileSystem
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
-	/// <summary>
-	/// <inheritdoc cref="Directory.Delete(string, bool)" />
-	/// </summary>
-	/// <remarks>
-	/// If <paramref name="removeFileReadonlySign"/> is <c>True</c>, removes preliminarily the sign <see cref="FileAttributes.ReadOnly" /> for all files.
-	/// </remarks>
-	void DeleteDirectoryRecursively(
-		string directoryPath,
-		bool removeFileReadonlySign = false);
-
 	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
 	IEnumerable<string> EnumerateFiles(string directoryPath);
 
