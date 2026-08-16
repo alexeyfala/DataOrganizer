@@ -1,4 +1,5 @@
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -57,6 +58,15 @@ public interface IFileSystem
 
 	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
 	IEnumerable<string> EnumerateFiles(string directoryPath);
+
+	/// <summary>
+	/// Overwrites with random values the contents of every file of the folder and of its subfolders, then deletes the folder.
+	/// </summary>
+	/// <remarks>
+	/// The <see cref="FileAttributes.ReadOnly" /> sign is removed from every file.
+	/// A file that cannot be overwritten does not stop the others; the failures are reported through <see cref="AggregateException" />.
+	/// </remarks>
+	void EraseAndDeleteDirectory(string directoryPath);
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />

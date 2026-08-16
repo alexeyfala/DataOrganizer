@@ -79,6 +79,43 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public void EraseAndDeleteDirectory(string directoryPath)
+	{
+		List<Exception> failures = [];
+
+		foreach (string filePath in Directory.EnumerateFiles(
+			directoryPath,
+			"*",
+			SearchOption.AllDirectories))
+		{
+			try
+			{
+				SetFileReadOnly(filePath, false);
+
+				EraseFile(filePath);
+			}
+			catch (Exception ex)
+			{
+				failures.Add(ex);
+			}
+		}
+
+		try
+		{
+			Directory.Delete(directoryPath, recursive: true);
+		}
+		catch (Exception ex)
+		{
+			failures.Add(ex);
+		}
+
+		if (failures.Count > 0)
+		{
+			throw new AggregateException(failures);
+		}
+	}
+
+	/// <inheritdoc />
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,

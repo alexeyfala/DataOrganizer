@@ -84,6 +84,8 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public void DeleteDirectoryRecursively(string directoryPath, bool removeFileReadonlySign = false) => throw new NotSupportedException();
 
+	public void EraseAndDeleteDirectory(string directoryPath) => throw new NotSupportedException();
+
 	public void EraseFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
