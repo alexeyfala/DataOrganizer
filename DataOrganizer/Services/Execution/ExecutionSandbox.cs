@@ -89,7 +89,7 @@ public sealed class ExecutionSandbox : IExecutionSandbox
 			}
 			catch (Exception ex)
 			{
-				_logger.LogException(ex);
+				_logger.LogException(ex, assertDebug: false);
 			}
 		}
 
