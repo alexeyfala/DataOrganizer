@@ -12,6 +12,11 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 {
 	#region Data
+	/// <summary>
+	/// Size of the session secret: 256 bits of entropy for the key derivation.
+	/// </summary>
+	private const int SessionIdSize = 32;
+
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
@@ -196,9 +201,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	{
 		if (_sessionId is null)
 		{
-			int length = RandomNumberGenerator.GetInt32(32, 65);
-
-			_sessionId = new(length);
+			_sessionId = new(SessionIdSize);
 
 			RandomNumberGenerator.Fill(_sessionId.AsSpan());
 		}
