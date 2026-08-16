@@ -23,7 +23,11 @@ public interface IFileSystem
 	/// <summary>
 	/// Default pass count for <see cref="EraseFile" />.
 	/// </summary>
-	public const int DefaultPassCount = 3;
+	/// <remarks>
+	/// A single pass: multiple passes are an HDD legacy, and on an SSD with wear leveling a rewrite
+	/// is not guaranteed to reach the same physical blocks anyway.
+	/// </remarks>
+	public const int DefaultPassCount = 1;
 	#endregion
 
 	#region Methods
