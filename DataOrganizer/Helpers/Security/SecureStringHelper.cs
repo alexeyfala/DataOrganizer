@@ -23,10 +23,19 @@ internal static class SecureStringHelper
 	}
 
 	/// <summary>
-	/// Wipes a string in memory.
+	/// Wipes a string in memory; an interned instance is left alone.
 	/// </summary>
+	/// <remarks>
+	/// The intern pool is shared by the whole process, so wiping such an instance would corrupt
+	/// every literal equal to it. A secret never comes from a literal, so nothing is lost here.
+	/// </remarks>
 	public static void WipeString(string value)
 	{
+		if (ReferenceEquals(string.IsInterned(value), value))
+		{
+			return;
+		}
+
 		Span<char> span = MemoryMarshal.CreateSpan(
 			ref MemoryMarshal.GetReference(value.AsSpan()),
 			value.Length);
