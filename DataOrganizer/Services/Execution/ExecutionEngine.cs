@@ -127,7 +127,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			await StopTrackerAndDisposeCancellationAsync(
 				info.Cancellation,
 				info.TrackerTask,
-				info.FilePath,
+				id,
 				token).ConfigureAwait(false);
 
 			TryKillProcess(info.ProcessId);
@@ -139,7 +139,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			if (_fileSystem.IsFileLocked(info.FilePath))
 			{
-				_logger.LogWarning($@"File ""{info.FilePath}"" is locked by another process, waiting it to be released.");
+				_logger.LogWarning($@"File ""{id}"" is locked by another process, waiting it to be released.");
 
 				using CancellationTokenSource cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
 
@@ -153,12 +153,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 				if (unlocked)
 				{
-					_logger.LogInformation($@"File ""{info.FilePath}"" is released.");
+					_logger.LogInformation($@"File ""{id}"" is released.");
 				}
 				else
 				{
 					_logger.LogWarning(
-						$@"File ""{info.FilePath}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
+						$@"File ""{id}"" is still locked after the {timeout}-second wait; attempting deletion anyway.");
 				}
 			}
 
@@ -226,7 +226,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 					await StopTrackerAndDisposeCancellationAsync(
 						info.Cancellation,
 						info.TrackerTask,
-						info.FilePath,
+						id,
 						CancellationToken.None).ConfigureAwait(false);
 
 					TryKillProcess(info.ProcessId);
@@ -330,7 +330,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 				scope,
 				token).ConfigureAwait(false);
 
-			int processId = StartFileProcess(selectedAppPath, filePath);
+			int processId = StartFileProcess(
+				selectedAppPath,
+				filePath,
+				parameters.File.Id);
 
 			scope.OnRollback(() => TryKillProcess(processId));
 
@@ -367,7 +370,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			scope.Commit();
 
 			_logger.LogInformation(
-				$@"The file ""{filePath}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
+				$@"The file ""{parameters.File.Id}"" is opened{(parameters.IsReadOnly ? " in read-only mode" : string.Empty)}");
 
 			return true;
 		}
@@ -489,7 +492,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		scope.OnRollback(() => StopTrackerAndDisposeCancellationAsync(
 			cancellation,
 			trackerTask,
-			filePath,
+			parameters.File.Id,
 			CancellationToken.None));
 
 		return (cancellation, trackerTask);
@@ -500,7 +503,10 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <paramref name="selectedAppPath" /> when provided, otherwise via shell-execute.
 	/// Returns the process id, or <c>default</c> if no process could be started.
 	/// </summary>
-	private int StartFileProcess(string? selectedAppPath, string filePath)
+	private int StartFileProcess(
+		string? selectedAppPath,
+		string filePath,
+		Guid fileId)
 	{
 		int processId;
 
@@ -511,7 +517,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		else if (!_processUtils.StartProcess(filePath, out processId))
 		{
 			_logger.LogDebug(
-				$@"File ""{filePath}"" was opened without an associated process — no extension or no system association.");
+				$@"File ""{fileId}"" was opened without an associated process — no extension or no system association.");
 		}
 
 		return processId;
@@ -521,12 +527,12 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// Cancels <paramref name="cancellation" />, waits up to 5 seconds for
 	/// <paramref name="trackerTask" /> to exit (honouring <paramref name="token" />),
 	/// then disposes <paramref name="cancellation" />.
-	/// <paramref name="filePath" /> is used only for the timeout warning message.
+	/// <paramref name="fileId" /> is used only for the timeout warning message.
 	/// </summary>
 	private async Task StopTrackerAndDisposeCancellationAsync(
 		CancellationTokenSource cancellation,
 		Task trackerTask,
-		string filePath,
+		Guid fileId,
 		CancellationToken token)
 	{
 		try
@@ -543,7 +549,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 			}
 			catch (TimeoutException)
 			{
-				_logger.LogWarning($@"Change tracker for ""{filePath}"" did not stop within 5 seconds.");
+				_logger.LogWarning($@"Change tracker for ""{fileId}"" did not stop within 5 seconds.");
 			}
 			catch (OperationCanceledException)
 			{

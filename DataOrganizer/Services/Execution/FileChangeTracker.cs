@@ -201,7 +201,6 @@ public class FileChangeTracker : IFileChangeTracker
 							_logger.LogDebug(
 								"Contents of file is updated in database:" + Environment.NewLine +
 								$"File Id = {parameters.File.Id}," + Environment.NewLine +
-								$"File path = {parameters.FilePath}," + Environment.NewLine +
 								$"New bytes length = {bytes.Length}.");
 
 							parameters
