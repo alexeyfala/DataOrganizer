@@ -186,6 +186,27 @@ public sealed class EncryptionService : IEncryptionService
 
 	#region Helpers
 	/// <summary>
+	/// Builds the AEAD key of a format from the secret and the salt.
+	/// </summary>
+	/// <exception cref="CryptographicException">The secret cannot produce a key of this format.</exception>
+	private static Key CreateKey(
+		KeyFactory keyFactory,
+		ReadOnlySpan<byte> secret,
+		ReadOnlySpan<byte> salt,
+		byte version)
+	{
+		try
+		{
+			return keyFactory(secret, salt);
+		}
+		catch (Exception ex) when (ex is not CryptographicException)
+		{
+			throw new CryptographicException(
+				$"The key material of the format {version:X2} cannot be used.", ex);
+		}
+	}
+
+	/// <summary>
 	/// Decrypts a blob laid out as <c>[version][salt][nonce][ciphertext+tag]</c>.
 	/// A zero <paramref name="saltSize" /> means the format carries no salt.
 	/// </summary>
@@ -211,21 +232,23 @@ public sealed class EncryptionService : IEncryptionService
 				$"Encrypted data marked {input[0]:X2} cannot be read as the format {version:X2}.");
 		}
 
+		using Key key = CreateKey(
+			keyFactory,
+			secret,
+			input.AsSpan(1, saltSize),
+			version);
+
 		byte[]? plaintext;
 
 		try
 		{
-			ReadOnlySpan<byte> salt = input.AsSpan(1, saltSize);
-
-			using Key key = keyFactory(secret, salt);
-
 			ReadOnlySpan<byte> nonce = input.AsSpan(1 + saltSize, _algorithm.NonceSize);
 
 			ReadOnlySpan<byte> ciphertext = input.AsSpan(1 + saltSize + _algorithm.NonceSize);
 
 			plaintext = OpenAead(key, nonce, ciphertext, associatedData);
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is not CryptographicException)
 		{
 			throw new CryptographicException($"Decryption of the format {version:X2} failed.", ex);
 		}
@@ -305,37 +328,43 @@ public sealed class EncryptionService : IEncryptionService
 		int saltSize,
 		KeyFactory keyFactory)
 	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		int nonceSize = _algorithm.NonceSize;
+
+		byte[] result = new byte[1 + saltSize + nonceSize + input.Length + _algorithm.TagSize];
+
+		result[0] = version;
+
+		Span<byte> saltSpan = result.AsSpan(1, saltSize);
+
+		RandomNumberGenerator.Fill(saltSpan);
+
+		using Key key = CreateKey(
+			keyFactory,
+			secret,
+			saltSpan,
+			version);
+
+		Span<byte> nonceSpan = result.AsSpan(1 + saltSize, nonceSize);
+
+		RandomNumberGenerator.Fill(nonceSpan);
+
 		try
 		{
-			int nonceSize = _algorithm.NonceSize;
-
-			byte[] result = new byte[1 + saltSize + nonceSize + input.Length + _algorithm.TagSize];
-
-			result[0] = version;
-
-			Span<byte> saltSpan = result.AsSpan(1, saltSize);
-
-			RandomNumberGenerator.Fill(saltSpan);
-
-			using Key key = keyFactory(secret, saltSpan);
-
-			Span<byte> nonceSpan = result.AsSpan(1 + saltSize, nonceSize);
-
-			RandomNumberGenerator.Fill(nonceSpan);
-
 			_algorithm.Encrypt(
 				key: key,
 				nonce: nonceSpan,
 				associatedData: associatedData,
 				plaintext: input,
 				ciphertext: result.AsSpan(1 + saltSize + nonceSize));
-
-			return result;
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is not CryptographicException)
 		{
 			throw new CryptographicException($"Encryption of the format {version:X2} failed.", ex);
 		}
+
+		return result;
 	}
 
 	/// <summary>
