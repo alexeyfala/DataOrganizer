@@ -12,9 +12,9 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using Repository.Interfaces;
+using Repository.Services;
 using Serilog;
 using Shared.Extensions;
-using Shared.Interfaces;
 using Shared.Properties;
 using System;
 using System.Collections.Generic;
@@ -40,9 +40,6 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc cref="IEncryptionService" />
 	private readonly IEncryptionService _encryption;
 
-	/// <inheritdoc cref="IFileSystem" />
-	private readonly IFileSystem _fileSystem;
-
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
@@ -58,7 +55,6 @@ public sealed class EntityEncryption : IEntityEncryption
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEncryptionService encryption,
-		IFileSystem fileSystem,
 		ILogger logger,
 		IMessenger messenger,
 		ISessionKeyStore sessionKeyStore)
@@ -68,8 +64,6 @@ public sealed class EntityEncryption : IEntityEncryption
 		_dialogService = dialogService;
 
 		_encryption = encryption;
-
-		_fileSystem = fileSystem;
 
 		_logger = logger;
 
@@ -280,9 +274,11 @@ public sealed class EntityEncryption : IEntityEncryption
 					return;
 				}
 
-				if (await _dbAccess
+				using DatabaseBackup? backup = await _dbAccess
 					.BackupDatabaseAsync(token)
-					.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+					.ConfigureAwait(false);
+
+				if (backup is null)
 				{
 					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
@@ -291,7 +287,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 				UpdateDatabaseParameters parameters = new()
 				{
-					BackupFilePath = backupFilePath,
+					BackupFilePath = backup.FilePath,
 					Contents = result,
 					EncryptedDek = null,
 					Files = files,
@@ -388,9 +384,11 @@ public sealed class EntityEncryption : IEntityEncryption
 						return;
 					}
 
-					if (await _dbAccess
+					using DatabaseBackup? backup = await _dbAccess
 						.BackupDatabaseAsync(token)
-						.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+						.ConfigureAwait(false);
+
+					if (backup is null)
 					{
 						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
@@ -399,7 +397,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 					UpdateDatabaseParameters parameters = new()
 					{
-						BackupFilePath = backupFilePath,
+						BackupFilePath = backup.FilePath,
 						Contents = result,
 						EncryptedDek = encryptedDek,
 						Files = files,
@@ -705,8 +703,6 @@ public sealed class EntityEncryption : IEntityEncryption
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteFile(parameters.BackupFilePath);
-
 				return UpdateDatabaseResult.FailedToSaveContentsInDb;
 			}
 
@@ -720,8 +716,6 @@ public sealed class EntityEncryption : IEntityEncryption
 				await _dbAccess
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
-
-				DeleteFile(parameters.BackupFilePath);
 
 				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
@@ -748,8 +742,6 @@ public sealed class EntityEncryption : IEntityEncryption
 					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
 					.ConfigureAwait(false);
 
-				DeleteFile(parameters.BackupFilePath);
-
 				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
 
@@ -763,8 +755,6 @@ public sealed class EntityEncryption : IEntityEncryption
 				.Folder
 				.EncryptedDek = parameters.EncryptedDek;
 
-			DeleteFile(parameters.BackupFilePath);
-
 			return UpdateDatabaseResult.Done;
 		}
 		catch (Exception ex)
@@ -772,18 +762,6 @@ public sealed class EntityEncryption : IEntityEncryption
 			_logger.LogException(ex);
 
 			return UpdateDatabaseResult.ExceptionThrown;
-		}
-
-		void DeleteFile(string filePath)
-		{
-			try
-			{
-				_fileSystem.EraseAndDeleteFile(filePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
 		}
 	}
 	#endregion

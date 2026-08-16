@@ -3,6 +3,7 @@ using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -57,18 +58,46 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public void DeleteDirectoryRecursively(
-		string directoryPath,
-		bool removeFileReadOnlySign = false)
+	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
-		if (removeFileReadOnlySign)
+		return Directory.EnumerateFiles(directoryPath);
+	}
+
+	/// <inheritdoc />
+	public void EraseAndDeleteDirectory(string directoryPath)
+	{
+		List<Exception> failures = [];
+
+		foreach (string filePath in Directory.EnumerateFiles(
+			directoryPath,
+			"*",
+			SearchOption.AllDirectories))
 		{
-			Directory
-				.EnumerateFiles(directoryPath, "*.*", SearchOption.AllDirectories)
-				.ForEach(x => SetFileReadOnly(x, false));
+			try
+			{
+				SetFileReadOnly(filePath, false);
+
+				EraseFile(filePath);
+			}
+			catch (Exception ex)
+			{
+				failures.Add(ex);
+			}
 		}
 
-		Directory.Delete(directoryPath, recursive: true);
+		try
+		{
+			Directory.Delete(directoryPath, recursive: true);
+		}
+		catch (Exception ex)
+		{
+			failures.Add(ex);
+		}
+
+		if (failures.Count > 0)
+		{
+			throw new AggregateException(failures);
+		}
 	}
 
 	/// <inheritdoc />

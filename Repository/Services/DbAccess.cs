@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
 using Repository.DTO;
 using Repository.Enums;
+using Repository.Interceptors;
 using Repository.Interfaces;
 using Serilog;
-using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
 using System;
@@ -32,6 +32,9 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
+
+	/// <inheritdoc cref="IDbMaintenance" />
+	private readonly IDbMaintenance _dbMaintenance;
 
 	/// <inheritdoc cref="IFolderRepository" />
 	private readonly IFileRepository _fileRepository;
@@ -60,6 +63,7 @@ public sealed class DbAccess : IDbAccess
 	#region Constructors
 	public DbAccess(
 		IDbContextService dbContextService,
+		IDbMaintenance dbMaintenance,
 		IExplorerModelBaseRepository baseRepository,
 		IFileRepository fileRepository,
 		IFileSystem fileSystem,
@@ -70,6 +74,8 @@ public sealed class DbAccess : IDbAccess
 		_baseRepository = baseRepository;
 
 		_dbContextService = dbContextService;
+
+		_dbMaintenance = dbMaintenance;
 
 		_fileRepository = fileRepository;
 
@@ -247,7 +253,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<string?> BackupDatabaseAsync(CancellationToken token = default)
+	public async Task<DatabaseBackup?> BackupDatabaseAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -257,12 +263,14 @@ public sealed class DbAccess : IDbAccess
 
 			string dbFilePath = GetDbFilePath();
 
-			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { } directory)
+			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 			{
 				return null;
 			}
 
-			string backupFilePath = Path.Combine(directory, "Backup" + AppUtils.SQLiteExtension);
+			string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
+
+			_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
 
 			BackupSqliteParameters parameters = new()
 			{
@@ -279,7 +287,10 @@ public sealed class DbAccess : IDbAccess
 				return null;
 			}
 
-			return backupFilePath;
+			return new DatabaseBackup(
+				backupFilePath,
+				_fileSystem,
+				_logger);
 		}
 		catch (Exception ex)
 		{
@@ -378,9 +389,15 @@ public sealed class DbAccess : IDbAccess
 
 			_logger.LogInformation("Connecting to the database.");
 
+			_dbMaintenance.ErasePendingBackups();
+
 			await (_dbContextService.HasMigrations()
 				? _dbContextService.MigrateAsync(token)
 				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+
+			await _dbMaintenance
+				.EraseFreePagesOnceAsync(token)
+				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
@@ -773,7 +790,7 @@ public sealed class DbAccess : IDbAccess
 
 			using SqliteConnection connection = new(connectionString);
 
-			connection.Open();
+			SqlitePragmas.Open(connection);
 
 			using SqliteCommand cmd = connection.CreateCommand();
 
@@ -1055,9 +1072,9 @@ public sealed class DbAccess : IDbAccess
 
 		using SqliteConnection dest = new(destBuilder.ToString());
 
-		source.Open();
+		SqlitePragmas.Open(source);
 
-		dest.Open();
+		SqlitePragmas.Open(dest);
 
 		source.BackupDatabase(dest);
 
@@ -1094,6 +1111,7 @@ public sealed class DbAccess : IDbAccess
 
 		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
 			.UseSqlite(builder.ToString())
+			.AddInterceptors(new SqlitePragmaInterceptor())
 			.Options;
 
 		return new(options);

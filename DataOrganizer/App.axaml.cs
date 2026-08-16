@@ -33,6 +33,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Repository.DbContexts;
+using Repository.Interceptors;
 using Repository.Interfaces;
 using Repository.Services;
 using Serilog;
@@ -175,6 +176,9 @@ public sealed class App : Application
 			builder.UseSqlite(
 				connectionBuilder.ToString(),
 				x => x.MigrationsAssembly(SqliteDbContext.MigrationsAssemblyName));
+
+			// Pooled connections are reused, and the pragmas do not survive in the database file.
+			builder.AddInterceptors(new SqlitePragmaInterceptor());
 
 			//ILogger logger = provider.GetRequiredService<ILogger>();
 
@@ -388,10 +392,12 @@ public sealed class App : Application
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IDbMaintenance, DbMaintenance>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
+		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();

@@ -7,8 +7,11 @@ using Entities.Models;
 using Material.Colors;
 using Material.Styles.Themes.Base;
 using Repository.DTO;
+using Repository.Services;
+using Serilog.Core;
 using Shared.Common;
 using Shared.Extensions;
+using Shared.Interfaces;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
@@ -76,6 +79,14 @@ public static class TestUtils
 				IsValid = isValid
 			};
 		}
+	}
+
+	/// <summary>
+	/// Creates a <see cref="DatabaseBackup" /> over a random path.
+	/// </summary>
+	public static DatabaseBackup CreateDatabaseBackup(IFileSystem fileSystem)
+	{
+		return new(CreateRandomFileName(10), fileSystem, Logger.None);
 	}
 
 	/// <summary>

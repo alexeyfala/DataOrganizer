@@ -1,4 +1,6 @@
 using Serilog;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
@@ -21,7 +23,11 @@ public interface IFileSystem
 	/// <summary>
 	/// Default pass count for <see cref="EraseFile" />.
 	/// </summary>
-	public const int DefaultPassCount = 3;
+	/// <remarks>
+	/// A single pass: multiple passes are an HDD legacy, and on an SSD with wear leveling a rewrite
+	/// is not guaranteed to reach the same physical blocks anyway.
+	/// </remarks>
+	public const int DefaultPassCount = 1;
 	#endregion
 
 	#region Methods
@@ -44,15 +50,17 @@ public interface IFileSystem
 	/// <inheritdoc cref="Directory.Delete(string, bool)" />
 	void DeleteDirectory(string directoryPath, bool recursive = true);
 
+	/// <inheritdoc cref="Directory.EnumerateFiles(string)" />
+	IEnumerable<string> EnumerateFiles(string directoryPath);
+
 	/// <summary>
-	/// <inheritdoc cref="Directory.Delete(string, bool)" />
+	/// Overwrites with random values the contents of every file of the folder and of its subfolders, then deletes the folder.
 	/// </summary>
 	/// <remarks>
-	/// If <paramref name="removeFileReadonlySign"/> is <c>True</c>, removes preliminarily the sign <see cref="FileAttributes.ReadOnly" /> for all files.
+	/// The <see cref="FileAttributes.ReadOnly" /> sign is removed from every file.
+	/// A file that cannot be overwritten does not stop the others; the failures are reported through <see cref="AggregateException" />.
 	/// </remarks>
-	void DeleteDirectoryRecursively(
-		string directoryPath,
-		bool removeFileReadonlySign = false);
+	void EraseAndDeleteDirectory(string directoryPath);
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />

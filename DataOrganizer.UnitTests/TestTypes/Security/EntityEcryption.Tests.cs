@@ -19,6 +19,7 @@ using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
 using Repository.Interfaces;
+using Repository.Services;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -349,7 +350,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
@@ -480,7 +481,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(dialogService);
 
@@ -638,7 +639,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);
 
@@ -705,7 +706,7 @@ internal class EntityEncryptionTests
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateRandomFileName(10));
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
@@ -735,6 +736,93 @@ internal class EntityEncryptionTests
 		await dbAccess
 			.DidNotReceive()
 			.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>());
+	}
+
+	/// <summary>
+	/// <see cref="EntityEncryption.EncryptFolderAsync" />: the copy of the database is erased when the operation ends.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Erases_The_Database_Backup([Values] bool isUpdateFailing)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		DatabaseBackup backup = TestUtils.CreateDatabaseBackup(fileSystem);
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(1)];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			fileSystem
+				.IsFileExists(Arg.Any<string>())
+				.Returns(true);
+
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(AppUtils.CreateRandomString(10).ToCharArray());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<byte[]>())
+				.Returns([]);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(backup);
+
+			// The failing branch is the one that used to leave the copy behind.
+			if (isUpdateFailing)
+			{
+				dbAccess
+					.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+					.Throws(new InvalidOperationException());
+			}
+			else
+			{
+				dbAccess
+					.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+					.Returns(true);
+
+				dbAccess
+					.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+					.Returns(true);
+			}
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityEncryption sut = mock.Create<EntityEncryption>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		await dbAccess
+			.Received()
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
+
+		fileSystem
+			.Received()
+			.EraseAndDeleteFile(backup.FilePath);
 	}
 
 	/// <summary>
@@ -1183,13 +1271,9 @@ internal class EntityEncryptionTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EntityEncryption sut = mock.Create<EntityEncryption>(
-			TypedParameter.From(dbAccess),
-			TypedParameter.From(fileSystem));
+		EntityEncryption sut = mock.Create<EntityEncryption>(TypedParameter.From(dbAccess));
 
 		// Act
 		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
@@ -1202,10 +1286,6 @@ internal class EntityEncryptionTests
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
-
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1230,8 +1310,6 @@ internal class EntityEncryptionTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbAccess
@@ -1243,8 +1321,6 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(fileSystem);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -1261,9 +1337,10 @@ internal class EntityEncryptionTests
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
 
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
+		// The copy is erased by the operation that created it, not here.
+		//fileSystem
+		//	.Received()
+		//	.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1286,8 +1363,6 @@ internal class EntityEncryptionTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbAccess
@@ -1295,8 +1370,6 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(fileSystem);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -1313,9 +1386,10 @@ internal class EntityEncryptionTests
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
 
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
+		// The copy is erased by the operation that created it, not here.
+		//fileSystem
+		//	.Received()
+		//	.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -1342,8 +1416,6 @@ internal class EntityEncryptionTests
 			Notes = []
 		};
 
-		IFileSystem fileSystem = Substitute.For<IFileSystem>();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -1357,8 +1429,6 @@ internal class EntityEncryptionTests
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(fileSystem);
 		});
 
 		EntityEncryption sut = mock.Create<EntityEncryption>();
@@ -1379,9 +1449,10 @@ internal class EntityEncryptionTests
 			.Should()
 			.OnlyContain(x => x == newStatus);
 
-		fileSystem
-			.Received()
-			.EraseAndDeleteFile(Arg.Any<string>());
+		// The copy is erased by the operation that created it, not here.
+		//fileSystem
+		//	.Received()
+		//	.EraseAndDeleteFile(Arg.Any<string>());
 	}
 
 	/// <summary>

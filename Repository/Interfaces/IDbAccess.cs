@@ -2,6 +2,7 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DTO;
 using Repository.Enums;
+using Repository.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -42,9 +43,9 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Tries to backup database in file, and returns a path to it.
+	/// Tries to backup database in file; the copy is erased when the returned instance is disposed.
 	/// </summary>
-	Task<string?> BackupDatabaseAsync(CancellationToken token = default);
+	Task<DatabaseBackup?> BackupDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Backups SQLite database.

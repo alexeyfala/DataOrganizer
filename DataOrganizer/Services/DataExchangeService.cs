@@ -10,6 +10,7 @@ using Entities.Models;
 using Repository.DTO;
 using Repository.Enums;
 using Repository.Interfaces;
+using Repository.Services;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;
@@ -249,9 +250,11 @@ public sealed class DataExchangeService : IDataExchangeService
 			return null;
 		}
 
-		if (await _dbAccess
+		using DatabaseBackup? backup = await _dbAccess
 			.BackupDatabaseAsync(token)
-			.ConfigureAwait(false) is not { } backupFilePath || string.IsNullOrEmpty(backupFilePath))
+			.ConfigureAwait(false);
+
+		if (backup is null)
 		{
 			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
@@ -279,7 +282,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
-							.RestoreFromBackupAsync(backupFilePath, token)
+							.RestoreFromBackupAsync(backup.FilePath, token)
 							.ConfigureAwait(false);
 
 						return null;
@@ -297,7 +300,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
-							.RestoreFromBackupAsync(backupFilePath, token)
+							.RestoreFromBackupAsync(backup.FilePath, token)
 							.ConfigureAwait(false);
 
 						return null;
@@ -315,7 +318,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
-							.RestoreFromBackupAsync(backupFilePath, token)
+							.RestoreFromBackupAsync(backup.FilePath, token)
 							.ConfigureAwait(false);
 
 						return null;
@@ -335,22 +338,13 @@ public sealed class DataExchangeService : IDataExchangeService
 			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 			await _dbAccess
-				.RestoreFromBackupAsync(backupFilePath, token)
+				.RestoreFromBackupAsync(backup.FilePath, token)
 				.ConfigureAwait(false);
 
 			return null;
 		}
 		finally
 		{
-			try
-			{
-				_fileSystem.EraseAndDeleteFile(backupFilePath);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogException(ex);
-			}
-
 			HideProgressBar();
 		}
 	}

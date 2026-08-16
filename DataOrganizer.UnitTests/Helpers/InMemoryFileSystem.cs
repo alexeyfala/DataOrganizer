@@ -36,6 +36,13 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		}
 	}
 
+	public IEnumerable<string> EnumerateFiles(string directoryPath)
+	{
+		return [.. Files
+			.Keys
+			.Where(key => Path.GetDirectoryName(key) == directoryPath)];
+	}
+
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
@@ -76,6 +83,8 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	public Stream CreateSequentialWrite(string filePath) => throw new NotSupportedException();
 
 	public void DeleteDirectoryRecursively(string directoryPath, bool removeFileReadonlySign = false) => throw new NotSupportedException();
+
+	public void EraseAndDeleteDirectory(string directoryPath) => throw new NotSupportedException();
 
 	public void EraseFile(
 		string filePath,
