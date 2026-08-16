@@ -40,3 +40,24 @@ To help reproduce and assess the issue, please provide as much as you can:
 Security fixes are applied to the latest release. Older versions are not
 maintained — please update to the most recent version before reporting an
 issue.
+
+## Known Limitations
+
+The following are known and accepted, so there is no need to report them.
+
+- **Erasing is best-effort.** Overwriting a file before deleting it does not
+  guarantee the old bytes are unrecoverable: SSD wear leveling, copy-on-write
+  file systems, snapshots and shadow copies may keep earlier versions.
+- **SQLite rollback journal.** During a transaction the journal holds plaintext
+  pre-images of the pages being replaced. `journal_mode = MEMORY` would avoid
+  the file at the cost of a corrupted database after a crash — an unacceptable
+  trade.
+- **Traces left by other applications.** A file opened externally is written
+  decrypted into a sandbox folder and erased when it is closed, but the opening
+  application keeps its own autosave and recovery copies, and the operating
+  system records the file name in recent items and jump lists.
+- **Record names are not encrypted.** Encryption covers contents and notes.
+  Names are stored as plain text in the database and appear in exported files.
+- **Decrypted data in memory.** While the session is unlocked, keys and
+  decrypted contents live in RAM and may reach the page or hibernation file.
+  Auto-lock shortens that window.
