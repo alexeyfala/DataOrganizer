@@ -1,12 +1,12 @@
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using Repository.DTO;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Interfaces;
-
 
 /// <summary>
 /// Provides dialog boxes for interaction.
@@ -48,9 +48,9 @@ public interface IDialogService
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Requests a password from user.
+	/// Requests a password from user; the caller owns the returned secret and disposes it.
 	/// </summary>
-	Task<char[]> RequestPasswordAsync(
+	Task<PinnedSecret> RequestPasswordAsync(
 		string header,
 		string? label = null,
 		string? description = null,

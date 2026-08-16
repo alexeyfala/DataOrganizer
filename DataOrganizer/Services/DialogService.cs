@@ -164,7 +164,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public Task<char[]> RequestPasswordAsync(
+	public Task<PinnedSecret> RequestPasswordAsync(
 		string header,
 		string? label = null,
 		string? description = null,
@@ -173,7 +173,7 @@ public sealed class DialogService : IDialogService
 	{
 		_logger.LogInformation("Show password box");
 
-		TaskCompletionSource<char[]> source = new();
+		TaskCompletionSource<PinnedSecret> source = new();
 
 		_dispatcher.Post(async () =>
 		{
@@ -338,9 +338,9 @@ public sealed class DialogService : IDialogService
 	/// then scrubs and clears both source <see cref="TextBox" /> instances on every path.
 	/// </summary>
 	/// <returns>
-	/// The captured characters, or an empty array when not confirmed or blank.
+	/// The captured secret, empty when not confirmed or blank; the caller owns it.
 	/// </returns>
-	internal static char[] CapturePasswordAndScrub(
+	internal static PinnedSecret CapturePasswordAndScrub(
 		TextBox input,
 		bool confirmed,
 		TextBox? confirmation = null)
@@ -349,14 +349,10 @@ public sealed class DialogService : IDialogService
 		{
 			if (confirmed && !string.IsNullOrWhiteSpace(input.Text))
 			{
-				using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(input.Text);
-
-				return secret
-					.AsReadOnlySpan()
-					.ToArray();
+				return SecureStringHelper.CaptureAndWipe(input.Text);
 			}
 
-			return [];
+			return new(length: 0);
 		}
 		finally
 		{

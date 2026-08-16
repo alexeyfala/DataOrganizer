@@ -1,4 +1,5 @@
 using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -44,6 +45,6 @@ public interface IClipboardLogStore : IDisposable
 	/// Unlocks an existing key with <paramref name="password" /> (loading the previous journal),
 	/// or creates and stores a new key when none exists yet.
 	/// </summary>
-	Task<ClipboardLogUnlockResult> TryUnlockAsync(byte[] password, CancellationToken token = default);
+	Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default);
 	#endregion
 }

@@ -1,6 +1,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using System;
@@ -29,9 +30,13 @@ internal class EncryptionServiceTests
 			.GetBytes(TextHelper.LoremIpsum);
 
 		// Act, Assert
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		using PinnedBuffer wrongPassword = new(TextHelper.Utf8Encoding.GetBytes("WrongPassword"));
+
 		byte[]? encrypted = sut.Encrypt(
 			input,
-			TextHelper.Utf8Encoding.GetBytes("SomePassword"),
+			password,
 			[]);
 
 		encrypted
@@ -40,7 +45,7 @@ internal class EncryptionServiceTests
 
 		Action act = () => sut.Decrypt(
 			encrypted,
-			TextHelper.Utf8Encoding.GetBytes("WrongPassword"),
+			wrongPassword,
 			[]);
 
 		act
@@ -72,7 +77,9 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.Decrypt(encrypted, sessionId, []);
+		using PinnedBuffer secret = new(sessionId);
+
+		Action act = () => sut.Decrypt(encrypted, secret, []);
 
 		// Assert
 		act
@@ -94,9 +101,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] password = TextHelper
-			.Utf8Encoding
-			.GetBytes("SomePassword");
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
 		// Act
 		Action act = () => sut.Decrypt(input, password, []);
@@ -260,9 +265,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] password = TextHelper
-			.Utf8Encoding
-			.GetBytes("SomePassword");
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
 		// Act
 		byte[]? encrypted = sut.Encrypt(input, password, []);
@@ -271,7 +274,7 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.DecryptWithSessionId(encrypted, password, []);
+		Action act = () => sut.DecryptWithSessionId(encrypted, password.AsReadOnlySpan().ToArray(), []);
 
 		// Assert
 		act
@@ -319,9 +322,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] password = TextHelper
-			.Utf8Encoding
-			.GetBytes("SomePassword");
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
 		// Act, Assert
 		byte[]? encrypted = sut.Encrypt(input, password, []);
@@ -369,8 +370,10 @@ internal class EncryptionServiceTests
 
 		byte[] secret = TestUtils.CreateRandomBytes(32);
 
+		using PinnedBuffer secretBuffer = new(secret);
+
 		// Act
-		byte[]? password = sut.Encrypt(input, secret, []);
+		byte[]? password = sut.Encrypt(input, secretBuffer, []);
 
 		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), []);
 

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Clipboard;
 using DataOrganizer.Enums.Clipboard;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Settings;
@@ -195,7 +196,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 
 	/// <inheritdoc />
 	public async Task<ClipboardLogStatus> TryUnlockAndMergeAsync(
-		byte[] password,
+		PinnedBuffer password,
 		CancellationToken token = default)
 	{
 		ClipboardLogUnlockResult result = await _store

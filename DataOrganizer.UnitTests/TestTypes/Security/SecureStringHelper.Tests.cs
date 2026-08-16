@@ -76,6 +76,25 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
+	/// <see cref="SecureStringHelper.WipeString" />: an interned instance is left alone, since the
+	/// intern pool is shared by the whole process.
+	/// </summary>
+	[Test]
+	public void WipeString_Leaves_An_Interned_String_Alone()
+	{
+		// Arrange
+		string interned = string.Intern(new(['s', 'h', 'a', 'r', 'e', 'd']));
+
+		// Act
+		SecureStringHelper.WipeString(interned);
+
+		// Assert
+		interned
+			.Should()
+			.Be(new string(['s', 'h', 'a', 'r', 'e', 'd']));
+	}
+
+	/// <summary>
 	/// <see cref="SecureStringHelper.WipeString" />: every character of the string is replaced with the null character.
 	/// </summary>
 	[Test]
@@ -92,6 +111,32 @@ internal class SecureStringHelperTests
 			.All(c => c == '\0')
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="SecureStringHelper.WipeString" />: the guard compares instances, so a copy of an
+	/// interned string is still wiped and the pooled one survives.
+	/// </summary>
+	[Test]
+	public void WipeString_Wipes_A_Copy_Of_An_Interned_String()
+	{
+		// Arrange
+		string interned = string.Intern(new(['t', 'w', 'i', 'n']));
+
+		string copy = new(['t', 'w', 'i', 'n']);
+
+		// Act
+		SecureStringHelper.WipeString(copy);
+
+		// Assert
+		copy
+			.All(c => c == '\0')
+			.Should()
+			.BeTrue();
+
+		interned
+			.Should()
+			.Be(new string(['t', 'w', 'i', 'n']));
 	}
 	#endregion
 }
