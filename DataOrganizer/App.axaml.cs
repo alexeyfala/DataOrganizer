@@ -397,6 +397,7 @@ public sealed class App : Application
 		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
+		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
 		services.AddSingleton<IFileRepository, FileRepository>();
 		services.AddSingleton<IFolderRepository, FolderRepository>();
@@ -407,7 +408,6 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
-		services.AddSingleton<ISandbox, Sandbox>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();

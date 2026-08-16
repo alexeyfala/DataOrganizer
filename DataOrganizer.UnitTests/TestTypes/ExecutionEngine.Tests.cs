@@ -39,7 +39,7 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISandbox sandbox = Substitute.For<ISandbox>();
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -266,7 +266,7 @@ internal class ExecutionEngineTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISandbox sandbox = Substitute.For<ISandbox>();
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
@@ -431,7 +431,7 @@ internal class ExecutionEngineTests
 	{
 		return AutoMock.GetLoose(builder =>
 		{
-			ISandbox sandbox = Substitute.For<ISandbox>();
+			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())

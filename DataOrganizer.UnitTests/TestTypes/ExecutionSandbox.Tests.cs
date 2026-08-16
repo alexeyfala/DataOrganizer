@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(Sandbox)}"" type")]
-internal class SandboxTests
+[TestFixture(Description = $@"Tests of ""{nameof(ExecutionSandbox)}"" type")]
+internal class ExecutionSandboxTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="Sandbox.EraseAsync" />: overwrites and deletes the folder left by the previous session.
+	/// <see cref="ExecutionSandbox.EraseAsync" />: overwrites and deletes the folder left by the previous session.
 	/// </summary>
 	[Test]
 	public async Task EraseAsync_Erases_The_Folder()
@@ -27,7 +27,7 @@ internal class SandboxTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		Sandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
+		ExecutionSandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
 
 		// Act
 		await sut.EraseAsync();
@@ -39,7 +39,7 @@ internal class SandboxTests
 	}
 
 	/// <summary>
-	/// <see cref="Sandbox.EraseAsync" />: a locked folder is taken again after a pause.
+	/// <see cref="ExecutionSandbox.EraseAsync" />: a locked folder is taken again after a pause.
 	/// </summary>
 	[Test]
 	public async Task EraseAsync_Repeats_The_Attempt_For_A_Locked_Folder()
@@ -65,7 +65,7 @@ internal class SandboxTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		Sandbox sut = CreateSut(mock, fileSystem, time);
+		ExecutionSandbox sut = CreateSut(mock, fileSystem, time);
 
 		// Act
 		Task task = sut.EraseAsync();
@@ -81,7 +81,7 @@ internal class SandboxTests
 	}
 
 	/// <summary>
-	/// <see cref="Sandbox.EraseAsync" />: a folder that does not exist is left alone.
+	/// <see cref="ExecutionSandbox.EraseAsync" />: a folder that does not exist is left alone.
 	/// </summary>
 	[Test]
 	public async Task EraseAsync_Skips_A_Missing_Folder()
@@ -91,7 +91,7 @@ internal class SandboxTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		Sandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
+		ExecutionSandbox sut = CreateSut(mock, fileSystem, new FakeTimeProvider());
 
 		// Act
 		await sut.EraseAsync();
@@ -103,7 +103,7 @@ internal class SandboxTests
 	}
 
 	/// <summary>
-	/// <see cref="Sandbox.GetFileDirectoryPath" />: every file gets a folder of its own inside the sandbox.
+	/// <see cref="ExecutionSandbox.GetFileDirectoryPath" />: every file gets a folder of its own inside the sandbox.
 	/// </summary>
 	[Test]
 	public void GetFileDirectoryPath_Points_Inside_The_Sandbox()
@@ -113,7 +113,7 @@ internal class SandboxTests
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		Sandbox sut = CreateSut(mock, Substitute.For<IFileSystem>(), new FakeTimeProvider());
+		ExecutionSandbox sut = CreateSut(mock, Substitute.For<IFileSystem>(), new FakeTimeProvider());
 
 		// Act
 		string directoryPath = sut.GetFileDirectoryPath(fileId);
@@ -148,7 +148,7 @@ internal class SandboxTests
 	/// <summary>
 	/// Builds the service over the given file system and clock.
 	/// </summary>
-	private static Sandbox CreateSut(
+	private static ExecutionSandbox CreateSut(
 		AutoMock mock,
 		IFileSystem fileSystem,
 		TimeProvider timeProvider)
@@ -159,7 +159,7 @@ internal class SandboxTests
 			.SandboxDirectoryPath
 			.Returns(DirectoryPath);
 
-		return mock.Create<Sandbox>(
+		return mock.Create<ExecutionSandbox>(
 			TypedParameter.From(appEnvironment),
 			TypedParameter.From(fileSystem),
 			TypedParameter.From(timeProvider));

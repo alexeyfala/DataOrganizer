@@ -7,7 +7,7 @@ namespace DataOrganizer.Interfaces.Execution;
 /// <summary>
 /// Folder holding the decrypted copies of the files opened in external applications.
 /// </summary>
-public interface ISandbox
+public interface IExecutionSandbox
 {
 	#region Methods
 	/// <summary>

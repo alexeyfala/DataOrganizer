@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 
 namespace DataOrganizer.Services.Execution;
 
-/// <inheritdoc cref="ISandbox" />
-public sealed class Sandbox : ISandbox
+/// <inheritdoc cref="IExecutionSandbox" />
+public sealed class ExecutionSandbox : IExecutionSandbox
 {
 	#region Data
 	/// <summary>
@@ -38,7 +38,7 @@ public sealed class Sandbox : ISandbox
 	#endregion
 
 	#region Constructors
-	public Sandbox(
+	public ExecutionSandbox(
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
 		ILogger logger,

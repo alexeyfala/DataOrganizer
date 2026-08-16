@@ -67,8 +67,8 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="ISandbox" />
-	private readonly ISandbox _sandbox;
+	/// <inheritdoc cref="IExecutionSandbox" />
+	private readonly IExecutionSandbox _sandbox;
 
 	/// <inheritdoc cref="ServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
@@ -89,7 +89,7 @@ public class ViewLauncher : IViewLauncher
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		ISandbox sandbox,
+		IExecutionSandbox sandbox,
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,

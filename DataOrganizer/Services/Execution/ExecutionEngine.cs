@@ -35,14 +35,15 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
+
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="IProcessUtils" />
 	private readonly IProcessUtils _processUtils;
 
-	/// <inheritdoc cref="ISandbox" />
-	private readonly ISandbox _sandbox;
+	/// <inheritdoc cref="IExecutionSandbox" />
+	private readonly IExecutionSandbox _sandbox;
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -61,7 +62,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IFileSystem fileSystem,
 		ILogger logger,
 		IProcessUtils processUtils,
-		ISandbox sandbox,
+		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_appPicker = appPicker;
