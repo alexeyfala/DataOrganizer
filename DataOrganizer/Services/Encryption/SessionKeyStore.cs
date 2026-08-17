@@ -54,7 +54,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 				return _encryption.DecryptWithDek(
 					encryptedContents,
 					dek,
-					identity.ToAssociatedData());
+					identity);
 			}
 			finally
 			{
@@ -78,7 +78,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 				return _encryption.EncryptWithDek(
 					contents,
 					dek,
-					identity.ToAssociatedData());
+					identity);
 			}
 			finally
 			{
@@ -147,7 +147,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 					wrappedDek = _encryption.EncryptWithSessionId(
 						dek,
 						sessionId,
-						ContentIdentity.ForDek(keeperId).ToAssociatedData());
+						ContentIdentity.ForDek(keeperId));
 				}
 				catch
 				{
@@ -246,7 +246,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 			return _encryption.DecryptWithSessionId(
 				input,
 				sessionId,
-				ContentIdentity.ForDek(keeperId).ToAssociatedData());
+				ContentIdentity.ForDek(keeperId));
 		}
 		finally
 		{

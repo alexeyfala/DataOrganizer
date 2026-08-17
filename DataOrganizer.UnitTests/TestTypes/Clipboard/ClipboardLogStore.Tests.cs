@@ -371,7 +371,7 @@ internal class ClipboardLogStoreTests
 
 		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 			.Returns(new byte[32]);
 
 		using AutoMock second = CreateMock(files, encryption);
@@ -410,7 +410,7 @@ internal class ClipboardLogStoreTests
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())!
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
 			.Throws(new InvalidCredentialException());
 
 		using AutoMock second = CreateMock(files, encryption);
@@ -446,7 +446,7 @@ internal class ClipboardLogStoreTests
 			.Returns(new byte[32]);
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<byte[]>())
+			.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);

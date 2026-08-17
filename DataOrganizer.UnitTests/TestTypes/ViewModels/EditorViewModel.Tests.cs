@@ -135,7 +135,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -147,7 +147,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(folderProtection);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -166,7 +166,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEncryption
+		await folderProtection
 			.Received()
 			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
 	}
@@ -287,7 +287,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -299,7 +299,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(folderProtection);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -318,7 +318,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEncryption
+		await folderProtection
 			.Received()
 			.DecryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
@@ -607,7 +607,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IFolderProtection folderProtection = Substitute.For<IFolderProtection>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -619,7 +619,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(folderProtection);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -638,7 +638,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEncryption
+		await folderProtection
 			.Received()
 			.EncryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
 	}
@@ -975,7 +975,7 @@ internal class EditorViewModelTests
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -987,7 +987,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -1009,7 +1009,7 @@ internal class EditorViewModelTests
 			.OnlyContain(x => !x.IsExecuting);
 
 		// Marking the objects and dropping the keys belongs to the encryption service.
-		entityEncryption
+		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
@@ -1026,7 +1026,7 @@ internal class EditorViewModelTests
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
@@ -1036,7 +1036,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -1055,7 +1055,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		entityEncryption
+		contentVisibility
 			.DidNotReceive()
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
@@ -1071,7 +1071,7 @@ internal class EditorViewModelTests
 			? TestUtils.CreateFileDto(isEditing: true)
 			: TestUtils.CreateFileDto(isExecuting: true);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1083,7 +1083,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -1095,7 +1095,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		// Marking the object and dropping the key belongs to the encryption service.
-		entityEncryption
+		contentVisibility
 			.Received(1)
 			.HideFileContents(file);
 
@@ -1121,7 +1121,7 @@ internal class EditorViewModelTests
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
@@ -1133,7 +1133,7 @@ internal class EditorViewModelTests
 		{
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -1150,7 +1150,7 @@ internal class EditorViewModelTests
 			.DidNotReceive()
 			.RequestCloseFilesAsync();
 
-		entityEncryption
+		contentVisibility
 			.DidNotReceive()
 			.HideFileContents(Arg.Any<FileModelDto>());
 	}
@@ -1176,7 +1176,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1188,7 +1188,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -1207,7 +1207,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		entityEncryption
+		contentVisibility
 			.Received()
 			.HideFolderContents(Arg.Any<FolderModelDto>());
 	}
@@ -1229,7 +1229,7 @@ internal class EditorViewModelTests
 			.Children
 			.Add(file);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
@@ -1239,7 +1239,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -1256,7 +1256,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		entityEncryption
+		contentVisibility
 			.DidNotReceive()
 			.HideFolderContents(Arg.Any<FolderModelDto>());
 	}
@@ -1486,7 +1486,7 @@ internal class EditorViewModelTests
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new WeakReferenceMessenger();
 
@@ -1500,7 +1500,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -1535,7 +1535,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeEmpty();
 
-		entityEncryption
+		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
@@ -1552,7 +1552,7 @@ internal class EditorViewModelTests
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new StrongReferenceMessenger();
 
@@ -1570,7 +1570,7 @@ internal class EditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -1593,7 +1593,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		entityEncryption
+		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
@@ -1817,7 +1817,7 @@ internal class EditorViewModelTests
 			.Children
 			.AddRange(editingFiles.Concat(executingFiles));
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1829,7 +1829,7 @@ internal class EditorViewModelTests
 
 			builder.RegisterInstance(dialogService);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
 		});
@@ -1848,7 +1848,7 @@ internal class EditorViewModelTests
 			.Should()
 			.OnlyContain(x => !x.IsExecuting);
 
-		await entityEncryption
+		await contentVisibility
 			.Received()
 			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
 	}

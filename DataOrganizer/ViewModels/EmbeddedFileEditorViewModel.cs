@@ -222,18 +222,18 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#region Constructors
 	public EmbeddedFileEditorViewModel(
 		Application app,
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
+			contentCipher,
 			dbAccess,
 			jsonSerializer,
 			logger,
 			messenger,
-			sessionKeyStore,
 			exceptionHandler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));

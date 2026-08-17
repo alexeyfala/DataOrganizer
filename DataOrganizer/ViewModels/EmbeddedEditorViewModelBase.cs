@@ -19,7 +19,6 @@ using Shared.Interfaces;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -116,28 +115,28 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
+	/// <inheritdoc cref="IContentCipher" />
+	private readonly IContentCipher _contentCipher;
+
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
-
-	/// <inheritdoc cref="ISessionKeyStore" />
-	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
 	protected EmbeddedEditorViewModelBase(
 		Application app,
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
 
 		_dbAccess = dbAccess;
 
-		_sessionKeyStore = sessionKeyStore;
+		_contentCipher = contentCipher;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -256,19 +255,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		try
-		{
-			return _sessionKeyStore.Decrypt(
-				keeperId,
-				ContentIdentity.ForContents(FileId),
-				input);
-		}
-		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
+		return _contentCipher.TryDecrypt(
+			keeperId,
+			ContentIdentity.ForContents(FileId),
+			input);
 	}
 
 	/// <summary>
@@ -281,19 +271,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 			return input;
 		}
 
-		try
-		{
-			return _sessionKeyStore.Encrypt(
-				keeperId,
-				ContentIdentity.ForContents(FileId),
-				input);
-		}
-		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
+		return _contentCipher.TryEncrypt(
+			keeperId,
+			ContentIdentity.ForContents(FileId),
+			input);
 	}
 	#endregion
 }

@@ -5,30 +5,19 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notes;
-using Serilog;
 using Shared.Extensions;
-using System;
-using System.Security.Cryptography;
 
 namespace DataOrganizer.Services.Notes;
 
 public sealed class NoteCipher : INoteCipher
 {
 	#region Data
-	/// <inheritdoc cref="ILogger" />
-	private readonly ILogger _logger;
-
-	/// <inheritdoc cref="ISessionKeyStore" />
-	private readonly ISessionKeyStore _sessionKeyStore;
+	/// <inheritdoc cref="IContentCipher" />
+	private readonly IContentCipher _contentCipher;
 	#endregion
 
 	#region Constructors
-	public NoteCipher(ILogger logger, ISessionKeyStore sessionKeyStore)
-	{
-		_logger = logger;
-
-		_sessionKeyStore = sessionKeyStore;
-	}
+	public NoteCipher(IContentCipher contentCipher) => _contentCipher = contentCipher;
 	#endregion
 
 	#region Methods
@@ -46,33 +35,27 @@ public sealed class NoteCipher : INoteCipher
 		}
 
 		// A protected note stays unreadable while its keeper is locked, so the store is left alone.
-		if (item.EncryptionStatus != EncryptionStatus.Decrypted || FindKeeperId(item) is not { } keeperId)
+		if (item.EncryptionStatus != EncryptionStatus.Decrypted || item.FindPasswordKeeper() is not { } keeper)
+		{
+			return null;
+		}
+
+		// A note is read while the interface is being rendered, so a refusal only reaches the log.
+		if (_contentCipher.TryDecrypt(
+			keeper.Id,
+			ContentIdentity.ForNote(item.Id),
+			note) is not { } decrypted)
 		{
 			return null;
 		}
 
 		try
 		{
-			byte[] decrypted = _sessionKeyStore.Decrypt(
-				keeperId,
-				ContentIdentity.ForNote(item.Id),
-				note);
-
-			try
-			{
-				return ToText(decrypted);
-			}
-			finally
-			{
-				decrypted.ZeroMemory();
-			}
+			return ToText(decrypted);
 		}
-		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+		finally
 		{
-			// A note is read while the interface is being rendered, so nothing may escape to the caller.
-			_logger.LogException(ex);
-
-			return null;
+			decrypted.ZeroMemory();
 		}
 	}
 
@@ -95,17 +78,11 @@ public sealed class NoteCipher : INoteCipher
 
 		try
 		{
-			// A protected note can only be written while its keeper is unlocked.
-			return item.EncryptionStatus == EncryptionStatus.Decrypted && FindKeeperId(item) is { } keeperId
-				? _sessionKeyStore.Encrypt(keeperId, ContentIdentity.ForNote(item.Id), decoded)
+			// A protected note can only be written while its keeper is unlocked;
+			// a failure here must not take the note editor down, the caller reports the refusal.			
+			return item.EncryptionStatus == EncryptionStatus.Decrypted && item.FindPasswordKeeper() is { } keeper
+				? _contentCipher.TryEncrypt(keeper.Id, ContentIdentity.ForNote(item.Id), decoded)
 				: null;
-		}
-		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-		{
-			// A failure here must not take the note editor down; the caller reports the refusal.
-			_logger.LogException(ex);
-
-			return null;
 		}
 		finally
 		{
@@ -115,21 +92,6 @@ public sealed class NoteCipher : INoteCipher
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Identifier of the password keeper <paramref name="item" /> belongs to; <c>null</c> when there is no such keeper.
-	/// </summary>
-	/// <remarks>
-	/// A password keeper protects its own note as well, hence the check of the folder itself.
-	/// </remarks>
-	private static Guid? FindKeeperId(ExplorerModelBaseDto item)
-	{
-		FolderModelDto? keeper = item is FolderModelDto folder
-			? folder.FindPasswordKeeperOrSelf()
-			: item.FindParent(x => x.IsPasswordKeeper());
-
-		return keeper?.Id;
-	}
-
 	/// <summary>
 	/// Decodes UTF-8 bytes into plain text.
 	/// </summary>

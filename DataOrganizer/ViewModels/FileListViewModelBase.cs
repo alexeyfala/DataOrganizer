@@ -101,7 +101,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		{
 			try
 			{
-				contents = _entityEncryption.Decrypt(file, contents);
+				contents = _contentCipher.Decrypt(file, contents);
 			}
 			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
 			{
@@ -161,17 +161,17 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	protected FileListViewModelBase(
 		Application app,
 		IClipboardAccessor clipboard,
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
+			contentCipher,
 			dbAccess,
 			dialogService,
-			entityEncryption,
 			logger,
 			messenger,
 			exceptionHandler)

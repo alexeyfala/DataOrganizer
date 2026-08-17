@@ -58,9 +58,9 @@ internal class CopyContentViewModelBaseTests
 					IsValid = true
 				});
 
-			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			entityEncryption
+			contentCipher
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(Encoding.UTF8.GetBytes(content));
 
@@ -68,7 +68,7 @@ internal class CopyContentViewModelBaseTests
 
 			builder.RegisterInstance(dbAccess);
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentCipher);
 
 			// The running headless application, since Application cannot be substituted.
 			builder.RegisterInstance(Application.Current!);
@@ -113,17 +113,17 @@ internal class CopyContentViewModelBaseTests
 		public TestCopyContentViewModel(
 			Application app,
 			IClipboardAccessor clipboard,
+			IContentCipher contentCipher,
 			IDbAccess dbAccess,
 			IDialogService dialogService,
-			IEntityEncryption entityEncryption,
 			ILogger logger,
 			IMessenger messenger,
 			ITaskExceptionHandler exceptionHandler) : base(
 				app,
 				clipboard,
+				contentCipher,
 				dbAccess,
 				dialogService,
-				entityEncryption,
 				logger,
 				messenger,
 				exceptionHandler)

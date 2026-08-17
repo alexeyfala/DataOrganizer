@@ -336,10 +336,14 @@ public sealed class App : Application
 		#region Transients
 		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
+		services.AddTransient<IContentCipher, ContentCipher>();
+		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
+		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
+		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
@@ -348,8 +352,10 @@ public sealed class App : Application
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
+		services.AddTransient<IFolderProtection, FolderProtection>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
@@ -394,7 +400,6 @@ public sealed class App : Application
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDbMaintenance, DbMaintenance>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton<IEntityEncryption, EntityEncryption>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();

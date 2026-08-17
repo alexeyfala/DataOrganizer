@@ -107,13 +107,13 @@ internal class KeyboardInputHookTests
 					IsValid = true
 				});
 
-			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			entityEncryption
+			contentCipher
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum));
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -182,13 +182,13 @@ internal class KeyboardInputHookTests
 					IsValid = true
 				});
 
-			IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			entityEncryption
+			contentCipher
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
-			builder.RegisterInstance(entityEncryption);
+			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
 

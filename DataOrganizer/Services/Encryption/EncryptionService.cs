@@ -59,14 +59,14 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] Decrypt(
 		byte[] input,
 		PinnedBuffer password,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		ArgumentNullException.ThrowIfNull(password);
 
 		return DecryptCore(
 			input,
 			password.AsReadOnlySpan(),
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionPasswordV1,
 			SaltSize,
 			DeriveKey);
@@ -82,7 +82,7 @@ public sealed class EncryptionService : IEncryptionService
 				Contents = DecryptWithDek(
 					item.Contents,
 					dek,
-					ContentIdentity.ForContents(item.Id).ToAssociatedData()),
+					ContentIdentity.ForContents(item.Id)),
 				Id = item.Id,
 				IsValid = true
 			};
@@ -93,12 +93,12 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] DecryptWithDek(
 		byte[] input,
 		byte[] dek,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		return DecryptCore(
 			input,
 			dek,
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionDekV1,
 			saltSize: 0,
 			ImportDekAsKey);
@@ -108,12 +108,12 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] DecryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		return DecryptCore(
 			input,
 			sessionId,
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionSessionV1,
 			SaltSize,
 			DeriveSessionKey);
@@ -123,14 +123,14 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] Encrypt(
 		byte[] input,
 		PinnedBuffer password,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		ArgumentNullException.ThrowIfNull(password);
 
 		return EncryptCore(
 			input,
 			password.AsReadOnlySpan(),
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionPasswordV1,
 			SaltSize,
 			DeriveKey);
@@ -146,7 +146,7 @@ public sealed class EncryptionService : IEncryptionService
 				Contents = EncryptWithDek(
 					item.Contents,
 					dek,
-					ContentIdentity.ForContents(item.Id).ToAssociatedData()),
+					ContentIdentity.ForContents(item.Id)),
 				Id = item.Id,
 				IsValid = true
 			};
@@ -157,12 +157,12 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] EncryptWithDek(
 		byte[] input,
 		byte[] dek,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		return EncryptCore(
 			input,
 			dek,
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionDekV1,
 			saltSize: 0,
 			ImportDekAsKey);
@@ -172,12 +172,12 @@ public sealed class EncryptionService : IEncryptionService
 	public byte[] EncryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
-		byte[] associatedData)
+		ContentIdentity identity)
 	{
 		return EncryptCore(
 			input,
 			sessionId,
-			associatedData,
+			identity.ToAssociatedData(),
 			FormatVersionSessionV1,
 			SaltSize,
 			DeriveSessionKey);

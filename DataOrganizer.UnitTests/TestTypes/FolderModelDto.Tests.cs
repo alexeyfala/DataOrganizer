@@ -99,10 +99,59 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeperOrSelf" />: returns null when no keeper exists in the chain.
+	/// <see cref="ExplorerModelBaseDto.FindPasswordKeeper" />: a file is never a keeper itself, so the
+	/// search starts at its parent.
 	/// </summary>
 	[Test]
-	public void FindPasswordKeeperOrSelf_Returns_Null_When_No_Keeper_In_Chain()
+	public void FindPasswordKeeper_Of_A_File_Returns_The_Parent_Keeper()
+	{
+		// Arrange
+		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+
+		FolderModelDto child = CreateFolder("child");
+
+		FileModelDto file = CreateFile("file");
+
+		AddChild(keeper, child);
+
+		AddChild(child, file);
+
+		// Act
+		FolderModelDto? result = file.FindPasswordKeeper();
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(keeper);
+	}
+
+	/// <summary>
+	/// <see cref="ExplorerModelBaseDto.FindPasswordKeeper" />: returns null when a file belongs to no keeper.
+	/// </summary>
+	[Test]
+	public void FindPasswordKeeper_Of_A_File_Without_A_Keeper_Returns_Null()
+	{
+		// Arrange
+		FolderModelDto parent = CreateFolder("parent");
+
+		FileModelDto file = CreateFile("file");
+
+		AddChild(parent, file);
+
+		// Act
+		FolderModelDto? result = file.FindPasswordKeeper();
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns null when no keeper exists in the chain.
+	/// </summary>
+	[Test]
+	public void FindPasswordKeeper_Returns_Null_When_No_Keeper_In_Chain()
 	{
 		// Arrange
 		FolderModelDto parent = CreateFolder("parent");
@@ -112,7 +161,7 @@ internal class FolderModelDtoTests
 		AddChild(parent, child);
 
 		// Act
-		FolderModelDto? result = child.FindPasswordKeeperOrSelf();
+		FolderModelDto? result = child.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -121,10 +170,10 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeperOrSelf" />: returns the nearest parent keeper when self is not one.
+	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns the nearest parent keeper when self is not one.
 	/// </summary>
 	[Test]
-	public void FindPasswordKeeperOrSelf_Returns_Parent_Keeper_When_Self_Is_Not()
+	public void FindPasswordKeeper_Returns_Parent_Keeper_When_Self_Is_Not()
 	{
 		// Arrange
 		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
@@ -134,7 +183,7 @@ internal class FolderModelDtoTests
 		AddChild(keeper, child);
 
 		// Act
-		FolderModelDto? result = child.FindPasswordKeeperOrSelf();
+		FolderModelDto? result = child.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -143,16 +192,16 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeperOrSelf" />: returns itself when self is a password keeper.
+	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns itself when self is a password keeper.
 	/// </summary>
 	[Test]
-	public void FindPasswordKeeperOrSelf_Returns_Self_When_Self_Is_Password_Keeper()
+	public void FindPasswordKeeper_Returns_Self_When_Self_Is_Password_Keeper()
 	{
 		// Arrange
 		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
 		// Act
-		FolderModelDto? result = keeper.FindPasswordKeeperOrSelf();
+		FolderModelDto? result = keeper.FindPasswordKeeper();
 
 		// Assert
 		result

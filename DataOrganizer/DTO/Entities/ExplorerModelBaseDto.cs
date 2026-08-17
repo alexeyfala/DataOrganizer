@@ -107,6 +107,11 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, IName
 	}
 
 	/// <summary>
+	/// Searches the password keeper the object belongs to; <c>null</c> when there is none.
+	/// </summary>
+	public virtual FolderModelDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
+
+	/// <summary>
 	/// Return a sequence of <see cref="FolderModelDto" /> parent objects.
 	/// </summary>
 	public IEnumerable<FolderModelDto> GetAllParents()

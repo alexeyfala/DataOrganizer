@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Extensions;
 using DataOrganizer.Messages;
 using Entities.Models;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DataOrganizer.DTO.Entities;
 
@@ -98,19 +100,11 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 		return false;
 	}
 
-	/// <summary>
-	/// Checks self by <see cref="IsPasswordKeeper" /> and returns or tries to find parent
-	/// that returns <c>True</c> on <see cref="IsPasswordKeeper" />.
-	/// </summary>
-	public FolderModelDto? FindPasswordKeeperOrSelf()
-	{
-		if (IsPasswordKeeper())
-		{
-			return this;
-		}
-
-		return FindParent(x => x.IsPasswordKeeper());
-	}
+	/// <inheritdoc />
+	/// <remarks>
+	/// A folder protects its own contents as well, hence the check of the folder itself.
+	/// </remarks>
+	public override FolderModelDto? FindPasswordKeeper() => IsPasswordKeeper() ? this : base.FindPasswordKeeper();
 
 	/// <summary>
 	/// Returns a flat sequence of all child objects.
@@ -165,5 +159,15 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <c>True</c> when <see cref="EncryptedDek" /> has a value.
 	/// </summary>
 	public bool IsPasswordKeeper() => EncryptedDek?.IsNotEmpty() ?? false;
+
+	/// <summary>
+	/// Returns the folder itself and its immediate subfolders as one sequence.
+	/// </summary>
+	public IEnumerable<ExplorerModelBaseDto> WithSubfolders()
+	{
+		return this
+			.ToEnumerable()
+			.Concat(Children.GetFolders());
+	}
 	#endregion
 }
