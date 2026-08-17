@@ -395,6 +395,64 @@ internal class FolderProtectionTests
 			Arg.Any<CancellationToken>());
 	}
 
+	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: contents that the database reports as unreadable,
+	/// or that arrive without an identifier, stop the operation before anything is written.
+	/// </summary>
+	[Test]
+	[TestCase(false, true)]
+	[TestCase(true, false)]
+	public async Task DecryptFolderAsync_Refuses_Damaged_Contents(bool isValid, bool hasId)
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [TestUtils.CreateFileDto()];
+
+		ContentsIsValidPair[] loaded =
+		[
+			new()
+			{
+				Contents = TestUtils.CreateRandomBytes(10),
+				Id = hasId ? Guid.NewGuid() : Guid.Empty,
+				IsValid = isValid
+			}
+		];
+
+		IEncryptedContentWriter contentWriter = null!;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			contentWriter = RegisterContentWriter(builder);
+
+			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(loaded.ToAsyncEnumerable());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.BackupDatabaseAsync();
+
+		await contentWriter
+			.DidNotReceiveWithAnyArgs()
+			.UpdateDatabaseAsync(default!);
+	}
+
 
 	/// <summary>
 	/// <see cref="FolderProtection.EncryptFolderAsync" />: the password of a new keeper is asked for

@@ -40,9 +40,9 @@ internal class NoteCipherTests
 
 		file.Note = TestUtils.CreateRandomBytes(10);
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(contentCipher));
 
 		NoteCipher sut = mock.Create<NoteCipher>();
 
@@ -50,9 +50,9 @@ internal class NoteCipherTests
 		sut.Decode(file);
 
 		// Assert
-		sessionKeyStore
+		contentCipher
 			.Received(1)
-			.Decrypt(keeper.Id, ContentIdentity.ForNote(file.Id), file.Note);
+			.TryDecrypt(keeper.Id, ContentIdentity.ForNote(file.Id), file.Note);
 	}
 
 	/// <summary>
@@ -70,13 +70,13 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), keeper.Note)
+			contentCipher
+				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), keeper.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -121,13 +121,13 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
+			contentCipher
+				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -164,13 +164,13 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Decrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
+			contentCipher
+				.TryDecrypt(keeper.Id, Arg.Any<ContentIdentity>(), file.Note)
 				.Returns(Encoding.UTF8.GetBytes(text));
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -198,13 +198,14 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())!
-				.Throws(new AuthenticationTagMismatchException());
+			// The cipher swallows the cryptographic failure and answers with a refusal.
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -239,13 +240,14 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Throws(new AuthenticationTagMismatchException());
+			// The cipher swallows the cryptographic failure and answers with a refusal.
+			contentCipher
+				.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -278,11 +280,11 @@ internal class NoteCipherTests
 
 		file.Note = TestUtils.CreateRandomBytes(10);
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
+		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
 		string? result = sut.Decode(file);
@@ -292,9 +294,9 @@ internal class NoteCipherTests
 			.Should()
 			.BeNull();
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -308,11 +310,11 @@ internal class NoteCipherTests
 
 		file.Note = TestUtils.CreateRandomBytes(10);
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
+		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
 		string? result = sut.Decode(file);
@@ -322,9 +324,9 @@ internal class NoteCipherTests
 			.Should()
 			.BeNull();
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -364,11 +366,11 @@ internal class NoteCipherTests
 
 		file.Note = Encoding.UTF8.GetBytes(text);
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
+		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
 		string? result = sut.Decode(file);
@@ -378,9 +380,9 @@ internal class NoteCipherTests
 			.Should()
 			.Be(text);
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -408,10 +410,10 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+			contentCipher
+				.TryEncrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					// A copy is required: the source buffer is zeroed right after the call.
@@ -420,7 +422,7 @@ internal class NoteCipherTests
 					return encrypted;
 				});
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();
@@ -455,11 +457,11 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
+		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
 		byte[]? result = sut.Encode(file, AppUtils.CreateRandomString(20));
@@ -469,9 +471,9 @@ internal class NoteCipherTests
 			.Should()
 			.BeNull();
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -507,11 +509,11 @@ internal class NoteCipherTests
 
 		FileModelDto file = TestUtils.CreateFileDto();
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(sessionKeyStore));
+		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
 		byte[]? result = sut.Encode(file, text);
@@ -521,9 +523,9 @@ internal class NoteCipherTests
 			.Should()
 			.Equal(Encoding.UTF8.GetBytes(text));
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -539,10 +541,10 @@ internal class NoteCipherTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Encrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+			contentCipher
+				.TryEncrypt(keeper.Id, Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(x =>
 				{
 					passedText = x.ArgAt<byte[]>(2);
@@ -550,7 +552,7 @@ internal class NoteCipherTests
 					return TestUtils.CreateRandomBytes(10);
 				});
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 		});
 
 		NoteCipher sut = mock.Create<NoteCipher>();

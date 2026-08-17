@@ -3,10 +3,9 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
+using Serilog;
 using Shared.Extensions;
 using System;
-using System.Security.Authentication;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +23,9 @@ public sealed class ContentCipher : IContentCipher
 	/// <inheritdoc cref="IKeeperUnlocker" />
 	private readonly IKeeperUnlocker _keeperUnlocker;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="ISessionKeyStore" />
 	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
@@ -33,6 +35,7 @@ public sealed class ContentCipher : IContentCipher
 		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
+		ILogger logger,
 		ISessionKeyStore sessionKeyStore)
 	{
 		_encryption = encryption;
@@ -40,6 +43,8 @@ public sealed class ContentCipher : IContentCipher
 		_failureReporter = failureReporter;
 
 		_keeperUnlocker = keeperUnlocker;
+
+		_logger = logger;
 
 		_sessionKeyStore = sessionKeyStore;
 	}
@@ -65,6 +70,38 @@ public sealed class ContentCipher : IContentCipher
 			root.Id,
 			ContentIdentity.ForContents(file.Id),
 			input);
+	}
+
+	/// <inheritdoc />
+	public byte[]? TryDecrypt(Guid keeperId, ContentIdentity identity, byte[] input)
+	{
+		try
+		{
+			return _sessionKeyStore.Decrypt(keeperId, identity, input);
+		}
+		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
+		{
+			// The caller renders or saves content, so the failure only reaches the log.
+			_logger.LogException(ex);
+
+			return null;
+		}
+	}
+
+	/// <inheritdoc />
+	public byte[]? TryEncrypt(Guid keeperId, ContentIdentity identity, byte[] input)
+	{
+		try
+		{
+			return _sessionKeyStore.Encrypt(keeperId, identity, input);
+		}
+		catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
+		{
+			// The caller renders or saves content, so the failure only reaches the log.
+			_logger.LogException(ex);
+
+			return null;
+		}
 	}
 
 	/// <inheritdoc />
@@ -103,7 +140,7 @@ public sealed class ContentCipher : IContentCipher
 					decryptedDek,
 					ContentIdentity.ForContents(file.Id));
 			}
-			catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+			catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 			{
 				_failureReporter.Report(ex);
 
@@ -120,7 +157,7 @@ public sealed class ContentCipher : IContentCipher
 			{
 				return Decrypt(file, contents);
 			}
-			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
+			catch (Exception ex) when (EncryptionFailures.IsSessionCipher(ex))
 			{
 				_failureReporter.Report(ex);
 

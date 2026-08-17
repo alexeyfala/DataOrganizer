@@ -15,8 +15,6 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Authentication;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -124,7 +122,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}
@@ -164,7 +162,7 @@ public sealed class FolderProtection : IFolderProtection
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (!AreLoadedContentsValid(contents, files.Length))
+			if (!AreContentsValid(contents, files.Length))
 			{
 				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
@@ -217,7 +215,7 @@ public sealed class FolderProtection : IFolderProtection
 				.UpdateDatabaseAsync(parameters, token)
 				.ConfigureAwait(false);
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}
@@ -254,7 +252,7 @@ public sealed class FolderProtection : IFolderProtection
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (!AreLoadedContentsValid(contents, files.Length))
+			if (!AreContentsValid(contents, files.Length))
 			{
 				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
@@ -323,7 +321,7 @@ public sealed class FolderProtection : IFolderProtection
 				dek.ZeroMemory();
 			}
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}
@@ -336,21 +334,13 @@ public sealed class FolderProtection : IFolderProtection
 
 	#region Helpers
 	/// <summary>
-	/// <c>True</c> when the contents are valid.
+	/// <c>True</c> when every content is readable, carries an identifier, and there are as many of
+	/// them as expected.
 	/// </summary>
-	private static bool AreContentsValid(ContentsIsValidPair[] contents, int shouldBe)
+	private static bool AreContentsValid(ContentsIsValidPair[] contents, int expectedCount)
 	{
-		return contents.Length == shouldBe
-			&& contents.All(x => x.IsValid)
-			&& contents.All(x => x.Id.IsNotDefault());
-	}
-
-	/// <summary>
-	/// <c>True</c> when the loaded from database contents are valid.
-	/// </summary>
-	private static bool AreLoadedContentsValid(ContentsIsValidPair[] contents, int fileCount)
-	{
-		return contents.Length == fileCount && contents.All(x => x.IsValid);
+		return contents.Length == expectedCount
+			&& contents.All(x => x.IsValid && x.Id.IsNotDefault());
 	}
 
 	/// <summary>

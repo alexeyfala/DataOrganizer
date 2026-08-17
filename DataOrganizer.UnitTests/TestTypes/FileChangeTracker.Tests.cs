@@ -97,7 +97,7 @@ internal class FileChangeTrackerTests
 		// Arrange		
 		using CancellationTokenSource cts = new();
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -127,8 +127,8 @@ internal class FileChangeTrackerTests
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(currentHash);
 
-			sessionKeyStore
-				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns(encryptedContents);
 
 			dbAccess
@@ -145,7 +145,7 @@ internal class FileChangeTrackerTests
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -165,9 +165,9 @@ internal class FileChangeTrackerTests
 		await sut.TrackChangesAsync(parameters, cts.Token);
 
 		// Assert
-		sessionKeyStore
+		contentCipher
 			.Received(1)
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
@@ -340,15 +340,16 @@ internal class FileChangeTrackerTests
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
 				.Returns(currentHash);
 
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-			sessionKeyStore
-				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Throws(new CryptographicException());
+			// The cipher swallows the cryptographic failure and answers with a refusal.
+			contentCipher
+				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Returns((byte[]?)null);
 
 			builder.RegisterInstance(fileSystem);
 
-			builder.RegisterInstance(sessionKeyStore);
+			builder.RegisterInstance(contentCipher);
 
 			builder.RegisterInstance(dbAccess);
 

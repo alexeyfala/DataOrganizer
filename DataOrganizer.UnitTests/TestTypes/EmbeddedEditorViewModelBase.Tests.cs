@@ -13,7 +13,7 @@ internal class EmbeddedEditorViewModelBaseTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: delegates to the key store when a keeper is known.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
 	[Test]
 	public void TryToDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
@@ -25,13 +25,13 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		Guid keeperId = Guid.NewGuid();
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		sessionKeyStore
-			.Decrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+		contentCipher
+			.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input)
 			.Returns(decrypted);
 
-		TestEditor sut = new(sessionKeyStore)
+		TestEditor sut = new(contentCipher)
 		{
 			KeeperId = keeperId
 		};
@@ -44,9 +44,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(decrypted);
 
-		sessionKeyStore
+		contentCipher
 			.Received(1)
-			.Decrypt(keeperId, Arg.Any<ContentIdentity>(), input);
+			.TryDecrypt(keeperId, Arg.Any<ContentIdentity>(), input);
 	}
 
 	/// <summary>
@@ -58,9 +58,9 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [];
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(sessionKeyStore)
+		TestEditor sut = new(contentCipher)
 		{
 			KeeperId = Guid.NewGuid()
 		};
@@ -73,9 +73,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -87,9 +87,9 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(sessionKeyStore);
+		TestEditor sut = new(contentCipher);
 
 		// Act
 		byte[]? result = sut.InvokeTryToDecrypt(input);
@@ -99,13 +99,13 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryDecrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: delegates to the key store when a keeper is known.
+	/// <see cref="EmbeddedEditorViewModelBase.TryToEncrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
 	[Test]
 	public void TryToEncrypt_Delegates_To_Store_When_Keeper_Is_Known()
@@ -117,13 +117,13 @@ internal class EmbeddedEditorViewModelBaseTests
 
 		Guid keeperId = Guid.NewGuid();
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		sessionKeyStore
-			.Encrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+		contentCipher
+			.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input)
 			.Returns(encrypted);
 
-		TestEditor sut = new(sessionKeyStore)
+		TestEditor sut = new(contentCipher)
 		{
 			KeeperId = keeperId
 		};
@@ -136,9 +136,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(encrypted);
 
-		sessionKeyStore
+		contentCipher
 			.Received(1)
-			.Encrypt(keeperId, Arg.Any<ContentIdentity>(), input);
+			.TryEncrypt(keeperId, Arg.Any<ContentIdentity>(), input);
 	}
 
 	/// <summary>
@@ -150,9 +150,9 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [];
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(sessionKeyStore)
+		TestEditor sut = new(contentCipher)
 		{
 			KeeperId = Guid.NewGuid()
 		};
@@ -165,9 +165,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 
 	/// <summary>
@@ -179,9 +179,9 @@ internal class EmbeddedEditorViewModelBaseTests
 		// Arrange
 		byte[] input = [1, 2, 3];
 
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
-		TestEditor sut = new(sessionKeyStore);
+		TestEditor sut = new(contentCipher);
 
 		// Act
 		byte[]? result = sut.InvokeTryToEncrypt(input);
@@ -191,9 +191,9 @@ internal class EmbeddedEditorViewModelBaseTests
 			.Should()
 			.BeSameAs(input);
 
-		sessionKeyStore
+		contentCipher
 			.DidNotReceive()
-			.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
+			.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>());
 	}
 	#endregion
 }
@@ -207,13 +207,13 @@ internal class EmbeddedEditorViewModelBaseTests
 /// </summary>
 internal sealed class TestEditor : EmbeddedEditorViewModelBase
 {
-	public TestEditor(ISessionKeyStore sessionKeyStore) : base(
+	public TestEditor(IContentCipher contentCipher) : base(
 		null!,
+		contentCipher,
 		null!,
 		null!,
 		null!,
 		Substitute.For<IMessenger>(),
-		sessionKeyStore,
 		null!)
 	{
 	}

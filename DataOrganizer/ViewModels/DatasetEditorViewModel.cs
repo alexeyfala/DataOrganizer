@@ -598,20 +598,20 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	public DatasetEditorViewModel(
 		Application app,
 		IClipboardAccessor clipboardService,
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
+			contentCipher,
 			dbAccess,
 			jsonSerializer,
 			logger,
 			messenger,
-			sessionKeyStore,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;

@@ -23,6 +23,9 @@ namespace DataOrganizer.Services.Execution;
 public class FileChangeTracker : IFileChangeTracker
 {
 	#region Data
+	/// <inheritdoc cref="IContentCipher" />
+	private readonly IContentCipher _contentCipher;
+
 	/// <inheritdoc cref="IDbAccess" />
 	private readonly IDbAccess _dbAccess;
 
@@ -34,22 +37,19 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
-
-	/// <inheritdoc cref="ISessionKeyStore" />
-	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
 
 	#region Constructors
 	public FileChangeTracker(
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore)
+		IMessenger messenger)
 	{
 		_dbAccess = dbAccess;
 
-		_sessionKeyStore = sessionKeyStore;
+		_contentCipher = contentCipher;
 
 		_fileSystem = fileSystem;
 
@@ -169,21 +169,17 @@ public class FileChangeTracker : IFileChangeTracker
 						{
 							byte[] encrypted;
 
-							try
+							if (_contentCipher.TryEncrypt(
+								keeperId,
+								ContentIdentity.ForContents(parameters.File.Id),
+								bytes) is not { } ciphertext)
 							{
-								encrypted = _sessionKeyStore.Encrypt(
-									keeperId,
-									ContentIdentity.ForContents(parameters.File.Id),
-									bytes);
-							}
-							catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
-							{
-								_logger.LogException(ex);
-
 								PublishFailure($@"{Strings.FailedToProcessContents} ""{parameters.FileName}""");
 
 								return false;
 							}
+
+							encrypted = ciphertext;
 
 							cleartext = bytes;
 

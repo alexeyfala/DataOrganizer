@@ -1,5 +1,6 @@
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Security.Cryptography;
 using System.Threading;
@@ -20,6 +21,16 @@ public interface IContentCipher
 	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
 	/// <exception cref="AuthenticationTagMismatchException">The key or the purpose does not fit the content, or the content has been altered.</exception>
 	byte[] Decrypt(FileModelDto file, byte[] input);
+
+	/// <summary>
+	/// Decrypts contents held under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
+	/// </summary>
+	byte[]? TryDecrypt(Guid keeperId, ContentIdentity identity, byte[] input);
+
+	/// <summary>
+	/// Encrypts contents under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
+	/// </summary>
+	byte[]? TryEncrypt(Guid keeperId, ContentIdentity identity, byte[] input);
 
 	/// <summary>
 	/// Tries to decrypt the content, if it has <see cref="EncryptionStatus.Encrypted" /> or <see cref="EncryptionStatus.Decrypted" /> status.

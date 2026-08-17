@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using Shared.Extensions;
@@ -9,8 +10,6 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Authentication;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -109,7 +108,7 @@ public sealed class ContentVisibility : IContentVisibility
 
 			return true;
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 
@@ -151,7 +150,7 @@ public sealed class ContentVisibility : IContentVisibility
 
 			SendMessage(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}

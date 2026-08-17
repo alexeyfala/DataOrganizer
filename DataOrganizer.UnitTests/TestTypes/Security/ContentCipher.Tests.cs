@@ -10,7 +10,9 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using System;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -75,6 +77,108 @@ internal class ContentCipherTests
 			.NotBeEquivalentTo(contents);
 	}
 
+
+	/// <summary>
+	/// <see cref="ContentCipher.TryDecrypt" />: hands the plain text of the key store over.
+	/// </summary>
+	[Test]
+	public void TryDecrypt_Hands_The_Plain_Text_Over()
+	{
+		// Arrange
+		Guid keeperId = Guid.NewGuid();
+
+		byte[] input = TestUtils.CreateRandomBytes(10);
+
+		byte[] decrypted = TestUtils.CreateRandomBytes(10);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(keeperId, Arg.Any<ContentIdentity>(), input)
+				.Returns(decrypted);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[]? result = sut.TryDecrypt(keeperId, ContentIdentity.ForNote(Guid.NewGuid()), input);
+
+		// Assert
+		result
+			.Should()
+			.BeSameAs(decrypted);
+	}
+
+	/// <summary>
+	/// <see cref="ContentCipher.TryDecrypt" />: a locked keeper or damaged data ends with a refusal
+	/// instead of an exception, since the caller renders the content.
+	/// </summary>
+	[Test]
+	[TestCaseSource(nameof(SessionCipherFailures))]
+	public void TryDecrypt_Refuses_On_A_Failure(Exception failure)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Throws(failure);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[]? result = sut.TryDecrypt(
+			Guid.NewGuid(),
+			ContentIdentity.ForNote(Guid.NewGuid()),
+			TestUtils.CreateRandomBytes(10));
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="ContentCipher.TryEncrypt" />: a locked keeper ends with a refusal instead of an exception.
+	/// </summary>
+	[Test]
+	[TestCaseSource(nameof(SessionCipherFailures))]
+	public void TryEncrypt_Refuses_On_A_Failure(Exception failure)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Throws(failure);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[]? result = sut.TryEncrypt(
+			Guid.NewGuid(),
+			ContentIdentity.ForNote(Guid.NewGuid()),
+			TestUtils.CreateRandomBytes(10));
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
+	}
 
 	/// <summary>
 	/// <see cref="ContentCipher.Decrypt" />: empty contents are stored unencrypted, so they come
@@ -333,5 +437,14 @@ internal class ContentCipherTests
 
 		return unlocker;
 	}
+
+	/// <summary>
+	/// Failures an operation on the key of a session can end with.
+	/// </summary>
+	private static Exception[] SessionCipherFailures() =>
+	[
+		new AuthenticationTagMismatchException(),
+		new InvalidOperationException()
+	];
 	#endregion
 }

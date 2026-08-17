@@ -3,8 +3,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using System;
 using System.Runtime.CompilerServices;
-using System.Security.Authentication;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -65,7 +63,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 				passwordBinary,
 				ContentIdentity.ForDek(keeperId));
 		}
-		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex, callerName);
 
