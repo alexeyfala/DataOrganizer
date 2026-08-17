@@ -58,6 +58,10 @@ The following are known and accepted, so there is no need to report them.
   system records the file name in recent items and jump lists.
 - **Record names are not encrypted.** Encryption covers contents and notes.
   Names are stored as plain text in the database and appear in exported files.
+- **An export is as sensitive as the database.** An exported file carries the
+  same encrypted contents and the same wrapped key, so a copy left outside the
+  application allows the password to be guessed offline, at the pace of whoever
+  holds the file.
 - **Decrypted data in memory.** While the session is unlocked, keys and
   decrypted contents live in RAM and may reach the page or hibernation file.
   Auto-lock shortens that window.
