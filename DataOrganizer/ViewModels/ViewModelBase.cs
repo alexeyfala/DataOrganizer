@@ -143,6 +143,9 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Data
+	/// <inheritdoc cref="IContentVisibility" />
+	protected readonly IContentVisibility _contentVisibility;
+
 	/// <inheritdoc cref="IDispatcherAccessor" />
 	protected readonly IDispatcherAccessor _dispatcher;
 
@@ -167,10 +170,11 @@ public abstract partial class ViewModelBase :
 		Application app,
 		IAppSettingsStore settingsStore,
 		IClipboardAccessor clipboard,
+		IContentCipher contentCipher,
+		IContentVisibility contentVisibility,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IEntityEncryption entityEncryption,
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
@@ -179,13 +183,15 @@ public abstract partial class ViewModelBase :
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
 			app,
 			clipboard,
+			contentCipher,
 			dbAccess,
 			dialogService,
-			entityEncryption,
 			logger,
 			messenger,
 			exceptionHandler)
 	{
+		_contentVisibility = contentVisibility;
+
 		_dispatcher = dispatcher;
 
 		_executionEngine = executionEngine;
@@ -409,7 +415,7 @@ public abstract partial class ViewModelBase :
 
 		OpenedInEditorFiles.Clear();
 
-		_entityEncryption.HideAllContents(Hierarchy);
+		_contentVisibility.HideAllContents(Hierarchy);
 
 		NotifyDecryptedContentsChanged();
 

@@ -205,7 +205,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Change password of the folder");
 
-		await _entityEncryption
+		await _folderProtection
 			.ChangePasswordAsync(dto)
 			.ConfigureAwait(false);
 	}
@@ -241,7 +241,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Decrypt files in a folder");
 
-		await _entityEncryption
+		await _folderProtection
 			.DecryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
@@ -304,7 +304,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Encrypt files in a folder");
 
-		await _entityEncryption
+		await _folderProtection
 			.EncryptFolderAsync(dto, files)
 			.ConfigureAwait(false);
 	}
@@ -394,7 +394,7 @@ public partial class EditorViewModel :
 
 			try
 			{
-				contents = _entityEncryption.Decrypt(dto, contents);
+				contents = _contentCipher.Decrypt(dto, contents);
 			}
 			catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
 			{
@@ -456,7 +456,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_entityEncryption.HideAllContents(Hierarchy);
+		_contentVisibility.HideAllContents(Hierarchy);
 
 		NotifyDecryptedContentsChanged();
 	}
@@ -492,12 +492,12 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide file contents");
 
-		_entityEncryption.HideFileContents(dto);
+		_contentVisibility.HideFileContents(dto);
 
 		NotifyDecryptedContentsChanged();
 	}
 
-	/// <inheritdoc cref="IEntityEncryption.HideFolderContents" />
+	/// <inheritdoc cref="IContentVisibility.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
 	internal async Task HideFolderContents(FolderModelDto? dto)
 	{
@@ -523,7 +523,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Hide files in a folder");
 
-		_entityEncryption.HideFolderContents(dto);
+		_contentVisibility.HideFolderContents(dto);
 
 		NotifyDecryptedContentsChanged();
 	}
@@ -672,7 +672,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Show file contents in a folder");
 
-		await _entityEncryption
+		await _contentVisibility
 			.ShowFolderContentsAsync(dto)
 			.ConfigureAwait(true);
 
@@ -974,7 +974,7 @@ public partial class EditorViewModel :
 		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutingFiles);
 	}
 
-	/// <inheritdoc cref="IEntityEncryption.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanShowFileContents))]
 	private Task ShowFileContents(FileModelDto? dto)
 	{
@@ -1090,6 +1090,9 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="IFileHotkeyEditor" />
 	private readonly IFileHotkeyEditor _fileHotkeyEditor;
 
+	/// <inheritdoc cref="IFolderProtection" />
+	private readonly IFolderProtection _folderProtection;
+
 	/// <inheritdoc cref="IHierarchyEditor" />
 	private readonly IHierarchyEditor _hierarchyEditor;
 
@@ -1121,14 +1124,16 @@ public partial class EditorViewModel :
 		IClipboardAccessor clipboard,
 		IClipboardLogService clipboardLog,
 		IClipboardLogPersistenceCoordinator clipboardLogPersistence,
+		IContentCipher contentCipher,
+		IContentVisibility contentVisibility,
 		IDataExchangeService dataExchange,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IEntityEncryption entityEncryption,
 		IEntityPropertyWriter propertyWriter,
 		IExecutionEngine executionEngine,
 		IFileHotkeyEditor fileHotkeyEditor,
+		IFolderProtection folderProtection,
 		IHierarchyEditor hierarchyEditor,
 		ILogger logger,
 		IMessenger messenger,
@@ -1141,10 +1146,11 @@ public partial class EditorViewModel :
 			app,
 			settingsStore,
 			clipboard,
+			contentCipher,
+			contentVisibility,
 			dbAccess,
 			dialogService,
 			dispatcher,
-			entityEncryption,
 			executionEngine,
 			logger,
 			messenger,
@@ -1153,6 +1159,8 @@ public partial class EditorViewModel :
 			keyboardInputHook)
 	{
 		_autoLock = autoLock;
+
+		_folderProtection = folderProtection;
 
 		_clipboardLog = clipboardLog;
 
@@ -1760,19 +1768,18 @@ public partial class EditorViewModel :
 		_copyHistory?.Remove(file);
 	}
 
-	/// <inheritdoc cref="IEntityEncryption.ShowFileContentsAsync" />
+	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
 	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
 	{
 		_logger.LogInformation("Show file contents");
 
-		if (!await _entityEncryption
+		if (!await _contentVisibility
 			.ShowFileContentsAsync(dto)
 			.ConfigureAwait(true))
 		{
 			return false;
 		}
 
-		// HideAllFileContentsCommand.NotifyCanExecuteChanged();
 		NotifyDecryptedContentsChanged();
 
 		return true;

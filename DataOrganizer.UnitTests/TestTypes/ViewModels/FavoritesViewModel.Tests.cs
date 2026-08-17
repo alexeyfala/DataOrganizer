@@ -262,7 +262,7 @@ internal class FavoritesViewModelTests
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		IEntityEncryption entityEncryption = Substitute.For<IEntityEncryption>();
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
 		IMessenger messenger = new WeakReferenceMessenger();
 
@@ -270,13 +270,13 @@ internal class FavoritesViewModelTests
 
 		ITaskExceptionHandler exceptionHandler = Substitute.For<ITaskExceptionHandler>();
 
-		exceptionHandler
-			.When(static x => x.Watch(Arg.Any<Task>()))
-			.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			builder.RegisterInstance(entityEncryption);
+			exceptionHandler
+				.When(static x => x.Watch(Arg.Any<Task>()))
+				.Do(callInfo => scheduled.Add(callInfo.Arg<Task>()));
+
+			builder.RegisterInstance(contentVisibility);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
 
@@ -307,7 +307,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeEmpty();
 
-		entityEncryption
+		contentVisibility
 			.Received(1)
 			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}

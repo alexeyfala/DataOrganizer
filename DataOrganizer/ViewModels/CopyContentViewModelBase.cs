@@ -34,14 +34,14 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// <inheritdoc cref="IClipboardAccessor" />
 	protected readonly IClipboardAccessor _clipboard;
 
+	/// <inheritdoc cref="IContentCipher" />
+	protected readonly IContentCipher _contentCipher;
+
 	/// <inheritdoc cref="IDbAccess" />
 	protected readonly IDbAccess _dbAccess;
 
 	/// <inheritdoc cref="IDialogService" />
 	protected readonly IDialogService _dialogService;
-
-	/// <inheritdoc cref="IEntityEncryption" />
-	protected readonly IEntityEncryption _entityEncryption;
 
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
@@ -57,9 +57,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	protected CopyContentViewModelBase(
 		Application app,
 		IClipboardAccessor clipboard,
+		IContentCipher contentCipher,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
-		IEntityEncryption entityEncryption,
 		ILogger logger,
 		IMessenger messenger,
 		ITaskExceptionHandler exceptionHandler)
@@ -68,11 +68,11 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 		_clipboard = clipboard;
 
+		_contentCipher = contentCipher;
+
 		_dbAccess = dbAccess;
 
 		_dialogService = dialogService;
-
-		_entityEncryption = entityEncryption;
 
 		_exceptionHandler = exceptionHandler;
 
@@ -132,7 +132,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			if (await _entityEncryption
+			if (await _contentCipher
 				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{

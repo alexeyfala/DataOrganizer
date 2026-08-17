@@ -394,8 +394,12 @@ public sealed class App : Application
 		services.AddSingleton<IDbContextService, DbContextService>();
 		services.AddSingleton<IDbMaintenance, DbMaintenance>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton<IEntityEncryption, EntityEncryption>();
+		services.AddSingleton<IContentCipher, ContentCipher>();
+		services.AddSingleton<IContentVisibility, ContentVisibility>();
+		services.AddSingleton<IEncryptedContentWriter, EncryptedContentWriter>();
+		services.AddSingleton<IEncryptionFailureReporter, EncryptionFailureReporter>();
 		services.AddSingleton<IEntityLoader, EntityLoader>();
+		services.AddSingleton<IFolderProtection, FolderProtection>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();
 		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
@@ -406,6 +410,7 @@ public sealed class App : Application
 		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
 		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
+		services.AddSingleton<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();

@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.Extensions;
 using DataOrganizer.Messages;
 using Entities.Models;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DataOrganizer.DTO.Entities;
 
@@ -157,5 +159,15 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto
 	/// <c>True</c> when <see cref="EncryptedDek" /> has a value.
 	/// </summary>
 	public bool IsPasswordKeeper() => EncryptedDek?.IsNotEmpty() ?? false;
+
+	/// <summary>
+	/// Returns the folder itself and its immediate subfolders as one sequence.
+	/// </summary>
+	public IEnumerable<ExplorerModelBaseDto> WithSubfolders()
+	{
+		return this
+			.ToEnumerable()
+			.Concat(Children.GetFolders());
+	}
 	#endregion
 }
