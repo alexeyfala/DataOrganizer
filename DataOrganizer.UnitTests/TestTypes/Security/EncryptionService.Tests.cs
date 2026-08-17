@@ -192,6 +192,38 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.DecryptWithDek" />: a DEK of the wrong size is reported as unusable
+	/// key material, not as damaged data, and the real cause is kept.
+	/// </summary>
+	[Test]
+	public void DecryptWithDek_Reports_Unusable_Key_Material()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		byte[] encrypted = sut.EncryptWithDek(input, sut.CreateRandomDek(), []);
+
+		// Act
+		Action act = () => sut.DecryptWithDek(encrypted, TestUtils.CreateRandomBytes(16), []);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<CryptographicException>()
+			.WithMessage("The key material*")
+			.And
+			.InnerException
+			.Should()
+			.NotBeNull();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.DecryptWithDek" />: malformed input is refused as damaged data,
 	/// an empty one included.
 	/// </summary>
@@ -347,6 +379,28 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />: an absent input is a caller mistake and is reported as such.
+	/// </summary>
+	[Test]
+	public void Encrypt_Throws_On_Null_Input()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		// Act
+		Action act = () => sut.Encrypt(null!, password, []);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<ArgumentNullException>();
+	}
+
+	/// <summary>
 	/// Every path keeps its own version byte and its own on-the-wire layout:
 	/// the DEK one carries no salt, the other two do.
 	/// </summary>
@@ -442,6 +496,36 @@ internal class EncryptionServiceTests
 		TextHelper.Utf8Encoding.GetString(decrypted)
 			.Should()
 			.Be(TextHelper.LoremIpsum);
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.EncryptWithDek" />: a DEK of the wrong size is reported as unusable
+	/// key material, not as a failed encryption, and the real cause is kept.
+	/// </summary>
+	[Test]
+	public void EncryptWithDek_Reports_Unusable_Key_Material()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		// Act
+		Action act = () => sut.EncryptWithDek(input, TestUtils.CreateRandomBytes(16), []);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<CryptographicException>()
+			.WithMessage("The key material*")
+			.And
+			.InnerException
+			.Should()
+			.NotBeNull();
 	}
 
 	/// <summary>
