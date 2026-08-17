@@ -46,7 +46,7 @@ public sealed class NoteCipher : INoteCipher
 		}
 
 		// A protected note stays unreadable while its keeper is locked, so the store is left alone.
-		if (item.EncryptionStatus != EncryptionStatus.Decrypted || FindKeeperId(item) is not { } keeperId)
+		if (item.EncryptionStatus != EncryptionStatus.Decrypted || item.FindPasswordKeeper() is not { } keeper)
 		{
 			return null;
 		}
@@ -54,7 +54,7 @@ public sealed class NoteCipher : INoteCipher
 		try
 		{
 			byte[] decrypted = _sessionKeyStore.Decrypt(
-				keeperId,
+				keeper.Id,
 				ContentIdentity.ForNote(item.Id),
 				note);
 
@@ -96,8 +96,8 @@ public sealed class NoteCipher : INoteCipher
 		try
 		{
 			// A protected note can only be written while its keeper is unlocked.
-			return item.EncryptionStatus == EncryptionStatus.Decrypted && FindKeeperId(item) is { } keeperId
-				? _sessionKeyStore.Encrypt(keeperId, ContentIdentity.ForNote(item.Id), decoded)
+			return item.EncryptionStatus == EncryptionStatus.Decrypted && item.FindPasswordKeeper() is { } keeper
+				? _sessionKeyStore.Encrypt(keeper.Id, ContentIdentity.ForNote(item.Id), decoded)
 				: null;
 		}
 		catch (Exception ex) when (ex is CryptographicException or InvalidOperationException)
@@ -115,21 +115,6 @@ public sealed class NoteCipher : INoteCipher
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Identifier of the password keeper <paramref name="item" /> belongs to; <c>null</c> when there is no such keeper.
-	/// </summary>
-	/// <remarks>
-	/// A password keeper protects its own note as well, hence the check of the folder itself.
-	/// </remarks>
-	private static Guid? FindKeeperId(ExplorerModelBaseDto item)
-	{
-		FolderModelDto? keeper = item is FolderModelDto folder
-			? folder.FindPasswordKeeperOrSelf()
-			: item.FindParent(x => x.IsPasswordKeeper());
-
-		return keeper?.Id;
-	}
-
 	/// <summary>
 	/// Decodes UTF-8 bytes into plain text.
 	/// </summary>

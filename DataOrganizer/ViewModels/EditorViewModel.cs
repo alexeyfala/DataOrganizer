@@ -388,7 +388,7 @@ public partial class EditorViewModel :
 
 		Guid? keeperId = null;
 
-		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindParent(x => x.IsPasswordKeeper()) is { } keeper)
+		if (dto.EncryptionStatus == EncryptionStatus.Decrypted && dto.FindPasswordKeeper() is { } keeper)
 		{
 			keeperId = keeper.Id;
 
@@ -1658,10 +1658,11 @@ public partial class EditorViewModel :
 	/// </summary>
 	private bool CanEncryptFolder(FolderModelDto? dto)
 	{
+		// A folder can be encrypted only while it belongs to no keeper, itself included.
 		return !IsReadOnly
 			&& !IsActionInProgress
-			&& dto?.IsPasswordKeeper() == false
-			&& !dto.AnyParent(x => x.IsPasswordKeeper())
+			&& dto is not null
+			&& dto.FindPasswordKeeper() is null
 			&& !dto.AnyChild(x => x.EncryptionStatus != EncryptionStatus.None);
 	}
 

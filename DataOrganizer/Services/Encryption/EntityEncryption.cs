@@ -141,13 +141,16 @@ public sealed class EntityEncryption : IEntityEncryption
 			return input;
 		}
 
-		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root)
+		if (file.FindPasswordKeeper() is not { } root)
 		{
 			throw new InvalidOperationException(
 				$@"The file ""{file.Id}"" is marked as decrypted but belongs to no password keeper.");
 		}
 
-		return _sessionKeyStore.Decrypt(root.Id, ContentIdentity.ForContents(file.Id), input);
+		return _sessionKeyStore.Decrypt(
+			root.Id,
+			ContentIdentity.ForContents(file.Id),
+			input);
 	}
 
 	/// <inheritdoc />
@@ -377,7 +380,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public async Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default)
 	{
-		if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root || root.EncryptedDek is null)
+		if (file.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
 		{
 			return false;
 		}
@@ -421,7 +424,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// <inheritdoc />
 	public async Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default)
 	{
-		if (folder.FindPasswordKeeperOrSelf() is not { } root || root.EncryptedDek is null)
+		if (folder.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
 		{
 			return;
 		}
@@ -473,7 +476,7 @@ public sealed class EntityEncryption : IEntityEncryption
 
 		if (file.EncryptionStatus == EncryptionStatus.Encrypted)
 		{
-			if (file.FindParent(x => x.IsPasswordKeeper()) is not { } root || root.EncryptedDek is null)
+			if (file.FindPasswordKeeper() is not { } root || root.EncryptedDek is null)
 			{
 				return null;
 			}
@@ -696,9 +699,7 @@ public sealed class EntityEncryption : IEntityEncryption
 	/// </summary>
 	private void LockKeeperOf(ExplorerModelBaseDto item)
 	{
-		FolderModelDto? keeper = item is FolderModelDto folder
-			? folder.FindPasswordKeeperOrSelf()
-			: item.FindParent(x => x.IsPasswordKeeper());
+		FolderModelDto? keeper = item.FindPasswordKeeper();
 
 		if (keeper?
 			.ToEnumerable()
