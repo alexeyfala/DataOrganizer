@@ -27,7 +27,7 @@ public interface IEncryptionService
 	byte[] Decrypt(
 		byte[] input,
 		PinnedBuffer password,
-		byte[] associatedData);
+		ContentIdentity identity);
 
 	/// <summary>
 	/// Decrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
@@ -43,7 +43,7 @@ public interface IEncryptionService
 	byte[] DecryptWithDek(
 		byte[] input,
 		byte[] dek,
-		byte[] associatedData);
+		ContentIdentity identity);
 
 	/// <summary>
 	/// Decrypts data using a session identifier (runs HKDF). For unwrap of the session encrypted DEK.
@@ -54,7 +54,7 @@ public interface IEncryptionService
 	byte[] DecryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
-		byte[] associatedData);
+		ContentIdentity identity);
 
 	/// <summary>
 	/// Encrypts data using a password (runs KDF). For wrap/unwrap of DEK.
@@ -64,7 +64,7 @@ public interface IEncryptionService
 	byte[] Encrypt(
 		byte[] input,
 		PinnedBuffer password,
-		byte[] associatedData);
+		ContentIdentity identity);
 
 	/// <summary>
 	/// Encrypts a sequence of contents using a DEK directly; every item is bound to the contents purpose.
@@ -79,7 +79,7 @@ public interface IEncryptionService
 	byte[] EncryptWithDek(
 		byte[] input,
 		byte[] dek,
-		byte[] associatedData);
+		ContentIdentity identity);
 
 	/// <summary>
 	/// Encrypts data using a session identifier (runs HKDF). For wrap of the DEK within a session.
@@ -89,6 +89,6 @@ public interface IEncryptionService
 	byte[] EncryptWithSessionId(
 		byte[] input,
 		byte[] sessionId,
-		byte[] associatedData);
+		ContentIdentity identity);
 	#endregion
 }

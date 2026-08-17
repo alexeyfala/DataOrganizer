@@ -108,7 +108,7 @@ public sealed class EntityEncryption : IEntityEncryption
 			byte[] encryptedDek = _encryption.Encrypt(
 				dek,
 				newPasswordBinary,
-				ContentIdentity.ForDek(folder.Id).ToAssociatedData());
+				ContentIdentity.ForDek(folder.Id));
 
 			if (!await _dbAccess.UpdateFolderPropertiesAsync(folder.Id,
 				[
@@ -296,7 +296,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				byte[] encryptedDek = _encryption.Encrypt(
 					dek,
 					passwordBinary,
-					ContentIdentity.ForDek(folder.Id).ToAssociatedData());
+					ContentIdentity.ForDek(folder.Id));
 
 				if (ProcessNotes(
 					folder,
@@ -495,7 +495,7 @@ public sealed class EntityEncryption : IEntityEncryption
 				return _encryption.DecryptWithDek(
 					contents,
 					decryptedDek,
-					ContentIdentity.ForContents(file.Id).ToAssociatedData());
+					ContentIdentity.ForContents(file.Id));
 			}
 			catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
 			{
@@ -731,13 +731,11 @@ public sealed class EntityEncryption : IEntityEncryption
 				continue;
 			}
 
-			byte[] associatedData = ContentIdentity
-				.ForNote(item.Id)
-				.ToAssociatedData();
+			ContentIdentity identity = ContentIdentity.ForNote(item.Id);
 
 			byte[] processed = encrypt
-				? _encryption.EncryptWithDek(note, dek, associatedData)
-				: _encryption.DecryptWithDek(note, dek, associatedData);
+				? _encryption.EncryptWithDek(note, dek, identity)
+				: _encryption.DecryptWithDek(note, dek, identity);
 
 			notes.Add(new NoteUpdate(
 				item.Id,
@@ -802,7 +800,7 @@ public sealed class EntityEncryption : IEntityEncryption
 			return _encryption.Decrypt(
 				encryptedDek,
 				passwordBinary,
-				ContentIdentity.ForDek(keeperId).ToAssociatedData());
+				ContentIdentity.ForDek(keeperId));
 		}
 		catch (Exception ex) when (ex is InvalidCredentialException or CryptographicException)
 		{

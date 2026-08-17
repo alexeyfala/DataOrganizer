@@ -248,7 +248,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			byte[] wrapped = _encryption.Encrypt(
 				dek,
 				password,
-				ContentIdentity.ForClipboardDek(_historyKeyId).ToAssociatedData());
+				ContentIdentity.ForClipboardDek(_historyKeyId));
 
 			EnsureDirectory();
 
@@ -327,7 +327,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		byte[] dek = _encryption.Decrypt(
 			wrapped,
 			password,
-			ContentIdentity.ForClipboardDek(_historyKeyId).ToAssociatedData());
+			ContentIdentity.ForClipboardDek(_historyKeyId));
 
 		try
 		{
