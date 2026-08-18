@@ -590,7 +590,6 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x01)
 			.And
-			//.HaveCount(1 + SaltSize + NonceSize + input.Length + TagSize);
 			.HaveCount(1 + Argon2Settings.HeaderSize + SaltSize + NonceSize + input.Length + TagSize);
 
 		dek
