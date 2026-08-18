@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -10,7 +12,7 @@ namespace DataOrganizer.Behaviors;
 
 /// <summary>
 /// Observes <see cref="TextBox.Text" /> of the associated <see cref="TextBox" /> and of the
-/// confirmation input, and exposes the outcome as boolean flags.
+/// confirmation input, and exposes the outcome as validity flags and a strength rating.
 /// </summary>
 internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 {
@@ -90,6 +92,16 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	}
 
 	/// <summary>
+	/// Rating of the password being set; <see cref="PasswordStrength.None" /> while an existing
+	/// password is entered, as rating that one says nothing.
+	/// </summary>
+	public PasswordStrength Strength
+	{
+		get => GetValue(StrengthProperty);
+		set => SetValue(StrengthProperty, value);
+	}
+
+	/// <summary>
 	/// Message reported on the password input while it is shorter than <see cref="MinimumLength" />.
 	/// </summary>
 	public string? TooShortMessage
@@ -154,6 +166,14 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 	/// </summary>
 	public static readonly StyledProperty<string?> MismatchMessageProperty = AvaloniaProperty
 		.Register<PasswordValidityBehavior, string?>(name: nameof(MismatchMessage));
+
+	/// <summary>
+	/// Identifies the <see cref="Strength" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<PasswordStrength> StrengthProperty = AvaloniaProperty
+		.Register<PasswordValidityBehavior, PasswordStrength>(
+			name: nameof(Strength),
+			defaultBindingMode: BindingMode.OneWayToSource);
 
 	/// <summary>
 	/// Identifies the <see cref="TooShortMessage" /> avalonia property.
@@ -281,6 +301,10 @@ internal sealed class PasswordValidityBehavior : Behavior<TextBox>
 		IsPasswordAccepted = isAccepted && (!IsConfirmationRequired || password!.Length >= MinimumLength);
 
 		IsValid = IsPasswordAccepted && (!IsConfirmationRequired || isConfirmed);
+
+		Strength = IsConfirmationRequired
+			? PasswordStrengthEstimator.Estimate(password)
+			: PasswordStrength.None;
 
 		Report(
 			AssociatedObject,

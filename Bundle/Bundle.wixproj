@@ -2,7 +2,7 @@
 		 InitialTargets="BuildSetupDependency">
 	<PropertyGroup>
 		<AcceptEula>wix7</AcceptEula>
-		<DotNetVersion>10.0.9</DotNetVersion>
+		<DotNetVersion>10.0.11</DotNetVersion>
 		<OutputName>$(MsiOutputName)-bundle</OutputName>
 		<OutputPath>..\Publish</OutputPath>
 		<OutputType>Bundle</OutputType>
@@ -34,7 +34,7 @@
 						  Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Include="Resources\dotnet-runtime-10.0.9-win-x64.exe" />
+		<None Include="Resources\dotnet-runtime-10.0.11-win-x64.exe" />
 	</ItemGroup>
 	<!--
 		Skip during restore: WiX makes 'EnableDefaultCompileItems = false' global on the

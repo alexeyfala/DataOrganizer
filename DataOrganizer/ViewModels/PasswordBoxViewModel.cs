@@ -1,6 +1,7 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using Shared.Properties;
 using System.Globalization;
@@ -66,6 +67,13 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	public string? PasswordHint => IsConfirmationVisible
 		? string.Format(CultureInfo.CurrentCulture, Strings.PasswordMinimumLength, MinimumPasswordLength)
 		: null;
+
+	/// <summary>
+	/// Rating of the password being set, driven by the view's behavior; the password string
+	/// itself never reaches this view model.
+	/// </summary>
+	[ObservableProperty]
+	public partial PasswordStrength Strength { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands

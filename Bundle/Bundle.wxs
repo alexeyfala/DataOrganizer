@@ -1,4 +1,4 @@
-﻿<!--
+<!--
 	BootstrapperApplication - https://docs.firegiant.com/wix/schema/wxs/bootstrapperapplication
 	Bundle - https://docs.firegiant.com/wix/schema/wxs/bundle
 	Chain - https://docs.firegiant.com/wix/schema/wxs/chain
@@ -10,6 +10,10 @@
 	PackageGroupRef - https://docs.firegiant.com/wix/schema/wxs/packagegroupref
 	Wix - https://docs.firegiant.com/wix/schema/wxs/wix
 	WixStandardBootstrapperApplication - https://docs.firegiant.com/wix/tools/burn/wixstdba
+-->
+
+<!--
+	https://dotnet.microsoft.com/en-us/download/dotnet/10.0
 -->
 
 <Wix
@@ -81,7 +85,7 @@
 				InstallArguments="/norestart /quiet"
 				PerMachine="yes"
 				Permanent="yes"
-				SourceFile="Resources\dotnet-runtime-10.0.9-win-x64.exe"
+				SourceFile="Resources\dotnet-runtime-10.0.11-win-x64.exe"
 				Vital="yes">
 			</ExePackage>
 		</PackageGroup>
