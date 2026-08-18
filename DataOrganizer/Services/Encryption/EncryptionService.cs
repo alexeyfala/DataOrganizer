@@ -269,11 +269,13 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static Key DeriveKey(ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt)
 	{
+		Argon2Settings settings = Argon2Settings.Current;
+
 		Argon2id kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(new()
 		{
-			MemorySize = 65536,
-			NumberOfPasses = 3,
-			DegreeOfParallelism = 1
+			MemorySize = settings.MemorySize,
+			NumberOfPasses = settings.NumberOfPasses,
+			DegreeOfParallelism = settings.DegreeOfParallelism
 		});
 
 		byte[] blob = kdf.DeriveBytes(
