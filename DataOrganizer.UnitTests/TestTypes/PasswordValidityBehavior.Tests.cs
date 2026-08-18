@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors;
+using DataOrganizer.Enums;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -41,6 +42,28 @@ internal class PasswordValidityBehaviorTests
 		sut.IsValid
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="PasswordValidityBehavior.Strength" />: the password being set is rated as it is typed.
+	/// </summary>
+	[AvaloniaTest]
+	[TestCase("password", PasswordStrength.Weak)]
+	[TestCase("aB3#kL9", PasswordStrength.Fair)]
+	[TestCase("aB3#kL9%mZ", PasswordStrength.Strong)]
+	[TestCase("aB3#kL9%mZ2^qT", PasswordStrength.VeryStrong)]
+	public void Create_Rates_The_Password(string typed, PasswordStrength expected)
+	{
+		// Arrange
+		(PasswordValidityBehavior sut, TextBox password, _) = CreateSetup(isConfirmationRequired: true);
+
+		// Act
+		password.Text = typed;
+
+		// Assert
+		sut.Strength
+			.Should()
+			.Be(expected);
 	}
 
 	/// <summary>
@@ -144,6 +167,25 @@ internal class PasswordValidityBehaviorTests
 		sut.IsValid
 			.Should()
 			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="PasswordValidityBehavior.Strength" />: an existing password is not rated, as its
+	/// rating changes nothing.
+	/// </summary>
+	[AvaloniaTest]
+	public void Verify_Does_Not_Rate_The_Password()
+	{
+		// Arrange
+		(PasswordValidityBehavior sut, TextBox password, _) = CreateSetup(isConfirmationRequired: false);
+
+		// Act
+		password.Text = "aB3#kL9%mZ2^qT";
+
+		// Assert
+		sut.Strength
+			.Should()
+			.Be(PasswordStrength.None);
 	}
 
 	/// <summary>
