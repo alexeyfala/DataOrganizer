@@ -334,26 +334,36 @@ public sealed class App : Application
 		services.AddMapster();
 
 		#region Transients
+		services.AddTransient<IAppController, AppController>();
 		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
+		services.AddTransient<IAppThemeService, AppThemeService>();
+		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
 		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
 		services.AddTransient<IContentCipher, ContentCipher>();
 		services.AddTransient<IContentVisibility, ContentVisibility>();
 		services.AddTransient<IDataExchangeService, DataExchangeService>();
+		services.AddTransient<IDbMaintenance, DbMaintenance>();
 		services.AddTransient<IDialogService, DialogService>();
 		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
 		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
 		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
 		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
 		services.AddTransient<IEncryptionService, EncryptionService>();
+		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IEventSimulator, EventSimulator>();
+		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
+		services.AddTransient<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
+		services.AddTransient<IFileRepository, FileRepository>();
 		services.AddTransient<IFileSystem, FileSystem>();
 		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
 		services.AddTransient<IFolderProtection, FolderProtection>();
+		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
+		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
 		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
@@ -364,6 +374,7 @@ public sealed class App : Application
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
+		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
 		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
@@ -384,11 +395,8 @@ public sealed class App : Application
 		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
 		services.AddSingleton(TimeProvider.System);
 		services.AddSingleton<Application>(this);
-		services.AddSingleton<IAppController, AppController>();
 		services.AddSingleton<IAppEnvironment, AppEnvironment>();
 		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
-		services.AddSingleton<IAppThemeService, AppThemeService>();
-		services.AddSingleton<IAppVersionProvider, AppVersionProvider>();
 		services.AddSingleton<IAutoLockService, AutoLockService>();
 		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
 		services.AddSingleton<IClipboardGate, ClipboardGate>();
@@ -398,25 +406,17 @@ public sealed class App : Application
 		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
 		services.AddSingleton<IDbAccess, DbAccess>();
 		services.AddSingleton<IDbContextService, DbContextService>();
-		services.AddSingleton<IDbMaintenance, DbMaintenance>();
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton<IEntityLoader, EntityLoader>();
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
-		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();
-		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
-		services.AddSingleton<IFileRepository, FileRepository>();
-		services.AddSingleton<IFolderRepository, FolderRepository>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
 		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
 		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
-		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
-		services.AddSingleton<IUpdateCheckService, UpdateCheckService>();
 		#endregion
 
 		#endregion
