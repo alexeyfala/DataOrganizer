@@ -4,7 +4,9 @@ using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
+using NSec.Cryptography;
 using System;
+using System.Buffers.Binary;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 
@@ -58,6 +60,83 @@ internal class EncryptionServiceTests
 		act
 			.Should()
 			.ThrowExactly<InvalidCredentialException>();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Decrypt" />: a blob carries the cost it was written with,
+	/// so a cost other than the current one still opens.
+	/// </summary>
+	[Test]
+	public void Decrypt_Opens_A_Blob_Written_With_Another_Cost()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		Argon2Settings settings = new(
+			MemorySize: 8192,
+			NumberOfPasses: 1,
+			DegreeOfParallelism: 1);
+
+		settings
+			.Should()
+			.NotBe(Argon2Settings.Current);
+
+		// Act
+		byte[] encrypted = WriteWithCost(input, password, settings);
+
+		// Assert
+		sut.Decrypt(encrypted, password, _identity)
+			.Should()
+			.Equal(input);
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Decrypt" />: a cost outside the supported range is refused
+	/// before it can steer an allocation.
+	/// </summary>
+	[Test]
+	public void Decrypt_Rejects_An_Unsupported_Derivation_Cost()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[]? encrypted = sut.Encrypt(
+			input,
+			password,
+			_identity);
+
+		encrypted
+			.Should()
+			.NotBeNull();
+
+		// Act
+		BinaryPrimitives.WriteUInt32LittleEndian(encrypted.AsSpan(1), uint.MaxValue);
+
+		Action act = () => sut.Decrypt(
+			encrypted,
+			password,
+			_identity);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
@@ -416,6 +495,40 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />: the cost of the derivation is written into the blob.
+	/// </summary>
+	[Test]
+	public void Encrypt_Records_The_Derivation_Cost()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		// Act
+		byte[]? encrypted = sut.Encrypt(
+			input,
+			password,
+			_identity);
+
+		encrypted
+			.Should()
+			.NotBeNull();
+
+		// Assert
+		Argon2Settings
+			.Read(encrypted.AsSpan(1, Argon2Settings.HeaderSize))
+			.Should()
+			.Be(Argon2Settings.Current);
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.Encrypt" />: an absent input is a caller mistake and is reported as such.
 	/// </summary>
 	[Test]
@@ -438,8 +551,8 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
-	/// Every path keeps its own version byte and its own on-the-wire layout:
-	/// the DEK one carries no salt, the other two do.
+	/// Every path keeps its own version byte and its own on-the-wire layout: the DEK one carries
+	/// no salt, the other two do, and the password one carries the cost of the derivation as well.
 	/// </summary>
 	[Test]
 	public void EncryptedBlobs_Keep_Their_Layout()
@@ -477,7 +590,8 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x01)
 			.And
-			.HaveCount(1 + SaltSize + NonceSize + input.Length + TagSize);
+			//.HaveCount(1 + SaltSize + NonceSize + input.Length + TagSize);
+			.HaveCount(1 + Argon2Settings.HeaderSize + SaltSize + NonceSize + input.Length + TagSize);
 
 		dek
 			.Should()
@@ -602,6 +716,67 @@ internal class EncryptionServiceTests
 		TextHelper.Utf8Encoding.GetString(decrypted)
 			.Should()
 			.Be(TextHelper.LoremIpsum);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Writes a password based blob with the given derivation cost, following the layout of the format.
+	/// </summary>
+	private static byte[] WriteWithCost(
+		byte[] input,
+		PinnedBuffer password,
+		Argon2Settings settings)
+	{
+		const int SaltSize = 16;
+
+		AeadAlgorithm algorithm = AeadAlgorithm.XChaCha20Poly1305;
+
+		int saltOffset = 1 + Argon2Settings.HeaderSize;
+
+		int nonceOffset = saltOffset + SaltSize;
+
+		int prefixSize = nonceOffset + algorithm.NonceSize;
+
+		byte[] result = new byte[prefixSize + input.Length + algorithm.TagSize];
+
+		result[0] = 0x01;
+
+		settings.Write(result.AsSpan(1, Argon2Settings.HeaderSize));
+
+		Span<byte> salt = result.AsSpan(saltOffset, SaltSize);
+
+		RandomNumberGenerator.Fill(salt);
+
+		Span<byte> nonce = result.AsSpan(nonceOffset, algorithm.NonceSize);
+
+		RandomNumberGenerator.Fill(nonce);
+
+		Argon2id kdf = PasswordBasedKeyDerivationAlgorithm.Argon2id(new()
+		{
+			MemorySize = settings.MemorySize,
+			NumberOfPasses = settings.NumberOfPasses,
+			DegreeOfParallelism = settings.DegreeOfParallelism
+		});
+
+		byte[] blob = kdf.DeriveBytes(
+			password: password.AsReadOnlySpan(),
+			salt: salt,
+			count: algorithm.KeySize);
+
+		using Key key = Key.Import(
+			algorithm: algorithm,
+			blob: blob,
+			format: KeyBlobFormat.RawSymmetricKey);
+
+		algorithm.Encrypt(
+			key: key,
+			nonce: nonce,
+			associatedData: _identity.ToAssociatedData(),
+			plaintext: input,
+			ciphertext: result.AsSpan(prefixSize));
+
+		return result;
 	}
 	#endregion
 }
