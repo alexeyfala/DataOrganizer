@@ -68,6 +68,10 @@ The following are known and accepted, so there is no need to report them.
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever
   holds the file.
+- **The strength of a password is shown, not required.** A new password is
+  rated as it is typed, but only its length is enforced, and the rating is a
+  heuristic that can be too kind. A password weak enough to be guessed offline
+  undermines the whole scheme, whatever the key derivation costs.
 - **Decrypted data in memory.** While the session is unlocked, keys and
   decrypted contents live in RAM and may reach the page or hibernation file.
   Auto-lock shortens that window.
