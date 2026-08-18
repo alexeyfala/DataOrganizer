@@ -22,7 +22,7 @@ public interface IEncryptionService
 	/// Decrypts data using a password (runs KDF). For wrap/unwrap of DEK.
 	/// </summary>
 	/// <exception cref="InvalidCredentialException">The password does not fit the data.</exception>
-	/// <exception cref="CryptographicException">The data is damaged, the key material is unusable, or the operation failed.</exception>
+	/// <exception cref="CryptographicException">The data is damaged, the recorded derivation cost is unsupported, the key material is unusable, or the operation failed.</exception>
 	/// <exception cref="ArgumentNullException">The input is absent.</exception>
 	byte[] Decrypt(
 		byte[] input,

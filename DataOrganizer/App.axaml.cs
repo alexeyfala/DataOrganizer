@@ -71,7 +71,6 @@ public sealed class App : Application
 
 	#region Methods
 	/// <inheritdoc />
-	//public override void Initialize() => AvaloniaXamlLoader.Load(this);
 	public override void Initialize()
 	{
 		Bootstrap();
@@ -103,6 +102,147 @@ public sealed class App : Application
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
 			.LaunchAppAsync();
+	}
+
+	/// <summary>
+	/// Fills <paramref name="services" /> with every service of the application.
+	/// </summary>
+	internal void RegisterServices(IServiceCollection services, string[] args)
+	{
+		#region Services
+
+		services.AddMapster();
+
+		#region Transients
+		services.AddTransient<IAppController, AppController>();
+		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
+		services.AddTransient<IAppThemeService, AppThemeService>();
+		services.AddTransient<IAppVersionProvider, AppVersionProvider>();
+		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
+		services.AddTransient<IContentCipher, ContentCipher>();
+		services.AddTransient<IContentVisibility, ContentVisibility>();
+		services.AddTransient<IDataExchangeService, DataExchangeService>();
+		services.AddTransient<IDbMaintenance, DbMaintenance>();
+		services.AddTransient<IDialogService, DialogService>();
+		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
+		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
+		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
+		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
+		services.AddTransient<IEncryptionService, EncryptionService>();
+		services.AddTransient<IEntityLoader, EntityLoader>();
+		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
+		services.AddTransient<IEventSimulator, EventSimulator>();
+		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
+		services.AddTransient<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
+		services.AddTransient<IFileAssociationService, FileAssociationService>();
+		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
+		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
+		services.AddTransient<IFileRepository, FileRepository>();
+		services.AddTransient<IFileSystem, FileSystem>();
+		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
+		services.AddTransient<IFolderProtection, FolderProtection>();
+		services.AddTransient<IFolderRepository, FolderRepository>();
+		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
+		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
+		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
+		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
+		services.AddTransient<INoteCipher, NoteCipher>();
+		services.AddTransient<INoteEditor, NoteEditor>();
+		services.AddTransient<INoteReader, NoteReader>();
+		services.AddTransient<INotificationService, NotificationService>();
+		services.AddTransient<IProcessUtils, ProcessUtils>();
+		services.AddTransient<IStorageAccessor, StorageAccessor>();
+		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
+		services.AddTransient<IUpdateCheckService, UpdateCheckService>();
+		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
+		services.AddTransient<IViewFactory, ViewFactory>();
+		services.AddTransient<IViewLauncher, ViewLauncher>();
+		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
+		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
+		#endregion
+
+		#region View locator
+		services.AddSingleton<ViewLocator>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
+		#endregion
+
+		#region Singletons
+		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
+		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
+		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
+		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
+		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
+		services.AddSingleton(TimeProvider.System);
+		services.AddSingleton<Application>(this);
+		services.AddSingleton<IAppEnvironment, AppEnvironment>();
+		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
+		services.AddSingleton<IAutoLockService, AutoLockService>();
+		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
+		services.AddSingleton<IClipboardGate, ClipboardGate>();
+		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
+		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
+		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
+		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
+		services.AddSingleton<IDbAccess, DbAccess>();
+		services.AddSingleton<IDbContextService, DbContextService>();
+		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
+		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
+		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
+		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
+		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
+		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
+		services.AddSingleton<ILogger>(ConfigureLogger);
+		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
+		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
+		services.AddSingleton<IUiCultureService, UiCultureService>();
+		#endregion
+
+		#endregion
+
+		#region ViewModels
+		services.AddTransient<AppPickerViewModel>();
+		services.AddTransient<BooleanAsyncResultViewModel>();
+		services.AddTransient<ClipboardLogViewModel>();
+		services.AddTransient<CopyHistoryViewModel>();
+		services.AddTransient<DatasetEditorViewModel>();
+		services.AddTransient<EditingFilesViewModel>();
+		services.AddTransient<EditorViewModel>();
+		services.AddTransient<EmbeddedFileEditorViewModel>();
+		services.AddTransient<EntityCreationViewModel>();
+		services.AddTransient<FavoritesViewModel>();
+		services.AddTransient<HotkeysEditorViewModel>();
+		services.AddTransient<ImportListSelectorViewModel>();
+		services.AddTransient<KeyValueInputViewModel>();
+		services.AddTransient<MultilineTextEditViewModel>();
+		services.AddTransient<PasswordBoxViewModel>();
+		services.AddTransient<PropertiesViewModel>();
+		services.AddTransient<SelectedFavoritesViewModel>();
+		services.AddTransient<SettingsViewModel>();
+		services.AddTransient<ToastViewModel>();
+		services.AddTransient<YesNoCancelBoxViewModel>();
+		#endregion
+
+		#region Views
+		services.AddTransient<AppPickerView>();
+		services.AddTransient<ConsoleWindow>();
+		services.AddTransient<ClipboardLogWindow>();
+		services.AddTransient<DatasetEditorView>();
+		services.AddTransient<EditorWindow>();
+		services.AddTransient<EmbeddedFileEditorView>();
+		services.AddTransient<EntityCreationView>();
+		services.AddTransient<FavoritesWindow>();
+		services.AddTransient<HotkeysEditorView>();
+		services.AddTransient<ImportListSelectorView>();
+		services.AddTransient<KeyValueInputView>();
+		services.AddTransient<MultilineTextEditView>();
+		services.AddTransient<PasswordBox>();
+		services.AddTransient<PropertiesView>();
+		services.AddTransient<SettingsView>();
+		services.AddTransient<ToastWindow>();
+		services.AddTransient<YesNoCancelBox>();
+		#endregion
 	}
 	#endregion
 
@@ -329,140 +469,7 @@ public sealed class App : Application
 	{
 		ServiceCollection services = [];
 
-		#region Services
-
-		services.AddMapster();
-
-		#region Transients
-		services.AddTransient<IAppPickerService, WindowsAppPickerService>();
-		services.AddTransient<IClipboardAccessor, ClipboardAccessor>();
-		services.AddTransient<IContentCipher, ContentCipher>();
-		services.AddTransient<IContentVisibility, ContentVisibility>();
-		services.AddTransient<IDataExchangeService, DataExchangeService>();
-		services.AddTransient<IDialogService, DialogService>();
-		services.AddTransient<IDirectoryAccessor, DirectoryAccessor>();
-		services.AddTransient<IDispatcherAccessor, DispatcherAccessor>();
-		services.AddTransient<IEncryptedContentWriter, EncryptedContentWriter>();
-		services.AddTransient<IEncryptionFailureReporter, EncryptionFailureReporter>();
-		services.AddTransient<IEncryptionService, EncryptionService>();
-		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
-		services.AddTransient<IEventSimulator, EventSimulator>();
-		services.AddTransient<IFileAssociationService, FileAssociationService>();
-		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
-		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();
-		services.AddTransient<IFileSystem, FileSystem>();
-		services.AddTransient<IFileSystemPicker, FileSystemPicker>();
-		services.AddTransient<IFolderProtection, FolderProtection>();
-		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
-		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
-		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
-		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
-		services.AddTransient<INoteCipher, NoteCipher>();
-		services.AddTransient<INoteEditor, NoteEditor>();
-		services.AddTransient<INoteReader, NoteReader>();
-		services.AddTransient<INotificationService, NotificationService>();
-		services.AddTransient<IProcessUtils, ProcessUtils>();
-		services.AddTransient<IStorageAccessor, StorageAccessor>();
-		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
-		services.AddTransient<IUpdateNotifier, UpdateNotifier>();
-		services.AddTransient<IViewFactory, ViewFactory>();
-		services.AddTransient<IViewLauncher, ViewLauncher>();
-		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
-		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
-		#endregion
-
-		#region View locator
-		services.AddSingleton<ViewLocator>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
-		#endregion
-
-		#region Singletons
-		services.AddDbContext<SqliteDbContext>(ConfigureDbContext);
-		services.AddHttpClient(UpdateCheckService.HttpClientName, ConfigureGitHubHttpClient);
-		services.AddKeyedSingleton<ISessionKeyStore, SessionKeyStore>(ClipboardLogStore.SessionKeyStoreKey);
-		services.AddLazySingleton<IConsoleWindowHost, ConsoleWindowHost>();
-		services.AddLazySingleton<IKeyboardInputHook, KeyboardInputHook>();
-		services.AddSingleton(TimeProvider.System);
-		services.AddSingleton<Application>(this);
-		services.AddSingleton<IAppController, AppController>();
-		services.AddSingleton<IAppEnvironment, AppEnvironment>();
-		services.AddSingleton<IAppSettingsStore, AppSettingsStore>();
-		services.AddSingleton<IAppThemeService, AppThemeService>();
-		services.AddSingleton<IAppVersionProvider, AppVersionProvider>();
-		services.AddSingleton<IAutoLockService, AutoLockService>();
-		services.AddSingleton<IClipboardAutoClear, ClipboardAutoClear>();
-		services.AddSingleton<IClipboardGate, ClipboardGate>();
-		services.AddSingleton<IClipboardLogPersistenceCoordinator, ClipboardLogPersistenceCoordinator>();
-		services.AddSingleton<IClipboardLogService, ClipboardLogService>();
-		services.AddSingleton<IClipboardLogStore, ClipboardLogStore>();
-		services.AddSingleton<ICommandLineOptions>(_ => new CommandLineOptions(args));
-		services.AddSingleton<IDbAccess, DbAccess>();
-		services.AddSingleton<IDbContextService, DbContextService>();
-		services.AddSingleton<IDbMaintenance, DbMaintenance>();
-		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
-		services.AddSingleton<IEntityLoader, EntityLoader>();
-		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
-		services.AddSingleton<IExecutionSandbox, ExecutionSandbox>();
-		services.AddSingleton<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
-		services.AddSingleton<IFileRepository, FileRepository>();
-		services.AddSingleton<IFolderRepository, FolderRepository>();
-		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
-		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
-		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
-		services.AddSingleton<IHotkeysRepository, HotkeysRepository>();
-		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
-		services.AddSingleton<ILogger>(ConfigureLogger);
-		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
-		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
-		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
-		services.AddSingleton<IUiCultureService, UiCultureService>();
-		services.AddSingleton<IUpdateCheckService, UpdateCheckService>();
-		#endregion
-
-		#endregion
-
-		#region ViewModels
-		services.AddTransient<AppPickerViewModel>();
-		services.AddTransient<BooleanAsyncResultViewModel>();
-		services.AddTransient<ClipboardLogViewModel>();
-		services.AddTransient<CopyHistoryViewModel>();
-		services.AddTransient<DatasetEditorViewModel>();
-		services.AddTransient<EditingFilesViewModel>();
-		services.AddTransient<EditorViewModel>();
-		services.AddTransient<EmbeddedFileEditorViewModel>();
-		services.AddTransient<EntityCreationViewModel>();
-		services.AddTransient<FavoritesViewModel>();
-		services.AddTransient<HotkeysEditorViewModel>();
-		services.AddTransient<ImportListSelectorViewModel>();
-		services.AddTransient<KeyValueInputViewModel>();
-		services.AddTransient<MultilineTextEditViewModel>();
-		services.AddTransient<PasswordBoxViewModel>();
-		services.AddTransient<PropertiesViewModel>();
-		services.AddTransient<SelectedFavoritesViewModel>();
-		services.AddTransient<SettingsViewModel>();
-		services.AddTransient<ToastViewModel>();
-		services.AddTransient<YesNoCancelBoxViewModel>();
-		#endregion
-
-		#region Views
-		services.AddTransient<AppPickerView>();
-		services.AddTransient<ConsoleWindow>();
-		services.AddTransient<ClipboardLogWindow>();
-		services.AddTransient<DatasetEditorView>();
-		services.AddTransient<EditorWindow>();
-		services.AddTransient<EmbeddedFileEditorView>();
-		services.AddTransient<EntityCreationView>();
-		services.AddTransient<FavoritesWindow>();
-		services.AddTransient<HotkeysEditorView>();
-		services.AddTransient<ImportListSelectorView>();
-		services.AddTransient<KeyValueInputView>();
-		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<PasswordBox>();
-		services.AddTransient<PropertiesView>();
-		services.AddTransient<SettingsView>();
-		services.AddTransient<ToastWindow>();
-		services.AddTransient<YesNoCancelBox>();
-		#endregion
+		RegisterServices(services, args);
 
 		return services.BuildServiceProvider();
 	}

@@ -44,7 +44,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			return;
 		}
 
-		_logger.LogException(exception);
+		_logger.LogException(exception, assertDebug: false);
 
 		SendMessage(exception is CryptographicException
 			? Strings.EncryptedDataIsDamaged
