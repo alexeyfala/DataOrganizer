@@ -58,6 +58,12 @@ The following are known and accepted, so there is no need to report them.
   system records the file name in recent items and jump lists.
 - **Record names are not encrypted.** Encryption covers contents and notes.
   Names are stored as plain text in the database and appear in exported files.
+- **Encrypted values are not bound to the record holding them.** A value is tied
+  to the key of its protected folder and to the kind of field it belongs to, but
+  not to the record it is stored in. Whoever can write to the database file can
+  move an encrypted value between records of the same protected folder, and the
+  application opens it without noticing the move. Binding a value to its record
+  would keep an import from renumbering records, which the import has to do.
 - **An export is as sensitive as the database.** An exported file carries the
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever
