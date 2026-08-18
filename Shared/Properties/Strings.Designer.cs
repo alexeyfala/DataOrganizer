@@ -1229,6 +1229,42 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fair.
+        /// </summary>
+        public static string PasswordStrengthFair {
+            get {
+                return ResourceManager.GetString("PasswordStrengthFair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Strong.
+        /// </summary>
+        public static string PasswordStrengthStrong {
+            get {
+                return ResourceManager.GetString("PasswordStrengthStrong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Very strong.
+        /// </summary>
+        public static string PasswordStrengthVeryStrong {
+            get {
+                return ResourceManager.GetString("PasswordStrengthVeryStrong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weak.
+        /// </summary>
+        public static string PasswordStrengthWeak {
+            get {
+                return ResourceManager.GetString("PasswordStrengthWeak", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Pause.

@@ -634,6 +634,18 @@
   <data name="PasswordsDoNotMatch" xml:space="preserve">
     <value>Passwords do not match</value>
   </data>
+  <data name="PasswordStrengthFair" xml:space="preserve">
+    <value>Fair</value>
+  </data>
+  <data name="PasswordStrengthStrong" xml:space="preserve">
+    <value>Strong</value>
+  </data>
+  <data name="PasswordStrengthVeryStrong" xml:space="preserve">
+    <value>Very strong</value>
+  </data>
+  <data name="PasswordStrengthWeak" xml:space="preserve">
+    <value>Weak</value>
+  </data>
   <data name="Security" xml:space="preserve">
     <value>Security</value>
   </data>

@@ -121,6 +121,37 @@ internal static class AppConverters
 	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHelper.BuildHeader);
 
 	/// <summary>
+	/// Color a password rating is shown in; transparent while there is nothing to rate.
+	/// </summary>
+	public static FuncValueConverter<PasswordStrength, IBrush?> PasswordStrengthToBrush { get; } =
+		new(strength => strength switch
+		{
+			PasswordStrength.Weak => Brushes.OrangeRed,
+			PasswordStrength.Fair => Brushes.DarkGoldenrod,
+			PasswordStrength.Strong or PasswordStrength.VeryStrong => Brushes.ForestGreen,
+			_ => Brushes.Transparent
+		});
+
+	/// <summary>
+	/// Caption of a password rating; <c>null</c> while there is nothing to rate.
+	/// </summary>
+	public static FuncValueConverter<PasswordStrength, string?> PasswordStrengthToCaption { get; } =
+		new(strength => strength switch
+		{
+			PasswordStrength.Weak => Strings.PasswordStrengthWeak,
+			PasswordStrength.Fair => Strings.PasswordStrengthFair,
+			PasswordStrength.Strong => Strings.PasswordStrengthStrong,
+			PasswordStrength.VeryStrong => Strings.PasswordStrengthVeryStrong,
+			_ => null
+		});
+
+	/// <summary>
+	/// Filled part of a password rating bar, out of <see cref="PasswordStrength.VeryStrong" />.
+	/// </summary>
+	public static FuncValueConverter<PasswordStrength, double> PasswordStrengthToValue { get; } =
+		new(strength => (double)strength);
+
+	/// <summary>
 	/// Right gutter for a <c>ScrollViewer</c>, reserved only while content overflows vertically.
 	/// Inputs: [Extent.Height, Viewport.Height].
 	/// </summary>
