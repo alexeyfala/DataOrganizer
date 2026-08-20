@@ -16,15 +16,22 @@ public sealed class EncryptionService : IEncryptionService
 {
 	#region Types
 	/// <summary>
-	/// Produces the AEAD key of a format from its secret, its header and the per-message salt.
+	/// Produces the AEAD key of a format from its secret, its header and the per-message salt,
+	/// and writes the check value the format records.
 	/// </summary>
 	private delegate Key KeyFactory(
 		ReadOnlySpan<byte> secret,
 		ReadOnlySpan<byte> header,
-		ReadOnlySpan<byte> salt);
+		ReadOnlySpan<byte> salt,
+		Span<byte> check);
 	#endregion
 
 	#region Data
+	/// <summary>
+	/// Size of the value proving the secret of a derived key.
+	/// </summary>
+	private const int CheckSize = 16;
+
 	/// <summary>
 	/// Salt size.
 	/// </summary>
@@ -36,31 +43,39 @@ public sealed class EncryptionService : IEncryptionService
 	private static readonly AeadAlgorithm _algorithm = AeadAlgorithm.XChaCha20Poly1305;
 
 	/// <summary>
-	/// The DEK-based format: the secret is the key itself, so neither a header nor a salt is needed.
+	/// The DEK-based format: the secret is the key itself, so there is neither a header, a salt
+	/// nor anything to prove.
 	/// </summary>
-	private static readonly BlobFormat _dekFormat = new(
-		Version: 0x02,
-		HeaderSize: 0,
-		SaltSize: 0,
-		_algorithm.NonceSize);
+	private static readonly BlobFormat _dekFormat = new()
+	{
+		NonceSize = _algorithm.NonceSize,
+		Version = 0x02
+	};
 
 	/// <summary>
-	/// The password-based format, whose header holds the cost of the key derivation.
+	/// The password-based format: the header holds the cost of the derivation, the check value tells
+	/// a wrong password from damaged data, and the plaintext is a single key.
 	/// </summary>
-	private static readonly BlobFormat _passwordFormat = new(
-		Version: 0x01,
-		Argon2Settings.HeaderSize,
-		SaltSize,
-		_algorithm.NonceSize);
+	private static readonly BlobFormat _passwordFormat = new()
+	{
+		CheckSize = CheckSize,
+		HeaderSize = Argon2Settings.HeaderSize,
+		NonceSize = _algorithm.NonceSize,
+		PlaintextSize = _algorithm.KeySize,
+		SaltSize = SaltSize,
+		Version = 0x01
+	};
 
 	/// <summary>
-	/// The session-based format: the derivation from a random secret has no cost to record.
+	/// The session-based format: the derivation from a random secret has no cost to record,
+	/// and a secret of the running session is never wrong.
 	/// </summary>
-	private static readonly BlobFormat _sessionFormat = new(
-		Version: 0x03,
-		HeaderSize: 0,
-		SaltSize,
-		_algorithm.NonceSize);
+	private static readonly BlobFormat _sessionFormat = new()
+	{
+		NonceSize = _algorithm.NonceSize,
+		SaltSize = SaltSize,
+		Version = 0x03
+	};
 
 	/// <summary>
 	/// Domain separation label for the session key derivation.
@@ -212,6 +227,22 @@ public sealed class EncryptionService : IEncryptionService
 
 	#region Helpers
 	/// <summary>
+	/// Associated data of a blob: the purpose of the content followed by the prefix of the blob,
+	/// so neither the recorded cost, nor the salt, nor the check value can be swapped for another.
+	/// The nonce is left out, the algorithm authenticates it on its own.
+	/// </summary>
+	private static byte[] BuildAssociatedData(byte[] purpose, ReadOnlySpan<byte> prefix)
+	{
+		byte[] result = new byte[purpose.Length + prefix.Length];
+
+		purpose.CopyTo(result, 0);
+
+		prefix.CopyTo(result.AsSpan(purpose.Length));
+
+		return result;
+	}
+
+	/// <summary>
 	/// Builds the AEAD key of a format from the secret and the salt.
 	/// </summary>
 	/// <exception cref="CryptographicException">The secret cannot produce a key of this format.</exception>
@@ -220,11 +251,16 @@ public sealed class EncryptionService : IEncryptionService
 		ReadOnlySpan<byte> secret,
 		ReadOnlySpan<byte> header,
 		ReadOnlySpan<byte> salt,
+		Span<byte> check,
 		byte version)
 	{
 		try
 		{
-			return keyFactory(secret, header, salt);
+			return keyFactory(
+				secret,
+				header,
+				salt,
+				check);
 		}
 		catch (Exception ex) when (ex is not CryptographicException)
 		{
@@ -239,7 +275,7 @@ public sealed class EncryptionService : IEncryptionService
 	private static byte[] DecryptCore(
 		byte[] input,
 		ReadOnlySpan<byte> secret,
-		byte[] associatedData,
+		byte[] purpose,
 		BlobFormat format,
 		KeyFactory keyFactory)
 	{
@@ -257,12 +293,31 @@ public sealed class EncryptionService : IEncryptionService
 				$"Encrypted data marked {input[0]:X2} cannot be read as the format {format.Version:X2}.");
 		}
 
+		// A format carrying a plaintext of a fixed size has a single valid length, so any other
+		// length is damaged data rather than something a secret could open.
+		if (format.PlaintextSize != 0
+			&& input.Length != format.PrefixSize + format.PlaintextSize + _algorithm.TagSize)
+		{
+			throw new CryptographicException(
+				$"Encrypted data of {input.Length} bytes cannot hold the {format.PlaintextSize} bytes of the format {format.Version:X2}.");
+		}
+
+		Span<byte> check = stackalloc byte[format.CheckSize];
+
 		using Key key = CreateKey(
 			keyFactory,
 			secret,
 			input.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize),
 			input.AsSpan(format.SaltOffset, format.SaltSize),
+			check,
 			format.Version);
+
+		// Where the format records a check value, it proves the secret before the data is touched.
+		if (format.CheckSize != 0
+			&& !CryptographicOperations.FixedTimeEquals(check, input.AsSpan(format.CheckOffset, format.CheckSize)))
+		{
+			throw new InvalidCredentialException("The password does not fit the encrypted data.");
+		}
 
 		byte[]? plaintext;
 
@@ -276,7 +331,7 @@ public sealed class EncryptionService : IEncryptionService
 				key,
 				nonce,
 				ciphertext,
-				associatedData);
+				BuildAssociatedData(purpose, input.AsSpan(0, format.NonceOffset)));
 		}
 		catch (Exception ex) when (ex is not CryptographicException)
 		{
@@ -288,10 +343,8 @@ public sealed class EncryptionService : IEncryptionService
 			return plaintext;
 		}
 
-		// The password format is the only one where a failed tag points at the secret rather than at the data.
-		throw format.Version == _passwordFormat.Version
-			? new InvalidCredentialException("The password does not fit the encrypted data.")
-			: new AuthenticationTagMismatchException();
+		// The secret has been proven above wherever a check value exists, so a failed tag is the data.
+		throw new AuthenticationTagMismatchException();
 	}
 
 	/// <summary>
@@ -301,7 +354,8 @@ public sealed class EncryptionService : IEncryptionService
 	private static Key DeriveKey(
 		ReadOnlySpan<byte> password,
 		ReadOnlySpan<byte> header,
-		ReadOnlySpan<byte> salt)
+		ReadOnlySpan<byte> salt,
+		Span<byte> check)
 	{
 		Argon2Settings settings = Argon2Settings.Read(header);
 
@@ -312,14 +366,19 @@ public sealed class EncryptionService : IEncryptionService
 			DegreeOfParallelism = settings.DegreeOfParallelism
 		});
 
+		// The derivation yields the key and, right behind it, the value a wrong password fails to match.
 		byte[] blob = kdf.DeriveBytes(
 			password: password,
 			salt: salt,
-			count: _algorithm.KeySize);
+			count: _algorithm.KeySize + CheckSize);
 
 		try
 		{
-			return ImportKey(blob);
+			blob
+				.AsSpan(_algorithm.KeySize, CheckSize)
+				.CopyTo(check);
+
+			return ImportKey(blob.AsSpan(0, _algorithm.KeySize));
 		}
 		finally
 		{
@@ -334,7 +393,8 @@ public sealed class EncryptionService : IEncryptionService
 	private static Key DeriveSessionKey(
 		ReadOnlySpan<byte> sessionId,
 		ReadOnlySpan<byte> header,
-		ReadOnlySpan<byte> salt)
+		ReadOnlySpan<byte> salt,
+		Span<byte> check)
 	{
 		byte[] blob = new byte[_algorithm.KeySize];
 
@@ -361,12 +421,18 @@ public sealed class EncryptionService : IEncryptionService
 	private static byte[] EncryptCore(
 		byte[] input,
 		ReadOnlySpan<byte> secret,
-		byte[] associatedData,
+		byte[] purpose,
 		BlobFormat format,
 		ReadOnlySpan<byte> header,
 		KeyFactory keyFactory)
 	{
 		ArgumentNullException.ThrowIfNull(input);
+
+		if (format.PlaintextSize != 0 && input.Length != format.PlaintextSize)
+		{
+			throw new CryptographicException(
+				$"The format {format.Version:X2} carries {format.PlaintextSize} bytes, not {input.Length}.");
+		}
 
 		byte[] result = new byte[format.PrefixSize + input.Length + _algorithm.TagSize];
 
@@ -383,6 +449,7 @@ public sealed class EncryptionService : IEncryptionService
 			secret,
 			header,
 			saltSpan,
+			result.AsSpan(format.CheckOffset, format.CheckSize),
 			format.Version);
 
 		Span<byte> nonceSpan = result.AsSpan(format.NonceOffset, _algorithm.NonceSize);
@@ -394,7 +461,7 @@ public sealed class EncryptionService : IEncryptionService
 			_algorithm.Encrypt(
 				key: key,
 				nonce: nonceSpan,
-				associatedData: associatedData,
+				associatedData: BuildAssociatedData(purpose, result.AsSpan(0, format.NonceOffset)),
 				plaintext: input,
 				ciphertext: result.AsSpan(format.PrefixSize));
 		}
@@ -407,12 +474,14 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <summary>
-	/// Adapts <see cref="ImportKey" /> to <see cref="KeyFactory" />; the DEK format carries neither a header nor a salt.
+	/// Adapts <see cref="ImportKey" /> to <see cref="KeyFactory" />; the DEK format carries neither
+	/// a header, a salt nor a check value.
 	/// </summary>
 	private static Key ImportDekAsKey(
 		ReadOnlySpan<byte> dek,
 		ReadOnlySpan<byte> header,
-		ReadOnlySpan<byte> salt) => ImportKey(dek);
+		ReadOnlySpan<byte> salt,
+		Span<byte> check) => ImportKey(dek);
 
 	/// <summary>
 	/// Imports raw key bytes as a key for the configured AEAD algorithm.

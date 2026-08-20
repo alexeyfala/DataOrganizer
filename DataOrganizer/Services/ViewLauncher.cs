@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
@@ -11,6 +12,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +68,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="IMessenger" />
+	private readonly IMessenger _messenger;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -88,6 +93,7 @@ public class ViewLauncher : IViewLauncher
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
+		IMessenger messenger,
 		IExecutionSandbox sandbox,
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
@@ -117,6 +123,8 @@ public class ViewLauncher : IViewLauncher
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
+
+		_messenger = messenger;
 
 		_sandbox = sandbox;
 
@@ -695,6 +703,18 @@ public class ViewLauncher : IViewLauncher
 
 			if (status == ClipboardLogStatus.Unlocked)
 			{
+				return;
+			}
+
+			// Only a wrong password is worth asking again; the rest no password can fix.
+			if (status != ClipboardLogStatus.WrongPassword)
+			{
+				_messenger.Send(new ShowSnackbarMessage(
+					status == ClipboardLogStatus.Damaged
+						? Strings.EncryptedDataIsDamaged
+						: Strings.FailedToUnlockClipboardHistory,
+					SnackbarMessageLevel.Error));
+
 				return;
 			}
 

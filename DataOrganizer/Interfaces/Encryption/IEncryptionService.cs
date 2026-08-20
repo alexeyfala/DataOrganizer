@@ -19,10 +19,11 @@ public interface IEncryptionService
 	byte[] CreateRandomDek();
 
 	/// <summary>
-	/// Decrypts data using a password (runs KDF). For wrap/unwrap of DEK.
+	/// Decrypts a wrapped DEK using a password (runs KDF); the input holds a single key.
 	/// </summary>
-	/// <exception cref="InvalidCredentialException">The password does not fit the data.</exception>
-	/// <exception cref="CryptographicException">The data is damaged, the recorded derivation cost is unsupported, the key material is unusable, or the operation failed.</exception>
+	/// <exception cref="InvalidCredentialException">The password, or the cost and the salt the wrapper records, is not the one the wrapper was written with.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The password fits, so the wrapped key is damaged.</exception>
+	/// <exception cref="CryptographicException">The wrapper is of another format or size, the recorded derivation cost is unsupported, the key material is unusable, or the operation failed.</exception>
 	/// <exception cref="ArgumentNullException">The input is absent.</exception>
 	byte[] Decrypt(
 		byte[] input,
@@ -57,9 +58,9 @@ public interface IEncryptionService
 		ContentIdentity identity);
 
 	/// <summary>
-	/// Encrypts data using a password (runs KDF). For wrap/unwrap of DEK.
+	/// Encrypts a DEK using a password (runs KDF); the input is a single key and nothing else.
 	/// </summary>
-	/// <exception cref="CryptographicException">The key material is unusable or the operation failed.</exception>
+	/// <exception cref="CryptographicException">The input is not the size of a key, the key material is unusable, or the operation failed.</exception>
 	/// <exception cref="ArgumentNullException">The input is absent.</exception>
 	byte[] Encrypt(
 		byte[] input,

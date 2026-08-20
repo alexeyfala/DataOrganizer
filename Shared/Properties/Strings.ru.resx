@@ -474,6 +474,9 @@
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Не удалось прочитать примечание</value>
   </data>
+  <data name="FailedToUnlockClipboardHistory" xml:space="preserve">
+    <value>Не удалось открыть сохранённую историю буфера обмена</value>
+  </data>
   <data name="FailedToSaveNote" xml:space="preserve">
     <value>Не удалось сохранить примечание</value>
   </data>

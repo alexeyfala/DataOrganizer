@@ -350,6 +350,46 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: an existing key rejects the password on its own,
+	/// so a cryptographic failure behind it is the data and no further password is asked for.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_An_Existing_Key_Cannot_Be_Read_Returns_Damaged()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+		}
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
+			.Throws(new AuthenticationTagMismatchException());
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Damaged);
+
+		reader.IsUnlocked
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
 	/// </summary>
 	[Test]

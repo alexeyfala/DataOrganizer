@@ -37,7 +37,8 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	{
 		if (exception is InvalidCredentialException)
 		{
-			_logger.LogWarning($"The password has been rejected: {callerName}");
+			_logger.LogWarning(
+				$"The password, or the derivation cost and the salt beside it, has been rejected: {callerName}");
 
 			SendMessage(Strings.IncorrectPassword);
 

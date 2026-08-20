@@ -16,7 +16,12 @@ public enum ClipboardLogStatus
 	WrongPassword,
 
 	/// <summary>
-	/// Unlocking failed for another reason (I/O or cryptographic error).
+	/// The password fits, so the key or the journal behind it is damaged; another attempt cannot help.
+	/// </summary>
+	Damaged,
+
+	/// <summary>
+	/// Unlocking failed for another reason (I/O error).
 	/// </summary>
 	Failed
 }

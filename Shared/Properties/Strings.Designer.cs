@@ -709,6 +709,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to open the saved clipboard history.
+        /// </summary>
+        public static string FailedToUnlockClipboardHistory {
+            get {
+                return ResourceManager.GetString("FailedToUnlockClipboardHistory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Favorite.
         /// </summary>
         public static string Favorite {
@@ -1229,7 +1238,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fair.
         /// </summary>

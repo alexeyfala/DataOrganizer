@@ -154,9 +154,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
+		bool hasKey = _fileSystem.IsFileExists(_keyFilePath);
+
 		try
 		{
-			return _fileSystem.IsFileExists(_keyFilePath)
+			return hasKey
 				? await UnlockExistingAsync(password, token).ConfigureAwait(false)
 				: await CreateNewKeyAsync(password, token).ConfigureAwait(false);
 		}
@@ -165,6 +167,13 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			_logger.LogWarning("The password of the clipboard history has been rejected.");
 
 			return new(ClipboardLogStatus.WrongPassword, []);
+		}
+		catch (CryptographicException ex) when (hasKey)
+		{
+			// Opening an existing key rejects the password on its own, so this is the data behind it.
+			_logger.LogException(ex, assertDebug: false);
+
+			return new(ClipboardLogStatus.Damaged, []);
 		}
 		catch (Exception ex)
 		{

@@ -35,9 +35,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		// Act, Assert
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
@@ -75,9 +73,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
@@ -100,6 +96,69 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.Decrypt" />: the salt takes part in the derivation, so a changed
+	/// one is indistinguishable from a wrong password.
+	/// </summary>
+	[Test]
+	public void Decrypt_Rejects_A_Tampered_Salt()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = sut.Encrypt(
+			sut.CreateRandomDek(),
+			password,
+			_identity);
+
+		// Act
+		wrapped[1 + Argon2Settings.HeaderSize] ^= 0xFF;
+
+		Action act = () => sut.Decrypt(wrapped, password, _identity);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<InvalidCredentialException>();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Decrypt" />: a wrapper holds a single key, so any other size is
+	/// damaged data rather than a password to look for.
+	/// </summary>
+	[Test]
+	[TestCase(1, Description = "A byte too many")]
+	[TestCase(-1, Description = "A byte too few")]
+	public void Decrypt_Rejects_A_Wrapper_Of_Another_Size(int difference)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = sut.Encrypt(
+			sut.CreateRandomDek(),
+			password,
+			_identity);
+
+		// Act
+		Action act = () => sut.Decrypt(
+			[.. wrapped.AsSpan(0, wrapped.Length + Math.Min(difference, 0)), .. new byte[Math.Max(difference, 0)]],
+			password,
+			_identity);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<CryptographicException>();
+	}
+
+	/// <summary>
 	/// <see cref="EncryptionService.Decrypt" />: a cost outside the supported range is refused
 	/// before it can steer an allocation.
 	/// </summary>
@@ -111,9 +170,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
@@ -172,6 +229,36 @@ internal class EncryptionServiceTests
 		act
 			.Should()
 			.ThrowExactly<CryptographicException>();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Decrypt" />: the check value proves the password, so a failed tag
+	/// beyond it reports the data instead of sending the user after another password.
+	/// </summary>
+	[Test]
+	public void Decrypt_Tells_Damaged_Data_From_A_Wrong_Password()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = sut.Encrypt(
+			sut.CreateRandomDek(),
+			password,
+			_identity);
+
+		// Act
+		wrapped[^1] ^= 0xFF;
+
+		Action act = () => sut.Decrypt(wrapped, password, _identity);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<AuthenticationTagMismatchException>();
 	}
 
 	/// <summary>
@@ -515,9 +602,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
@@ -572,9 +657,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
@@ -587,17 +670,13 @@ internal class EncryptionServiceTests
 
 		byte[]? decrypted = sut.Decrypt(encrypted, password, _identity);
 
+		encrypted
+			.Should()
+			.NotContainInOrder(input);
+
 		decrypted
 			.Should()
-			.NotBeNullOrEmpty();
-
-		TextHelper.Utf8Encoding.GetString(encrypted)
-			.Should()
-			.NotBe(TextHelper.LoremIpsum);
-
-		TextHelper.Utf8Encoding.GetString(decrypted)
-			.Should()
-			.Be(TextHelper.LoremIpsum);
+			.Equal(input);
 	}
 
 	/// <summary>
@@ -611,9 +690,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] input = TextHelper
-			.Utf8Encoding
-			.GetBytes(TextHelper.LoremIpsum);
+		byte[] input = sut.CreateRandomDek();
 
 		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
 
@@ -632,6 +709,32 @@ internal class EncryptionServiceTests
 			.Read(encrypted.AsSpan(1, Argon2Settings.HeaderSize))
 			.Should()
 			.Be(Argon2Settings.Current);
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.Encrypt" />: the password path wraps a key and nothing else.
+	/// </summary>
+	[Test]
+	public void Encrypt_Refuses_Anything_But_A_Key()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		// Act
+		Action act = () => sut.Encrypt(input, password, _identity);
+
+		// Assert
+		act
+			.Should()
+			.ThrowExactly<CryptographicException>();
 	}
 
 	/// <summary>
@@ -721,12 +824,15 @@ internal class EncryptionServiceTests
 
 	/// <summary>
 	/// Every path keeps its own version byte and its own on-the-wire layout: the DEK one carries
-	/// no salt, the other two do, and the password one carries the cost of the derivation as well.
+	/// no salt, the other two do, and the password one carries the cost of the derivation and the
+	/// check value as well.
 	/// </summary>
 	[Test]
 	public void EncryptedBlobs_Keep_Their_Layout()
 	{
 		// Arrange
+		const int CheckSize = 16;
+
 		const int NonceSize = 24;
 
 		const int SaltSize = 16;
@@ -746,7 +852,7 @@ internal class EncryptionServiceTests
 		using PinnedBuffer secretBuffer = new(secret);
 
 		// Act
-		byte[]? password = sut.Encrypt(input, secretBuffer, _identity);
+		byte[]? password = sut.Encrypt(sut.CreateRandomDek(), secretBuffer, _identity);
 
 		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), _identity);
 
@@ -759,7 +865,7 @@ internal class EncryptionServiceTests
 			.And
 			.HaveElementAt(0, 0x01)
 			.And
-			.HaveCount(1 + Argon2Settings.HeaderSize + SaltSize + NonceSize + input.Length + TagSize);
+			.HaveCount(1 + Argon2Settings.HeaderSize + SaltSize + CheckSize + NonceSize + secret.Length + TagSize);
 
 		dek
 			.Should()
@@ -1000,13 +1106,17 @@ internal class EncryptionServiceTests
 		PinnedBuffer password,
 		Argon2Settings settings)
 	{
+		const int CheckSize = 16;
+
 		const int SaltSize = 16;
 
 		AeadAlgorithm algorithm = AeadAlgorithm.XChaCha20Poly1305;
 
 		const int saltOffset = 1 + Argon2Settings.HeaderSize;
 
-		const int nonceOffset = saltOffset + SaltSize;
+		const int checkOffset = saltOffset + SaltSize;
+
+		const int nonceOffset = checkOffset + CheckSize;
 
 		int prefixSize = nonceOffset + algorithm.NonceSize;
 
@@ -1034,17 +1144,25 @@ internal class EncryptionServiceTests
 		byte[] blob = kdf.DeriveBytes(
 			password: password.AsReadOnlySpan(),
 			salt: salt,
-			count: algorithm.KeySize);
+			count: algorithm.KeySize + CheckSize);
+
+		blob
+			.AsSpan(algorithm.KeySize, CheckSize)
+			.CopyTo(result.AsSpan(checkOffset, CheckSize));
 
 		using Key key = Key.Import(
 			algorithm: algorithm,
-			blob: blob,
+			blob: blob.AsSpan(0, algorithm.KeySize),
 			format: KeyBlobFormat.RawSymmetricKey);
+
+		byte[] purpose = _identity.ToAssociatedData();
+
+		byte[] associatedData = [.. purpose, .. result.AsSpan(0, nonceOffset)];
 
 		algorithm.Encrypt(
 			key: key,
 			nonce: nonce,
-			associatedData: _identity.ToAssociatedData(),
+			associatedData: associatedData,
 			plaintext: input,
 			ciphertext: result.AsSpan(prefixSize));
 
