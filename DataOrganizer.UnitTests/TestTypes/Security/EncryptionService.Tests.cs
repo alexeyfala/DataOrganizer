@@ -212,16 +212,14 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] sessionId = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer secret = new(TestUtils.CreateRandomBytes(32));
 
 		// Act
-		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
+		byte[]? encrypted = sut.EncryptWithSessionId(input, secret, _identity);
 
 		encrypted
 			.Should()
 			.NotBeNullOrEmpty();
-
-		using PinnedBuffer secret = new(sessionId);
 
 		Action act = () => sut.Decrypt(encrypted, secret, _identity);
 
@@ -572,9 +570,9 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] sessionId = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
 
-		byte[] wrongSessionId = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer wrongSessionId = new(TestUtils.CreateRandomBytes(32));
 
 		// Act
 		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
@@ -613,7 +611,7 @@ internal class EncryptionServiceTests
 			.Should()
 			.NotBeNullOrEmpty();
 
-		Action act = () => sut.DecryptWithSessionId(encrypted, password.AsReadOnlySpan().ToArray(), _identity);
+		Action act = () => sut.DecryptWithSessionId(encrypted, password, _identity);
 
 		// Assert
 		act
@@ -635,7 +633,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		byte[] sessionId = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
 
 		// Act
 		Action act = () => sut.DecryptWithSessionId(input, sessionId, _identity);
@@ -856,7 +854,7 @@ internal class EncryptionServiceTests
 
 		byte[]? dek = sut.EncryptWithDek(input, sut.CreateRandomDek(), _identity);
 
-		byte[]? session = sut.EncryptWithSessionId(input, secret, _identity);
+		byte[]? session = sut.EncryptWithSessionId(input, secretBuffer, _identity);
 
 		// Assert
 		password
@@ -968,7 +966,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] sessionId = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
 
 		// Act, Assert
 		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);

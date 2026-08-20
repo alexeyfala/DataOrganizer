@@ -136,47 +136,40 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 
 		lock (_mutex)
 		{
-			byte[] sessionId = GetSessionId();
+			PinnedBuffer sessionId = EnsureSessionId();
+
+			byte[] wrappedDek;
 
 			try
 			{
-				byte[] wrappedDek;
-
-				try
+				wrappedDek = _encryption.EncryptWithSessionId(
+					dek,
+					sessionId,
+					ContentIdentity.ForDek(keeperId));
+			}
+			catch
+			{
+				// Nothing has been stored, so a session secret created just now is not needed.
+				if (_wrappedDeks.Count == 0)
 				{
-					wrappedDek = _encryption.EncryptWithSessionId(
-						dek,
-						sessionId,
-						ContentIdentity.ForDek(keeperId));
-				}
-				catch
-				{
-					// Nothing has been stored, so a session secret created just now is not needed.
-					if (_wrappedDeks.Count == 0)
-					{
-						DropSessionId();
-					}
-
-					throw;
+					DropSessionId();
 				}
 
-				try
-				{
-					// Replaces, never drops the session secret: the new key is already wrapped with it.
-					Remove(keeperId);
+				throw;
+			}
 
-					_wrappedDeks[keeperId] = new(wrappedDek);
+			try
+			{
+				// Replaces, never drops the session secret: the new key is already wrapped with it.
+				Remove(keeperId);
 
-					return true;
-				}
-				finally
-				{
-					wrappedDek.ZeroMemory();
-				}
+				_wrappedDeks[keeperId] = new(wrappedDek);
+
+				return true;
 			}
 			finally
 			{
-				sessionId.ZeroMemory();
+				wrappedDek.ZeroMemory();
 			}
 		}
 	}
@@ -194,10 +187,10 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	}
 
 	/// <summary>
-	/// Returns a copy of the session secret, creating the secret on first use.
-	/// The copy is short lived and the caller wipes it.
+	/// Returns the session secret, creating it on first use. The store owns the buffer,
+	/// so no caller wipes it.
 	/// </summary>
-	private byte[] GetSessionId()
+	private PinnedBuffer EnsureSessionId()
 	{
 		if (_sessionId is null)
 		{
@@ -206,9 +199,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 			RandomNumberGenerator.Fill(_sessionId.AsSpan());
 		}
 
-		return _sessionId
-			.AsReadOnlySpan()
-			.ToArray();
+		return _sessionId;
 	}
 
 	/// <summary>
@@ -235,7 +226,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 			throw new InvalidOperationException($@"The keeper ""{keeperId}"" is locked.");
 		}
 
-		byte[] sessionId = GetSessionId();
+		PinnedBuffer sessionId = EnsureSessionId();
 
 		byte[] input = wrappedDek
 			.AsReadOnlySpan()
@@ -251,8 +242,6 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 		finally
 		{
 			input.ZeroMemory();
-
-			sessionId.ZeroMemory();
 		}
 	}
 	#endregion

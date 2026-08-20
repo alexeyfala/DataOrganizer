@@ -129,12 +129,14 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] DecryptWithSessionId(
 		byte[] input,
-		byte[] sessionId,
+		PinnedBuffer sessionId,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(sessionId);
+
 		return DecryptCore(
 			input,
-			sessionId,
+			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_sessionFormat,
 			DeriveSessionKey);
@@ -191,12 +193,14 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] EncryptWithSessionId(
 		byte[] input,
-		byte[] sessionId,
+		PinnedBuffer sessionId,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(sessionId);
+
 		return EncryptCore(
 			input,
-			sessionId,
+			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_sessionFormat,
 			header: default,
@@ -366,24 +370,18 @@ public sealed class EncryptionService : IEncryptionService
 			DegreeOfParallelism = settings.DegreeOfParallelism
 		});
 
-		// The derivation yields the key and, right behind it, the value a wrong password fails to match.
-		byte[] blob = kdf.DeriveBytes(
+		using PinnedBuffer blob = new(_algorithm.KeySize + CheckSize);
+
+		kdf.DeriveBytes(
 			password: password,
 			salt: salt,
-			count: _algorithm.KeySize + CheckSize);
+			bytes: blob.AsSpan());
 
-		try
-		{
-			blob
-				.AsSpan(_algorithm.KeySize, CheckSize)
-				.CopyTo(check);
+		blob
+			.AsReadOnlySpan()[_algorithm.KeySize..]
+			.CopyTo(check);
 
-			return ImportKey(blob.AsSpan(0, _algorithm.KeySize));
-		}
-		finally
-		{
-			blob.ZeroMemory();
-		}
+		return ImportKey(blob.AsReadOnlySpan()[.._algorithm.KeySize]);
 	}
 
 	/// <summary>
@@ -396,7 +394,7 @@ public sealed class EncryptionService : IEncryptionService
 		ReadOnlySpan<byte> salt,
 		Span<byte> check)
 	{
-		byte[] blob = new byte[_algorithm.KeySize];
+		Span<byte> blob = stackalloc byte[_algorithm.KeySize];
 
 		try
 		{

@@ -54,7 +54,7 @@ public interface IEncryptionService
 	/// <exception cref="ArgumentNullException">The input is absent.</exception>
 	byte[] DecryptWithSessionId(
 		byte[] input,
-		byte[] sessionId,
+		PinnedBuffer sessionId,
 		ContentIdentity identity);
 
 	/// <summary>
@@ -89,7 +89,7 @@ public interface IEncryptionService
 	/// <exception cref="ArgumentNullException">The input is absent.</exception>
 	byte[] EncryptWithSessionId(
 		byte[] input,
-		byte[] sessionId,
+		PinnedBuffer sessionId,
 		ContentIdentity identity);
 
 	/// <summary>
