@@ -33,20 +33,22 @@ public readonly record struct Argon2Settings(
 	public const int HeaderSize = 6;
 
 	/// <summary>
-	/// Upper bound of <see cref="DegreeOfParallelism" />.
+	/// Upper bound of <see cref="DegreeOfParallelism" />: libsodium fixes the number of lanes at one,
+	/// so any other value is refused here instead of failing inside the derivation.
 	/// </summary>
-	private const int MaxDegreeOfParallelism = 4;
+	private const int MaxDegreeOfParallelism = 1;
 
 	/// <summary>
-	/// Upper bound of <see cref="MemorySize" />: a gibibyte, past which a derivation
-	/// costs more than any machine running the application can spare.
+	/// Upper bound of <see cref="MemorySize" />: half a gibibyte. The bound caps the allocation a blob
+	/// can ask for, and lowering it below a value already written would make that blob unreadable.
 	/// </summary>
-	private const int MaxMemorySize = 1048576;
+	private const int MaxMemorySize = 524288;
 
 	/// <summary>
-	/// Upper bound of <see cref="NumberOfPasses" />.
+	/// Upper bound of <see cref="NumberOfPasses" />: together with <see cref="MaxMemorySize" />
+	/// it bounds the work a single derivation can cost.
 	/// </summary>
-	private const int MaxNumberOfPasses = 16;
+	private const int MaxNumberOfPasses = 4;
 
 	/// <summary>
 	/// Lower bound of <see cref="MemorySize" />: eight mebibytes.
