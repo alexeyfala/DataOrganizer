@@ -23,6 +23,12 @@ public interface IDbContextService : IDisposable
 	/// <inheritdoc cref="DatabaseFacade.EnsureDeleted" />
 	void EnsureDeleted();
 
+	/// <summary>
+	/// Runs the action inside a single database transaction and commits it; a failure rolls back
+	/// everything the action has written.
+	/// </summary>
+	Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken token = default);
+
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.GetDbConnection" />
 	DbConnection GetDbConnection();
 

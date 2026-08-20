@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
 using Repository.DbContexts;
 using Repository.Interfaces;
+using System;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +61,23 @@ public sealed class DbContextService : IDbContextService
 		_dbContext
 			.Database
 			.EnsureDeleted();
+	}
+
+	/// <inheritdoc />
+	public async Task ExecuteInTransactionAsync(
+		Func<CancellationToken, Task> action,
+		CancellationToken token = default)
+	{
+		await using IDbContextTransaction transaction = await _dbContext
+			.Database
+			.BeginTransactionAsync(token)
+			.ConfigureAwait(false);
+
+		await action(token).ConfigureAwait(false);
+
+		await transaction
+			.CommitAsync(token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />

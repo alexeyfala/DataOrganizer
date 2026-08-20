@@ -211,9 +211,12 @@ public sealed class FolderProtection : IFolderProtection
 				Notes = notes
 			};
 
-			await _contentWriter
+			if (await _contentWriter
 				.UpdateDatabaseAsync(parameters, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+			{
+				return;
+			}
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
@@ -312,9 +315,12 @@ public sealed class FolderProtection : IFolderProtection
 					Notes = notes
 				};
 
-				await _contentWriter
+				if (await _contentWriter
 					.UpdateDatabaseAsync(parameters, token)
-					.ConfigureAwait(false);
+					.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+				{
+					return;
+				}
 			}
 			finally
 			{

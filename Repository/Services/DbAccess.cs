@@ -908,6 +908,56 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> UpdateFileAndFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
+			{
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> update in fileUpdates)
+				{
+					await _fileRepository
+						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.ConfigureAwait(false);
+				}
+
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> update in folderUpdates)
+				{
+					await _folderRepository
+						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.ConfigureAwait(false);
+				}
+			}, token).ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
 		Action<UpdateSettersBuilder<FileModel>>[] setters,

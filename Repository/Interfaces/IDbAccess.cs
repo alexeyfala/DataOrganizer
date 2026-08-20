@@ -133,6 +133,15 @@ public interface IDbAccess : IDisposable
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
+	/// Updates properties of multiple <see cref="FileModel" /> and <see cref="FolderModel" /> entities
+	/// in a single transaction. An empty set of updates is not a failure.
+	/// </summary>
+	Task<bool> UpdateFileAndFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Updates properties of <see cref="FileModel" />.
 	/// </summary>
 	Task<bool> UpdateFilePropertiesAsync(

@@ -78,34 +78,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
 			}
 
-			if (!await _dbAccess
-				.UpdateFilePropertiesAsync(updates, token)
-				.ConfigureAwait(false))
-			{
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
-					.ConfigureAwait(false);
-
-				return UpdateDatabaseResult.FailedToSaveContentsInDb;
-			}
-
-			if (!await _dbAccess.UpdateFolderPropertiesAsync(parameters.Folder.Id,
-				[
-					x => x.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek)
-				], token).ConfigureAwait(false))
-			{
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
-					.ConfigureAwait(false);
-
-				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
-			}
-
-			Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderNotes = parameters
+			Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates = parameters
 				.Notes
 				.Where(x => x.IsFolderNote())
 				.ToDictionary(x => x.Id, note =>
@@ -117,17 +90,16 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				};
 			});
 
-			if (folderNotes.Count > 0 && !await _dbAccess
-				.UpdateFolderPropertiesAsync(folderNotes, token)
+			Action<UpdateSettersBuilder<FolderModel>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
+
+			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
+
+			if (!await _dbAccess
+				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
 				.ConfigureAwait(false))
 			{
-				SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-				await _dbAccess
-					.RestoreFromBackupAsync(parameters.BackupFilePath, token)
+				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseResult.FailedToSaveInDb)
 					.ConfigureAwait(false);
-
-				return UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb;
 			}
 
 			ExplorerModelBaseDto[] objects =
@@ -145,12 +117,19 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.EncryptedDek = parameters.EncryptedDek;
 
 			return UpdateDatabaseResult.Done;
+
+			void SetDek(UpdateSettersBuilder<FolderModel> builder)
+			{
+				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
+			}
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			return UpdateDatabaseResult.ExceptionThrown;
+			return await RestoreAsync(
+				parameters.BackupFilePath,
+				UpdateDatabaseResult.ExceptionThrown).ConfigureAwait(false);
 		}
 	}
 	#endregion
@@ -182,6 +161,21 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			// The replaced buffer holds the note in plain text after an encryption.
 			replaced?.ZeroMemory();
 		}
+	}
+
+	/// <summary>
+	/// Reports the failure and rolls the database back to the copy taken before the conversion.
+	/// </summary>
+	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
+	{
+		SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+
+		// The rollback has to run even when the operation was cancelled.
+		await _dbAccess
+			.RestoreFromBackupAsync(backupFilePath, CancellationToken.None)
+			.ConfigureAwait(false);
+
+		return result;
 	}
 
 	/// <summary>
