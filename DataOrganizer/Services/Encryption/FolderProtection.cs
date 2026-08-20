@@ -10,6 +10,7 @@ using DataOrganizer.Messages;
 using Repository.DTO;
 using Repository.Interfaces;
 using Repository.Services;
+using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -41,6 +42,9 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IKeeperUnlocker" />
 	private readonly IKeeperUnlocker _keeperUnlocker;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 	#endregion
@@ -53,6 +57,7 @@ public sealed class FolderProtection : IFolderProtection
 		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
+		ILogger logger,
 		IMessenger messenger)
 	{
 		_contentWriter = contentWriter;
@@ -66,6 +71,8 @@ public sealed class FolderProtection : IFolderProtection
 		_failureReporter = failureReporter;
 
 		_keeperUnlocker = keeperUnlocker;
+
+		_logger = logger;
 
 		_messenger = messenger;
 	}
@@ -173,7 +180,9 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (!AreContentsValid(result, contents.Length))
 			{
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				LogInvalidContents(result);
+
+				SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -270,6 +279,8 @@ public sealed class FolderProtection : IFolderProtection
 
 				if (!AreContentsValid(result, contents.Length))
 				{
+					LogInvalidContents(result);
+
 					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 					return;
@@ -353,6 +364,20 @@ public sealed class FolderProtection : IFolderProtection
 	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
 	/// </summary>
 	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+
+	/// <summary>
+	/// Writes the identifiers of the contents that could not be converted to the log.
+	/// </summary>
+	private void LogInvalidContents(ContentsIsValidPair[] contents)
+	{
+		string identifiers = string.Join(", ", contents
+			.Where(x => !x.IsValid)
+			.Select(x => x.Id));
+
+		_logger.LogError(
+			$"The contents of these files cannot be converted: {identifiers}",
+			assertDebug: false);
+	}
 
 	/// <summary>
 	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK;

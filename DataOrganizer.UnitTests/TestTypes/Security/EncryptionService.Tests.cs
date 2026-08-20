@@ -5,6 +5,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using NSec.Cryptography;
+using Repository.DTO;
 using System;
 using System.Buffers.Binary;
 using System.Security.Authentication;
@@ -196,6 +197,111 @@ internal class EncryptionServiceTests
 		act
 			.Should()
 			.ThrowExactly<CryptographicException>();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.DecryptContents" />: empty content comes back untouched, so a file
+	/// stored without encryption does not block the conversion of a folder.
+	/// </summary>
+	[Test]
+	public void DecryptContents_Hands_Empty_Contents_Back()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		ContentsIsValidPair[] contents =
+		[
+			new()
+			{
+				Contents = [],
+				Id = Guid.NewGuid(),
+				IsValid = true
+			}
+		];
+
+		// Act
+		ContentsIsValidPair[] result = [.. sut.DecryptContents(contents, dek)];
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(1);
+
+		result[0]
+			.IsValid
+			.Should()
+			.BeTrue();
+
+		result[0]
+			.Contents
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.DecryptContents" />: a content that cannot be opened is marked invalid
+	/// and the rest of the sequence is still converted.
+	/// </summary>
+	[Test]
+	public void DecryptContents_Marks_A_Damaged_Content_Invalid()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		Guid openableId = Guid.NewGuid();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		byte[] damaged = TestUtils.CreateRandomBytes(50);
+
+		ContentsIsValidPair[] contents =
+		[
+			new()
+			{
+				Contents = sut.EncryptWithDek(input, dek, ContentIdentity.ForContents(openableId)),
+				Id = openableId,
+				IsValid = true
+			},
+			new()
+			{
+				Contents = damaged,
+				Id = Guid.NewGuid(),
+				IsValid = true
+			}
+		];
+
+		// Act
+		ContentsIsValidPair[] result = [.. sut.DecryptContents(contents, dek)];
+
+		// Assert
+		result[0]
+			.IsValid
+			.Should()
+			.BeTrue();
+
+		TextHelper.Utf8Encoding.GetString(result[0].Contents)
+			.Should()
+			.Be(TextHelper.LoremIpsum);
+
+		result[1]
+			.IsValid
+			.Should()
+			.BeFalse();
+
+		result[1]
+			.Contents
+			.Should()
+			.BeSameAs(damaged);
 	}
 
 	/// <summary>
@@ -551,6 +657,69 @@ internal class EncryptionServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="EncryptionService.EncryptContents" />, <see cref="EncryptionService.DecryptContents" />:
+	/// an empty content stays unencrypted and survives a folder round-trip next to a normal one.
+	/// </summary>
+	[Test]
+	public void EncryptContents_DecryptContents_Checking_Functionality()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		byte[] input = TextHelper
+			.Utf8Encoding
+			.GetBytes(TextHelper.LoremIpsum);
+
+		ContentsIsValidPair[] contents =
+		[
+			new()
+			{
+				Contents = [],
+				Id = Guid.NewGuid(),
+				IsValid = true
+			},
+			new()
+			{
+				Contents = input,
+				Id = Guid.NewGuid(),
+				IsValid = true
+			}
+		];
+
+		// Act
+		ContentsIsValidPair[] encrypted = [.. sut.EncryptContents(contents, dek)];
+
+		ContentsIsValidPair[] decrypted = [.. sut.DecryptContents(encrypted, dek)];
+
+		// Assert
+		encrypted[0]
+			.Contents
+			.Should()
+			.BeEmpty();
+
+		TextHelper.Utf8Encoding.GetString(encrypted[1].Contents)
+			.Should()
+			.NotBe(TextHelper.LoremIpsum);
+
+		decrypted
+			.Should()
+			.OnlyContain(x => x.IsValid);
+
+		decrypted[0]
+			.Contents
+			.Should()
+			.BeEmpty();
+
+		TextHelper.Utf8Encoding.GetString(decrypted[1].Contents)
+			.Should()
+			.Be(TextHelper.LoremIpsum);
+	}
+
+	/// <summary>
 	/// Every path keeps its own version byte and its own on-the-wire layout: the DEK one carries
 	/// no salt, the other two do, and the password one carries the cost of the derivation as well.
 	/// </summary>
@@ -731,7 +900,7 @@ internal class EncryptionServiceTests
 
 		AeadAlgorithm algorithm = AeadAlgorithm.XChaCha20Poly1305;
 
-		int saltOffset = 1 + Argon2Settings.HeaderSize;
+		const int saltOffset = 1 + Argon2Settings.HeaderSize;
 
 		int nonceOffset = saltOffset + SaltSize;
 

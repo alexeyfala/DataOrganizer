@@ -4,6 +4,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;
 using Repository.DTO;
+using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
@@ -92,15 +93,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			yield return new()
-			{
-				Contents = DecryptWithDek(
-					item.Contents,
-					dek,
-					ContentIdentity.ForContents(item.Id)),
-				Id = item.Id,
-				IsValid = true
-			};
+			yield return ConvertContents(item, dek, encrypt: false);
 		}
 	}
 
@@ -161,15 +154,7 @@ public sealed class EncryptionService : IEncryptionService
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
-			yield return new()
-			{
-				Contents = EncryptWithDek(
-					item.Contents,
-					dek,
-					ContentIdentity.ForContents(item.Id)),
-				Id = item.Id,
-				IsValid = true
-			};
+			yield return ConvertContents(item, dek, encrypt: true);
 		}
 	}
 
@@ -442,6 +427,45 @@ public sealed class EncryptionService : IEncryptionService
 			associatedData: associatedData,
 			ciphertext: ciphertext,
 			plaintext: plaintext) ? plaintext : null;
+	}
+
+	/// <summary>
+	/// Converts one content with the DEK. Empty content travels as it is, and a failure marks the pair
+	/// invalid instead of breaking the whole sequence.
+	/// </summary>
+	private ContentsIsValidPair ConvertContents(
+		ContentsIsValidPair item,
+		byte[] dek,
+		bool encrypt)
+	{
+		// Empty content is stored without encryption, so there is nothing to convert.
+		if (item.Contents.IsEmpty())
+		{
+			return item;
+		}
+
+		ContentIdentity identity = ContentIdentity.ForContents(item.Id);
+
+		try
+		{
+			return new()
+			{
+				Contents = encrypt
+					? EncryptWithDek(item.Contents, dek, identity)
+					: DecryptWithDek(item.Contents, dek, identity),
+				Id = item.Id,
+				IsValid = true
+			};
+		}
+		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
+		{
+			return new()
+			{
+				Contents = item.Contents,
+				Id = item.Id,
+				IsValid = false
+			};
+		}
 	}
 	#endregion
 }

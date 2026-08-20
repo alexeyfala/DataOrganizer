@@ -396,6 +396,61 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: a content the DEK cannot open stops the
+	/// operation before anything is written.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Refuses_A_Content_That_Cannot_Be_Opened()
+	{
+		// Arrange
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [TestUtils.CreateFileDto()];
+
+		IEncryptedContentWriter contentWriter = null!;
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			contentWriter = RegisterContentWriter(builder);
+
+			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: false)]);
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		await dbAccess
+			.DidNotReceiveWithAnyArgs()
+			.BackupDatabaseAsync();
+
+		await contentWriter
+			.DidNotReceiveWithAnyArgs()
+			.UpdateDatabaseAsync(default!);
+	}
+
+
+	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: contents that the database reports as unreadable,
 	/// or that arrive without an identifier, stop the operation before anything is written.
 	/// </summary>
