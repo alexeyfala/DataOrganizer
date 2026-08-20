@@ -262,78 +262,85 @@ public sealed class FolderProtection : IFolderProtection
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (!AreContentsValid(contents, files.Length))
-			{
-				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
-
-				return;
-			}
-
-			byte[] dek = _encryption.CreateRandomDek();
-
 			try
 			{
-				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
-
-				if (!AreContentsValid(result, contents.Length))
+				if (!AreContentsValid(contents, files.Length))
 				{
-					LogInvalidContents(result);
-
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+					SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
 					return;
 				}
 
-				using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
+				byte[] dek = _encryption.CreateRandomDek();
 
-				byte[] encryptedDek = _encryption.Encrypt(
-					dek,
-					passwordBinary,
-					ContentIdentity.ForDek(folder.Id));
-
-				if (ProcessNotes(
-					folder,
-					files,
-					dek,
-					encrypt: true) is not { } notes)
+				try
 				{
-					SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+					ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
 
-					return;
+					if (!AreContentsValid(result, contents.Length))
+					{
+						LogInvalidContents(result);
+
+						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+
+						return;
+					}
+
+					using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
+
+					byte[] encryptedDek = _encryption.Encrypt(
+						dek,
+						passwordBinary,
+						ContentIdentity.ForDek(folder.Id));
+
+					if (ProcessNotes(
+						folder,
+						files,
+						dek,
+						encrypt: true) is not { } notes)
+					{
+						SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+						return;
+					}
+
+					using DatabaseBackup? backup = await _dbAccess
+						.BackupDatabaseAsync(token)
+						.ConfigureAwait(false);
+
+					if (backup is null)
+					{
+						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+
+						return;
+					}
+
+					UpdateDatabaseParameters parameters = new()
+					{
+						BackupFilePath = backup.FilePath,
+						Contents = result,
+						EncryptedDek = encryptedDek,
+						Files = files,
+						Folder = folder,
+						NewStatus = EncryptionStatus.Encrypted,
+						Notes = notes
+					};
+
+					if (await _contentWriter
+						.UpdateDatabaseAsync(parameters, token)
+						.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+					{
+						return;
+					}
 				}
-
-				using DatabaseBackup? backup = await _dbAccess
-					.BackupDatabaseAsync(token)
-					.ConfigureAwait(false);
-
-				if (backup is null)
+				finally
 				{
-					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
-
-					return;
-				}
-
-				UpdateDatabaseParameters parameters = new()
-				{
-					BackupFilePath = backup.FilePath,
-					Contents = result,
-					EncryptedDek = encryptedDek,
-					Files = files,
-					Folder = folder,
-					NewStatus = EncryptionStatus.Encrypted,
-					Notes = notes
-				};
-
-				if (await _contentWriter
-					.UpdateDatabaseAsync(parameters, token)
-					.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
-				{
-					return;
+					dek.ZeroMemory();
 				}
 			}
 			finally
 			{
-				dek.ZeroMemory();
+				WipeContents(contents);
 			}
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
@@ -356,6 +363,14 @@ public sealed class FolderProtection : IFolderProtection
 	{
 		return contents.Length == expectedCount
 			&& contents.All(x => x.IsValid && x.Id.IsNotDefault());
+	}
+
+	/// <summary>
+	/// Overwrites the buffers of the given contents.
+	/// </summary>
+	private static void WipeContents(ContentsIsValidPair[] contents)
+	{
+		contents.ForEach(x => x.Contents.ZeroMemory());
 	}
 
 	/// <summary>

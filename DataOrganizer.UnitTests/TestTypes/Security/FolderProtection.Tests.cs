@@ -833,6 +833,75 @@ internal class FolderProtectionTests
 			.EraseAndDeleteFile(backup.FilePath);
 	}
 
+	/// <summary>
+	/// <see cref="FolderProtection.EncryptFolderAsync" />: the plain text loaded for the conversion
+	/// is wiped.
+	/// </summary>
+	[Test]
+	public async Task EncryptFolderAsync_Wipes_The_Loaded_Contents()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(1)];
+
+		ContentsIsValidPair[] loaded =
+		[
+			new()
+			{
+				Contents = [1, 2, 3, 4],
+				Id = files[0].Id,
+				IsValid = true
+			}
+		];
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			RegisterContentWriter(builder);
+
+			IDialogService dialogService = Substitute.For<IDialogService>();
+
+			dialogService
+				.RequestPasswordAsync(Arg.Any<string>())
+				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			encryption
+				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Returns([]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(loaded.ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dialogService);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.EncryptFolderAsync(folder, files);
+
+		// Assert
+		loaded[0].Contents.Should().AllSatisfy(x => x
+			.Should()
+			.Be(0));
+	}
 	#endregion
 
 	#region Helpers
