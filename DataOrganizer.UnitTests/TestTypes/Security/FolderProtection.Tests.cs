@@ -69,8 +69,7 @@ internal class FolderProtectionTests
 
 		// Assert
 		await unlocker.Received(1).RequestDekAsync(
-			folder.Id,
-			encryptedDek,
+			folder,
 			Arg.Any<string>(),
 			Strings.OldPassword,
 			Arg.Any<CancellationToken>(),
@@ -861,13 +860,12 @@ internal class FolderProtectionTests
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		unlocker.RequestDekAsync(
-			Arg.Any<Guid>(),
-			Arg.Any<byte[]>(),
+			Arg.Any<FolderModelDto>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),
 			Arg.Any<string>())
-			.Returns(dek);
+		.Returns(dek);
 
 		builder.RegisterInstance(unlocker);
 

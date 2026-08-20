@@ -187,6 +187,27 @@ public sealed class EncryptionService : IEncryptionService
 			header: default,
 			DeriveSessionKey);
 	}
+
+	/// <inheritdoc />
+	public byte[]? RewrapIfOutdated(
+		byte[] wrapped,
+		byte[] dek,
+		PinnedBuffer password,
+		ContentIdentity identity)
+	{
+		ArgumentNullException.ThrowIfNull(wrapped);
+
+		// A cost that cannot be read is left alone: the wrapper still opens with the password.
+		if (ReadCost(wrapped) is not { } cost || cost == Argon2Settings.Current)
+		{
+			return null;
+		}
+
+		return Encrypt(
+			dek,
+			password,
+			identity);
+	}
 	#endregion
 
 	#region Helpers
@@ -427,6 +448,27 @@ public sealed class EncryptionService : IEncryptionService
 			associatedData: associatedData,
 			ciphertext: ciphertext,
 			plaintext: plaintext) ? plaintext : null;
+	}
+
+	/// <summary>
+	/// Cost recorded by a blob of the password based format; <c>null</c> when it cannot be read.
+	/// </summary>
+	private static Argon2Settings? ReadCost(byte[] wrapped)
+	{
+		if (wrapped.Length < _passwordFormat.PrefixSize || wrapped[0] != _passwordFormat.Version)
+		{
+			return null;
+		}
+
+		try
+		{
+			return Argon2Settings.Read(
+				wrapped.AsSpan(BlobFormat.HeaderOffset, _passwordFormat.HeaderSize));
+		}
+		catch (CryptographicException)
+		{
+			return null;
+		}
 	}
 
 	/// <summary>

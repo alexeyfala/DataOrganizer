@@ -90,5 +90,17 @@ public interface IEncryptionService
 		byte[] input,
 		byte[] sessionId,
 		ContentIdentity identity);
+
+	/// <summary>
+	/// Wraps the DEK with the password again when the wrapper records a derivation cost other than
+	/// the current one; <c>null</c> when the recorded cost is current or cannot be read.
+	/// </summary>
+	/// <exception cref="CryptographicException">The key material is unusable or the operation failed.</exception>
+	/// <exception cref="ArgumentNullException">The wrapper is absent.</exception>
+	byte[]? RewrapIfOutdated(
+		byte[] wrapped,
+		byte[] dek,
+		PinnedBuffer password,
+		ContentIdentity identity);
 	#endregion
 }

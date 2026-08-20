@@ -280,6 +280,41 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	}
 
 	/// <summary>
+	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change,
+	/// so a failure leaves a key the same password still opens.
+	/// </summary>
+	private async Task RewrapKeyAsync(
+		byte[] wrapped,
+		byte[] dek,
+		PinnedBuffer password,
+		CancellationToken token)
+	{
+		try
+		{
+			if (_encryption.RewrapIfOutdated(
+				wrapped,
+				dek,
+				password,
+				ContentIdentity.ForClipboardDek(_historyKeyId)) is not { } rewrapped)
+			{
+				return;
+			}
+
+			await _fileSystem
+				.WriteAllBytesAsync(_keyFilePath, rewrapped, token)
+				.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			// The unlock has already succeeded, so an interrupted rewrap is not worth reporting.
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+		}
+	}
+
+	/// <summary>
 	/// Removes the clipboard history directory if present.
 	/// </summary>
 	private void TryEraseDirectory()
@@ -335,6 +370,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			{
 				return new(ClipboardLogStatus.Failed, []);
 			}
+
+			await RewrapKeyAsync(
+				wrapped,
+				dek,
+				password,
+				token).ConfigureAwait(false);
 		}
 		finally
 		{

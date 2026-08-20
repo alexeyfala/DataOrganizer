@@ -298,15 +298,13 @@ internal class ContentVisibilityTests
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
-		unlocker
-			.RequestDekAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<byte[]>(),
-				Arg.Any<string>(),
-				Arg.Any<string>(),
-				Arg.Any<CancellationToken>(),
-				Arg.Any<string>())
-			.Returns(dek);
+		unlocker.RequestDekAsync(
+			Arg.Any<FolderModelDto>(),
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			Arg.Any<CancellationToken>(),
+			Arg.Any<string>())
+		.Returns(dek);
 
 		builder.RegisterInstance(unlocker);
 

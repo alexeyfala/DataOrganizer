@@ -18,10 +18,10 @@ public readonly record struct Argon2Settings(
 {
 	#region Properties
 	/// <summary>
-	/// Cost every new blob is written with: the interactive level of libsodium.
+	/// Cost every new blob is written with: the moderate level of libsodium.
 	/// </summary>
 	public static Argon2Settings Current => new(
-		MemorySize: 65536,
+		MemorySize: 262144,
 		NumberOfPasses: 3,
 		DegreeOfParallelism: 1);
 	#endregion

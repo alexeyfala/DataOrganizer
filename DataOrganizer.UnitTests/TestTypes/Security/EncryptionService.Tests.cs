@@ -885,6 +885,110 @@ internal class EncryptionServiceTests
 			.Should()
 			.Be(TextHelper.LoremIpsum);
 	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.RewrapIfOutdated" />: a blob of another format carries no cost
+	/// to compare, so it is left as it is.
+	/// </summary>
+	[Test]
+	public void RewrapIfOutdated_Keeps_A_Wrapper_It_Cannot_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = sut.EncryptWithDek(dek, dek, _identity);
+
+		// Act
+		byte[]? rewrapped = sut.RewrapIfOutdated(
+			wrapped,
+			dek,
+			password,
+			_identity);
+
+		// Assert
+		rewrapped
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.RewrapIfOutdated" />: a wrapper of the current cost is left as it is.
+	/// </summary>
+	[Test]
+	public void RewrapIfOutdated_Keeps_A_Wrapper_Of_The_Current_Cost()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = sut.Encrypt(dek, password, _identity);
+
+		// Act
+		byte[]? rewrapped = sut.RewrapIfOutdated(
+			wrapped,
+			dek,
+			password,
+			_identity);
+
+		// Assert
+		rewrapped
+			.Should()
+			.BeNull();
+	}
+
+	/// <summary>
+	/// <see cref="EncryptionService.RewrapIfOutdated" />: a wrapper of another cost is written again
+	/// at the current cost, and the same password opens the new one.
+	/// </summary>
+	[Test]
+	public void RewrapIfOutdated_Writes_An_Outdated_Wrapper_Again()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		EncryptionService sut = mock.Create<EncryptionService>();
+
+		byte[] dek = sut.CreateRandomDek();
+
+		using PinnedBuffer password = new(TextHelper.Utf8Encoding.GetBytes("SomePassword"));
+
+		byte[] wrapped = WriteWithCost(dek, password, new(
+			MemorySize: 8192,
+			NumberOfPasses: 1,
+			DegreeOfParallelism: 1));
+
+		// Act
+		byte[]? rewrapped = sut.RewrapIfOutdated(
+			wrapped,
+			dek,
+			password,
+			_identity);
+
+		// Assert
+		rewrapped
+			.Should()
+			.NotBeNull();
+
+		Argon2Settings
+			.Read(rewrapped.AsSpan(1, Argon2Settings.HeaderSize))
+			.Should()
+			.Be(Argon2Settings.Current);
+
+		sut.Decrypt(rewrapped, password, _identity)
+			.Should()
+			.Equal(dek);
+	}
 	#endregion
 
 	#region Helpers
@@ -902,7 +1006,7 @@ internal class EncryptionServiceTests
 
 		const int saltOffset = 1 + Argon2Settings.HeaderSize;
 
-		int nonceOffset = saltOffset + SaltSize;
+		const int nonceOffset = saltOffset + SaltSize;
 
 		int prefixSize = nonceOffset + algorithm.NonceSize;
 

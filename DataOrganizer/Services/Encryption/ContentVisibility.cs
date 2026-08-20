@@ -87,8 +87,7 @@ public sealed class ContentVisibility : IContentVisibility
 		}
 
 		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: root.Id,
-			encryptedDek: root.EncryptedDek,
+			keeper: root,
 			header: Strings.ShowContents,
 			token: token).ConfigureAwait(false) is not { } dek)
 		{
@@ -131,8 +130,7 @@ public sealed class ContentVisibility : IContentVisibility
 		}
 
 		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: root.Id,
-			encryptedDek: root.EncryptedDek,
+			keeper: root,
 			header: Strings.ShowContents,
 			token: token).ConfigureAwait(false) is not { } dek)
 		{

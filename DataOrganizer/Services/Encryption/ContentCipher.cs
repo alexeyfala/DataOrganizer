@@ -125,8 +125,7 @@ public sealed class ContentCipher : IContentCipher
 			}
 
 			if (await _keeperUnlocker.RequestDekAsync(
-				keeperId: root.Id,
-				encryptedDek: root.EncryptedDek,
+				keeper: root,
 				header: header,
 				token: token).ConfigureAwait(false) is not { } decryptedDek)
 			{

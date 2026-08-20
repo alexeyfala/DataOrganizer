@@ -77,6 +77,34 @@ internal class ContentCipherTests
 			.NotBeEquivalentTo(contents);
 	}
 
+	/// <summary>
+	/// <see cref="ContentCipher.Decrypt" />: empty contents are stored unencrypted, so they come
+	/// back untouched and the key store stays out of it.
+	/// </summary>
+	[Test]
+	public void Decrypt_Hands_Empty_Contents_Back()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[] output = sut.Decrypt(file, []);
+
+		// Assert
+		output
+			.Should()
+			.BeEmpty();
+
+		sessionKeyStore
+			.DidNotReceiveWithAnyArgs()
+			.Decrypt(default, default, default!);
+	}
 
 	/// <summary>
 	/// <see cref="ContentCipher.TryDecrypt" />: hands the plain text of the key store over.
@@ -181,36 +209,6 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentCipher.Decrypt" />: empty contents are stored unencrypted, so they come
-	/// back untouched and the key store stays out of it.
-	/// </summary>
-	[Test]
-	public void Decrypt_Hands_Empty_Contents_Back()
-	{
-		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[] output = sut.Decrypt(file, []);
-
-		// Assert
-		output
-			.Should()
-			.BeEmpty();
-
-		sessionKeyStore
-			.DidNotReceiveWithAnyArgs()
-			.Decrypt(default, default, default!);
-	}
-
-
-	/// <summary>
 	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: a file belonging to no password keeper
 	/// cannot be decrypted, so no password is asked for.
 	/// </summary>
@@ -241,7 +239,6 @@ internal class ContentCipherTests
 			.DidNotReceiveWithAnyArgs()
 			.RequestPasswordAsync(default!);
 	}
-
 
 	/// <summary>
 	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: decrypts through the key store when the file is already decrypted.
@@ -356,7 +353,6 @@ internal class ContentCipherTests
 			.NotBeEquivalentTo(contents);
 	}
 
-
 	/// <summary>
 	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: empty contents come back untouched
 	/// and no password is asked for.
@@ -387,7 +383,6 @@ internal class ContentCipherTests
 			.RequestPasswordAsync(default!);
 	}
 
-
 	/// <summary>
 	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: returns the input unchanged when the file is not encrypted.
 	/// </summary>
@@ -412,7 +407,6 @@ internal class ContentCipherTests
 			.Should()
 			.BeEquivalentTo(contents);
 	}
-
 	#endregion
 
 	#region Helpers
@@ -425,8 +419,7 @@ internal class ContentCipherTests
 
 		unlocker
 			.RequestDekAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<byte[]>(),
+				Arg.Any<FolderModelDto>(),
 				Arg.Any<string>(),
 				Arg.Any<string>(),
 				Arg.Any<CancellationToken>(),

@@ -88,8 +88,7 @@ public sealed class FolderProtection : IFolderProtection
 		}
 
 		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: folder.Id,
-			encryptedDek: folder.EncryptedDek,
+			keeper: folder,
 			header: Strings.ChangePassword,
 			label: Strings.OldPassword,
 			token: token).ConfigureAwait(false) is not { } dek)
@@ -152,8 +151,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		// Unwrapping is the password check, so a wrong password never pulls the contents into memory.
 		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: folder.Id,
-			encryptedDek: folder.EncryptedDek,
+			keeper: folder,
 			header: Strings.DecryptFiles,
 			token: token).ConfigureAwait(false) is not { } decryptedDek)
 		{
