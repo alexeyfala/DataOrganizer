@@ -158,6 +158,13 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
+		ContentsIsValidPair[] result = [];
+
+		NoteUpdate[] notes = [];
+
+		// The notes reach the objects only on a done conversion; until then their plain text is ours to erase.
+		bool areNotesHandedOver = false;
+
 		try
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
@@ -174,7 +181,7 @@ public sealed class FolderProtection : IFolderProtection
 				return;
 			}
 
-			ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
+			result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
 			if (!AreContentsValid(result, contents.Length))
 			{
@@ -185,7 +192,7 @@ public sealed class FolderProtection : IFolderProtection
 				return;
 			}
 
-			NoteUpdate[] notes = ProcessNotes(
+			notes = ProcessNotes(
 				folder,
 				files,
 				decryptedDek,
@@ -219,10 +226,22 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				return;
 			}
+
+			areNotesHandedOver = true;
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
+		}
+		finally
+		{
+			// Whatever the outcome, the decrypted contents have no reader left here.
+			WipeContents(result);
+
+			if (!areNotesHandedOver)
+			{
+				WipeNotes(notes);
+			}
 		}
 	}
 
@@ -349,6 +368,11 @@ public sealed class FolderProtection : IFolderProtection
 	}
 
 	/// <summary>
+	/// Overwrites the buffers of the given notes.
+	/// </summary>
+	private static void WipeNotes(IEnumerable<NoteUpdate> notes) => notes.ForEach(x => x.Note.ZeroMemory());
+
+	/// <summary>
 	/// Writes the identifiers of the contents that could not be converted to the log.
 	/// </summary>
 	private void LogInvalidContents(ContentsIsValidPair[] contents)
@@ -380,23 +404,36 @@ public sealed class FolderProtection : IFolderProtection
 			.. files
 		];
 
-		foreach (ExplorerModelBaseDto item in objects)
+		try
 		{
-			if (item.Note is not { } note || note.IsEmpty())
+			foreach (ExplorerModelBaseDto item in objects)
 			{
-				continue;
+				if (item.Note is not { } note || note.IsEmpty())
+				{
+					continue;
+				}
+
+				ContentIdentity identity = ContentIdentity.ForNote(item.Id);
+
+				byte[] processed = encrypt
+					? _encryption.EncryptWithDek(note, dek, identity)
+					: _encryption.DecryptWithDek(note, dek, identity);
+
+				notes.Add(new NoteUpdate(
+					item.Id,
+					item.EntityType,
+					processed));
+			}
+		}
+		catch
+		{
+			// A partial result is thrown away, so the notes decrypted so far lose their only reader.
+			if (!encrypt)
+			{
+				WipeNotes(notes);
 			}
 
-			ContentIdentity identity = ContentIdentity.ForNote(item.Id);
-
-			byte[] processed = encrypt
-				? _encryption.EncryptWithDek(note, dek, identity)
-				: _encryption.DecryptWithDek(note, dek, identity);
-
-			notes.Add(new NoteUpdate(
-				item.Id,
-				item.EntityType,
-				processed));
+			throw;
 		}
 
 		return [.. notes];
