@@ -60,9 +60,11 @@ public interface IDbAccess : IDisposable
 	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
-	/// Establishes a connection to the database.
+	/// Establishes a connection to the database, creating or migrating it as needed.
+	/// Returns <c>false</c> when the database cannot be worked with; housekeeping failures
+	/// are logged and do not affect the result.
 	/// </summary>
-	Task ConnectAsync(CancellationToken token = default);
+	Task<bool> ConnectAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(

@@ -673,4 +673,7 @@
   <data name="RestartAutoLockHint" xml:space="preserve">
     <value>A click starts the auto-lock countdown over</value>
   </data>
+  <data name="DatabaseIsUnavailable" xml:space="preserve">
+    <value>The database is unavailable, changes will not be saved</value>
+  </data>
 </root>

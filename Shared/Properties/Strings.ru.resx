@@ -693,4 +693,7 @@
   <data name="RestartAutoLockHint" xml:space="preserve">
     <value>Нажатие запускает отсчёт автоблокировки заново</value>
   </data>
+  <data name="DatabaseIsUnavailable" xml:space="preserve">
+    <value>База данных недоступна, изменения не сохранятся</value>
+  </data>
 </root>

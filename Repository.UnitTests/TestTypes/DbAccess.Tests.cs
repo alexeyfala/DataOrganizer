@@ -347,9 +347,13 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		await sut.ConnectAsync();
+		bool result = await sut.ConnectAsync();
 
 		// Assert
+		result
+			.Should()
+			.BeTrue();
+
 		if (useMigrations)
 		{
 			await dbConnection
@@ -362,6 +366,68 @@ internal class DbAccessTests
 				.Received()
 				.EnsureCreatedAsync();
 		}
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created or migrated is reported as a failure.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_An_Unusable_Database()
+	{
+		// Arrange
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbConnection
+				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbConnection);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a failing housekeeping step leaves the database usable.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Survives_A_Failed_Housekeeping_Step()
+	{
+		// Arrange
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbMaintenance
+				.When(x => x.ErasePendingBackups())
+				.Throw(new IOException());
+
+			dbMaintenance
+				.EraseFreePagesOnceAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new IOException());
+
+			builder.RegisterInstance(dbMaintenance);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>

@@ -421,6 +421,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The database is unavailable, changes will not be saved.
+        /// </summary>
+        public static string DatabaseIsUnavailable {
+            get {
+                return ResourceManager.GetString("DatabaseIsUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data export completed.
         /// </summary>
         public static string DataExportCompleted {

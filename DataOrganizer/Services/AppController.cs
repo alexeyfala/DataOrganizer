@@ -12,6 +12,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -51,6 +52,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notificationService;
+
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
@@ -80,6 +84,7 @@ public sealed class AppController : IAppController
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
+		INotificationService notificationService,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -102,6 +107,8 @@ public sealed class AppController : IAppController
 		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
+
+		_notificationService = notificationService;
 
 		_options = options;
 
@@ -141,9 +148,16 @@ public sealed class AppController : IAppController
 
 			// TODO: Display a splash screen while connecting to database.
 
-			await _dbAccess
+			if (!await _dbAccess
 				.ConnectAsync(token)
-				.ConfigureAwait(true);
+				.ConfigureAwait(true))
+			{
+				// The launch goes on, but the state of the database is now known to the user:
+				// nothing written from here on reaches it.
+				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
+
+				_notificationService.ShowToast(Strings.DatabaseIsUnavailable);
+			}
 
 			if (_options.FillObjects)
 			{

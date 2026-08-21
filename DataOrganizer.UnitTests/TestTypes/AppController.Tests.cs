@@ -8,6 +8,7 @@ using DataOrganizer.Services;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
+using Shared.Properties;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,6 +96,10 @@ internal class AppControllerTests
 
 			builder.RegisterInstance(viewLauncher);
 
+			dbAccess
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(settingsStore);
@@ -121,6 +126,55 @@ internal class AppControllerTests
 		await entityLoader
 			.Received()
 			.LoadFromEmbeddedDbAsync();
+
+		viewLauncher
+			.Received()
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: an unavailable database is reported instead of passing unnoticed.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Reports_An_Unavailable_Database()
+	{
+		// Arrange
+		INotificationService notificationService = Substitute.For<INotificationService>();
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(false);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(notificationService);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		notificationService
+			.Received(1)
+			.ShowToast(Strings.DatabaseIsUnavailable);
 
 		viewLauncher
 			.Received()
