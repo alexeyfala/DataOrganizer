@@ -48,6 +48,13 @@ The following are known and accepted, so there is no need to report them.
 - **Erasing is best-effort.** Overwriting a file before deleting it does not
   guarantee the old bytes are unrecoverable: SSD wear leveling, copy-on-write
   file systems, snapshots and shadow copies may keep earlier versions.
+- **A copy of the database outlives the conversion of a folder.** Putting a
+  folder under a password is irreversible, so a full copy of the database is
+  taken before the ciphertext is written — while the contents are still plain
+  text. The copy lies next to the database, is overwritten and deleted once
+  the operation ends, and a copy left by a crash is erased at the next start.
+  Until then it is a plain-text snapshot, erased only as well as erasing
+  allows.
 - **SQLite rollback journal.** During a transaction the journal holds plaintext
   pre-images of the pages being replaced. `journal_mode = MEMORY` would avoid
   the file at the cost of a corrupted database after a crash — an unacceptable
