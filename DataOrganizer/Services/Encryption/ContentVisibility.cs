@@ -102,6 +102,8 @@ public sealed class ContentVisibility : IContentVisibility
 
 			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
+				_messenger.ShowSnackbar(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
+
 				return false;
 			}
 

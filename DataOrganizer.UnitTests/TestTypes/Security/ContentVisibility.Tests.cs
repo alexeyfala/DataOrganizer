@@ -173,6 +173,71 @@ internal class ContentVisibilityTests
 			.Be(EncryptionStatus.Decrypted);
 	}
 
+	/// <summary>
+	/// <see cref="ContentVisibility.ShowFileContentsAsync" />: reports a refused key instead of returning silently.
+	/// </summary>
+	[Test]
+	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+
+		folder
+			.Children
+			.Add(file);
+
+		file.Parent = folder;
+
+		StrongReferenceMessenger messenger = new();
+
+		ShowSnackbarMessage? received = null;
+
+		object recipient = new();
+
+		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => received = message);
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
+
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
+				.Returns(false);
+
+			builder.RegisterInstance(sessionKeyStore);
+
+			builder.RegisterInstance(messenger).As<IMessenger>();
+		});
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		bool result = await sut.ShowFileContentsAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		received
+			.Should()
+			.NotBeNull();
+
+		received
+			.Text
+			.Should()
+			.Be(Strings.FailedToShowFileContents);
+
+		file.EncryptionStatus
+			.Should()
+			.Be(EncryptionStatus.Encrypted);
+	}
 
 	/// <summary>
 	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: unlocks the keeper and marks the folder and all children as decrypted.
