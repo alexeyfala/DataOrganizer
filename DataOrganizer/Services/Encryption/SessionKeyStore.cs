@@ -1,4 +1,3 @@
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using System;
@@ -23,9 +22,10 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	private readonly Lock _mutex = new();
 
 	/// <summary>
-	/// Session wrapped data encryption key per password keeper.
+	/// Session wrapped data encryption key per password keeper. The value is ciphertext: it opens
+	/// only with the session secret, so it needs neither pinning nor wiping.
 	/// </summary>
-	private readonly Dictionary<Guid, PinnedBuffer> _wrappedDeks = [];
+	private readonly Dictionary<Guid, byte[]> _wrappedDeks = [];
 
 	/// <summary>
 	/// Session secret the stored keys are wrapped with; exists while at least one keeper is unlocked.
@@ -100,11 +100,8 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	{
 		lock (_mutex)
 		{
-			foreach (PinnedBuffer wrappedDek in _wrappedDeks.Values)
-			{
-				wrappedDek.Dispose();
-			}
-
+			// The wrappers are left to the collector: dropping the session secret below already
+			// makes every one of them unopenable.
 			_wrappedDeks.Clear();
 
 			DropSessionId();
@@ -143,19 +140,12 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 				throw;
 			}
 
-			try
-			{
-				// Replaces, never drops the session secret: the new key is already wrapped with it.
-				Remove(keeperId);
+			// Replaces, never drops the session secret: the new key is already wrapped with it.
+			Remove(keeperId);
 
-				_wrappedDeks[keeperId] = new(wrappedDek);
+			_wrappedDeks[keeperId] = wrappedDek;
 
-				return true;
-			}
-			finally
-			{
-				wrappedDek.ZeroMemory();
-			}
+			return true;
 		}
 	}
 	#endregion
@@ -190,15 +180,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	/// <summary>
 	/// Discards the stored key of a keeper, leaving the session secret untouched.
 	/// </summary>
-	private void Remove(Guid keeperId)
-	{
-		if (!_wrappedDeks.Remove(keeperId, out PinnedBuffer? wrappedDek))
-		{
-			return;
-		}
-
-		wrappedDek.Dispose();
-	}
+	private void Remove(Guid keeperId) => _wrappedDeks.Remove(keeperId);
 
 	/// <summary>
 	/// Unwraps the stored key of a keeper.
@@ -206,28 +188,15 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
 	private PinnedBuffer Unwrap(Guid keeperId)
 	{
-		if (_sessionId is null || !_wrappedDeks.TryGetValue(keeperId, out PinnedBuffer? wrappedDek))
+		if (_sessionId is not { } sessionId || !_wrappedDeks.TryGetValue(keeperId, out byte[]? wrappedDek))
 		{
 			throw new InvalidOperationException($@"The keeper ""{keeperId}"" is locked.");
 		}
 
-		PinnedBuffer sessionId = EnsureSessionId();
-
-		byte[] input = wrappedDek
-			.AsReadOnlySpan()
-			.ToArray();
-
-		try
-		{
-			return _encryption.DecryptWithSessionId(
-				input,
-				sessionId,
-				ContentIdentity.ForDek(keeperId));
-		}
-		finally
-		{
-			input.ZeroMemory();
-		}
+		return _encryption.DecryptWithSessionId(
+			wrappedDek,
+			sessionId,
+			ContentIdentity.ForDek(keeperId));
 	}
 	#endregion
 }
