@@ -86,10 +86,12 @@ public sealed class ContentVisibility : IContentVisibility
 			return false;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: root,
 			header: Strings.ShowContents,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return false;
 		}
@@ -115,8 +117,6 @@ public sealed class ContentVisibility : IContentVisibility
 		}
 		finally
 		{
-			dek.ZeroMemory();
-
 			HideProgressBar();
 		}
 	}
@@ -129,10 +129,12 @@ public sealed class ContentVisibility : IContentVisibility
 			return;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: root,
 			header: Strings.ShowContents,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return;
 		}
@@ -154,8 +156,6 @@ public sealed class ContentVisibility : IContentVisibility
 		}
 		finally
 		{
-			dek.ZeroMemory();
-
 			HideProgressBar();
 		}
 	}
@@ -199,7 +199,7 @@ public sealed class ContentVisibility : IContentVisibility
 	private bool ShowFolderContents(
 		FolderModelDto folder,
 		Guid keeperId,
-		byte[] dek)
+		PinnedBuffer dek)
 	{
 		if (!_sessionKeyStore.Unlock(keeperId, dek))
 		{

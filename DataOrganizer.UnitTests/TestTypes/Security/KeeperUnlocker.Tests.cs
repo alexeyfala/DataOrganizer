@@ -63,7 +63,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Hands_The_Key_Over()
 	{
 		// Arrange
-		byte[] dek = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -87,7 +87,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			CreateKeeper(),
 			"header");
 
@@ -105,7 +105,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Hands_The_Key_Over_When_The_Rewrap_Throws()
 	{
 		// Arrange
-		byte[] dek = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
 
 		FolderModelDto keeper = CreateKeeper();
 
@@ -117,7 +117,7 @@ internal class KeeperUnlockerTests
 
 			encryption.RewrapIfOutdated(
 				Arg.Any<byte[]>(),
-				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
 				Arg.Any<PinnedBuffer>(),
 				Arg.Any<ContentIdentity>())!
 			.Throws(new InvalidOperationException());
@@ -130,7 +130,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			keeper,
 			"header");
 
@@ -163,7 +163,7 @@ internal class KeeperUnlockerTests
 		{
 			builder.RegisterInstance(CreateDialogService());
 
-			builder.RegisterInstance(CreateEncryption(TestUtils.CreateRandomBytes(32)));
+			builder.RegisterInstance(CreateEncryption(SecretUtils.CreateRandomKey()));
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -203,7 +203,7 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(CreateDialogService());
 
 			builder.RegisterInstance(CreateEncryption(
-				TestUtils.CreateRandomBytes(32),
+				SecretUtils.CreateRandomKey(),
 				TestUtils.CreateRandomBytes(20)));
 		});
 
@@ -246,7 +246,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			CreateKeeper(),
 			"header");
 
@@ -274,7 +274,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			TestUtils.CreateFolderDto(),
 			"header");
 
@@ -322,7 +322,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			CreateKeeper(),
 			"header");
 
@@ -343,7 +343,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Writes_The_Wrapper_At_The_Current_Cost()
 	{
 		// Arrange
-		byte[] dek = TestUtils.CreateRandomBytes(32);
+		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
 
 		byte[] rewrapped = TestUtils.CreateRandomBytes(20);
 
@@ -367,7 +367,7 @@ internal class KeeperUnlockerTests
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
 
 		// Act
-		byte[]? result = await sut.RequestDekAsync(
+		PinnedBuffer? result = await sut.RequestDekAsync(
 			keeper,
 			"header");
 
@@ -402,7 +402,7 @@ internal class KeeperUnlockerTests
 	/// Creates an encryption service unwrapping to <paramref name="dek" /> and rewrapping to
 	/// <paramref name="rewrapped" />, where <c>null</c> stands for a wrapper of the current cost.
 	/// </summary>
-	private static IEncryptionService CreateEncryption(byte[] dek, byte[]? rewrapped = null)
+	private static IEncryptionService CreateEncryption(PinnedBuffer dek, byte[]? rewrapped = null)
 	{
 		IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -412,7 +412,7 @@ internal class KeeperUnlockerTests
 
 		encryption.RewrapIfOutdated(
 			Arg.Any<byte[]>(),
-			Arg.Any<byte[]>(),
+			Arg.Any<PinnedBuffer>(),
 			Arg.Any<PinnedBuffer>(),
 			Arg.Any<ContentIdentity>())
 		.Returns(rewrapped);

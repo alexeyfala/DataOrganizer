@@ -1,6 +1,5 @@
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using Serilog;
@@ -124,10 +123,12 @@ public sealed class ContentCipher : IContentCipher
 				return null;
 			}
 
-			if (await _keeperUnlocker.RequestDekAsync(
+			using PinnedBuffer? decryptedDek = await _keeperUnlocker.RequestDekAsync(
 				keeper: root,
 				header: header,
-				token: token).ConfigureAwait(false) is not { } decryptedDek)
+				token: token).ConfigureAwait(false);
+
+			if (decryptedDek is null)
 			{
 				return null;
 			}
@@ -144,10 +145,6 @@ public sealed class ContentCipher : IContentCipher
 				_failureReporter.Report(ex);
 
 				return null;
-			}
-			finally
-			{
-				decryptedDek.ZeroMemory();
 			}
 		}
 		else if (file.EncryptionStatus == EncryptionStatus.Decrypted)

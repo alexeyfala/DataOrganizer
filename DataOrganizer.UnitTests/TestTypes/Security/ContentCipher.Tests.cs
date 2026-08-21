@@ -48,7 +48,7 @@ internal class ContentCipherTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
@@ -266,7 +266,7 @@ internal class ContentCipherTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
@@ -327,10 +327,10 @@ internal class ContentCipherTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(10));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(10));
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			builder.RegisterInstance(encryption);
@@ -413,13 +413,13 @@ internal class ContentCipherTests
 	/// <summary>
 	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
 	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, byte[]? dek)
+	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		unlocker
 			.RequestDekAsync(
-				Arg.Any<FolderModelDto>(),
+				Arg.Any<IPasswordKeeper>(),
 				Arg.Any<string>(),
 				Arg.Any<string>(),
 				Arg.Any<CancellationToken>(),

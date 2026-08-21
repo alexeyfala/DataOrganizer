@@ -1,4 +1,3 @@
-using DataOrganizer.DTO.Entities;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
@@ -53,8 +52,8 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<byte[]?> RequestDekAsync(
-		FolderModelDto keeper,
+	public async Task<PinnedBuffer?> RequestDekAsync(
+		IPasswordKeeper keeper,
 		string header,
 		string? label = null,
 		CancellationToken token = default,
@@ -78,7 +77,7 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 
 		ContentIdentity identity = ContentIdentity.ForDek(keeper.Id);
 
-		byte[] dek;
+		PinnedBuffer dek;
 
 		try
 		{
@@ -112,9 +111,9 @@ public sealed class KeeperUnlocker : IKeeperUnlocker
 	/// so a failure leaves a wrapper the same password still opens.
 	/// </summary>
 	private async Task RewrapAsync(
-		FolderModelDto keeper,
+		IPasswordKeeper keeper,
 		byte[] wrapped,
-		byte[] dek,
+		PinnedBuffer dek,
 		PinnedBuffer password,
 		ContentIdentity identity,
 		CancellationToken token)

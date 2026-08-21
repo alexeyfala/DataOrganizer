@@ -43,9 +43,7 @@ internal class FolderProtectionTests
 		// Arrange
 		FolderModelDto folder = TestUtils.CreateFolderDto();
 
-		byte[] encryptedDek = TestUtils.CreateRandomBytes(10);
-
-		folder.EncryptedDek = encryptedDek;
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -57,7 +55,7 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
-			unlocker = RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			unlocker = RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -151,12 +149,12 @@ internal class FolderProtectionTests
 				.RequestPasswordAsync(Arg.Any<string>())
 				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(10));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(10));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(TestUtils.CreateRandomBytes(10));
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -229,14 +227,14 @@ internal class FolderProtectionTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())
+				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(decryptedNote);
 
 			dbAccess
@@ -359,10 +357,10 @@ internal class FolderProtectionTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			dbAccess
@@ -416,12 +414,12 @@ internal class FolderProtectionTests
 		{
 			contentWriter = RegisterContentWriter(builder);
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: false)]);
 
 			dbAccess
@@ -483,7 +481,7 @@ internal class FolderProtectionTests
 		{
 			contentWriter = RegisterContentWriter(builder);
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			dbAccess
 				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
@@ -573,15 +571,15 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
 			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())!
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
 				.Throws(new CryptographicException());
 
 			dbAccess
@@ -643,11 +641,11 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
 			dbAccess
@@ -709,15 +707,15 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
 			encryption
-				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<byte[]>(), Arg.Any<ContentIdentity>())
+				.EncryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns(encryptedNote);
 
 			dbAccess
@@ -800,11 +798,11 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
 			dbAccess
@@ -868,11 +866,11 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<byte[]>())
+				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
 
 			encryption
-				.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+				.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 				.Returns([]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -924,12 +922,12 @@ internal class FolderProtectionTests
 	/// <summary>
 	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
 	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, byte[]? dek)
+	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		unlocker.RequestDekAsync(
-			Arg.Any<FolderModelDto>(),
+			Arg.Any<IPasswordKeeper>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),

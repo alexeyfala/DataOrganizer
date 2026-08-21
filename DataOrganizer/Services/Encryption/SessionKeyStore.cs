@@ -1,7 +1,6 @@
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
-using Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -47,19 +46,12 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	{
 		lock (_mutex)
 		{
-			byte[] dek = Unwrap(keeperId);
+			using PinnedBuffer dek = Unwrap(keeperId);
 
-			try
-			{
-				return _encryption.DecryptWithDek(
-					encryptedContents,
-					dek,
-					identity);
-			}
-			finally
-			{
-				dek.ZeroMemory();
-			}
+			return _encryption.DecryptWithDek(
+				encryptedContents,
+				dek,
+				identity);
 		}
 	}
 
@@ -71,19 +63,12 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	{
 		lock (_mutex)
 		{
-			byte[] dek = Unwrap(keeperId);
+			using PinnedBuffer dek = Unwrap(keeperId);
 
-			try
-			{
-				return _encryption.EncryptWithDek(
-					contents,
-					dek,
-					identity);
-			}
-			finally
-			{
-				dek.ZeroMemory();
-			}
+			return _encryption.EncryptWithDek(
+				contents,
+				dek,
+				identity);
 		}
 	}
 
@@ -127,9 +112,9 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	}
 
 	/// <inheritdoc />
-	public bool Unlock(Guid keeperId, byte[] dek)
+	public bool Unlock(Guid keeperId, PinnedBuffer dek)
 	{
-		if (dek.IsEmpty())
+		if (dek is null or { Length: 0 })
 		{
 			return false;
 		}
@@ -219,7 +204,7 @@ public sealed class SessionKeyStore : ISessionKeyStore, IDisposable
 	/// Unwraps the stored key of a keeper.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The keeper is locked.</exception>
-	private byte[] Unwrap(Guid keeperId)
+	private PinnedBuffer Unwrap(Guid keeperId)
 	{
 		if (_sessionId is null || !_wrappedDeks.TryGetValue(keeperId, out PinnedBuffer? wrappedDek))
 		{

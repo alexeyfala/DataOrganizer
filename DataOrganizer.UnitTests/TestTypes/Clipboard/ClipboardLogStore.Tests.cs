@@ -412,7 +412,7 @@ internal class ClipboardLogStoreTests
 		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 		encryption
 			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(new byte[32]);
+			.Returns(new PinnedBuffer(32));
 
 		using AutoMock second = CreateMock(files, encryption);
 
@@ -483,10 +483,10 @@ internal class ClipboardLogStoreTests
 
 		encryption
 			.CreateRandomDek()
-			.Returns(new byte[32]);
+			.Returns(new PinnedBuffer(32));
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+			.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);

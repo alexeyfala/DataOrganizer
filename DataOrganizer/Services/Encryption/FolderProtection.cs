@@ -87,11 +87,13 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
 			keeper: folder,
 			header: Strings.ChangePassword,
 			label: Strings.OldPassword,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return;
 		}
@@ -132,10 +134,6 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			_failureReporter.Report(ex);
 		}
-		finally
-		{
-			dek.ZeroMemory();
-		}
 	}
 
 	/// <inheritdoc />
@@ -150,10 +148,12 @@ public sealed class FolderProtection : IFolderProtection
 		}
 
 		// Unwrapping is the password check, so a wrong password never pulls the contents into memory.
-		if (await _keeperUnlocker.RequestDekAsync(
+		using PinnedBuffer? decryptedDek = await _keeperUnlocker.RequestDekAsync(
 			keeper: folder,
 			header: Strings.DecryptFiles,
-			token: token).ConfigureAwait(false) is not { } decryptedDek)
+			token: token).ConfigureAwait(false);
+
+		if (decryptedDek is null)
 		{
 			return;
 		}
@@ -231,8 +231,6 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		finally
 		{
-			decryptedDek.ZeroMemory();
-
 			HideProgressBar();
 		}
 	}
@@ -271,71 +269,64 @@ public sealed class FolderProtection : IFolderProtection
 					return;
 				}
 
-				byte[] dek = _encryption.CreateRandomDek();
+				using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-				try
+				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+
+				if (!AreContentsValid(result, contents.Length))
 				{
-					ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+					LogInvalidContents(result);
 
-					if (!AreContentsValid(result, contents.Length))
-					{
-						LogInvalidContents(result);
+					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
-						SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
-
-					byte[] encryptedDek = _encryption.Encrypt(
-						dek,
-						passwordBinary,
-						ContentIdentity.ForDek(folder.Id));
-
-					if (ProcessNotes(
-						folder,
-						files,
-						dek,
-						encrypt: true) is not { } notes)
-					{
-						SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					using DatabaseBackup? backup = await _dbAccess
-						.BackupDatabaseAsync(token)
-						.ConfigureAwait(false);
-
-					if (backup is null)
-					{
-						SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
-
-						return;
-					}
-
-					UpdateDatabaseParameters parameters = new()
-					{
-						BackupFilePath = backup.FilePath,
-						Contents = result,
-						EncryptedDek = encryptedDek,
-						Files = files,
-						Folder = folder,
-						NewStatus = EncryptionStatus.Encrypted,
-						Notes = notes
-					};
-
-					if (await _contentWriter
-						.UpdateDatabaseAsync(parameters, token)
-						.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
-					{
-						return;
-					}
+					return;
 				}
-				finally
+
+				using PinnedBuffer passwordBinary = password.ToUtf8Buffer();
+
+				byte[] encryptedDek = _encryption.Encrypt(
+					dek,
+					passwordBinary,
+					ContentIdentity.ForDek(folder.Id));
+
+				if (ProcessNotes(
+					folder,
+					files,
+					dek,
+					encrypt: true) is not { } notes)
 				{
-					dek.ZeroMemory();
+					SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				using DatabaseBackup? backup = await _dbAccess
+					.BackupDatabaseAsync(token)
+					.ConfigureAwait(false);
+
+				if (backup is null)
+				{
+					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+
+					return;
+				}
+
+				UpdateDatabaseParameters parameters = new()
+				{
+					BackupFilePath = backup.FilePath,
+					Contents = result,
+					EncryptedDek = encryptedDek,
+					Files = files,
+					Folder = folder,
+					NewStatus = EncryptionStatus.Encrypted,
+					Notes = notes
+				};
+
+				if (await _contentWriter
+					.UpdateDatabaseAsync(parameters, token)
+					.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+				{
+					return;
 				}
 			}
 			finally
@@ -399,7 +390,7 @@ public sealed class FolderProtection : IFolderProtection
 	private NoteUpdate[]? ProcessNotes(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		byte[] dek,
+		PinnedBuffer dek,
 		bool encrypt)
 	{
 		List<NoteUpdate> notes = [];

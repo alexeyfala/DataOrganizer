@@ -5,6 +5,7 @@ using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
@@ -133,7 +134,7 @@ internal class ContentVisibilityTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			sessionKeyStore
-				.Unlock(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(true);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -144,7 +145,7 @@ internal class ContentVisibilityTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(10));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(10));
 
 			builder.RegisterInstance(dialogService);
 
@@ -165,7 +166,7 @@ internal class ContentVisibilityTests
 
 		sessionKeyStore
 			.Received(1)
-			.Unlock(folder.Id, Arg.Any<byte[]>());
+			.Unlock(folder.Id, Arg.Any<PinnedBuffer>());
 
 		file.EncryptionStatus
 			.Should()
@@ -193,7 +194,7 @@ internal class ContentVisibilityTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			sessionKeyStore
-				.Unlock(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(true);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();
@@ -204,7 +205,7 @@ internal class ContentVisibilityTests
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			builder.RegisterInstance(encryption);
 
@@ -229,7 +230,7 @@ internal class ContentVisibilityTests
 
 		sessionKeyStore
 			.Received(1)
-			.Unlock(folder.Id, Arg.Any<byte[]>());
+			.Unlock(folder.Id, Arg.Any<PinnedBuffer>());
 	}
 
 	/// <summary>
@@ -254,12 +255,12 @@ internal class ContentVisibilityTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterUnlocker(builder, TestUtils.CreateRandomBytes(32));
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
-				.Unlock(Arg.Any<Guid>(), Arg.Any<byte[]>())
+				.Unlock(Arg.Any<Guid>(), Arg.Any<PinnedBuffer>())
 				.Returns(false);
 
 			builder.RegisterInstance(sessionKeyStore);
@@ -294,12 +295,12 @@ internal class ContentVisibilityTests
 	/// <summary>
 	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
 	/// </summary>
-	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, byte[]? dek)
+	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();
 
 		unlocker.RequestDekAsync(
-			Arg.Any<FolderModelDto>(),
+			Arg.Any<IPasswordKeeper>(),
 			Arg.Any<string>(),
 			Arg.Any<string>(),
 			Arg.Any<CancellationToken>(),

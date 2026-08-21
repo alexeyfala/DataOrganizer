@@ -49,6 +49,6 @@ public interface ISessionKeyStore
 	/// Takes the key of a keeper into the store, wrapped with the session secret.
 	/// Returns <c>false</c> when the key cannot be stored; the passed key remains with the caller.
 	/// </summary>
-	bool Unlock(Guid keeperId, byte[] dek);
+	bool Unlock(Guid keeperId, PinnedBuffer dek);
 	#endregion
 }

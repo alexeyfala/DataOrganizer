@@ -68,11 +68,12 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <summary>
 	/// The session-based format: the derivation from a random secret has no cost to record,
-	/// and a secret of the running session is never wrong.
+	/// a secret of the running session is never wrong, and the plaintext is a single key.
 	/// </summary>
 	private static readonly BlobFormat _sessionFormat = new()
 	{
 		NonceSize = _algorithm.NonceSize,
+		PlaintextSize = _algorithm.KeySize,
 		SaltSize = SaltSize,
 		Version = 0x03
 	};
@@ -85,17 +86,24 @@ public sealed class EncryptionService : IEncryptionService
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] CreateRandomDek() => RandomNumberGenerator.GetBytes(_algorithm.KeySize);
+	public PinnedBuffer CreateRandomDek()
+	{
+		PinnedBuffer dek = new(_algorithm.KeySize);
+
+		RandomNumberGenerator.Fill(dek.AsSpan());
+
+		return dek;
+	}
 
 	/// <inheritdoc />
-	public byte[] Decrypt(
+	public PinnedBuffer Decrypt(
 		byte[] input,
 		PinnedBuffer password,
 		ContentIdentity identity)
 	{
 		ArgumentNullException.ThrowIfNull(password);
 
-		return DecryptCore(
+		return DecryptKeyCore(
 			input,
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
@@ -104,7 +112,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, byte[] dek)
+	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
@@ -115,26 +123,28 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] DecryptWithDek(
 		byte[] input,
-		byte[] dek,
+		PinnedBuffer dek,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(dek);
+
 		return DecryptCore(
 			input,
-			dek,
+			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_dekFormat,
 			ImportDekAsKey);
 	}
 
 	/// <inheritdoc />
-	public byte[] DecryptWithSessionId(
+	public PinnedBuffer DecryptWithSessionId(
 		byte[] input,
 		PinnedBuffer sessionId,
 		ContentIdentity identity)
 	{
 		ArgumentNullException.ThrowIfNull(sessionId);
 
-		return DecryptCore(
+		return DecryptKeyCore(
 			input,
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
@@ -144,10 +154,12 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public byte[] Encrypt(
-		byte[] input,
+		PinnedBuffer dek,
 		PinnedBuffer password,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(dek);
+
 		ArgumentNullException.ThrowIfNull(password);
 
 		Span<byte> header = stackalloc byte[Argon2Settings.HeaderSize];
@@ -158,7 +170,7 @@ public sealed class EncryptionService : IEncryptionService
 			.Write(header);
 
 		return EncryptCore(
-			input,
+			dek.AsReadOnlySpan(),
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_passwordFormat,
@@ -167,7 +179,7 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, byte[] dek)
+	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek)
 	{
 		foreach (ContentsIsValidPair item in contents)
 		{
@@ -178,12 +190,16 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[] EncryptWithDek(
 		byte[] input,
-		byte[] dek,
+		PinnedBuffer dek,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		ArgumentNullException.ThrowIfNull(dek);
+
 		return EncryptCore(
 			input,
-			dek,
+			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_dekFormat,
 			header: default,
@@ -192,14 +208,16 @@ public sealed class EncryptionService : IEncryptionService
 
 	/// <inheritdoc />
 	public byte[] EncryptWithSessionId(
-		byte[] input,
+		PinnedBuffer dek,
 		PinnedBuffer sessionId,
 		ContentIdentity identity)
 	{
+		ArgumentNullException.ThrowIfNull(dek);
+
 		ArgumentNullException.ThrowIfNull(sessionId);
 
 		return EncryptCore(
-			input,
+			dek.AsReadOnlySpan(),
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
 			_sessionFormat,
@@ -210,7 +228,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// <inheritdoc />
 	public byte[]? RewrapIfOutdated(
 		byte[] wrapped,
-		byte[] dek,
+		PinnedBuffer dek,
 		PinnedBuffer password,
 		ContentIdentity identity)
 	{
@@ -283,72 +301,53 @@ public sealed class EncryptionService : IEncryptionService
 		BlobFormat format,
 		KeyFactory keyFactory)
 	{
-		ArgumentNullException.ThrowIfNull(input);
+		EnsureLayout(input, format);
 
-		if (input.Length < format.PrefixSize + _algorithm.TagSize)
-		{
-			throw new CryptographicException(
-				$"Encrypted data of {input.Length} bytes is too short for the format {format.Version:X2}.");
-		}
+		byte[] plaintext = new byte[PlaintextSizeOf(input, format)];
 
-		if (input[0] != format.Version)
-		{
-			throw new CryptographicException(
-				$"Encrypted data marked {input[0]:X2} cannot be read as the format {format.Version:X2}.");
-		}
-
-		// A format carrying a plaintext of a fixed size has a single valid length, so any other
-		// length is damaged data rather than something a secret could open.
-		if (format.PlaintextSize != 0
-			&& input.Length != format.PrefixSize + format.PlaintextSize + _algorithm.TagSize)
-		{
-			throw new CryptographicException(
-				$"Encrypted data of {input.Length} bytes cannot hold the {format.PlaintextSize} bytes of the format {format.Version:X2}.");
-		}
-
-		Span<byte> check = stackalloc byte[format.CheckSize];
-
-		using Key key = CreateKey(
-			keyFactory,
+		OpenInto(
+			input,
 			secret,
-			input.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize),
-			input.AsSpan(format.SaltOffset, format.SaltSize),
-			check,
-			format.Version);
+			purpose,
+			format,
+			keyFactory,
+			plaintext);
 
-		// Where the format records a check value, it proves the secret before the data is touched.
-		if (format.CheckSize != 0
-			&& !CryptographicOperations.FixedTimeEquals(check, input.AsSpan(format.CheckOffset, format.CheckSize)))
-		{
-			throw new InvalidCredentialException("The password does not fit the encrypted data.");
-		}
+		return plaintext;
+	}
 
-		byte[]? plaintext;
+	/// <summary>
+	/// Decrypts a blob whose plaintext is key material, into pinned storage the caller owns.
+	/// </summary>
+	private static PinnedBuffer DecryptKeyCore(
+		byte[] input,
+		ReadOnlySpan<byte> secret,
+		byte[] purpose,
+		BlobFormat format,
+		KeyFactory keyFactory)
+	{
+		EnsureLayout(input, format);
+
+		PinnedBuffer plaintext = new(PlaintextSizeOf(input, format));
 
 		try
 		{
-			ReadOnlySpan<byte> nonce = input.AsSpan(format.NonceOffset, _algorithm.NonceSize);
-
-			ReadOnlySpan<byte> ciphertext = input.AsSpan(format.PrefixSize);
-
-			plaintext = OpenAead(
-				key,
-				nonce,
-				ciphertext,
-				BuildAssociatedData(purpose, input.AsSpan(0, format.NonceOffset)));
+			OpenInto(
+				input,
+				secret,
+				purpose,
+				format,
+				keyFactory,
+				plaintext.AsSpan());
 		}
-		catch (Exception ex) when (ex is not CryptographicException)
+		catch
 		{
-			throw new CryptographicException($"Decryption of the format {format.Version:X2} failed.", ex);
+			plaintext.Dispose();
+
+			throw;
 		}
 
-		if (plaintext is not null)
-		{
-			return plaintext;
-		}
-
-		// The secret has been proven above wherever a check value exists, so a failed tag is the data.
-		throw new AuthenticationTagMismatchException();
+		return plaintext;
 	}
 
 	/// <summary>
@@ -417,15 +416,13 @@ public sealed class EncryptionService : IEncryptionService
 	/// Encrypts into a blob written in <paramref name="format" />, prefixed with <paramref name="header" />.
 	/// </summary>
 	private static byte[] EncryptCore(
-		byte[] input,
+		ReadOnlySpan<byte> input,
 		ReadOnlySpan<byte> secret,
 		byte[] purpose,
 		BlobFormat format,
 		ReadOnlySpan<byte> header,
 		KeyFactory keyFactory)
 	{
-		ArgumentNullException.ThrowIfNull(input);
-
 		if (format.PlaintextSize != 0 && input.Length != format.PlaintextSize)
 		{
 			throw new CryptographicException(
@@ -472,6 +469,36 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <summary>
+	/// Verifies that a blob can be read as <paramref name="format" /> at all.
+	/// </summary>
+	/// <exception cref="CryptographicException">The blob is too short, of another format or of another size.</exception>
+	private static void EnsureLayout(byte[] input, BlobFormat format)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		if (input.Length < format.PrefixSize + _algorithm.TagSize)
+		{
+			throw new CryptographicException(
+				$"Encrypted data of {input.Length} bytes is too short for the format {format.Version:X2}.");
+		}
+
+		if (input[0] != format.Version)
+		{
+			throw new CryptographicException(
+				$"Encrypted data marked {input[0]:X2} cannot be read as the format {format.Version:X2}.");
+		}
+
+		// A format carrying a plaintext of a fixed size has a single valid length, so any other
+		// length is damaged data rather than something a secret could open.
+		if (format.PlaintextSize != 0
+			&& input.Length != format.PrefixSize + format.PlaintextSize + _algorithm.TagSize)
+		{
+			throw new CryptographicException(
+				$"Encrypted data of {input.Length} bytes cannot hold the {format.PlaintextSize} bytes of the format {format.Version:X2}.");
+		}
+	}
+
+	/// <summary>
 	/// Adapts <see cref="ImportKey" /> to <see cref="KeyFactory" />; the DEK format carries neither
 	/// a header, a salt nor a check value.
 	/// </summary>
@@ -493,28 +520,92 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <summary>
-	/// Runs AEAD authenticated decryption. Returns plaintext on success, <c>null</c> on auth failure.
-	/// Defensive: returns <c>null</c> if ciphertext is shorter than the tag.
+	/// Runs AEAD authenticated decryption into <paramref name="plaintext" />; <c>False</c> on auth failure.
+	/// Defensive: <c>False</c> if ciphertext is shorter than the tag.
 	/// </summary>
-	private static byte[]? OpenAead(
+	private static bool OpenAead(
 		Key key,
 		ReadOnlySpan<byte> nonce,
 		ReadOnlySpan<byte> ciphertext,
-		ReadOnlySpan<byte> associatedData)
+		ReadOnlySpan<byte> associatedData,
+		Span<byte> plaintext)
 	{
 		if (ciphertext.Length < _algorithm.TagSize)
 		{
-			return null;
+			return false;
 		}
-
-		byte[] plaintext = new byte[ciphertext.Length - _algorithm.TagSize];
 
 		return _algorithm.Decrypt(
 			key: key,
 			nonce: nonce,
 			associatedData: associatedData,
 			ciphertext: ciphertext,
-			plaintext: plaintext) ? plaintext : null;
+			plaintext: plaintext);
+	}
+
+	/// <summary>
+	/// Builds the key of a format, proves the secret where the format records a check value,
+	/// and opens the blob into <paramref name="plaintext" />.
+	/// </summary>
+	/// <exception cref="InvalidCredentialException">The check value the blob records is not the one the secret produces.</exception>
+	/// <exception cref="AuthenticationTagMismatchException">The blob does not open with a proven secret.</exception>
+	/// <exception cref="CryptographicException">The key material is unusable or the operation failed.</exception>
+	private static void OpenInto(
+		byte[] input,
+		ReadOnlySpan<byte> secret,
+		byte[] purpose,
+		BlobFormat format,
+		KeyFactory keyFactory,
+		Span<byte> plaintext)
+	{
+		Span<byte> check = stackalloc byte[format.CheckSize];
+
+		using Key key = CreateKey(
+			keyFactory,
+			secret,
+			input.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize),
+			input.AsSpan(format.SaltOffset, format.SaltSize),
+			check,
+			format.Version);
+
+		// Where the format records a check value, it proves the secret before the data is touched.
+		if (format.CheckSize != 0
+			&& !CryptographicOperations.FixedTimeEquals(check, input.AsSpan(format.CheckOffset, format.CheckSize)))
+		{
+			throw new InvalidCredentialException("The password does not fit the encrypted data.");
+		}
+
+		bool isOpened;
+
+		try
+		{
+			isOpened = OpenAead(
+				key,
+				input.AsSpan(format.NonceOffset, _algorithm.NonceSize),
+				input.AsSpan(format.PrefixSize),
+				BuildAssociatedData(purpose, input.AsSpan(0, format.NonceOffset)),
+				plaintext);
+		}
+		catch (Exception ex) when (ex is not CryptographicException)
+		{
+			throw new CryptographicException($"Decryption of the format {format.Version:X2} failed.", ex);
+		}
+
+		if (isOpened)
+		{
+			return;
+		}
+
+		// The secret has been proven above wherever a check value exists, so a failed tag is the data.
+		throw new AuthenticationTagMismatchException();
+	}
+
+	/// <summary>
+	/// Size the plaintext of a blob occupies.
+	/// </summary>
+	private static int PlaintextSizeOf(byte[] input, BlobFormat format)
+	{
+		return input.Length - format.PrefixSize - _algorithm.TagSize;
 	}
 
 	/// <summary>
@@ -544,7 +635,7 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private ContentsIsValidPair ConvertContents(
 		ContentsIsValidPair item,
-		byte[] dek,
+		PinnedBuffer dek,
 		bool encrypt)
 	{
 		// Empty content is stored without encryption, so there is nothing to convert.
