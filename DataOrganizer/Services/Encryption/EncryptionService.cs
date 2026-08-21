@@ -14,18 +14,6 @@ namespace DataOrganizer.Services.Encryption;
 
 public sealed class EncryptionService : IEncryptionService
 {
-	#region Types
-	/// <summary>
-	/// Produces the AEAD key of a format from its secret, its header and the per-message salt,
-	/// and writes the check value the format records.
-	/// </summary>
-	private delegate Key KeyFactory(
-		ReadOnlySpan<byte> secret,
-		ReadOnlySpan<byte> header,
-		ReadOnlySpan<byte> salt,
-		Span<byte> check);
-	#endregion
-
 	#region Data
 	/// <summary>
 	/// Size of the value proving the secret of a derived key.
@@ -46,36 +34,48 @@ public sealed class EncryptionService : IEncryptionService
 	/// The DEK-based format: the secret is the key itself, so there is neither a header, a salt
 	/// nor anything to prove.
 	/// </summary>
-	private static readonly BlobFormat _dekFormat = new()
+	private static readonly BlobScheme _dekScheme = new()
 	{
-		NonceSize = _algorithm.NonceSize,
-		Version = 0x02
+		Format = new()
+		{
+			NonceSize = _algorithm.NonceSize,
+			Version = 0x02
+		},
+		KeyFactory = ImportDekAsKey
 	};
 
 	/// <summary>
 	/// The password-based format: the header holds the cost of the derivation, the check value tells
 	/// a wrong password from damaged data, and the plaintext is a single key.
 	/// </summary>
-	private static readonly BlobFormat _passwordFormat = new()
+	private static readonly BlobScheme _passwordScheme = new()
 	{
-		CheckSize = CheckSize,
-		HeaderSize = Argon2Settings.HeaderSize,
-		NonceSize = _algorithm.NonceSize,
-		PlaintextSize = _algorithm.KeySize,
-		SaltSize = SaltSize,
-		Version = 0x01
+		Format = new()
+		{
+			CheckSize = CheckSize,
+			HeaderSize = Argon2Settings.HeaderSize,
+			NonceSize = _algorithm.NonceSize,
+			PlaintextSize = _algorithm.KeySize,
+			SaltSize = SaltSize,
+			Version = 0x01
+		},
+		KeyFactory = DeriveKey
 	};
 
 	/// <summary>
 	/// The session-based format: the derivation from a random secret has no cost to record,
 	/// a secret of the running session is never wrong, and the plaintext is a single key.
 	/// </summary>
-	private static readonly BlobFormat _sessionFormat = new()
+	private static readonly BlobScheme _sessionScheme = new()
 	{
-		NonceSize = _algorithm.NonceSize,
-		PlaintextSize = _algorithm.KeySize,
-		SaltSize = SaltSize,
-		Version = 0x03
+		Format = new()
+		{
+			NonceSize = _algorithm.NonceSize,
+			PlaintextSize = _algorithm.KeySize,
+			SaltSize = SaltSize,
+			Version = 0x03
+		},
+		KeyFactory = DeriveSessionKey
 	};
 
 	/// <summary>
@@ -107,8 +107,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_passwordFormat,
-			DeriveKey);
+			_passwordScheme);
 	}
 
 	/// <inheritdoc />
@@ -132,8 +131,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_dekFormat,
-			ImportDekAsKey);
+			_dekScheme);
 	}
 
 	/// <inheritdoc />
@@ -148,8 +146,7 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_sessionFormat,
-			DeriveSessionKey);
+			_sessionScheme);
 	}
 
 	/// <inheritdoc />
@@ -173,9 +170,8 @@ public sealed class EncryptionService : IEncryptionService
 			dek.AsReadOnlySpan(),
 			password.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_passwordFormat,
-			header,
-			DeriveKey);
+			_passwordScheme,
+			header);
 	}
 
 	/// <inheritdoc />
@@ -201,9 +197,8 @@ public sealed class EncryptionService : IEncryptionService
 			input,
 			dek.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_dekFormat,
-			header: default,
-			ImportDekAsKey);
+			_dekScheme,
+			header: default);
 	}
 
 	/// <inheritdoc />
@@ -220,9 +215,8 @@ public sealed class EncryptionService : IEncryptionService
 			dek.AsReadOnlySpan(),
 			sessionId.AsReadOnlySpan(),
 			identity.ToAssociatedData(),
-			_sessionFormat,
-			header: default,
-			DeriveSessionKey);
+			_sessionScheme,
+			header: default);
 	}
 
 	/// <inheritdoc />
@@ -269,16 +263,15 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	/// <exception cref="CryptographicException">The secret cannot produce a key of this format.</exception>
 	private static Key CreateKey(
-		KeyFactory keyFactory,
+		BlobScheme scheme,
 		ReadOnlySpan<byte> secret,
 		ReadOnlySpan<byte> header,
 		ReadOnlySpan<byte> salt,
-		Span<byte> check,
-		byte version)
+		Span<byte> check)
 	{
 		try
 		{
-			return keyFactory(
+			return scheme.KeyFactory(
 				secret,
 				header,
 				salt,
@@ -287,30 +280,28 @@ public sealed class EncryptionService : IEncryptionService
 		catch (Exception ex) when (ex is not CryptographicException)
 		{
 			throw new CryptographicException(
-				$"The key material of the format {version:X2} cannot be used.", ex);
+				$"The key material of the format {scheme.Format.Version:X2} cannot be used.", ex);
 		}
 	}
 
 	/// <summary>
-	/// Decrypts a blob written in <paramref name="format" />.
+	/// Decrypts a blob written in the format of <paramref name="scheme" />.
 	/// </summary>
 	private static byte[] DecryptCore(
 		byte[] input,
 		ReadOnlySpan<byte> secret,
 		byte[] purpose,
-		BlobFormat format,
-		KeyFactory keyFactory)
+		BlobScheme scheme)
 	{
-		EnsureLayout(input, format);
+		EnsureLayout(input, scheme.Format);
 
-		byte[] plaintext = new byte[PlaintextSizeOf(input, format)];
+		byte[] plaintext = new byte[PlaintextSizeOf(input, scheme.Format)];
 
 		OpenInto(
 			input,
 			secret,
 			purpose,
-			format,
-			keyFactory,
+			scheme,
 			plaintext);
 
 		return plaintext;
@@ -323,12 +314,11 @@ public sealed class EncryptionService : IEncryptionService
 		byte[] input,
 		ReadOnlySpan<byte> secret,
 		byte[] purpose,
-		BlobFormat format,
-		KeyFactory keyFactory)
+		BlobScheme scheme)
 	{
-		EnsureLayout(input, format);
+		EnsureLayout(input, scheme.Format);
 
-		PinnedBuffer plaintext = new(PlaintextSizeOf(input, format));
+		PinnedBuffer plaintext = new(PlaintextSizeOf(input, scheme.Format));
 
 		try
 		{
@@ -336,8 +326,7 @@ public sealed class EncryptionService : IEncryptionService
 				input,
 				secret,
 				purpose,
-				format,
-				keyFactory,
+				scheme,
 				plaintext.AsSpan());
 		}
 		catch
@@ -413,16 +402,18 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <summary>
-	/// Encrypts into a blob written in <paramref name="format" />, prefixed with <paramref name="header" />.
+	/// Encrypts into a blob written in the format of <paramref name="scheme" />, prefixed with
+	/// <paramref name="header" />.
 	/// </summary>
 	private static byte[] EncryptCore(
 		ReadOnlySpan<byte> input,
 		ReadOnlySpan<byte> secret,
 		byte[] purpose,
-		BlobFormat format,
-		ReadOnlySpan<byte> header,
-		KeyFactory keyFactory)
+		BlobScheme scheme,
+		ReadOnlySpan<byte> header)
 	{
+		BlobFormat format = scheme.Format;
+
 		if (format.PlaintextSize != 0 && input.Length != format.PlaintextSize)
 		{
 			throw new CryptographicException(
@@ -440,12 +431,11 @@ public sealed class EncryptionService : IEncryptionService
 		RandomNumberGenerator.Fill(saltSpan);
 
 		using Key key = CreateKey(
-			keyFactory,
+			scheme,
 			secret,
 			header,
 			saltSpan,
-			result.AsSpan(format.CheckOffset, format.CheckSize),
-			format.Version);
+			result.AsSpan(format.CheckOffset, format.CheckSize));
 
 		Span<byte> nonceSpan = result.AsSpan(format.NonceOffset, _algorithm.NonceSize);
 
@@ -554,19 +544,19 @@ public sealed class EncryptionService : IEncryptionService
 		byte[] input,
 		ReadOnlySpan<byte> secret,
 		byte[] purpose,
-		BlobFormat format,
-		KeyFactory keyFactory,
+		BlobScheme scheme,
 		Span<byte> plaintext)
 	{
+		BlobFormat format = scheme.Format;
+
 		Span<byte> check = stackalloc byte[format.CheckSize];
 
 		using Key key = CreateKey(
-			keyFactory,
+			scheme,
 			secret,
 			input.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize),
 			input.AsSpan(format.SaltOffset, format.SaltSize),
-			check,
-			format.Version);
+			check);
 
 		// Where the format records a check value, it proves the secret before the data is touched.
 		if (format.CheckSize != 0
@@ -613,7 +603,9 @@ public sealed class EncryptionService : IEncryptionService
 	/// </summary>
 	private static Argon2Settings? ReadCost(byte[] wrapped)
 	{
-		if (wrapped.Length < _passwordFormat.PrefixSize || wrapped[0] != _passwordFormat.Version)
+		BlobFormat format = _passwordScheme.Format;
+
+		if (wrapped.Length < format.PrefixSize || wrapped[0] != format.Version)
 		{
 			return null;
 		}
@@ -621,7 +613,7 @@ public sealed class EncryptionService : IEncryptionService
 		try
 		{
 			return Argon2Settings.Read(
-				wrapped.AsSpan(BlobFormat.HeaderOffset, _passwordFormat.HeaderSize));
+				wrapped.AsSpan(BlobFormat.HeaderOffset, format.HeaderSize));
 		}
 		catch (CryptographicException)
 		{
