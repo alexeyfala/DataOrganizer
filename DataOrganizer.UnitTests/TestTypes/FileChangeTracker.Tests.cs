@@ -13,7 +13,6 @@ using DataOrganizer.Services.Execution;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System;
@@ -39,9 +38,7 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		byte[] parametersContents = TestUtils.CreateRandomBytes(10);
-
-		byte[] expectedHash = SHA256.HashData(parametersContents);
+		byte[] expectedHash = TestUtils.CreateRandomBytes(32);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -70,7 +67,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = parametersContents,
+			PreviousHash = expectedHash,
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -154,7 +151,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
@@ -213,7 +210,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -279,7 +276,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -360,7 +357,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
@@ -445,7 +442,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)

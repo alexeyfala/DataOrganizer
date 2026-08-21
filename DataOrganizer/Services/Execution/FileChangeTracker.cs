@@ -14,7 +14,6 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,12 +62,7 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc />
 	public async Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default)
 	{
-		// Declared outside the guarded block so that the local function below can reach them.
-		HashAlgorithmName algorithm = HashAlgorithmName.SHA256;
-
-		byte[] previousHash = CryptographicOperations.HashData(
-			algorithm,
-			parameters.Contents);
+		byte[] previousHash = parameters.PreviousHash;
 
 		try
 		{
@@ -96,12 +90,6 @@ public class FileChangeTracker : IFileChangeTracker
 			_logger.LogException(ex);
 
 			PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
-		}
-		finally
-		{
-			parameters
-				.Contents
-				.ZeroMemory();
 		}
 
 		void PublishFailure(string message)
@@ -142,7 +130,7 @@ public class FileChangeTracker : IFileChangeTracker
 			try
 			{
 				currentHash = await _fileSystem
-					.ComputeStreamHashAsync(algorithm, fileStream, checkToken)
+					.ComputeStreamHashAsync(TrackChangesParameters.HashAlgorithm, fileStream, checkToken)
 					.ConfigureAwait(false);
 
 				if (!currentHash.SequenceEqual(previousHash))
