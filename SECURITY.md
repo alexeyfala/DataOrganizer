@@ -68,6 +68,12 @@ The following are known and accepted, so there is no need to report them.
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever
   holds the file.
+- **A password change does not rotate the key.** The new password wraps the
+  same data encryption key, so a surviving copy of the old wrapper — in a
+  database backup, in an export, in the free pages of the database file —
+  opens everything with the old password, including the contents written
+  after the change. Rotating the key means re-encrypting the whole protected
+  folder, which the password change deliberately avoids.
 - **The strength of a password is shown, not required.** A new password is
   rated as it is typed, but only its length is enforced, and the rating is a
   heuristic that can be too kind. A password weak enough to be guessed offline
