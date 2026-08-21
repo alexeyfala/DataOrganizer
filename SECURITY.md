@@ -87,7 +87,9 @@ The following are known and accepted, so there is no need to report them.
   undermines the whole scheme, whatever the key derivation costs.
 - **Decrypted data in memory.** While the session is unlocked, keys and
   decrypted contents live in RAM and may reach the page or hibernation file.
-  Auto-lock shortens that window.
+  Auto-lock shortens that window, but only once a timeout is set in the
+  settings — it is off by default — and it drops the keys of protected folders
+  alone: the key of the clipboard history is held until the application exits.
 - **The password input leaves fragments.** The entered password is held in
   pinned memory and every value the input field replaces is wiped, but some
   strings are out of reach: the one carried by each keystroke event, the one
