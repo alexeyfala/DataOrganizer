@@ -7,6 +7,8 @@ namespace DataOrganizer.DTO.Encryption;
 /// <remarks>
 /// The whole prefix up to the nonce enters the associated data of the encryption, and the nonce is
 /// authenticated by the algorithm itself, so no field of a blob can be swapped for the field of another.
+/// Every layout, and the rule that a change of one takes a new <see cref="Version" />, is written down
+/// in "Docs/Encryption_Format.md".
 /// </remarks>
 public readonly record struct BlobFormat
 {
