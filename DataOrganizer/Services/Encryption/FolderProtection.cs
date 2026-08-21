@@ -185,16 +185,11 @@ public sealed class FolderProtection : IFolderProtection
 				return;
 			}
 
-			if (ProcessNotes(
+			NoteUpdate[] notes = ProcessNotes(
 				folder,
 				files,
 				decryptedDek,
-				encrypt: false) is not { } notes)
-			{
-				_messenger.ShowSnackbar(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-				return;
-			}
+				encrypt: false);
 
 			using DatabaseBackup? backup = await _dbAccess
 				.BackupDatabaseAsync(token)
@@ -285,16 +280,11 @@ public sealed class FolderProtection : IFolderProtection
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id));
 
-				if (ProcessNotes(
+				NoteUpdate[] notes = ProcessNotes(
 					folder,
 					files,
 					dek,
-					encrypt: true) is not { } notes)
-				{
-					_messenger.ShowSnackbar(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-					return;
-				}
+					encrypt: true);
 
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.
@@ -373,10 +363,10 @@ public sealed class FolderProtection : IFolderProtection
 	}
 
 	/// <summary>
-	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK;
-	/// <c>null</c> when a note cannot be converted.
+	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK.
+	/// A note that cannot be converted throws, so the result is never partial.
 	/// </summary>
-	private NoteUpdate[]? ProcessNotes(
+	private NoteUpdate[] ProcessNotes(
 		FolderModelDto folder,
 		FileModelDto[] files,
 		PinnedBuffer dek,
