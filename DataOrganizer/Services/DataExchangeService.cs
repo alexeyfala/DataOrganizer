@@ -3,8 +3,9 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using DataOrganizer.Windows;
 using Entities.Models;
 using Repository.DTO;
@@ -181,7 +182,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -201,17 +202,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			SendMessage(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
+			_messenger.ShowSnackbar(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			SendMessage(Strings.FailedToExportData, SnackbarMessageLevel.Error);
-		}
-		finally
-		{
-			HideProgressBar();
+			_messenger.ShowSnackbar(Strings.FailedToExportData, SnackbarMessageLevel.Error);
 		}
 	}
 
@@ -256,14 +253,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (backup is null)
 		{
-			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 			return null;
 		}
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			string filePath = filePaths[0];
 
@@ -279,7 +276,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -297,7 +294,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -315,7 +312,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -335,17 +332,13 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backup.FilePath, token)
 				.ConfigureAwait(false);
 
 			return null;
-		}
-		finally
-		{
-			HideProgressBar();
 		}
 	}
 
@@ -599,11 +592,6 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
-	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
-
-	/// <summary>
 	/// Imports data from JSON.
 	/// </summary>
 	private async Task<bool> ImportFromJsonAsync(
@@ -693,18 +681,5 @@ public sealed class DataExchangeService : IDataExchangeService
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

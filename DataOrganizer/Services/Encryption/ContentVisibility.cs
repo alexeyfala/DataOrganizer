@@ -2,9 +2,9 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -98,7 +98,7 @@ public sealed class ContentVisibility : IContentVisibility
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
@@ -114,10 +114,6 @@ public sealed class ContentVisibility : IContentVisibility
 			_failureReporter.Report(ex);
 
 			return false;
-		}
-		finally
-		{
-			HideProgressBar();
 		}
 	}
 
@@ -141,32 +137,23 @@ public sealed class ContentVisibility : IContentVisibility
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			if (ShowFolderContents(folder, root.Id, dek))
 			{
 				return;
 			}
 
-			SendMessage(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}
-		finally
-		{
-			HideProgressBar();
-		}
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
-	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
-
 	/// <summary>
 	/// Drops the key of the keeper the object belongs to, but only once nothing under that keeper is shown.
 	/// </summary>
@@ -183,14 +170,6 @@ public sealed class ContentVisibility : IContentVisibility
 		}
 
 		_sessionKeyStore.Lock(keeper.Id);
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
 	}
 
 	/// <summary>
@@ -213,10 +192,5 @@ public sealed class ContentVisibility : IContentVisibility
 
 		return true;
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

@@ -242,7 +242,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// </summary>
 	protected void SendMessage(string message, SnackbarMessageLevel level)
 	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
+		_messenger.ShowSnackbar(message, level);
 	}
 
 	/// <summary>

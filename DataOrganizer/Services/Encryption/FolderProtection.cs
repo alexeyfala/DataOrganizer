@@ -3,10 +3,10 @@ using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Repository.DTO;
 using Repository.Interfaces;
 using Repository.Services;
@@ -128,7 +128,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			folder.EncryptedDek = encryptedDek;
 
-			SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
+			_messenger.ShowSnackbar(Strings.PasswordChanged, SnackbarMessageLevel.Information);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
@@ -160,7 +160,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
@@ -169,7 +169,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (!AreContentsValid(contents, files.Length))
 			{
-				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -180,7 +180,7 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				LogInvalidContents(result);
 
-				SendMessage(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -191,7 +191,7 @@ public sealed class FolderProtection : IFolderProtection
 				decryptedDek,
 				encrypt: false) is not { } notes)
 			{
-				SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -202,7 +202,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (backup is null)
 			{
-				SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -229,10 +229,6 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			_failureReporter.Report(ex);
 		}
-		finally
-		{
-			HideProgressBar();
-		}
 	}
 
 	/// <inheritdoc />
@@ -253,7 +249,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
@@ -264,7 +260,7 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				if (!AreContentsValid(contents, files.Length))
 				{
-					SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+					_messenger.ShowSnackbar(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
 
 					return;
 				}
@@ -277,7 +273,7 @@ public sealed class FolderProtection : IFolderProtection
 				{
 					LogInvalidContents(result);
 
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+					_messenger.ShowSnackbar(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 					return;
 				}
@@ -295,7 +291,7 @@ public sealed class FolderProtection : IFolderProtection
 					dek,
 					encrypt: true) is not { } notes)
 				{
-					SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+					_messenger.ShowSnackbar(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
 
 					return;
 				}
@@ -308,7 +304,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				if (backup is null)
 				{
-					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+					_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
 
 					return;
 				}
@@ -340,10 +336,6 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			_failureReporter.Report(ex);
 		}
-		finally
-		{
-			HideProgressBar();
-		}
 	}
 	#endregion
 
@@ -365,11 +357,6 @@ public sealed class FolderProtection : IFolderProtection
 	{
 		contents.ForEach(x => x.Contents.ZeroMemory());
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
-	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
 
 	/// <summary>
 	/// Writes the identifiers of the contents that could not be converted to the log.
@@ -424,18 +411,5 @@ public sealed class FolderProtection : IFolderProtection
 
 		return [.. notes];
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

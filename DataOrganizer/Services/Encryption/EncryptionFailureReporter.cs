@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -40,26 +40,18 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			_logger.LogWarning(
 				$"The password, or the derivation cost and the salt beside it, has been rejected: {callerName}");
 
-			SendMessage(Strings.IncorrectPassword);
+			_messenger.ShowSnackbar(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
 
 			return;
 		}
 
 		_logger.LogException(exception, assertDebug: false);
 
-		SendMessage(exception is CryptographicException
+		string text = exception is CryptographicException
 			? Strings.EncryptedDataIsDamaged
-			: Strings.FailedToProcessContents);
-	}
-	#endregion
+			: Strings.FailedToProcessContents;
 
-	#region Helpers
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, SnackbarMessageLevel.Error));
+		_messenger.ShowSnackbar(text, SnackbarMessageLevel.Error);
 	}
 	#endregion
 }

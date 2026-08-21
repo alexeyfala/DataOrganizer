@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -68,7 +68,7 @@ public sealed class NoteReader : INoteReader
 			_logger.LogException(ex);
 		}
 
-		_messenger.Send(new ShowSnackbarMessage(Strings.FailedToReadNote, SnackbarMessageLevel.Error));
+		_messenger.ShowSnackbar(Strings.FailedToReadNote, SnackbarMessageLevel.Error);
 
 		return null;
 	}

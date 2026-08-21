@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
@@ -82,7 +82,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
-			Notify(errorText, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
 
 			_logger.LogError(errorText);
 
@@ -116,7 +116,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
-			Notify(successText, SnackbarMessageLevel.Information);
+			_messenger.ShowSnackbar(successText, SnackbarMessageLevel.Information);
 
 			_logger.LogInformation(successText);
 
@@ -146,7 +146,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
 
-			Notify(errorText, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
 
 			_logger.LogError(errorText);
 
@@ -157,7 +157,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
 
-		Notify(text, SnackbarMessageLevel.Information);
+		_messenger.ShowSnackbar(text, SnackbarMessageLevel.Information);
 
 		_logger.LogInformation(text);
 
@@ -175,7 +175,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
 
-			Notify(warningText, SnackbarMessageLevel.Warning);
+			_messenger.ShowSnackbar(warningText, SnackbarMessageLevel.Warning);
 
 			_logger.LogWarning(warningText);
 
@@ -201,7 +201,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
-			Notify(errorText, SnackbarMessageLevel.Error);
+			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
 
 			_logger.LogError(errorText);
 
@@ -210,7 +210,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
 
-		Notify(successText, SnackbarMessageLevel.Information);
+		_messenger.ShowSnackbar(successText, SnackbarMessageLevel.Information);
 
 		_logger.LogInformation(successText);
 
@@ -244,10 +244,5 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			not null => target.Parent.Children,
 			null => collection
 		};
-
-	/// <summary>
-	/// Sends a snackbar notification.
-	/// </summary>
-	private void Notify(string text, SnackbarMessageLevel level) => _messenger.Send(new ShowSnackbarMessage(text, level));
 	#endregion
 }

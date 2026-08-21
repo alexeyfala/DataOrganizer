@@ -3,7 +3,6 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using Entities.Enums;
 using Repository.Interfaces;
 using Serilog;
@@ -112,7 +111,7 @@ public sealed class NoteEditor : INoteEditor
 			? Strings.NoteHasBeenDeleted
 			: Strings.NoteHasBeenSaved;
 
-		Notify(successText, SnackbarMessageLevel.Information);
+		_messenger.ShowSnackbar(successText, SnackbarMessageLevel.Information);
 
 		_logger.LogInformation(successText);
 
@@ -132,14 +131,9 @@ public sealed class NoteEditor : INoteEditor
 			nameof(ExplorerModelBaseDto.Name),
 			nameof(ExplorerModelBaseDto.EncryptionStatus))}");
 
-		Notify(Strings.FailedToSaveNote, SnackbarMessageLevel.Error);
+		_messenger.ShowSnackbar(Strings.FailedToSaveNote, SnackbarMessageLevel.Error);
 
 		return false;
 	}
-
-	/// <summary>
-	/// Sends a snackbar notification.
-	/// </summary>
-	private void Notify(string text, SnackbarMessageLevel level) => _messenger.Send(new ShowSnackbarMessage(text, level));
 	#endregion
 }

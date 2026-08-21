@@ -4,7 +4,6 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.Interfaces;
@@ -168,7 +167,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// </summary>
 	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
 	{
-		SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+		_messenger.ShowSnackbar(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
 
 		// The rollback has to run even when the operation was cancelled.
 		await _dbAccess
@@ -176,14 +175,6 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			.ConfigureAwait(false);
 
 		return result;
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
 	}
 	#endregion
 }

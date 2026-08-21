@@ -12,7 +12,6 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
-using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -709,11 +708,11 @@ public class ViewLauncher : IViewLauncher
 			// Only a wrong password is worth asking again; the rest no password can fix.
 			if (status != ClipboardLogStatus.WrongPassword)
 			{
-				_messenger.Send(new ShowSnackbarMessage(
-					status == ClipboardLogStatus.Damaged
-						? Strings.EncryptedDataIsDamaged
-						: Strings.FailedToUnlockClipboardHistory,
-					SnackbarMessageLevel.Error));
+				string text = status == ClipboardLogStatus.Damaged
+					? Strings.EncryptedDataIsDamaged
+					: Strings.FailedToUnlockClipboardHistory;
+
+				_messenger.ShowSnackbar(text, SnackbarMessageLevel.Error);
 
 				return;
 			}

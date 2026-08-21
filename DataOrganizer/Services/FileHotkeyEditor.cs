@@ -4,7 +4,6 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using Entities.Models;
 using MapsterMapper;
 using Repository.DTO;
@@ -78,9 +77,9 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
-			_messenger.Send(new ShowSnackbarMessage(
+			_messenger.ShowSnackbar(
 				$@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""",
-				SnackbarMessageLevel.Warning));
+				SnackbarMessageLevel.Warning);
 
 			return OverwriteHotkeysResult.AlreadyInUse;
 		}

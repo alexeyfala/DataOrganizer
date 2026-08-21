@@ -11,7 +11,6 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Repository.DTO;
 using Repository.Interfaces;
 using Serilog;
@@ -116,7 +115,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				.IsExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				SendMessage($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -127,7 +126,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			if (!result.IsValid)
 			{
-				SendMessage($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
+				_messenger.ShowSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
 
 				return;
 			}
@@ -147,7 +146,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (string.IsNullOrEmpty(text))
 				{
-					SendMessage($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
+					_messenger.ShowSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
 
 					return;
 				}
@@ -187,11 +186,6 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
-		}
-
-		void SendMessage(string message, SnackbarMessageLevel level)
-		{
-			_messenger.Send(new ShowSnackbarMessage(message, level));
 		}
 	}
 	#endregion
