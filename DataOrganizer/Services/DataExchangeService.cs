@@ -450,9 +450,13 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		ExplorerModelBaseDto[] result = await _entityLoader
+		if (await _entityLoader
 			.LoadFromEmbeddedDbAsync(token)
-			.ConfigureAwait(false) ?? [];
+			.ConfigureAwait(false) is not { } result)
+		{
+			// The imported database is in place but unreadable, so the caller restores the copy it took.
+			return false;
+		}
 
 		objects.AddRange(result);
 

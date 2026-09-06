@@ -601,6 +601,10 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([]);
+
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
@@ -632,6 +636,59 @@ internal class DataExchangeServiceTests
 		await entityLoader
 			.Received()
 			.LoadFromEmbeddedDbAsync();
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />: a database that is in place but cannot
+	/// be read is reported as a failed import, so the copy taken before it is restored.
+	/// </summary>
+	[Test]
+	public async Task ReplaceFromSQLiteAsync_Fails_When_The_Database_Cannot_Be_Read()
+	{
+		// Arrange
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils.CreateFoldersDto(5)];
+
+		List<ExplorerModelBaseDto> objects = [];
+
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns((ExplorerModelBaseDto[]?)null);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ReplaceFromSQLiteAsync(
+			string.Empty,
+			objects,
+			hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		objects
+			.Should()
+			.BeEmpty();
+
+		hierarchy
+			.Should()
+			.HaveCount(5);
 	}
 	#endregion
 }
