@@ -4,7 +4,9 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -30,11 +32,16 @@
 			UseFloatingPlaceholder="True">
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
+				
 				<AutoSelectBehavior />
 
 				<behaviors:MoveFocusOnEnterBehavior
 					IsMoveAllowed="{Binding IsKeyAccepted, Mode=OneWay}"
 					Target="{Binding #ValueInput}" />
+
+				<behaviors:SensitiveCopyBehavior
+					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+					Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 			</Interaction.Behaviors>
 		</TextBox>
 
@@ -45,7 +52,13 @@
 			Classes.revealPasswordButton="{Binding IsValueMasked, Mode=OneWay}"
 			IsVisible="{Binding IsValueInputVisible, Mode=OneWay}"
 			Text="{Binding Value, Mode=TwoWay}"
-			UseFloatingPlaceholder="True" />
+			UseFloatingPlaceholder="True">
+			<Interaction.Behaviors>
+				<behaviors:SensitiveCopyBehavior
+					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
+					Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
+			</Interaction.Behaviors>
+		</TextBox>
 
 		<UniformGrid
 			HorizontalAlignment="Right"

@@ -176,6 +176,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddGroup,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Name
 		};
 
@@ -198,6 +199,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddKeyAndValue,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Key,
 			MaskValueInput = IsEncrypted,
 			ValueHint = Strings.Value
@@ -225,6 +227,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddValue,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Name,
 			MaskKeyInput = IsEncrypted
 		};
@@ -331,6 +334,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
+			IsSensitive = IsEncrypted,
 			Key = record.Key,
 			KeyHint = Strings.Key,
 			MaskValueInput = record.IsHidden,
@@ -398,6 +402,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
+			IsSensitive = IsEncrypted,
 			Key = record.Value,
 			KeyHint = Strings.Edit,
 			MaskKeyInput = record.IsHidden

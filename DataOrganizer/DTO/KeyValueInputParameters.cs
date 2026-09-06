@@ -9,6 +9,11 @@ public sealed class KeyValueInputParameters
 	public required string DefaultButtonText { get; init; }
 
 	/// <summary>
+	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.
+	/// </summary>
+	public bool IsSensitive { get; init; }
+
+	/// <summary>
 	/// Key.
 	/// </summary>
 	public string? Key { get; init; }

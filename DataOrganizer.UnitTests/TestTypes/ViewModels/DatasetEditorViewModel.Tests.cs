@@ -95,6 +95,35 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the text entered into an encrypted dataset is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task AddKeyValue_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		// Act
+		await sut
+			.AddKeyValueCommand
+			.ExecuteAsync(null);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x.IsSensitive == isEncrypted),
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.AddKeyValueCommand" />: the value input field is masked only when the dataset is encrypted.
 	/// </summary>
 	[Test]
@@ -557,6 +586,41 @@ internal class DatasetEditorViewModelTests
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+	}
+
+	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditKeyValueCommand" />: the text edited in an encrypted dataset is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task EditKeyValue_Declares_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		KeyValueRecord record = new()
+		{
+			Key = AppUtils.CreateRandomString(10),
+			Value = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.EditKeyValueCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestKeyValueInputAsync(
+			Arg.Is<KeyValueInputParameters>(x => x!.IsSensitive == isEncrypted),
+			Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
