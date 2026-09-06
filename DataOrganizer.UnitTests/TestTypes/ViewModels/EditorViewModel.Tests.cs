@@ -420,6 +420,43 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.EditNote" />: the note of a protected object is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Declares_The_Note_Of_A_Protected_Object_Sensitive([Values] EncryptionStatus encryptionStatus)
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: encryptionStatus);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.EditNote(file);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			encryptionStatus != EncryptionStatus.None,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.EditNote" />: the note of the dialog is stored through the note editor.
 	/// </summary>
 	[Test]
@@ -442,6 +479,7 @@ internal class EditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair(true, editedNote));
 
@@ -467,6 +505,7 @@ internal class EditorViewModelTests
 		await dialogService.Received(1).RequestMultilineTextAsync(
 			storedNote,
 			file.Name,
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 
 		await noteEditor.Received(1).EditAsync(
@@ -495,6 +534,7 @@ internal class EditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 

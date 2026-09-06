@@ -143,11 +143,14 @@ public sealed class DialogService : IDialogService
 	public async Task<ValueIsValidPair> RequestMultilineTextAsync(
 		string? text,
 		string? name = null,
+		bool isSensitive = false,
 		CancellationToken token = default)
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
 
 		viewModel.Header = NoteHelper.BuildHeader(name);
+
+		viewModel.IsSensitive = isSensitive;
 
 		viewModel.Text = text;
 

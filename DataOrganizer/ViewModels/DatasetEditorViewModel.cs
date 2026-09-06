@@ -370,8 +370,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => null
 		};
 
-		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(record.Note, header)
+		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+			record.Note,
+			header,
+			isSensitive: IsEncrypted)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)

@@ -645,6 +645,54 @@ internal class DatasetEditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note of an encrypted dataset is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Declares_The_Note_Of_An_Encrypted_Dataset_Sensitive([Values] bool isEncrypted)
+	{
+		// Arrange
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		using DatasetEditorViewModel sut = mock.Create<DatasetEditorViewModel>();
+
+		if (isEncrypted)
+		{
+			sut.KeeperId = Guid.NewGuid();
+		}
+
+		RecordsGroup record = new()
+		{
+			Name = AppUtils.CreateRandomString(10),
+			Note = AppUtils.CreateRandomString(10)
+		};
+
+		// Act
+		await sut
+			.EditNoteCommand
+			.ExecuteAsync(record);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			isEncrypted,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DatasetEditorViewModel.EditNoteCommand" />: the note dialog of a group is headed by its name.
 	/// </summary>
 	[Test]
@@ -659,6 +707,7 @@ internal class DatasetEditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 
@@ -682,6 +731,7 @@ internal class DatasetEditorViewModelTests
 		await dialogService.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			record.Name,
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -700,6 +750,7 @@ internal class DatasetEditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 
@@ -724,6 +775,7 @@ internal class DatasetEditorViewModelTests
 		await dialogService.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			record.Key,
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -743,6 +795,7 @@ internal class DatasetEditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 
@@ -766,6 +819,7 @@ internal class DatasetEditorViewModelTests
 		await dialogService.Received(1).RequestMultilineTextAsync(
 			record.Note,
 			null,
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 	}
 

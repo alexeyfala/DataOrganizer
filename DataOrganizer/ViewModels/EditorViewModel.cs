@@ -259,8 +259,10 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Editing a note of an object using dialog");
 
-		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(_noteReader.ReadNote(dto), dto.Name)
+		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+			_noteReader.ReadNote(dto),
+			dto.Name,
+			isSensitive: dto.EncryptionStatus != EncryptionStatus.None)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
