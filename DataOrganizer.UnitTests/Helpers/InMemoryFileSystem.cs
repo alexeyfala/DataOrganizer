@@ -72,6 +72,17 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 		return Task.CompletedTask;
 	}
+
+	// The temporary file of the real implementation leaves no trace here: only its outcome is modelled.
+	public Task WriteAllBytesAtomicAsync(
+		string filePath,
+		byte[] bytes,
+		CancellationToken token = default)
+	{
+		Files[filePath] = bytes;
+
+		return Task.CompletedTask;
+	}
 	#endregion
 
 	#region Unused

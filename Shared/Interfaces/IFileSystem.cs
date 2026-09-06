@@ -159,6 +159,15 @@ public interface IFileSystem
 		byte[] bytes,
 		CancellationToken token = default);
 
+	/// <summary>
+	/// Writes bytes into a temporary file and puts it in the place of <paramref name="filePath" />,
+	/// so a write that does not reach the disk leaves the previous contents untouched.
+	/// </summary>
+	Task WriteAllBytesAtomicAsync(
+		string filePath,
+		byte[] bytes,
+		CancellationToken token = default);
+
 	/// <inheritdoc cref="File.WriteAllText(string, string?)" />
 	void WriteAllText(string filePath, string? contents);
 	#endregion
