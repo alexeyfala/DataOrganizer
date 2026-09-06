@@ -180,5 +180,63 @@ internal class AppControllerTests
 			.Received()
 			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: data that cannot be read is reported, and the launch
+	/// goes on with an empty hierarchy.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Reports_Data_It_Cannot_Read()
+	{
+		// Arrange
+		INotificationService notificationService = Substitute.For<INotificationService>();
+
+		IViewLauncher viewLauncher = Substitute.For<IViewLauncher>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns((ExplorerModelBaseDto[]?)null);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(notificationService);
+
+			builder.RegisterInstance(settingsStore);
+
+			builder.RegisterInstance(viewLauncher);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		notificationService
+			.Received(1)
+			.ShowToast(Strings.FailedToReadDatabase);
+
+		viewLauncher
+			.Received()
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
 	#endregion
 }

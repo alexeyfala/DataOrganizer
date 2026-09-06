@@ -696,4 +696,7 @@
   <data name="DatabaseIsUnavailable" xml:space="preserve">
     <value>База данных недоступна, изменения не сохранятся</value>
   </data>
+  <data name="FailedToReadDatabase" xml:space="preserve">
+    <value>Не удалось прочитать базу данных</value>
+  </data>
 </root>

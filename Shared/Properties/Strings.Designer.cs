@@ -682,6 +682,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The database could not be read.
+        /// </summary>
+        public static string FailedToReadDatabase {
+            get {
+                return ResourceManager.GetString("FailedToReadDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the note.
         /// </summary>
         public static string FailedToReadNote {

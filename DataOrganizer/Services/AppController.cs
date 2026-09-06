@@ -170,9 +170,18 @@ public sealed class AppController : IAppController
 					levels: total).ConfigureAwait(true);
 			}
 
-			ExplorerModelBaseDto[] hierarchy = await _entityLoader
+			ExplorerModelBaseDto[]? hierarchy = await _entityLoader
 				.LoadFromEmbeddedDbAsync(token)
-				.ConfigureAwait(true) ?? [];
+				.ConfigureAwait(true);
+
+			if (hierarchy is null)
+			{
+				_logger.LogError(
+					"The database could not be read, the launch continues with an empty hierarchy.",
+					assertDebug: false);
+
+				_notificationService.ShowToast(Strings.FailedToReadDatabase);
+			}
 
 			// TODO: Close splash screen here.
 
@@ -185,7 +194,7 @@ public sealed class AppController : IAppController
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
-			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy);
+			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy ?? []);
 
 			mainWindow?.Show();
 

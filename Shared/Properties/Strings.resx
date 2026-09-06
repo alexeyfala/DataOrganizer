@@ -676,4 +676,7 @@
   <data name="DatabaseIsUnavailable" xml:space="preserve">
     <value>The database is unavailable, changes will not be saved</value>
   </data>
+  <data name="FailedToReadDatabase" xml:space="preserve">
+    <value>The database could not be read</value>
+  </data>
 </root>
