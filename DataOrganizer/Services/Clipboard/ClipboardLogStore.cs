@@ -137,7 +137,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			EnsureDirectory();
 
 			await _fileSystem
-				.WriteAllBytesAsync(_historyFilePath, ciphertext, token)
+				.WriteAllBytesAtomicAsync(_historyFilePath, ciphertext, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -260,7 +260,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		EnsureDirectory();
 
 		await _fileSystem
-			.WriteAllBytesAsync(_keyFilePath, wrapped, token)
+			.WriteAllBytesAtomicAsync(_keyFilePath, wrapped, token)
 			.ConfigureAwait(false);
 
 		return _sessionKeyStore.Unlock(_historyKeyId, dek)
@@ -282,8 +282,8 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	}
 
 	/// <summary>
-	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change,
-	/// so a failure leaves a key the same password still opens.
+	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change and the
+	/// file is replaced in one step, so a failure leaves a key the same password still opens.
 	/// </summary>
 	private async Task RewrapKeyAsync(
 		byte[] wrapped,
@@ -303,7 +303,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			}
 
 			await _fileSystem
-				.WriteAllBytesAsync(_keyFilePath, rewrapped, token)
+				.WriteAllBytesAtomicAsync(_keyFilePath, rewrapped, token)
 				.ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
