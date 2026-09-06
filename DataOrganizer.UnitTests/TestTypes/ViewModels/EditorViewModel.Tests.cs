@@ -1485,6 +1485,72 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
+	/// </summary>
+	[Test]
+	public async Task Import_Drops_The_Keys_On_Replacement()
+	{
+		// Arrange
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		dataExchange
+			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.Returns(new ImportDataResult([], ImportListVariant.Replace));
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dataExchange);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		contentVisibility
+			.Received(1)
+			.DiscardAllKeys();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that appends leaves the hierarchy in place, keys included.
+	/// </summary>
+	[Test]
+	public async Task Import_Keeps_The_Keys_On_Appending()
+	{
+		// Arrange
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		dataExchange
+			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.Returns(new ImportDataResult([], ImportListVariant.Append));
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dataExchange);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		contentVisibility
+			.DidNotReceive()
+			.DiscardAllKeys();
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.Initialize" />: window position/size/state and view-model properties are set from the supplied settings.
 	/// </summary>
 	[AvaloniaTest]
