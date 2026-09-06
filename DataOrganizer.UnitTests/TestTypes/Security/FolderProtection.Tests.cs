@@ -393,6 +393,68 @@ internal class FolderProtectionTests
 	}
 
 	/// <summary>
+	/// <see cref="FolderProtection.DecryptFolderAsync" />: a converted folder keeps no password,
+	/// so its session key goes with it.
+	/// </summary>
+	[Test]
+	public async Task DecryptFolderAsync_Drops_The_Key_Of_A_Converted_Folder([Values] bool isWriteDone)
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto();
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IEncryptedContentWriter contentWriter = Substitute.For<IEncryptedContentWriter>();
+
+			contentWriter
+				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
+				.Returns(isWriteDone ? UpdateDatabaseResult.Done : UpdateDatabaseResult.FailedToSaveInDb);
+
+			builder.RegisterInstance(contentWriter);
+
+			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
+
+			IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+			encryption
+				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.Returns([.. TestUtils.CreateContents(files.Length, isValid: true)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.Returns(TestUtils.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance(encryption);
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		FolderProtection sut = mock.Create<FolderProtection>();
+
+		// Act
+		await sut.DecryptFolderAsync(folder, files);
+
+		// Assert
+		contentVisibility
+			.Received(isWriteDone ? 1 : 0)
+			.DiscardKeys(folder);
+	}
+
+	/// <summary>
 	/// <see cref="FolderProtection.DecryptFolderAsync" />: a done conversion keeps its notes, from then
 	/// on they belong to the objects.
 	/// </summary>

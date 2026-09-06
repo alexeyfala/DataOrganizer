@@ -24,6 +24,9 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class FolderProtection : IFolderProtection
 {
 	#region Data
+	/// <inheritdoc cref="IContentVisibility" />
+	private readonly IContentVisibility _contentVisibility;
+
 	/// <inheritdoc cref="IEncryptedContentWriter" />
 	private readonly IEncryptedContentWriter _contentWriter;
 
@@ -51,6 +54,7 @@ public sealed class FolderProtection : IFolderProtection
 
 	#region Constructors
 	public FolderProtection(
+		IContentVisibility contentVisibility,
 		IEncryptedContentWriter contentWriter,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
@@ -60,6 +64,8 @@ public sealed class FolderProtection : IFolderProtection
 		ILogger logger,
 		IMessenger messenger)
 	{
+		_contentVisibility = contentVisibility;
+
 		_contentWriter = contentWriter;
 
 		_dbAccess = dbAccess;
@@ -226,6 +232,8 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				return;
 			}
+
+			_contentVisibility.DiscardKeys(folder);
 
 			areNotesHandedOver = true;
 		}
