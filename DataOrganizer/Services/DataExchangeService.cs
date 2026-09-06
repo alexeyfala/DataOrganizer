@@ -452,7 +452,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		ExplorerModelBaseDto[] result = await _entityLoader
 			.LoadFromEmbeddedDbAsync(token)
-			.ConfigureAwait(false);
+			.ConfigureAwait(false) ?? [];
 
 		objects.AddRange(result);
 

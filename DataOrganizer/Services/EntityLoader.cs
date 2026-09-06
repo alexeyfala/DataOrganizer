@@ -50,7 +50,7 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerModelBaseDto[]> LoadFromEmbeddedDbAsync(CancellationToken token = default)
+	public async Task<ExplorerModelBaseDto[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -69,11 +69,16 @@ public sealed class EntityLoader : IEntityLoader
 
 			return Map(dbFolders, dbFiles);
 		}
+		catch (OperationCanceledException)
+		{
+			// A cancelled load is the caller giving up, not a database that cannot be read.
+			throw;
+		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
 
-			return [];
+			return null;
 		}
 	}
 
