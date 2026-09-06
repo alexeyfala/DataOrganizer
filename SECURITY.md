@@ -95,3 +95,14 @@ The following are known and accepted, so there is no need to report them.
   strings are out of reach: the one carried by each keystroke event, the one
   handed over by the clipboard on paste, and any copy the garbage collector
   makes while moving objects.
+- **A copy of protected data goes out marked, not protected.** Text copied
+  from protected data — contents, dataset records and fields, notes, and the
+  dialogs that edit them — carries the markers that ask the system and
+  clipboard managers to keep it out of their history, is left out of the
+  history this application records, and is cleared 15 seconds later. The
+  markers are a request: an application that ignores them reads the text like
+  any other, and a reader that was quicker than the timeout keeps what it
+  took. Two places copy without the markers, and what they copy stays on the
+  clipboard until something replaces it: the built-in file editor, whose
+  control offers no point to intercept a copy, and the console, whose output
+  is not tied to protected data.
