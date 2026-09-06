@@ -18,6 +18,11 @@ internal sealed class InMemoryFileSystem : IFileSystem
 {
 	#region Properties
 	/// <summary>
+	/// Paths written through the atomic write, in the order they were written.
+	/// </summary>
+	public List<string> AtomicWrites { get; } = [];
+
+	/// <summary>
 	/// Backing store: file path to its bytes.
 	/// </summary>
 	public Dictionary<string, byte[]> Files { get; } = new(StringComparer.Ordinal);
@@ -79,6 +84,8 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		byte[] bytes,
 		CancellationToken token = default)
 	{
+		AtomicWrites.Add(filePath);
+
 		Files[filePath] = bytes;
 
 		return Task.CompletedTask;

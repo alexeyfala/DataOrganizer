@@ -168,6 +168,35 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.SaveAsync" />: the journal is put in place in one step, so a save
+	/// that does not finish leaves the previous one readable.
+	/// </summary>
+	[Test]
+	public async Task Save_Replaces_The_Journal_Atomically()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		// Act
+		await sut.SaveAsync([TextEntry("data")]);
+
+		// Assert
+		files.AtomicWrites
+			.Should()
+			.Contain(BinPath);
+
+		files.Files
+			.Should()
+			.ContainKey(BinPath);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.SaveAsync" /> / <see cref="ClipboardLogStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
@@ -347,6 +376,69 @@ internal class ClipboardLogStoreTests
 		sut.KeyFileExists
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a key written at a new derivation cost replaces
+	/// the old one in one step, so an interrupted rewrap keeps the journal openable.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_Replaces_A_Rewrapped_Key_Atomically()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+		}
+
+		files
+			.AtomicWrites
+			.Should()
+			.Contain(KeyPath, "a new key is written the same way");
+
+		files
+			.AtomicWrites
+			.Clear();
+
+		byte[] rewrapped = [9, 8, 7];
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+			.Returns(new PinnedBuffer(32));
+
+		encryption
+			.RewrapIfOutdated(
+				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<ContentIdentity>())
+			.Returns(rewrapped);
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Unlocked);
+
+		files.AtomicWrites
+			.Should()
+			.Contain(KeyPath);
+
+		files.Files[KeyPath]
+			.Should()
+			.BeEquivalentTo(rewrapped);
 	}
 
 	/// <summary>
