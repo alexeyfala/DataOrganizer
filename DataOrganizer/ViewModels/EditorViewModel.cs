@@ -1400,6 +1400,11 @@ public partial class EditorViewModel :
 
 			RemoveFromCopyHistory(file);
 		}
+		// The deleted folder is out of the hierarchy, so nothing is left to hide its contents and drop its key.
+		else if (dto is FolderModelDto folder)
+		{
+			_contentVisibility.DiscardKeys(folder);
+		}
 
 		CountHierarchy();
 

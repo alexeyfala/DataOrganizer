@@ -377,6 +377,52 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: the key of a deleted folder is dropped with the folder.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Drops_The_Key_Of_A_Deleted_Folder()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		contentVisibility
+			.Received(1)
+			.DiscardKeys(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: when the editor reports failure the file is left open.
 	/// </summary>
 	[Test]
@@ -417,6 +463,94 @@ internal class EditorViewModelTests
 		file.IsExecuting
 			.Should()
 			.BeTrue();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a folder that was not deleted keeps its key.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Keeps_The_Key_When_Editor_Fails()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(false);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		contentVisibility
+			.DidNotReceiveWithAnyArgs()
+			.DiscardKeys(default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a file keeps no key of its own, so its deletion leaves the keys alone.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Leaves_The_Keys_Alone_For_A_Deleted_File()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		contentVisibility
+			.DidNotReceiveWithAnyArgs()
+			.DiscardKeys(default!);
 	}
 
 	/// <summary>

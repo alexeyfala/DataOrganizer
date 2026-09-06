@@ -101,30 +101,6 @@ internal class ContentVisibilityTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentVisibility.DiscardKeys" />: a file keeps no key of its own, so it leaves the store alone.
-	/// </summary>
-	[Test]
-	public void DiscardKeys_Leaves_The_Store_Alone_For_A_File()
-	{
-		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
-
-		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
-
-		ContentVisibility sut = mock.Create<ContentVisibility>();
-
-		// Act
-		sut.DiscardKeys(file);
-
-		// Assert
-		sessionKeyStore
-			.DidNotReceiveWithAnyArgs()
-			.Lock(default);
-	}
-
-	/// <summary>
 	/// <see cref="ContentVisibility.HideFolderContents" />: locks the keeper and marks the folder and all children as encrypted.
 	/// </summary>
 	[Test]

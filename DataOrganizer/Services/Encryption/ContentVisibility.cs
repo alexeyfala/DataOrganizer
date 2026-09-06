@@ -53,13 +53,8 @@ public sealed class ContentVisibility : IContentVisibility
 	public void DiscardAllKeys() => _sessionKeyStore.LockAll();
 
 	/// <inheritdoc />
-	public void DiscardKeys(ExplorerModelBaseDto item)
+	public void DiscardKeys(FolderModelDto folder)
 	{
-		if (item is not FolderModelDto folder)
-		{
-			return;
-		}
-
 		// A folder that keeps no key is simply not in the store, so being a keeper is not worth a test.
 		_sessionKeyStore.Lock(folder.Id);
 

@@ -17,9 +17,9 @@ public interface IContentVisibility
 	void DiscardAllKeys();
 
 	/// <summary>
-	/// Drops the session keys of the folders an object covers, whatever their contents show.
+	/// Drops the session keys of a folder and of every folder beneath it, whatever their contents show.
 	/// </summary>
-	void DiscardKeys(ExplorerModelBaseDto item);
+	void DiscardKeys(FolderModelDto folder);
 
 	/// <summary>
 	/// Hides contents of the whole hierarchy.
