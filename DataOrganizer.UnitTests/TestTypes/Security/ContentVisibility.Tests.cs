@@ -28,6 +28,103 @@ internal class ContentVisibilityTests
 {
 	#region Methods
 	/// <summary>
+	/// <see cref="ContentVisibility.DiscardAllKeys" />: drops every held key.
+	/// </summary>
+	[Test]
+	public void DiscardAllKeys_Does_Work()
+	{
+		// Arrange
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardAllKeys();
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.LockAll();
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardKeys" />: drops the keys of the folder and of every folder beneath it,
+	/// even while their contents are shown.
+	/// </summary>
+	[Test]
+	public void DiscardKeys_Does_Work()
+	{
+		// Arrange
+		FolderModelDto keeper = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		nested.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		nested.Parent = keeper;
+
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		nested
+			.Children
+			.Add(file);
+
+		keeper
+			.Children
+			.Add(nested);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardKeys(keeper);
+
+		// Assert
+		sessionKeyStore
+			.Received(1)
+			.Lock(keeper.Id);
+
+		sessionKeyStore
+			.Received(1)
+			.Lock(nested.Id);
+
+		sessionKeyStore
+			.DidNotReceive()
+			.Lock(file.Id);
+	}
+
+	/// <summary>
+	/// <see cref="ContentVisibility.DiscardKeys" />: a file keeps no key of its own, so it leaves the store alone.
+	/// </summary>
+	[Test]
+	public void DiscardKeys_Leaves_The_Store_Alone_For_A_File()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(sessionKeyStore));
+
+		ContentVisibility sut = mock.Create<ContentVisibility>();
+
+		// Act
+		sut.DiscardKeys(file);
+
+		// Assert
+		sessionKeyStore
+			.DidNotReceiveWithAnyArgs()
+			.Lock(default);
+	}
+
+	/// <summary>
 	/// <see cref="ContentVisibility.HideFolderContents" />: locks the keeper and marks the folder and all children as encrypted.
 	/// </summary>
 	[Test]

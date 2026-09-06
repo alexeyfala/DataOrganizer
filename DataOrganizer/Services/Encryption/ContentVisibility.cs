@@ -50,6 +50,26 @@ public sealed class ContentVisibility : IContentVisibility
 
 	#region Methods
 	/// <inheritdoc />
+	public void DiscardAllKeys() => _sessionKeyStore.LockAll();
+
+	/// <inheritdoc />
+	public void DiscardKeys(ExplorerModelBaseDto item)
+	{
+		if (item is not FolderModelDto folder)
+		{
+			return;
+		}
+
+		// A folder that keeps no key is simply not in the store, so being a keeper is not worth a test.
+		_sessionKeyStore.Lock(folder.Id);
+
+		folder
+			.GetAllChildren()
+			.OfType<FolderModelDto>()
+			.ForEach(x => _sessionKeyStore.Lock(x.Id));
+	}
+
+	/// <inheritdoc />
 	public void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		hierarchy
