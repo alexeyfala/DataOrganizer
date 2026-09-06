@@ -31,6 +31,15 @@ internal sealed partial class NoteView : UserControl
 	}
 
 	/// <summary>
+	/// <c>True</c> when the note is sensitive: a copy of it carries the clipboard sensitivity markers.
+	/// </summary>
+	public bool IsSensitive
+	{
+		get => GetValue(IsSensitiveProperty);
+		set => SetValue(IsSensitiveProperty, value);
+	}
+
+	/// <summary>
 	/// Note in plain text, used when <see cref="NoteReader" /> is not set.
 	/// </summary>
 	public string? Note
@@ -87,6 +96,12 @@ internal sealed partial class NoteView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsLockedProperty = AvaloniaProperty
 		.Register<NoteView, bool>(name: nameof(IsLocked));
+
+	/// <summary>
+	/// Identifies the <see cref="IsSensitive" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsSensitiveProperty = AvaloniaProperty
+		.Register<NoteView, bool>(name: nameof(IsSensitive));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
