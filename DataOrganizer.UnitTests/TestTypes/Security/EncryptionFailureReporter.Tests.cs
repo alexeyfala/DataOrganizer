@@ -1,10 +1,11 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommunityToolkit.Mvvm.Messaging;
+using DataOrganizer.DTO;
 using DataOrganizer.Enums;
-using DataOrganizer.Messages;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Services.Encryption;
+using DataOrganizer.UnitTests.Helpers;
 using Shared.Properties;
 using System;
 using System.Security.Authentication;
@@ -23,7 +24,7 @@ internal class EncryptionFailureReporterTests
 	public void Report_Tells_About_A_Wrong_Password()
 	{
 		// Act
-		ShowSnackbarMessage? received = Report(new InvalidCredentialException());
+		SnackbarContent? received = Report(new InvalidCredentialException());
 
 		// Assert
 		received
@@ -49,7 +50,7 @@ internal class EncryptionFailureReporterTests
 	public void Report_Tells_About_An_Unprocessable_Content()
 	{
 		// Act
-		ShowSnackbarMessage? received = Report(new InvalidOperationException());
+		SnackbarContent? received = Report(new InvalidOperationException());
 
 		// Assert
 		received
@@ -74,7 +75,7 @@ internal class EncryptionFailureReporterTests
 	public void Report_Tells_About_Damaged_Data()
 	{
 		// Act
-		ShowSnackbarMessage? received = Report(new AuthenticationTagMismatchException());
+		SnackbarContent? received = Report(new AuthenticationTagMismatchException());
 
 		// Assert
 		received
@@ -95,25 +96,19 @@ internal class EncryptionFailureReporterTests
 
 	#region Helpers
 	/// <summary>
-	/// Reports the failure and returns the snackbar message the reporter has sent.
+	/// Reports the failure and returns the snackbar the reporter has asked for.
 	/// </summary>
-	private static ShowSnackbarMessage? Report(Exception failure)
+	private static SnackbarContent? Report(Exception failure)
 	{
-		StrongReferenceMessenger messenger = new();
+		RecordingSnackbarService snackbar = new();
 
-		ShowSnackbarMessage? received = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => received = message);
-
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(messenger).As<IMessenger>());
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<ISnackbarService>(snackbar));
 
 		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
 
 		sut.Report(failure);
 
-		return received;
+		return snackbar.Shown;
 	}
 	#endregion
 }

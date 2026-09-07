@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
@@ -106,6 +105,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
+	/// <inheritdoc cref="ISnackbarService" />
+	protected readonly ISnackbarService _snackbar;
+
 	/// <summary>
 	/// Last properties persisted to the database.
 	/// Intended to skip persistence when properties match what is already stored.
@@ -130,6 +132,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
@@ -145,6 +148,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_snackbar = snackbar;
 
 		messenger.RegisterAll(this);
 	}
@@ -235,14 +240,6 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		[
 			x => x.SetProperty(x => x.Properties, json)
 		], token);
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	protected void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.ShowSnackbar(message, level);
 	}
 
 	/// <summary>

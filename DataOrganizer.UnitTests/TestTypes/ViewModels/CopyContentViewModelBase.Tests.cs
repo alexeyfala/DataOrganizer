@@ -118,6 +118,7 @@ internal class CopyContentViewModelBaseTests
 			IDialogService dialogService,
 			ILogger logger,
 			IMessenger messenger,
+			ISnackbarService snackbar,
 			ITaskExceptionHandler exceptionHandler) : base(
 				app,
 				clipboard,
@@ -126,6 +127,7 @@ internal class CopyContentViewModelBaseTests
 				dialogService,
 				logger,
 				messenger,
+				snackbar,
 				exceptionHandler)
 		{
 		}

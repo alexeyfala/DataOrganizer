@@ -5,9 +5,11 @@ using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Shared.Common;
 
@@ -30,11 +32,9 @@ internal class NoteReaderTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -47,6 +47,8 @@ internal class NoteReaderTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteReader sut = mock.Create<NoteReader>();
@@ -59,11 +61,11 @@ internal class NoteReaderTests
 			.Should()
 			.BeNull();
 
-		receivedSnackbar
+		snackbar.Shown
 			.Should()
 			.NotBeNull();
 
-		receivedSnackbar.Level
+		snackbar.Shown.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);
 	}
@@ -118,17 +120,17 @@ internal class NoteReaderTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteReader sut = mock.Create<NoteReader>();
@@ -141,7 +143,7 @@ internal class NoteReaderTests
 			.Should()
 			.BeNull();
 
-		receivedSnackbar
+		snackbar.Shown
 			.Should()
 			.BeNull();
 

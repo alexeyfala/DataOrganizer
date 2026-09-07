@@ -7,9 +7,11 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Execution;
+using DataOrganizer.UnitTests.Helpers;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -303,13 +305,11 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		FileModelDto? receivedClosedFile = null;
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.File);
 
@@ -351,6 +351,8 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -367,11 +369,11 @@ internal class FileChangeTrackerTests
 		// Act
 		await sut.TrackChangesAsync(parameters);
 
-		receivedSnackbar
+		snackbar.Shown
 			.Should()
 			.NotBeNull();
 
-		receivedSnackbar
+		snackbar.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);

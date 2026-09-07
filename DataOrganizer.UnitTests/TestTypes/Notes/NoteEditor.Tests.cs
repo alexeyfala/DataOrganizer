@@ -4,9 +4,10 @@ using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using DataOrganizer.Services.Notes;
+using DataOrganizer.UnitTests.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -37,11 +38,9 @@ internal class NoteEditorTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -65,6 +64,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -84,7 +85,7 @@ internal class NoteEditorTests
 			.Should()
 			.BeNull();
 
-		receivedSnackbar?.Text
+		snackbar.Shown?.Text
 			.Should()
 			.Be(Strings.NoteHasBeenDeleted);
 	}
@@ -102,11 +103,9 @@ internal class NoteEditorTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -119,6 +118,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -138,7 +139,7 @@ internal class NoteEditorTests
 			.Should()
 			.BeNull();
 
-		receivedSnackbar?.Text
+		snackbar.Shown?.Text
 			.Should()
 			.Be(Strings.FailedToSaveNote);
 	}
@@ -156,11 +157,9 @@ internal class NoteEditorTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -175,6 +174,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -190,7 +191,7 @@ internal class NoteEditorTests
 			.Should()
 			.BeFalse();
 
-		receivedSnackbar?.Text
+		snackbar.Shown?.Text
 			.Should()
 			.Be(Strings.FailedToSaveNote);
 
@@ -213,11 +214,9 @@ internal class NoteEditorTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -232,6 +231,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -247,7 +248,7 @@ internal class NoteEditorTests
 			.Should()
 			.BeFalse();
 
-		receivedSnackbar?.Text
+		snackbar.Shown?.Text
 			.Should()
 			.Be(Strings.FailedToSaveNote);
 
@@ -274,11 +275,9 @@ internal class NoteEditorTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -300,6 +299,8 @@ internal class NoteEditorTests
 			builder.RegisterInstance(noteCipher);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -323,7 +324,7 @@ internal class NoteEditorTests
 			.Should()
 			.Be(updatedDate);
 
-		receivedSnackbar?.Text
+		snackbar.Shown?.Text
 			.Should()
 			.Be(Strings.NoteHasBeenSaved);
 

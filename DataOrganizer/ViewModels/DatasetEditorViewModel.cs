@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
@@ -68,7 +67,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.FailedToProcessContents);
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
@@ -88,7 +87,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -121,7 +120,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, assertDebug: false);
 
-			SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -612,6 +611,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -619,6 +619,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			jsonSerializer,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;

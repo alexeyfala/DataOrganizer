@@ -1,6 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using Serilog;
 using Shared.Extensions;
@@ -18,16 +16,16 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
-	public EncryptionFailureReporter(ILogger logger, IMessenger messenger)
+	public EncryptionFailureReporter(ILogger logger, ISnackbarService snackbar)
 	{
 		_logger = logger;
 
-		_messenger = messenger;
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -40,7 +38,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			_logger.LogWarning(
 				$"The password, or the derivation cost and the salt beside it, has been rejected: {callerName}");
 
-			_messenger.ShowSnackbar(Strings.IncorrectPassword, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.IncorrectPassword);
 
 			return;
 		}
@@ -51,7 +49,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			? Strings.EncryptedDataIsDamaged
 			: Strings.FailedToProcessContents;
 
-		_messenger.ShowSnackbar(text, SnackbarMessageLevel.Error);
+		_snackbar.ShowError(text);
 	}
 	#endregion
 }

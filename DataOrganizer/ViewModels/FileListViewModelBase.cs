@@ -119,9 +119,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_messenger.ShowSnackbar(
-					$@"{Strings.ThereIsNoContentFor} ""{file.Name}""",
-					SnackbarMessageLevel.Information);
+				_snackbar.ShowInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;
 			}
@@ -165,6 +163,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IDialogService dialogService,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
@@ -173,6 +172,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			dialogService,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 	}

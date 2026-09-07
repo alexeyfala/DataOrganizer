@@ -91,6 +91,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
+
 	/// <inheritdoc cref="IXmlSerializerWrapper" />
 	private readonly IXmlSerializerWrapper _xmlSerializer;
 	#endregion
@@ -140,6 +143,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
@@ -157,6 +161,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_messenger = messenger;
 
 		_picker = picker;
+
+		_snackbar = snackbar;
 
 		_xmlSerializer = xmlSerializer;
 	}
@@ -204,13 +210,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_messenger.ShowSnackbar(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
+			_snackbar.ShowInformation(Strings.DataExportCompleted);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_messenger.ShowSnackbar(Strings.FailedToExportData, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.FailedToExportData);
 		}
 	}
 
@@ -255,7 +261,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (backup is null)
 		{
-			_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.UnableToCreateDatabaseBackup);
 
 			return null;
 		}
@@ -278,7 +284,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_snackbar.ShowError(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -296,7 +302,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_snackbar.ShowError(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -314,7 +320,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_snackbar.ShowError(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -339,9 +345,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						assertDebug: false);
 				});
 
-				_messenger.ShowSnackbar(
-					unreadable.GetUnreadableHotkeysPresentation(),
-					SnackbarMessageLevel.Error);
+				_snackbar.ShowError(unreadable.GetUnreadableHotkeysPresentation());
 			}
 
 			return new(objects, variant);
@@ -350,7 +354,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			_messenger.ShowSnackbar(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.FailedToImportData);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backup.FilePath, token)

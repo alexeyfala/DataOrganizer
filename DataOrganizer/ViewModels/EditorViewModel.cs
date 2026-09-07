@@ -227,7 +227,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_snackbar.ShowInformation(Strings.MissingFiles);
 
 			return;
 		}
@@ -292,7 +292,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_snackbar.ShowInformation(Strings.MissingFiles);
 
 			return;
 		}
@@ -368,7 +368,7 @@ public partial class EditorViewModel :
 		{
 			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
 
-			ShowErrorSnackbar(errorText);
+			_snackbar.ShowError(errorText);
 
 			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
 				true,
@@ -402,7 +402,7 @@ public partial class EditorViewModel :
 			{
 				_logger.LogException(ex);
 
-				ShowErrorSnackbar(Strings.FailedToProcessContents);
+				_snackbar.ShowError(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -563,7 +563,7 @@ public partial class EditorViewModel :
 
 		AddHierarchy(result.ImportedItems);
 
-		ShowInfoSnackbar(Strings.DataImportCompleted);
+		_snackbar.ShowInformation(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
@@ -662,7 +662,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_snackbar.ShowInformation(Strings.MissingFiles);
 
 			return;
 		}
@@ -1144,7 +1144,7 @@ public partial class EditorViewModel :
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		IProcessUtils processUtils,
-		ISnackbarQueue snackbarQueue,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1159,7 +1159,7 @@ public partial class EditorViewModel :
 			executionEngine,
 			logger,
 			messenger,
-			snackbarQueue,
+			snackbar,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
@@ -1856,7 +1856,7 @@ public partial class EditorViewModel :
 
 		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
 
-		ShowErrorSnackbar(Strings.FailedToProcessContents);
+		_snackbar.ShowError(Strings.FailedToProcessContents);
 
 		return false;
 	}

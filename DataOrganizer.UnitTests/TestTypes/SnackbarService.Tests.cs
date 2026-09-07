@@ -1,18 +1,18 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using DataOrganizer.Services;
+using DataOrganizer.UnitTests.Helpers;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SnackbarQueue)}"" type")]
-internal class SnackbarQueueTests
+[TestFixture(Description = $@"Tests of ""{nameof(SnackbarService)}"" type")]
+internal class SnackbarServiceTests
 {
 	#region Data
 	/// <summary>
@@ -23,12 +23,12 @@ internal class SnackbarQueueTests
 	/// <summary>
 	/// Time after which a shown message frees the host for the next one.
 	/// </summary>
-	private static readonly TimeSpan WholeTurn = SnackbarQueue.MessageDuration + TimeSpan.FromSeconds(1.0);
+	private static readonly TimeSpan WholeTurn = SnackbarService.MessageDuration + TimeSpan.FromSeconds(1.0);
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// <see cref="SnackbarQueue.Show" />: messages on top of the limit are dropped instead of piling up.
+	/// <see cref="SnackbarService.ShowInformation" />: messages on top of the limit are dropped instead of piling up.
 	/// </summary>
 	[Test]
 	public void Show_Drops_A_Message_When_Too_Many_Are_Waiting()
@@ -36,26 +36,37 @@ internal class SnackbarQueueTests
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
+		FakeTimeProvider time = new();
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+
+		SnackbarService sut = mock.Create<SnackbarService>();
 
 		for (int i = 0; i <= MaxWaiting; i++)
 		{
-			sut.Show(CreateMessage($"message {i}"));
+			sut.ShowInformation($"message {i}");
 		}
 
 		// Act
-		bool result = sut.Show(CreateMessage("dropped"));
+		sut.ShowInformation("dropped");
 
 		// Assert
-		result
-			.Should()
-			.BeFalse();
+		for (int i = 0; i <= MaxWaiting; i++)
+		{
+			time.Advance(WholeTurn);
+
+			sut.Tick();
+		}
+
+		presenter
+			.DidNotReceive()
+			.Post(
+				Arg.Is<SnackbarContent>(x => x.Text == "dropped"),
+				Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Show" />: a message that arrives while another one is shown waits for its turn.
+	/// <see cref="SnackbarService.ShowInformation" />: a message that arrives while another one is shown waits for its turn.
 	/// </summary>
 	[Test]
 	public void Show_Holds_A_Message_While_Another_One_Is_Shown()
@@ -65,26 +76,23 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
 		// Act
-		bool result = sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		presenter
 			.DidNotReceive()
 			.Post(
-				Arg.Is<ShowSnackbarMessage>(x => x.Text == "second"),
+				Arg.Is<SnackbarContent>(x => x.Text == "second"),
 				Arg.Any<TimeSpan>());
 	}
+
 	/// <summary>
-	/// <see cref="SnackbarQueue.Show" />: the first message goes to the host without waiting.
+	/// <see cref="SnackbarService.ShowInformation" />: the first message goes to the host without waiting.
 	/// </summary>
 	[Test]
 	public void Show_Posts_The_First_Message_At_Once()
@@ -94,28 +102,24 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
 		// Act
-		bool result = sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
 		// Assert
-		result
-			.Should()
-			.BeTrue();
-
 		presenter
 			.Received(1)
 			.Post(
-				Arg.Is<ShowSnackbarMessage>(x => x.Text == "first"),
-				SnackbarQueue.MessageDuration);
+				Arg.Is<SnackbarContent>(x => x.Text == "first"),
+				SnackbarService.MessageDuration);
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Show" />: nothing is shown while the application has no host.
+	/// <see cref="SnackbarService.ShowInformation" />: nothing is shown while the application has no host.
 	/// </summary>
 	[Test]
-	public void Show_Reports_A_Missing_Host()
+	public void Show_Skips_A_Message_When_There_Is_No_Host()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
@@ -126,23 +130,19 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
 		// Act
-		bool result = sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
 		// Assert
-		result
-			.Should()
-			.BeFalse();
-
 		presenter
 			.DidNotReceive()
-			.Post(Arg.Any<ShowSnackbarMessage>(), Arg.Any<TimeSpan>());
+			.Post(Arg.Any<SnackbarContent>(), Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Tick" />: waiting messages are dropped once the application has no host left.
+	/// <see cref="SnackbarService.Tick" />: waiting messages are dropped once the application has no host left.
 	/// </summary>
 	[Test]
 	public void Tick_Drops_Waiting_Messages_When_The_Host_Is_Gone()
@@ -154,11 +154,11 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
-		sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
 		time.Advance(WholeTurn);
 
@@ -177,12 +177,12 @@ internal class SnackbarQueueTests
 		presenter
 			.DidNotReceive()
 			.Post(
-				Arg.Is<ShowSnackbarMessage>(x => x.Text == "second"),
+				Arg.Is<SnackbarContent>(x => x.Text == "second"),
 				Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Tick" />: waiting messages reach the host in the order they were shown in.
+	/// <see cref="SnackbarService.Tick" />: waiting messages reach the host in the order they were shown in.
 	/// </summary>
 	[Test]
 	public void Tick_Keeps_The_Order()
@@ -194,13 +194,13 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
-		sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
-		sut.Show(CreateMessage("third"));
+		sut.ShowInformation("third");
 
 		// Act
 		time.Advance(WholeTurn);
@@ -214,16 +214,16 @@ internal class SnackbarQueueTests
 		// Assert
 		Received.InOrder(() =>
 		{
-			presenter.Post(Arg.Is<ShowSnackbarMessage>(x => x.Text == "first"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"), Arg.Any<TimeSpan>());
 
-			presenter.Post(Arg.Is<ShowSnackbarMessage>(x => x.Text == "second"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"), Arg.Any<TimeSpan>());
 
-			presenter.Post(Arg.Is<ShowSnackbarMessage>(x => x.Text == "third"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "third"), Arg.Any<TimeSpan>());
 		});
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Tick" />: a waiting message is left alone until the shown one goes away.
+	/// <see cref="SnackbarService.Tick" />: a waiting message is left alone until the shown one goes away.
 	/// </summary>
 	[Test]
 	public void Tick_Leaves_A_Message_Waiting_Until_Its_Turn()
@@ -235,11 +235,11 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
-		sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
 		// Act
 		bool keepTicking = sut.Tick();
@@ -252,12 +252,12 @@ internal class SnackbarQueueTests
 		presenter
 			.DidNotReceive()
 			.Post(
-				Arg.Is<ShowSnackbarMessage>(x => x.Text == "second"),
+				Arg.Is<SnackbarContent>(x => x.Text == "second"),
 				Arg.Any<TimeSpan>());
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Tick" />: the waiting message is shown once the host is free.
+	/// <see cref="SnackbarService.Tick" />: the waiting message is shown once the host is free.
 	/// </summary>
 	[Test]
 	public void Tick_Posts_The_Waiting_Message()
@@ -269,11 +269,11 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
-		sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
 		time.Advance(WholeTurn);
 
@@ -288,12 +288,12 @@ internal class SnackbarQueueTests
 		presenter
 			.Received(1)
 			.Post(
-				Arg.Is<ShowSnackbarMessage>(x => x.Text == "second"),
-				SnackbarQueue.MessageDuration);
+				Arg.Is<SnackbarContent>(x => x.Text == "second"),
+				SnackbarService.MessageDuration);
 	}
 
 	/// <summary>
-	/// <see cref="SnackbarQueue.Tick" />: the loop stops when the last message has gone away.
+	/// <see cref="SnackbarService.Tick" />: the loop stops when the last message has gone away.
 	/// </summary>
 	[Test]
 	public void Tick_Stops_When_Nothing_Is_Waiting()
@@ -305,11 +305,11 @@ internal class SnackbarQueueTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
 
-		SnackbarQueue sut = mock.Create<SnackbarQueue>();
+		SnackbarService sut = mock.Create<SnackbarService>();
 
-		sut.Show(CreateMessage("first"));
+		sut.ShowInformation("first");
 
-		sut.Show(CreateMessage("second"));
+		sut.ShowInformation("second");
 
 		time.Advance(WholeTurn);
 
@@ -328,14 +328,6 @@ internal class SnackbarQueueTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Creates a message with the given text.
-	/// </summary>
-	private static ShowSnackbarMessage CreateMessage(string text)
-	{
-		return new(text, SnackbarMessageLevel.Information);
-	}
-
 	/// <summary>
 	/// Creates a presenter with a host ready to show messages.
 	/// </summary>
@@ -358,6 +350,10 @@ internal class SnackbarQueueTests
 		ISnackbarPresenter presenter,
 		TimeProvider timeProvider)
 	{
+		builder
+			.RegisterInstance(new InlineDispatcherAccessor())
+			.As<IDispatcherAccessor>();
+
 		builder.RegisterInstance(presenter);
 
 		builder

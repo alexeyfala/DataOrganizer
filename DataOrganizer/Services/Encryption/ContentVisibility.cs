@@ -4,6 +4,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using Shared.Extensions;
 using Shared.Properties;
@@ -29,6 +30,9 @@ public sealed class ContentVisibility : IContentVisibility
 
 	/// <inheritdoc cref="ISessionKeyStore" />
 	private readonly ISessionKeyStore _sessionKeyStore;
+
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -36,7 +40,8 @@ public sealed class ContentVisibility : IContentVisibility
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore)
+		ISessionKeyStore sessionKeyStore,
+		ISnackbarService snackbar)
 	{
 		_failureReporter = failureReporter;
 
@@ -45,6 +50,8 @@ public sealed class ContentVisibility : IContentVisibility
 		_messenger = messenger;
 
 		_sessionKeyStore = sessionKeyStore;
+
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -117,7 +124,7 @@ public sealed class ContentVisibility : IContentVisibility
 
 			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
-				_messenger.ShowSnackbar(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.FailedToShowFileContents);
 
 				return false;
 			}
@@ -161,7 +168,7 @@ public sealed class ContentVisibility : IContentVisibility
 				return;
 			}
 
-			_messenger.ShowSnackbar(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(Strings.FailedToShowFileContents);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{

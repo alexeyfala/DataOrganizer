@@ -1,13 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Media;
-//using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -16,18 +13,14 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
-//using Material.Styles.Controls;
-//using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
-//using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-//using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +31,6 @@ namespace DataOrganizer.ViewModels;
 /// </summary>
 public abstract partial class ViewModelBase :
 	CopyContentViewModelBase,
-	IRecipient<ShowSnackbarMessage>,
 	IRecipient<CloseExecutingFileMessage>,
 	IRecipient<SessionAutoLockedMessage>
 {
@@ -76,14 +68,6 @@ public abstract partial class ViewModelBase :
 	/// Opened in editor files.
 	/// </summary>
 	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
-
-	/*
-	/// <summary>
-	/// Snackbar's text color.
-	/// </summary>
-	[ObservableProperty]
-	public partial IBrush? SnackbarForeground { get; set; }
-	*/
 	#endregion
 
 	#region Auto-Generated Commands
@@ -158,9 +142,6 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IAppSettingsStore" />
 	protected readonly IAppSettingsStore _settingsStore;
 
-	/// <inheritdoc cref="ISnackbarQueue" />
-	protected readonly ISnackbarQueue _snackbarQueue;
-
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
 
@@ -181,7 +162,7 @@ public abstract partial class ViewModelBase :
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarQueue snackbarQueue,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -192,6 +173,7 @@ public abstract partial class ViewModelBase :
 			dialogService,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 		_contentVisibility = contentVisibility;
@@ -203,8 +185,6 @@ public abstract partial class ViewModelBase :
 		_keyboardInputHook = keyboardInputHook;
 
 		_settingsStore = settingsStore;
-
-		_snackbarQueue = snackbarQueue;
 
 		_viewLauncher = viewLauncher;
 
@@ -272,17 +252,6 @@ public abstract partial class ViewModelBase :
 		_exceptionHandler.Watch(LockAsync());
 	}
 
-	/// <inheritdoc />
-	public void Receive(ShowSnackbarMessage message)
-	{
-		ShowSnackbar(message.Text, message.Level);
-	}
-
-	/// <summary>
-	/// Shows the snackbar with <see cref="Brushes.OrangeRed" /> text color.
-	/// </summary>
-	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Error);
-
 	/// <summary>
 	/// Displays object in the "Editor" window.
 	/// </summary>
@@ -290,16 +259,6 @@ public abstract partial class ViewModelBase :
 		Guid id,
 		Window window,
 		CancellationToken token = default);
-
-	/// <summary>
-	/// Shows the snackbar with default text color.
-	/// </summary>
-	public void ShowInfoSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Information);
-
-	/// <summary>
-	/// Shows the snackbar with <see cref="Brushes.Orange" /> text color.
-	/// </summary>
-	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
 
 	/// <summary>
 	/// Closes editing and executing files.
@@ -393,16 +352,6 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Helpers
-	///// <summary>
-	///// <c>True</c> when at least one <see cref="SnackbarHost" /> is registered in the application.
-	///// </summary>
-	//private static bool IsSnackbarHostLoaded()
-	//{
-	//	return typeof(SnackbarHost)
-	//		.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
-	//		?.GetValue(null) is IDictionary registered && registered.Count > 0;
-	//}
-
 	/// <summary>
 	/// Hides the decrypted contents after the auto-lock expiry, closing the open files first.
 	/// </summary>
@@ -425,7 +374,7 @@ public abstract partial class ViewModelBase :
 
 		NotifyDecryptedContentsChanged();
 
-		ShowInfoSnackbar(Strings.ContentsHiddenByAutoLock);
+		_snackbar.ShowInformation(Strings.ContentsHiddenByAutoLock);
 	}
 
 	/// <inheritdoc cref="SaveCopyHistory()" />
@@ -453,41 +402,6 @@ public abstract partial class ViewModelBase :
 					.Remove(item);
 			}
 		}
-	}
-
-	/// <summary>
-	/// Shows the snackbar with default text color.
-	/// </summary>
-	private void ShowSnackbar(string text, SnackbarMessageLevel level)
-	{
-		if (AppDomain
-			.CurrentDomain
-			.IsRunningFromNUnit())
-		{
-			return;
-		}
-
-		_dispatcher.Post(() =>
-		{
-			bool isLoaded = _snackbarQueue.Show(new ShowSnackbarMessage(text, level));
-
-			string message = $"{(isLoaded ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
-
-			switch (level)
-			{
-				case SnackbarMessageLevel.Warning:
-					_logger.LogWarning(message);
-					break;
-
-				case SnackbarMessageLevel.Error:
-					_logger.LogError(message, assertDebug: false);
-					break;
-
-				default:
-					_logger.LogInformation(message);
-					break;
-			}
-		});
 	}
 	#endregion
 }

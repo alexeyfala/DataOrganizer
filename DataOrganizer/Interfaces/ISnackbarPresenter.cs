@@ -1,4 +1,4 @@
-using DataOrganizer.Messages;
+using DataOrganizer.DTO;
 using System;
 
 namespace DataOrganizer.Interfaces;
@@ -19,6 +19,6 @@ public interface ISnackbarPresenter
 	/// <summary>
 	/// Shows a message for the given time.
 	/// </summary>
-	void Post(ShowSnackbarMessage message, TimeSpan duration);
+	void Post(SnackbarContent content, TimeSpan duration);
 	#endregion
 }

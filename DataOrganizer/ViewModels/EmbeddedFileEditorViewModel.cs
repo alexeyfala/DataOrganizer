@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
@@ -93,7 +92,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				IsContentCorrupted = true;
 
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.FailedToProcessContents);
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
@@ -227,6 +226,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -234,6 +234,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			jsonSerializer,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
@@ -486,7 +487,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				if (TryToEncrypt(latest) is not { } output)
 				{
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+					_snackbar.ShowError(Strings.FailedToProcessContents);
 
 					latest.ZeroMemory();
 

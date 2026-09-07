@@ -196,7 +196,7 @@ public sealed class App : Application
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
-		services.AddSingleton<ISnackbarQueue, SnackbarQueue>();
+		services.AddSingleton<ISnackbarService, SnackbarService>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion
 

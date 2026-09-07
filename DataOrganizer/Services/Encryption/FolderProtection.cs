@@ -50,6 +50,9 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -62,7 +65,8 @@ public sealed class FolderProtection : IFolderProtection
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		ISnackbarService snackbar)
 	{
 		_contentVisibility = contentVisibility;
 
@@ -81,6 +85,8 @@ public sealed class FolderProtection : IFolderProtection
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -134,7 +140,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			folder.EncryptedDek = encryptedDek;
 
-			_messenger.ShowSnackbar(Strings.PasswordChanged, SnackbarMessageLevel.Information);
+			_snackbar.ShowInformation(Strings.PasswordChanged);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
@@ -182,7 +188,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (!AreContentsValid(contents, files.Length))
 			{
-				_messenger.ShowSnackbar(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.FailedToLoadFilesContents);
 
 				return;
 			}
@@ -193,7 +199,7 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				LogInvalidContents(result);
 
-				_messenger.ShowSnackbar(Strings.EncryptedDataIsDamaged, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.EncryptedDataIsDamaged);
 
 				return;
 			}
@@ -210,7 +216,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (backup is null)
 			{
-				_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(Strings.UnableToCreateDatabaseBackup);
 
 				return;
 			}
@@ -282,7 +288,7 @@ public sealed class FolderProtection : IFolderProtection
 			{
 				if (!AreContentsValid(contents, files.Length))
 				{
-					_messenger.ShowSnackbar(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+					_snackbar.ShowError(Strings.FailedToLoadFilesContents);
 
 					return;
 				}
@@ -295,7 +301,7 @@ public sealed class FolderProtection : IFolderProtection
 				{
 					LogInvalidContents(result);
 
-					_messenger.ShowSnackbar(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+					_snackbar.ShowError(Strings.FailedToProcessContents);
 
 					return;
 				}
@@ -321,7 +327,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				if (backup is null)
 				{
-					_messenger.ShowSnackbar(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+					_snackbar.ShowError(Strings.UnableToCreateDatabaseBackup);
 
 					return;
 				}

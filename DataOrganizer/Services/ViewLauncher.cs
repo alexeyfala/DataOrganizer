@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
@@ -67,14 +66,14 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
-
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
 	/// <inheritdoc cref="ServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
+
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -92,9 +91,9 @@ public class ViewLauncher : IViewLauncher
 		IFileSystem fileSystem,
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
-		IMessenger messenger,
 		IExecutionSandbox sandbox,
 		IServiceProvider serviceProvider,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		Lazy<IKeyboardInputHook> keyboardInputHook)
@@ -123,11 +122,11 @@ public class ViewLauncher : IViewLauncher
 
 		_logger = logger;
 
-		_messenger = messenger;
-
 		_sandbox = sandbox;
 
 		_serviceProvider = serviceProvider;
+
+		_snackbar = snackbar;
 
 		_viewFactory = viewFactory;
 	}
@@ -712,7 +711,7 @@ public class ViewLauncher : IViewLauncher
 					? Strings.EncryptedDataIsDamaged
 					: Strings.FailedToUnlockClipboardHistory;
 
-				_messenger.ShowSnackbar(text, SnackbarMessageLevel.Error);
+				_snackbar.ShowError(text);
 
 				return;
 			}

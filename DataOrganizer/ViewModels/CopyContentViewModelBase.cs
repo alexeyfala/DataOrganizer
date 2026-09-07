@@ -50,6 +50,9 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 	/// <inheritdoc cref="IMessenger" />
 	protected readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISnackbarService" />
+	protected readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -61,6 +64,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		IDialogService dialogService,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
@@ -78,6 +82,8 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -115,7 +121,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				.IsExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
-				_messenger.ShowSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}", SnackbarMessageLevel.Error);
+				_snackbar.ShowError($@"""{file.Name}"" {Strings.DoesNotExist}");
 
 				return;
 			}
@@ -126,7 +132,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 			if (!result.IsValid)
 			{
-				_messenger.ShowSnackbar($@"{Strings.FailedToLoadFileContents} ""{file.Name}""", SnackbarMessageLevel.Error);
+				_snackbar.ShowError($@"{Strings.FailedToLoadFileContents} ""{file.Name}""");
 
 				return;
 			}
@@ -146,7 +152,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (string.IsNullOrEmpty(text))
 				{
-					_messenger.ShowSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""", SnackbarMessageLevel.Information);
+					_snackbar.ShowInformation($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 					return;
 				}

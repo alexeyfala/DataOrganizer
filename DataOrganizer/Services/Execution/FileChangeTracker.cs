@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages;
@@ -36,6 +36,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -44,7 +47,8 @@ public class FileChangeTracker : IFileChangeTracker
 		IDbAccess dbAccess,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		ISnackbarService snackbar)
 	{
 		_dbAccess = dbAccess;
 
@@ -55,6 +59,8 @@ public class FileChangeTracker : IFileChangeTracker
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -94,7 +100,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		void PublishFailure(string message)
 		{
-			_messenger.ShowSnackbar(message, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(message);
 
 			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
 		}

@@ -1,8 +1,8 @@
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -27,21 +27,21 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
 		ILogger logger,
-		IMessenger messenger)
+		ISnackbarService snackbar)
 	{
 		_dbAccess = dbAccess;
 
 		_logger = logger;
 
-		_messenger = messenger;
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -167,7 +167,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// </summary>
 	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
 	{
-		_messenger.ShowSnackbar(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+		_snackbar.ShowError(Strings.FailedToProcessContents);
 
 		// The rollback has to run even when the operation was cancelled.
 		await _dbAccess

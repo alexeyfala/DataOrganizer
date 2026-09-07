@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.ViewModels;
 using NSubstitute;
@@ -214,6 +215,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		null!,
 		null!,
 		Substitute.For<IMessenger>(),
+		Substitute.For<ISnackbarService>(),
 		null!)
 	{
 	}

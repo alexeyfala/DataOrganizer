@@ -201,6 +201,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		IDialogService dialogService,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
@@ -209,6 +210,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 			dialogService,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 		_categoriesFilter = new(

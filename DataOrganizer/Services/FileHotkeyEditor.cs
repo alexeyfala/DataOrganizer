@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.Messaging;
 using Comparation;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
@@ -31,8 +30,8 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	/// <inheritdoc cref="IMapper" />
 	private readonly IMapper _mapper;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -40,7 +39,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		IMapper mapper,
-		IMessenger messenger)
+		ISnackbarService snackbar)
 	{
 		_dbAccess = dbAccess;
 
@@ -48,7 +47,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 		_mapper = mapper;
 
-		_messenger = messenger;
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -77,9 +76,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
-			_messenger.ShowSnackbar(
-				$@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""",
-				SnackbarMessageLevel.Warning);
+			_snackbar.ShowWarning($@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
 
 			return OverwriteHotkeysResult.AlreadyInUse;
 		}

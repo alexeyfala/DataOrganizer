@@ -78,6 +78,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 		IDialogService dialogService,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
@@ -86,6 +87,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 			dialogService,
 			logger,
 			messenger,
+			snackbar,
 			exceptionHandler)
 	{
 		_filter = new(

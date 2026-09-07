@@ -1,7 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
-using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using Entities.Enums;
 using Entities.Models;
@@ -30,8 +27,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <inheritdoc cref="IMapper" />
 	private readonly IMapper _mapper;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
+	/// <inheritdoc cref="ISnackbarService" />
+	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -39,7 +36,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		IMapper mapper,
-		IMessenger messenger)
+		ISnackbarService snackbar)
 	{
 		_dbAccess = dbAccess;
 
@@ -47,7 +44,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		_mapper = mapper;
 
-		_messenger = messenger;
+		_snackbar = snackbar;
 	}
 	#endregion
 
@@ -82,7 +79,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
-			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(errorText);
 
 			_logger.LogError(errorText);
 
@@ -116,7 +113,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
-			_messenger.ShowSnackbar(successText, SnackbarMessageLevel.Information);
+			_snackbar.ShowInformation(successText);
 
 			_logger.LogInformation(successText);
 
@@ -146,7 +143,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
 
-			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(errorText);
 
 			_logger.LogError(errorText);
 
@@ -157,7 +154,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
 
-		_messenger.ShowSnackbar(text, SnackbarMessageLevel.Information);
+		_snackbar.ShowInformation(text);
 
 		_logger.LogInformation(text);
 
@@ -175,7 +172,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
 
-			_messenger.ShowSnackbar(warningText, SnackbarMessageLevel.Warning);
+			_snackbar.ShowWarning(warningText);
 
 			_logger.LogWarning(warningText);
 
@@ -201,7 +198,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
-			_messenger.ShowSnackbar(errorText, SnackbarMessageLevel.Error);
+			_snackbar.ShowError(errorText);
 
 			_logger.LogError(errorText);
 
@@ -210,7 +207,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
 
-		_messenger.ShowSnackbar(successText, SnackbarMessageLevel.Information);
+		_snackbar.ShowInformation(successText);
 
 		_logger.LogInformation(successText);
 

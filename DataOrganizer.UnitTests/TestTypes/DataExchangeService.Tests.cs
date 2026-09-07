@@ -8,8 +8,8 @@ using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using DataOrganizer.Services;
+using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.Windows;
 using Entities.Models;
 using NSubstitute;
@@ -545,11 +545,9 @@ internal class DataExchangeServiceTests
 		// Arrange
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		FileModelDto file = TestUtils.CreateFileDto();
 
@@ -598,6 +596,8 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance<IMessenger>(messenger);
 
+			builder.RegisterInstance<ISnackbarService>(snackbar);
+
 			builder.RegisterInstance(picker);
 		});
 
@@ -607,16 +607,16 @@ internal class DataExchangeServiceTests
 		await sut.ImportDataAsync([]);
 
 		// Assert
-		receivedSnackbar
+		snackbar.Shown
 			.Should()
 			.NotBeNull();
 
-		receivedSnackbar
+		snackbar.Shown
 			.Text
 			.Should()
 			.Contain(file.Name);
 
-		receivedSnackbar
+		snackbar.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);

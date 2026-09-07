@@ -8,7 +8,6 @@ using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
@@ -267,11 +266,9 @@ internal class ContentVisibilityTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? received = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => received = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -286,6 +283,8 @@ internal class ContentVisibilityTests
 			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
@@ -298,11 +297,11 @@ internal class ContentVisibilityTests
 			.Should()
 			.BeFalse();
 
-		received
+		snackbar.Shown
 			.Should()
 			.NotBeNull();
 
-		received
+		snackbar.Shown
 			.Text
 			.Should()
 			.Be(Strings.FailedToShowFileContents);
@@ -385,11 +384,9 @@ internal class ContentVisibilityTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? received = null;
+		RecordingSnackbarService snackbar = new();
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => received = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -404,6 +401,8 @@ internal class ContentVisibilityTests
 			builder.RegisterInstance(sessionKeyStore);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
+
+			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
@@ -412,16 +411,16 @@ internal class ContentVisibilityTests
 		await sut.ShowFolderContentsAsync(folder);
 
 		// Assert
-		received
+		snackbar.Shown
 			.Should()
 			.NotBeNull();
 
-		received
+		snackbar.Shown
 			.Text
 			.Should()
 			.Be(Strings.FailedToShowFileContents);
 
-		received
+		snackbar.Shown
 			.Level
 			.Should()
 			.Be(SnackbarMessageLevel.Error);

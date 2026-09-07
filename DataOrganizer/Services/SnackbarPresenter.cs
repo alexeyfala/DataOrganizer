@@ -1,6 +1,6 @@
 using Avalonia.Threading;
+using DataOrganizer.DTO;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using Material.Styles.Controls;
 using Material.Styles.Models;
 using System;
@@ -23,11 +23,11 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 
 	#region Methods
 	/// <inheritdoc />
-	public void Post(ShowSnackbarMessage message, TimeSpan duration)
+	public void Post(SnackbarContent content, TimeSpan duration)
 	{
 		// The level travels with the content so that the snackbar template colours its own text.
 		SnackbarHost.Post(
-			new SnackbarModel(message, duration),
+			new SnackbarModel(content, duration),
 			null,
 			DispatcherPriority.Normal);
 	}
