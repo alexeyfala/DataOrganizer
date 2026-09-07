@@ -1,6 +1,6 @@
+using Entities.Converters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SharpHook.Data;
-using System;
 
 namespace Repository.Converters;
 
@@ -20,11 +20,6 @@ public sealed class EventMaskNameConverter : ValueConverter<EventMask, string>
 	/// <summary>
 	/// Reads a stored name, accepting only the exact text that a written name has.
 	/// </summary>
-	private static EventMask Read(string value)
-	{
-		return Enum.TryParse(value, out EventMask mask) && string.Equals(mask.ToString(), value, StringComparison.Ordinal)
-			? mask
-			: EventMask.None;
-	}
+	private static EventMask Read(string value) => EnumNameReader.Read(value, EventMask.None);
 	#endregion
 }

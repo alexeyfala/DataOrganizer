@@ -1,3 +1,4 @@
+using Entities.Converters;
 using SharpHook.Data;
 using System;
 using System.Diagnostics;
@@ -18,9 +19,11 @@ public sealed class HotkeyModel : EntityModelBase
 {
 	#region Properties
 	/// <inheritdoc cref="KeyCode" />
+	[JsonConverter(typeof(KeyCodeJsonConverter))]
 	public required KeyCode Code { get; init; }
 
 	/// <inheritdoc cref="EventMask" />
+	[JsonConverter(typeof(EventMaskJsonConverter))]
 	public required EventMask Mask { get; init; }
 
 	/// <summary>

@@ -93,6 +93,7 @@
   <Folder Name="/Tests/">
     <Project Path="CommonTestHelpers/CommonTestHelpers.csproj" />
     <Project Path="DataOrganizer.UnitTests/DataOrganizer.UnitTests.csproj" />
+    <Project Path="Entities.UnitTests/Entities.UnitTests.csproj" />
     <Project Path="Repository.UnitTests/Repository.UnitTests.csproj" />
     <Project Path="Shared.UnitTests/Shared.UnitTests.csproj" />
   </Folder>

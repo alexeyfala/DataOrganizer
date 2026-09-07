@@ -1,6 +1,6 @@
+using Entities.Converters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SharpHook.Data;
-using System;
 
 namespace Repository.Converters;
 
@@ -20,11 +20,6 @@ public sealed class KeyCodeNameConverter : ValueConverter<KeyCode, string>
 	/// <summary>
 	/// Reads a stored name, accepting only the exact text that a written name has.
 	/// </summary>
-	private static KeyCode Read(string value)
-	{
-		return Enum.TryParse(value, out KeyCode code) && string.Equals(code.ToString(), value, StringComparison.Ordinal)
-			? code
-			: KeyCode.VcUndefined;
-	}
+	private static KeyCode Read(string value) => EnumNameReader.Read(value, KeyCode.VcUndefined);
 	#endregion
 }
