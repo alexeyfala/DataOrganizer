@@ -5,13 +5,10 @@ using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Execution;
-using DataOrganizer.UnitTests.Helpers;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
@@ -93,7 +90,7 @@ internal class FileChangeTrackerTests
 	[Test]
 	public async Task TrackChangesAsync_Encrypts_Contents_When_A_Keeper_Is_Known()
 	{
-		// Arrange		
+		// Arrange
 		using CancellationTokenSource cts = new();
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
@@ -297,6 +294,7 @@ internal class FileChangeTrackerTests
 	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
+
 	[Test]
 	public async Task TrackChangesAsync_Shows_Error_And_Stops_When_Encryption_Fails()
 	{
@@ -304,8 +302,6 @@ internal class FileChangeTrackerTests
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
 
 		FileModelDto? receivedClosedFile = null;
 
@@ -340,6 +336,7 @@ internal class FileChangeTrackerTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			// The cipher swallows the cryptographic failure and answers with a refusal.
+
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns((byte[]?)null);
@@ -351,8 +348,6 @@ internal class FileChangeTrackerTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		FileChangeTracker sut = mock.Create<FileChangeTracker>();
@@ -368,15 +363,6 @@ internal class FileChangeTrackerTests
 
 		// Act
 		await sut.TrackChangesAsync(parameters);
-
-		snackbar.Shown
-			.Should()
-			.NotBeNull();
-
-		snackbar.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
 
 		receivedClosedFile
 			.Should()

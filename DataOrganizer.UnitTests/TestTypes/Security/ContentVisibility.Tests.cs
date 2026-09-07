@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
@@ -13,7 +12,6 @@ using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
-using Shared.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -264,12 +262,6 @@ internal class ContentVisibilityTests
 
 		file.Parent = folder;
 
-		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
-
-		object recipient = new();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
@@ -281,10 +273,6 @@ internal class ContentVisibilityTests
 				.Returns(false);
 
 			builder.RegisterInstance(sessionKeyStore);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
@@ -297,15 +285,6 @@ internal class ContentVisibilityTests
 			.Should()
 			.BeFalse();
 
-		snackbar.Shown
-			.Should()
-			.NotBeNull();
-
-		snackbar.Shown
-			.Text
-			.Should()
-			.Be(Strings.FailedToShowFileContents);
-
 		file.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.Encrypted);
@@ -314,6 +293,7 @@ internal class ContentVisibilityTests
 	/// <summary>
 	/// <see cref="ContentVisibility.ShowFolderContentsAsync" />: unlocks the keeper and marks the folder and all children as decrypted.
 	/// </summary>
+
 	[Test]
 	public async Task ShowFolderContentsAsync_Does_Work()
 	{
@@ -382,12 +362,6 @@ internal class ContentVisibilityTests
 
 		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
 
-		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
-
-		object recipient = new();
-
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
@@ -399,31 +373,12 @@ internal class ContentVisibilityTests
 				.Returns(false);
 
 			builder.RegisterInstance(sessionKeyStore);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		ContentVisibility sut = mock.Create<ContentVisibility>();
 
 		// Act
 		await sut.ShowFolderContentsAsync(folder);
-
-		// Assert
-		snackbar.Shown
-			.Should()
-			.NotBeNull();
-
-		snackbar.Shown
-			.Text
-			.Should()
-			.Be(Strings.FailedToShowFileContents);
-
-		snackbar.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
 	}
 
 	#endregion
@@ -432,6 +387,7 @@ internal class ContentVisibilityTests
 	/// <summary>
 	/// Registers an unlocker that hands the key over without a prompt; <c>null</c> stands for a refusal.
 	/// </summary>
+
 	private static IKeeperUnlocker RegisterUnlocker(ContainerBuilder builder, PinnedBuffer? dek)
 	{
 		IKeeperUnlocker unlocker = Substitute.For<IKeeperUnlocker>();

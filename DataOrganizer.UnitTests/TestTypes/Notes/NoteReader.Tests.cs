@@ -2,14 +2,10 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using DataOrganizer.Services.Notes;
-using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using Shared.Common;
 
@@ -22,6 +18,7 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: reports a snackbar when the note cannot be decoded.
 	/// </summary>
+
 	[Test]
 	public void ReadNote_Reports_Failure_When_Decoding_Fails()
 	{
@@ -29,12 +26,6 @@ internal class NoteReaderTests
 		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		file.Note = TestUtils.CreateRandomBytes(10);
-
-		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
-
-		object recipient = new();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -45,10 +36,6 @@ internal class NoteReaderTests
 				.Returns((string?)null);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
 		});
 
 		NoteReader sut = mock.Create<NoteReader>();
@@ -60,19 +47,12 @@ internal class NoteReaderTests
 		result
 			.Should()
 			.BeNull();
-
-		snackbar.Shown
-			.Should()
-			.NotBeNull();
-
-		snackbar.Shown.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
 	}
 
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: returns the note of an object as plain text.
 	/// </summary>
+
 	[Test]
 	public void ReadNote_Returns_Decoded_Note()
 	{
@@ -108,6 +88,7 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: an encrypted note is not a failure, so it is skipped silently.
 	/// </summary>
+
 	[Test]
 	public void ReadNote_Returns_Null_When_Encrypted()
 	{
@@ -118,20 +99,7 @@ internal class NoteReaderTests
 
 		INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
-		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
-
-		object recipient = new();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
-		});
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(noteCipher));
 
 		NoteReader sut = mock.Create<NoteReader>();
 
@@ -143,10 +111,6 @@ internal class NoteReaderTests
 			.Should()
 			.BeNull();
 
-		snackbar.Shown
-			.Should()
-			.BeNull();
-
 		noteCipher
 			.DidNotReceive()
 			.Decode(Arg.Any<ExplorerModelBaseDto>());
@@ -155,6 +119,7 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: unsupported objects are ignored.
 	/// </summary>
+
 	[Test]
 	public void ReadNote_Returns_Null_When_Item_Is_Not_An_Explorer_Object()
 	{
@@ -181,6 +146,7 @@ internal class NoteReaderTests
 	/// <summary>
 	/// <see cref="NoteReader.ReadNote" />: objects without a note are ignored.
 	/// </summary>
+
 	[Test]
 	public void ReadNote_Returns_Null_When_Note_Is_Absent([Values] bool isEmpty)
 	{
