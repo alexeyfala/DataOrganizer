@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -339,7 +340,11 @@ internal class DataExchangeServiceTests
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
+				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new XDocument(new XElement("ArrayOfEntry")));
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
 				.Returns(default(ExplorerModelBase[]));
 
 			builder.RegisterInstance(fileSystem);
@@ -504,7 +509,11 @@ internal class DataExchangeServiceTests
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
+				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new XDocument(new XElement("ArrayOfEntry")));
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
 				.Returns([]);
 
 			builder.RegisterInstance(dbAccess);

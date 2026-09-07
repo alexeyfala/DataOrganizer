@@ -7,6 +7,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
+using Entities.Helpers;
 using Entities.Models;
 using Repository.DTO;
 using Repository.Enums;
@@ -24,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DataOrganizer.Services;
 
@@ -680,13 +682,19 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		// Streaming deserialization: XmlSerializer reads directly from the file
-		// without materializing the whole document as a string in memory.
+		// The document is read as a whole, so that hotkey names the library no longer knows
+		// can be replaced before the serializer rejects the whole file because of them.
 		ExplorerModelBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
-			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(stream);
+			XDocument document = await _xmlSerializer
+				.LoadDocumentAsync(stream, token)
+				.ConfigureAwait(false);
+
+			HotkeyXmlSanitizer.Sanitize(document);
+
+			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(document);
 		}
 
 		if (entities is null)
