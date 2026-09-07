@@ -679,4 +679,10 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>The database could not be read</value>
   </data>
+  <data name="FailedToReadHotkeys" xml:space="preserve">
+    <value>Hotkeys could not be read for the files</value>
+  </data>
+  <data name="AndMore" xml:space="preserve">
+    <value>and {0} more</value>
+  </data>
 </root>

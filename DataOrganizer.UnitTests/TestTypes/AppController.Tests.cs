@@ -1,5 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
+using CommonTestHelpers.Helpers;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
@@ -9,6 +10,8 @@ using NSubstitute;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using Shared.Properties;
+using SharpHook.Data;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +60,68 @@ internal class AppControllerTests
 
 			viewLauncher.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
 		});
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: hotkeys that could be read are passed over in silence.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Keeps_Silent_About_Readable_Hotkeys()
+	{
+		// Arrange
+		INotificationService notificationService = Substitute.For<INotificationService>();
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcA,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(notificationService);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		notificationService
+			.DidNotReceive()
+			.ShowToast(Arg.Any<string>());
 	}
 
 	/// <summary>
@@ -237,6 +302,68 @@ internal class AppControllerTests
 		viewLauncher
 			.Received()
 			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="AppController.LaunchAppAsync" />: hotkeys that could not be read are reported by the file they belong to.
+	/// </summary>
+	[Test]
+	public async Task LaunchAppAsync_Reports_Files_With_Unreadable_Hotkeys()
+	{
+		// Arrange
+		INotificationService notificationService = Substitute.For<INotificationService>();
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcUndefined,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
+
+			settingsStore
+				.Settings
+				.Returns(IAppSettingsStore.CreateDefaultSettings());
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.ConnectAsync(Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(notificationService);
+
+			builder.RegisterInstance(settingsStore);
+		});
+
+		AppController sut = mock.Create<AppController>();
+
+		// Act
+		await sut.LaunchAppAsync();
+
+		// Assert
+		notificationService
+			.Received(1)
+			.ShowToast(Arg.Is<string>(x => x.Contains(file.Name)));
 	}
 	#endregion
 }

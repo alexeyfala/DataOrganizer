@@ -182,6 +182,22 @@ public sealed class AppController : IAppController
 
 				_notificationService.ShowToast(Strings.FailedToReadDatabase);
 			}
+			else
+			{
+				FileModelDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+				if (unreadable.IsNotEmpty())
+				{
+					unreadable.ForEach(x =>
+					{
+						_logger.LogError(
+							$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
+							assertDebug: false);
+					});
+
+					_notificationService.ShowToast(unreadable.GetUnreadableHotkeysPresentation());
+				}
+			}
 
 			// TODO: Close splash screen here.
 

@@ -3,10 +3,12 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
 using Entities.Models;
@@ -16,6 +18,8 @@ using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using SharpHook.Data;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -521,6 +525,92 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.NotBeNull();
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read are reported by the file they belong to.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Reports_Files_With_Unreadable_Hotkeys()
+	{
+		// Arrange
+		StrongReferenceMessenger messenger = new();
+
+		ShowSnackbarMessage? receivedSnackbar = null;
+
+		object recipient = new();
+
+		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
+
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcUndefined,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			dbAccess
+				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.Returns(true);
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance<IMessenger>(messenger);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		await sut.ImportDataAsync([]);
+
+		// Assert
+		receivedSnackbar
+			.Should()
+			.NotBeNull();
+
+		receivedSnackbar
+			.Text
+			.Should()
+			.Contain(file.Name);
+
+		receivedSnackbar
+			.Level
+			.Should()
+			.Be(SnackbarMessageLevel.Error);
 	}
 
 	/// <summary>

@@ -124,6 +124,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to and {0} more.
+        /// </summary>
+        public static string AndMore {
+            get {
+                return ResourceManager.GetString("AndMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Appearance.
         /// </summary>
         public static string Appearance {
@@ -687,6 +696,15 @@ namespace Shared.Properties {
         public static string FailedToReadDatabase {
             get {
                 return ResourceManager.GetString("FailedToReadDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hotkeys could not be read for the files.
+        /// </summary>
+        public static string FailedToReadHotkeys {
+            get {
+                return ResourceManager.GetString("FailedToReadHotkeys", resourceCulture);
             }
         }
         

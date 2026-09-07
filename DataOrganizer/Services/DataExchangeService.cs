@@ -326,6 +326,22 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
+			FileModelDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
+
+			if (unreadable.IsNotEmpty())
+			{
+				unreadable.ForEach(x =>
+				{
+					_logger.LogError(
+						$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
+						assertDebug: false);
+				});
+
+				_messenger.ShowSnackbar(
+					unreadable.GetUnreadableHotkeysPresentation(),
+					SnackbarMessageLevel.Error);
+			}
+
 			return new(objects, variant);
 		}
 		catch (Exception ex)

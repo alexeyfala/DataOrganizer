@@ -699,4 +699,10 @@
   <data name="FailedToReadDatabase" xml:space="preserve">
     <value>Не удалось прочитать базу данных</value>
   </data>
+  <data name="FailedToReadHotkeys" xml:space="preserve">
+    <value>Не удалось прочитать горячие клавиши файлов</value>
+  </data>
+  <data name="AndMore" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
 </root>
