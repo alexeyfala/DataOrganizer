@@ -3,13 +3,11 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.Windows;
 using Entities.Models;
 using NSubstitute;
@@ -537,18 +535,12 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read are reported by the file they belong to.
+	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read do not stop the import.
 	/// </summary>
 	[Test]
-	public async Task ImportDataAsync_Reports_Files_With_Unreadable_Hotkeys()
+	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
 	{
 		// Arrange
-		StrongReferenceMessenger messenger = new();
-
-		RecordingSnackbarService snackbar = new();
-
-		object recipient = new();
-
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		file
@@ -594,32 +586,23 @@ internal class DataExchangeServiceTests
 
 			builder.RegisterInstance(entityLoader);
 
-			builder.RegisterInstance<IMessenger>(messenger);
-
-			builder.RegisterInstance<ISnackbarService>(snackbar);
-
 			builder.RegisterInstance(picker);
 		});
 
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		await sut.ImportDataAsync([]);
+		ImportDataResult? result = await sut.ImportDataAsync([]);
 
 		// Assert
-		snackbar.Shown
+		result
 			.Should()
 			.NotBeNull();
 
-		snackbar.Shown
-			.Text
+		result
+			.ImportedItems
 			.Should()
-			.Contain(file.Name);
-
-		snackbar.Shown
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
+			.Contain(file);
 	}
 
 	/// <summary>
