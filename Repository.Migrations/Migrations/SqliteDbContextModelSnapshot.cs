@@ -15,7 +15,7 @@ namespace Repository.Migrations.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
             modelBuilder.Entity("Entities.Models.ExplorerModelBase", b =>
                 {
@@ -65,14 +65,16 @@ namespace Repository.Migrations.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<ushort>("Code")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("Index")
                         .HasColumnType("INTEGER");
 
-                    b.Property<uint>("Mask")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Mask")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("TEXT");

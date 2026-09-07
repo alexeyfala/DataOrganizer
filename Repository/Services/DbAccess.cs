@@ -401,7 +401,7 @@ public sealed class DbAccess : IDbAccess
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
 
 			return false;
 		}
