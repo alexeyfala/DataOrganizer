@@ -463,27 +463,6 @@ public abstract partial class ViewModelBase :
 
 		_dispatcher.Post(() =>
 		{
-			/*
-			if (level == SnackbarMessageLevel.Information)
-			{
-				SnackbarForeground = _app.GetCurrentTheme() switch
-				{
-					CurrentTheme.Dark => Brushes.White,
-					CurrentTheme.Light => Brushes.Black,
-					_ => throw new NotImplementedException()
-				};
-			}
-			else
-			{
-				SnackbarForeground = level switch
-				{
-					SnackbarMessageLevel.Warning => Brushes.Orange,
-					SnackbarMessageLevel.Error => Brushes.OrangeRed,
-					_ => null
-				};
-			}
-			*/
-
 			bool isLoaded = IsSnackbarHostLoaded();
 
 			string message = $"{(isLoaded ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
