@@ -49,7 +49,7 @@
 				VerticalAlignment="Center"
 				FontSize="16.0"
 				Text="{Binding Message, Mode=OneWay}"
-				TextAlignment="Center"
+				TextAlignment="Left"
 				TextTrimming="CharacterEllipsis" />
 		</Grid>
 	</Border>

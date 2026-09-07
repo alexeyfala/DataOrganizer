@@ -761,7 +761,7 @@ internal class EnumerableExtensionsTests
 		{
 			result
 				.Should()
-				.Contain($@"""{file.Name}""");
+				.Contain($@"{Environment.NewLine}""{file.Name}""");
 		}
 	}
 

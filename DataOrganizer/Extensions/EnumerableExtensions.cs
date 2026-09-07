@@ -391,7 +391,7 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Builds the text that names the files whose hotkeys could not be read.
+	/// Builds the text that names the files whose hotkeys could not be read, a file per line.
 	/// </summary>
 	public static string GetUnreadableHotkeysPresentation(this FileModelDto[] files)
 	{
@@ -403,31 +403,22 @@ internal static class EnumerableExtensions
 
 		builder.Append(':');
 
-		builder.Append(' ');
-
 		int names = Math.Min(files.Length, maxNames);
 
 		for (int i = 0; i < names; i++)
 		{
+			builder.Append(Environment.NewLine);
+
 			builder.Append('"');
 
 			builder.Append(files[i].Name);
 
 			builder.Append('"');
-
-			if (i == names - 1)
-			{
-				continue;
-			}
-
-			builder.Append(',');
-
-			builder.Append(' ');
 		}
 
 		if (files.Length > maxNames)
 		{
-			builder.Append(' ');
+			builder.Append(Environment.NewLine);
 
 			builder.AppendFormat(Strings.AndMore, files.Length - maxNames);
 		}
