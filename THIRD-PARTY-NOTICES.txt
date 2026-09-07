@@ -14,14 +14,16 @@ manually because it is a native library bundled inside the SharpHook package.
 1. GNU Lesser General Public License, version 3.0 or later (LGPL-3.0-or-later)
 --------------------------------------------------------------------------
 
-  * libuiohook
+  * libuiohook 2.0.0
       Copyright (c) 2006-2023 Alexander Barker.
-      https://github.com/kwhat/libuiohook
+      https://github.com/TolikPylypchuk/libuiohook/tree/2.0.0
 
 libuiohook is a native C library that provides the global keyboard/mouse
-hooks used by this application. It is distributed as a native binary
-(uiohook.dll / libuiohook.so / libuiohook.dylib) bundled inside the SharpHook
-NuGet package and is loaded dynamically at runtime (via P/Invoke).
+hooks used by this application. It is distributed as a native binary bundled
+inside the SharpHook NuGet package and is loaded dynamically at runtime (via
+P/Invoke): uiohook.dll on Windows, libuiohook.dylib on macOS, and on Linux a
+loader (libuiohook.so) with three backends (libuiohook-xrecord.so,
+libuiohook-x11.so and libuiohook-wayland.so).
 
 This component is licensed under the GNU Lesser General Public License,
 version 3.0 or later. In accordance with the LGPL, the native library is
@@ -32,8 +34,8 @@ version of their own. The full text of the LGPL v3.0 and the GNU GPL v3.0
     https://www.gnu.org/licenses/lgpl-3.0.txt
     https://www.gnu.org/licenses/gpl-3.0.txt
 
-The corresponding source code for libuiohook is available from the project
-repository listed above.
+The corresponding source code for libuiohook is available from the fork
+listed above, which is the source of the binaries bundled with SharpHook.
 
 --------------------------------------------------------------------------
 2. Apache License, Version 2.0 (Apache-2.0)
@@ -119,7 +121,7 @@ repository listed above.
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
   * ProItemsRepeater 12.0.0 - Copyright (c) Wiesław Šoltés
   * Serilog.Exceptions 8.4.0 - Copyright (c) Muhammad Rehan Saeed (RehanSaeed.com)
-  * SharpHook 7.1.3 - Copyright (c) Tolik Pylypchuk
+  * SharpHook 8.0.0 - Copyright (c) Tolik Pylypchuk
   * SkiaSharp 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Linux 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.macOS 3.119.4 - Copyright (c) Microsoft
