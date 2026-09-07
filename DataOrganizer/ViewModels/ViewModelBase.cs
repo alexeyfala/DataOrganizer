@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Threading;
+//using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -16,18 +16,18 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
-using Material.Styles.Controls;
-using Material.Styles.Models;
+//using Material.Styles.Controls;
+//using Material.Styles.Models;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
-using System.Collections;
+//using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
+//using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -158,6 +158,9 @@ public abstract partial class ViewModelBase :
 	/// <inheritdoc cref="IAppSettingsStore" />
 	protected readonly IAppSettingsStore _settingsStore;
 
+	/// <inheritdoc cref="ISnackbarQueue" />
+	protected readonly ISnackbarQueue _snackbarQueue;
+
 	/// <inheritdoc cref="IViewLauncher" />
 	protected readonly IViewLauncher _viewLauncher;
 
@@ -178,6 +181,7 @@ public abstract partial class ViewModelBase :
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
+		ISnackbarQueue snackbarQueue,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -199,6 +203,8 @@ public abstract partial class ViewModelBase :
 		_keyboardInputHook = keyboardInputHook;
 
 		_settingsStore = settingsStore;
+
+		_snackbarQueue = snackbarQueue;
 
 		_viewLauncher = viewLauncher;
 
@@ -387,15 +393,15 @@ public abstract partial class ViewModelBase :
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// <c>True</c> when at least one <see cref="SnackbarHost" /> is registered in the application.
-	/// </summary>
-	private static bool IsSnackbarHostLoaded()
-	{
-		return typeof(SnackbarHost)
-			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
-			?.GetValue(null) is IDictionary registered && registered.Count > 0;
-	}
+	///// <summary>
+	///// <c>True</c> when at least one <see cref="SnackbarHost" /> is registered in the application.
+	///// </summary>
+	//private static bool IsSnackbarHostLoaded()
+	//{
+	//	return typeof(SnackbarHost)
+	//		.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
+	//		?.GetValue(null) is IDictionary registered && registered.Count > 0;
+	//}
 
 	/// <summary>
 	/// Hides the decrypted contents after the auto-lock expiry, closing the open files first.
@@ -463,7 +469,7 @@ public abstract partial class ViewModelBase :
 
 		_dispatcher.Post(() =>
 		{
-			bool isLoaded = IsSnackbarHostLoaded();
+			bool isLoaded = _snackbarQueue.Show(new ShowSnackbarMessage(text, level));
 
 			string message = $"{(isLoaded ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
 
@@ -481,17 +487,6 @@ public abstract partial class ViewModelBase :
 					_logger.LogInformation(message);
 					break;
 			}
-
-			if (!isLoaded)
-			{
-				return;
-			}
-
-			// The level travels with the content so that the snackbar template colours its own text.
-			SnackbarHost.Post(
-				new SnackbarModel(new ShowSnackbarMessage(text, level), TimeSpan.FromSeconds(5.0)),
-				null,
-				DispatcherPriority.Normal);
 		});
 	}
 	#endregion

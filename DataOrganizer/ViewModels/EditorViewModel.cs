@@ -1144,6 +1144,7 @@ public partial class EditorViewModel :
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		IProcessUtils processUtils,
+		ISnackbarQueue snackbarQueue,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1158,6 +1159,7 @@ public partial class EditorViewModel :
 			executionEngine,
 			logger,
 			messenger,
+			snackbarQueue,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
