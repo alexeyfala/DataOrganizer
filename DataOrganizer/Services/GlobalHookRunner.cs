@@ -4,6 +4,7 @@ using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using SharpHook;
+using SharpHook.Data;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -140,7 +141,7 @@ public sealed class GlobalHookRunner : IGlobalHookRunner
 
 			_isHookEnabled = false;
 
-			Task runTask = _hook.RunAsync();
+			Task runTask = _hook.RunAsync(GlobalHookType.Keyboard);
 
 			_runTask = runTask;
 

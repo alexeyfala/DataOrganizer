@@ -27,6 +27,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
+		<PackageReference Include="SharpHook.Testing" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -45,7 +45,6 @@ using Shared.Extensions;
 using Shared.Interfaces;
 using Shared.Services;
 using SharpHook;
-using SharpHook.Data;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -131,7 +130,6 @@ public sealed class App : Application
 		services.AddTransient<IEncryptionService, EncryptionService>();
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
-		services.AddTransient<IEventSimulator, EventSimulator>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
 		services.AddTransient<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
@@ -190,7 +188,7 @@ public sealed class App : Application
 		services.AddSingleton<IDispatcher>(Dispatcher.UIThread);
 		services.AddSingleton<IExecutionEngine, ExecutionEngine>();
 		services.AddSingleton<IGlobalExceptionHandler, GlobalExceptionHandler>();
-		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook(globalHookType: GlobalHookType.Keyboard));
+		services.AddSingleton<IGlobalHook>(_ => new SimpleGlobalHook());
 		services.AddSingleton<IGlobalHookRunner, GlobalHookRunner>();
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
