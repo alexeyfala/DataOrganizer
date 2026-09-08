@@ -37,8 +37,8 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
@@ -48,7 +48,7 @@ public class FileChangeTracker : IFileChangeTracker
 		IFileSystem fileSystem,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
@@ -60,7 +60,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		_messenger = messenger;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -100,7 +100,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 		void PublishFailure(string message)
 		{
-			_snackbar.ShowError(message);
+			_notification.ShowErrorSnackbar(message);
 
 			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
 		}

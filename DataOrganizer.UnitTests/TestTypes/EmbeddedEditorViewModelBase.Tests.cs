@@ -215,7 +215,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 		null!,
 		null!,
 		Substitute.For<IMessenger>(),
-		Substitute.For<ISnackbarService>(),
+		Substitute.For<INotificationService>(),
 		null!)
 	{
 	}

@@ -66,14 +66,14 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
 	/// <inheritdoc cref="ServiceProvider" />
 	private readonly IServiceProvider _serviceProvider;
-
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -92,8 +92,8 @@ public class ViewLauncher : IViewLauncher
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IExecutionSandbox sandbox,
+		INotificationService notification,
 		IServiceProvider serviceProvider,
-		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
 		Lazy<IKeyboardInputHook> keyboardInputHook)
@@ -122,11 +122,11 @@ public class ViewLauncher : IViewLauncher
 
 		_logger = logger;
 
+		_notification = notification;
+
 		_sandbox = sandbox;
 
 		_serviceProvider = serviceProvider;
-
-		_snackbar = snackbar;
 
 		_viewFactory = viewFactory;
 	}
@@ -711,7 +711,7 @@ public class ViewLauncher : IViewLauncher
 					? Strings.EncryptedDataIsDamaged
 					: Strings.FailedToUnlockClipboardHistory;
 
-				_snackbar.ShowError(text);
+				_notification.ShowErrorSnackbar(text);
 
 				return;
 			}

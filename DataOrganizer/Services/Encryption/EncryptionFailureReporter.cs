@@ -16,16 +16,16 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
-	public EncryptionFailureReporter(ILogger logger, ISnackbarService snackbar)
+	public EncryptionFailureReporter(ILogger logger, INotificationService notification)
 	{
 		_logger = logger;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -38,7 +38,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			_logger.LogWarning(
 				$"The password, or the derivation cost and the salt beside it, has been rejected: {callerName}");
 
-			_snackbar.ShowError(Strings.IncorrectPassword);
+			_notification.ShowErrorSnackbar(Strings.IncorrectPassword);
 
 			return;
 		}
@@ -49,7 +49,7 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 			? Strings.EncryptedDataIsDamaged
 			: Strings.FailedToProcessContents;
 
-		_snackbar.ShowError(text);
+		_notification.ShowErrorSnackbar(text);
 	}
 	#endregion
 }

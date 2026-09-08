@@ -148,7 +148,6 @@ public sealed class App : Application
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INoteReader, NoteReader>();
-		services.AddTransient<INotificationService, NotificationService>();
 		services.AddTransient<IProcessUtils, ProcessUtils>();
 		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<ISnackbarPresenter, SnackbarPresenter>();
@@ -194,9 +193,9 @@ public sealed class App : Application
 		services.AddSingleton<IInstanceRegistry, InstanceRegistry>();
 		services.AddSingleton<ILogger>(ConfigureLogger);
 		services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
+		services.AddSingleton<INotificationService, NotificationService>();
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
-		services.AddSingleton<ISnackbarService, SnackbarService>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion
 

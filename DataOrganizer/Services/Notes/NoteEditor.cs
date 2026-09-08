@@ -25,8 +25,8 @@ public sealed class NoteEditor : INoteEditor
 	/// <inheritdoc cref="INoteCipher" />
 	private readonly INoteCipher _noteCipher;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
@@ -34,7 +34,7 @@ public sealed class NoteEditor : INoteEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		INoteCipher noteCipher,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
@@ -42,7 +42,7 @@ public sealed class NoteEditor : INoteEditor
 
 		_noteCipher = noteCipher;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -110,7 +110,7 @@ public sealed class NoteEditor : INoteEditor
 			? Strings.NoteHasBeenDeleted
 			: Strings.NoteHasBeenSaved;
 
-		_snackbar.ShowInformation(successText);
+		_notification.ShowInformationSnackbar(successText);
 
 		_logger.LogInformation(successText);
 
@@ -130,7 +130,7 @@ public sealed class NoteEditor : INoteEditor
 			nameof(ExplorerModelBaseDto.Name),
 			nameof(ExplorerModelBaseDto.EncryptionStatus))}");
 
-		_snackbar.ShowError(Strings.FailedToSaveNote);
+		_notification.ShowErrorSnackbar(Strings.FailedToSaveNote);
 
 		return false;
 	}

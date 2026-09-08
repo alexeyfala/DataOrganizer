@@ -88,11 +88,11 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
-
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
 
 	/// <inheritdoc cref="IXmlSerializerWrapper" />
 	private readonly IXmlSerializerWrapper _xmlSerializer;
@@ -143,7 +143,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar,
+		INotificationService notification,
 		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
@@ -160,9 +160,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		_messenger = messenger;
 
-		_picker = picker;
+		_notification = notification;
 
-		_snackbar = snackbar;
+		_picker = picker;
 
 		_xmlSerializer = xmlSerializer;
 	}
@@ -210,13 +210,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			_snackbar.ShowInformation(Strings.DataExportCompleted);
+			_notification.ShowInformationSnackbar(Strings.DataExportCompleted);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			_snackbar.ShowError(Strings.FailedToExportData);
+			_notification.ShowErrorSnackbar(Strings.FailedToExportData);
 		}
 	}
 
@@ -261,7 +261,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (backup is null)
 		{
-			_snackbar.ShowError(Strings.UnableToCreateDatabaseBackup);
+			_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 			return null;
 		}
@@ -284,7 +284,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_snackbar.ShowError(Strings.FailedToImportData);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -302,7 +302,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_snackbar.ShowError(Strings.FailedToImportData);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -320,7 +320,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						_snackbar.ShowError(Strings.FailedToImportData);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -347,7 +347,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
 
-				_snackbar.ShowError(
+				_notification.ShowErrorSnackbar(
 					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
 			}
 
@@ -357,7 +357,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			_snackbar.ShowError(Strings.FailedToImportData);
+			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backup.FilePath, token)

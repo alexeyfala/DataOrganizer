@@ -18,21 +18,21 @@ public sealed class NoteReader : INoteReader
 	/// <inheritdoc cref="INoteCipher" />
 	private readonly INoteCipher _noteCipher;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public NoteReader(
 		ILogger logger,
 		INoteCipher noteCipher,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_logger = logger;
 
 		_noteCipher = noteCipher;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -67,7 +67,7 @@ public sealed class NoteReader : INoteReader
 			_logger.LogException(ex);
 		}
 
-		_snackbar.ShowError(Strings.FailedToReadNote);
+		_notification.ShowErrorSnackbar(Strings.FailedToReadNote);
 
 		return null;
 	}

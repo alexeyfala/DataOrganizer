@@ -67,7 +67,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_snackbar.ShowError(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
@@ -87,7 +87,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				_snackbar.ShowError(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -120,7 +120,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, assertDebug: false);
 
-			_snackbar.ShowError(Strings.FailedToProcessContents);
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -611,7 +611,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -619,7 +619,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			jsonSerializer,
 			logger,
 			messenger,
-			snackbar,
+			notification,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;

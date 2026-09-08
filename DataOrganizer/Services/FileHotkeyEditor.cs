@@ -30,8 +30,8 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	/// <inheritdoc cref="IMapper" />
 	private readonly IMapper _mapper;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
@@ -39,7 +39,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		IMapper mapper,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
@@ -47,7 +47,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 		_mapper = mapper;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -76,7 +76,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 
-			_snackbar.ShowWarning($@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
+			_notification.ShowWarningSnackbar($@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
 
 			return OverwriteHotkeysResult.AlreadyInUse;
 		}

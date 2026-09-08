@@ -1,6 +1,8 @@
 using Avalonia;
+using Avalonia.Threading;
+using DataOrganizer.DTO;
+using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -8,6 +10,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.Services;
@@ -15,6 +18,26 @@ namespace DataOrganizer.Services;
 public sealed class NotificationService : INotificationService
 {
 	#region Data
+	/// <summary>
+	/// Time a message stays on the screen, the same for a toast and for a snackbar.
+	/// </summary>
+	internal static readonly TimeSpan MessageDuration = TimeSpan.FromSeconds(4.0);
+
+	/// <summary>
+	/// Number of messages kept waiting; the ones on top of that are dropped.
+	/// </summary>
+	private const int MaxWaiting = 10;
+
+	/// <summary>
+	/// Pause between a message leaving the screen and the next one taking its place.
+	/// </summary>
+	private static readonly TimeSpan Gap = TimeSpan.FromSeconds(0.2);
+
+	/// <summary>
+	/// Interval between the checks for a free host.
+	/// </summary>
+	private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(0.25);
+
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
 
@@ -24,8 +47,29 @@ public sealed class NotificationService : INotificationService
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="ISnackbarPresenter" />
+	private readonly ISnackbarPresenter _presenter;
+
+	/// <inheritdoc cref="TimeProvider" />
+	private readonly TimeProvider _timeProvider;
+
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
+
+	/// <summary>
+	/// Messages waiting for their turn.
+	/// </summary>
+	private readonly Queue<SnackbarContent> _waiting = new();
+
+	/// <summary>
+	/// Moment the shown message frees the host at; <c>null</c> while nothing is shown.
+	/// </summary>
+	private DateTimeOffset? _freeAt;
+
+	/// <summary>
+	/// <c>True</c> while the tick loop is scheduled.
+	/// </summary>
+	private bool _isTicking;
 	#endregion
 
 	#region Constructors
@@ -33,7 +77,9 @@ public sealed class NotificationService : INotificationService
 		Application app,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		IViewFactory viewFactory)
+		ISnackbarPresenter presenter,
+		IViewFactory viewFactory,
+		TimeProvider timeProvider)
 	{
 		_app = app;
 
@@ -41,11 +87,21 @@ public sealed class NotificationService : INotificationService
 
 		_logger = logger;
 
+		_presenter = presenter;
+
+		_timeProvider = timeProvider;
+
 		_viewFactory = viewFactory;
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void ShowErrorSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Error);
+
+	/// <inheritdoc />
+	public void ShowInformationSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Information);
+
 	/// <inheritdoc />
 	public void ShowToast(string message) => _dispatcher.Post(async () =>
 	{
@@ -85,7 +141,7 @@ public sealed class NotificationService : INotificationService
 				screenSize.Height - (windowSize.Height + margin));
 
 			await Task
-				.Delay(NotificationHelper.MessageDuration)
+				.Delay(MessageDuration)
 				.ConfigureAwait(true);
 
 			while (window.IsPointerOver)
@@ -102,5 +158,143 @@ public sealed class NotificationService : INotificationService
 			_logger.LogException(ex);
 		}
 	});
+
+	/// <inheritdoc />
+	public void ShowWarningSnackbar(string text) => ShowSnackbar(text, SnackbarMessageLevel.Warning);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Shows the next waiting message once the host is free, and stops the loop when none are left
+	/// or the host is gone.
+	/// </summary>
+	internal bool Tick()
+	{
+		if (!_presenter.IsHostLoaded)
+		{
+			_waiting.Clear();
+
+			return Stop();
+		}
+
+		if (!IsHostFree())
+		{
+			return true;
+		}
+
+		if (_waiting.Count == 0)
+		{
+			return Stop();
+		}
+
+		Post(_waiting.Dequeue());
+
+		return true;
+	}
+
+	/// <summary>
+	/// Puts a message in the queue and returns <c>false</c> when it will not be shown at all.
+	/// </summary>
+	private bool Enqueue(SnackbarContent content)
+	{
+		if (!_presenter.IsHostLoaded)
+		{
+			return false;
+		}
+
+		if (IsHostFree())
+		{
+			Post(content);
+
+			return true;
+		}
+
+		if (_waiting.Count >= MaxWaiting)
+		{
+			return false;
+		}
+
+		_waiting.Enqueue(content);
+
+		StartTicking();
+
+		return true;
+	}
+
+	/// <summary>
+	/// Tells whether no message occupies the host at the moment.
+	/// </summary>
+	private bool IsHostFree()
+	{
+		return _freeAt is not { } freeAt || _timeProvider.GetUtcNow() >= freeAt;
+	}
+
+	/// <summary>
+	/// Writes the message to the log at the level it is shown with.
+	/// </summary>
+	private void Log(string text, SnackbarMessageLevel level, bool isShown)
+	{
+		string message = $"{(isShown ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
+
+		switch (level)
+		{
+			case SnackbarMessageLevel.Warning:
+				_logger.LogWarning(message);
+				break;
+
+			case SnackbarMessageLevel.Error:
+				_logger.LogError(message, assertDebug: false);
+				break;
+
+			default:
+				_logger.LogInformation(message);
+				break;
+		}
+	}
+
+	/// <summary>
+	/// Hands a message over to the host and holds the place until it goes away.
+	/// </summary>
+	private void Post(SnackbarContent content)
+	{
+		_presenter.Post(content, MessageDuration);
+
+		_freeAt = _timeProvider.GetUtcNow() + MessageDuration + Gap;
+	}
+
+	/// <summary>
+	/// Shows a snackbar message with the given level.
+	/// </summary>
+	private void ShowSnackbar(string text, SnackbarMessageLevel level)
+	{
+		_dispatcher.Post(() => Log(text, level, Enqueue(new(text, level))));
+	}
+
+	/// <summary>
+	/// Schedules the tick loop unless it is already running.
+	/// </summary>
+	private void StartTicking()
+	{
+		if (_isTicking)
+		{
+			return;
+		}
+
+		_isTicking = true;
+
+		DispatcherTimer.Run(Tick, TickInterval);
+	}
+
+	/// <summary>
+	/// Frees the host and reports that the loop is over.
+	/// </summary>
+	private bool Stop()
+	{
+		_freeAt = null;
+
+		_isTicking = false;
+
+		return false;
+	}
 	#endregion
 }

@@ -53,7 +53,7 @@ public sealed class AppController : IAppController
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notificationService;
+	private readonly INotificationService _notification;
 
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
@@ -84,7 +84,7 @@ public sealed class AppController : IAppController
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
-		INotificationService notificationService,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -108,7 +108,7 @@ public sealed class AppController : IAppController
 
 		_logger = logger;
 
-		_notificationService = notificationService;
+		_notification = notification;
 
 		_options = options;
 
@@ -156,7 +156,7 @@ public sealed class AppController : IAppController
 				// nothing written from here on reaches it.
 				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
 
-				_notificationService.ShowToast(Strings.DatabaseIsUnavailable);
+				_notification.ShowToast(Strings.DatabaseIsUnavailable);
 			}
 
 			if (_options.FillObjects)
@@ -180,7 +180,7 @@ public sealed class AppController : IAppController
 					"The database could not be read, the launch continues with an empty hierarchy.",
 					assertDebug: false);
 
-				_notificationService.ShowToast(Strings.FailedToReadDatabase);
+				_notification.ShowToast(Strings.FailedToReadDatabase);
 			}
 			else
 			{
@@ -195,7 +195,7 @@ public sealed class AppController : IAppController
 							assertDebug: false);
 					});
 
-					_notificationService.ShowToast(
+					_notification.ShowToast(
 						unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
 				}
 			}

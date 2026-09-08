@@ -96,19 +96,19 @@ internal class EncryptionFailureReporterTests
 
 	#region Helpers
 	/// <summary>
-	/// Reports the failure and returns the snackbar the reporter has asked for.
+	/// Reports the failure and returns the notification the reporter has asked for.
 	/// </summary>
 	private static SnackbarContent? Report(Exception failure)
 	{
-		RecordingSnackbarService snackbar = new();
+		RecordingNotificationService notification = new();
 
-		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<ISnackbarService>(snackbar));
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance<INotificationService>(notification));
 
 		EncryptionFailureReporter sut = mock.Create<EncryptionFailureReporter>();
 
 		sut.Report(failure);
 
-		return snackbar.Shown;
+		return notification.Shown;
 	}
 	#endregion
 }

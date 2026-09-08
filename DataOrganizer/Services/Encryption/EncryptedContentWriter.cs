@@ -27,21 +27,21 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public EncryptedContentWriter(
 		IDbAccess dbAccess,
 		ILogger logger,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
 		_logger = logger;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -167,7 +167,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// </summary>
 	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
 	{
-		_snackbar.ShowError(Strings.FailedToProcessContents);
+		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 		// The rollback has to run even when the operation was cancelled.
 		await _dbAccess

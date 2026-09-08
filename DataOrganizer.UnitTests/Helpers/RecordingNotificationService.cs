@@ -5,10 +5,10 @@ using DataOrganizer.Interfaces;
 namespace DataOrganizer.UnitTests.Helpers;
 
 /// <summary>
-/// Test-only <see cref="ISnackbarService" /> that keeps the last message asked for,
+/// Test-only <see cref="INotificationService" /> that keeps the last message asked for,
 /// making it observable in unit-test assertions.
 /// </summary>
-internal sealed class RecordingSnackbarService : ISnackbarService
+internal sealed class RecordingNotificationService : INotificationService
 {
 	#region Properties
 	/// <summary>
@@ -19,13 +19,16 @@ internal sealed class RecordingSnackbarService : ISnackbarService
 
 	#region Methods
 	/// <inheritdoc />
-	public void ShowError(string text) => Show(text, SnackbarMessageLevel.Error);
+	public void ShowErrorSnackbar(string text) => Show(text, SnackbarMessageLevel.Error);
 
 	/// <inheritdoc />
-	public void ShowInformation(string text) => Show(text, SnackbarMessageLevel.Information);
+	public void ShowInformationSnackbar(string text) => Show(text, SnackbarMessageLevel.Information);
 
 	/// <inheritdoc />
-	public void ShowWarning(string text) => Show(text, SnackbarMessageLevel.Warning);
+	public void ShowToast(string message) => Show(message, SnackbarMessageLevel.Information);
+
+	/// <inheritdoc />
+	public void ShowWarningSnackbar(string text) => Show(text, SnackbarMessageLevel.Warning);
 	#endregion
 
 	#region Helpers

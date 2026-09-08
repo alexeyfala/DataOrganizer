@@ -162,7 +162,7 @@ public abstract partial class ViewModelBase :
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -173,7 +173,7 @@ public abstract partial class ViewModelBase :
 			dialogService,
 			logger,
 			messenger,
-			snackbar,
+			notification,
 			exceptionHandler)
 	{
 		_contentVisibility = contentVisibility;
@@ -374,7 +374,7 @@ public abstract partial class ViewModelBase :
 
 		NotifyDecryptedContentsChanged();
 
-		_snackbar.ShowInformation(Strings.ContentsHiddenByAutoLock);
+		_notification.ShowInformationSnackbar(Strings.ContentsHiddenByAutoLock);
 	}
 
 	/// <inheritdoc cref="SaveCopyHistory()" />

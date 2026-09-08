@@ -92,7 +92,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			{
 				IsContentCorrupted = true;
 
-				_snackbar.ShowError(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				_logger.LogError(
 					$@"{Strings.FailedToLoadFileContents} of file ""{FileId}""",
@@ -226,7 +226,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -234,7 +234,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			jsonSerializer,
 			logger,
 			messenger,
-			snackbar,
+			notification,
 			exceptionHandler)
 	{
 		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
@@ -487,7 +487,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				if (TryToEncrypt(latest) is not { } output)
 				{
-					_snackbar.ShowError(Strings.FailedToProcessContents);
+					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 					latest.ZeroMemory();
 

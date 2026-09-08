@@ -227,7 +227,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			_snackbar.ShowInformation(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -292,7 +292,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			_snackbar.ShowInformation(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -368,7 +368,7 @@ public partial class EditorViewModel :
 		{
 			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
 
-			_snackbar.ShowError(errorText);
+			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
 				true,
@@ -402,7 +402,7 @@ public partial class EditorViewModel :
 			{
 				_logger.LogException(ex);
 
-				_snackbar.ShowError(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -563,7 +563,7 @@ public partial class EditorViewModel :
 
 		AddHierarchy(result.ImportedItems);
 
-		_snackbar.ShowInformation(Strings.DataImportCompleted);
+		_notification.ShowInformationSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
@@ -662,7 +662,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			_snackbar.ShowInformation(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -1143,8 +1143,8 @@ public partial class EditorViewModel :
 		IMessenger messenger,
 		INoteEditor noteEditor,
 		INoteReader noteReader,
+		INotificationService notification,
 		IProcessUtils processUtils,
-		ISnackbarService snackbar,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1159,7 +1159,7 @@ public partial class EditorViewModel :
 			executionEngine,
 			logger,
 			messenger,
-			snackbar,
+			notification,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
@@ -1856,7 +1856,7 @@ public partial class EditorViewModel :
 
 		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
 
-		_snackbar.ShowError(Strings.FailedToProcessContents);
+		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 		return false;
 	}

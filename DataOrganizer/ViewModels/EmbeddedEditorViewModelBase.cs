@@ -105,8 +105,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	protected readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	protected readonly INotificationService _notification;
 
 	/// <summary>
 	/// Last properties persisted to the database.
@@ -132,7 +132,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
-		ISnackbarService snackbar,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
@@ -149,7 +149,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 		_messenger = messenger;
 
-		_snackbar = snackbar;
+		_notification = notification;
 
 		messenger.RegisterAll(this);
 	}

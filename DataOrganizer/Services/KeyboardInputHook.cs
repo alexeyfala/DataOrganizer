@@ -73,7 +73,7 @@ public sealed class KeyboardInputHook :
 	private readonly IMessenger _messenger;
 
 	/// <inheritdoc cref="INotificationService" />
-	private readonly INotificationService _notificationService;
+	private readonly INotificationService _notification;
 
 	/// <inheritdoc cref="SemaphoreSlim" />
 	private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -94,7 +94,7 @@ public sealed class KeyboardInputHook :
 		IGlobalHookRunner hookRunner,
 		ILogger logger,
 		IMessenger messenger,
-		INotificationService notificationService,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler)
 	{
 		_app = app;
@@ -115,7 +115,7 @@ public sealed class KeyboardInputHook :
 
 		_messenger = messenger;
 
-		_notificationService = notificationService;
+		_notification = notification;
 
 		messenger.RegisterAll(this);
 	}
@@ -310,7 +310,7 @@ public sealed class KeyboardInputHook :
 						_logger.LogException(ex);
 					}
 
-					_notificationService.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
+					_notification.ShowToast(string.Format(Strings.TheContentsCopiedToClipboard, file.Name));
 
 					return;
 				}

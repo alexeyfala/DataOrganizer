@@ -27,8 +27,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <inheritdoc cref="IMapper" />
 	private readonly IMapper _mapper;
 
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
@@ -36,7 +36,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		IDbAccess dbAccess,
 		ILogger logger,
 		IMapper mapper,
-		ISnackbarService snackbar)
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
@@ -44,7 +44,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		_mapper = mapper;
 
-		_snackbar = snackbar;
+		_notification = notification;
 	}
 	#endregion
 
@@ -79,7 +79,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToAdd} ""{name}""";
 
-			_snackbar.ShowError(errorText);
+			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);
 
@@ -113,7 +113,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 			string successText = $@"""{dto.Name}"" {Strings.HasBeenAdded}";
 
-			_snackbar.ShowInformation(successText);
+			_notification.ShowInformationSnackbar(successText);
 
 			_logger.LogInformation(successText);
 
@@ -143,7 +143,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToDelete} ""{dto.Name}""";
 
-			_snackbar.ShowError(errorText);
+			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);
 
@@ -154,7 +154,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string text = $@"""{dto.Name}"" {Strings.HasBeenDeleted}";
 
-		_snackbar.ShowInformation(text);
+		_notification.ShowInformationSnackbar(text);
 
 		_logger.LogInformation(text);
 
@@ -172,7 +172,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string warningText = $@"{Strings.IdenticalNames} ""{newName}""";
 
-			_snackbar.ShowWarning(warningText);
+			_notification.ShowWarningSnackbar(warningText);
 
 			_logger.LogWarning(warningText);
 
@@ -198,7 +198,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			string errorText = $@"{Strings.FailedToRename} ""{dto.Name}"" {Strings.To} ""{newName}""";
 
-			_snackbar.ShowError(errorText);
+			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError(errorText);
 
@@ -207,7 +207,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		string successText = $@"""{dto.Name}"" {Strings.RenamedTo} ""{newName}""";
 
-		_snackbar.ShowInformation(successText);
+		_notification.ShowInformationSnackbar(successText);
 
 		_logger.LogInformation(successText);
 

@@ -28,11 +28,11 @@ public sealed class ContentVisibility : IContentVisibility
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="ISessionKeyStore" />
 	private readonly ISessionKeyStore _sessionKeyStore;
-
-	/// <inheritdoc cref="ISnackbarService" />
-	private readonly ISnackbarService _snackbar;
 	#endregion
 
 	#region Constructors
@@ -40,8 +40,8 @@ public sealed class ContentVisibility : IContentVisibility
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		IMessenger messenger,
-		ISessionKeyStore sessionKeyStore,
-		ISnackbarService snackbar)
+		INotificationService notification,
+		ISessionKeyStore sessionKeyStore)
 	{
 		_failureReporter = failureReporter;
 
@@ -49,9 +49,9 @@ public sealed class ContentVisibility : IContentVisibility
 
 		_messenger = messenger;
 
-		_sessionKeyStore = sessionKeyStore;
+		_notification = notification;
 
-		_snackbar = snackbar;
+		_sessionKeyStore = sessionKeyStore;
 	}
 	#endregion
 
@@ -124,7 +124,7 @@ public sealed class ContentVisibility : IContentVisibility
 
 			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
-				_snackbar.ShowError(Strings.FailedToShowFileContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 
 				return false;
 			}
@@ -168,7 +168,7 @@ public sealed class ContentVisibility : IContentVisibility
 				return;
 			}
 
-			_snackbar.ShowError(Strings.FailedToShowFileContents);
+			_notification.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
