@@ -195,7 +195,8 @@ public sealed class AppController : IAppController
 							assertDebug: false);
 					});
 
-					_notificationService.ShowToast(unreadable.GetUnreadableHotkeysPresentation());
+					_notificationService.ShowToast(
+						unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
 				}
 			}
 

@@ -345,7 +345,10 @@ public sealed class DataExchangeService : IDataExchangeService
 						assertDebug: false);
 				});
 
-				_snackbar.ShowError(unreadable.GetUnreadableHotkeysPresentation());
+				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
+
+				_snackbar.ShowError(
+					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
 			}
 
 			return new(objects, variant);
@@ -553,6 +556,32 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			   startIndex++;
 		   });
+	}
+
+	/// <summary>
+	/// Removes the hotkeys of the files whose sequence could not be read.
+	/// </summary>
+	private async Task DropUnreadableHotkeysAsync(FileModelDto[] files, CancellationToken token)
+	{
+		foreach (FileModelDto file in files)
+		{
+			if (!await _dbAccess
+				.DeleteHotkeysAsync(file.Id, token)
+				.ConfigureAwait(false))
+			{
+				_logger.LogError(
+					$@"Hotkeys of file ""{file.Name}"" ({file.Id}) could not be removed.",
+					assertDebug: false);
+
+				continue;
+			}
+
+			file
+				.Hotkeys
+				.Clear();
+
+			file.SetHotkeysToolTip();
+		}
 	}
 
 	/// <summary>

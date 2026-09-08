@@ -391,15 +391,16 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Builds the text that names the files whose hotkeys could not be read, a file per line.
+	/// Builds the text that names the files whose hotkeys could not be read, a file per line,
+	/// under the given <paramref name="header"/>.
 	/// </summary>
-	public static string GetUnreadableHotkeysPresentation(this FileModelDto[] files)
+	public static string GetUnreadableHotkeysPresentation(this FileModelDto[] files, string header)
 	{
 		const int maxNames = 3;
 
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 
-		builder.Append(Strings.FailedToReadHotkeys);
+		builder.Append(header);
 
 		builder.Append(':');
 

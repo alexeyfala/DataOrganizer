@@ -1771,6 +1771,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hotkeys that could not be read were removed from the files.
+        /// </summary>
+        public static string UnreadableHotkeysRemoved {
+            get {
+                return ResourceManager.GetString("UnreadableHotkeysRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A new version is available: {0}. Open the download page?.
         /// </summary>
         public static string UpdateAvailablePrompt {

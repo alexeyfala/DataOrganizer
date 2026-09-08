@@ -15,12 +15,12 @@ public sealed class SnackbarService : ISnackbarService
 	/// <summary>
 	/// Time a message stays on the screen.
 	/// </summary>
-	public static readonly TimeSpan MessageDuration = TimeSpan.FromSeconds(5.0);
+	public static readonly TimeSpan MessageDuration = TimeSpan.FromSeconds(4.0);
 
 	/// <summary>
 	/// Pause between a message leaving the screen and the next one taking its place.
 	/// </summary>
-	private static readonly TimeSpan Gap = TimeSpan.FromSeconds(0.5);
+	private static readonly TimeSpan Gap = TimeSpan.FromSeconds(0.2);
 
 	/// <summary>
 	/// Interval between the checks for a free host.

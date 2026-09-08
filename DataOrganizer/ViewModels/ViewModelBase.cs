@@ -395,12 +395,14 @@ public abstract partial class ViewModelBase :
 			.Items
 			.ToArray())
 		{
-			if (!identifiers.Contains(item))
+			if (identifiers.Contains(item))
 			{
-				CopyHistorySettings
-					.Items
-					.Remove(item);
+				continue;
 			}
+
+			CopyHistorySettings
+				.Items
+				.Remove(item);
 		}
 	}
 	#endregion

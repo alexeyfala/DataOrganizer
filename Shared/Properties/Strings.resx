@@ -685,4 +685,7 @@
   <data name="AndMore" xml:space="preserve">
     <value>and {0} more</value>
   </data>
+  <data name="UnreadableHotkeysRemoved" xml:space="preserve">
+    <value>Hotkeys that could not be read were removed from the files</value>
+  </data>
 </root>

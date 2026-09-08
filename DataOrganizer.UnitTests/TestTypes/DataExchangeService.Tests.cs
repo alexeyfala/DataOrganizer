@@ -370,6 +370,91 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read do not stop the import
+	/// and are removed from the file.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcUndefined,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			dbAccess
+				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			dbAccess
+				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.Returns(true);
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		ImportDataResult? result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNull();
+
+		result
+			.ImportedItems
+			.Should()
+			.Contain(file);
+
+		file
+			.Hotkeys
+			.Should()
+			.BeEmpty();
+
+		await dbAccess
+			.Received(1)
+			.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="DataExchangeService.ImportDataAsync" />: returns a non-null result when importing from a JSON file.
 	/// </summary>
 	[Test]
@@ -532,77 +617,6 @@ internal class DataExchangeServiceTests
 		result
 			.Should()
 			.NotBeNull();
-	}
-
-	/// <summary>
-	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read do not stop the import.
-	/// </summary>
-	[Test]
-	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
-	{
-		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
-
-		file
-			.Hotkeys
-			.Add(new()
-			{
-				Code = KeyCode.VcUndefined,
-				Id = Guid.NewGuid(),
-				Index = 0,
-				Mask = EventMask.LeftCtrl,
-				OwnerId = file.Id
-			});
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
-
-			picker
-				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
-
-			IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-			dbAccess
-				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
-
-			dbAccess
-				.IsValidSQLiteDatabase(Arg.Any<string>())
-				.Returns(true);
-
-			dbAccess
-				.RestoreFromBackupAsync(Arg.Any<string>())
-				.Returns(true);
-
-			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
-
-			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
-				.Returns([file]);
-
-			builder.RegisterInstance(dbAccess);
-
-			builder.RegisterInstance(entityLoader);
-
-			builder.RegisterInstance(picker);
-		});
-
-		DataExchangeService sut = mock.Create<DataExchangeService>();
-
-		// Act
-		ImportDataResult? result = await sut.ImportDataAsync([]);
-
-		// Assert
-		result
-			.Should()
-			.NotBeNull();
-
-		result
-			.ImportedItems
-			.Should()
-			.Contain(file);
 	}
 
 	/// <summary>

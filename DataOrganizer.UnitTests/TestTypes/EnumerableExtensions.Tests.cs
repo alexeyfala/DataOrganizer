@@ -724,7 +724,7 @@ internal class EnumerableExtensionsTests
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
 
 		// Act
-		string result = files.GetUnreadableHotkeysPresentation();
+		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
 
 		// Assert
 		result
@@ -750,7 +750,7 @@ internal class EnumerableExtensionsTests
 		FileModelDto[] files = [.. TestUtils.CreateFilesDto(3)];
 
 		// Act
-		string result = files.GetUnreadableHotkeysPresentation();
+		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
 
 		// Assert
 		result

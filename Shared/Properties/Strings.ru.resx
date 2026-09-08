@@ -705,4 +705,7 @@
   <data name="AndMore" xml:space="preserve">
     <value>и ещё {0}</value>
   </data>
+  <data name="UnreadableHotkeysRemoved" xml:space="preserve">
+    <value>Нечитаемые горячие клавиши удалены у файлов</value>
+  </data>
 </root>
