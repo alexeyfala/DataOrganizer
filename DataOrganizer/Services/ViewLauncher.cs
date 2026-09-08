@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
@@ -527,29 +528,45 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
+	public async Task ShowNoticeAsync(NoticeParameters parameters)
+	{
+		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
+
+		viewModel.ActionCaption = parameters.ActionCaption;
+
+		viewModel.FilePath = parameters.FilePath;
+
+		viewModel.IsTopmost = parameters.IsTopmost;
+
+		viewModel.Message = parameters.Message;
+
+		viewModel.Title = parameters.Title;
+
+		NoticeWindow window = _viewFactory.CreateWindow<NoticeWindow>(viewModel);
+
+		TaskCompletionSource closed = new();
+
+		window.Closed += (_, _) => closed.TrySetResult();
+
+		window.Show();
+
+		await closed
+			.Task
+			.ConfigureAwait(true);
+	}
+
+	/// <inheritdoc />
 	public async Task ShowStartupErrorAsync(string databaseFilePath)
 	{
 		try
 		{
-			StartupErrorViewModel viewModel = _viewFactory.CreateViewModel<StartupErrorViewModel>();
-
-			viewModel.DatabaseFilePath = databaseFilePath;
-
-			viewModel.Message = Strings.DatabaseSchemaMismatch;
-
-			viewModel.Title = AppUtils.AppNameParted;
-
-			StartupErrorWindow window = _viewFactory.CreateWindow<StartupErrorWindow>(viewModel);
-
-			TaskCompletionSource closed = new();
-
-			window.Closed += (_, _) => closed.TrySetResult();
-
-			window.Show();
-
-			await closed
-				.Task
-				.ConfigureAwait(true);
+			await ShowNoticeAsync(new()
+			{
+				ActionCaption = Strings.OpenDatabaseFolder,
+				FilePath = databaseFilePath,
+				IsTopmost = true,
+				Message = Strings.DatabaseSchemaMismatch
+			}).ConfigureAwait(true);
 		}
 		catch (Exception ex)
 		{

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -72,6 +73,11 @@ public interface IViewLauncher
 	/// <see cref="ClipboardLogWindow" />.
 	/// </summary>
 	Task ShowClipboardLogWindowAsync(Window owner);
+
+	/// <summary>
+	/// Shows a notice in a window of its own and waits until it is closed; needs no other window.
+	/// </summary>
+	Task ShowNoticeAsync(NoticeParameters parameters);
 
 	/// <summary>
 	/// Reports a database that cannot be worked with and ends the launch once the report is closed.

@@ -3,11 +3,11 @@ using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Windows;
 
-internal partial class StartupErrorWindow : Window
+internal partial class NoticeWindow : Window
 {
 	#region Constructors
-	public StartupErrorWindow() => InitializeComponent();
+	public NoticeWindow() => InitializeComponent();
 
-	public StartupErrorWindow(StartupErrorViewModel viewModel) : this() => DataContext = viewModel;
+	public NoticeWindow(NoticeViewModel viewModel) : this() => DataContext = viewModel;
 	#endregion
 }

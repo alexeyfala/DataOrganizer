@@ -1,17 +1,18 @@
 <Window
-	x:Class="DataOrganizer.Windows.StartupErrorWindow"
+	x:Class="DataOrganizer.Windows.NoticeWindow"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
+	Title="{Binding Title, Mode=OneWay}"
 	Width="520.0"
-	x:DataType="vm:StartupErrorViewModel"
+	x:DataType="vm:NoticeViewModel"
 	CanResize="False"
 	Icon="/Assets/Logo.ico"
 	SizeToContent="Height"
-	Title="{Binding Title, Mode=OneWay}"
+	Topmost="{Binding IsTopmost, Mode=OneWay}"
 	WindowStartupLocation="CenterScreen"
 	mc:Ignorable="d">
 
@@ -34,13 +35,24 @@
 			</Style>
 		</StackPanel.Styles>
 
-		<TextBlock
-			Text="{Binding Message, Mode=OneWay}"
-			TextWrapping="Wrap" />
+		<!-- A message of any length leaves the buttons on the screen. -->
+		<ScrollViewer
+			MaxHeight="360.0"
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Auto">
+			<StackPanel
+				Orientation="Vertical"
+				Spacing="{StaticResource ElementSpacing}">
+				<TextBlock
+					Text="{Binding Message, Mode=OneWay}"
+					TextWrapping="Wrap" />
 
-		<SelectableTextBlock
-			Text="{Binding DatabaseFilePath, Mode=OneWay}"
-			TextWrapping="Wrap" />
+				<SelectableTextBlock
+					IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+					Text="{Binding FilePath, Mode=OneWay}"
+					TextWrapping="Wrap" />
+			</StackPanel>
+		</ScrollViewer>
 
 		<StackPanel
 			HorizontalAlignment="Right"
@@ -48,8 +60,9 @@
 			Spacing="{StaticResource ElementSpacing}">
 			<Button
 				Classes="primary"
-				Command="{Binding OpenDatabaseFolderCommand}"
-				Content="{x:Static prop:Strings.OpenDatabaseFolder}" />
+				Command="{Binding RevealFileCommand}"
+				Content="{Binding ActionCaption, Mode=OneWay}"
+				IsVisible="{Binding ActionCaption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
 			<Button
 				Classes="primary"
