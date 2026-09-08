@@ -1,5 +1,5 @@
 using DataOrganizer.DTO;
-using System;
+//using System;
 
 namespace DataOrganizer.Interfaces;
 
@@ -13,12 +13,22 @@ public interface ISnackbarPresenter
 	/// <c>True</c> while a host able to show messages exists.
 	/// </summary>
 	bool IsHostLoaded { get; }
+
+	/// <summary>
+	/// <c>True</c> while the pointer rests on the shown message.
+	/// </summary>
+	bool IsPointerOverMessage { get; }
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// Shows a message for the given time.
+	/// Shows a message until it is removed.
 	/// </summary>
-	void Post(SnackbarContent content, TimeSpan duration);
+	void Post(SnackbarContent content);
+
+	/// <summary>
+	/// Takes the shown message off the screen.
+	/// </summary>
+	void Remove();
 	#endregion
 }

@@ -29,14 +29,14 @@ public sealed class NotificationService : INotificationService
 	private const int MaxWaitingSnackbars = 10;
 
 	/// <summary>
+	/// Interval between the checks for a message whose time is up.
+	/// </summary>
+	private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(0.25);
+
+	/// <summary>
 	/// Pause between a message leaving the screen and the next one taking its place.
 	/// </summary>
 	private static readonly TimeSpan SnackbarGap = TimeSpan.FromSeconds(0.2);
-
-	/// <summary>
-	/// Interval between the checks for a free host.
-	/// </summary>
-	private static readonly TimeSpan SnackbarTickInterval = TimeSpan.FromSeconds(0.25);
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -67,9 +67,14 @@ public sealed class NotificationService : INotificationService
 	private bool _isSnackbarTicking;
 
 	/// <summary>
-	/// Moment the shown message frees the host at; <c>null</c> while nothing is shown.
+	/// Moment the shown message may go away at; <c>null</c> while nothing is shown.
 	/// </summary>
-	private DateTimeOffset? _snackbarFreeAt;
+	private DateTimeOffset? _snackbarRemoveAt;
+
+	/// <summary>
+	/// Moment the free host may be given to the next message at.
+	/// </summary>
+	private DateTimeOffset _snackbarShowNextAt;
 	#endregion
 
 	#region Constructors
@@ -140,14 +145,12 @@ public sealed class NotificationService : INotificationService
 				screenSize.Width - (windowSize.Width + margin),
 				screenSize.Height - (windowSize.Height + margin));
 
-			await Task
-				.Delay(MessageDuration)
-				.ConfigureAwait(true);
+			DateTimeOffset removeAt = _timeProvider.GetUtcNow() + MessageDuration;
 
-			while (window.IsPointerOver)
+			while (!IsMessageOver(removeAt, window.IsPointerOver))
 			{
 				await Task
-					.Delay(TimeSpan.FromSeconds(1))
+					.Delay(PollInterval, _timeProvider)
 					.ConfigureAwait(true);
 			}
 
@@ -165,8 +168,8 @@ public sealed class NotificationService : INotificationService
 
 	#region Helpers
 	/// <summary>
-	/// Shows the next waiting message once the host is free, and stops the loop when none are left
-	/// or the host is gone.
+	/// Takes the shown message away once its time is up, gives the free host to the next one,
+	/// and stops the loop when none are left or the host is gone.
 	/// </summary>
 	internal bool TickSnackbars()
 	{
@@ -177,14 +180,26 @@ public sealed class NotificationService : INotificationService
 			return StopSnackbarTicking();
 		}
 
-		if (!IsSnackbarHostFree())
+		if (_snackbarRemoveAt is { } removeAt)
 		{
+			if (!IsMessageOver(removeAt, _snackbarPresenter.IsPointerOverMessage))
+			{
+				return true;
+			}
+
+			RemoveSnackbar();
+
 			return true;
 		}
 
 		if (_waitingSnackbars.Count == 0)
 		{
 			return StopSnackbarTicking();
+		}
+
+		if (!IsSnackbarHostFree())
+		{
+			return true;
 		}
 
 		PostSnackbar(_waitingSnackbars.Dequeue());
@@ -222,11 +237,19 @@ public sealed class NotificationService : INotificationService
 	}
 
 	/// <summary>
-	/// Tells whether no message occupies the host at the moment.
+	/// <c>True</c> when a message has been on the screen long enough and the pointer does not hold it.
+	/// </summary>
+	private bool IsMessageOver(DateTimeOffset removeAt, bool isPointerOver)
+	{
+		return _timeProvider.GetUtcNow() >= removeAt && !isPointerOver;
+	}
+
+	/// <summary>
+	/// Tells whether no message occupies the host and the pause after the last one is over.
 	/// </summary>
 	private bool IsSnackbarHostFree()
 	{
-		return _snackbarFreeAt is not { } freeAt || _timeProvider.GetUtcNow() >= freeAt;
+		return _snackbarRemoveAt is null && _timeProvider.GetUtcNow() >= _snackbarShowNextAt;
 	}
 
 	/// <summary>
@@ -253,13 +276,27 @@ public sealed class NotificationService : INotificationService
 	}
 
 	/// <summary>
-	/// Hands a message over to the host and holds the place until it goes away.
+	/// Hands a message over to the host and keeps the loop running until it is taken away.
 	/// </summary>
 	private void PostSnackbar(SnackbarContent content)
 	{
-		_snackbarPresenter.Post(content, MessageDuration);
+		_snackbarPresenter.Post(content);
 
-		_snackbarFreeAt = _timeProvider.GetUtcNow() + MessageDuration + SnackbarGap;
+		_snackbarRemoveAt = _timeProvider.GetUtcNow() + MessageDuration;
+
+		StartSnackbarTicking();
+	}
+
+	/// <summary>
+	/// Takes the shown message off the screen and holds the host free for the pause.
+	/// </summary>
+	private void RemoveSnackbar()
+	{
+		_snackbarPresenter.Remove();
+
+		_snackbarRemoveAt = null;
+
+		_snackbarShowNextAt = _timeProvider.GetUtcNow() + SnackbarGap;
 	}
 
 	/// <summary>
@@ -282,7 +319,7 @@ public sealed class NotificationService : INotificationService
 
 		_isSnackbarTicking = true;
 
-		DispatcherTimer.Run(TickSnackbars, SnackbarTickInterval);
+		DispatcherTimer.Run(TickSnackbars, PollInterval);
 	}
 
 	/// <summary>
@@ -290,7 +327,7 @@ public sealed class NotificationService : INotificationService
 	/// </summary>
 	private bool StopSnackbarTicking()
 	{
-		_snackbarFreeAt = null;
+		_snackbarRemoveAt = null;
 
 		_isSnackbarTicking = false;
 

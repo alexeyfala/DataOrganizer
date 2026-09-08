@@ -19,10 +19,10 @@ internal class NotificationServiceTests
 	/// <summary>
 	/// Mirrors the number of messages the queue keeps waiting.
 	/// </summary>
-	private const int MaxWaiting = 10;
+	private const int MaxWaitingSnackbars = 10;
 
 	/// <summary>
-	/// Time after which a shown message frees the host for the next one.
+	/// Time after which a shown message may be taken off the screen.
 	/// </summary>
 	private static readonly TimeSpan WholeTurn = NotificationService.MessageDuration + TimeSpan.FromSeconds(1.0);
 	#endregion
@@ -43,7 +43,7 @@ internal class NotificationServiceTests
 
 		NotificationService sut = mock.Create<NotificationService>();
 
-		for (int i = 0; i <= MaxWaiting; i++)
+		for (int i = 0; i <= MaxWaitingSnackbars; i++)
 		{
 			sut.ShowInformationSnackbar($"message {i}");
 		}
@@ -52,18 +52,14 @@ internal class NotificationServiceTests
 		sut.ShowInformationSnackbar("dropped");
 
 		// Assert
-		for (int i = 0; i <= MaxWaiting; i++)
+		for (int i = 0; i <= MaxWaitingSnackbars; i++)
 		{
-			time.Advance(WholeTurn);
-
-			sut.TickSnackbars();
+			PassTurn(sut, time);
 		}
 
 		presenter
 			.DidNotReceive()
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "dropped"),
-				Arg.Any<TimeSpan>());
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "dropped"));
 	}
 
 	/// <summary>
@@ -87,9 +83,7 @@ internal class NotificationServiceTests
 		// Assert
 		presenter
 			.DidNotReceive()
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "second"),
-				Arg.Any<TimeSpan>());
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}
 
 	/// <summary>
@@ -111,9 +105,7 @@ internal class NotificationServiceTests
 		// Assert
 		presenter
 			.Received(1)
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "first"),
-				NotificationService.MessageDuration);
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
 	}
 
 	/// <summary>
@@ -139,7 +131,7 @@ internal class NotificationServiceTests
 		// Assert
 		presenter
 			.DidNotReceive()
-			.Post(Arg.Any<SnackbarContent>(), Arg.Any<TimeSpan>());
+			.Post(Arg.Any<SnackbarContent>());
 	}
 
 	/// <summary>
@@ -177,9 +169,49 @@ internal class NotificationServiceTests
 
 		presenter
 			.DidNotReceive()
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "second"),
-				Arg.Any<TimeSpan>());
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.TickSnackbars" />: a message under the pointer is left on the screen and holds the next one back.
+	/// </summary>
+	[Test]
+	public void TickSnackbars_Holds_The_Message_Under_The_Pointer()
+	{
+		// Arrange
+		ISnackbarPresenter presenter = CreatePresenter();
+
+		presenter
+			.IsPointerOverMessage
+			.Returns(true);
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		sut.ShowInformationSnackbar("second");
+
+		time.Advance(WholeTurn);
+
+		// Act
+		bool keepTicking = sut.TickSnackbars();
+
+		// Assert
+		keepTicking
+			.Should()
+			.BeTrue();
+
+		presenter
+			.DidNotReceive()
+			.Remove();
+
+		presenter
+			.DidNotReceive()
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}
 
 	/// <summary>
@@ -204,22 +236,18 @@ internal class NotificationServiceTests
 		sut.ShowInformationSnackbar("third");
 
 		// Act
-		time.Advance(WholeTurn);
+		PassTurn(sut, time);
 
-		sut.TickSnackbars();
-
-		time.Advance(WholeTurn);
-
-		sut.TickSnackbars();
+		PassTurn(sut, time);
 
 		// Assert
 		Received.InOrder(() =>
 		{
-			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
 
-			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 
-			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "third"), Arg.Any<TimeSpan>());
+			presenter.Post(Arg.Is<SnackbarContent>(x => x.Text == "third"));
 		});
 	}
 
@@ -252,9 +280,7 @@ internal class NotificationServiceTests
 
 		presenter
 			.DidNotReceive()
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "second"),
-				Arg.Any<TimeSpan>());
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
 	}
 
 	/// <summary>
@@ -276,6 +302,32 @@ internal class NotificationServiceTests
 
 		sut.ShowInformationSnackbar("second");
 
+		// Act
+		PassTurn(sut, time);
+
+		// Assert
+		presenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "second"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.TickSnackbars" />: the shown message is taken off the screen when its time is up.
+	/// </summary>
+	[Test]
+	public void TickSnackbars_Removes_The_Shown_Message()
+	{
+		// Arrange
+		ISnackbarPresenter presenter = CreatePresenter();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
 		time.Advance(WholeTurn);
 
 		// Act
@@ -288,9 +340,7 @@ internal class NotificationServiceTests
 
 		presenter
 			.Received(1)
-			.Post(
-				Arg.Is<SnackbarContent>(x => x.Text == "second"),
-				NotificationService.MessageDuration);
+			.Remove();
 	}
 
 	/// <summary>
@@ -311,6 +361,8 @@ internal class NotificationServiceTests
 		sut.ShowInformationSnackbar("first");
 
 		sut.ShowInformationSnackbar("second");
+
+		PassTurn(sut, time);
 
 		time.Advance(WholeTurn);
 
@@ -344,6 +396,20 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
+	/// Lets the shown message go away and the next one take its place.
+	/// </summary>
+	private static void PassTurn(NotificationService sut, FakeTimeProvider time)
+	{
+		time.Advance(WholeTurn);
+
+		sut.TickSnackbars();
+
+		time.Advance(WholeTurn);
+
+		sut.TickSnackbars();
+	}
+
+	/// <summary>
 	/// Registers the dependencies of the service.
 	/// </summary>
 	private static void Register(
@@ -366,5 +432,4 @@ internal class NotificationServiceTests
 			.As<TimeProvider>();
 	}
 	#endregion
-
 }
