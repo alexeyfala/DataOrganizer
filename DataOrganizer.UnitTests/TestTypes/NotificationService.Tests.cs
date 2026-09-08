@@ -56,7 +56,7 @@ internal class NotificationServiceTests
 		{
 			time.Advance(WholeTurn);
 
-			sut.Tick();
+			sut.TickSnackbars();
 		}
 
 		presenter
@@ -143,10 +143,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: waiting messages are dropped once the application has no host left.
+	/// <see cref="NotificationService.TickSnackbars" />: waiting messages are dropped once the application has no host left.
 	/// </summary>
 	[Test]
-	public void Tick_Drops_Waiting_Messages_When_The_Host_Is_Gone()
+	public void TickSnackbars_Drops_Waiting_Messages_When_The_Host_Is_Gone()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -168,7 +168,7 @@ internal class NotificationServiceTests
 			.Returns(false);
 
 		// Act
-		bool keepTicking = sut.Tick();
+		bool keepTicking = sut.TickSnackbars();
 
 		// Assert
 		keepTicking
@@ -183,10 +183,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: waiting messages reach the host in the order they were shown in.
+	/// <see cref="NotificationService.TickSnackbars" />: waiting messages reach the host in the order they were shown in.
 	/// </summary>
 	[Test]
-	public void Tick_Keeps_The_Order()
+	public void TickSnackbars_Keeps_The_Order()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -206,11 +206,11 @@ internal class NotificationServiceTests
 		// Act
 		time.Advance(WholeTurn);
 
-		sut.Tick();
+		sut.TickSnackbars();
 
 		time.Advance(WholeTurn);
 
-		sut.Tick();
+		sut.TickSnackbars();
 
 		// Assert
 		Received.InOrder(() =>
@@ -224,10 +224,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: a waiting message is left alone until the shown one goes away.
+	/// <see cref="NotificationService.TickSnackbars" />: a waiting message is left alone until the shown one goes away.
 	/// </summary>
 	[Test]
-	public void Tick_Leaves_A_Message_Waiting_Until_Its_Turn()
+	public void TickSnackbars_Leaves_A_Message_Waiting_Until_Its_Turn()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -243,7 +243,7 @@ internal class NotificationServiceTests
 		sut.ShowInformationSnackbar("second");
 
 		// Act
-		bool keepTicking = sut.Tick();
+		bool keepTicking = sut.TickSnackbars();
 
 		// Assert
 		keepTicking
@@ -258,10 +258,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: the waiting message is shown once the host is free.
+	/// <see cref="NotificationService.TickSnackbars" />: the waiting message is shown once the host is free.
 	/// </summary>
 	[Test]
-	public void Tick_Posts_The_Waiting_Message()
+	public void TickSnackbars_Posts_The_Waiting_Message()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -279,7 +279,7 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		// Act
-		bool keepTicking = sut.Tick();
+		bool keepTicking = sut.TickSnackbars();
 
 		// Assert
 		keepTicking
@@ -294,10 +294,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.Tick" />: the loop stops when the last message has gone away.
+	/// <see cref="NotificationService.TickSnackbars" />: the loop stops when the last message has gone away.
 	/// </summary>
 	[Test]
-	public void Tick_Stops_When_Nothing_Is_Waiting()
+	public void TickSnackbars_Stops_When_Nothing_Is_Waiting()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -314,12 +314,12 @@ internal class NotificationServiceTests
 
 		time.Advance(WholeTurn);
 
-		sut.Tick();
+		sut.TickSnackbars();
 
 		time.Advance(WholeTurn);
 
 		// Act
-		bool keepTicking = sut.Tick();
+		bool keepTicking = sut.TickSnackbars();
 
 		// Assert
 		keepTicking

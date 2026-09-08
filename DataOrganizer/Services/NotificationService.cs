@@ -26,17 +26,17 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Number of messages kept waiting; the ones on top of that are dropped.
 	/// </summary>
-	private const int MaxWaiting = 10;
+	private const int MaxWaitingSnackbars = 10;
 
 	/// <summary>
 	/// Pause between a message leaving the screen and the next one taking its place.
 	/// </summary>
-	private static readonly TimeSpan Gap = TimeSpan.FromSeconds(0.2);
+	private static readonly TimeSpan SnackbarGap = TimeSpan.FromSeconds(0.2);
 
 	/// <summary>
 	/// Interval between the checks for a free host.
 	/// </summary>
-	private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(0.25);
+	private static readonly TimeSpan SnackbarTickInterval = TimeSpan.FromSeconds(0.25);
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -48,7 +48,7 @@ public sealed class NotificationService : INotificationService
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="ISnackbarPresenter" />
-	private readonly ISnackbarPresenter _presenter;
+	private readonly ISnackbarPresenter _snackbarPresenter;
 
 	/// <inheritdoc cref="TimeProvider" />
 	private readonly TimeProvider _timeProvider;
@@ -59,17 +59,17 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Messages waiting for their turn.
 	/// </summary>
-	private readonly Queue<SnackbarContent> _waiting = new();
-
-	/// <summary>
-	/// Moment the shown message frees the host at; <c>null</c> while nothing is shown.
-	/// </summary>
-	private DateTimeOffset? _freeAt;
+	private readonly Queue<SnackbarContent> _waitingSnackbars = new();
 
 	/// <summary>
 	/// <c>True</c> while the tick loop is scheduled.
 	/// </summary>
-	private bool _isTicking;
+	private bool _isSnackbarTicking;
+
+	/// <summary>
+	/// Moment the shown message frees the host at; <c>null</c> while nothing is shown.
+	/// </summary>
+	private DateTimeOffset? _snackbarFreeAt;
 	#endregion
 
 	#region Constructors
@@ -77,7 +77,7 @@ public sealed class NotificationService : INotificationService
 		Application app,
 		IDispatcherAccessor dispatcher,
 		ILogger logger,
-		ISnackbarPresenter presenter,
+		ISnackbarPresenter snackbarPresenter,
 		IViewFactory viewFactory,
 		TimeProvider timeProvider)
 	{
@@ -87,7 +87,7 @@ public sealed class NotificationService : INotificationService
 
 		_logger = logger;
 
-		_presenter = presenter;
+		_snackbarPresenter = snackbarPresenter;
 
 		_timeProvider = timeProvider;
 
@@ -168,26 +168,26 @@ public sealed class NotificationService : INotificationService
 	/// Shows the next waiting message once the host is free, and stops the loop when none are left
 	/// or the host is gone.
 	/// </summary>
-	internal bool Tick()
+	internal bool TickSnackbars()
 	{
-		if (!_presenter.IsHostLoaded)
+		if (!_snackbarPresenter.IsHostLoaded)
 		{
-			_waiting.Clear();
+			_waitingSnackbars.Clear();
 
-			return Stop();
+			return StopSnackbarTicking();
 		}
 
-		if (!IsHostFree())
+		if (!IsSnackbarHostFree())
 		{
 			return true;
 		}
 
-		if (_waiting.Count == 0)
+		if (_waitingSnackbars.Count == 0)
 		{
-			return Stop();
+			return StopSnackbarTicking();
 		}
 
-		Post(_waiting.Dequeue());
+		PostSnackbar(_waitingSnackbars.Dequeue());
 
 		return true;
 	}
@@ -195,28 +195,28 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Puts a message in the queue and returns <c>false</c> when it will not be shown at all.
 	/// </summary>
-	private bool Enqueue(SnackbarContent content)
+	private bool EnqueueSnackbar(SnackbarContent content)
 	{
-		if (!_presenter.IsHostLoaded)
+		if (!_snackbarPresenter.IsHostLoaded)
 		{
 			return false;
 		}
 
-		if (IsHostFree())
+		if (IsSnackbarHostFree())
 		{
-			Post(content);
+			PostSnackbar(content);
 
 			return true;
 		}
 
-		if (_waiting.Count >= MaxWaiting)
+		if (_waitingSnackbars.Count >= MaxWaitingSnackbars)
 		{
 			return false;
 		}
 
-		_waiting.Enqueue(content);
+		_waitingSnackbars.Enqueue(content);
 
-		StartTicking();
+		StartSnackbarTicking();
 
 		return true;
 	}
@@ -224,15 +224,15 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Tells whether no message occupies the host at the moment.
 	/// </summary>
-	private bool IsHostFree()
+	private bool IsSnackbarHostFree()
 	{
-		return _freeAt is not { } freeAt || _timeProvider.GetUtcNow() >= freeAt;
+		return _snackbarFreeAt is not { } freeAt || _timeProvider.GetUtcNow() >= freeAt;
 	}
 
 	/// <summary>
 	/// Writes the message to the log at the level it is shown with.
 	/// </summary>
-	private void Log(string text, SnackbarMessageLevel level, bool isShown)
+	private void LogSnackbar(string text, SnackbarMessageLevel level, bool isShown)
 	{
 		string message = $"{(isShown ? "Shown in Snackbar" : "Does not shown in Snackbar")}: {text}";
 
@@ -255,11 +255,11 @@ public sealed class NotificationService : INotificationService
 	/// <summary>
 	/// Hands a message over to the host and holds the place until it goes away.
 	/// </summary>
-	private void Post(SnackbarContent content)
+	private void PostSnackbar(SnackbarContent content)
 	{
-		_presenter.Post(content, MessageDuration);
+		_snackbarPresenter.Post(content, MessageDuration);
 
-		_freeAt = _timeProvider.GetUtcNow() + MessageDuration + Gap;
+		_snackbarFreeAt = _timeProvider.GetUtcNow() + MessageDuration + SnackbarGap;
 	}
 
 	/// <summary>
@@ -267,32 +267,32 @@ public sealed class NotificationService : INotificationService
 	/// </summary>
 	private void ShowSnackbar(string text, SnackbarMessageLevel level)
 	{
-		_dispatcher.Post(() => Log(text, level, Enqueue(new(text, level))));
+		_dispatcher.Post(() => LogSnackbar(text, level, EnqueueSnackbar(new(text, level))));
 	}
 
 	/// <summary>
 	/// Schedules the tick loop unless it is already running.
 	/// </summary>
-	private void StartTicking()
+	private void StartSnackbarTicking()
 	{
-		if (_isTicking)
+		if (_isSnackbarTicking)
 		{
 			return;
 		}
 
-		_isTicking = true;
+		_isSnackbarTicking = true;
 
-		DispatcherTimer.Run(Tick, TickInterval);
+		DispatcherTimer.Run(TickSnackbars, SnackbarTickInterval);
 	}
 
 	/// <summary>
 	/// Frees the host and reports that the loop is over.
 	/// </summary>
-	private bool Stop()
+	private bool StopSnackbarTicking()
 	{
-		_freeAt = null;
+		_snackbarFreeAt = null;
 
-		_isTicking = false;
+		_isSnackbarTicking = false;
 
 		return false;
 	}
