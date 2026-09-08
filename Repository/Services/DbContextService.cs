@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Repository.DbContexts;
 using Repository.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +29,14 @@ public sealed class DbContextService : IDbContextService
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public Task<bool> CanConnectAsync(CancellationToken token = default)
+	{
+		return _dbContext
+			.Database
+			.CanConnectAsync(token);
+	}
+
 	/// <inheritdoc />
 	public void Dispose()
 	{
@@ -81,6 +90,14 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public Task<IEnumerable<string>> GetAppliedMigrationsAsync(CancellationToken token = default)
+	{
+		return _dbContext
+			.Database
+			.GetAppliedMigrationsAsync(token);
+	}
+
+	/// <inheritdoc />
 	public DbConnection GetDbConnection()
 	{
 		return _dbContext
@@ -98,12 +115,37 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
+	public IEnumerable<string> GetKnownMigrations()
+	{
+		return _dbContext
+			.GetService<IMigrationsAssembly>()
+			.Migrations
+			.Keys;
+	}
+
+	/// <inheritdoc />
+	public Task<IEnumerable<string>> GetPendingMigrationsAsync(CancellationToken token = default)
+	{
+		return _dbContext
+			.Database
+			.GetPendingMigrationsAsync(token);
+	}
+
+	/// <inheritdoc />
 	public bool HasMigrations()
 	{
 		return _dbContext
 			.GetService<IMigrationsAssembly>()
 			.Migrations
 			.Count > 0;
+	}
+
+	/// <inheritdoc />
+	public Task<bool> HasTablesAsync(CancellationToken token = default)
+	{
+		return _dbContext
+			.GetService<IRelationalDatabaseCreator>()
+			.HasTablesAsync(token);
 	}
 
 	/// <inheritdoc />
