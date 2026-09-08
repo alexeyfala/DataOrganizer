@@ -31,7 +31,7 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 
 	#region Properties
 	/// <inheritdoc />
-	public bool IsHostLoaded => _host is not null;
+	public bool CanShow => _host is not null;
 
 	/// <inheritdoc />
 	/// <remarks>

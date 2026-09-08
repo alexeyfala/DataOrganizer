@@ -105,7 +105,7 @@ internal class SnackbarPresenterContractTests
 
 		// Assert
 		sut
-			.IsHostLoaded
+			.CanShow
 			.Should()
 			.BeTrue();
 
@@ -114,7 +114,7 @@ internal class SnackbarPresenterContractTests
 
 		// Assert
 		sut
-			.IsHostLoaded
+			.CanShow
 			.Should()
 			.BeFalse();
 	}

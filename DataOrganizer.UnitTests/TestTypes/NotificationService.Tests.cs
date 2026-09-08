@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using Avalonia;
 using AwesomeAssertions;
 using DataOrganizer.DTO;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
@@ -24,7 +24,7 @@ internal class NotificationServiceTests
 	/// <summary>
 	/// Time after which a shown message may be taken off the screen.
 	/// </summary>
-	private static readonly TimeSpan WholeTurn = NotificationService.MessageDuration + TimeSpan.FromSeconds(1.0);
+	private static readonly TimeSpan WholeTurn = MessageChannelOptions.MessageDuration + TimeSpan.FromSeconds(1.0);
 	#endregion
 
 	#region Methods
@@ -60,6 +60,44 @@ internal class NotificationServiceTests
 		presenter
 			.DidNotReceive()
 			.Post(Arg.Is<SnackbarContent>(x => x.Text == "dropped"));
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.ShowInformationSnackbar" />: a repeat of the shown message gives it more time instead of waiting in the queue.
+	/// </summary>
+	[Test]
+	public void ShowSnackbar_Gives_A_Repeat_More_Time()
+	{
+		// Arrange
+		ISnackbarPresenter presenter = CreatePresenter();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, time));
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowInformationSnackbar("first");
+
+		time.Advance(WholeTurn);
+
+		// Act
+		sut.ShowInformationSnackbar("first");
+
+		bool keepTicking = sut.Tick();
+
+		// Assert
+		keepTicking
+			.Should()
+			.BeTrue();
+
+		presenter
+			.Received(1)
+			.Post(Arg.Is<SnackbarContent>(x => x.Text == "first"));
+
+		presenter
+			.DidNotReceive()
+			.Remove();
 	}
 
 	/// <summary>
@@ -118,7 +156,7 @@ internal class NotificationServiceTests
 		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		presenter
-			.IsHostLoaded
+			.CanShow
 			.Returns(false);
 
 		using AutoMock mock = AutoMock.GetLoose(builder => Register(builder, presenter, new FakeTimeProvider()));
@@ -135,10 +173,49 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: waiting messages are dropped once the application has no host left.
+	/// <see cref="NotificationService.ShowToast" />: a toast that arrives while another one is shown waits for its turn.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Drops_Waiting_Messages_When_The_Host_Is_Gone()
+	public void ShowToast_Holds_A_Message_While_Another_One_Is_Shown()
+	{
+		// Arrange
+		IToastPresenter toastPresenter = CreateToastPresenter();
+
+		FakeTimeProvider time = new();
+
+		using AutoMock mock = AutoMock.GetLoose(
+			builder => Register(builder, CreatePresenter(), time, toastPresenter));
+
+		NotificationService sut = mock.Create<NotificationService>();
+
+		sut.ShowToast("first");
+
+		// Act
+		sut.ShowToast("second");
+
+		// Assert
+		toastPresenter
+			.Received(1)
+			.Post("first");
+
+		toastPresenter
+			.DidNotReceive()
+			.Post("second");
+
+		// Act
+		PassTurn(sut, time);
+
+		// Assert
+		toastPresenter
+			.Received(1)
+			.Post("second");
+	}
+
+	/// <summary>
+	/// <see cref="NotificationService.Tick" />: waiting messages are dropped once the application has no host left.
+	/// </summary>
+	[Test]
+	public void Tick_Drops_Waiting_Messages_When_The_Host_Is_Gone()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -156,11 +233,11 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		presenter
-			.IsHostLoaded
+			.CanShow
 			.Returns(false);
 
 		// Act
-		bool keepTicking = sut.TickSnackbars();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		keepTicking
@@ -173,10 +250,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: a message under the pointer is left on the screen and holds the next one back.
+	/// <see cref="NotificationService.Tick" />: a message under the pointer is left on the screen and holds the next one back.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Holds_The_Message_Under_The_Pointer()
+	public void Tick_Holds_The_Message_Under_The_Pointer()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -198,7 +275,7 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		// Act
-		bool keepTicking = sut.TickSnackbars();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		keepTicking
@@ -215,10 +292,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: waiting messages reach the host in the order they were shown in.
+	/// <see cref="NotificationService.Tick" />: waiting messages reach the host in the order they were shown in.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Keeps_The_Order()
+	public void Tick_Keeps_The_Order()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -252,10 +329,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: a waiting message is left alone until the shown one goes away.
+	/// <see cref="NotificationService.Tick" />: a waiting message is left alone until the shown one goes away.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Leaves_A_Message_Waiting_Until_Its_Turn()
+	public void Tick_Leaves_A_Message_Waiting_Until_Its_Turn()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -271,7 +348,7 @@ internal class NotificationServiceTests
 		sut.ShowInformationSnackbar("second");
 
 		// Act
-		bool keepTicking = sut.TickSnackbars();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		keepTicking
@@ -284,10 +361,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: the waiting message is shown once the host is free.
+	/// <see cref="NotificationService.Tick" />: the waiting message is shown once the host is free.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Posts_The_Waiting_Message()
+	public void Tick_Posts_The_Waiting_Message()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -312,10 +389,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: the shown message is taken off the screen when its time is up.
+	/// <see cref="NotificationService.Tick" />: the shown message is taken off the screen when its time is up.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Removes_The_Shown_Message()
+	public void Tick_Removes_The_Shown_Message()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -331,7 +408,7 @@ internal class NotificationServiceTests
 		time.Advance(WholeTurn);
 
 		// Act
-		bool keepTicking = sut.TickSnackbars();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		keepTicking
@@ -344,10 +421,10 @@ internal class NotificationServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="NotificationService.TickSnackbars" />: the loop stops when the last message has gone away.
+	/// <see cref="NotificationService.Tick" />: the loop stops when the last message has gone away.
 	/// </summary>
 	[Test]
-	public void TickSnackbars_Stops_When_Nothing_Is_Waiting()
+	public void Tick_Stops_When_Nothing_Is_Waiting()
 	{
 		// Arrange
 		ISnackbarPresenter presenter = CreatePresenter();
@@ -366,12 +443,12 @@ internal class NotificationServiceTests
 
 		time.Advance(WholeTurn);
 
-		sut.TickSnackbars();
+		sut.Tick();
 
 		time.Advance(WholeTurn);
 
 		// Act
-		bool keepTicking = sut.TickSnackbars();
+		bool keepTicking = sut.Tick();
 
 		// Assert
 		keepTicking
@@ -389,7 +466,21 @@ internal class NotificationServiceTests
 		ISnackbarPresenter presenter = Substitute.For<ISnackbarPresenter>();
 
 		presenter
-			.IsHostLoaded
+			.CanShow
+			.Returns(true);
+
+		return presenter;
+	}
+
+	/// <summary>
+	/// Creates a presenter with a window ready to show toasts.
+	/// </summary>
+	private static IToastPresenter CreateToastPresenter()
+	{
+		IToastPresenter presenter = Substitute.For<IToastPresenter>();
+
+		presenter
+			.CanShow
 			.Returns(true);
 
 		return presenter;
@@ -402,11 +493,11 @@ internal class NotificationServiceTests
 	{
 		time.Advance(WholeTurn);
 
-		sut.TickSnackbars();
+		sut.Tick();
 
 		time.Advance(WholeTurn);
 
-		sut.TickSnackbars();
+		sut.Tick();
 	}
 
 	/// <summary>
@@ -415,12 +506,9 @@ internal class NotificationServiceTests
 	private static void Register(
 		ContainerBuilder builder,
 		ISnackbarPresenter presenter,
-		TimeProvider timeProvider)
+		TimeProvider timeProvider,
+		IToastPresenter? toastPresenter = null)
 	{
-		builder
-			.RegisterInstance(Substitute.For<Application>())
-			.As<Application>();
-
 		builder
 			.RegisterInstance(new InlineDispatcherAccessor())
 			.As<IDispatcherAccessor>();
@@ -430,6 +518,13 @@ internal class NotificationServiceTests
 		builder
 			.RegisterInstance(timeProvider)
 			.As<TimeProvider>();
+
+		if (toastPresenter is null)
+		{
+			return;
+		}
+
+		builder.RegisterInstance(toastPresenter);
 	}
 	#endregion
 }

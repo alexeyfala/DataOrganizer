@@ -196,6 +196,7 @@ public sealed class App : Application
 		services.AddSingleton<ISessionKeyStore, SessionKeyStore>();
 		services.AddSingleton<ISettingsSessionState, SettingsSessionState>();
 		services.AddSingleton<ISnackbarPresenter, SnackbarPresenter>();
+		services.AddSingleton<IToastPresenter, ToastPresenter>();
 		services.AddSingleton<IUiCultureService, UiCultureService>();
 		#endregion
 
