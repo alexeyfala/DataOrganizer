@@ -162,7 +162,7 @@
 	</Style>
 
 	<!-- Supporting text of a snackbar message. Mirrors Material's MaterialSnackbarHostSupportingTextBlock metrics. -->
-	<Style Selector="TextBlock.SnackbarTextBlockStyle">
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle">
 		<Setter Property="Foreground" Value="{StaticResource MaterialBodyBrush}" />
 		<Setter Property="MaxLines" Value="2" />
 		<Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -170,11 +170,11 @@
 		<Setter Property="VerticalAlignment" Value="Center" />
 	</Style>
 
-	<Style Selector="TextBlock.SnackbarTextBlockStyle.Warning">
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle.Warning">
 		<Setter Property="Foreground" Value="Orange" />
 	</Style>
 
-	<Style Selector="TextBlock.SnackbarTextBlockStyle.Error">
+	<Style Selector=":is(TextBlock).SnackbarTextBlockStyle.Error">
 		<Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
 	</Style>
 
