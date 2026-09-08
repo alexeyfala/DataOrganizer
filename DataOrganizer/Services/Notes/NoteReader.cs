@@ -38,10 +38,10 @@ public sealed class NoteReader : INoteReader
 
 	#region Methods
 	/// <inheritdoc />
-	public string? ReadNote(object? item)
+	public string? ReadNote(ExplorerModelBaseDto? item)
 	{
 		// An encrypted note is not a failure: the object is shown with a tooltip instead of the popup.
-		if (item is not ExplorerModelBaseDto dto
+		if (item is not { } dto
 			|| dto.Note is not { } note
 			|| note.IsEmpty()
 			|| dto.EncryptionStatus == EncryptionStatus.Encrypted)

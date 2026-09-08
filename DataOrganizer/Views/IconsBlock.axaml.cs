@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notes;
 
@@ -61,7 +62,7 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <inheritdoc cref="NoteView.NoteItem" />
-	public object? NoteItem
+	public ExplorerModelBaseDto? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -122,8 +123,8 @@ internal sealed partial class IconsBlock : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<object?> NoteItemProperty = AvaloniaProperty
-		.Register<IconsBlock, object?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
+		.Register<IconsBlock, ExplorerModelBaseDto?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.

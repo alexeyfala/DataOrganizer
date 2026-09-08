@@ -117,11 +117,11 @@ internal class NoteReaderTests
 	}
 
 	/// <summary>
-	/// <see cref="NoteReader.ReadNote" />: unsupported objects are ignored.
+	/// <see cref="NoteReader.ReadNote" />: a missing object is ignored.
 	/// </summary>
 
 	[Test]
-	public void ReadNote_Returns_Null_When_Item_Is_Not_An_Explorer_Object()
+	public void ReadNote_Returns_Null_When_Item_Is_Null()
 	{
 		// Arrange
 		INoteCipher noteCipher = Substitute.For<INoteCipher>();
@@ -131,7 +131,7 @@ internal class NoteReaderTests
 		NoteReader sut = mock.Create<NoteReader>();
 
 		// Act
-		string? result = sut.ReadNote(new object());
+		string? result = sut.ReadNote(null);
 
 		// Assert
 		result
