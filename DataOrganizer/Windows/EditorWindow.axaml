@@ -409,12 +409,10 @@
 								</StackPanel>
 
 								<Grid
-									x:DataType="encryption:IAutoLockService"
-									Classes.expiring="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
+									Classes.expiring="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockIsExpiring}}"
 									ColumnDefinitions="Auto,Auto"
 									Cursor="Hand"
-									DataContext="{markup:Resolve {x:Type encryption:IAutoLockService}}"
-									IsVisible="{Binding IsArmed, Mode=OneWay}"
+									IsVisible="{Binding AutoLock.IsArmed, Mode=OneWay}"
 									ToolTip.Tip="{x:Static prop:Strings.RestartAutoLockHint}">
 									<Grid.Styles>
 										<Style Selector="Grid">
@@ -450,11 +448,15 @@
 									<TextBlock
 										Grid.Column="1"
 										Margin="0.0,0.0,2.0,0.0"
-										Text="{Binding Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
+										Text="{Binding AutoLock.Remaining, Mode=OneWay, Converter={x:Static converters:AppConverters.AutoLockRemaining}}" />
 
 									<Interaction.Behaviors>
 										<EventTriggerBehavior EventName="Tapped">
-											<InvokeCommandAction Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).RestartAutoLockCommand}" />
+											<!--
+												The service arrives through the view model, so the path holds no null link while the tree
+												is built and the command name stays verified by the compiled bindings.
+											-->
+											<InvokeCommandAction Command="{Binding RestartAutoLockCommand}" />
 										</EventTriggerBehavior>
 									</Interaction.Behaviors>
 								</Grid>
