@@ -104,14 +104,14 @@ internal static class DatasetRecordMoveHelper
 
 	/// <summary>
 	/// Resolves the drop target collection, insertion index and placement for a dragged record given
-	/// the element under the pointer (<paramref name="targetContext" />) and the pointer's vertical
-	/// position within it (<paramref name="pointerYRatio" />, 0 at the top .. 1 at the bottom).
+	/// the record under the pointer (<paramref name="targetContext" />, <c>null</c> for empty surface)
+	/// and the pointer's vertical position within it (<paramref name="pointerYRatio" />, 0 at the top .. 1 at the bottom).
 	/// Returns <c>false</c> when the drop is not allowed (onto itself, or a group into itself/a descendant).
 	/// </summary>
 	public static bool TryResolveTarget(
 		ObservableCollection<DatasetRecordBase> root,
 		DatasetRecordBase dragged,
-		object? targetContext,
+		DatasetRecordBase? targetContext,
 		double pointerYRatio,
 		out ObservableCollection<DatasetRecordBase> target,
 		out int index,
