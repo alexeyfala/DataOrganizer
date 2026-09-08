@@ -528,7 +528,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public async Task ShowNoticeAsync(NoticeParameters parameters)
+	public Task ShowNoticeAsync(NoticeParameters parameters)
 	{
 		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
 
@@ -550,9 +550,7 @@ public class ViewLauncher : IViewLauncher
 
 		window.Show();
 
-		await closed
-			.Task
-			.ConfigureAwait(true);
+		return closed.Task;
 	}
 
 	/// <inheritdoc />
