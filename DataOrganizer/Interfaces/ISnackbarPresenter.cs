@@ -1,5 +1,5 @@
 using DataOrganizer.DTO;
-//using System;
+using Material.Styles.Controls;
 
 namespace DataOrganizer.Interfaces;
 
@@ -21,6 +21,16 @@ public interface ISnackbarPresenter
 	#endregion
 
 	#region Methods
+	/// <summary>
+	/// Takes the host messages are to be shown in.
+	/// </summary>
+	void AttachHost(SnackbarHost host);
+
+	/// <summary>
+	/// Gives up the host that has left the screen.
+	/// </summary>
+	void DetachHost(SnackbarHost host);
+
 	/// <summary>
 	/// Shows a message until it is removed.
 	/// </summary>

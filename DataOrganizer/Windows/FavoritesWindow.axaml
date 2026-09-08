@@ -6,6 +6,8 @@
 	xmlns:common="using:Shared.Common"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
+	xmlns:interfaces="using:DataOrganizer.Interfaces"
+	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -146,6 +148,10 @@
 									x:Name="SnackbarHost"
 									HostName="{Binding $self.Name}"
 									SnackbarHorizontalAlignment="Center">
+									<Interaction.Behaviors>
+										<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
+									</Interaction.Behaviors>
+
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
 											<templateSelectors:FavoritesPopupContentTemplateSelector>

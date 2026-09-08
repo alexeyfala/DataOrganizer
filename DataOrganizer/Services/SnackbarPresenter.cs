@@ -6,9 +6,7 @@ using DataOrganizer.Interfaces;
 using Material.Styles.Controls;
 using Material.Styles.Models;
 using System;
-using System.Collections;
 using System.Linq;
-using System.Reflection;
 
 namespace DataOrganizer.Services;
 
@@ -16,9 +14,14 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 {
 	#region Data
 	/// <summary>
-	/// Name Material gives to the part that holds the shown messages.
+	/// The host handed over by the window that carries it; <c>null</c> while no such window is open.
 	/// </summary>
-	private const string MessagesPart = "PART_SnackbarHostItemsContainer";
+	private SnackbarHost? _host;
+
+	/// <summary>
+	/// The visual the shown message occupies; <c>null</c> until it is looked up.
+	/// </summary>
+	private Control? _messageVisual;
 
 	/// <summary>
 	/// The message handed over to the host; <c>null</c> while none is shown.
@@ -28,45 +31,67 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 
 	#region Properties
 	/// <inheritdoc />
-	/// <remarks>
-	/// Read from the registry of the hosts, which Material keeps to itself.
-	/// </remarks>
-	public bool IsHostLoaded => GetHost() is not null;
+	public bool IsHostLoaded => _host is not null;
 
 	/// <inheritdoc />
 	/// <remarks>
-	/// Only the cards of the messages count, not the window content the host wraps.
+	/// Only the message counts, not the window content the host wraps.
 	/// </remarks>
-	public bool IsPointerOverMessage => GetMessages() is { } messages && messages
-		.GetVisualDescendants()
-		.OfType<Card>()
-		.Any(x => x.IsPointerOver);
+	public bool IsPointerOverMessage => GetMessageVisual()?.IsPointerOver == true;
 	#endregion
 
 	#region Methods
 	/// <inheritdoc />
+	public void AttachHost(SnackbarHost host) => _host = host;
+
+	/// <inheritdoc />
+	public void DetachHost(SnackbarHost host)
+	{
+		// A host of a window that has already been replaced says nothing about the current one.
+		if (!ReferenceEquals(_host, host))
+		{
+			return;
+		}
+
+		_host = null;
+
+		_messageVisual = null;
+
+		_posted = null;
+	}
+
+	/// <inheritdoc />
 	public void Post(SnackbarContent content)
 	{
+		if (_host is not { } host)
+		{
+			return;
+		}
+
 		// The level travels with the content so that the snackbar template colours its own text.
 		// Zero duration leaves the message on the screen until it is removed here.
 		_posted = new(content, TimeSpan.Zero);
 
+		_messageVisual = null;
+
 		SnackbarHost.Post(
 			_posted,
-			null,
+			host.HostName,
 			DispatcherPriority.Normal);
 	}
 
 	/// <inheritdoc />
 	public void Remove()
 	{
-		if (_posted is { } posted && IsHostLoaded)
+		if (_posted is { } posted && _host is { } host)
 		{
 			SnackbarHost.Remove(
 				posted,
-				null,
+				host.HostName,
 				DispatcherPriority.Normal);
 		}
+
+		_messageVisual = null;
 
 		_posted = null;
 	}
@@ -74,29 +99,26 @@ public sealed class SnackbarPresenter : ISnackbarPresenter
 
 	#region Helpers
 	/// <summary>
-	/// Returns the host messages are shown in, the way Material picks it for a message without a host name.
+	/// Returns the visual of the shown message, found by the model it carries and kept until the message goes.
 	/// </summary>
-	private static SnackbarHost? GetHost()
+	private Control? GetMessageVisual()
 	{
-		return typeof(SnackbarHost)
-			.GetField("SnackbarHostDictionary", BindingFlags.NonPublic | BindingFlags.Static)
-			?.GetValue(null) is IDictionary registered
-			? registered
-				.Values
-				.OfType<SnackbarHost>()
-				.FirstOrDefault()
-			: null;
-	}
+		if (_messageVisual is not null)
+		{
+			return _messageVisual;
+		}
 
-	/// <summary>
-	/// Returns the part of the host the shown messages live in.
-	/// </summary>
-	private static ItemsControl? GetMessages()
-	{
-		return GetHost()?
+		if (_host is not { } host || _posted is not { } posted)
+		{
+			return null;
+		}
+
+		_messageVisual = host
 			.GetVisualDescendants()
-			.OfType<ItemsControl>()
-			.FirstOrDefault(x => x.Name == MessagesPart);
+			.OfType<Control>()
+			.FirstOrDefault(x => ReferenceEquals(x.DataContext, posted));
+
+		return _messageVisual;
 	}
 	#endregion
 }
