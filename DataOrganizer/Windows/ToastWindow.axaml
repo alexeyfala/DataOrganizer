@@ -40,6 +40,9 @@
 				FontWeight="SemiBold"
 				Text="{Binding Title, Mode=OneWay}" />
 
+			<!--
+				The default text menu is a popup: opening it takes the pointer off the toast, and the toast closes with the menu still on it.
+			-->
 			<SelectableTextBlock
 				Grid.Row="1"
 				Grid.Column="0"
@@ -47,6 +50,7 @@
 				Margin="32.0,0.0,32.0,16.0"
 				HorizontalAlignment="Center"
 				VerticalAlignment="Center"
+				ContextFlyout="{x:Null}"
 				FontSize="16.0"
 				Text="{Binding Message, Mode=OneWay}"
 				TextAlignment="Left"
