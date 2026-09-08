@@ -708,4 +708,10 @@
   <data name="UnreadableHotkeysRemoved" xml:space="preserve">
     <value>Нечитаемые горячие клавиши удалены у файлов</value>
   </data>
+  <data name="DatabaseSchemaMismatch" xml:space="preserve">
+    <value>Схема базы данных не соответствует этой версии приложения, поэтому база оставлена нетронутой. Данные в ней целы.</value>
+  </data>
+  <data name="OpenDatabaseFolder" xml:space="preserve">
+    <value>Открыть папку с базой</value>
+  </data>
 </root>

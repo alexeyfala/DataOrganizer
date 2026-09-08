@@ -525,6 +525,51 @@ public class ViewLauncher : IViewLauncher
 
 		ConfigureClipboardLogWindow(owner).Show();
 	}
+
+	/// <inheritdoc />
+	public async Task ShowStartupErrorAsync(string databaseFilePath)
+	{
+		try
+		{
+			StartupErrorViewModel viewModel = _viewFactory.CreateViewModel<StartupErrorViewModel>();
+
+			viewModel.DatabaseFilePath = databaseFilePath;
+
+			viewModel.Message = Strings.DatabaseSchemaMismatch;
+
+			viewModel.Title = AppUtils.AppNameParted;
+
+			StartupErrorWindow window = _viewFactory.CreateWindow<StartupErrorWindow>(viewModel);
+
+			TaskCompletionSource closed = new();
+
+			window.Closed += (_, _) => closed.TrySetResult();
+
+			window.Show();
+
+			await closed
+				.Task
+				.ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			// There is no window left to keep the application alive, and nothing to save.
+			if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+			{
+				desktop.Shutdown();
+			}
+			else if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
+		}
+	}
 	#endregion
 
 	#region Helpers

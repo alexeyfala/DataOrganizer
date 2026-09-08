@@ -74,6 +74,11 @@ public interface IViewLauncher
 	Task ShowClipboardLogWindowAsync(Window owner);
 
 	/// <summary>
+	/// Reports a database that cannot be worked with and ends the launch once the report is closed.
+	/// </summary>
+	Task ShowStartupErrorAsync(string databaseFilePath);
+
+	/// <summary>
 	/// Checks whether <paramref name="position" /> places the window's title bar
 	/// area on a working area of any connected screen. Used to prevent restoring
 	/// the window onto a disconnected monitor.

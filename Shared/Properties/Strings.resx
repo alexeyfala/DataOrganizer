@@ -688,4 +688,10 @@
   <data name="UnreadableHotkeysRemoved" xml:space="preserve">
     <value>Hotkeys that could not be read were removed from the files</value>
   </data>
+  <data name="DatabaseSchemaMismatch" xml:space="preserve">
+    <value>The schema of the database does not match this version of the application, so the database has been left untouched. The data in it is intact.</value>
+  </data>
+  <data name="OpenDatabaseFolder" xml:space="preserve">
+    <value>Open the database folder</value>
+  </data>
 </root>

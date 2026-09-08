@@ -439,6 +439,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The schema of the database does not match this version of the application, so the database has been left untouched. The data in it is intact..
+        /// </summary>
+        public static string DatabaseSchemaMismatch {
+            get {
+                return ResourceManager.GetString("DatabaseSchemaMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data export completed.
         /// </summary>
         public static string DataExportCompleted {
@@ -1164,6 +1173,15 @@ namespace Shared.Properties {
         public static string OldPassword {
             get {
                 return ResourceManager.GetString("OldPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open the database folder.
+        /// </summary>
+        public static string OpenDatabaseFolder {
+            get {
+                return ResourceManager.GetString("OpenDatabaseFolder", resourceCulture);
             }
         }
         

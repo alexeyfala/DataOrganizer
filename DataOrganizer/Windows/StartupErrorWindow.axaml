@@ -1,0 +1,66 @@
+<Window
+	x:Class="DataOrganizer.Windows.StartupErrorWindow"
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:prop="using:Shared.Properties"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	Width="520.0"
+	x:DataType="vm:StartupErrorViewModel"
+	CanResize="False"
+	Icon="/Assets/Logo.ico"
+	SizeToContent="Height"
+	Title="{Binding Title, Mode=OneWay}"
+	WindowStartupLocation="CenterScreen"
+	mc:Ignorable="d">
+
+	<StackPanel
+		Margin="16.0"
+		Orientation="Vertical"
+		Spacing="{StaticResource ElementSpacing}">
+
+		<Interaction.Behaviors>
+			<KeyDownTrigger
+				Key="Escape"
+				EventRoutingStrategy="Bubble">
+				<CloseWindowAction />
+			</KeyDownTrigger>
+		</Interaction.Behaviors>
+
+		<StackPanel.Styles>
+			<Style Selector="Button">
+				<Setter Property="Theme" Value="{StaticResource MaterialFlatButton}" />
+			</Style>
+		</StackPanel.Styles>
+
+		<TextBlock
+			Text="{Binding Message, Mode=OneWay}"
+			TextWrapping="Wrap" />
+
+		<SelectableTextBlock
+			Text="{Binding DatabaseFilePath, Mode=OneWay}"
+			TextWrapping="Wrap" />
+
+		<StackPanel
+			HorizontalAlignment="Right"
+			Orientation="Horizontal"
+			Spacing="{StaticResource ElementSpacing}">
+			<Button
+				Classes="primary"
+				Command="{Binding OpenDatabaseFolderCommand}"
+				Content="{x:Static prop:Strings.OpenDatabaseFolder}" />
+
+			<Button
+				Classes="primary"
+				Content="{x:Static prop:Strings.Close}"
+				IsDefault="True">
+				<Interaction.Behaviors>
+					<EventTriggerBehavior EventName="Click">
+						<CloseWindowAction />
+					</EventTriggerBehavior>
+				</Interaction.Behaviors>
+			</Button>
+		</StackPanel>
+	</StackPanel>
+</Window>

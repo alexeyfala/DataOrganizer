@@ -149,16 +149,32 @@ public sealed class AppController : IAppController
 
 			// TODO: Display a splash screen while connecting to database.
 
-			if (await _dbAccess
+			DbConnectionStatus status = await _dbAccess
 				.ConnectAsync(token)
-				.ConfigureAwait(true) is not DbConnectionStatus.Connected)
+				.ConfigureAwait(true);
+
+			if (status is DbConnectionStatus.SchemaTooOld or DbConnectionStatus.SchemaTooNew)
+			{
+				// The data is intact, and an empty hierarchy would read as a loss worth undoing.
+				_logger.LogError($"The schema of the database is {status}, the launch ends.", assertDebug: false);
+
+				await _viewLauncher
+					.ShowStartupErrorAsync(_dbAccess.GetDbFilePath())
+					.ConfigureAwait(true);
+
+				return;
+			}
+
+			bool isConnected = status is DbConnectionStatus.Connected;
+
+			if (!isConnected)
 			{
 				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
 
 				_notification.ShowToast(Strings.DatabaseIsUnavailable);
 			}
 
-			if (_options.FillObjects)
+			if (isConnected && _options.FillObjects)
 			{
 				const int total = 3;
 
@@ -169,9 +185,12 @@ public sealed class AppController : IAppController
 					levels: total).ConfigureAwait(true);
 			}
 
-			ExplorerModelBaseDto[]? hierarchy = await _entityLoader
-				.LoadFromEmbeddedDbAsync(token)
-				.ConfigureAwait(true);
+			// Nothing is read from a database that is not there: the toast above has already said so.
+			ExplorerModelBaseDto[]? hierarchy = isConnected
+				? await _entityLoader
+					.LoadFromEmbeddedDbAsync(token)
+					.ConfigureAwait(true)
+				: [];
 
 			if (hierarchy is null)
 			{
