@@ -1281,13 +1281,17 @@ public sealed class DbAccess : IDbAccess
 			return DbConnectionStatus.Connected;
 		}
 
+		IEnumerable<string> applied = await _dbContextService
+			.GetAppliedMigrationsAsync(token)
+			.ConfigureAwait(false);
+
+		bool isFromNewerVersion = applied
+			.Except(_dbContextService.GetKnownMigrations())
+			.Any();
+
 		// A schema older than this version is left to the migration itself: it fails on the tables
 		// that are already there, and a failure on a database that reads is about its schema.
-		return (await _dbContextService
-			.GetAppliedMigrationsAsync(token)
-			.ConfigureAwait(false))
-			.Except(_dbContextService.GetKnownMigrations())
-			.Any()
+		return isFromNewerVersion
 			? DbConnectionStatus.SchemaTooNew
 			: DbConnectionStatus.Connected;
 	}
