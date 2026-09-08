@@ -1,5 +1,6 @@
 using Avalonia;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
@@ -84,7 +85,7 @@ public sealed class NotificationService : INotificationService
 				screenSize.Height - (windowSize.Height + margin));
 
 			await Task
-				.Delay(TimeSpan.FromSeconds(3))
+				.Delay(NotificationHelper.MessageDuration)
 				.ConfigureAwait(true);
 
 			while (window.IsPointerOver)

@@ -1,6 +1,7 @@
 using Avalonia.Threading;
 using DataOrganizer.DTO;
 using DataOrganizer.Enums;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -12,11 +13,6 @@ namespace DataOrganizer.Services;
 public sealed class SnackbarService : ISnackbarService
 {
 	#region Data
-	/// <summary>
-	/// Time a message stays on the screen.
-	/// </summary>
-	public static readonly TimeSpan MessageDuration = TimeSpan.FromSeconds(4.0);
-
 	/// <summary>
 	/// Pause between a message leaving the screen and the next one taking its place.
 	/// </summary>
@@ -154,9 +150,9 @@ public sealed class SnackbarService : ISnackbarService
 	/// </summary>
 	private void Post(SnackbarContent content)
 	{
-		_presenter.Post(content, MessageDuration);
+		_presenter.Post(content, NotificationHelper.MessageDuration);
 
-		_freeAt = _timeProvider.GetUtcNow() + MessageDuration + Gap;
+		_freeAt = _timeProvider.GetUtcNow() + NotificationHelper.MessageDuration + Gap;
 	}
 
 	/// <summary>

@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.DTO;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.UnitTests.Helpers;
@@ -23,7 +24,7 @@ internal class SnackbarServiceTests
 	/// <summary>
 	/// Time after which a shown message frees the host for the next one.
 	/// </summary>
-	private static readonly TimeSpan WholeTurn = SnackbarService.MessageDuration + TimeSpan.FromSeconds(1.0);
+	private static readonly TimeSpan WholeTurn = NotificationHelper.MessageDuration + TimeSpan.FromSeconds(1.0);
 	#endregion
 
 	#region Methods
@@ -112,7 +113,7 @@ internal class SnackbarServiceTests
 			.Received(1)
 			.Post(
 				Arg.Is<SnackbarContent>(x => x.Text == "first"),
-				SnackbarService.MessageDuration);
+				NotificationHelper.MessageDuration);
 	}
 
 	/// <summary>
@@ -289,7 +290,7 @@ internal class SnackbarServiceTests
 			.Received(1)
 			.Post(
 				Arg.Is<SnackbarContent>(x => x.Text == "second"),
-				SnackbarService.MessageDuration);
+				NotificationHelper.MessageDuration);
 	}
 
 	/// <summary>
