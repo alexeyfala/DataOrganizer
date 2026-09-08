@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
+using Repository.Enums;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -148,12 +149,10 @@ public sealed class AppController : IAppController
 
 			// TODO: Display a splash screen while connecting to database.
 
-			if (!await _dbAccess
+			if (await _dbAccess
 				.ConnectAsync(token)
-				.ConfigureAwait(true))
+				.ConfigureAwait(true) is not DbConnectionStatus.Connected)
 			{
-				// The launch goes on, but the state of the database is now known to the user:
-				// nothing written from here on reaches it.
 				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
 
 				_notification.ShowToast(Strings.DatabaseIsUnavailable);

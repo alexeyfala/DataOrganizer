@@ -379,7 +379,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ConnectAsync(CancellationToken token = default)
+	public async Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -391,19 +391,38 @@ public sealed class DbAccess : IDbAccess
 
 			TryErasePendingBackups();
 
-			await (_dbContextService.HasMigrations()
-				? _dbContextService.MigrateAsync(token)
-				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+			bool isExisting = _fileSystem.IsFileExists(_dbContextService.GetDbFilePath());
+
+			DbConnectionStatus status = isExisting
+				? await GetSchemaStatusAsync(token).ConfigureAwait(false)
+				: DbConnectionStatus.Connected;
+
+			if (status is DbConnectionStatus.Connected)
+			{
+				DbConnectionStatus failure = isExisting
+					? DbConnectionStatus.SchemaTooOld
+					: DbConnectionStatus.FileUnreadable;
+
+				// A database that has just been read holds data, so a failure here is about its schema.
+				status = await TryUpdateSchemaAsync(failure, token).ConfigureAwait(false);
+			}
+
+			if (status is not DbConnectionStatus.Connected)
+			{
+				_logger.LogError($"The database cannot be worked with: {status}.", assertDebug: false);
+
+				return status;
+			}
 
 			await TryEraseFreePagesOnceAsync(token).ConfigureAwait(false);
 
-			return true;
+			return status;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			return false;
+			return DbConnectionStatus.FileUnreadable;
 		}
 		finally
 		{
@@ -1245,6 +1264,35 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
+	/// Tells an existing database that cannot be opened from one whose schema does not match this version.
+	/// </summary>
+	private async Task<DbConnectionStatus> GetSchemaStatusAsync(CancellationToken token)
+	{
+		if (!IsValidSQLiteDatabase(_dbContextService.GetDbFilePath())
+			|| !await _dbContextService
+				.CanConnectAsync(token)
+				.ConfigureAwait(false))
+		{
+			return DbConnectionStatus.FileUnreadable;
+		}
+
+		if (!_dbContextService.HasMigrations())
+		{
+			return DbConnectionStatus.Connected;
+		}
+
+		// A schema older than this version is left to the migration itself: it fails on the tables
+		// that are already there, and a failure on a database that reads is about its schema.
+		return (await _dbContextService
+			.GetAppliedMigrationsAsync(token)
+			.ConfigureAwait(false))
+			.Except(_dbContextService.GetKnownMigrations())
+			.Any()
+			? DbConnectionStatus.SchemaTooNew
+			: DbConnectionStatus.Connected;
+	}
+
+	/// <summary>
 	/// Erases the free pages of the database once, keeping a failure to the log.
 	/// </summary>
 	private async Task TryEraseFreePagesOnceAsync(CancellationToken token)
@@ -1273,6 +1321,34 @@ public sealed class DbAccess : IDbAccess
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Brings the schema to the model, reporting <paramref name="failure" /> when that cannot be done.
+	/// </summary>
+	private async Task<DbConnectionStatus> TryUpdateSchemaAsync(
+		DbConnectionStatus failure,
+		CancellationToken token)
+	{
+		try
+		{
+			await (_dbContextService.HasMigrations()
+				? _dbContextService.MigrateAsync(token)
+				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+
+			return DbConnectionStatus.Connected;
+		}
+		catch (OperationCanceledException)
+		{
+			// A cancelled connect is the caller giving up, not a schema that cannot be updated.
+			throw;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+
+			return failure;
 		}
 	}
 	#endregion

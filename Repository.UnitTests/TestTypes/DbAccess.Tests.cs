@@ -347,12 +347,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.Be(DbConnectionStatus.Connected);
 
 		if (useMigrations)
 		{
@@ -369,7 +369,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created or migrated is reported as a failure.
+	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created is reported as unreadable.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
@@ -389,12 +389,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
-			.BeFalse();
+			.Be(DbConnectionStatus.FileUnreadable);
 	}
 
 	/// <summary>
@@ -422,12 +422,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.Be(DbConnectionStatus.Connected);
 	}
 
 	/// <summary>

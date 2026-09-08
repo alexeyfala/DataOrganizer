@@ -141,14 +141,6 @@ public sealed class DbContextService : IDbContextService
 	}
 
 	/// <inheritdoc />
-	public Task<bool> HasTablesAsync(CancellationToken token = default)
-	{
-		return _dbContext
-			.GetService<IRelationalDatabaseCreator>()
-			.HasTablesAsync(token);
-	}
-
-	/// <inheritdoc />
 	public void Migrate()
 	{
 		_dbContext

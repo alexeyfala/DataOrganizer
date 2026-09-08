@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services;
 using NSubstitute;
+using Repository.Enums;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -96,7 +97,7 @@ internal class AppControllerTests
 
 			dbAccess
 				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(true);
+				.Returns(DbConnectionStatus.Connected);
 
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -163,7 +164,7 @@ internal class AppControllerTests
 
 			dbAccess
 				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(true);
+				.Returns(DbConnectionStatus.Connected);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -220,7 +221,7 @@ internal class AppControllerTests
 
 			dbAccess
 				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(false);
+				.Returns(DbConnectionStatus.FileUnreadable);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -270,7 +271,7 @@ internal class AppControllerTests
 
 			dbAccess
 				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(true);
+				.Returns(DbConnectionStatus.Connected);
 
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -338,7 +339,7 @@ internal class AppControllerTests
 
 			dbAccess
 				.ConnectAsync(Arg.Any<CancellationToken>())
-				.Returns(true);
+				.Returns(DbConnectionStatus.Connected);
 
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 

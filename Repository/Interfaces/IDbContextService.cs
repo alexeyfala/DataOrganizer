@@ -57,11 +57,6 @@ public interface IDbContextService : IDisposable
 	/// </summary>
 	bool HasMigrations();
 
-	/// <summary>
-	/// <c>True</c> when the database holds at least one table of its own.
-	/// </summary>
-	Task<bool> HasTablesAsync(CancellationToken token = default);
-
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.Migrate(DatabaseFacade)" />
 	void Migrate();
 
