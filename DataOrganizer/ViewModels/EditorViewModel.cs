@@ -227,7 +227,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -259,8 +259,10 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Editing a note of an object using dialog");
 
-		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(_noteReader.ReadNote(dto), dto.Name)
+		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+			_noteReader.ReadNote(dto),
+			dto.Name,
+			isSensitive: dto.EncryptionStatus != EncryptionStatus.None)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
@@ -290,7 +292,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -366,7 +368,7 @@ public partial class EditorViewModel :
 		{
 			string errorText = $@"{Strings.FailedToLoadFileContents} ""{dto.Name}""";
 
-			ShowErrorSnackbar(errorText);
+			_notification.ShowErrorSnackbar(errorText);
 
 			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
 				true,
@@ -400,7 +402,7 @@ public partial class EditorViewModel :
 			{
 				_logger.LogException(ex);
 
-				ShowErrorSnackbar(Strings.FailedToProcessContents);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -555,11 +557,13 @@ public partial class EditorViewModel :
 				.Clear();
 
 			IsRightSideSheetOpened = false;
+
+			_contentVisibility.DiscardAllKeys();
 		}
 
 		AddHierarchy(result.ImportedItems);
 
-		ShowInfoSnackbar(Strings.DataImportCompleted);
+		_notification.ShowInformationSnackbar(Strings.DataImportCompleted);
 	}
 
 	/// <summary>
@@ -658,7 +662,7 @@ public partial class EditorViewModel :
 
 		if (files.IsEmpty())
 		{
-			ShowInfoSnackbar(Strings.MissingFiles);
+			_notification.ShowInformationSnackbar(Strings.MissingFiles);
 
 			return;
 		}
@@ -1139,6 +1143,7 @@ public partial class EditorViewModel :
 		IMessenger messenger,
 		INoteEditor noteEditor,
 		INoteReader noteReader,
+		INotificationService notification,
 		IProcessUtils processUtils,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
@@ -1154,6 +1159,7 @@ public partial class EditorViewModel :
 			executionEngine,
 			logger,
 			messenger,
+			notification,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)
@@ -1397,6 +1403,10 @@ public partial class EditorViewModel :
 			CloseFile(file);
 
 			RemoveFromCopyHistory(file);
+		}
+		else if (dto is FolderModelDto folder)
+		{
+			_contentVisibility.DiscardKeys(folder);
 		}
 
 		CountHierarchy();
@@ -1846,7 +1856,7 @@ public partial class EditorViewModel :
 
 		_logger.LogWarning("Contents are not hidden: an editor failed to persist its changes");
 
-		ShowErrorSnackbar(Strings.FailedToProcessContents);
+		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 		return false;
 	}

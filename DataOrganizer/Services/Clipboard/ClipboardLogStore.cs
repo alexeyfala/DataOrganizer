@@ -137,7 +137,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			EnsureDirectory();
 
 			await _fileSystem
-				.WriteAllBytesAsync(_historyFilePath, ciphertext, token)
+				.WriteAllBytesAtomicAsync(_historyFilePath, ciphertext, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -154,9 +154,11 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
+		bool hasKey = _fileSystem.IsFileExists(_keyFilePath);
+
 		try
 		{
-			return _fileSystem.IsFileExists(_keyFilePath)
+			return hasKey
 				? await UnlockExistingAsync(password, token).ConfigureAwait(false)
 				: await CreateNewKeyAsync(password, token).ConfigureAwait(false);
 		}
@@ -165,6 +167,13 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			_logger.LogWarning("The password of the clipboard history has been rejected.");
 
 			return new(ClipboardLogStatus.WrongPassword, []);
+		}
+		catch (CryptographicException ex) when (hasKey)
+		{
+			// Opening an existing key rejects the password on its own, so this is the data behind it.
+			_logger.LogException(ex, assertDebug: false);
+
+			return new(ClipboardLogStatus.Damaged, []);
 		}
 		catch (Exception ex)
 		{
@@ -241,29 +250,22 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private async Task<ClipboardLogUnlockResult> CreateNewKeyAsync(PinnedBuffer password, CancellationToken token)
 	{
-		byte[] dek = _encryption.CreateRandomDek();
+		using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-		try
-		{
-			byte[] wrapped = _encryption.Encrypt(
-				dek,
-				password,
-				ContentIdentity.ForClipboardDek(_historyKeyId));
+		byte[] wrapped = _encryption.Encrypt(
+			dek,
+			password,
+			ContentIdentity.ForClipboardDek(_historyKeyId));
 
-			EnsureDirectory();
+		EnsureDirectory();
 
-			await _fileSystem
-				.WriteAllBytesAsync(_keyFilePath, wrapped, token)
-				.ConfigureAwait(false);
+		await _fileSystem
+			.WriteAllBytesAtomicAsync(_keyFilePath, wrapped, token)
+			.ConfigureAwait(false);
 
-			return _sessionKeyStore.Unlock(_historyKeyId, dek)
-				? new(ClipboardLogStatus.Unlocked, [])
-				: new(ClipboardLogStatus.Failed, []);
-		}
-		finally
-		{
-			dek.ZeroMemory();
-		}
+		return _sessionKeyStore.Unlock(_historyKeyId, dek)
+			? new(ClipboardLogStatus.Unlocked, [])
+			: new(ClipboardLogStatus.Failed, []);
 	}
 
 	/// <summary>
@@ -277,6 +279,41 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 
 		_fileSystem.CreateDirectory(directory);
+	}
+
+	/// <summary>
+	/// Writes the wrapped key at the current derivation cost. The DEK itself does not change and the
+	/// file is replaced in one step, so a failure leaves a key the same password still opens.
+	/// </summary>
+	private async Task RewrapKeyAsync(
+		byte[] wrapped,
+		PinnedBuffer dek,
+		PinnedBuffer password,
+		CancellationToken token)
+	{
+		try
+		{
+			if (_encryption.RewrapIfOutdated(
+				wrapped,
+				dek,
+				password,
+				ContentIdentity.ForClipboardDek(_historyKeyId)) is not { } rewrapped)
+			{
+				return;
+			}
+
+			await _fileSystem
+				.WriteAllBytesAtomicAsync(_keyFilePath, rewrapped, token)
+				.ConfigureAwait(false);
+		}
+		catch (OperationCanceledException)
+		{
+			// The unlock has already succeeded, so an interrupted rewrap is not worth reporting.
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+		}
 	}
 
 	/// <summary>
@@ -324,22 +361,21 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
-		byte[] dek = _encryption.Decrypt(
+		using PinnedBuffer dek = _encryption.Decrypt(
 			wrapped,
 			password,
 			ContentIdentity.ForClipboardDek(_historyKeyId));
 
-		try
+		if (!_sessionKeyStore.Unlock(_historyKeyId, dek))
 		{
-			if (!_sessionKeyStore.Unlock(_historyKeyId, dek))
-			{
-				return new(ClipboardLogStatus.Failed, []);
-			}
+			return new(ClipboardLogStatus.Failed, []);
 		}
-		finally
-		{
-			dek.ZeroMemory();
-		}
+
+		await RewrapKeyAsync(
+			wrapped,
+			dek,
+			password,
+			token).ConfigureAwait(false);
 
 		IReadOnlyList<ClipboardLogEntryBase> entries = await LoadEntriesAsync(token).ConfigureAwait(false);
 

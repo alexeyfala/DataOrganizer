@@ -1,7 +1,10 @@
 using Shared.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace Shared.Services;
@@ -30,6 +33,38 @@ public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
 		});
 
 		return (T?)serializer.Deserialize(xmlReader);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(XDocument document)
+	{
+		XmlSerializer serializer = new(typeof(T));
+
+		using XmlReader documentReader = document.CreateReader();
+
+		using XmlReader xmlReader = XmlReader.Create(documentReader, new XmlReaderSettings
+		{
+			DtdProcessing = DtdProcessing.Prohibit,
+			XmlResolver = null,
+			Async = false
+		});
+
+		return (T?)serializer.Deserialize(xmlReader);
+	}
+
+	/// <inheritdoc />
+	public async Task<XDocument> LoadDocumentAsync(Stream stream, CancellationToken token = default)
+	{
+		using XmlReader xmlReader = XmlReader.Create(stream, new XmlReaderSettings
+		{
+			DtdProcessing = DtdProcessing.Prohibit,
+			XmlResolver = null,
+			Async = true
+		});
+
+		return await XDocument
+			.LoadAsync(xmlReader, LoadOptions.None, token)
+			.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />

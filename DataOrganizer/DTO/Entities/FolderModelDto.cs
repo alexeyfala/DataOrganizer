@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using Entities.Models;
 using Shared.Extensions;
@@ -12,13 +13,13 @@ using System.Linq;
 namespace DataOrganizer.DTO.Entities;
 
 /// <inheritdoc cref="FolderModel" />
-public sealed partial class FolderModelDto : ExplorerModelBaseDto
+public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeeper
 {
 	#region Properties
 	/// <inheritdoc cref="FolderModel.Children" />
 	public override ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
 
-	/// <inheritdoc cref="FolderModel.EncryptedDek" />
+	/// <inheritdoc />
 	public byte[]? EncryptedDek { get; set; }
 
 	/// <inheritdoc cref="FolderModel.IsExpanded" />

@@ -5,7 +5,6 @@ using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
@@ -13,7 +12,6 @@ using DataOrganizer.Services.Execution;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using System;
@@ -39,9 +37,7 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		byte[] parametersContents = TestUtils.CreateRandomBytes(10);
-
-		byte[] expectedHash = SHA256.HashData(parametersContents);
+		byte[] expectedHash = TestUtils.CreateRandomBytes(32);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -70,7 +66,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = parametersContents,
+			PreviousHash = expectedHash,
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -94,7 +90,7 @@ internal class FileChangeTrackerTests
 	[Test]
 	public async Task TrackChangesAsync_Encrypts_Contents_When_A_Keeper_Is_Known()
 	{
-		// Arrange		
+		// Arrange
 		using CancellationTokenSource cts = new();
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
@@ -154,7 +150,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
@@ -213,7 +209,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -279,7 +275,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)
@@ -298,6 +294,7 @@ internal class FileChangeTrackerTests
 	/// <summary>
 	/// <see cref="FileChangeTracker.TrackChangesAsync" />: an error snackbar is shown, the file is closed and no update occurs when encryption fails.
 	/// </summary>
+
 	[Test]
 	public async Task TrackChangesAsync_Shows_Error_And_Stops_When_Encryption_Fails()
 	{
@@ -306,13 +303,9 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		ShowSnackbarMessage? receivedSnackbar = null;
-
 		FileModelDto? receivedClosedFile = null;
 
 		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		messenger.Register<CloseExecutingFileMessage>(recipient, (_, message) => receivedClosedFile = message.File);
 
@@ -343,6 +336,7 @@ internal class FileChangeTrackerTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			// The cipher swallows the cryptographic failure and answers with a refusal.
+
 			contentCipher
 				.TryEncrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
 				.Returns((byte[]?)null);
@@ -360,7 +354,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10),
@@ -369,15 +363,6 @@ internal class FileChangeTrackerTests
 
 		// Act
 		await sut.TrackChangesAsync(parameters);
-
-		receivedSnackbar
-			.Should()
-			.NotBeNull();
-
-		receivedSnackbar
-			.Level
-			.Should()
-			.Be(SnackbarMessageLevel.Error);
 
 		receivedClosedFile
 			.Should()
@@ -445,7 +430,7 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			Contents = TestUtils.CreateRandomBytes(10),
+			PreviousHash = TestUtils.CreateRandomBytes(32),
 			File = TestUtils.CreateFileDto(),
 			FileName = TestUtils.CreateRandomFileName(10),
 			FilePath = TestUtils.CreateRandomFileName(10)

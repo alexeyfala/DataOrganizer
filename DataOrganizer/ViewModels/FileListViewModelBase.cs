@@ -11,7 +11,6 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Material.Icons.Avalonia;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -120,9 +119,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 			if (string.IsNullOrEmpty(text))
 			{
-				_messenger.Send(new ShowSnackbarMessage(
-					$@"{Strings.ThereIsNoContentFor} ""{file.Name}""",
-					SnackbarMessageLevel.Information));
+				_notification.ShowInformationSnackbar($@"{Strings.ThereIsNoContentFor} ""{file.Name}""");
 
 				return;
 			}
@@ -166,6 +163,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 		IDialogService dialogService,
 		ILogger logger,
 		IMessenger messenger,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			clipboard,
@@ -174,6 +172,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			dialogService,
 			logger,
 			messenger,
+			notification,
 			exceptionHandler)
 	{
 	}

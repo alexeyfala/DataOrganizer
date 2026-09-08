@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Execution;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Messages;
@@ -14,7 +14,6 @@ using Shared.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,6 +36,9 @@ public class FileChangeTracker : IFileChangeTracker
 
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
@@ -45,7 +47,8 @@ public class FileChangeTracker : IFileChangeTracker
 		IDbAccess dbAccess,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IMessenger messenger)
+		IMessenger messenger,
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
@@ -56,6 +59,8 @@ public class FileChangeTracker : IFileChangeTracker
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_notification = notification;
 	}
 	#endregion
 
@@ -63,12 +68,7 @@ public class FileChangeTracker : IFileChangeTracker
 	/// <inheritdoc />
 	public async Task TrackChangesAsync(TrackChangesParameters parameters, CancellationToken token = default)
 	{
-		// Declared outside the guarded block so that the local function below can reach them.
-		HashAlgorithmName algorithm = HashAlgorithmName.SHA256;
-
-		byte[] previousHash = CryptographicOperations.HashData(
-			algorithm,
-			parameters.Contents);
+		byte[] previousHash = parameters.PreviousHash;
 
 		try
 		{
@@ -97,16 +97,10 @@ public class FileChangeTracker : IFileChangeTracker
 
 			PublishFailure($@"{Strings.FailedToLoadFileContents} ""{parameters.FileName}""");
 		}
-		finally
-		{
-			parameters
-				.Contents
-				.ZeroMemory();
-		}
 
 		void PublishFailure(string message)
 		{
-			_messenger.Send(new ShowSnackbarMessage(message, SnackbarMessageLevel.Error));
+			_notification.ShowErrorSnackbar(message);
 
 			_messenger.Send(new CloseExecutingFileMessage(parameters.File));
 		}
@@ -142,7 +136,7 @@ public class FileChangeTracker : IFileChangeTracker
 			try
 			{
 				currentHash = await _fileSystem
-					.ComputeStreamHashAsync(algorithm, fileStream, checkToken)
+					.ComputeStreamHashAsync(TrackChangesParameters.HashAlgorithm, fileStream, checkToken)
 					.ConfigureAwait(false);
 
 				if (!currentHash.SequenceEqual(previousHash))

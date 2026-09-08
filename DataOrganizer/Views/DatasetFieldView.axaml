@@ -134,6 +134,7 @@
 		<views:NoteView
 			Grid.Column="2"
 			Margin="{StaticResource ElementMargin}"
+			IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 			IsVisible="{Binding IsNoteVisible, Mode=OneWay}"
 			Note="{Binding Note, Mode=OneWay}"
 			NoteName="{Binding NoteName, Mode=OneWay}" />

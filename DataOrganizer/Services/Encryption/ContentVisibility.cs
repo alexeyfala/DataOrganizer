@@ -2,9 +2,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -27,6 +28,9 @@ public sealed class ContentVisibility : IContentVisibility
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="ISessionKeyStore" />
 	private readonly ISessionKeyStore _sessionKeyStore;
 	#endregion
@@ -36,6 +40,7 @@ public sealed class ContentVisibility : IContentVisibility
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
 		IMessenger messenger,
+		INotificationService notification,
 		ISessionKeyStore sessionKeyStore)
 	{
 		_failureReporter = failureReporter;
@@ -44,11 +49,28 @@ public sealed class ContentVisibility : IContentVisibility
 
 		_messenger = messenger;
 
+		_notification = notification;
+
 		_sessionKeyStore = sessionKeyStore;
 	}
 	#endregion
 
 	#region Methods
+	/// <inheritdoc />
+	public void DiscardAllKeys() => _sessionKeyStore.LockAll();
+
+	/// <inheritdoc />
+	public void DiscardKeys(FolderModelDto folder)
+	{
+		// A folder that keeps no key is simply not in the store, so being a keeper is not worth a test.
+		_sessionKeyStore.Lock(folder.Id);
+
+		folder
+			.GetAllChildren()
+			.OfType<FolderModelDto>()
+			.ForEach(x => _sessionKeyStore.Lock(x.Id));
+	}
+
 	/// <inheritdoc />
 	public void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
@@ -86,21 +108,24 @@ public sealed class ContentVisibility : IContentVisibility
 			return false;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: root.Id,
-			encryptedDek: root.EncryptedDek,
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
+			keeper: root,
 			header: Strings.ShowContents,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return false;
 		}
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			if (!_sessionKeyStore.Unlock(root.Id, dek))
 			{
+				_notification.ShowErrorSnackbar(Strings.FailedToShowFileContents);
+
 				return false;
 			}
 
@@ -114,12 +139,6 @@ public sealed class ContentVisibility : IContentVisibility
 
 			return false;
 		}
-		finally
-		{
-			dek.ZeroMemory();
-
-			HideProgressBar();
-		}
 	}
 
 	/// <inheritdoc />
@@ -130,45 +149,35 @@ public sealed class ContentVisibility : IContentVisibility
 			return;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: root.Id,
-			encryptedDek: root.EncryptedDek,
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
+			keeper: root,
 			header: Strings.ShowContents,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return;
 		}
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			if (ShowFolderContents(folder, root.Id, dek))
 			{
 				return;
 			}
 
-			SendMessage(Strings.FailedToShowFileContents, SnackbarMessageLevel.Error);
+			_notification.ShowErrorSnackbar(Strings.FailedToShowFileContents);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
 		}
-		finally
-		{
-			dek.ZeroMemory();
-
-			HideProgressBar();
-		}
 	}
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
-	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
-
 	/// <summary>
 	/// Drops the key of the keeper the object belongs to, but only once nothing under that keeper is shown.
 	/// </summary>
@@ -188,20 +197,12 @@ public sealed class ContentVisibility : IContentVisibility
 	}
 
 	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
-	}
-
-	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
 	private bool ShowFolderContents(
 		FolderModelDto folder,
 		Guid keeperId,
-		byte[] dek)
+		PinnedBuffer dek)
 	{
 		if (!_sessionKeyStore.Unlock(keeperId, dek))
 		{
@@ -215,10 +216,5 @@ public sealed class ContentVisibility : IContentVisibility
 
 		return true;
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

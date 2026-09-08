@@ -41,10 +41,12 @@ public interface IDialogService
 
 	/// <summary>
 	/// Requests the user to enter a multiline text; <paramref name="name" /> is put into the header of the dialog.
+	/// A sensitive text is copied out of the dialog with the clipboard sensitivity markers.
 	/// </summary>
 	Task<ValueIsValidPair> RequestMultilineTextAsync(
 		string? text,
 		string? name = null,
+		bool isSensitive = false,
 		CancellationToken token = default);
 
 	/// <summary>

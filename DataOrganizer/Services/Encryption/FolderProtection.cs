@@ -3,13 +3,14 @@ using DataOrganizer.DTO.Encryption;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Repository.DTO;
 using Repository.Interfaces;
 using Repository.Services;
+using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
 using System;
@@ -23,6 +24,9 @@ namespace DataOrganizer.Services.Encryption;
 public sealed class FolderProtection : IFolderProtection
 {
 	#region Data
+	/// <inheritdoc cref="IContentVisibility" />
+	private readonly IContentVisibility _contentVisibility;
+
 	/// <inheritdoc cref="IEncryptedContentWriter" />
 	private readonly IEncryptedContentWriter _contentWriter;
 
@@ -41,20 +45,31 @@ public sealed class FolderProtection : IFolderProtection
 	/// <inheritdoc cref="IKeeperUnlocker" />
 	private readonly IKeeperUnlocker _keeperUnlocker;
 
+	/// <inheritdoc cref="ILogger" />
+	private readonly ILogger _logger;
+
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public FolderProtection(
+		IContentVisibility contentVisibility,
 		IEncryptedContentWriter contentWriter,
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IEncryptionService encryption,
 		IEncryptionFailureReporter failureReporter,
 		IKeeperUnlocker keeperUnlocker,
-		IMessenger messenger)
+		ILogger logger,
+		IMessenger messenger,
+		INotificationService notification)
 	{
+		_contentVisibility = contentVisibility;
+
 		_contentWriter = contentWriter;
 
 		_dbAccess = dbAccess;
@@ -67,7 +82,11 @@ public sealed class FolderProtection : IFolderProtection
 
 		_keeperUnlocker = keeperUnlocker;
 
+		_logger = logger;
+
 		_messenger = messenger;
+
+		_notification = notification;
 	}
 	#endregion
 
@@ -80,12 +99,13 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
-		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: folder.Id,
-			encryptedDek: folder.EncryptedDek,
+		using PinnedBuffer? dek = await _keeperUnlocker.RequestDekAsync(
+			keeper: folder,
 			header: Strings.ChangePassword,
 			label: Strings.OldPassword,
-			token: token).ConfigureAwait(false) is not { } dek)
+			token: token).ConfigureAwait(false);
+
+		if (dek is null)
 		{
 			return;
 		}
@@ -120,15 +140,11 @@ public sealed class FolderProtection : IFolderProtection
 
 			folder.EncryptedDek = encryptedDek;
 
-			SendMessage(Strings.PasswordChanged, SnackbarMessageLevel.Information);
+			_notification.ShowInformationSnackbar(Strings.PasswordChanged);
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
-		}
-		finally
-		{
-			dek.ZeroMemory();
 		}
 	}
 
@@ -144,18 +160,26 @@ public sealed class FolderProtection : IFolderProtection
 		}
 
 		// Unwrapping is the password check, so a wrong password never pulls the contents into memory.
-		if (await _keeperUnlocker.RequestDekAsync(
-			keeperId: folder.Id,
-			encryptedDek: folder.EncryptedDek,
+		using PinnedBuffer? decryptedDek = await _keeperUnlocker.RequestDekAsync(
+			keeper: folder,
 			header: Strings.DecryptFiles,
-			token: token).ConfigureAwait(false) is not { } decryptedDek)
+			token: token).ConfigureAwait(false);
+
+		if (decryptedDek is null)
 		{
 			return;
 		}
 
+		ContentsIsValidPair[] result = [];
+
+		NoteUpdate[] notes = [];
+
+		// The notes reach the objects only on a done conversion; until then their plain text is ours to erase.
+		bool areNotesHandedOver = false;
+
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
@@ -164,30 +188,27 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (!AreContentsValid(contents, files.Length))
 			{
-				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
+				_notification.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
 
 				return;
 			}
 
-			ContentsIsValidPair[] result = [.. _encryption.DecryptContents(contents, decryptedDek)];
+			result = [.. _encryption.DecryptContents(contents, decryptedDek)];
 
 			if (!AreContentsValid(result, contents.Length))
 			{
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				LogInvalidContents(result);
+
+				_notification.ShowErrorSnackbar(Strings.EncryptedDataIsDamaged);
 
 				return;
 			}
 
-			if (ProcessNotes(
+			notes = ProcessNotes(
 				folder,
 				files,
 				decryptedDek,
-				encrypt: false) is not { } notes)
-			{
-				SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
-
-				return;
-			}
+				encrypt: false);
 
 			using DatabaseBackup? backup = await _dbAccess
 				.BackupDatabaseAsync(token)
@@ -195,7 +216,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (backup is null)
 			{
-				SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+				_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 				return;
 			}
@@ -211,9 +232,16 @@ public sealed class FolderProtection : IFolderProtection
 				Notes = notes
 			};
 
-			await _contentWriter
+			if (await _contentWriter
 				.UpdateDatabaseAsync(parameters, token)
-				.ConfigureAwait(false);
+				.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+			{
+				return;
+			}
+
+			_contentVisibility.DiscardKeys(folder);
+
+			areNotesHandedOver = true;
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
@@ -221,9 +249,13 @@ public sealed class FolderProtection : IFolderProtection
 		}
 		finally
 		{
-			decryptedDek.ZeroMemory();
+			// Whatever the outcome, the decrypted contents have no reader left here.
+			WipeContents(result);
 
-			HideProgressBar();
+			if (!areNotesHandedOver)
+			{
+				WipeNotes(notes);
+			}
 		}
 	}
 
@@ -245,29 +277,31 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			ContentsIsValidPair[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
-			if (!AreContentsValid(contents, files.Length))
-			{
-				SendMessage(Strings.FailedToLoadFilesContents, SnackbarMessageLevel.Error);
-
-				return;
-			}
-
-			byte[] dek = _encryption.CreateRandomDek();
-
 			try
 			{
+				if (!AreContentsValid(contents, files.Length))
+				{
+					_notification.ShowErrorSnackbar(Strings.FailedToLoadFilesContents);
+
+					return;
+				}
+
+				using PinnedBuffer dek = _encryption.CreateRandomDek();
+
 				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
 
 				if (!AreContentsValid(result, contents.Length))
 				{
-					SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+					LogInvalidContents(result);
+
+					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 					return;
 				}
@@ -279,24 +313,21 @@ public sealed class FolderProtection : IFolderProtection
 					passwordBinary,
 					ContentIdentity.ForDek(folder.Id));
 
-				if (ProcessNotes(
+				NoteUpdate[] notes = ProcessNotes(
 					folder,
 					files,
 					dek,
-					encrypt: true) is not { } notes)
-				{
-					SendMessage(Strings.FailedToProcessNotes, SnackbarMessageLevel.Error);
+					encrypt: true);
 
-					return;
-				}
-
+				// The copy insures the one irreversible operation against a bug in the conversion,
+				// and holds the contents in plain text until the operation ends.
 				using DatabaseBackup? backup = await _dbAccess
 					.BackupDatabaseAsync(token)
 					.ConfigureAwait(false);
 
 				if (backup is null)
 				{
-					SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+					_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 					return;
 				}
@@ -312,22 +343,21 @@ public sealed class FolderProtection : IFolderProtection
 					Notes = notes
 				};
 
-				await _contentWriter
+				if (await _contentWriter
 					.UpdateDatabaseAsync(parameters, token)
-					.ConfigureAwait(false);
+					.ConfigureAwait(false) is not UpdateDatabaseResult.Done)
+				{
+					return;
+				}
 			}
 			finally
 			{
-				dek.ZeroMemory();
+				WipeContents(contents);
 			}
 		}
 		catch (Exception ex) when (EncryptionFailures.IsCryptographic(ex))
 		{
 			_failureReporter.Report(ex);
-		}
-		finally
-		{
-			HideProgressBar();
 		}
 	}
 	#endregion
@@ -344,18 +374,40 @@ public sealed class FolderProtection : IFolderProtection
 	}
 
 	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
+	/// Overwrites the buffers of the given contents.
 	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
+	private static void WipeContents(ContentsIsValidPair[] contents)
+	{
+		contents.ForEach(x => x.Contents.ZeroMemory());
+	}
 
 	/// <summary>
-	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK;
-	/// <c>null</c> when a note cannot be converted.
+	/// Overwrites the buffers of the given notes.
 	/// </summary>
-	private NoteUpdate[]? ProcessNotes(
+	private static void WipeNotes(IEnumerable<NoteUpdate> notes) => notes.ForEach(x => x.Note.ZeroMemory());
+
+	/// <summary>
+	/// Writes the identifiers of the contents that could not be converted to the log.
+	/// </summary>
+	private void LogInvalidContents(ContentsIsValidPair[] contents)
+	{
+		string identifiers = string.Join(", ", contents
+			.Where(x => !x.IsValid)
+			.Select(x => x.Id));
+
+		_logger.LogError(
+			$"The contents of these files cannot be converted: {identifiers}",
+			assertDebug: false);
+	}
+
+	/// <summary>
+	/// Converts the notes of a folder, of its subfolders and of the given files with the DEK.
+	/// A note that cannot be converted throws, so the result is never partial.
+	/// </summary>
+	private NoteUpdate[] ProcessNotes(
 		FolderModelDto folder,
 		FileModelDto[] files,
-		byte[] dek,
+		PinnedBuffer dek,
 		bool encrypt)
 	{
 		List<NoteUpdate> notes = [];
@@ -366,39 +418,39 @@ public sealed class FolderProtection : IFolderProtection
 			.. files
 		];
 
-		foreach (ExplorerModelBaseDto item in objects)
+		try
 		{
-			if (item.Note is not { } note || note.IsEmpty())
+			foreach (ExplorerModelBaseDto item in objects)
 			{
-				continue;
+				if (item.Note is not { } note || note.IsEmpty())
+				{
+					continue;
+				}
+
+				ContentIdentity identity = ContentIdentity.ForNote(item.Id);
+
+				byte[] processed = encrypt
+					? _encryption.EncryptWithDek(note, dek, identity)
+					: _encryption.DecryptWithDek(note, dek, identity);
+
+				notes.Add(new NoteUpdate(
+					item.Id,
+					item.EntityType,
+					processed));
+			}
+		}
+		catch
+		{
+			// A partial result is thrown away, so the notes decrypted so far lose their only reader.
+			if (!encrypt)
+			{
+				WipeNotes(notes);
 			}
 
-			ContentIdentity identity = ContentIdentity.ForNote(item.Id);
-
-			byte[] processed = encrypt
-				? _encryption.EncryptWithDek(note, dek, identity)
-				: _encryption.DecryptWithDek(note, dek, identity);
-
-			notes.Add(new NoteUpdate(
-				item.Id,
-				item.EntityType,
-				processed));
+			throw;
 		}
 
 		return [.. notes];
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

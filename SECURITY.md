@@ -48,6 +48,13 @@ The following are known and accepted, so there is no need to report them.
 - **Erasing is best-effort.** Overwriting a file before deleting it does not
   guarantee the old bytes are unrecoverable: SSD wear leveling, copy-on-write
   file systems, snapshots and shadow copies may keep earlier versions.
+- **A copy of the database outlives the conversion of a folder.** Putting a
+  folder under a password is irreversible, so a full copy of the database is
+  taken before the ciphertext is written — while the contents are still plain
+  text. The copy lies next to the database, is overwritten and deleted once
+  the operation ends, and a copy left by a crash is erased at the next start.
+  Until then it is a plain-text snapshot, erased only as well as erasing
+  allows.
 - **SQLite rollback journal.** During a transaction the journal holds plaintext
   pre-images of the pages being replaced. `journal_mode = MEMORY` would avoid
   the file at the cost of a corrupted database after a crash — an unacceptable
@@ -68,15 +75,34 @@ The following are known and accepted, so there is no need to report them.
   same encrypted contents and the same wrapped key, so a copy left outside the
   application allows the password to be guessed offline, at the pace of whoever
   holds the file.
+- **A password change does not rotate the key.** The new password wraps the
+  same data encryption key, so a surviving copy of the old wrapper — in a
+  database backup, in an export, in the free pages of the database file —
+  opens everything with the old password, including the contents written
+  after the change. Rotating the key means re-encrypting the whole protected
+  folder, which the password change deliberately avoids.
 - **The strength of a password is shown, not required.** A new password is
   rated as it is typed, but only its length is enforced, and the rating is a
   heuristic that can be too kind. A password weak enough to be guessed offline
   undermines the whole scheme, whatever the key derivation costs.
 - **Decrypted data in memory.** While the session is unlocked, keys and
   decrypted contents live in RAM and may reach the page or hibernation file.
-  Auto-lock shortens that window.
+  Auto-lock shortens that window, but only once a timeout is set in the
+  settings — it is off by default — and it drops the keys of protected folders
+  alone: the key of the clipboard history is held until the application exits.
 - **The password input leaves fragments.** The entered password is held in
   pinned memory and every value the input field replaces is wiped, but some
   strings are out of reach: the one carried by each keystroke event, the one
   handed over by the clipboard on paste, and any copy the garbage collector
   makes while moving objects.
+- **A copy of protected data goes out marked, not protected.** Text copied
+  from protected data — contents, dataset records and fields, notes, and the
+  dialogs that edit them — carries the markers that ask the system and
+  clipboard managers to keep it out of their history, is left out of the
+  history this application records, and is cleared 15 seconds later. The
+  markers are a request: an application that ignores them reads the text like
+  any other, and a reader that was quicker than the timeout keeps what it
+  took. Two places copy without the markers, and what they copy stays on the
+  clipboard until something replaces it: the built-in file editor, whose
+  control offers no point to intercept a copy, and the console, whose output
+  is not tied to protected data.

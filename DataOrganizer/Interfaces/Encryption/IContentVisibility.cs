@@ -12,6 +12,16 @@ public interface IContentVisibility
 {
 	#region Methods
 	/// <summary>
+	/// Drops the session keys of every password keeper.
+	/// </summary>
+	void DiscardAllKeys();
+
+	/// <summary>
+	/// Drops the session keys of a folder and of every folder beneath it, whatever their contents show.
+	/// </summary>
+	void DiscardKeys(FolderModelDto folder);
+
+	/// <summary>
 	/// Hides contents of the whole hierarchy.
 	/// </summary>
 	void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy);

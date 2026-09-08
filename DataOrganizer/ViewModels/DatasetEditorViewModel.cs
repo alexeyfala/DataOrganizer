@@ -7,7 +7,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Dataset;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
@@ -68,7 +67,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				_logger.LogError($@"{Strings.FailedToLoadFileContents} of file ""{FileId}""");
 
@@ -88,7 +87,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			{
 				IsContentCorrupted = true;
 
-				SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+				_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 
 				return;
 			}
@@ -121,7 +120,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 			_logger.LogException(ex, assertDebug: false);
 
-			SendMessage(Strings.FailedToProcessContents, SnackbarMessageLevel.Error);
+			_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 		}
 		finally
 		{
@@ -176,6 +175,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddGroup,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Name
 		};
 
@@ -198,6 +198,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddKeyAndValue,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Key,
 			MaskValueInput = IsEncrypted,
 			ValueHint = Strings.Value
@@ -225,6 +226,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.AddValue,
+			IsSensitive = IsEncrypted,
 			KeyHint = Strings.Name,
 			MaskKeyInput = IsEncrypted
 		};
@@ -331,6 +333,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
+			IsSensitive = IsEncrypted,
 			Key = record.Key,
 			KeyHint = Strings.Key,
 			MaskValueInput = record.IsHidden,
@@ -370,8 +373,10 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => null
 		};
 
-		ValueIsValidPair result = await _dialogService
-			.RequestMultilineTextAsync(record.Note, header)
+		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+			record.Note,
+			header,
+			isSensitive: IsEncrypted)
 			.ConfigureAwait(false);
 
 		if (!result.IsValid)
@@ -396,6 +401,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		KeyValueInputParameters parameters = new()
 		{
 			DefaultButtonText = Strings.Save,
+			IsSensitive = IsEncrypted,
 			Key = record.Value,
 			KeyHint = Strings.Edit,
 			MaskKeyInput = record.IsHidden
@@ -605,6 +611,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler) : base(
 			app,
 			contentCipher,
@@ -612,6 +619,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			jsonSerializer,
 			logger,
 			messenger,
+			notification,
 			exceptionHandler)
 	{
 		_clipboard = clipboardService;

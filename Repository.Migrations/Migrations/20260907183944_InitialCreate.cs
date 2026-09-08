@@ -69,8 +69,8 @@ namespace Repository.Migrations.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Code = table.Column<ushort>(type: "INTEGER", nullable: false),
-                    Mask = table.Column<uint>(type: "INTEGER", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", nullable: false),
+                    Mask = table.Column<string>(type: "TEXT", nullable: false),
                     OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Index = table.Column<int>(type: "INTEGER", nullable: false)
                 },

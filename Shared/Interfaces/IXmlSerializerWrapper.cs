@@ -1,5 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Shared.Interfaces;
 
@@ -19,6 +22,17 @@ public interface IXmlSerializerWrapper
 	/// avoiding the materialization of an intermediate string in memory.
 	/// </summary>
 	T? Deserialize<T>(Stream stream);
+
+	/// <summary>
+	/// Deserializes a document that has already been read into <typeparamref name="T"/>.
+	/// </summary>
+	T? Deserialize<T>(XDocument document);
+
+	/// <summary>
+	/// Asynchronously reads XML content from a stream into a document, with document type
+	/// definitions and external resources turned off.
+	/// </summary>
+	Task<XDocument> LoadDocumentAsync(Stream stream, CancellationToken token = default);
 
 	/// <summary>
 	/// Serializes data into an XML string.

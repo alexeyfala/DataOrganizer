@@ -377,6 +377,52 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: the key of a deleted folder is dropped with the folder.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Drops_The_Key_Of_A_Deleted_Folder()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		contentVisibility
+			.Received(1)
+			.DiscardKeys(folder);
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.DeleteAsync" />: when the editor reports failure the file is left open.
 	/// </summary>
 	[Test]
@@ -420,6 +466,131 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a folder that was not deleted keeps its key.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Keeps_The_Key_When_Editor_Fails()
+	{
+		// Arrange
+		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(false);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(folder);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		contentVisibility
+			.DidNotReceiveWithAnyArgs()
+			.DiscardKeys(default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.DeleteAsync" />: a file keeps no key of its own, so its deletion leaves the keys alone.
+	/// </summary>
+	[Test]
+	public async Task DeleteAsync_Leaves_The_Keys_Alone_For_A_Deleted_File()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+
+		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
+
+		hierarchyEditor
+			.DeleteAsync(
+				Arg.Any<ExplorerModelBaseDto>(),
+				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(hierarchyEditor);
+
+			builder.RegisterInstance(contentVisibility);
+
+			builder.RegisterInstance<IDispatcherAccessor>(new InlineDispatcherAccessor());
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		bool result = await sut.DeleteAsync(file);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		contentVisibility
+			.DidNotReceiveWithAnyArgs()
+			.DiscardKeys(default!);
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.EditNote" />: the note of a protected object is declared sensitive to the dialog.
+	/// </summary>
+	[Test]
+	public async Task EditNote_Declares_The_Note_Of_A_Protected_Object_Sensitive([Values] EncryptionStatus encryptionStatus)
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: encryptionStatus);
+
+		IDialogService dialogService = Substitute.For<IDialogService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dialogService
+				.RequestMultilineTextAsync(
+					Arg.Any<string>(),
+					Arg.Any<string>(),
+					Arg.Any<bool>(),
+					Arg.Any<CancellationToken>())
+				.Returns(new ValueIsValidPair());
+
+			builder.RegisterInstance(dialogService);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.EditNote(file);
+
+		// Assert
+		await dialogService.Received(1).RequestMultilineTextAsync(
+			Arg.Any<string>(),
+			Arg.Any<string>(),
+			encryptionStatus != EncryptionStatus.None,
+			Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
 	/// <see cref="EditorViewModel.EditNote" />: the note of the dialog is stored through the note editor.
 	/// </summary>
 	[Test]
@@ -442,6 +613,7 @@ internal class EditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair(true, editedNote));
 
@@ -467,6 +639,7 @@ internal class EditorViewModelTests
 		await dialogService.Received(1).RequestMultilineTextAsync(
 			storedNote,
 			file.Name,
+			Arg.Any<bool>(),
 			Arg.Any<CancellationToken>());
 
 		await noteEditor.Received(1).EditAsync(
@@ -495,6 +668,7 @@ internal class EditorViewModelTests
 				.RequestMultilineTextAsync(
 					Arg.Any<string>(),
 					Arg.Any<string>(),
+					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
 				.Returns(new ValueIsValidPair());
 
@@ -1308,6 +1482,72 @@ internal class EditorViewModelTests
 		await dataExchange
 			.Received()
 			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>());
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that replaces the hierarchy drops the keys of the folders it removed.
+	/// </summary>
+	[Test]
+	public async Task Import_Drops_The_Keys_On_Replacement()
+	{
+		// Arrange
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		dataExchange
+			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.Returns(new ImportDataResult([], ImportListVariant.Replace));
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dataExchange);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		contentVisibility
+			.Received(1)
+			.DiscardAllKeys();
+	}
+
+	/// <summary>
+	/// <see cref="EditorViewModel.Import" />: an import that appends leaves the hierarchy in place, keys included.
+	/// </summary>
+	[Test]
+	public async Task Import_Keeps_The_Keys_On_Appending()
+	{
+		// Arrange
+		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
+
+		dataExchange
+			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.Returns(new ImportDataResult([], ImportListVariant.Append));
+
+		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(dataExchange);
+
+			builder.RegisterInstance(contentVisibility);
+		});
+
+		EditorViewModel sut = mock.Create<EditorViewModel>();
+
+		// Act
+		await sut.Import();
+
+		// Assert
+		contentVisibility
+			.DidNotReceive()
+			.DiscardAllKeys();
 	}
 
 	/// <summary>

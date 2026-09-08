@@ -3,9 +3,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Extensions;
+using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
 using DataOrganizer.Windows;
+using Entities.Helpers;
 using Entities.Models;
 using Repository.DTO;
 using Repository.Enums;
@@ -23,6 +25,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DataOrganizer.Services;
 
@@ -85,6 +88,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IMessenger" />
 	private readonly IMessenger _messenger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
@@ -137,6 +143,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
+		INotificationService notification,
 		IXmlSerializerWrapper xmlSerializer)
 	{
 		_dbAccess = dbAccess;
@@ -152,6 +159,8 @@ public sealed class DataExchangeService : IDataExchangeService
 		_logger = logger;
 
 		_messenger = messenger;
+
+		_notification = notification;
 
 		_picker = picker;
 
@@ -181,7 +190,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -201,17 +210,13 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			SendMessage(Strings.DataExportCompleted, SnackbarMessageLevel.Information);
+			_notification.ShowInformationSnackbar(Strings.DataExportCompleted);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
 
-			SendMessage(Strings.FailedToExportData, SnackbarMessageLevel.Error);
-		}
-		finally
-		{
-			HideProgressBar();
+			_notification.ShowErrorSnackbar(Strings.FailedToExportData);
 		}
 	}
 
@@ -256,14 +261,14 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		if (backup is null)
 		{
-			SendMessage(Strings.UnableToCreateDatabaseBackup, SnackbarMessageLevel.Error);
+			_notification.ShowErrorSnackbar(Strings.UnableToCreateDatabaseBackup);
 
 			return null;
 		}
 
 		try
 		{
-			ShowProgressBar();
+			using ProgressScope _ = _messenger.ShowProgress();
 
 			string filePath = filePaths[0];
 
@@ -279,7 +284,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -297,7 +302,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -315,7 +320,7 @@ public sealed class DataExchangeService : IDataExchangeService
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
-						SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+						_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 						await _dbAccess
 							.RestoreFromBackupAsync(backup.FilePath, token)
@@ -329,23 +334,36 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
+			FileModelDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
+
+			if (unreadable.IsNotEmpty())
+			{
+				unreadable.ForEach(x =>
+				{
+					_logger.LogError(
+						$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
+						assertDebug: false);
+				});
+
+				await DropUnreadableHotkeysAsync(unreadable, token).ConfigureAwait(false);
+
+				_notification.ShowErrorSnackbar(
+					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
+			}
+
 			return new(objects, variant);
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			SendMessage(Strings.FailedToImportData, SnackbarMessageLevel.Error);
+			_notification.ShowErrorSnackbar(Strings.FailedToImportData);
 
 			await _dbAccess
 				.RestoreFromBackupAsync(backup.FilePath, token)
 				.ConfigureAwait(false);
 
 			return null;
-		}
-		finally
-		{
-			HideProgressBar();
 		}
 	}
 
@@ -457,9 +475,13 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		ExplorerModelBaseDto[] result = await _entityLoader
+		if (await _entityLoader
 			.LoadFromEmbeddedDbAsync(token)
-			.ConfigureAwait(false);
+			.ConfigureAwait(false) is not { } result)
+		{
+			// The imported database is in place but unreadable, so the caller restores the copy it took.
+			return false;
+		}
 
 		objects.AddRange(result);
 
@@ -537,6 +559,32 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
+	/// Removes the hotkeys of the files whose sequence could not be read.
+	/// </summary>
+	private async Task DropUnreadableHotkeysAsync(FileModelDto[] files, CancellationToken token)
+	{
+		foreach (FileModelDto file in files)
+		{
+			if (!await _dbAccess
+				.DeleteHotkeysAsync(file.Id, token)
+				.ConfigureAwait(false))
+			{
+				_logger.LogError(
+					$@"Hotkeys of file ""{file.Name}"" ({file.Id}) could not be removed.",
+					assertDebug: false);
+
+				continue;
+			}
+
+			file
+				.Hotkeys
+				.Clear();
+
+			file.SetHotkeysToolTip();
+		}
+	}
+
+	/// <summary>
 	/// Exports data to JSON.
 	/// </summary>
 	private async Task ExportToJsonAsync(string filePath, CancellationToken token)
@@ -597,11 +645,6 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to hide progress bar in the editor.
-	/// </summary>
-	private void HideProgressBar() => _messenger.Send(new ShowProgressBarMessage(false));
 
 	/// <summary>
 	/// Imports data from JSON.
@@ -672,13 +715,19 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
-		// Streaming deserialization: XmlSerializer reads directly from the file
-		// without materializing the whole document as a string in memory.
+		// The document is read as a whole, so that hotkey names the library no longer knows
+		// can be replaced before the serializer rejects the whole file because of them.
 		ExplorerModelBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
-			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(stream);
+			XDocument document = await _xmlSerializer
+				.LoadDocumentAsync(stream, token)
+				.ConfigureAwait(false);
+
+			HotkeyXmlSanitizer.Sanitize(document);
+
+			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(document);
 		}
 
 		if (entities is null)
@@ -693,18 +742,5 @@ public sealed class DataExchangeService : IDataExchangeService
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
-
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message, SnackbarMessageLevel level)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, level));
-	}
-
-	/// <summary>
-	/// Sends <see cref="ShowProgressBarMessage" /> to display progress bar in the editor.
-	/// </summary>
-	private void ShowProgressBar() => _messenger.Send(new ShowProgressBarMessage(true));
 	#endregion
 }

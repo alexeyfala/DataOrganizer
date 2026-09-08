@@ -8,7 +8,9 @@ namespace Entities.Models;
 public abstract class EntityModelBase
 {
 	#region Properties
-	/// <inheritdoc />
+	/// <summary>
+	/// Identifier.
+	/// </summary>
 	public Guid Id { get; set; }
 
 	/// <summary>

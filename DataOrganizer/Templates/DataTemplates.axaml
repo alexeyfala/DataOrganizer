@@ -3,11 +3,11 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
+	xmlns:dto="using:DataOrganizer.DTO"
 	xmlns:entities="using:DataOrganizer.DTO.Entities"
 	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:messages="using:DataOrganizer.Messages"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:repositoryDto="using:Repository.DTO"
@@ -178,12 +178,15 @@
 	<!-- SnackbarMessageTemplate -->
 	<DataTemplate
 		x:Key="SnackbarMessageTemplate"
-		x:DataType="messages:ShowSnackbarMessage"
-		DataType="messages:ShowSnackbarMessage">
-		<TextBlock
+		x:DataType="dto:SnackbarContent"
+		DataType="dto:SnackbarContent">
+		
+		<!-- The default text menu is a popup: opening it takes the pointer off the message, and the message closes with the menu still on it. -->
+		<SelectableTextBlock
 			Classes="SnackbarTextBlockStyle"
 			Classes.Error="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Error}}"
 			Classes.Warning="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Warning}}"
+			ContextFlyout="{x:Null}"
 			Text="{Binding Text, Mode=OneTime}" />
 	</DataTemplate>
 

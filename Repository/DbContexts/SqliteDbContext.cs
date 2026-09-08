@@ -1,6 +1,7 @@
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Repository.Converters;
 using System;
 
 namespace Repository.DbContexts;
@@ -108,6 +109,16 @@ public class SqliteDbContext : DbContext
 		modelBuilder
 			.Entity<HotkeyModel>()
 			.HasIndex(x => x.OwnerId);
+
+		modelBuilder
+			.Entity<HotkeyModel>()
+			.Property(x => x.Code)
+			.HasConversion(new KeyCodeNameConverter());
+
+		modelBuilder
+			.Entity<HotkeyModel>()
+			.Property(x => x.Mask)
+			.HasConversion(new EventMaskNameConverter());
 
 		modelBuilder
 			.Entity<HotkeyModel>()

@@ -124,6 +124,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to and {0} more.
+        /// </summary>
+        public static string AndMore {
+            get {
+                return ResourceManager.GetString("AndMore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Appearance.
         /// </summary>
         public static string Appearance {
@@ -421,6 +430,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The database is unavailable, changes will not be saved.
+        /// </summary>
+        public static string DatabaseIsUnavailable {
+            get {
+                return ResourceManager.GetString("DatabaseIsUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data export completed.
         /// </summary>
         public static string DataExportCompleted {
@@ -673,6 +691,24 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The database could not be read.
+        /// </summary>
+        public static string FailedToReadDatabase {
+            get {
+                return ResourceManager.GetString("FailedToReadDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hotkeys could not be read for the files.
+        /// </summary>
+        public static string FailedToReadHotkeys {
+            get {
+                return ResourceManager.GetString("FailedToReadHotkeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the note.
         /// </summary>
         public static string FailedToReadNote {
@@ -705,6 +741,15 @@ namespace Shared.Properties {
         public static string FailedToShowFileContents {
             get {
                 return ResourceManager.GetString("FailedToShowFileContents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to open the saved clipboard history.
+        /// </summary>
+        public static string FailedToUnlockClipboardHistory {
+            get {
+                return ResourceManager.GetString("FailedToUnlockClipboardHistory", resourceCulture);
             }
         }
         
@@ -1229,7 +1274,7 @@ namespace Shared.Properties {
                 return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fair.
         /// </summary>
@@ -1722,6 +1767,15 @@ namespace Shared.Properties {
         public static string Unpin {
             get {
                 return ResourceManager.GetString("Unpin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hotkeys that could not be read were removed from the files.
+        /// </summary>
+        public static string UnreadableHotkeysRemoved {
+            get {
+                return ResourceManager.GetString("UnreadableHotkeysRemoved", resourceCulture);
             }
         }
         

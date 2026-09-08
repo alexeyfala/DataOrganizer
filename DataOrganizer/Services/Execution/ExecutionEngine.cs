@@ -1,5 +1,6 @@
 using DataOrganizer.DTO;
 using DataOrganizer.DTO.Execution;
+using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
@@ -9,6 +10,7 @@ using Shared.Interfaces;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -258,6 +260,30 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc />
 	public async Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default)
 	{
+		try
+		{
+			return await ExecuteCoreAsync(parameters, token).ConfigureAwait(false);
+		}
+		finally
+		{
+			// The plain text came with the parameters and nothing outside holds it any more:
+			// the sandbox file has been written and the tracker keeps only a hash.
+			parameters
+				.Contents
+				.ZeroMemory();
+		}
+	}
+
+	/// <inheritdoc />
+	public bool IsExecuting(Guid id) => _executingFiles.ContainsKey(id);
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Body of <see cref="ExecuteAsync" />, run while the plain text is still owned here.
+	/// </summary>
+	private async Task<bool> ExecuteCoreAsync(ExecuteFileParameters parameters, CancellationToken token)
+	{
 		if (IsDisposed())
 		{
 			return false;
@@ -399,11 +425,6 @@ public sealed class ExecutionEngine : IExecutionEngine
 		}
 	}
 
-	/// <inheritdoc />
-	public bool IsExecuting(Guid id) => _executingFiles.ContainsKey(id);
-	#endregion
-
-	#region Helpers
 	/// <summary>
 	/// <c>True</c> after the service has been disposed.
 	/// </summary>
@@ -461,11 +482,13 @@ public sealed class ExecutionEngine : IExecutionEngine
 			{
 				TrackChangesParameters trackParameters = new()
 				{
-					Contents = parameters.Contents,
 					File = parameters.File,
 					FileName = fileName,
 					FilePath = filePath,
-					KeeperId = parameters.KeeperId
+					KeeperId = parameters.KeeperId,
+					PreviousHash = CryptographicOperations.HashData(
+						TrackChangesParameters.HashAlgorithm,
+						parameters.Contents)
 				};
 
 				trackerTask = _changeTracker.TrackChangesAsync(trackParameters, cancellation.Token);

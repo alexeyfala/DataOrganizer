@@ -25,6 +25,7 @@
 
 		<views:NoteView
 			IsLocked="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static encEnums:EncryptionStatus.Encrypted}}"
+			IsSensitive="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}"
 			IsVisible="{Binding HasNote, Mode=OneWay}"
 			NoteItem="{Binding NoteItem, Mode=OneWay}"
 			NoteName="{Binding NoteName, Mode=OneWay}"

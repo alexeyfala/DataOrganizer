@@ -16,6 +16,8 @@ using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using SharpHook.Data;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -23,6 +25,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
@@ -335,7 +338,11 @@ internal class DataExchangeServiceTests
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
+				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new XDocument(new XElement("ArrayOfEntry")));
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
 				.Returns(default(ExplorerModelBase[]));
 
 			builder.RegisterInstance(fileSystem);
@@ -360,6 +367,91 @@ internal class DataExchangeServiceTests
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ImportDataAsync" />: hotkeys that could not be read do not stop the import
+	/// and are removed from the file.
+	/// </summary>
+	[Test]
+	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
+	{
+		// Arrange
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = KeyCode.VcUndefined,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = EventMask.LeftCtrl,
+				OwnerId = file.Id
+			});
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileSystemPicker picker = Substitute.For<IFileSystemPicker>();
+
+			picker
+				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
+				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+
+			dbAccess
+				.BackupDatabaseAsync()
+				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+
+			dbAccess
+				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
+				.Returns(true);
+
+			dbAccess
+				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.Returns(true);
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([file]);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+
+			builder.RegisterInstance(picker);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		ImportDataResult? result = await sut.ImportDataAsync([]);
+
+		// Assert
+		result
+			.Should()
+			.NotBeNull();
+
+		result
+			.ImportedItems
+			.Should()
+			.Contain(file);
+
+		file
+			.Hotkeys
+			.Should()
+			.BeEmpty();
+
+		await dbAccess
+			.Received(1)
+			.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -500,7 +592,11 @@ internal class DataExchangeServiceTests
 			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<Stream>())
+				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new XDocument(new XElement("ArrayOfEntry")));
+
+			serializer
+				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
 				.Returns([]);
 
 			builder.RegisterInstance(dbAccess);
@@ -601,6 +697,10 @@ internal class DataExchangeServiceTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns([]);
+
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
@@ -632,6 +732,59 @@ internal class DataExchangeServiceTests
 		await entityLoader
 			.Received()
 			.LoadFromEmbeddedDbAsync();
+	}
+
+	/// <summary>
+	/// <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />: a database that is in place but cannot
+	/// be read is reported as a failed import, so the copy taken before it is restored.
+	/// </summary>
+	[Test]
+	public async Task ReplaceFromSQLiteAsync_Fails_When_The_Database_Cannot_Be_Read()
+	{
+		// Arrange
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils.CreateFoldersDto(5)];
+
+		List<ExplorerModelBaseDto> objects = [];
+
+		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			entityLoader
+				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.Returns((ExplorerModelBaseDto[]?)null);
+
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.RestoreFromBackupAsync(Arg.Any<string>())
+				.Returns(true);
+
+			builder.RegisterInstance(dbAccess);
+
+			builder.RegisterInstance(entityLoader);
+		});
+
+		DataExchangeService sut = mock.Create<DataExchangeService>();
+
+		// Act
+		bool result = await sut.ReplaceFromSQLiteAsync(
+			string.Empty,
+			objects,
+			hierarchy);
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+
+		objects
+			.Should()
+			.BeEmpty();
+
+		hierarchy
+			.Should()
+			.HaveCount(5);
 	}
 	#endregion
 }

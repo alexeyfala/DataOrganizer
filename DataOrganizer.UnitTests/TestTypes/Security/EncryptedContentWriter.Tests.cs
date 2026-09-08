@@ -10,6 +10,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.DTO;
 using Repository.Interfaces;
@@ -25,10 +26,10 @@ internal class EncryptedContentWriterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns FailedToSaveContentsInDb and restores the backup and erases the file on failure.
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns FailedToSaveInDb and restores the backup when the conversion cannot be saved.
 	/// </summary>
 	[Test]
-	public async Task UpdateDatabaseAsync_Cannot_Save_Contents_In_Database()
+	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
 	{
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
@@ -54,109 +55,12 @@ internal class EncryptedContentWriterTests
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseResult.FailedToSaveContentsInDb);
+			.Be(UpdateDatabaseResult.FailedToSaveInDb);
 
 		await dbAccess
 			.Received()
 			.RestoreFromBackupAsync(Arg.Any<string>());
 	}
-
-
-	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns FailedToSaveFolderPropertiesInDb and restores the backup when the notes of the folders cannot be saved.
-	/// </summary>
-	[Test]
-	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Notes_In_Database()
-	{
-		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
-
-		UpdateDatabaseParameters parameters = new()
-		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
-			Contents = [],
-			EncryptedDek = null,
-			Files = [],
-			Folder = folder,
-			NewStatus = default,
-			Notes = [new NoteUpdate(folder.Id, EntityType.Folder, TestUtils.CreateRandomBytes(10))]
-		};
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
-				.Returns(true);
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
-				.Returns(true);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
-
-		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
-
-		// Assert
-		result
-			.Should()
-			.Be(UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb);
-
-		await dbAccess
-			.Received()
-			.RestoreFromBackupAsync(Arg.Any<string>());
-	}
-
-
-	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns FailedToSaveFolderPropertiesInDb and restores the backup and erases the file on failure.
-	/// </summary>
-	[Test]
-	public async Task UpdateDatabaseAsync_Cannot_Save_Folder_Properties_In_Database()
-	{
-		// Arrange
-		UpdateDatabaseParameters parameters = new()
-		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
-			Contents = [],
-			EncryptedDek = null,
-			Files = [],
-			Folder = TestUtils.CreateFolderDto(),
-			NewStatus = default,
-			Notes = []
-		};
-
-		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
-				.Returns(true);
-
-			builder.RegisterInstance(dbAccess);
-		});
-
-		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
-
-		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
-
-		// Assert
-		result
-			.Should()
-			.Be(UpdateDatabaseResult.FailedToSaveFolderPropertiesInDb);
-
-		await dbAccess
-			.Received()
-			.RestoreFromBackupAsync(Arg.Any<string>());
-	}
-
 
 	/// <summary>
 	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns Done and applies the new status to the folder and all files.
@@ -187,11 +91,9 @@ internal class EncryptedContentWriterTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
-				.Returns(true);
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.UpdateFileAndFolderPropertiesAsync(
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -214,6 +116,53 @@ internal class EncryptedContentWriterTests
 		parameters.Files.Select(x => x.EncryptionStatus)
 			.Should()
 			.OnlyContain(x => x == newStatus);
+	}
+
+
+	/// <summary>
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns ExceptionThrown and restores the backup when the write throws.
+	/// </summary>
+	[Test]
+	public async Task UpdateDatabaseAsync_Restores_Backup_When_The_Write_Throws()
+	{
+		// Arrange
+		UpdateDatabaseParameters parameters = new()
+		{
+			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			Contents = [],
+			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			Files = [],
+			Folder = TestUtils.CreateFolderDto(),
+			NewStatus = default,
+			Notes = []
+		};
+
+		IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbAccess
+				.UpdateFileAndFolderPropertiesAsync(
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
+
+		// Act
+		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+
+		// Assert
+		result
+			.Should()
+			.Be(UpdateDatabaseResult.ExceptionThrown);
+
+		await dbAccess
+			.Received()
+			.RestoreFromBackupAsync(parameters.BackupFilePath);
 	}
 
 
@@ -269,15 +218,9 @@ internal class EncryptedContentWriterTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
-				.Returns(true);
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
-				.Returns(true);
-
-			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.UpdateFileAndFolderPropertiesAsync(
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -293,9 +236,10 @@ internal class EncryptedContentWriterTests
 			.Should()
 			.Be(UpdateDatabaseResult.Done);
 
-		await dbAccess
-			.Received(1)
-			.UpdateFolderPropertiesAsync(Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>(x =>
+		await dbAccess.Received(1).UpdateFileAndFolderPropertiesAsync(
+			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(x =>
+				x != null && x.ContainsKey(file.Id)),
+			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>(x =>
 				x != null && x.ContainsKey(folder.Id) && x.ContainsKey(subfolder.Id) && !x.ContainsKey(file.Id)));
 
 		folder.Note

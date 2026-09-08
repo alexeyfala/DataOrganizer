@@ -1,7 +1,5 @@
-using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -18,16 +16,16 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
-	public EncryptionFailureReporter(ILogger logger, IMessenger messenger)
+	public EncryptionFailureReporter(ILogger logger, INotificationService notification)
 	{
 		_logger = logger;
 
-		_messenger = messenger;
+		_notification = notification;
 	}
 	#endregion
 
@@ -37,28 +35,21 @@ public sealed class EncryptionFailureReporter : IEncryptionFailureReporter
 	{
 		if (exception is InvalidCredentialException)
 		{
-			_logger.LogWarning($"The password has been rejected: {callerName}");
+			_logger.LogWarning(
+				$"The password, or the derivation cost and the salt beside it, has been rejected: {callerName}");
 
-			SendMessage(Strings.IncorrectPassword);
+			_notification.ShowErrorSnackbar(Strings.IncorrectPassword);
 
 			return;
 		}
 
 		_logger.LogException(exception, assertDebug: false);
 
-		SendMessage(exception is CryptographicException
+		string text = exception is CryptographicException
 			? Strings.EncryptedDataIsDamaged
-			: Strings.FailedToProcessContents);
-	}
-	#endregion
+			: Strings.FailedToProcessContents;
 
-	#region Helpers
-	/// <summary>
-	/// Sends <see cref="ShowSnackbarMessage" /> to recepient.
-	/// </summary>
-	private void SendMessage(string message)
-	{
-		_messenger.Send(new ShowSnackbarMessage(message, SnackbarMessageLevel.Error));
+		_notification.ShowErrorSnackbar(text);
 	}
 	#endregion
 }

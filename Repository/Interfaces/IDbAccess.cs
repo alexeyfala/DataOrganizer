@@ -60,9 +60,11 @@ public interface IDbAccess : IDisposable
 	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
 
 	/// <summary>
-	/// Establishes a connection to the database.
+	/// Establishes a connection to the database, creating or migrating it as needed.
+	/// Returns <c>false</c> when the database cannot be worked with; housekeeping failures
+	/// are logged and do not affect the result.
 	/// </summary>
-	Task ConnectAsync(CancellationToken token = default);
+	Task<bool> ConnectAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
@@ -131,6 +133,15 @@ public interface IDbAccess : IDisposable
 	/// Restores database from backup.
 	/// </summary>
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
+
+	/// <summary>
+	/// Updates properties of multiple <see cref="FileModel" /> and <see cref="FolderModel" /> entities
+	/// in a single transaction. An empty set of updates is not a failure.
+	/// </summary>
+	Task<bool> UpdateFileAndFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		CancellationToken token = default);
 
 	/// <summary>
 	/// Updates properties of <see cref="FileModel" />.

@@ -1,8 +1,7 @@
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Enums;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
@@ -16,24 +15,24 @@ public sealed class NoteReader : INoteReader
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
-
 	/// <inheritdoc cref="INoteCipher" />
 	private readonly INoteCipher _noteCipher;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public NoteReader(
 		ILogger logger,
-		IMessenger messenger,
-		INoteCipher noteCipher)
+		INoteCipher noteCipher,
+		INotificationService notification)
 	{
 		_logger = logger;
 
-		_messenger = messenger;
-
 		_noteCipher = noteCipher;
+
+		_notification = notification;
 	}
 	#endregion
 
@@ -68,7 +67,7 @@ public sealed class NoteReader : INoteReader
 			_logger.LogException(ex);
 		}
 
-		_messenger.Send(new ShowSnackbarMessage(Strings.FailedToReadNote, SnackbarMessageLevel.Error));
+		_notification.ShowErrorSnackbar(Strings.FailedToReadNote);
 
 		return null;
 	}

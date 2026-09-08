@@ -168,6 +168,35 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.SaveAsync" />: the journal is put in place in one step, so a save
+	/// that does not finish leaves the previous one readable.
+	/// </summary>
+	[Test]
+	public async Task Save_Replaces_The_Journal_Atomically()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using AutoMock mock = CreateMock(files);
+
+		ClipboardLogStore sut = mock.Create<ClipboardLogStore>();
+
+		await sut.TryUnlockAsync(Password("pw"));
+
+		// Act
+		await sut.SaveAsync([TextEntry("data")]);
+
+		// Assert
+		files.AtomicWrites
+			.Should()
+			.Contain(BinPath);
+
+		files.Files
+			.Should()
+			.ContainKey(BinPath);
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.SaveAsync" /> / <see cref="ClipboardLogStore.TryUnlockAsync" />: a saved entry is restored after unlocking in a new session.
 	/// </summary>
 	[Test]
@@ -350,6 +379,109 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a key written at a new derivation cost replaces
+	/// the old one in one step, so an interrupted rewrap keeps the journal openable.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_Replaces_A_Rewrapped_Key_Atomically()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+		}
+
+		files
+			.AtomicWrites
+			.Should()
+			.Contain(KeyPath, "a new key is written the same way");
+
+		files
+			.AtomicWrites
+			.Clear();
+
+		byte[] rewrapped = [9, 8, 7];
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+			.Returns(new PinnedBuffer(32));
+
+		encryption
+			.RewrapIfOutdated(
+				Arg.Any<byte[]>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<PinnedBuffer>(),
+				Arg.Any<ContentIdentity>())
+			.Returns(rewrapped);
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore sut = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await sut.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Unlocked);
+
+		files.AtomicWrites
+			.Should()
+			.Contain(KeyPath);
+
+		files.Files[KeyPath]
+			.Should()
+			.BeEquivalentTo(rewrapped);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: an existing key rejects the password on its own,
+	/// so a cryptographic failure behind it is the data and no further password is asked for.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_An_Existing_Key_Cannot_Be_Read_Returns_Damaged()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+		}
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())!
+			.Throws(new AuthenticationTagMismatchException());
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Damaged);
+
+		reader.IsUnlocked
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
 	/// </summary>
 	[Test]
@@ -372,7 +504,7 @@ internal class ClipboardLogStoreTests
 		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
 		encryption
 			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(new byte[32]);
+			.Returns(new PinnedBuffer(32));
 
 		using AutoMock second = CreateMock(files, encryption);
 
@@ -443,10 +575,10 @@ internal class ClipboardLogStoreTests
 
 		encryption
 			.CreateRandomDek()
-			.Returns(new byte[32]);
+			.Returns(new PinnedBuffer(32));
 
 		encryption
-			.Encrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+			.Encrypt(Arg.Any<PinnedBuffer>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
 			.Throws(new CryptographicException());
 
 		using AutoMock mock = CreateMock(files, encryption);

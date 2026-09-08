@@ -474,6 +474,9 @@
   <data name="FailedToReadNote" xml:space="preserve">
     <value>Не удалось прочитать примечание</value>
   </data>
+  <data name="FailedToUnlockClipboardHistory" xml:space="preserve">
+    <value>Не удалось открыть сохранённую историю буфера обмена</value>
+  </data>
   <data name="FailedToSaveNote" xml:space="preserve">
     <value>Не удалось сохранить примечание</value>
   </data>
@@ -689,5 +692,20 @@
   </data>
   <data name="RestartAutoLockHint" xml:space="preserve">
     <value>Нажатие запускает отсчёт автоблокировки заново</value>
+  </data>
+  <data name="DatabaseIsUnavailable" xml:space="preserve">
+    <value>База данных недоступна, изменения не сохранятся</value>
+  </data>
+  <data name="FailedToReadDatabase" xml:space="preserve">
+    <value>Не удалось прочитать базу данных</value>
+  </data>
+  <data name="FailedToReadHotkeys" xml:space="preserve">
+    <value>Не удалось прочитать горячие клавиши файлов</value>
+  </data>
+  <data name="AndMore" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="UnreadableHotkeysRemoved" xml:space="preserve">
+    <value>Нечитаемые горячие клавиши удалены у файлов</value>
   </data>
 </root>

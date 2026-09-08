@@ -14,14 +14,16 @@ manually because it is a native library bundled inside the SharpHook package.
 1. GNU Lesser General Public License, version 3.0 or later (LGPL-3.0-or-later)
 --------------------------------------------------------------------------
 
-  * libuiohook
+  * libuiohook 2.0.0
       Copyright (c) 2006-2023 Alexander Barker.
-      https://github.com/kwhat/libuiohook
+      https://github.com/TolikPylypchuk/libuiohook/tree/2.0.0
 
 libuiohook is a native C library that provides the global keyboard/mouse
-hooks used by this application. It is distributed as a native binary
-(uiohook.dll / libuiohook.so / libuiohook.dylib) bundled inside the SharpHook
-NuGet package and is loaded dynamically at runtime (via P/Invoke).
+hooks used by this application. It is distributed as a native binary bundled
+inside the SharpHook NuGet package and is loaded dynamically at runtime (via
+P/Invoke): uiohook.dll on Windows, libuiohook.dylib on macOS, and on Linux a
+loader (libuiohook.so) with three backends (libuiohook-xrecord.so,
+libuiohook-x11.so and libuiohook-wayland.so).
 
 This component is licensed under the GNU Lesser General Public License,
 version 3.0 or later. In accordance with the LGPL, the native library is
@@ -32,8 +34,8 @@ version of their own. The full text of the LGPL v3.0 and the GNU GPL v3.0
     https://www.gnu.org/licenses/lgpl-3.0.txt
     https://www.gnu.org/licenses/gpl-3.0.txt
 
-The corresponding source code for libuiohook is available from the project
-repository listed above.
+The corresponding source code for libuiohook is available from the fork
+listed above, which is the source of the binaries bundled with SharpHook.
 
 --------------------------------------------------------------------------
 2. Apache License, Version 2.0 (Apache-2.0)
@@ -59,20 +61,20 @@ repository listed above.
 3. MIT License (MIT)
 --------------------------------------------------------------------------
 
-  * Avalonia 12.1.1 - Copyright (c) Avalonia Team
+  * Avalonia 12.1.2 - Copyright (c) Avalonia Team
   * Avalonia.AvaloniaEdit 12.0.0 - Copyright (c) Avalonia Team
   * Avalonia.BuildServices 11.3.2 - Copyright (c) Avalonia Team
-  * Avalonia.Desktop 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Fonts.Inter 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.FreeDesktop.AtSpi 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.HarfBuzz 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Native 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Remote.Protocol 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Skia 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Themes.Fluent 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.Win32 12.1.1 - Copyright (c) Avalonia Team
-  * Avalonia.X11 12.1.1 - Copyright (c) Avalonia Team
+  * Avalonia.Desktop 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Fonts.Inter 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.FreeDesktop.AtSpi 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.HarfBuzz 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Native 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Remote.Protocol 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Skia 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Themes.Fluent 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.Win32 12.1.2 - Copyright (c) Avalonia Team
+  * Avalonia.X11 12.1.2 - Copyright (c) Avalonia Team
   * Baksteen.Extensions.DeepCopy 1.0.5 - Copyright (c) jpmikkers
   * CommunityToolkit.Mvvm 8.4.2 - Copyright (c) Microsoft
   * Comparation 0.1.7 - Copyright (c) Alexey Pepelev
@@ -84,10 +86,10 @@ repository listed above.
   * HarfBuzzSharp.NativeAssets.WebAssembly 8.3.1.3 - Copyright (c) Microsoft
   * HarfBuzzSharp.NativeAssets.Win32 8.3.1.3 - Copyright (c) Microsoft
   * Interop.UIAutomationClient 10.19041.0 - Copyright (c) Roemer
-  * Mapster 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.Core 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Mapster.DependencyInjection 10.0.11 - Copyright (c) chaowlert,eric_swann,andrerav
-  * Material.Avalonia 3.18.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
+  * Mapster 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.Core 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Mapster.DependencyInjection 10.0.12 - Copyright (c) chaowlert,eric_swann,andrerav
+  * Material.Avalonia 3.20.0 - Copyright (c) Larymar,SKProCH,Appleneko2001
   * Material.Icons 3.0.2 - Copyright (c) SKProCH
   * Material.Icons.Avalonia 3.0.2 - Copyright (c) SKProCH
   * MicroCom.Runtime 0.11.6 - Copyright (c) MicroCom.Runtime
@@ -119,7 +121,7 @@ repository listed above.
   * OSVersionExt.NetStd 3.0.1 - Copyright (c) Stefan Prugg
   * ProItemsRepeater 12.0.0 - Copyright (c) Wiesław Šoltés
   * Serilog.Exceptions 8.4.0 - Copyright (c) Muhammad Rehan Saeed (RehanSaeed.com)
-  * SharpHook 7.1.3 - Copyright (c) Tolik Pylypchuk
+  * SharpHook 8.0.0 - Copyright (c) Tolik Pylypchuk
   * SkiaSharp 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.Linux 3.119.4 - Copyright (c) Microsoft
   * SkiaSharp.NativeAssets.macOS 3.119.4 - Copyright (c) Microsoft
@@ -129,7 +131,7 @@ repository listed above.
   * System.Reactive 7.0.0 - Copyright (c) .NET Foundation and Contributors
   * System.Reflection.TypeExtensions 4.7.0 - Copyright (c) Microsoft
   * Tmds.DBus.Protocol 0.94.1 - Copyright (c) Tom Deseyn
-  * Xaml.Behaviors 12.0.5 - Copyright (c) Wiesław Šoltés
+  * Xaml.Behaviors 12.0.7 - Copyright (c) Wiesław Šoltés
   * ZString 2.6.0 - Copyright (c) Cysharp
 
 The above components are licensed under the MIT License. Copyright is held by

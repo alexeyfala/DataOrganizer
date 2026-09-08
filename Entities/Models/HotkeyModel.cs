@@ -1,3 +1,4 @@
+using Entities.Converters;
 using SharpHook.Data;
 using System;
 using System.Diagnostics;
@@ -13,15 +14,16 @@ namespace Entities.Models;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(Code)} = {{{nameof(Code)}}}, " +
 	$"{nameof(Mask)} = {{{nameof(Mask)}}}")]
-
-[XmlType(TypeName = "Hotkey")]
+[XmlType(TypeName = Hotkey)]
 public sealed class HotkeyModel : EntityModelBase
 {
 	#region Properties
 	/// <inheritdoc cref="KeyCode" />
+	[JsonConverter(typeof(KeyCodeJsonConverter))]
 	public required KeyCode Code { get; init; }
 
 	/// <inheritdoc cref="EventMask" />
+	[JsonConverter(typeof(EventMaskJsonConverter))]
 	public required EventMask Mask { get; init; }
 
 	/// <summary>
@@ -36,4 +38,11 @@ public sealed class HotkeyModel : EntityModelBase
 	/// </summary>
 	public required Guid OwnerId { get; set; }
 	#endregion Properties
+
+	#region Data
+	/// <summary>
+	/// String literal for the XML element of a hotkey.
+	/// </summary>
+	public const string Hotkey = "Hotkey";
+	#endregion
 }

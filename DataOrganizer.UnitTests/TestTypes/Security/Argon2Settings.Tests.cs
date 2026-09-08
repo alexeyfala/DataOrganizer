@@ -34,9 +34,12 @@ internal class Argon2SettingsTests
 	[TestCase(0u, 3, 1, Description = "No memory at all")]
 	[TestCase(1024u, 3, 1, Description = "Less memory than supported")]
 	[TestCase(uint.MaxValue, 3, 1, Description = "More memory than supported")]
+	[TestCase(1048576u, 3, 1, Description = "A gibibyte, past the supported ceiling")]
 	[TestCase(65536u, 0, 1, Description = "No pass at all")]
+	[TestCase(65536u, 5, 1, Description = "One pass more than supported")]
 	[TestCase(65536u, 255, 1, Description = "More passes than supported")]
 	[TestCase(65536u, 3, 0, Description = "No lane at all")]
+	[TestCase(65536u, 3, 2, Description = "More lanes than the algorithm runs")]
 	[TestCase(65536u, 3, 255, Description = "More lanes than supported")]
 	public void Read_Rejects_Unsupported_Values(
 		uint memorySize,

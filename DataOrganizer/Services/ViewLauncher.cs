@@ -66,6 +66,9 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
 
@@ -89,6 +92,7 @@ public class ViewLauncher : IViewLauncher
 		IJsonSerializerWrapper jsonSerializer,
 		ILogger logger,
 		IExecutionSandbox sandbox,
+		INotificationService notification,
 		IServiceProvider serviceProvider,
 		ITaskExceptionHandler exceptionHandler,
 		IViewFactory viewFactory,
@@ -117,6 +121,8 @@ public class ViewLauncher : IViewLauncher
 		_keyboardInputHook = keyboardInputHook;
 
 		_logger = logger;
+
+		_notification = notification;
 
 		_sandbox = sandbox;
 
@@ -695,6 +701,18 @@ public class ViewLauncher : IViewLauncher
 
 			if (status == ClipboardLogStatus.Unlocked)
 			{
+				return;
+			}
+
+			// Only a wrong password is worth asking again; the rest no password can fix.
+			if (status != ClipboardLogStatus.WrongPassword)
+			{
+				string text = status == ClipboardLogStatus.Damaged
+					? Strings.EncryptedDataIsDamaged
+					: Strings.FailedToUnlockClipboardHistory;
+
+				_notification.ShowErrorSnackbar(text);
+
 				return;
 			}
 

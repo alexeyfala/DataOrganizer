@@ -21,7 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+		<PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
 	</ItemGroup>
 
 	<!-- Ship license and attribution files alongside the published application. -->
@@ -36,7 +36,7 @@
 	<!-- Drop debug symbols of native dependencies from the published output. -->
 	<Target Name="ExcludeNativeSymbolsFromPublish" AfterTargets="ComputeFilesToPublish">
 		<ItemGroup>
-			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish->WithMetadataValue('AssetType', 'native')->WithMetadataValue('Extension', '.pdb'))" />
+			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish-&gt;WithMetadataValue('AssetType', 'native')-&gt;WithMetadataValue('Extension', '.pdb'))" />
 		</ItemGroup>
 	</Target>
 

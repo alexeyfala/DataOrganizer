@@ -6,8 +6,8 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
+using DataOrganizer.DTO;
 using DataOrganizer.Enums;
-using DataOrganizer.Messages;
 using Material.Ripple;
 using Material.Styles.Controls;
 using Material.Styles.Models;
@@ -54,7 +54,7 @@ internal class SnackbarTextColorTests
 	}
 
 	/// <summary>
-	/// A posted <see cref="ShowSnackbarMessage" /> is rendered by the application template as text coloured by its level.
+	/// A posted <see cref="SnackbarContent" /> is rendered by the application template as text coloured by its level.
 	/// </summary>
 	[AvaloniaTest]
 	[TestCase(SnackbarMessageLevel.Information, "")]
@@ -79,7 +79,7 @@ internal class SnackbarTextColorTests
 
 		// Act
 		SnackbarHost.Post(
-			new SnackbarModel(new ShowSnackbarMessage(text, level), TimeSpan.FromSeconds(5.0)),
+			new SnackbarModel(new SnackbarContent(text, level), TimeSpan.FromSeconds(5.0)),
 			host.HostName,
 			DispatcherPriority.Normal);
 

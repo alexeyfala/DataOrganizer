@@ -31,6 +31,12 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial bool IsKeyMasked { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsSensitive { get; set; }
+
+	/// <summary>
 	/// Specifies the visibility of the <see cref="Value" /> input field.
 	/// </summary>
 	[ObservableProperty]
@@ -100,6 +106,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 		DefaultButtonText = parameters.DefaultButtonText;
 
 		IsKeyMasked = parameters.MaskKeyInput;
+
+		IsSensitive = parameters.IsSensitive;
 
 		IsValueMasked = parameters.MaskValueInput;
 

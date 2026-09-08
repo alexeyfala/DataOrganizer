@@ -379,7 +379,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task ConnectAsync(CancellationToken token = default)
+	public async Task<bool> ConnectAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -389,19 +389,21 @@ public sealed class DbAccess : IDbAccess
 
 			_logger.LogInformation("Connecting to the database.");
 
-			_dbMaintenance.ErasePendingBackups();
+			TryErasePendingBackups();
 
 			await (_dbContextService.HasMigrations()
 				? _dbContextService.MigrateAsync(token)
 				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
 
-			await _dbMaintenance
-				.EraseFreePagesOnceAsync(token)
-				.ConfigureAwait(false);
+			await TryEraseFreePagesOnceAsync(token).ConfigureAwait(false);
+
+			return true;
 		}
 		catch (Exception ex)
 		{
-			_logger.LogException(ex);
+			_logger.LogException(ex, assertDebug: false);
+
+			return false;
 		}
 		finally
 		{
@@ -908,6 +910,56 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> UpdateFileAndFolderPropertiesAsync(
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
+			{
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> update in fileUpdates)
+				{
+					await _fileRepository
+						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.ConfigureAwait(false);
+				}
+
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> update in folderUpdates)
+				{
+					await _folderRepository
+						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
+						.ConfigureAwait(false);
+				}
+			}, token).ConfigureAwait(false);
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
 		Action<UpdateSettersBuilder<FileModel>>[] setters,
@@ -1190,6 +1242,38 @@ public sealed class DbAccess : IDbAccess
 			.ConfigureAwait(false);
 
 		return folder;
+	}
+
+	/// <summary>
+	/// Erases the free pages of the database once, keeping a failure to the log.
+	/// </summary>
+	private async Task TryEraseFreePagesOnceAsync(CancellationToken token)
+	{
+		try
+		{
+			await _dbMaintenance
+				.EraseFreePagesOnceAsync(token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Erases the copies of the database left by an interrupted conversion, keeping a failure to the log.
+	/// </summary>
+	private void TryErasePendingBackups()
+	{
+		try
+		{
+			_dbMaintenance.ErasePendingBackups();
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
 	}
 	#endregion
 }

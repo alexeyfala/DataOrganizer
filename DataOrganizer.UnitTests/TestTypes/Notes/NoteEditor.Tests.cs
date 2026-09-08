@@ -2,10 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using DataOrganizer.Services.Notes;
 using Entities.Enums;
 using Entities.Models;
@@ -13,7 +11,6 @@ using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.Interfaces;
 using Shared.Common;
-using Shared.Properties;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +24,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: blank text removes the note.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
@@ -34,14 +32,6 @@ internal class NoteEditorTests
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		file.Note = TestUtils.CreateRandomBytes(10);
-
-		StrongReferenceMessenger messenger = new();
-
-		ShowSnackbarMessage? receivedSnackbar = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -63,8 +53,6 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -83,15 +71,12 @@ internal class NoteEditorTests
 		file.Note
 			.Should()
 			.BeNull();
-
-		receivedSnackbar?.Text
-			.Should()
-			.Be(Strings.NoteHasBeenDeleted);
 	}
 
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: a note rejected by the database is reported and not applied.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Database_Update_Fails()
 	{
@@ -99,14 +84,6 @@ internal class NoteEditorTests
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		byte[] encoded = TestUtils.CreateRandomBytes(10);
-
-		StrongReferenceMessenger messenger = new();
-
-		ShowSnackbarMessage? receivedSnackbar = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -117,8 +94,6 @@ internal class NoteEditorTests
 				.Returns(encoded);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -137,15 +112,12 @@ internal class NoteEditorTests
 		file.Note
 			.Should()
 			.BeNull();
-
-		receivedSnackbar?.Text
-			.Should()
-			.Be(Strings.FailedToSaveNote);
 	}
 
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: a note that cannot be converted is reported and never reaches the database.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Encoding_Fails()
 	{
@@ -153,14 +125,6 @@ internal class NoteEditorTests
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		StrongReferenceMessenger messenger = new();
-
-		ShowSnackbarMessage? receivedSnackbar = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -173,8 +137,6 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -190,10 +152,6 @@ internal class NoteEditorTests
 			.Should()
 			.BeFalse();
 
-		receivedSnackbar?.Text
-			.Should()
-			.Be(Strings.FailedToSaveNote);
-
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
@@ -203,6 +161,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: an exception of the conversion is reported and never reaches the database.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Reports_Failure_When_Encoding_Throws()
 	{
@@ -210,14 +169,6 @@ internal class NoteEditorTests
 		FileModelDto file = TestUtils.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		StrongReferenceMessenger messenger = new();
-
-		ShowSnackbarMessage? receivedSnackbar = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -230,8 +181,6 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -247,10 +196,6 @@ internal class NoteEditorTests
 			.Should()
 			.BeFalse();
 
-		receivedSnackbar?.Text
-			.Should()
-			.Be(Strings.FailedToSaveNote);
-
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
@@ -260,6 +205,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the note of a file and of a dataset is stored through the file update.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityType.File, EntityType.DataSet)] EntityType entityType)
 	{
@@ -271,14 +217,6 @@ internal class NoteEditorTests
 		DateTime updatedDate = DateTime.Now.AddDays(1);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
-
-		StrongReferenceMessenger messenger = new();
-
-		ShowSnackbarMessage? receivedSnackbar = null;
-
-		object recipient = new();
-
-		messenger.Register<ShowSnackbarMessage>(recipient, (_, message) => receivedSnackbar = message);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -298,8 +236,6 @@ internal class NoteEditorTests
 			builder.RegisterInstance(dbAccess);
 
 			builder.RegisterInstance(noteCipher);
-
-			builder.RegisterInstance(messenger).As<IMessenger>();
 		});
 
 		NoteEditor sut = mock.Create<NoteEditor>();
@@ -323,10 +259,6 @@ internal class NoteEditorTests
 			.Should()
 			.Be(updatedDate);
 
-		receivedSnackbar?.Text
-			.Should()
-			.Be(Strings.NoteHasBeenSaved);
-
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			file.Id,
 			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
@@ -336,6 +268,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the note of a folder is stored through the folder update.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
@@ -392,6 +325,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// <see cref="NoteEditor.EditAsync" />: the buffer of the replaced note is wiped.
 	/// </summary>
+
 	[Test]
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{

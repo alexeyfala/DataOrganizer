@@ -17,7 +17,8 @@ public interface IExecutionEngine : IAsyncDisposable
 	Task CloseAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Executes a file in the operating system.
+	/// Executes a file in the operating system. The contents passed in are overwritten before
+	/// the call returns, whatever its outcome.
 	/// </summary>
 	Task<bool> ExecuteAsync(ExecuteFileParameters parameters, CancellationToken token = default);
 

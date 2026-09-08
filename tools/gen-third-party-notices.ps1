@@ -18,6 +18,9 @@
     Restore the project first (dotnet restore / build) so project.assets.json is
     up to date.
 
+    Keep $libuiohookVersion in sync with the SharpHook package reference: libuiohook is
+    bundled inside SharpHook and its version cannot be read from the graph.
+
 .PARAMETER AssetsFile
     One or more project.assets.json files to union. Defaults to the Desktop host.
 
@@ -61,6 +64,11 @@ if (-not $AssetsFile) {
 if (-not $OutputFile) {
     $OutputFile = Join-Path $repoRoot 'THIRD-PARTY-NOTICES.txt'
 }
+
+# --- The bundled native library that is not a NuGet package ---------------------
+# libuiohook ships inside SharpHook, so its version is not in the dependency graph.
+# Update it together with the SharpHook package reference.
+$libuiohookVersion = "2.0.0"
 
 # --- Overrides for packages whose .nuspec does not carry an SPDX expression -----
 # Keyed by lowercase package id. Verified manually against the package/repository.
@@ -232,14 +240,16 @@ function Add-Header([string]$title) {
 
 # Section 1: manual LGPL (libuiohook)
 Add-Header 'GNU Lesser General Public License, version 3.0 or later (LGPL-3.0-or-later)'
-Add-Line '  * libuiohook'
+Add-Line ("  * libuiohook {0}" -f $libuiohookVersion)
 Add-Line '      Copyright (c) 2006-2023 Alexander Barker.'
-Add-Line '      https://github.com/kwhat/libuiohook'
+Add-Line ("      https://github.com/TolikPylypchuk/libuiohook/tree/{0}" -f $libuiohookVersion)
 Add-Line
 Add-Line 'libuiohook is a native C library that provides the global keyboard/mouse'
-Add-Line 'hooks used by this application. It is distributed as a native binary'
-Add-Line '(uiohook.dll / libuiohook.so / libuiohook.dylib) bundled inside the SharpHook'
-Add-Line 'NuGet package and is loaded dynamically at runtime (via P/Invoke).'
+Add-Line 'hooks used by this application. It is distributed as a native binary bundled'
+Add-Line 'inside the SharpHook NuGet package and is loaded dynamically at runtime (via'
+Add-Line 'P/Invoke): uiohook.dll on Windows, libuiohook.dylib on macOS, and on Linux a'
+Add-Line 'loader (libuiohook.so) with three backends (libuiohook-xrecord.so,'
+Add-Line 'libuiohook-x11.so and libuiohook-wayland.so).'
 Add-Line
 Add-Line 'This component is licensed under the GNU Lesser General Public License,'
 Add-Line 'version 3.0 or later. In accordance with the LGPL, the native library is'
@@ -250,8 +260,8 @@ Add-Line
 Add-Line '    https://www.gnu.org/licenses/lgpl-3.0.txt'
 Add-Line '    https://www.gnu.org/licenses/gpl-3.0.txt'
 Add-Line
-Add-Line 'The corresponding source code for libuiohook is available from the project'
-Add-Line 'repository listed above.'
+Add-Line 'The corresponding source code for libuiohook is available from the fork'
+Add-Line 'listed above, which is the source of the binaries bundled with SharpHook.'
 
 # Remaining sections: generated groups, in a stable, sensible order.
 $order = @('Apache-2.0', 'MIT', 'BSD-3-Clause', 'ISC')

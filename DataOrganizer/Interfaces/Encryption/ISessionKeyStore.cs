@@ -6,7 +6,8 @@ namespace DataOrganizer.Interfaces.Encryption;
 
 /// <summary>
 /// Holds data encryption keys of unlocked password keepers for the lifetime of a session.
-/// A held key stays wrapped with a session secret and is unwrapped for the length of a single call.
+/// A key stays wrapped with a session secret and is unwrapped for a single call: wiping that secret
+/// invalidates every held key at once, but the wrapping hides nothing from a reader of the memory.
 /// </summary>
 public interface ISessionKeyStore
 {
@@ -49,6 +50,6 @@ public interface ISessionKeyStore
 	/// Takes the key of a keeper into the store, wrapped with the session secret.
 	/// Returns <c>false</c> when the key cannot be stored; the passed key remains with the caller.
 	/// </summary>
-	bool Unlock(Guid keeperId, byte[] dek);
+	bool Unlock(Guid keeperId, PinnedBuffer dek);
 	#endregion
 }

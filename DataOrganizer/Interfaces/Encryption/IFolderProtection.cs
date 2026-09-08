@@ -11,7 +11,8 @@ public interface IFolderProtection
 {
 	#region Methods
 	/// <summary>
-	/// Changes the password.
+	/// Changes the password. The data encryption key stays the same, so a surviving copy of the old
+	/// wrapper keeps opening the contents with the old password, those written after the change too.
 	/// </summary>
 	Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default);
 

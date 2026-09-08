@@ -140,6 +140,30 @@ internal class KeyValueInputViewModelTests
 	}
 
 	/// <summary>
+	/// <see cref="KeyValueInputViewModel.Initialize" />: maps the sensitivity of the edited text from the parameters.
+	/// </summary>
+	[Test]
+	public void Initialize_Sets_IsSensitive([Values] bool isSensitive)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose();
+
+		KeyValueInputViewModel sut = mock.Create<KeyValueInputViewModel>();
+
+		// Act
+		sut.Initialize(new()
+		{
+			DefaultButtonText = AppUtils.CreateRandomString(10),
+			IsSensitive = isSensitive
+		});
+
+		// Assert
+		sut.IsSensitive
+			.Should()
+			.Be(isSensitive);
+	}
+
+	/// <summary>
 	/// <see cref="KeyValueInputViewModel.Initialize" />: maps the value-input mask flag from the parameters.
 	/// </summary>
 	[Test]

@@ -1,9 +1,7 @@
-using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.DTO.Entities;
-using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
+using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
-using DataOrganizer.Messages;
 using Entities.Enums;
 using Repository.Interfaces;
 using Serilog;
@@ -24,27 +22,27 @@ public sealed class NoteEditor : INoteEditor
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IMessenger" />
-	private readonly IMessenger _messenger;
-
 	/// <inheritdoc cref="INoteCipher" />
 	private readonly INoteCipher _noteCipher;
+
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
 	#endregion
 
 	#region Constructors
 	public NoteEditor(
 		IDbAccess dbAccess,
 		ILogger logger,
-		IMessenger messenger,
-		INoteCipher noteCipher)
+		INoteCipher noteCipher,
+		INotificationService notification)
 	{
 		_dbAccess = dbAccess;
 
 		_logger = logger;
 
-		_messenger = messenger;
-
 		_noteCipher = noteCipher;
+
+		_notification = notification;
 	}
 	#endregion
 
@@ -112,7 +110,7 @@ public sealed class NoteEditor : INoteEditor
 			? Strings.NoteHasBeenDeleted
 			: Strings.NoteHasBeenSaved;
 
-		Notify(successText, SnackbarMessageLevel.Information);
+		_notification.ShowInformationSnackbar(successText);
 
 		_logger.LogInformation(successText);
 
@@ -132,14 +130,9 @@ public sealed class NoteEditor : INoteEditor
 			nameof(ExplorerModelBaseDto.Name),
 			nameof(ExplorerModelBaseDto.EncryptionStatus))}");
 
-		Notify(Strings.FailedToSaveNote, SnackbarMessageLevel.Error);
+		_notification.ShowErrorSnackbar(Strings.FailedToSaveNote);
 
 		return false;
 	}
-
-	/// <summary>
-	/// Sends a snackbar notification.
-	/// </summary>
-	private void Notify(string text, SnackbarMessageLevel level) => _messenger.Send(new ShowSnackbarMessage(text, level));
 	#endregion
 }

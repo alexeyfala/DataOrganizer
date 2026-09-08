@@ -19,6 +19,12 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	public partial string? Header { get; set; }
 
 	/// <summary>
+	/// <c>True</c> when the edited text is sensitive: a copy of it carries the clipboard sensitivity markers.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsSensitive { get; set; }
+
+	/// <summary>
 	/// Text.
 	/// </summary>
 	[ObservableProperty]

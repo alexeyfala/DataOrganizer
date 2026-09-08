@@ -12,6 +12,7 @@ using Serilog;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;
+using Shared.Properties;
 using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -51,6 +52,9 @@ public sealed class AppController : IAppController
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
+	/// <inheritdoc cref="INotificationService" />
+	private readonly INotificationService _notification;
+
 	/// <inheritdoc cref="ICommandLineOptions" />
 	private readonly ICommandLineOptions _options;
 
@@ -80,6 +84,7 @@ public sealed class AppController : IAppController
 		IFileSystem fileSystem,
 		IGlobalExceptionHandler globalExceptionHandler,
 		ILogger logger,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler,
 		IUpdateNotifier updateNotifier,
 		IViewLauncher viewLauncher,
@@ -102,6 +107,8 @@ public sealed class AppController : IAppController
 		_exceptionHandler = exceptionHandler;
 
 		_logger = logger;
+
+		_notification = notification;
 
 		_options = options;
 
@@ -141,9 +148,16 @@ public sealed class AppController : IAppController
 
 			// TODO: Display a splash screen while connecting to database.
 
-			await _dbAccess
+			if (!await _dbAccess
 				.ConnectAsync(token)
-				.ConfigureAwait(true);
+				.ConfigureAwait(true))
+			{
+				// The launch goes on, but the state of the database is now known to the user:
+				// nothing written from here on reaches it.
+				_logger.LogError("The database is unavailable, the launch continues without it.", assertDebug: false);
+
+				_notification.ShowToast(Strings.DatabaseIsUnavailable);
+			}
 
 			if (_options.FillObjects)
 			{
@@ -156,9 +170,35 @@ public sealed class AppController : IAppController
 					levels: total).ConfigureAwait(true);
 			}
 
-			ExplorerModelBaseDto[] hierarchy = await _entityLoader
+			ExplorerModelBaseDto[]? hierarchy = await _entityLoader
 				.LoadFromEmbeddedDbAsync(token)
 				.ConfigureAwait(true);
+
+			if (hierarchy is null)
+			{
+				_logger.LogError(
+					"The database could not be read, the launch continues with an empty hierarchy.",
+					assertDebug: false);
+
+				_notification.ShowToast(Strings.FailedToReadDatabase);
+			}
+			else
+			{
+				FileModelDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+				if (unreadable.IsNotEmpty())
+				{
+					unreadable.ForEach(x =>
+					{
+						_logger.LogError(
+							$@"Hotkeys of file ""{x.Name}"" ({x.Id}) could not be read.",
+							assertDebug: false);
+					});
+
+					_notification.ShowToast(
+						unreadable.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys));
+				}
+			}
 
 			// TODO: Close splash screen here.
 
@@ -171,7 +211,7 @@ public sealed class AppController : IAppController
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
-			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy);
+			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy ?? []);
 
 			mainWindow?.Show();
 

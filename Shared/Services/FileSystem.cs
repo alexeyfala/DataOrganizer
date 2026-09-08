@@ -18,6 +18,11 @@ namespace Shared.Services;
 public sealed class FileSystem : IFileSystem
 {
 	#region Data
+	/// <summary>
+	/// Extension of the file an atomic write is prepared in.
+	/// </summary>
+	private const string TemporaryFileExtension = ".tmp";
+
 	/// <inheritdoc cref="IJsonSerializerWrapper" />
 	private readonly IJsonSerializerWrapper _jsonSerializer;
 	#endregion
@@ -351,6 +356,40 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public async Task WriteAllBytesAtomicAsync(
+		string filePath,
+		byte[] bytes,
+		CancellationToken token = default)
+	{
+		string temporaryFilePath = filePath + TemporaryFileExtension;
+
+		try
+		{
+			// The bytes reach the disk before the swap: a rename that outruns them publishes an empty file.
+			await using (FileStream stream = new(
+				temporaryFilePath,
+				FileMode.Create,
+				FileAccess.Write,
+				FileShare.None,
+				bufferSize: 4096,
+				options: FileOptions.Asynchronous | FileOptions.WriteThrough))
+			{
+				await stream
+					.WriteAsync(bytes, token)
+					.ConfigureAwait(false);
+			}
+
+			File.Move(temporaryFilePath, filePath, overwrite: true);
+		}
+		catch
+		{
+			TryDeleteTemporaryFile(temporaryFilePath);
+
+			throw;
+		}
+	}
+
+	/// <inheritdoc />
 	public void WriteAllText(string filePath, string? contents) => File.WriteAllText(filePath, contents);
 	#endregion
 
@@ -377,6 +416,21 @@ public sealed class FileSystem : IFileSystem
 		attributes &= ~value;
 
 		File.SetAttributes(filePath, attributes);
+	}
+
+	/// <summary>
+	/// Removes the file an atomic write was prepared in.
+	/// </summary>
+	private static void TryDeleteTemporaryFile(string filePath)
+	{
+		try
+		{
+			File.Delete(filePath);
+		}
+		catch
+		{
+			// The write is reported as it failed; a leftover file must not replace that reason.
+		}
 	}
 	#endregion
 }

@@ -7,6 +7,7 @@ using Entities.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.DTO;
 using Repository.Enums;
 using Repository.Interfaces;
@@ -20,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Repository.UnitTests.TestTypes;
@@ -345,9 +347,13 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		await sut.ConnectAsync();
+		bool result = await sut.ConnectAsync();
 
 		// Assert
+		result
+			.Should()
+			.BeTrue();
+
 		if (useMigrations)
 		{
 			await dbConnection
@@ -360,6 +366,68 @@ internal class DbAccessTests
 				.Received()
 				.EnsureCreatedAsync();
 		}
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created or migrated is reported as a failure.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_An_Unusable_Database()
+	{
+		// Arrange
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbConnection
+				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(dbConnection);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a failing housekeeping step leaves the database usable.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Survives_A_Failed_Housekeeping_Step()
+	{
+		// Arrange
+		IDbMaintenance dbMaintenance = Substitute.For<IDbMaintenance>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			dbMaintenance
+				.When(x => x.ErasePendingBackups())
+				.Throw(new IOException());
+
+			dbMaintenance
+				.EraseFreePagesOnceAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new IOException());
+
+			builder.RegisterInstance(dbMaintenance);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -873,6 +941,130 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: returns false when a write inside the transaction throws.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileAndFolderPropertiesAsync_Returns_False_When_A_Write_Throws()
+	{
+		// Arrange
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
+		{
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+		};
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+			fileRepository
+				.UpdatePropertiesAsync(
+					Arg.Any<Guid>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<CancellationToken>())
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, new Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>());
+
+		// Assert
+		result
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: applies the updates of both entity types in one transaction.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileAndFolderPropertiesAsync_Returns_True_And_Forwards_Every_Update()
+	{
+		// Arrange
+		Guid fileId = Guid.NewGuid();
+
+		Guid folderId = Guid.NewGuid();
+
+		Action<UpdateSettersBuilder<FileModel>>[] fileSetters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		Action<UpdateSettersBuilder<FolderModel>>[] folderSetters =
+		[
+			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+		];
+
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
+		{
+			[fileId] = fileSetters
+		};
+
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates = new()
+		{
+			[folderId] = folderSetters
+		};
+
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			builder.RegisterInstance(fileRepository);
+
+			builder.RegisterInstance(folderRepository);
+
+			builder.RegisterInstance(CreateContextServiceRunningTheTransaction());
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, folderUpdates);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+
+		await fileRepository
+			.Received(1)
+			.UpdatePropertiesAsync(fileId, fileSetters, Arg.Any<CancellationToken>());
+
+		await folderRepository
+			.Received(1)
+			.UpdatePropertiesAsync(folderId, folderSetters, Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.UpdateFileAndFolderPropertiesAsync" />: an empty set of updates is not a failure.
+	/// </summary>
+	[Test]
+	public async Task UpdateFileAndFolderPropertiesAsync_Returns_True_When_There_Is_Nothing_To_Update()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateContextServiceRunningTheTransaction()));
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.UpdateFileAndFolderPropertiesAsync(
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>(),
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>());
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
 	/// </summary>
 	[Test]
@@ -1176,6 +1368,20 @@ internal class DbAccessTests
 	#endregion
 
 	#region Helpers
+	/// <summary>
+	/// A substitute of <see cref="IDbContextService" /> that runs the body of the transaction.
+	/// </summary>
+	private static IDbContextService CreateContextServiceRunningTheTransaction()
+	{
+		IDbContextService contextService = Substitute.For<IDbContextService>();
+
+		contextService
+			.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
+			.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+		return contextService;
+	}
+
 	/// <summary>
 	/// Wraps a synchronous sequence into an <see cref="IAsyncEnumerable{T}" /> for substitute setup.
 	/// </summary>

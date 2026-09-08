@@ -13,6 +13,7 @@ using Serilog;
 using Shared.Interfaces;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -339,6 +340,76 @@ internal class ExecutionEngineTests
 	}
 
 	/// <summary>
+	/// <see cref="ExecutionEngine.ExecuteAsync" />: overwrites the plain text it was given, read-only files included,
+	/// and hands the tracker a hash instead of the contents.
+	/// </summary>
+	[Test]
+	public async Task ExecuteAsync_Overwrites_The_Contents_It_Was_Given([Values] bool isReadOnly)
+	{
+		// Arrange
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+
+		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
+
+		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
+
+		TrackChangesParameters? tracked = null;
+
+		changeTracker
+			.TrackChangesAsync(Arg.Do<TrackChangesParameters>(x => tracked = x), Arg.Any<CancellationToken>())
+			.Returns(Task.CompletedTask);
+
+		using AutoMock mock = CreateConfiguredMock(
+			fileSystem,
+			processUtils,
+			fileAssociation,
+			changeTracker);
+
+		ExecutionEngine sut = mock.Create<ExecutionEngine>();
+
+		byte[] contents = TestUtils.CreateRandomBytes(16);
+
+		byte[] expectedHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents);
+
+		ExecuteFileParameters parameters = new()
+		{
+			Contents = contents,
+			File = TestUtils.CreateFileDto(id: Guid.NewGuid()),
+			IsReadOnly = isReadOnly
+		};
+
+		// Act
+		await sut.ExecuteAsync(parameters);
+
+		// Assert
+		contents
+			.Should()
+			.AllSatisfy(x => x
+				.Should()
+				.Be(0));
+
+		if (isReadOnly)
+		{
+			tracked
+				.Should()
+				.BeNull();
+
+			return;
+		}
+
+		tracked
+			.Should()
+			.NotBeNull();
+
+		tracked
+			.PreviousHash
+			.Should()
+			.Equal(expectedHash);
+	}
+
+	/// <summary>
 	/// <see cref="ExecutionEngine.ExecuteAsync" />: returns false without starting a process once the engine is disposed.
 	/// </summary>
 	[Test]
@@ -427,10 +498,16 @@ internal class ExecutionEngineTests
 	private static AutoMock CreateConfiguredMock(
 		IFileSystem fileSystem,
 		IProcessUtils processUtils,
-		IFileAssociationService fileAssociation)
+		IFileAssociationService fileAssociation,
+		IFileChangeTracker? changeTracker = null)
 	{
 		return AutoMock.GetLoose(builder =>
 		{
+			if (changeTracker is not null)
+			{
+				builder.RegisterInstance(changeTracker);
+			}
+
 			IExecutionSandbox sandbox = Substitute.For<IExecutionSandbox>();
 
 			sandbox

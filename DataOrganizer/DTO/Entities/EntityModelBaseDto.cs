@@ -7,7 +7,7 @@ namespace DataOrganizer.DTO.Entities;
 public abstract class EntityModelBaseDto
 {
 	#region Properties
-	/// <inheritdoc />
+	/// <inheritdoc cref="EntityModelBase.Id" />
 	public required Guid Id { get; init; }
 
 	/// <inheritdoc cref="EntityModelBase.Index" />

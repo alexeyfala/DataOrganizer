@@ -5,6 +5,8 @@ using DataOrganizer.DTO.Entities;
 using Entities.Enums;
 using Repository.DTO;
 using Shared.Extensions;
+using Shared.Properties;
+using SharpHook.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -309,6 +311,16 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
+	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by hotkeys that could not be read.
+	/// </summary>
+	/// <returns>Flat sequence <see cref="FileModelDto" />.</returns>
+	public static IEnumerable<FileModelDto> GetFilesWithUnreadableHotkeys(
+		this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	{
+		return GetFilesBy(hierarchy, x => x.Hotkeys.Any(IsUnreadable));
+	}
+
+	/// <summary>
 	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by type <see cref="FolderModelDto" />.
 	/// </summary>
 	/// <returns>Flat sequence <see cref="FolderModelDto" />.</returns>
@@ -373,6 +385,43 @@ internal static class EnumerableExtensions
 			builder.Append(',');
 
 			builder.Append(' ');
+		}
+
+		return builder.ToString();
+	}
+
+	/// <summary>
+	/// Builds the text that names the files whose hotkeys could not be read, a file per line,
+	/// under the given <paramref name="header"/>.
+	/// </summary>
+	public static string GetUnreadableHotkeysPresentation(this FileModelDto[] files, string header)
+	{
+		const int maxNames = 3;
+
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		builder.Append(header);
+
+		builder.Append(':');
+
+		int names = Math.Min(files.Length, maxNames);
+
+		for (int i = 0; i < names; i++)
+		{
+			builder.Append(Environment.NewLine);
+
+			builder.Append('"');
+
+			builder.Append(files[i].Name);
+
+			builder.Append('"');
+		}
+
+		if (files.Length > maxNames)
+		{
+			builder.Append(Environment.NewLine);
+
+			builder.AppendFormat(Strings.AndMore, files.Length - maxNames);
 		}
 
 		return builder.ToString();
@@ -577,6 +626,14 @@ internal static class EnumerableExtensions
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// <c>True</c> when a hotkey holds a key or a mask that the library no longer has.
+	/// </summary>
+	private static bool IsUnreadable(HotkeyModelDto hotkey)
+	{
+		return hotkey.Code == KeyCode.VcUndefined || hotkey.Mask == EventMask.None;
 	}
 	#endregion
 }

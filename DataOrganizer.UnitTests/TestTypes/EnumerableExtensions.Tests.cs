@@ -6,10 +6,12 @@ using DataOrganizer.DTO.Entities;
 using DataOrganizer.Extensions;
 using Repository.DTO;
 using Shared.Common;
+using Shared.Properties;
 using SharpHook.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -498,6 +500,98 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="EnumerableExtensions.GetFilesWithUnreadableHotkeys" />: returns a file whose hotkey holds an unreadable key.
+	/// </summary>
+	[Test]
+	public void GetFilesWithUnreadableHotkeys_Returns_File_With_Unreadable_Key()
+	{
+		// Arrange
+		FolderModelDto root = TestUtils.CreateFolderDto();
+
+		FileModelDto damaged = CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
+
+		root.Children.Add(damaged);
+
+		root.Children.Add(CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl));
+
+		ExplorerModelBaseDto[] hierarchy = [root];
+
+		// Act
+		FileModelDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+		// Assert
+		result
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(damaged);
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.GetFilesWithUnreadableHotkeys" />: returns a file whose hotkey holds an unreadable mask.
+	/// </summary>
+	[Test]
+	public void GetFilesWithUnreadableHotkeys_Returns_File_With_Unreadable_Mask()
+	{
+		// Arrange
+		FileModelDto damaged = CreateFileWithHotkey(KeyCode.VcA, EventMask.None);
+
+		ExplorerModelBaseDto[] hierarchy = [damaged];
+
+		// Act
+		FileModelDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+		// Assert
+		result
+			.Should()
+			.ContainSingle()
+			.Which
+			.Should()
+			.Be(damaged);
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.GetFilesWithUnreadableHotkeys" />: skips a file that has no hotkeys.
+	/// </summary>
+	[Test]
+	public void GetFilesWithUnreadableHotkeys_Skips_File_Without_Hotkeys()
+	{
+		// Arrange
+		ExplorerModelBaseDto[] hierarchy = [TestUtils.CreateFileDto()];
+
+		// Act
+		FileModelDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.GetFilesWithUnreadableHotkeys" />: skips a file whose hotkeys are readable.
+	/// </summary>
+	[Test]
+	public void GetFilesWithUnreadableHotkeys_Skips_Readable_Hotkeys()
+	{
+		// Arrange
+		ExplorerModelBaseDto[] hierarchy =
+		[
+			CreateFileWithHotkey(KeyCode.VcA, EventMask.LeftCtrl),
+			CreateFileWithHotkey(KeyCode.VcB, EventMask.LeftShift | EventMask.LeftAlt)
+		];
+
+		// Act
+		FileModelDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EnumerableExtensions.GetFolders" />: returns all folders including nested ones.
 	/// </summary>
 	[Test]
@@ -618,6 +712,57 @@ internal class EnumerableExtensionsTests
 		result
 			.Should()
 			.Be("A, B");
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.GetUnreadableHotkeysPresentation" />: counts the files left out when there are more than three.
+	/// </summary>
+	[Test]
+	public void GetUnreadableHotkeysPresentation_Counts_The_Rest()
+	{
+		// Arrange
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+
+		// Act
+		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
+
+		// Assert
+		result
+			.Should()
+			.Contain($@"""{files[2].Name}""");
+
+		result
+			.Should()
+			.NotContain($@"""{files[3].Name}""");
+
+		result
+			.Should()
+			.EndWith(string.Format(CultureInfo.CurrentCulture, Strings.AndMore, 2));
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.GetUnreadableHotkeysPresentation" />: names every file when there are no more than three.
+	/// </summary>
+	[Test]
+	public void GetUnreadableHotkeysPresentation_Names_Every_File()
+	{
+		// Arrange
+		FileModelDto[] files = [.. TestUtils.CreateFilesDto(3)];
+
+		// Act
+		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
+
+		// Assert
+		result
+			.Should()
+			.StartWith(Strings.FailedToReadHotkeys);
+
+		foreach (FileModelDto file in files)
+		{
+			result
+				.Should()
+				.Contain($@"{Environment.NewLine}""{file.Name}""");
+		}
 	}
 
 	/// <summary>
@@ -872,6 +1017,29 @@ internal class EnumerableExtensionsTests
 		result[1].Mask
 			.Should()
 			.Be(EventMask.LeftShift);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a file that owns a single hotkey.
+	/// </summary>
+	private static FileModelDto CreateFileWithHotkey(KeyCode code, EventMask mask)
+	{
+		FileModelDto file = TestUtils.CreateFileDto();
+
+		file
+			.Hotkeys
+			.Add(new()
+			{
+				Code = code,
+				Id = Guid.NewGuid(),
+				Index = 0,
+				Mask = mask,
+				OwnerId = file.Id
+			});
+
+		return file;
 	}
 	#endregion
 }

@@ -219,6 +219,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 		IExecutionEngine executionEngine,
 		ILogger logger,
 		IMessenger messenger,
+		INotificationService notification,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -233,6 +234,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			executionEngine,
 			logger,
 			messenger,
+			notification,
 			exceptionHandler,
 			viewLauncher,
 			keyboardInputHook)

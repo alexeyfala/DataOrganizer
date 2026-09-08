@@ -9,9 +9,12 @@ using Entities.Models;
 using Mapster;
 using MapsterMapper;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
 using Repository.Interfaces;
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DataOrganizer.UnitTests.TestTypes;
@@ -65,12 +68,76 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerModelBaseDto[] hierarchy = await sut.LoadFromEmbeddedDbAsync();
+		ExplorerModelBaseDto[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
 
 		// Assert
-		hierarchy.Length
+		hierarchy?.Length
 			.Should()
 			.Be(folderCount + fileCount);
+	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: a cancelled load is the caller giving up,
+	/// so it leaves as a cancellation.
+	/// </summary>
+	[Test]
+	public async Task LoadFromEmbeddedDbAsync_Passes_A_Cancellation_On()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetAllFoldersAsync(Arg.Any<CancellationToken>())
+				.ThrowsAsync(new OperationCanceledException());
+
+			builder.RegisterInstance(CreateMapper());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		Func<Task> act = () => sut.LoadFromEmbeddedDbAsync();
+
+		// Assert
+		await act
+			.Should()
+			.ThrowAsync<OperationCanceledException>();
+	}
+
+	/// <summary>
+	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: a database that cannot be read is reported
+	/// as such, not as a database without objects.
+	/// </summary>
+	[Test]
+	public async Task LoadFromEmbeddedDbAsync_Reports_A_Database_It_Cannot_Read()
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IDbAccess dbAccess = Substitute.For<IDbAccess>();
+
+			dbAccess
+				.GetAllFoldersAsync()
+				.ThrowsAsync(new InvalidOperationException());
+
+			builder.RegisterInstance(CreateMapper());
+
+			builder.RegisterInstance(dbAccess);
+		});
+
+		EntityLoader sut = mock.Create<EntityLoader>();
+
+		// Act
+		ExplorerModelBaseDto[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
+
+		// Assert
+		hierarchy
+			.Should()
+			.BeNull();
 	}
 
 	/// <summary>
@@ -132,6 +199,22 @@ internal class EntityLoaderTests
 		plainFile.EncryptionStatus
 			.Should()
 			.Be(EncryptionStatus.None);
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// A mapper the constructor of the loader can configure.
+	/// </summary>
+	private static IMapper CreateMapper()
+	{
+		IMapper mapper = Substitute.For<IMapper>();
+
+		mapper
+			.Config
+			.Returns(Substitute.For<TypeAdapterConfig>());
+
+		return mapper;
 	}
 	#endregion
 }
