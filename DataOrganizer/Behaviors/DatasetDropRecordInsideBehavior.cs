@@ -290,7 +290,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 		return DatasetRecordMoveHelper.TryResolveTarget(
 			Records,
 			dragged,
-			AssociatedObject.DataContext,
+			AssociatedObject.DataContext as DatasetRecordBase,
 			pointerYRatio,
 			out target,
 			out index,

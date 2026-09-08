@@ -166,7 +166,13 @@ public sealed class EntityLoader : IEntityLoader
 			}
 			catch (Exception ex)
 			{
-				Debugger.Break();
+				// A break under a test runner would stop a batch debug run.
+				if (!AppDomain
+					.CurrentDomain
+					.IsRunningFromNUnit())
+				{
+					Debugger.Break();
+				}
 
 				// Temporarily add .IgnoreNonMapped(true) to the problematic mapping,
 				// then remove one property at a time using .Map(dest => dest.PropertyName, src => src.PropertyName)
@@ -176,13 +182,6 @@ public sealed class EntityLoader : IEntityLoader
 		}
 
 		return mapper;
-
-		//mapper.Config
-		//	.NewConfig<ExplorerModelBase, ExplorerModelBaseDto>()
-		//	.Include<FileModel, FileModelDto>()
-		//	.Include<FolderModel, FolderModelDto>();
-
-		//return mapper;
 	}
 	#endregion
 }

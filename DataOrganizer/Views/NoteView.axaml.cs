@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.DTO.Entities;
 using DataOrganizer.Interfaces.Notes;
 using System.ComponentModel;
 
@@ -51,7 +52,7 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// An object the note belongs to, passed to <see cref="NoteReader" />.
 	/// </summary>
-	public object? NoteItem
+	public ExplorerModelBaseDto? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -106,8 +107,8 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<object?> NoteItemProperty = AvaloniaProperty
-		.Register<NoteView, object?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
+		.Register<NoteView, ExplorerModelBaseDto?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.

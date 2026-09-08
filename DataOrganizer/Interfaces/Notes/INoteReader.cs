@@ -1,3 +1,5 @@
+using DataOrganizer.DTO.Entities;
+
 namespace DataOrganizer.Interfaces.Notes;
 
 /// <summary>
@@ -9,6 +11,6 @@ public interface INoteReader
 	/// <summary>
 	/// Returns the note as plain text, or <c>null</c> when it is unavailable.
 	/// </summary>
-	string? ReadNote(object? item);
+	string? ReadNote(ExplorerModelBaseDto? item);
 	#endregion
 }
