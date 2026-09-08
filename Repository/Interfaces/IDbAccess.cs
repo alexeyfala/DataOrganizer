@@ -16,6 +16,18 @@ namespace Repository.Interfaces;
 /// </summary>
 public interface IDbAccess : IDisposable
 {
+	#region Properties
+	/// <summary>
+	/// <c>True</c> while the database accepts changes.
+	/// </summary>
+	bool IsWritable { get; }
+
+	/// <summary>
+	/// The outcome of the last <see cref="ConnectAsync" />.
+	/// </summary>
+	DbConnectionStatus Status { get; }
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Adds an entity to the database.
