@@ -55,6 +55,9 @@ public partial class EditorViewModel :
 	IUpdatePrompt
 {
 	#region Properties
+	/// <inheritdoc cref="IAutoLockService" />
+	public IAutoLockService AutoLock => _autoLock;
+
 	/// <summary>
 	/// Information in the lower left corner.
 	/// </summary>

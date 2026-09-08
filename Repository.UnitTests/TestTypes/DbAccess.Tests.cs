@@ -347,12 +347,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.Be(DbConnectionStatus.Connected);
 
 		if (useMigrations)
 		{
@@ -369,7 +369,129 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created or migrated is reported as a failure.
+	/// <see cref="DbAccess.ConnectAsync" />: a migration applied by a newer version is seen before the schema is touched.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_A_Database_From_A_Newer_Version()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		const string known = "20260907183944_InitialCreate";
+
+		IDbContextService dbConnection = CreateExistingDatabase(file);
+
+		dbConnection
+			.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
+			.Returns([known, "20991231235959_FromTheFuture"]);
+
+		dbConnection
+			.GetKnownMigrations()
+			.Returns([known]);
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializerWrapper>())));
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.SchemaTooNew);
+
+		await dbConnection
+			.DidNotReceive()
+			.MigrateAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a file that is not a database is not migrated.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_A_File_It_Cannot_Open()
+	{
+		// Arrange
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+		dbConnection
+			.HasMigrations()
+			.Returns(true);
+
+		IFileSystem fileSystem = Substitute.For<IFileSystem>();
+
+		fileSystem
+			.IsFileExists(Arg.Any<string>())
+			.Returns(true);
+
+		fileSystem
+			.OpenRead(Arg.Any<string>())
+			.Returns(_ => new MemoryStream(new byte[32]));
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From(fileSystem));
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.FileUnreadable);
+
+		await dbConnection
+			.DidNotReceive()
+			.MigrateAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a migration that fails on a readable database is about its schema.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Reports_A_Schema_It_Cannot_Update()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		IDbContextService dbConnection = CreateExistingDatabase(file);
+
+		dbConnection
+			.MigrateAsync(Arg.Any<CancellationToken>())
+			.ThrowsAsync(new InvalidOperationException(@"Table ""Payloads"" already exists"));
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializerWrapper>())));
+
+		// Act
+		DbConnectionStatus result = await sut.ConnectAsync();
+
+		// Assert
+		result
+			.Should()
+			.Be(DbConnectionStatus.SchemaTooOld);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ConnectAsync" />: a database that cannot be created is reported as unreadable.
 	/// </summary>
 	[Test]
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
@@ -389,12 +511,90 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
+			.Be(DbConnectionStatus.FileUnreadable);
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.IsWritable" />: a failed connect closes the database for writing until the next one.
+	/// </summary>
+	[Test]
+	public async Task ConnectAsync_Shuts_The_Writes_Down_After_A_Failure()
+	{
+		// Arrange
+		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+
+		IFileRepository fileRepository = Substitute.For<IFileRepository>();
+
+		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
+
+		dbConnection
+			.EnsureCreatedAsync(Arg.Any<CancellationToken>())
+			.ThrowsAsync(new InvalidOperationException());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbConnection),
+			TypedParameter.From(fileRepository),
+			TypedParameter.From(folderRepository));
+
+		// Assert
+		sut
+			.IsWritable
+			.Should()
+			.BeTrue();
+
+		// Act
+		await sut.ConnectAsync();
+
+		// Assert
+		sut
+			.IsWritable
+			.Should()
 			.BeFalse();
+
+		(await sut.AddEntityAsync(new()
+		{
+			EntityType = EntityType.Folder,
+			Index = 0,
+			Name = AppUtils.CreateRandomString(10),
+			ParentId = Guid.NewGuid()
+		}))
+			.Should()
+			.BeNull();
+
+		(await sut.AddFilesAsync([]))
+			.Should()
+			.BeFalse();
+
+		(await sut.AddHotkeysAsync(Guid.NewGuid(), []))
+			.Should()
+			.BeEmpty();
+
+		(await sut.ClearDatabaseAsync())
+			.Should()
+			.BeFalse();
+
+		(await sut.DeleteFileAsync(Guid.NewGuid()))
+			.Should()
+			.BeFalse();
+
+		await dbConnection
+			.DidNotReceive()
+			.SaveChangesAsync(Arg.Any<CancellationToken>());
+
+		await fileRepository
+			.DidNotReceiveWithAnyArgs()
+			.AddRangeAsync(default!);
+
+		await folderRepository
+			.DidNotReceiveWithAnyArgs()
+			.AddAsync(default!);
 	}
 
 	/// <summary>
@@ -422,12 +622,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ConnectAsync();
+		DbConnectionStatus result = await sut.ConnectAsync();
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.Be(DbConnectionStatus.Connected);
 	}
 
 	/// <summary>
@@ -1378,6 +1578,29 @@ internal class DbAccessTests
 		contextService
 			.ExecuteInTransactionAsync(Arg.Any<Func<CancellationToken, Task>>(), Arg.Any<CancellationToken>())
 			.Returns(x => x.Arg<Func<CancellationToken, Task>>()(CancellationToken.None));
+
+		return contextService;
+	}
+
+	/// <summary>
+	/// A substitute of <see cref="IDbContextService" /> that opens the database of <paramref name="file" />
+	/// and reports it as migrated by this version.
+	/// </summary>
+	private static IDbContextService CreateExistingDatabase(TempSqliteFile file)
+	{
+		IDbContextService contextService = Substitute.For<IDbContextService>();
+
+		contextService
+			.CanConnectAsync(Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		contextService
+			.GetDbFilePath()
+			.Returns(file.FilePath);
+
+		contextService
+			.HasMigrations()
+			.Returns(true);
 
 		return contextService;
 	}

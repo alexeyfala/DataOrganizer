@@ -26,6 +26,14 @@ namespace Repository.Services;
 
 public sealed class DbAccess : IDbAccess
 {
+	#region Properties
+	/// <inheritdoc />
+	public bool IsWritable => Status is DbConnectionStatus.Connected;
+
+	/// <inheritdoc />
+	public DbConnectionStatus Status { get; private set; } = DbConnectionStatus.Connected;
+	#endregion
+
 	#region Data
 	/// <inheritdoc cref="IExplorerModelBaseRepository" />
 	private readonly IExplorerModelBaseRepository _baseRepository;
@@ -95,6 +103,11 @@ public sealed class DbAccess : IDbAccess
 		AddEntityParameters parameters,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return null;
+		}
+
 		try
 		{
 			await _semaphore
@@ -133,6 +146,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -171,6 +189,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -212,6 +235,11 @@ public sealed class DbAccess : IDbAccess
 		CodeMaskPair[] hotkeys,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return [];
+		}
+
 		try
 		{
 			await _semaphore
@@ -340,6 +368,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> ClearDatabaseAsync(CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -379,7 +412,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> ConnectAsync(CancellationToken token = default)
+	public async Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -391,19 +424,42 @@ public sealed class DbAccess : IDbAccess
 
 			TryErasePendingBackups();
 
-			await (_dbContextService.HasMigrations()
-				? _dbContextService.MigrateAsync(token)
-				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+			bool isExisting = _fileSystem.IsFileExists(_dbContextService.GetDbFilePath());
+
+			DbConnectionStatus status = isExisting
+				? await GetSchemaStatusAsync(token).ConfigureAwait(false)
+				: DbConnectionStatus.Connected;
+
+			if (status is DbConnectionStatus.Connected)
+			{
+				DbConnectionStatus failure = isExisting
+					? DbConnectionStatus.SchemaTooOld
+					: DbConnectionStatus.FileUnreadable;
+
+				// A database that has just been read holds data, so a failure here is about its schema.
+				status = await TryUpdateSchemaAsync(failure, token).ConfigureAwait(false);
+			}
+
+			Status = status;
+
+			if (status is not DbConnectionStatus.Connected)
+			{
+				_logger.LogError($"The database cannot be worked with: {status}.", assertDebug: false);
+
+				return status;
+			}
 
 			await TryEraseFreePagesOnceAsync(token).ConfigureAwait(false);
 
-			return true;
+			return status;
 		}
 		catch (Exception ex)
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			return false;
+			Status = DbConnectionStatus.FileUnreadable;
+
+			return Status;
 		}
 		finally
 		{
@@ -455,6 +511,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteFileAsync(Guid id, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -493,6 +554,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteFolderAsync(Guid id, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -547,6 +613,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -865,6 +936,11 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -915,6 +991,11 @@ public sealed class DbAccess : IDbAccess
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -965,6 +1046,11 @@ public sealed class DbAccess : IDbAccess
 		Action<UpdateSettersBuilder<FileModel>>[] setters,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -1001,6 +1087,11 @@ public sealed class DbAccess : IDbAccess
 		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -1038,6 +1129,11 @@ public sealed class DbAccess : IDbAccess
 		Action<UpdateSettersBuilder<FolderModel>>[] setters,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -1074,6 +1170,11 @@ public sealed class DbAccess : IDbAccess
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
 		CancellationToken token = default)
 	{
+		if (IsWriteRefused())
+		{
+			return false;
+		}
+
 		try
 		{
 			await _semaphore
@@ -1245,6 +1346,54 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
+	/// Tells an existing database that cannot be opened from one whose schema does not match this version.
+	/// </summary>
+	private async Task<DbConnectionStatus> GetSchemaStatusAsync(CancellationToken token)
+	{
+		if (!IsValidSQLiteDatabase(_dbContextService.GetDbFilePath())
+			|| !await _dbContextService
+				.CanConnectAsync(token)
+				.ConfigureAwait(false))
+		{
+			return DbConnectionStatus.FileUnreadable;
+		}
+
+		if (!_dbContextService.HasMigrations())
+		{
+			return DbConnectionStatus.Connected;
+		}
+
+		IEnumerable<string> applied = await _dbContextService
+			.GetAppliedMigrationsAsync(token)
+			.ConfigureAwait(false);
+
+		bool isFromNewerVersion = applied
+			.Except(_dbContextService.GetKnownMigrations())
+			.Any();
+
+		// A schema older than this version is left to the migration itself: it fails on the tables
+		// that are already there, and a failure on a database that reads is about its schema.
+		return isFromNewerVersion
+			? DbConnectionStatus.SchemaTooNew
+			: DbConnectionStatus.Connected;
+	}
+
+	/// <summary>
+	/// <c>True</c> when the database is closed for writing; the refusal is kept to the log.
+	/// </summary>
+	private bool IsWriteRefused([CallerMemberName] string caller = "")
+	{
+		if (IsWritable)
+		{
+			return false;
+		}
+
+		_logger.LogError($"{caller} is refused: the database is {Status}.", assertDebug: false);
+
+		return true;
+	}
+
+	/// <summary>
 	/// Erases the free pages of the database once, keeping a failure to the log.
 	/// </summary>
 	private async Task TryEraseFreePagesOnceAsync(CancellationToken token)
@@ -1273,6 +1422,34 @@ public sealed class DbAccess : IDbAccess
 		catch (Exception ex)
 		{
 			_logger.LogException(ex);
+		}
+	}
+
+	/// <summary>
+	/// Brings the schema to the model, reporting <paramref name="failure" /> when that cannot be done.
+	/// </summary>
+	private async Task<DbConnectionStatus> TryUpdateSchemaAsync(
+		DbConnectionStatus failure,
+		CancellationToken token)
+	{
+		try
+		{
+			await (_dbContextService.HasMigrations()
+				? _dbContextService.MigrateAsync(token)
+				: _dbContextService.EnsureCreatedAsync(token)).ConfigureAwait(false);
+
+			return DbConnectionStatus.Connected;
+		}
+		catch (OperationCanceledException)
+		{
+			// A cancelled connect is the caller giving up, not a schema that cannot be updated.
+			throw;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex, assertDebug: false);
+
+			return failure;
 		}
 	}
 	#endregion

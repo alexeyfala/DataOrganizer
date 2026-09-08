@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Repository.DbContexts;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace Repository.Interfaces;
 public interface IDbContextService : IDisposable
 {
 	#region Methods
+	/// <inheritdoc cref="DatabaseFacade.CanConnectAsync(CancellationToken)" />
+	Task<bool> CanConnectAsync(CancellationToken token = default);
+
 	/// <inheritdoc cref="DatabaseFacade.EnsureCreated" />
 	void EnsureCreated();
 
@@ -29,6 +33,9 @@ public interface IDbContextService : IDisposable
 	/// </summary>
 	Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken token = default);
 
+	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.GetAppliedMigrationsAsync(DatabaseFacade, CancellationToken)" />
+	Task<IEnumerable<string>> GetAppliedMigrationsAsync(CancellationToken token = default);
+
 	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.GetDbConnection" />
 	DbConnection GetDbConnection();
 
@@ -36,6 +43,14 @@ public interface IDbContextService : IDisposable
 	/// Gets the database file path.
 	/// </summary>
 	string GetDbFilePath();
+
+	/// <summary>
+	/// Identifiers of every migration the context's migrations assembly contains.
+	/// </summary>
+	IEnumerable<string> GetKnownMigrations();
+
+	/// <inheritdoc cref="RelationalDatabaseFacadeExtensions.GetPendingMigrationsAsync(DatabaseFacade, CancellationToken)" />
+	Task<IEnumerable<string>> GetPendingMigrationsAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Determines whether the context's configured migrations assembly contains any migrations.

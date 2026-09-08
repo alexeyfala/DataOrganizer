@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using DataOrganizer.DTO;
 using DataOrganizer.DTO.Entities;
 using DataOrganizer.DTO.Settings;
 using DataOrganizer.Enums;
@@ -524,6 +525,65 @@ public class ViewLauncher : IViewLauncher
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
 		ConfigureClipboardLogWindow(owner).Show();
+	}
+
+	/// <inheritdoc />
+	public Task ShowNoticeAsync(NoticeParameters parameters)
+	{
+		NoticeViewModel viewModel = _viewFactory.CreateViewModel<NoticeViewModel>();
+
+		viewModel.ActionCaption = parameters.ActionCaption;
+
+		viewModel.FilePath = parameters.FilePath;
+
+		viewModel.IsTopmost = parameters.IsTopmost;
+
+		viewModel.Message = parameters.Message;
+
+		viewModel.Title = parameters.Title;
+
+		NoticeWindow window = _viewFactory.CreateWindow<NoticeWindow>(viewModel);
+
+		TaskCompletionSource closed = new();
+
+		window.Closed += (_, _) => closed.TrySetResult();
+
+		window.Show();
+
+		return closed.Task;
+	}
+
+	/// <inheritdoc />
+	public async Task ShowStartupErrorAsync(string databaseFilePath)
+	{
+		try
+		{
+			await ShowNoticeAsync(new()
+			{
+				ActionCaption = Strings.OpenDatabaseFolder,
+				FilePath = databaseFilePath,
+				IsTopmost = true,
+				Message = Strings.DatabaseSchemaMismatch
+			}).ConfigureAwait(true);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+		}
+		finally
+		{
+			// There is no window left to keep the application alive, and nothing to save.
+			if (_app.IsDesktop(out IClassicDesktopStyleApplicationLifetime? desktop))
+			{
+				desktop.Shutdown();
+			}
+			else if (!AppDomain
+				.CurrentDomain
+				.IsRunningFromNUnit())
+			{
+				Environment.Exit(0);
+			}
+		}
 	}
 	#endregion
 

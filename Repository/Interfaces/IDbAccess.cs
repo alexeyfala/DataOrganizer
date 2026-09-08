@@ -16,6 +16,18 @@ namespace Repository.Interfaces;
 /// </summary>
 public interface IDbAccess : IDisposable
 {
+	#region Properties
+	/// <summary>
+	/// <c>True</c> while the database accepts changes.
+	/// </summary>
+	bool IsWritable { get; }
+
+	/// <summary>
+	/// The outcome of the last <see cref="ConnectAsync" />.
+	/// </summary>
+	DbConnectionStatus Status { get; }
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Adds an entity to the database.
@@ -61,10 +73,10 @@ public interface IDbAccess : IDisposable
 
 	/// <summary>
 	/// Establishes a connection to the database, creating or migrating it as needed.
-	/// Returns <c>false</c> when the database cannot be worked with; housekeeping failures
-	/// are logged and do not affect the result.
+	/// Tells apart a file that cannot be opened and a schema that does not match this version;
+	/// housekeeping failures are logged and do not affect the result.
 	/// </summary>
-	Task<bool> ConnectAsync(CancellationToken token = default);
+	Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
