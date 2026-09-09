@@ -1,11 +1,10 @@
-using Entities.Converters;
 using Entities.Models;
 using SharpHook.Data;
 using System;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace Entities.Helpers;
+namespace Entities.Serialization;
 
 /// <summary>
 /// Replaces hotkey names that the library no longer knows with the names of the fallback values,

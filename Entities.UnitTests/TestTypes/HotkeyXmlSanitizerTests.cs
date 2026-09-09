@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using Entities.Helpers;
 using Entities.Models;
+using Entities.Serialization;
 using SharpHook.Data;
 using System;
 using System.IO;

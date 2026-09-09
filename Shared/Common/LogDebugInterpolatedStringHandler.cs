@@ -2,7 +2,7 @@ using Serilog;
 using Serilog.Events;
 using System.Runtime.CompilerServices;
 
-namespace Shared.Helpers;
+namespace Shared.Common;
 
 /// <summary>
 /// Interpolated string handler that builds the message only when <see cref="LogEventLevel.Debug" /> logging is enabled.

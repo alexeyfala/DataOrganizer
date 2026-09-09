@@ -1,6 +1,6 @@
 using System;
 
-namespace Entities.Converters;
+namespace Entities.Serialization;
 
 /// <summary>
 /// Reads an enum value that is stored as a name.

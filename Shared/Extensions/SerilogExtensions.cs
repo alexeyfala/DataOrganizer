@@ -1,7 +1,6 @@
 using Serilog;
 using Serilog.Events;
 using Shared.Common;
-using Shared.Helpers;
 using System;
 using System.Diagnostics;
 using System.Globalization;

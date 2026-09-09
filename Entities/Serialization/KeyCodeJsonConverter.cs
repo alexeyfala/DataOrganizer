@@ -3,7 +3,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Entities.Converters;
+namespace Entities.Serialization;
 
 /// <summary>
 /// Writes a <see cref="KeyCode" /> as its name and reads a name no longer known to the library
