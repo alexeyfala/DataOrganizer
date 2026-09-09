@@ -9,8 +9,8 @@
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:windows="using:DataOrganizer.Behaviors.Windows">
+	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
@@ -41,7 +41,7 @@
 					<text:SearchHighlightBehavior
 						HighlightBrush="{StaticResource SearchHighlightBrush}"
 						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
-						Query="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).SearchText}"
+						Query="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).SearchText}"
 						SourceText="{Binding Text, Mode=OneTime}" />
 				</Interaction.Behaviors>
 			</TextBlock>
@@ -80,7 +80,7 @@
 			HorizontalContentAlignment="Stretch"
 			Background="{StaticResource MaterialDividerBrush}"
 			Classes.active="{Binding IsActive}"
-			Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
+			Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RestoreEntryCommand}"
 			CommandParameter="{Binding}"
 			Cursor="Arrow"
 			ToolTip.Tip="{Binding ContentToolTip, Mode=OneTime}">
@@ -94,8 +94,8 @@
 			</Button.Styles>
 
 			<Interaction.Behaviors>
-				<windows:CloseWindowOnClickBehavior
-					KeepOpen="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).KeepOpen}"
+				<windowBehaviors:CloseWindowOnClickBehavior
+					KeepOpen="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).KeepOpen}"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
 
@@ -161,7 +161,7 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).RemoveEntryCommand}"
+										Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).RemoveEntryCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
@@ -195,7 +195,7 @@
 							<Interaction.Behaviors>
 								<EventTriggerBehavior EventName="Click">
 									<InvokeCommandAction
-										Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).TogglePinCommand}"
+										Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).TogglePinCommand}"
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
@@ -228,7 +228,7 @@
 						<Button
 							Padding="3.0"
 							Background="{StaticResource MaterialCardBackgroundBrush}"
-							Command="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
+							Command="{Binding $parent[Window].((windows:ClipboardLogViewModel)DataContext).OpenUrlCommand}"
 							CommandParameter="{Binding}"
 							Content="{x:Static helpers:Glyphs.GlobeShowingAmericas}"
 							Cursor="Hand"

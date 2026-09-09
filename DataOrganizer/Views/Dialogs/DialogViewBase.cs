@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using DialogHostAvalonia;
 using System;
 
-namespace DataOrganizer.Views;
+namespace DataOrganizer.Views.Dialogs;
 
 /// <summary>
 /// A <see cref="UserControl" /> that takes the focus once loaded and closes the current

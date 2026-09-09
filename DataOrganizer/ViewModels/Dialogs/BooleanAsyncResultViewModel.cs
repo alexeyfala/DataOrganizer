@@ -3,7 +3,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// Th view model for returning <see cref="bool" /> value.

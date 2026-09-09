@@ -1,9 +1,9 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using System;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ConsoleViewModel)}"" type")]
 internal class ConsoleViewModelTests

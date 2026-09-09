@@ -7,7 +7,7 @@ using DataOrganizer.Controls;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 using DataOrganizer.Views.Settings;
 using NSubstitute;
 using System.Collections.Generic;

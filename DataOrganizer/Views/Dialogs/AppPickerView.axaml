@@ -1,14 +1,14 @@
 <UserControl
-	x:Class="DataOrganizer.Views.AppPickerView"
+	x:Class="DataOrganizer.Views.Dialogs.AppPickerView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:execution="using:DataOrganizer.Dto.Execution"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels"
 	MinWidth="420.0"
-	x:DataType="vm:AppPickerViewModel"
+	x:DataType="dialogs:AppPickerViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 

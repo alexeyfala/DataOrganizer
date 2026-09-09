@@ -4,11 +4,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Views.Dialogs;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>YesNoCancelBoxView</c>.

@@ -3,11 +3,11 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:globalization="using:System.Globalization"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:SettingsViewModel"
+	x:DataType="dialogs:SettingsViewModel"
 	mc:Ignorable="d">
 
 	<StackPanel

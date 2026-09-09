@@ -8,8 +8,8 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:ConsoleViewModel"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	x:DataType="windows:ConsoleViewModel"
 	Icon="/Assets/Logo.ico"
 	mc:Ignorable="d">
 

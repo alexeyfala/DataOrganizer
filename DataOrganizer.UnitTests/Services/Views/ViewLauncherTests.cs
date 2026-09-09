@@ -14,7 +14,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Views;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Interfaces;

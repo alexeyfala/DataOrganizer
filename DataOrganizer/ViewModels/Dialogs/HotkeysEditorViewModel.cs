@@ -6,6 +6,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
+using DataOrganizer.Views.Dialogs;
 using DialogHostAvalonia;
 using Repository.Dto;
 using Shared.Extensions;
@@ -21,7 +22,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>HotkeysEditorView</c>.

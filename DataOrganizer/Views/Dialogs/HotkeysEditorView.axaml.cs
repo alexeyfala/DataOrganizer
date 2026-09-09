@@ -1,6 +1,6 @@
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 
-namespace DataOrganizer.Views;
+namespace DataOrganizer.Views.Dialogs;
 
 public partial class HotkeysEditorView : DialogViewBase
 {

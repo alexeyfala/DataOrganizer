@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>ToastWindow</c>.

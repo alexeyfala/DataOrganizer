@@ -7,6 +7,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 using Moq;
 using Repository.Dto;
 using Shared.Extensions;
@@ -19,7 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditorViewModel)}"" type")]
 internal class HotkeysEditorViewModelTests

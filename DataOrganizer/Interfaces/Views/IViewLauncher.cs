@@ -4,7 +4,7 @@ using Avalonia.Layout;
 using Avalonia.Platform;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System;
 using System.Collections.Generic;

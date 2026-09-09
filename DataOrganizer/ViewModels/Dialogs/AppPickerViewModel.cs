@@ -6,12 +6,13 @@ using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Views.Dialogs;
 using DataOrganizer.Windows;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>AppPickerView</c>. Lets the user choose one application

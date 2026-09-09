@@ -15,9 +15,9 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:windows="using:DataOrganizer.Behaviors.Windows"
-	x:DataType="vm:FavoritesViewModel"
+	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
+	x:DataType="windows:FavoritesViewModel"
 	Background="Transparent"
 	CanResize="False"
 	ShowInTaskbar="False"
@@ -182,7 +182,7 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windows:ThumbResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="West" />
 						</Interaction.Behaviors>
@@ -197,7 +197,7 @@
 						Cursor="TopLeftCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windows:ThumbResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthWest" />
@@ -212,7 +212,7 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windows:ThumbResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Height="{Binding PopupHeight}"
 								Edge="North" />
 						</Interaction.Behaviors>
@@ -227,7 +227,7 @@
 						Cursor="TopRightCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windows:ThumbResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthEast" />
@@ -242,7 +242,7 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<windows:ThumbResizeBehavior
+							<windowBehaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="East" />
 						</Interaction.Behaviors>

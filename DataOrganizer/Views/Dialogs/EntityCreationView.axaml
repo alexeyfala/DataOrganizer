@@ -1,14 +1,14 @@
 <UserControl
-	x:Class="DataOrganizer.Views.EntityCreationView"
+	x:Class="DataOrganizer.Views.Dialogs.EntityCreationView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:EntityCreationViewModel"
+	x:DataType="dialogs:EntityCreationViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 

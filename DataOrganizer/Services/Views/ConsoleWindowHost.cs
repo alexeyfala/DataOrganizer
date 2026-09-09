@@ -4,7 +4,7 @@ using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Shared.Common;
 using Shared.Extensions;

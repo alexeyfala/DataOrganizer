@@ -14,6 +14,7 @@ using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;

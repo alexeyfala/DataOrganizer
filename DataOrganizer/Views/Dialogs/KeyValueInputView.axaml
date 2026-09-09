@@ -1,17 +1,17 @@
 <UserControl
-	x:Class="DataOrganizer.Views.KeyValueInputView"
+	x:Class="DataOrganizer.Views.Dialogs.KeyValueInputView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:assists="using:Material.Styles.Assists"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:dialogs="using:DataOrganizer.ViewModels.Dialogs"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:security="using:DataOrganizer.Behaviors.Security"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	x:DataType="vm:KeyValueInputViewModel"
+	x:DataType="dialogs:KeyValueInputViewModel"
 	Theme="{StaticResource DialogTheme}"
 	mc:Ignorable="d">
 

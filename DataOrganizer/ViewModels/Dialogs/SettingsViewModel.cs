@@ -11,7 +11,7 @@ using Shared.Extensions;
 using System;
 using System.Globalization;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>SettingsView</c>.

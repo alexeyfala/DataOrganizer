@@ -9,13 +9,13 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:windows="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windowBehaviors="using:DataOrganizer.Behaviors.Windows"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="360.0"
 	Height="420.0"
 	MinWidth="320.0"
 	MinHeight="220.0"
-	x:DataType="vm:ClipboardLogViewModel"
+	x:DataType="windows:ClipboardLogViewModel"
 	Background="Transparent"
 	CanMaximize="False"
 	CanMinimize="False"
@@ -27,7 +27,7 @@
 	mc:Ignorable="d">
 
 	<Interaction.Behaviors>
-		<windows:CloseWindowOnDeactivatedBehavior KeepOpen="{Binding KeepOpen}" />
+		<windowBehaviors:CloseWindowOnDeactivatedBehavior KeepOpen="{Binding KeepOpen}" />
 
 		<KeyDownTrigger
 			Key="Escape"
@@ -235,7 +235,7 @@
 			Classes="resizeGrip"
 			Cursor="TopSide">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="North"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -249,7 +249,7 @@
 			Classes="resizeGrip"
 			Cursor="BottomSide">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="South"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -263,7 +263,7 @@
 			Classes="resizeGrip"
 			Cursor="LeftSide">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="West"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -277,7 +277,7 @@
 			Classes="resizeGrip"
 			Cursor="RightSide">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="East"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -291,7 +291,7 @@
 			Classes="resizeGrip"
 			Cursor="TopLeftCorner">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="NorthWest"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -305,7 +305,7 @@
 			Classes="resizeGrip"
 			Cursor="TopRightCorner">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="NorthEast"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -319,7 +319,7 @@
 			Classes="resizeGrip"
 			Cursor="BottomLeftCorner">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="SouthWest"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -333,7 +333,7 @@
 			Classes="resizeGrip"
 			Cursor="BottomRightCorner">
 			<Interaction.Behaviors>
-				<windows:WindowResizeBehavior
+				<windowBehaviors:WindowResizeBehavior
 					Edge="SouthEast"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>

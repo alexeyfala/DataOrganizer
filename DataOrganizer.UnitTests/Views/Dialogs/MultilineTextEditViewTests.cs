@@ -6,12 +6,12 @@ using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
 using DataOrganizer.Interfaces.Diagnostics;
-using DataOrganizer.ViewModels;
-using DataOrganizer.Views;
+using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.Views.Dialogs;
 using NSubstitute;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Views;
+namespace DataOrganizer.UnitTests.Views.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MultilineTextEditView)}"" type")]
 internal class MultilineTextEditViewTests

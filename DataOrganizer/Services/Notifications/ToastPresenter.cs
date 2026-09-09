@@ -3,7 +3,7 @@ using Avalonia.Platform;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Serilog;
 using Shared.Common;

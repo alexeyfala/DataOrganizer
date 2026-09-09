@@ -1,7 +1,7 @@
 using Avalonia.Controls;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 
-namespace DataOrganizer.Views;
+namespace DataOrganizer.Views.Dialogs;
 
 public sealed partial class PasswordBoxView : UserControl
 {

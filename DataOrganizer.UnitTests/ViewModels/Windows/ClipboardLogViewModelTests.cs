@@ -4,13 +4,13 @@ using AwesomeAssertions;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Models.Clipboard;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using NSubstitute;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogViewModel)}"" type")]
 internal class ClipboardLogViewModelTests

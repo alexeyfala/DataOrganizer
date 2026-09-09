@@ -11,7 +11,8 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- FavoriteCategoryTemplate -->
 	<DataTemplate
@@ -93,7 +94,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
+						Command="{Binding $parent[Window].((windows:FavoritesViewModel)DataContext).FavoritesDisplayedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

@@ -1,4 +1,4 @@
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using System.Threading.Tasks;
 

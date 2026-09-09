@@ -18,9 +18,9 @@
 	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
-	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
-	x:DataType="vm:EditorViewModel"
+	x:DataType="windows:EditorViewModel"
 	Icon="/Assets/Logo.ico"
 	ShowActivated="True"
 	mc:Ignorable="d">

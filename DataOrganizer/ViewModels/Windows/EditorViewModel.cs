@@ -49,7 +49,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BrushExtensions = DataOrganizer.Extensions.BrushExtensions;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>EditorWindow</c>.

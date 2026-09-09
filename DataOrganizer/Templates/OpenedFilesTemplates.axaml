@@ -10,7 +10,8 @@
 	xmlns:prop="using:Shared.Properties"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- ExecutingFileTemplate -->
 	<DataTemplate
@@ -38,7 +39,7 @@
 							Text="{Binding Name, Mode=OneWay}" />
 
 						<controls:FlyoutButton
-							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+							Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
 							CommandParameter="{Binding Id}"
 							Foreground="{StaticResource MaterialBodyBrush}"
 							Header="{x:Static prop:Strings.ShowInList}"
@@ -61,7 +62,7 @@
 				Grid.Column="2"
 				Padding="0.0"
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).CloseExecutingFileCommand}"
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CloseExecutingFileCommand}"
 				CommandParameter="{Binding}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource SmallButtonIconSize}}"
@@ -72,7 +73,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowInListCommand}"
 						CommandParameter="{Binding Id}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
@@ -127,7 +128,7 @@
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).EditingFilesViewLoadedCommand}"
 						CommandParameter="{Binding #View.DataContext}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

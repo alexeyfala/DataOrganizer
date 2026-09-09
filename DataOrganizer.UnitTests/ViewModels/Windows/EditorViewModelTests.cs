@@ -26,6 +26,7 @@ using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using Entities.Enums;
 using NSubstitute;
@@ -41,7 +42,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorViewModel)}"" type")]
 internal class EditorViewModelTests

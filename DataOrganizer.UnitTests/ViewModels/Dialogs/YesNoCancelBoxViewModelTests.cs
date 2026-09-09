@@ -1,11 +1,11 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Enums.Dialogs;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 using System;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(YesNoCancelBoxViewModel)}"" type")]
 internal class YesNoCancelBoxViewModelTests

@@ -16,6 +16,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Windows;
 using DataOrganizer.Windows;
 using NSubstitute;
 using Shared.Extensions;
@@ -25,7 +26,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FavoritesViewModel)}"" type")]
 internal class FavoritesViewModelTests

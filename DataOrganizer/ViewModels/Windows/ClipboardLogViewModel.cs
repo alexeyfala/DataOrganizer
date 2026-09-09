@@ -18,7 +18,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>ClipboardLogWindow</c>.

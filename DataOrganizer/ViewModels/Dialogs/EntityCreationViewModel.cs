@@ -4,11 +4,12 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Views.Dialogs;
 using Shared.Interfaces;
 using Shared.Properties;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>EntityCreationView</c>.

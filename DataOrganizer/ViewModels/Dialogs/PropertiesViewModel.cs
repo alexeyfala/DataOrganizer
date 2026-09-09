@@ -1,9 +1,10 @@
 using CommunityToolkit.Mvvm.Input;
+using DataOrganizer.Views.Dialogs;
 using DialogHostAvalonia;
 using Repository.Dto;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>PropertiesView</c>.

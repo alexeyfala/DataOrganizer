@@ -9,7 +9,7 @@
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
@@ -71,7 +71,7 @@
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
-						Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
+						Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).OpenFileContextMenuCommand}"
 						CommandParameter="{Binding $parent[Grid]}" />
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>

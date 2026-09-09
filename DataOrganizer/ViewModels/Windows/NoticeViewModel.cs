@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Interfaces.Storage;
 using Serilog;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>NoticeWindow</c>.

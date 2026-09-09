@@ -3,9 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Views.Dialogs;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Dialogs;
 
 /// <summary>
 /// View model for <c>KeyValueInputView</c>.

@@ -1,10 +1,10 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Enums;
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ImportListSelectorViewModel)}"" type")]
 internal class ImportListSelectorViewModelTests

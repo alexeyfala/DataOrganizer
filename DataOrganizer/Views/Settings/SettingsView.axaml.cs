@@ -1,4 +1,5 @@
-using DataOrganizer.ViewModels;
+using DataOrganizer.ViewModels.Dialogs;
+using DataOrganizer.Views.Dialogs;
 
 namespace DataOrganizer.Views.Settings;
 

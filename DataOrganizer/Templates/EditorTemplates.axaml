@@ -3,7 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:windows="using:DataOrganizer.ViewModels.Windows">
 
 	<!-- RightSideSheetHeaderTemplate -->
 	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
@@ -12,13 +12,13 @@
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsChecked="{Binding $parent[Window].((vm:EditorViewModel)DataContext).IsRightSideSheetOpened, Mode=TwoWay}"
+				IsChecked="{Binding $parent[Window].((windows:EditorViewModel)DataContext).IsRightSideSheetOpened, Mode=TwoWay}"
 				Theme="{StaticResource MaterialFlatButton}"
 				ToolTip.Tip="{x:Static prop:Strings.Hide}" />
 
 			<Button
 				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ClearRightSideSheetCommand}"
+				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ClearRightSideSheetCommand}"
 				Content="{materialIcons:MaterialIconTextExt Kind=Close,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				Foreground="{StaticResource WarningBrush}"

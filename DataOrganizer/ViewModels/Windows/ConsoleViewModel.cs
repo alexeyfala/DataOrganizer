@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace DataOrganizer.ViewModels;
+namespace DataOrganizer.ViewModels.Windows;
 
 /// <summary>
 /// View model for <c>ConsoleWindow</c>.
