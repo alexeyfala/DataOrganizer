@@ -5,5 +5,5 @@ using System.Collections.Generic;
 namespace DataOrganizer.Dto;
 
 public sealed record ImportDataResult(
-	IEnumerable<ExplorerModelBaseDto> ImportedItems,
+	IEnumerable<ExplorerItemDtoBase> ImportedItems,
 	ImportMode Variant);

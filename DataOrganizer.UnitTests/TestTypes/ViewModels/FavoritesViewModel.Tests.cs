@@ -39,7 +39,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestData.CreateFilesDto(5))];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -159,7 +159,7 @@ internal class FavoritesViewModelTests
 			SelectedPairs = [.. TestData.CreateFavoriteSelections(5)]
 		};
 
-		FileModelDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
+		FileDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -231,7 +231,7 @@ internal class FavoritesViewModelTests
 	public void InsertToCopyHistory_Inserts_New_Value_To_Top()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -258,7 +258,7 @@ internal class FavoritesViewModelTests
 	public async Task Receive_SessionAutoLocked_Hides_Contents()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(
+		FileDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -309,7 +309,7 @@ internal class FavoritesViewModelTests
 
 		contentVisibility
 			.Received(1)
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -326,9 +326,9 @@ internal class FavoritesViewModelTests
 			using AutoMock windowMock = AutoMock.GetLoose();
 
 			viewLauncher.ConfigureEditorWindow(
-				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
-				Arg.Any<IEnumerable<FileModelDto>>(),
-				Arg.Any<IEnumerable<FileModelDto>>())
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(windowMock.Create<EditorWindow>());
 
 			builder.RegisterInstance(viewLauncher);
@@ -345,9 +345,9 @@ internal class FavoritesViewModelTests
 			.BeFalse();
 
 		viewLauncher.Received().ConfigureEditorWindow(
-			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
-			Arg.Any<IEnumerable<FileModelDto>>(),
-			Arg.Any<IEnumerable<FileModelDto>>());
+			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>

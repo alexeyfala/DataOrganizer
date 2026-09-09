@@ -13,14 +13,14 @@ public interface IEntityLoader
 {
 	#region Methods
 	/// <summary>
-	/// Loads all entities from the database, maps them to the <see cref="ExplorerModelBaseDto" /> hierarchy, and returns the result.
+	/// Loads all entities from the database, maps them to the <see cref="ExplorerItemDtoBase" /> hierarchy, and returns the result.
 	/// <c>Null</c> stands for a database that could not be read, which an empty hierarchy does not tell apart.
 	/// </summary>
-	Task<ExplorerModelBaseDto[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default);
+	Task<ExplorerItemDtoBase[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Maps entities from the database to DTO objects.
 	/// </summary>
-	ExplorerModelBaseDto[] Map(IEnumerable<FolderModel> dbFolders, IEnumerable<FileModel> dbFiles);
+	ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> dbFolders, IEnumerable<FileEntity> dbFiles);
 	#endregion
 }

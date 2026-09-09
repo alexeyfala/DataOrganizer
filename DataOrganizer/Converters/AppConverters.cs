@@ -106,7 +106,7 @@ internal static class AppConverters
 	/// <summary>
 	/// The folder a favorites category is built from; <c>null</c> for the category of the root objects.
 	/// </summary>
-	public static FuncValueConverter<FavoriteCategory?, FolderModelDto?> FavoriteCategoryToFolder { get; } =
+	public static FuncValueConverter<FavoriteCategory?, FolderDto?> FavoriteCategoryToFolder { get; } =
 		new(GetFolder);
 
 	public static FuncValueConverter<object?, IBrush?> MaterialDesignColorToBrush { get; } =
@@ -165,7 +165,7 @@ internal static class AppConverters
 	/// <summary>
 	/// The parent folder of the objects of a favorites category; a category always has children.
 	/// </summary>
-	private static FolderModelDto? GetFolder(FavoriteCategory? category)
+	private static FolderDto? GetFolder(FavoriteCategory? category)
 	{
 		return category
 			?.Children

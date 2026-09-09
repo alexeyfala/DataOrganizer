@@ -49,7 +49,7 @@ public sealed class NoteEditor : INoteEditor
 	#region Methods
 	/// <inheritdoc />
 	public async Task<bool> EditAsync(
-		ExplorerModelBaseDto item,
+		ExplorerItemDtoBase item,
 		string? note,
 		DateTime updatedDate,
 		CancellationToken token = default)
@@ -122,13 +122,13 @@ public sealed class NoteEditor : INoteEditor
 	/// <summary>
 	/// Reports a note that could not be stored.
 	/// </summary>
-	private bool Fail(ExplorerModelBaseDto item)
+	private bool Fail(ExplorerItemDtoBase item)
 	{
 		_logger.LogError($"{Strings.FailedToSaveNote}:{item.GetPropertyValues(
 			true,
-			nameof(ExplorerModelBaseDto.Id),
-			nameof(ExplorerModelBaseDto.Name),
-			nameof(ExplorerModelBaseDto.EncryptionStatus))}");
+			nameof(ExplorerItemDtoBase.Id),
+			nameof(ExplorerItemDtoBase.Name),
+			nameof(ExplorerItemDtoBase.EncryptionStatus))}");
 
 		_notification.ShowErrorSnackbar(Strings.FailedToSaveNote);
 

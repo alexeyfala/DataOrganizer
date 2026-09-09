@@ -329,7 +329,7 @@
 
 							<TreeView.Styles>
 								<Style
-									x:DataType="entities:ExplorerModelBaseDto"
+									x:DataType="entities:ExplorerItemDtoBase"
 									Selector="TreeViewItem">
 									<Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
 									<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

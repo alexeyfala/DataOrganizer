@@ -38,11 +38,11 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	public bool IsEmpty => _filter.IsSourceEmpty;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
-	public ReadOnlyObservableCollection<FileModelDto> Items => _filter.Visible;
+	public ReadOnlyObservableCollection<FileDto> Items => _filter.Visible;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />
 	[ObservableProperty]
-	public partial FileModelDto? SelectedItem { get; set; }
+	public partial FileDto? SelectedItem { get; set; }
 	#endregion
 
 	#region Partial
@@ -50,8 +50,8 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// Called when <see cref="SelectedItem" /> changes.
 	/// </summary>
 	partial void OnSelectedItemChanged(
-		FileModelDto? oldValue,
-		FileModelDto? newValue)
+		FileDto? oldValue,
+		FileDto? newValue)
 	{
 		_previousSelectedItem = oldValue;
 	}
@@ -61,12 +61,12 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// <inheritdoc cref="FilteredCollection{T}" /> <see cref="Items" />.
 	/// </summary>
-	private readonly FilteredCollection<FileModelDto> _filter;
+	private readonly FilteredCollection<FileDto> _filter;
 
 	/// <summary>
 	/// Previous <see cref="SelectedItem" /> value.
 	/// </summary>
-	private FileModelDto? _previousSelectedItem;
+	private FileDto? _previousSelectedItem;
 	#endregion
 
 	#region Constructors
@@ -147,7 +147,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// Performs initialization.
 	/// </summary>
-	public void Initialize(IEnumerable<FileModelDto> items, Guid selectedId)
+	public void Initialize(IEnumerable<FileDto> items, Guid selectedId)
 	{
 		_filter.AddRange(items);
 
@@ -157,7 +157,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// Inserts or moves to top value in <see cref="Items" />.
 	/// </summary>
-	public void InsertOrMoveToTop(FileModelDto file)
+	public void InsertOrMoveToTop(FileDto file)
 	{
 		if (_filter.Contains(file))
 		{
@@ -172,12 +172,12 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// Tries to remove value from <see cref="Items" />.
 	/// </summary>
-	public bool Remove(FileModelDto file) => _filter.Remove(file);
+	public bool Remove(FileDto file) => _filter.Remove(file);
 
 	/// <summary>
-	/// Adds <see cref="FileModelDto" /> objects to the source.
+	/// Adds <see cref="FileDto" /> objects to the source.
 	/// </summary>
-	internal void AddTestCopyHistory(IEnumerable<FileModelDto> items)
+	internal void AddTestCopyHistory(IEnumerable<FileDto> items)
 	{
 		if (!AppDomain
 			.CurrentDomain

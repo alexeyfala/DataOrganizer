@@ -17,16 +17,16 @@ public sealed record UpdateDatabaseParameters
 	/// </summary>
 	public required ValidatedContents[] Contents { get; init; }
 
-	/// <inheritdoc cref="FolderModelDto.EncryptedDek" />
+	/// <inheritdoc cref="FolderDto.EncryptedDek" />
 	public required byte[]? EncryptedDek { get; init; }
 
 	/// <summary>
-	/// A sequence to <see cref="FileModelDto" /> objects.
+	/// A sequence to <see cref="FileDto" /> objects.
 	/// </summary>
-	public required FileModelDto[] Files { get; init; }
+	public required FileDto[] Files { get; init; }
 
-	/// <inheritdoc cref="FolderModelDto" />
-	public required FolderModelDto Folder { get; init; }
+	/// <inheritdoc cref="FolderDto" />
+	public required FolderDto Folder { get; init; }
 
 	/// <summary>
 	/// The new encryption status.

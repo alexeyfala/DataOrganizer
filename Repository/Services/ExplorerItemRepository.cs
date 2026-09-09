@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBase>, IExplorerModelBaseRepository
+/// <inheritdoc cref="IExplorerItemRepository" />
+public sealed class ExplorerItemRepository : RepositoryBase<ExplorerItemBase>, IExplorerItemRepository
 {
 	#region Constructors
-	public ExplorerModelBaseRepository(SqliteDbContext context) : base(context)
+	public ExplorerItemRepository(SqliteDbContext context) : base(context)
 	{
 	}
 	#endregion
@@ -19,7 +20,7 @@ public sealed class ExplorerModelBaseRepository : RepositoryBase<ExplorerModelBa
 	#region Methods
 	/// <inheritdoc />
 	public Task<int> CountOfAsync(
-		Expression<Func<ExplorerModelBase, bool>> condition,
+		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)
 	{
 		return CountAsync(condition, token);

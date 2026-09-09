@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 namespace Repository.Interfaces;
 
 /// <summary>
-/// Repository for <see cref="FolderModel" />.
+/// Repository for <see cref="FolderEntity" />.
 /// </summary>
 public interface IFolderRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.AddAsync" />
-	ValueTask<EntityEntry<FolderModel>> AddAsync(FolderModel entity, CancellationToken token = default);
+	ValueTask<EntityEntry<FolderEntity>> AddAsync(FolderEntity entity, CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.AddRangeAsync" />
-	Task AddRangeAsync(IEnumerable<FolderModel> entities, CancellationToken token = default);
+	Task AddRangeAsync(IEnumerable<FolderEntity> entities, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a complete flat list of <see cref="FolderModel" /> entities from the database.
+	/// Returns a complete flat list of <see cref="FolderEntity" /> entities from the database.
 	/// </summary>
-	Task<FolderModel[]> GetAllAsync(CancellationToken token = default);
+	Task<FolderEntity[]> GetAllAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Returns IDs of the folder and all its nested folders (with BFS algorithm).
@@ -44,7 +44,7 @@ public interface IFolderRepository
 	/// <returns>The number of rows affected (0 if the entity does not exist, otherwise 1).</returns>
 	Task<int> UpdatePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -55,7 +55,7 @@ public interface IFolderRepository
 	/// <param name="token">Cancellation token.</param>
 	/// <returns>The total number of rows affected across all updates.</returns>
 	Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default);
 	#endregion Methods
 }

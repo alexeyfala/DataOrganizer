@@ -55,11 +55,11 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 		{
 			DateTime updatedDate = DateTime.Now;
 
-			Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = parameters
+			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
 				.Contents
 				.ToDictionary(x => x.Id, pair =>
 			{
-				return new Action<UpdateSettersBuilder<FileModel>>[]
+				return new Action<UpdateSettersBuilder<FileEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Contents, pair.Contents),
 					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
@@ -69,7 +69,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 			// A note of a file is stored in the same transaction as its contents.
 			foreach (NoteUpdate note in parameters.Notes.Where(x => !x.IsFolderNote()))
 			{
-				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileModel>>[]? setters))
+				if (!updates.TryGetValue(note.Id, out Action<UpdateSettersBuilder<FileEntity>>[]? setters))
 				{
 					continue;
 				}
@@ -77,19 +77,19 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				updates[note.Id] = [.. setters, builder => builder.SetProperty(x => x.Note, note.Note)];
 			}
 
-			Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates = parameters
+			Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = parameters
 				.Notes
 				.Where(x => x.IsFolderNote())
 				.ToDictionary(x => x.Id, note =>
 			{
-				return new Action<UpdateSettersBuilder<FolderModel>>[]
+				return new Action<UpdateSettersBuilder<FolderEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Note, note.Note),
 					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
 				};
 			});
 
-			Action<UpdateSettersBuilder<FolderModel>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
+			Action<UpdateSettersBuilder<FolderEntity>>[] noteSetters = folderUpdates.GetValueOrDefault(parameters.Folder.Id, []);
 
 			folderUpdates[parameters.Folder.Id] = [.. noteSetters, SetDek];
 
@@ -101,7 +101,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 					.ConfigureAwait(false);
 			}
 
-			ExplorerModelBaseDto[] objects =
+			ExplorerItemDtoBase[] objects =
 			[
 				.. parameters.Folder.WithSubfolders(),
 				.. parameters.Files
@@ -117,7 +117,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 			return UpdateDatabaseOutcome.Done;
 
-			void SetDek(UpdateSettersBuilder<FolderModel> builder)
+			void SetDek(UpdateSettersBuilder<FolderEntity> builder)
 			{
 				builder.SetProperty(x => x.EncryptedDek, parameters.EncryptedDek);
 			}
@@ -137,7 +137,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <summary>
 	/// Applies the processed notes to the objects, wiping the replaced buffers.
 	/// </summary>
-	private static void ApplyNotes(ExplorerModelBaseDto[] objects, NoteUpdate[] notes)
+	private static void ApplyNotes(ExplorerItemDtoBase[] objects, NoteUpdate[] notes)
 	{
 		if (notes.Length == 0)
 		{
@@ -146,7 +146,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 		Dictionary<Guid, byte[]> processed = notes.ToDictionary(x => x.Id, x => x.Note);
 
-		foreach (ExplorerModelBaseDto item in objects)
+		foreach (ExplorerItemDtoBase item in objects)
 		{
 			if (!processed.TryGetValue(item.Id, out byte[]? note))
 			{

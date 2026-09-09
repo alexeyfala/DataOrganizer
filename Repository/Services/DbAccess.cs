@@ -35,8 +35,8 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IExplorerModelBaseRepository" />
-	private readonly IExplorerModelBaseRepository _baseRepository;
+	/// <inheritdoc cref="IExplorerItemRepository" />
+	private readonly IExplorerItemRepository _baseRepository;
 
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
@@ -72,7 +72,7 @@ public sealed class DbAccess : IDbAccess
 	public DbAccess(
 		IDbContextService dbContextService,
 		IDbMaintenance dbMaintenance,
-		IExplorerModelBaseRepository baseRepository,
+		IExplorerItemRepository baseRepository,
 		IFileRepository fileRepository,
 		IFileSystem fileSystem,
 		IFolderRepository folderRepository,
@@ -99,7 +99,7 @@ public sealed class DbAccess : IDbAccess
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerModelBase?> AddEntityAsync(
+	public async Task<ExplorerItemBase?> AddEntityAsync(
 		AddEntityParameters parameters,
 		CancellationToken token = default)
 	{
@@ -114,7 +114,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = parameters.EntityType == EntityKind.Folder
+			ExplorerItemBase entity = parameters.EntityType == EntityKind.Folder
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 
@@ -144,7 +144,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default)
+	public async Task<bool> AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default)
 	{
 		if (IsWriteRefused())
 		{
@@ -187,7 +187,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default)
+	public async Task<bool> AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default)
 	{
 		if (IsWriteRefused())
 		{
@@ -230,7 +230,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<HotkeyModel[]> AddHotkeysAsync(
+	public async Task<HotkeyEntity[]> AddHotkeysAsync(
 		Guid fileId,
 		KeyStroke[] hotkeys,
 		CancellationToken token = default)
@@ -246,9 +246,9 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			HotkeyModel[] entities = [.. ToHotkeyModels(hotkeys, fileId)];
+			HotkeyEntity[] entities = [.. ToHotkeyEntities(hotkeys, fileId)];
 
-			foreach (HotkeyModel item in entities)
+			foreach (HotkeyEntity item in entities)
 			{
 				await _hotkeysRepository
 					.AddAsync(item, token)
@@ -476,7 +476,7 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<int> CountOfAsync(
-		Expression<Func<ExplorerModelBase, bool>> condition,
+		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)
 	{
 		try
@@ -661,7 +661,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FileModel[]> GetAllFilesAsync(
+	public async Task<FileEntity[]> GetAllFilesAsync(
 		OptionalFileProperties optionalProperties,
 		CancellationToken token = default)
 	{
@@ -695,7 +695,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default)
+	public async Task<FolderEntity[]> GetAllFoldersAsync(CancellationToken token = default)
 	{
 		try
 		{
@@ -916,12 +916,12 @@ public sealed class DbAccess : IDbAccess
 	{
 		using SqliteDbContext context = GetSQliteDbContext(dataSource);
 
-		FolderModel[] dbFolders = [.. context
-			.Set<FolderModel>()
+		FolderEntity[] dbFolders = [.. context
+			.Set<FolderEntity>()
 			.AsNoTracking()];
 
-		FileModel[] dbFiles = [.. context
-			.Set<FileModel>()
+		FileEntity[] dbFiles = [.. context
+			.Set<FileEntity>()
 			.AsNoTracking()];
 
 		ClearPool(context);
@@ -987,8 +987,8 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<bool> UpdateFileAndFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -1004,14 +1004,14 @@ public sealed class DbAccess : IDbAccess
 
 			await _dbContextService.ExecuteInTransactionAsync(async innerToken =>
 			{
-				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> update in fileUpdates)
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> update in fileUpdates)
 				{
 					await _fileRepository
 						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
 						.ConfigureAwait(false);
 				}
 
-				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> update in folderUpdates)
+				foreach (KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> update in folderUpdates)
 				{
 					await _folderRepository
 						.UpdatePropertiesAsync(update.Key, update.Value, innerToken)
@@ -1043,7 +1043,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -1084,7 +1084,7 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<bool> UpdateFilePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -1126,7 +1126,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<bool> UpdateFolderPropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -1167,7 +1167,7 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<bool> UpdateFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -1271,9 +1271,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyModel" />.
+	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyEntity" />.
 	/// </summary>
-	private static IEnumerable<HotkeyModel> ToHotkeyModels(KeyStroke[] sequence, Guid ownerId)
+	private static IEnumerable<HotkeyEntity> ToHotkeyEntities(KeyStroke[] sequence, Guid ownerId)
 	{
 		for (int i = 0; i < sequence.Length; i++)
 		{
@@ -1291,15 +1291,15 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Adds an <see cref="FileModel" /> to the database.
+	/// Adds an <see cref="FileEntity" /> to the database.
 	/// </summary>
-	private async Task<FileModel> AddFileAsync(
+	private async Task<FileEntity> AddFileAsync(
 		AddEntityParameters parameters,
 		CancellationToken token)
 	{
 		DateTime now = DateTime.Now;
 
-		FileModel file = new()
+		FileEntity file = new()
 		{
 			Contents = parameters.FileContents.AsNotNull(),
 			CreatedDate = now,
@@ -1319,15 +1319,15 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Adds an <see cref="FolderModel" /> to the database.
+	/// Adds an <see cref="FolderEntity" /> to the database.
 	/// </summary>
-	private async Task<FolderModel> AddFolderAsync(
+	private async Task<FolderEntity> AddFolderAsync(
 		AddEntityParameters parameters,
 		CancellationToken token)
 	{
 		DateTime now = DateTime.Now;
 
-		FolderModel folder = new()
+		FolderEntity folder = new()
 		{
 			Id = Guid.NewGuid(),
 			CreatedDate = now,

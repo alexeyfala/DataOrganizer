@@ -14,7 +14,7 @@
 	<!-- ExecutingFileTemplate -->
 	<DataTemplate
 		x:Key="ExecutingFileTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
@@ -81,7 +81,7 @@
 	<!-- EditingFileTabControlHeaderTemplate -->
 	<DataTemplate
 		x:Key="EditingFileTabControlHeaderTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel
 			Background="Transparent"
 			Orientation="Horizontal"

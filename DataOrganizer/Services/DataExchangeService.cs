@@ -212,7 +212,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 	/// <inheritdoc />
 	public async Task<ImportDataResult?> ImportDataAsync(
-		Collection<ExplorerModelBaseDto> hierarchy,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		ImportMode variant = ImportMode.Replace;
@@ -262,7 +262,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			string filePath = filePaths[0];
 
-			List<ExplorerModelBaseDto> objects = [];
+			List<ExplorerItemDtoBase> objects = [];
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -324,7 +324,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			FileModelDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
+			FileDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
 
 			if (unreadable.IsNotEmpty())
 			{
@@ -362,8 +362,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	internal async Task<bool> AppendFromSQLiteAsync(
 		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		LoadedEntities result = _dbAccess.LoadFromDb(filePath);
@@ -395,10 +395,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// Imports entities.
 	/// </summary>
 	internal async Task<bool> ImportEntitiesAsync(
-		ExplorerModelBase[] entities,
+		ExplorerItemBase[] entities,
 		ImportMode variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		if (variant == ImportMode.Replace && !await _dbAccess
@@ -412,9 +412,9 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = now);
 
-		FolderModel[] folders = [.. entities.OfType<FolderModel>()];
+		FolderEntity[] folders = [.. entities.OfType<FolderEntity>()];
 
-		FileModel[] files = [.. entities.OfType<FileModel>()];
+		FileEntity[] files = [.. entities.OfType<FileEntity>()];
 
 		RegenerateId(folders, files);
 
@@ -454,8 +454,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	internal async Task<bool> ReplaceFromSQLiteAsync(
 		string filePath,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		if (!await _dbAccess
@@ -485,7 +485,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Regenerates identifiers.
 	/// </summary>
-	private static void RegenerateId(FolderModel[] folders, FileModel[] files)
+	private static void RegenerateId(FolderEntity[] folders, FileEntity[] files)
 	{
 		files.ForEach(file =>
 		{
@@ -501,9 +501,9 @@ public sealed class DataExchangeService : IDataExchangeService
 			});
 		});
 
-		ILookup<Guid?, FolderModel> foldersByParent = folders.ToLookup(x => x.ParentId);
+		ILookup<Guid?, FolderEntity> foldersByParent = folders.ToLookup(x => x.ParentId);
 
-		ILookup<Guid?, FileModel> filesByParent = files.ToLookup(x => x.ParentId);
+		ILookup<Guid?, FileEntity> filesByParent = files.ToLookup(x => x.ParentId);
 
 		folders.ForEach(folder =>
 		{
@@ -520,13 +520,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	}
 
 	/// <summary>
-	/// Sets <see cref="EntityModelBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
+	/// Sets <see cref="EntityBase.Index" /> to <paramref name="folders"/> and <paramref name="files"/>
 	/// from <paramref name="hierarchy"/> max element index.
 	/// </summary>
 	private static void SetupIndex(
-		Collection<ExplorerModelBaseDto> hierarchy,
-		FolderModel[] folders,
-		FileModel[] files)
+		Collection<ExplorerItemDtoBase> hierarchy,
+		FolderEntity[] folders,
+		FileEntity[] files)
 	{
 		if (hierarchy.Count == 0)
 		{
@@ -536,7 +536,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		int startIndex = hierarchy.Max(x => x.Index) + 1;
 
 		folders
-		   .OfType<ExplorerModelBase>()
+		   .OfType<ExplorerItemBase>()
 		   .Concat(files)
 		   .Where(x => x.ParentId is null)
 		   .OrderBy(x => x.Index)
@@ -551,9 +551,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Removes the hotkeys of the files whose sequence could not be read.
 	/// </summary>
-	private async Task DropUnreadableHotkeysAsync(FileModelDto[] files, CancellationToken token)
+	private async Task DropUnreadableHotkeysAsync(FileDto[] files, CancellationToken token)
 	{
-		foreach (FileModelDto file in files)
+		foreach (FileDto file in files)
 		{
 			if (!await _dbAccess
 				.DeleteHotkeysAsync(file.Id, token)
@@ -579,7 +579,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task ExportToJsonAsync(string filePath, CancellationToken token)
 	{
-		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
 		// Streaming serialization: writes Json directly to the file without
 		// materializing the whole document as a string in memory.
@@ -611,7 +611,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task ExportToXmlAsync(string filePath, CancellationToken token)
 	{
-		ExplorerModelBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
+		ExplorerItemBase[] entities = await GetEntitiesFromDbAsync(token).ConfigureAwait(false);
 
 		// Streaming serialization: XmlSerializer writes directly to the file
 		// without materializing the whole document as a string in memory.
@@ -623,17 +623,17 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Load all entities from database.
 	/// </summary>
-	private async Task<ExplorerModelBase[]> GetEntitiesFromDbAsync(CancellationToken token)
+	private async Task<ExplorerItemBase[]> GetEntitiesFromDbAsync(CancellationToken token)
 	{
-		FolderModel[] dbFolders = await _dbAccess
+		FolderEntity[] dbFolders = await _dbAccess
 			.GetAllFoldersAsync(token)
 			.ConfigureAwait(false);
 
-		FileModel[] dbFiles = await _dbAccess
+		FileEntity[] dbFiles = await _dbAccess
 			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties, token)
 			.ConfigureAwait(false);
 
-		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];
+		return [.. dbFolders.Concat<ExplorerItemBase>(dbFiles)];
 	}
 
 	/// <summary>
@@ -642,17 +642,17 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		// Streaming deserialization: avoids loading the entire file into a string before parsing.
-		ExplorerModelBase[]? entities;
+		ExplorerItemBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
 			entities = await _jsonSerializer
-				.DeserializeAsync<ExplorerModelBase[]>(stream, token)
+				.DeserializeAsync<ExplorerItemBase[]>(stream, token)
 				.ConfigureAwait(false);
 		}
 
@@ -675,8 +675,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	private Task<bool> ImportFromSQLiteAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		return variant switch
@@ -701,13 +701,13 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task<bool> ImportFromXmlAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerModelBaseDto> objects,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		List<ExplorerItemDtoBase> objects,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		// The document is read as a whole, so that hotkey names the library no longer knows
 		// can be replaced before the serializer rejects the whole file because of them.
-		ExplorerModelBase[]? entities;
+		ExplorerItemBase[]? entities;
 
 		await using (Stream stream = _fileSystem.OpenSequentialRead(filePath))
 		{
@@ -717,7 +717,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			HotkeyXmlSanitizer.Sanitize(document);
 
-			entities = _xmlSerializer.Deserialize<ExplorerModelBase[]>(document);
+			entities = _xmlSerializer.Deserialize<ExplorerItemBase[]>(document);
 		}
 
 		if (entities is null)

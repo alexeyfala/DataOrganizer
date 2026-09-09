@@ -23,7 +23,7 @@ internal class NoteReaderTests
 	public void ReadNote_Reports_Failure_When_Decoding_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		file.Note = TestData.CreateRandomBytes(10);
 
@@ -59,7 +59,7 @@ internal class NoteReaderTests
 		// Arrange
 		string text = RandomString.Create(20);
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file.Note = TestData.CreateRandomBytes(10);
 
@@ -93,7 +93,7 @@ internal class NoteReaderTests
 	public void ReadNote_Returns_Null_When_Encrypted()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		file.Note = TestData.CreateRandomBytes(10);
 
@@ -113,7 +113,7 @@ internal class NoteReaderTests
 
 		noteCipher
 			.DidNotReceive()
-			.Decode(Arg.Any<ExplorerModelBaseDto>());
+			.Decode(Arg.Any<ExplorerItemDtoBase>());
 	}
 
 	/// <summary>
@@ -140,7 +140,7 @@ internal class NoteReaderTests
 
 		noteCipher
 			.DidNotReceive()
-			.Decode(Arg.Any<ExplorerModelBaseDto>());
+			.Decode(Arg.Any<ExplorerItemDtoBase>());
 	}
 
 	/// <summary>
@@ -151,7 +151,7 @@ internal class NoteReaderTests
 	public void ReadNote_Returns_Null_When_Note_Is_Absent([Values] bool isEmpty)
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file.Note = isEmpty ? [] : null;
 
@@ -171,7 +171,7 @@ internal class NoteReaderTests
 
 		noteCipher
 			.DidNotReceive()
-			.Decode(Arg.Any<ExplorerModelBaseDto>());
+			.Decode(Arg.Any<ExplorerItemDtoBase>());
 	}
 	#endregion
 }

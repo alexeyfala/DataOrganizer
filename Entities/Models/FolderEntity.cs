@@ -5,10 +5,10 @@ using System.Xml.Serialization;
 namespace Entities.Models;
 
 /// <summary>
-/// Folder model in a virtual file system.
+/// A folder in the virtual file system.
 /// </summary>
 [XmlType(TypeName = Folder)]
-public sealed class FolderModel : ExplorerModelBase
+public sealed class FolderEntity : ExplorerItemBase
 {
 	#region Properties
 	/// <summary>
@@ -16,7 +16,7 @@ public sealed class FolderModel : ExplorerModelBase
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public Collection<ExplorerModelBase> Children { get; } = [];
+	public Collection<ExplorerItemBase> Children { get; } = [];
 
 	/// <summary>
 	/// Encrypted DEK (Data Encryption Key)

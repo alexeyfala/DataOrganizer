@@ -38,7 +38,7 @@ internal class EntityPropertyWriterTests
 			.Received()
 			.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>());
+				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
 	}
 
 	/// <summary>
@@ -62,7 +62,7 @@ internal class EntityPropertyWriterTests
 			.Received()
 			.UpdateFilePropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -78,7 +78,7 @@ internal class EntityPropertyWriterTests
 
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
-		FileModelDto dto = new()
+		FileDto dto = new()
 		{
 			CreatedDate = default,
 			EntityType = entityType,
@@ -95,7 +95,7 @@ internal class EntityPropertyWriterTests
 			.Received()
 			.UpdateFilePropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+				Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -119,7 +119,7 @@ internal class EntityPropertyWriterTests
 			.Received()
 			.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>());
+				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
 	}
 	#endregion
 }

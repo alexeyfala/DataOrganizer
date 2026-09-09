@@ -16,26 +16,26 @@ public interface IHierarchyEditor
 	/// <summary>
 	/// Adds an object to the database and to the hierarchy.
 	/// </summary>
-	Task<ExplorerModelBaseDto?> AddAsync(
+	Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
 		EntityKind entityType,
-		FolderModelDto? parent,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		FolderDto? parent,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Deletes an object from the database and from the hierarchy.
 	/// </summary>
 	Task<bool> DeleteAsync(
-		ExplorerModelBaseDto dto,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ExplorerItemDtoBase dto,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Renames an object in the database and in the hierarchy.
 	/// </summary>
 	Task<bool> RenameAsync(
-		ExplorerModelBaseDto dto,
+		ExplorerItemDtoBase dto,
 		string newName,
 		DateTime updatedDate,
 		CancellationToken token = default);

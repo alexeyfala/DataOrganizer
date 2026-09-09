@@ -225,7 +225,7 @@
 	<!-- FolderInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FolderInTreeViewContextMenuTemplate"
-		x:DataType="entities:FolderModelDto">
+		x:DataType="entities:FolderDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -338,7 +338,7 @@
 	<!-- FileInTreeViewContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -477,7 +477,7 @@
 	<!-- EditingFileTabContextMenuTemplate -->
 	<DataTemplate
 		x:Key="EditingFileTabContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">
@@ -511,7 +511,7 @@
 	<!-- FileInListContextMenuTemplate -->
 	<DataTemplate
 		x:Key="FileInListContextMenuTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<StackPanel Orientation="Vertical">
 			<StackPanel.Styles>
 				<Style Selector="Button">

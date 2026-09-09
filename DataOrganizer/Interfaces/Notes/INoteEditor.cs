@@ -15,7 +15,7 @@ public interface INoteEditor
 	/// Overwrites the note of <paramref name="item" />; blank <paramref name="note" /> removes it.
 	/// </summary>
 	Task<bool> EditAsync(
-		ExplorerModelBaseDto item,
+		ExplorerItemDtoBase item,
 		string? note,
 		DateTime updatedDate,
 		CancellationToken token = default);

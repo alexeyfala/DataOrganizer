@@ -20,7 +20,7 @@ namespace Repository.Migrations.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
-            modelBuilder.Entity("Entities.Models.ExplorerModelBase", b =>
+            modelBuilder.Entity("Entities.Models.ExplorerItemBase", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +62,7 @@ namespace Repository.Migrations.Migrations
                     b.UseTpcMappingStrategy();
                 });
 
-            modelBuilder.Entity("Entities.Models.HotkeyModel", b =>
+            modelBuilder.Entity("Entities.Models.HotkeyEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -89,9 +89,9 @@ namespace Repository.Migrations.Migrations
                     b.ToTable("Hotkeys", (string)null);
                 });
 
-            modelBuilder.Entity("Entities.Models.FileModel", b =>
+            modelBuilder.Entity("Entities.Models.FileEntity", b =>
                 {
-                    b.HasBaseType("Entities.Models.ExplorerModelBase");
+                    b.HasBaseType("Entities.Models.ExplorerItemBase");
 
                     b.Property<byte[]>("Contents")
                         .IsRequired()
@@ -106,9 +106,9 @@ namespace Repository.Migrations.Migrations
                     b.ToTable("Files", (string)null);
                 });
 
-            modelBuilder.Entity("Entities.Models.FolderModel", b =>
+            modelBuilder.Entity("Entities.Models.FolderEntity", b =>
                 {
-                    b.HasBaseType("Entities.Models.ExplorerModelBase");
+                    b.HasBaseType("Entities.Models.ExplorerItemBase");
 
                     b.Property<byte[]>("EncryptedDek")
                         .HasColumnType("BLOB");
@@ -119,18 +119,18 @@ namespace Repository.Migrations.Migrations
                     b.ToTable("Folders", (string)null);
                 });
 
-            modelBuilder.Entity("Entities.Models.ExplorerModelBase", b =>
+            modelBuilder.Entity("Entities.Models.ExplorerItemBase", b =>
                 {
-                    b.HasOne("Entities.Models.FolderModel", "Parent")
+                    b.HasOne("Entities.Models.FolderEntity", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentId");
 
                     b.Navigation("Parent");
                 });
 
-            modelBuilder.Entity("Entities.Models.HotkeyModel", b =>
+            modelBuilder.Entity("Entities.Models.HotkeyEntity", b =>
                 {
-                    b.HasOne("Entities.Models.FileModel", "Owner")
+                    b.HasOne("Entities.Models.FileEntity", "Owner")
                         .WithMany("Hotkeys")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -139,12 +139,12 @@ namespace Repository.Migrations.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Entities.Models.FileModel", b =>
+            modelBuilder.Entity("Entities.Models.FileEntity", b =>
                 {
                     b.Navigation("Hotkeys");
                 });
 
-            modelBuilder.Entity("Entities.Models.FolderModel", b =>
+            modelBuilder.Entity("Entities.Models.FolderEntity", b =>
                 {
                     b.Navigation("Children");
                 });

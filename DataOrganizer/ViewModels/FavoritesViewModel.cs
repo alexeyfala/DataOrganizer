@@ -245,7 +245,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 	#region Methods
 	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		Hierarchy.AddRange(hierarchy);
 
@@ -435,15 +435,15 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.
 	/// </summary>
-	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	private IEnumerable<FavoriteCategory> GetCategories(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		List<FileModelDto> files = [.. hierarchy
-			.OfType<FileModelDto>()
+		List<FileDto> files = [.. hierarchy
+			.OfType<FileDto>()
 			.Where(x => x.IsFavorite)];
 
 		if (files.Count > 0)
 		{
-			FolderModelDto? parent = files[0].Parent;
+			FolderDto? parent = files[0].Parent;
 
 			yield return new()
 			{
@@ -455,7 +455,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			};
 		}
 
-		foreach (FolderModelDto folder in hierarchy.OfType<FolderModelDto>())
+		foreach (FolderDto folder in hierarchy.OfType<FolderDto>())
 		{
 			foreach (FavoriteCategory category in GetCategories(folder.Children))
 			{

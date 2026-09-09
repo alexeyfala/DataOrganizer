@@ -10,58 +10,58 @@ using System.Diagnostics;
 
 namespace DataOrganizer.Dto.Entities;
 
-/// <inheritdoc cref="ExplorerModelBase" />
+/// <inheritdoc cref="ExplorerItemBase" />
 [ObservableObject]
 [DebuggerDisplay(
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
-public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, INamed
+public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 {
 	#region Properties
 	/// <summary>
-	/// Default empty for non-folder items; <see cref="FolderModelDto" /> overrides it.
+	/// Default empty for non-folder items; <see cref="FolderDto" /> overrides it.
 	/// Lives on the base because the TreeDataTemplate ItemsSource binding can re-evaluate
-	/// against a <see cref="FileModelDto" /> when a <c>TreeViewItem</c> is recycled.
+	/// against a <see cref="FileDto" /> when a <c>TreeViewItem</c> is recycled.
 	/// </summary>
-	public virtual ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+	public virtual ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
 
-	/// <inheritdoc cref="ExplorerModelBase.CreatedDate" />
+	/// <inheritdoc cref="ExplorerItemBase.CreatedDate" />
 	public required DateTime CreatedDate { get; init; }
 
 	/// <inheritdoc cref="Enums.EncryptionStatus" />
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.EntityType" />
+	/// <inheritdoc cref="ExplorerItemBase.EntityType" />
 	public required EntityKind EntityType { get; init; }
 
-	/// <inheritdoc cref="FolderModel.IsExpanded" />
+	/// <inheritdoc cref="FolderEntity.IsExpanded" />
 	/// <remarks>
 	/// Stays on the base as a virtual auto-property: the TreeView's TreeViewItem style binds
-	/// IsExpanded for every container, so the property must resolve against <see cref="ExplorerModelBaseDto" />.
-	/// <see cref="FolderModelDto" /> overrides it with the real observable implementation.
+	/// IsExpanded for every container, so the property must resolve against <see cref="ExplorerItemDtoBase" />.
+	/// <see cref="FolderDto" /> overrides it with the real observable implementation.
 	/// </remarks>
 	public virtual bool IsExpanded { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.IsSelected" />
+	/// <inheritdoc cref="ExplorerItemBase.IsSelected" />
 	public bool IsSelected { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.Name" />
+	/// <inheritdoc cref="ExplorerItemBase.Name" />
 	[ObservableProperty]
 	public partial string Name { get; set; } = string.Empty;
 
-	/// <inheritdoc cref="ExplorerModelBase.Note" />
+	/// <inheritdoc cref="ExplorerItemBase.Note" />
 	[ObservableProperty]
 	public partial byte[]? Note { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.Parent" />
-	public FolderModelDto? Parent { get; set; }
+	/// <inheritdoc cref="ExplorerItemBase.Parent" />
+	public FolderDto? Parent { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.ParentId" />
+	/// <inheritdoc cref="ExplorerItemBase.ParentId" />
 	public Guid? ParentId { get; set; }
 
-	/// <inheritdoc cref="ExplorerModelBase.UpdatedDate" />
+	/// <inheritdoc cref="ExplorerItemBase.UpdatedDate" />
 	public required DateTime UpdatedDate { get; set; }
 	#endregion
 
@@ -69,9 +69,9 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, INamed
 	/// <summary>
 	/// <c>True</c> when any parent satisfies the condition.
 	/// </summary>
-	public bool AnyParent(Predicate<FolderModelDto> condition)
+	public bool AnyParent(Predicate<FolderDto> condition)
 	{
-		FolderModelDto? item = Parent;
+		FolderDto? item = Parent;
 
 		while (item is not null)
 		{
@@ -89,9 +89,9 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, INamed
 	/// <summary>
 	/// Searches parent object by a condition.
 	/// </summary>
-	public FolderModelDto? FindParent(Predicate<FolderModelDto> condition)
+	public FolderDto? FindParent(Predicate<FolderDto> condition)
 	{
-		FolderModelDto? item = Parent;
+		FolderDto? item = Parent;
 
 		while (item is not null)
 		{
@@ -109,14 +109,14 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, INamed
 	/// <summary>
 	/// Searches the password keeper the object belongs to; <c>null</c> when there is none.
 	/// </summary>
-	public virtual FolderModelDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
+	public virtual FolderDto? FindPasswordKeeper() => FindParent(x => x.IsPasswordKeeper());
 
 	/// <summary>
-	/// Return a sequence of <see cref="FolderModelDto" /> parent objects.
+	/// Return a sequence of <see cref="FolderDto" /> parent objects.
 	/// </summary>
-	public IEnumerable<FolderModelDto> GetAllParents()
+	public IEnumerable<FolderDto> GetAllParents()
 	{
-		FolderModelDto? item = Parent;
+		FolderDto? item = Parent;
 
 		while (item is not null)
 		{

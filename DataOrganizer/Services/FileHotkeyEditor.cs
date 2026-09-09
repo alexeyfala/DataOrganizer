@@ -54,16 +54,16 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	#region Methods
 	/// <inheritdoc />
 	public async Task<OverwriteHotkeysOutcome> OverwriteAsync(
-		FileModelDto dto,
+		FileDto dto,
 		KeyStroke[] newHotkeys,
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		IEqualityComparer<HotkeyModelDto> comparer = Equality.Of<HotkeyModelDto>()
+		IEqualityComparer<HotkeyDto> comparer = Equality.Of<HotkeyDto>()
 			.By(x => x.Code)
 			.AndBy(x => x.Mask);
 
-		HotkeyModelDto[] temp = [.. newHotkeys.ToHotkeyModelsDto()];
+		HotkeyDto[] temp = [.. newHotkeys.ToHotkeyDtos()];
 
 		if (dto
 			.Hotkeys
@@ -101,11 +101,11 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 			try
 			{
-				HotkeyModel[] createdHotkeys = await _dbAccess
+				HotkeyEntity[] createdHotkeys = await _dbAccess
 					.AddHotkeysAsync(dto.Id, newHotkeys, token)
 					.ConfigureAwait(false);
 
-				HotkeyModelDto[] mapped = _mapper.Map<HotkeyModel[], HotkeyModelDto[]>(createdHotkeys);
+				HotkeyDto[] mapped = _mapper.Map<HotkeyEntity[], HotkeyDto[]>(createdHotkeys);
 
 				dto
 					.Hotkeys

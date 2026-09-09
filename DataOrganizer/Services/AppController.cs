@@ -186,7 +186,7 @@ public sealed class AppController : IAppController
 			}
 
 			// Nothing is read from a database that is not there: the toast above has already said so.
-			ExplorerModelBaseDto[]? hierarchy = isConnected
+			ExplorerItemDtoBase[]? hierarchy = isConnected
 				? await _entityLoader
 					.LoadFromEmbeddedDbAsync(token)
 					.ConfigureAwait(true)
@@ -202,7 +202,7 @@ public sealed class AppController : IAppController
 			}
 			else
 			{
-				FileModelDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
+				FileDto[] unreadable = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
 
 				if (unreadable.IsNotEmpty())
 				{

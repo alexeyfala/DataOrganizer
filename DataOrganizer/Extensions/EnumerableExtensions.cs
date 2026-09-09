@@ -21,23 +21,23 @@ internal static class EnumerableExtensions
 	/// <c>True</c> when all elements in the hierarchy satisfy a certain condition.
 	/// </summary>
 	public static bool AllBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (!condition(item))
 			{
 				return false;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -48,26 +48,26 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// <c>True</c> when the hierarchy contains <see cref="ExplorerModelBaseDto" /> with the certain condition.
+	/// <c>True</c> when the hierarchy contains <see cref="ExplorerItemDtoBase" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (condition(item))
 			{
 				return true;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -78,26 +78,26 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// <c>True</c> when the hierarchy contains <see cref="FileModelDto" /> with the certain condition.
+	/// <c>True</c> when the hierarchy contains <see cref="FileDto" /> with the certain condition.
 	/// </summary>
 	public static bool ContainsFileBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<FileModelDto> condition)
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Predicate<FileDto> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
-			if (item is FileModelDto file && condition(file))
+			if (item is FileDto file && condition(file))
 			{
 				return true;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -110,22 +110,22 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// <c>True</c> when the hierarchy contains an object with the given identifier.
 	/// </summary>
-	public static bool ContainsId(this IEnumerable<ExplorerModelBaseDto> hierarchy, Guid id)
+	public static bool ContainsId(this IEnumerable<ExplorerItemDtoBase> hierarchy, Guid id)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (item.Id == id)
 			{
 				return true;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -136,27 +136,27 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by condition.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by condition.
 	/// </summary>
-	/// <returns>Flat sequence <see cref="ExplorerModelBaseDto" />.</returns>
-	public static IEnumerable<ExplorerModelBaseDto> FilterBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
+	/// <returns>Flat sequence <see cref="ExplorerItemDtoBase" />.</returns>
+	public static IEnumerable<ExplorerItemDtoBase> FilterBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (condition(item))
 			{
 				yield return item;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -166,17 +166,17 @@ internal static class EnumerableExtensions
 
 	/// <summary>
 	/// Filters a hierarchical sequence by a list of identifiers <paramref name="identifiers"/>.
-	/// Returns a flat sequence of <see cref="FileModelDto" />.
+	/// Returns a flat sequence of <see cref="FileDto" />.
 	/// </summary>
-	public static IEnumerable<FileModelDto> FilterFilesById(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+	public static IEnumerable<FileDto> FilterFilesById(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<Guid> identifiers)
 	{
-		Dictionary<Guid, FileModelDto> filesById = GetFiles(hierarchy).ToDictionary(x => x.Id);
+		Dictionary<Guid, FileDto> filesById = GetFiles(hierarchy).ToDictionary(x => x.Id);
 
 		foreach (Guid id in identifiers)
 		{
-			if (filesById.TryGetValue(id, out FileModelDto? file))
+			if (filesById.TryGetValue(id, out FileDto? file))
 			{
 				yield return file;
 			}
@@ -184,26 +184,26 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Performs a search for the <see cref="ExplorerModelBaseDto" /> object in a sequence with a condition.
+	/// Performs a search for the <see cref="ExplorerItemDtoBase" /> object in a sequence with a condition.
 	/// </summary>
-	public static ExplorerModelBaseDto? FindBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Predicate<ExplorerModelBaseDto> condition)
+	public static ExplorerItemDtoBase? FindBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (condition(item))
 			{
 				return item;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -214,28 +214,28 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Performs a search for the <see cref="ExplorerModelBaseDto" /> object in the sequence by identifier.
+	/// Performs a search for the <see cref="ExplorerItemDtoBase" /> object in the sequence by identifier.
 	/// </summary>
-	public static ExplorerModelBaseDto? FindById(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
+	public static ExplorerItemDtoBase? FindById(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
 		Guid id) => FindBy(hierarchy, x => x.Id == id);
 
 	/// <summary>
-	/// Performs a search for the <see cref="FileModelDto" /> object in a sequence with a condition.
+	/// Performs a search for the <see cref="FileDto" /> object in a sequence with a condition.
 	/// </summary>
-	public static FileModelDto? FindFileBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Func<FileModelDto, bool> condition)
+	public static FileDto? FindFileBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Func<FileDto, bool> condition)
 	{
 		return GetFiles(hierarchy).FirstOrDefault(condition);
 	}
 
 	/// <summary>
-	/// Performs a search for the <see cref="FolderModelDto" /> object in a sequence with a condition.
+	/// Performs a search for the <see cref="FolderDto" /> object in a sequence with a condition.
 	/// </summary>
-	public static FolderModelDto? FindFolderBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Func<FolderModelDto, bool> condition)
+	public static FolderDto? FindFolderBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Func<FolderDto, bool> condition)
 	{
 		return GetFolders(hierarchy).FirstOrDefault(condition);
 	}
@@ -274,24 +274,24 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by type <see cref="FileModelDto" />.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FileDto" />.
 	/// </summary>
-	/// <returns>Flat list <see cref="FileModelDto" />.</returns>
-	public static IEnumerable<FileModelDto> GetFiles(this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	/// <returns>Flat list <see cref="FileDto" />.</returns>
+	public static IEnumerable<FileDto> GetFiles(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
-			if (item is FileModelDto file)
+			if (item is FileDto file)
 			{
 				yield return file;
 			}
-			else if (item is FolderModelDto folder)
+			else if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -300,43 +300,43 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by condition.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by condition.
 	/// </summary>
-	/// <returns>Flat sequence <see cref="FileModelDto" />.</returns>
-	public static IEnumerable<FileModelDto> GetFilesBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Func<FileModelDto, bool> condition)
+	/// <returns>Flat sequence <see cref="FileDto" />.</returns>
+	public static IEnumerable<FileDto> GetFilesBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Func<FileDto, bool> condition)
 	{
 		return GetFiles(hierarchy).Where(condition);
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by hotkeys that could not be read.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by hotkeys that could not be read.
 	/// </summary>
-	/// <returns>Flat sequence <see cref="FileModelDto" />.</returns>
-	public static IEnumerable<FileModelDto> GetFilesWithUnreadableHotkeys(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	/// <returns>Flat sequence <see cref="FileDto" />.</returns>
+	public static IEnumerable<FileDto> GetFilesWithUnreadableHotkeys(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		return GetFilesBy(hierarchy, x => x.Hotkeys.Any(IsUnreadable));
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by type <see cref="FolderModelDto" />.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by type <see cref="FolderDto" />.
 	/// </summary>
-	/// <returns>Flat sequence <see cref="FolderModelDto" />.</returns>
-	public static IEnumerable<FolderModelDto> GetFolders(this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	/// <returns>Flat sequence <see cref="FolderDto" />.</returns>
+	public static IEnumerable<FolderDto> GetFolders(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(hierarchy);
+		Stack<ExplorerItemDtoBase> stack = new(hierarchy);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
 				yield return folder;
 
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -345,18 +345,18 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Filters a hierarchical sequence of <see cref="ExplorerModelBaseDto" /> by condition.
+	/// Filters a hierarchical sequence of <see cref="ExplorerItemDtoBase" /> by condition.
 	/// </summary>
-	/// <returns>Flat sequence <see cref="FolderModelDto" />.</returns>
-	public static IEnumerable<FolderModelDto> GetFoldersBy(
-		this IEnumerable<ExplorerModelBaseDto> hierarchy,
-		Func<FolderModelDto, bool> condition)
+	/// <returns>Flat sequence <see cref="FolderDto" />.</returns>
+	public static IEnumerable<FolderDto> GetFoldersBy(
+		this IEnumerable<ExplorerItemDtoBase> hierarchy,
+		Func<FolderDto, bool> condition)
 	{
 		return GetFolders(hierarchy).Where(condition);
 	}
 
 	/// <summary>
-	/// Returns a string representation of the sequence <see cref="HotkeyModelDto" />.
+	/// Returns a string representation of the sequence <see cref="HotkeyDto" />.
 	/// </summary>
 	public static string GetHotkeysPresentation(this KeyStroke[] hotKeys)
 	{
@@ -394,7 +394,7 @@ internal static class EnumerableExtensions
 	/// Builds the text that names the files whose hotkeys could not be read, a file per line,
 	/// under the given <paramref name="header"/>.
 	/// </summary>
-	public static string GetUnreadableHotkeysPresentation(this FileModelDto[] files, string header)
+	public static string GetUnreadableHotkeysPresentation(this FileDto[] files, string header)
 	{
 		const int maxNames = 3;
 
@@ -470,22 +470,22 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Sorts the sequence <see cref="ExplorerModelBaseDto" /> by <see cref="ExplorerModelBaseDto.Index" /> recursively.
+	/// Sorts the sequence <see cref="ExplorerItemDtoBase" /> by <see cref="ExplorerItemDtoBase.Index" /> recursively.
 	/// </summary>
-	public static ExplorerModelBaseDto[] SortByIndexRecursively(this ExplorerModelBaseDto[] hierarchy)
+	public static ExplorerItemDtoBase[] SortByIndexRecursively(this ExplorerItemDtoBase[] hierarchy)
 	{
 		hierarchy
-			.OfType<FolderModelDto>()
+			.OfType<FolderDto>()
 			.ForEach(SortChildrenByIndexRecursively);
 
 		return [.. hierarchy.OrderBy(x => x.Index)];
 	}
 
 	/// <summary>
-	/// Redistributes <see cref="FolderModelDto.Children" /> objects by index <see cref="ExplorerModelBaseDto.Index" /><br />
-	/// into <see cref="FolderModelDto" /> recursively.
+	/// Redistributes <see cref="FolderDto.Children" /> objects by index <see cref="ExplorerItemDtoBase.Index" /><br />
+	/// into <see cref="FolderDto" /> recursively.
 	/// </summary>
-	public static void SortChildrenByIndexRecursively(this FolderModelDto target)
+	public static void SortChildrenByIndexRecursively(this FolderDto target)
 	{
 		if (!target.Children.Any())
 		{
@@ -498,14 +498,14 @@ internal static class EnumerableExtensions
 
 		target
 			.Children
-			.OfType<FolderModelDto>()
+			.OfType<FolderDto>()
 			.ForEach(SortChildrenByIndexRecursively);
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="HotkeyModelDto" /> to a sequence of <see cref="KeyStroke" />.
+	/// Transforms a sequence of <see cref="HotkeyDto" /> to a sequence of <see cref="KeyStroke" />.
 	/// </summary>
-	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyModelDto> sequence)
+	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyDto> sequence)
 	{
 		return sequence.Select(x => new KeyStroke
 		{
@@ -515,17 +515,17 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Converts flat sequences <see cref="FolderModelDto" /> and <see cref="FileModelDto" /> into a single hierarchical one.
+	/// Converts flat sequences <see cref="FolderDto" /> and <see cref="FileDto" /> into a single hierarchical one.
 	/// </summary>
-	public static IEnumerable<ExplorerModelBaseDto> ToHierarchical(
-		this FolderModelDto[] folders,
-		FileModelDto[] files)
+	public static IEnumerable<ExplorerItemDtoBase> ToHierarchical(
+		this FolderDto[] folders,
+		FileDto[] files)
 	{
-		Dictionary<Guid, FolderModelDto> foldersById = folders.ToDictionary(x => x.Id);
+		Dictionary<Guid, FolderDto> foldersById = folders.ToDictionary(x => x.Id);
 
-		foreach (FileModelDto file in files)
+		foreach (FileDto file in files)
 		{
-			if (file.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderModelDto? parent))
+			if (file.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderDto? parent))
 			{
 				yield return file;
 
@@ -539,9 +539,9 @@ internal static class EnumerableExtensions
 			file.Parent = parent;
 		}
 
-		foreach (FolderModelDto folder in folders)
+		foreach (FolderDto folder in folders)
 		{
-			if (folder.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderModelDto? parent))
+			if (folder.ParentId is not { } parentId || !foldersById.TryGetValue(parentId, out FolderDto? parent))
 			{
 				yield return folder;
 
@@ -557,9 +557,9 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyModelDto" />.
+	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyDto" />.
 	/// </summary>
-	public static IEnumerable<HotkeyModelDto> ToHotkeyModelsDto(
+	public static IEnumerable<HotkeyDto> ToHotkeyDtos(
 		this KeyStroke[] sequence,
 		Guid id = default,
 		Guid ownerId = default)
@@ -582,7 +582,7 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// Counts files and folders in hierarchy.
 	/// </summary>
-	internal static HierarchyCounts GetCount(this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	internal static HierarchyCounts GetCount(this IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		uint files = default;
 
@@ -603,11 +603,11 @@ internal static class EnumerableExtensions
 	/// Counts files and folders.
 	/// </summary>
 	private static void CountObjects(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		ref uint files,
 		ref uint folders)
 	{
-		foreach (ExplorerModelBaseDto item in hierarchy)
+		foreach (ExplorerItemDtoBase item in hierarchy)
 		{
 			if (item.EntityType == EntityKind.File || item.EntityType == EntityKind.DataSet)
 			{
@@ -620,7 +620,7 @@ internal static class EnumerableExtensions
 			{
 				folders++;
 
-				if (item is FolderModelDto folder)
+				if (item is FolderDto folder)
 				{
 					CountObjects(folder.Children, ref files, ref folders);
 				}
@@ -631,7 +631,7 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// <c>True</c> when a hotkey holds a key or a mask that the library no longer has.
 	/// </summary>
-	private static bool IsUnreadable(HotkeyModelDto hotkey)
+	private static bool IsUnreadable(HotkeyDto hotkey)
 	{
 		return hotkey.Code == KeyCode.VcUndefined || hotkey.Mask == EventMask.None;
 	}

@@ -91,7 +91,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -214,7 +214,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -351,7 +351,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -585,7 +585,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -705,7 +705,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -925,7 +925,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1001,7 +1001,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1080,7 +1080,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1140,7 +1140,7 @@ internal class DatasetEditorViewModelTests
 		// Assert
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1190,7 +1190,7 @@ internal class DatasetEditorViewModelTests
 		// Assert
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 
 		highlighted
 			.Should()
@@ -1240,7 +1240,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isSameValue ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1320,7 +1320,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 
 	/// <summary>
@@ -1410,7 +1410,7 @@ internal class DatasetEditorViewModelTests
 
 		await dbAccess.Received(isReadOnly ? 0 : 1).UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>());
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>());
 	}
 	#endregion
 }

@@ -62,7 +62,7 @@ internal sealed partial class IconsBlock : UserControl
 	}
 
 	/// <inheritdoc cref="NoteView.NoteItem" />
-	public ExplorerModelBaseDto? NoteItem
+	public ExplorerItemDtoBase? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -123,8 +123,8 @@ internal sealed partial class IconsBlock : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
-		.Register<IconsBlock, ExplorerModelBaseDto?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerItemDtoBase?> NoteItemProperty = AvaloniaProperty
+		.Register<IconsBlock, ExplorerItemDtoBase?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.

@@ -36,7 +36,7 @@ public sealed class KeyboardInputHook :
 	/// <summary>
 	/// List of files with hotkeys.
 	/// </summary>
-	internal List<FileModelDto> Files { get; } = [];
+	internal List<FileDto> Files { get; } = [];
 
 	/// <summary>
 	/// Stack of pressed keys.
@@ -149,7 +149,7 @@ public sealed class KeyboardInputHook :
 
 	/// <inheritdoc />
 	public async Task StartTrackingAsync(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		Func<bool> condition = () => !IsRunning;
@@ -251,7 +251,7 @@ public sealed class KeyboardInputHook :
 				Mask = mask
 			});
 
-			foreach (FileModelDto file in Files)
+			foreach (FileDto file in Files)
 			{
 				KeyStroke[] hotkeys = [.. file.Hotkeys.ToKeyStrokes()];
 
@@ -368,10 +368,10 @@ public sealed class KeyboardInputHook :
 	});
 
 	/// <summary>
-	/// Filters a sequence by <see cref="FileModelDto" /> with an interval.
+	/// Filters a sequence by <see cref="FileDto" /> with an interval.
 	/// </summary>
 	private async Task FilterFilesAsync(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
 		while (!token.IsCancellationRequested && IsRunning)

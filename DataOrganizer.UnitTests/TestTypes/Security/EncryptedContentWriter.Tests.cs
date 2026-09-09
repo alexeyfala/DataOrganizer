@@ -71,9 +71,9 @@ internal class EncryptedContentWriterTests
 		// Arrange
 		EncryptionStatus randomStatus = TestData.GetRandomEnumValueExcept(newStatus);
 
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: randomStatus);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: randomStatus);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5, encryptionStatus: randomStatus)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5, encryptionStatus: randomStatus)];
 
 		UpdateDatabaseParameters parameters = new()
 		{
@@ -92,8 +92,8 @@ internal class EncryptedContentWriterTests
 
 			dbAccess
 				.UpdateFileAndFolderPropertiesAsync(
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -143,8 +143,8 @@ internal class EncryptedContentWriterTests
 		{
 			dbAccess
 				.UpdateFileAndFolderPropertiesAsync(
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.ThrowsAsync(new InvalidOperationException());
 
 			builder.RegisterInstance(dbAccess);
@@ -173,15 +173,15 @@ internal class EncryptedContentWriterTests
 	public async Task UpdateDatabaseAsync_Saves_Notes()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FolderModelDto subfolder = TestData.CreateFolderDto();
+		FolderDto subfolder = TestData.CreateFolderDto();
 
 		folder
 			.Children
 			.Add(subfolder);
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		byte[] folderNote = TestData.CreateRandomBytes(10);
 
@@ -219,8 +219,8 @@ internal class EncryptedContentWriterTests
 		{
 			dbAccess
 				.UpdateFileAndFolderPropertiesAsync(
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(),
-					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(),
+					Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -237,9 +237,9 @@ internal class EncryptedContentWriterTests
 			.Be(UpdateDatabaseOutcome.Done);
 
 		await dbAccess.Received(1).UpdateFileAndFolderPropertiesAsync(
-			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(x =>
+			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(x =>
 				x != null && x.ContainsKey(file.Id)),
-			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>(x =>
+			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>(x =>
 				x != null && x.ContainsKey(folder.Id) && x.ContainsKey(subfolder.Id) && !x.ContainsKey(file.Id)));
 
 		folder.Note

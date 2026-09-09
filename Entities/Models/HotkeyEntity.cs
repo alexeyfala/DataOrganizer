@@ -15,7 +15,7 @@ namespace Entities.Models;
 	$"{nameof(Code)} = {{{nameof(Code)}}}, " +
 	$"{nameof(Mask)} = {{{nameof(Mask)}}}")]
 [XmlType(TypeName = Hotkey)]
-public sealed class HotkeyModel : EntityModelBase
+public sealed class HotkeyEntity : EntityBase
 {
 	#region Properties
 	/// <inheritdoc cref="KeyCode" />
@@ -31,7 +31,7 @@ public sealed class HotkeyModel : EntityModelBase
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public FileModel? Owner { get; init; }
+	public FileEntity? Owner { get; init; }
 
 	/// <summary>
 	/// Identifier of the owner.

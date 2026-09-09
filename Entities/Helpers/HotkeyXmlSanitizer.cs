@@ -19,15 +19,15 @@ public static class HotkeyXmlSanitizer
 	/// </summary>
 	public static void Sanitize(XDocument document)
 	{
-		foreach (XElement hotkey in document.Descendants(HotkeyModel.Hotkey))
+		foreach (XElement hotkey in document.Descendants(HotkeyEntity.Hotkey))
 		{
-			if (hotkey.Element(nameof(HotkeyModel.Code)) is { } code
+			if (hotkey.Element(nameof(HotkeyEntity.Code)) is { } code
 				&& EnumNameReader.Read(code.Value, KeyCode.VcUndefined) == KeyCode.VcUndefined)
 			{
 				code.Value = nameof(KeyCode.VcUndefined);
 			}
 
-			if (hotkey.Element(nameof(HotkeyModel.Mask)) is { } mask && !IsKnownMask(mask.Value))
+			if (hotkey.Element(nameof(HotkeyEntity.Mask)) is { } mask && !IsKnownMask(mask.Value))
 			{
 				mask.Value = nameof(EventMask.None);
 			}

@@ -9,13 +9,13 @@ public sealed class LoadedEntities
 {
 	#region Properties
 	/// <summary>
-	/// A flat sequence of <see cref="FileModel" />.
+	/// A flat sequence of <see cref="FileEntity" />.
 	/// </summary>
-	public required FileModel[] Files { get; init; }
+	public required FileEntity[] Files { get; init; }
 
 	/// <summary>
-	/// A flat sequence of <see cref="FolderModel" />.
+	/// A flat sequence of <see cref="FolderEntity" />.
 	/// </summary>
-	public required FolderModel[] Folders { get; init; }
+	public required FolderEntity[] Folders { get; init; }
 	#endregion
 }

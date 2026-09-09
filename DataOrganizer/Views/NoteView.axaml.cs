@@ -52,7 +52,7 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// An object the note belongs to, passed to <see cref="NoteReader" />.
 	/// </summary>
-	public ExplorerModelBaseDto? NoteItem
+	public ExplorerItemDtoBase? NoteItem
 	{
 		get => GetValue(NoteItemProperty);
 		set => SetValue(NoteItemProperty, value);
@@ -107,8 +107,8 @@ internal sealed partial class NoteView : UserControl
 	/// <summary>
 	/// Identifies the <see cref="NoteItem" /> avalonia property.
 	/// </summary>
-	public static readonly StyledProperty<ExplorerModelBaseDto?> NoteItemProperty = AvaloniaProperty
-		.Register<NoteView, ExplorerModelBaseDto?>(name: nameof(NoteItem));
+	public static readonly StyledProperty<ExplorerItemDtoBase?> NoteItemProperty = AvaloniaProperty
+		.Register<NoteView, ExplorerItemDtoBase?>(name: nameof(NoteItem));
 
 	/// <summary>
 	/// Identifies the <see cref="NoteName" /> avalonia property.

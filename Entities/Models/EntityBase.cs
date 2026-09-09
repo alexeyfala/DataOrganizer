@@ -3,9 +3,9 @@ using System;
 namespace Entities.Models;
 
 /// <summary>
-/// The base model for all entities.
+/// The base of every entity stored in the database.
 /// </summary>
-public abstract class EntityModelBase
+public abstract class EntityBase
 {
 	#region Properties
 	/// <summary>

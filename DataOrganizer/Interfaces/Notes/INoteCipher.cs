@@ -12,12 +12,12 @@ public interface INoteCipher
 	/// Converts the stored note of <paramref name="item" /> to plain text; <c>null</c> when there
 	/// is no note or the stored bytes cannot be read.
 	/// </summary>
-	string? Decode(ExplorerModelBaseDto item);
+	string? Decode(ExplorerItemDtoBase item);
 
 	/// <summary>
 	/// Converts <paramref name="note" /> to the form stored for <paramref name="item" />; <c>null</c>
 	/// for blank text and when the encrypted form cannot be produced.
 	/// </summary>
-	byte[]? Encode(ExplorerModelBaseDto item, string? note);
+	byte[]? Encode(ExplorerItemDtoBase item, string? note);
 	#endregion
 }

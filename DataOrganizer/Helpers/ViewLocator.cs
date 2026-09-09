@@ -36,7 +36,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 			return value;
 		}
 
-		if (param is FileModelDto file
+		if (param is FileDto file
 			&& file.IsEditing
 			&& CreateEditingFileControl(file, out Control? control))
 		{
@@ -49,7 +49,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is FileModelDto;
+	public bool Match(object? data) => data is FileDto;
 
 	/// <inheritdoc />
 	public void Remove<T>(T key) where T : notnull
@@ -70,7 +70,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 	/// Creates a control for editing a file.
 	/// </summary>
 	private bool CreateEditingFileControl(
-		FileModelDto file,
+		FileDto file,
 		[NotNullWhen(true)] out Control? control)
 	{
 		control = null;

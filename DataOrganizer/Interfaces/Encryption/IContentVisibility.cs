@@ -19,31 +19,31 @@ public interface IContentVisibility
 	/// <summary>
 	/// Drops the session keys of a folder and of every folder beneath it, whatever their contents show.
 	/// </summary>
-	void DiscardKeys(FolderModelDto folder);
+	void DiscardKeys(FolderDto folder);
 
 	/// <summary>
 	/// Hides contents of the whole hierarchy.
 	/// </summary>
-	void HideAllContents(IEnumerable<ExplorerModelBaseDto> hierarchy);
+	void HideAllContents(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
 	/// Hides file contents.
 	/// </summary>
-	void HideFileContents(FileModelDto file);
+	void HideFileContents(FileDto file);
 
 	/// <summary>
 	/// Hides file contents in folder.
 	/// </summary>
-	void HideFolderContents(FolderModelDto folder);
+	void HideFolderContents(FolderDto folder);
 
 	/// <summary>
 	/// Shows file contents.
 	/// </summary>
-	Task<bool> ShowFileContentsAsync(FileModelDto file, CancellationToken token = default);
+	Task<bool> ShowFileContentsAsync(FileDto file, CancellationToken token = default);
 
 	/// <summary>
 	/// Shows file contents in folder.
 	/// </summary>
-	Task ShowFolderContentsAsync(FolderModelDto folder, CancellationToken token = default);
+	Task ShowFolderContentsAsync(FolderDto folder, CancellationToken token = default);
 	#endregion
 }

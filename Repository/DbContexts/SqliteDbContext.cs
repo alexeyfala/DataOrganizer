@@ -55,77 +55,77 @@ public class SqliteDbContext : DbContext
 		// However, client-side generation or globally unique keys - such as GUIDs - are supported
 		// on any database, including SQLite.
 		modelBuilder
-			.Entity<ExplorerModelBase>()
+			.Entity<ExplorerItemBase>()
 			.UseTpcMappingStrategy();
 
 		modelBuilder
-			.Entity<ExplorerModelBase>()
+			.Entity<ExplorerItemBase>()
 			.HasIndex(x => x.Id);
 
 		modelBuilder
-			.Entity<ExplorerModelBase>()
+			.Entity<ExplorerItemBase>()
 			.Property(x => x.CreatedDate)
 			.HasConversion(timeTicksRemoveConverter);
 
 		modelBuilder
-			.Entity<ExplorerModelBase>()
+			.Entity<ExplorerItemBase>()
 			.Property(x => x.UpdatedDate)
 			.HasConversion(timeTicksRemoveConverter);
 		#endregion
 
 		#region Folder
 		modelBuilder
-			.Entity<FolderModel>()
+			.Entity<FolderEntity>()
 			.HasIndex(x => x.ParentId);
 
 		modelBuilder
-			.Entity<FolderModel>()
+			.Entity<FolderEntity>()
 			.HasMany(x => x.Children)
 			.WithOne(x => x.Parent)
 			.HasForeignKey(x => x.ParentId);
 
 		modelBuilder
-			.Entity<FolderModel>()
+			.Entity<FolderEntity>()
 			.ToTable("Folders");
 		#endregion
 
 		#region File
 		modelBuilder
-			.Entity<FileModel>()
+			.Entity<FileEntity>()
 			.HasIndex(x => x.ParentId);
 
 		modelBuilder
-			.Entity<FileModel>()
+			.Entity<FileEntity>()
 			.HasMany(x => x.Hotkeys)
 			.WithOne(x => x.Owner)
 			.HasForeignKey(x => x.OwnerId);
 
 		modelBuilder
-			.Entity<FileModel>()
+			.Entity<FileEntity>()
 			.ToTable("Files");
 		#endregion
 
 		#region Hotkey
 		modelBuilder
-			.Entity<HotkeyModel>()
+			.Entity<HotkeyEntity>()
 			.HasIndex(x => x.OwnerId);
 
 		modelBuilder
-			.Entity<HotkeyModel>()
+			.Entity<HotkeyEntity>()
 			.Property(x => x.Code)
 			.HasConversion(new KeyCodeNameConverter());
 
 		modelBuilder
-			.Entity<HotkeyModel>()
+			.Entity<HotkeyEntity>()
 			.Property(x => x.Mask)
 			.HasConversion(new EventMaskNameConverter());
 
 		modelBuilder
-			.Entity<HotkeyModel>()
+			.Entity<HotkeyEntity>()
 			.ToTable("Hotkeys");
 
 		modelBuilder
-			.Entity<HotkeyModel>()
+			.Entity<HotkeyEntity>()
 			.UsePropertyAccessMode(PropertyAccessMode.Property);
 		#endregion
 

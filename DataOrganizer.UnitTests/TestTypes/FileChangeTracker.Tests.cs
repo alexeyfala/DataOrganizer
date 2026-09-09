@@ -80,7 +80,7 @@ internal class FileChangeTrackerTests
 		// Assert
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -130,7 +130,7 @@ internal class FileChangeTrackerTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -167,7 +167,7 @@ internal class FileChangeTrackerTests
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -225,7 +225,7 @@ internal class FileChangeTrackerTests
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -262,7 +262,7 @@ internal class FileChangeTrackerTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -287,7 +287,7 @@ internal class FileChangeTrackerTests
 		// Assert
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -303,7 +303,7 @@ internal class FileChangeTrackerTests
 
 		StrongReferenceMessenger messenger = new();
 
-		FileModelDto? receivedClosedFile = null;
+		FileDto? receivedClosedFile = null;
 
 		object recipient = new();
 
@@ -370,7 +370,7 @@ internal class FileChangeTrackerTests
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -412,7 +412,7 @@ internal class FileChangeTrackerTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
@@ -444,7 +444,7 @@ internal class FileChangeTrackerTests
 		// Assert
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			parameters.File.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 
 		parameters.File.UpdatedDate

@@ -131,7 +131,7 @@ public sealed class App : Application
 		services.AddTransient<IEntityLoader, EntityLoader>();
 		services.AddTransient<IEntityPropertyWriter, EntityPropertyWriter>();
 		services.AddTransient<IExecutionSandbox, ExecutionSandbox>();
-		services.AddTransient<IExplorerModelBaseRepository, ExplorerModelBaseRepository>();
+		services.AddTransient<IExplorerItemRepository, ExplorerItemRepository>();
 		services.AddTransient<IFileAssociationService, FileAssociationService>();
 		services.AddTransient<IFileChangeTracker, FileChangeTracker>();
 		services.AddTransient<IFileHotkeyEditor, FileHotkeyEditor>();

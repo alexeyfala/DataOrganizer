@@ -81,7 +81,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.DidNotReceive()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -120,7 +120,7 @@ internal class AppControllerTests
 		{
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			viewLauncher.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			viewLauncher.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 		});
 	}
 
@@ -133,7 +133,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -256,7 +256,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -314,7 +314,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -347,7 +347,7 @@ internal class AppControllerTests
 
 			entityLoader
 				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerModelBaseDto[]?)null);
+				.Returns((ExplorerItemDtoBase[]?)null);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -372,7 +372,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -384,7 +384,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys

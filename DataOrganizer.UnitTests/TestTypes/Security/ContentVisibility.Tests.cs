@@ -54,17 +54,17 @@ internal class ContentVisibilityTests
 	public void DiscardKeys_Does_Work()
 	{
 		// Arrange
-		FolderModelDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		nested.Parent = keeper;
 
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested
 			.Children
@@ -104,7 +104,7 @@ internal class ContentVisibilityTests
 	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		folder
 			.Children
@@ -144,11 +144,11 @@ internal class ContentVisibilityTests
 	public void HideFolderContents_Keeps_The_Key_While_The_Keeper_Has_Shown_Content()
 	{
 		// Arrange
-		FolderModelDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested.Parent = keeper;
 
@@ -187,11 +187,11 @@ internal class ContentVisibilityTests
 	public async Task ShowFileContentsAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
 			.Children
@@ -250,11 +250,11 @@ internal class ContentVisibilityTests
 	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
 			.Children
@@ -298,7 +298,7 @@ internal class ContentVisibilityTests
 	public async Task ShowFolderContentsAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -358,7 +358,7 @@ internal class ContentVisibilityTests
 	public async Task ShowFolderContentsAsync_Reports_A_Refused_Key()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 

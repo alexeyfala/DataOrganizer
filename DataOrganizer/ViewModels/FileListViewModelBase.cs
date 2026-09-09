@@ -51,7 +51,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		if (!GetFile(
 			values,
-			out FileModelDto? file))
+			out FileDto? file))
 		{
 			return;
 		}
@@ -78,7 +78,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	[RelayCommand]
 	private async Task PreviewPointerEntered(MaterialIcon? icon)
 	{
-		if (icon?.DataContext is not FileModelDto file)
+		if (icon?.DataContext is not FileDto file)
 		{
 			return;
 		}
@@ -186,7 +186,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	{
 		if (GetFile(
 			multiBindings?.ToArray() ?? [],
-			out FileModelDto? file))
+			out FileDto? file))
 		{
 			return !file.IsOpened();
 		}
@@ -218,11 +218,11 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// </summary>
 	private static bool GetFile(
 		object[] values,
-		[NotNullWhen(true)] out FileModelDto? file)
+		[NotNullWhen(true)] out FileDto? file)
 	{
 		file = null;
 
-		if (values.Length < 2 || values[0] is not FileModelDto dto)
+		if (values.Length < 2 || values[0] is not FileDto dto)
 		{
 			return false;
 		}

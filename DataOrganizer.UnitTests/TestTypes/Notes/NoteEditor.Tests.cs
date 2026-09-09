@@ -29,7 +29,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file.Note = TestData.CreateRandomBytes(10);
 
@@ -40,7 +40,7 @@ internal class NoteEditorTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -81,7 +81,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Database_Update_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		byte[] encoded = TestData.CreateRandomBytes(10);
 
@@ -122,7 +122,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -154,7 +154,7 @@ internal class NoteEditorTests
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -166,7 +166,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Throws()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -198,7 +198,7 @@ internal class NoteEditorTests
 
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
 			Arg.Any<Guid>(),
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -210,7 +210,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.DataSet)] EntityKind entityType)
 	{
 		// Arrange
-		FileModelDto file = CreateFile(entityType);
+		FileDto file = CreateFile(entityType);
 
 		byte[] encoded = TestData.CreateRandomBytes(10);
 
@@ -223,7 +223,7 @@ internal class NoteEditorTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -261,7 +261,7 @@ internal class NoteEditorTests
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			file.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -273,7 +273,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		byte[] encoded = TestData.CreateRandomBytes(10);
 
@@ -284,7 +284,7 @@ internal class NoteEditorTests
 			dbAccess
 				.UpdateFolderPropertiesAsync(
 					folder.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -318,7 +318,7 @@ internal class NoteEditorTests
 
 		await dbAccess.Received(1).UpdateFolderPropertiesAsync(
 			folder.Id,
-			Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>(),
+			Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 	}
 
@@ -330,7 +330,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		byte[] replaced = TestData.CreateRandomBytes(10);
 
@@ -343,7 +343,7 @@ internal class NoteEditorTests
 			dbAccess
 				.UpdateFilePropertiesAsync(
 					file.Id,
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.Returns(true);
 
@@ -377,7 +377,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// Creates a file or a dataset.
 	/// </summary>
-	private static FileModelDto CreateFile(EntityKind entityType) => new()
+	private static FileDto CreateFile(EntityKind entityType) => new()
 	{
 		CreatedDate = DateTime.Now,
 		EntityType = entityType,

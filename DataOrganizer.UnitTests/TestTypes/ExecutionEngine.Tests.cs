@@ -30,7 +30,7 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -167,7 +167,7 @@ internal class ExecutionEngineTests
 			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 
@@ -216,7 +216,7 @@ internal class ExecutionEngineTests
 			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 
@@ -263,7 +263,7 @@ internal class ExecutionEngineTests
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -461,7 +461,7 @@ internal class ExecutionEngineTests
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 

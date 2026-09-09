@@ -35,10 +35,10 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties);
 
 		// Assert
-		FileModel file = result
+		FileEntity file = result
 			.Should()
 			.ContainSingle()
 			.Which;
@@ -74,10 +74,10 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Contents);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents);
 
 		// Assert
-		FileModel file = result
+		FileEntity file = result
 			.Should()
 			.ContainSingle()
 			.Which;
@@ -111,10 +111,10 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.None);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.None);
 
 		// Assert
-		FileModel file = result
+		FileEntity file = result
 			.Should()
 			.ContainSingle()
 			.Which;
@@ -152,10 +152,10 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Properties);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Properties);
 
 		// Assert
-		FileModel file = result
+		FileEntity file = result
 			.Should()
 			.ContainSingle()
 			.Which;
@@ -174,7 +174,7 @@ internal class FileRepositoryTests
 	/// <summary>
 	/// Creates a file model with the given contents and properties.
 	/// </summary>
-	private static FileModel CreateFile(byte[] contents, string? properties) => new()
+	private static FileEntity CreateFile(byte[] contents, string? properties) => new()
 	{
 		Id = Guid.NewGuid(),
 		Index = 0,

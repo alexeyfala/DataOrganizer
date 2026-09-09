@@ -22,7 +22,7 @@ public sealed class NoteCipher : INoteCipher
 
 	#region Methods
 	/// <inheritdoc />
-	public string? Decode(ExplorerModelBaseDto item)
+	public string? Decode(ExplorerItemDtoBase item)
 	{
 		if (item.Note is not { } note || note.IsEmpty())
 		{
@@ -60,7 +60,7 @@ public sealed class NoteCipher : INoteCipher
 	}
 
 	/// <inheritdoc />
-	public byte[]? Encode(ExplorerModelBaseDto item, string? note)
+	public byte[]? Encode(ExplorerItemDtoBase item, string? note)
 	{
 		if (string.IsNullOrWhiteSpace(note))
 		{

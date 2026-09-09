@@ -8,12 +8,12 @@ using System.Collections.ObjectModel;
 
 namespace DataOrganizer.Dto.Entities;
 
-/// <inheritdoc cref="FileModel" />
-public partial class FileModelDto : ExplorerModelBaseDto
+/// <inheritdoc cref="FileEntity" />
+public sealed partial class FileDto : ExplorerItemDtoBase
 {
 	#region Properties
-	/// <inheritdoc cref="FileModel.Hotkeys" />
-	public ObservableCollection<HotkeyModelDto> Hotkeys { get; init; } = [];
+	/// <inheritdoc cref="FileEntity.Hotkeys" />
+	public ObservableCollection<HotkeyDto> Hotkeys { get; init; } = [];
 
 	/// <summary>
 	/// A tooltip for hotkeys.
@@ -33,11 +33,11 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	[ObservableProperty]
 	public partial bool IsExecuting { get; set; }
 
-	/// <inheritdoc cref="FileModel.IsFavorite" />
+	/// <inheritdoc cref="FileEntity.IsFavorite" />
 	[ObservableProperty]
 	public partial bool IsFavorite { get; set; }
 
-	/// <inheritdoc cref="FileModel.Properties" />
+	/// <inheritdoc cref="FileEntity.Properties" />
 	public string? Properties { get; set; }
 	#endregion
 

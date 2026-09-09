@@ -22,7 +22,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Opened in editor files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> Items { get; } = [];
+	public ObservableCollection<FileDto> Items { get; } = [];
 
 	/// <summary>
 	/// Index of selected element in <see cref="TabControl" />.
@@ -42,7 +42,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// Closes every tab in <see cref="TabControl" /> except the specified one.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanCloseOtherTabs))]
-	internal void CloseOtherTabs(FileModelDto dto)
+	internal void CloseOtherTabs(FileDto dto)
 	{
 		if (dto is null)
 		{
@@ -59,7 +59,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// Closes a the tab in <see cref="TabControl" />.
 	/// </summary>
 	[RelayCommand]
-	internal void CloseTab(FileModelDto dto)
+	internal void CloseTab(FileDto dto)
 	{
 		if (dto is null)
 		{
@@ -68,9 +68,9 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 
 		_logger.LogInformation($"Closing opened in editor file:{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name),
-			nameof(FileModelDto.EntityType))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name),
+			nameof(FileDto.EntityType))}");
 
 		dto.IsEditing = false;
 
@@ -83,15 +83,15 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	[RelayCommand]
 	private async Task SelectionChanged(SelectionChangedEventArgs? e)
 	{
-		if (e?.Source is not TabControl container || container.SelectedItem is not FileModelDto dto)
+		if (e?.Source is not TabControl container || container.SelectedItem is not FileDto dto)
 		{
 			return;
 		}
 
 		_logger.LogDebug($@"File selected in ""{nameof(TabControl)}"":{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name))}");
 
 		TabItem? tabItem = null;
 
@@ -152,7 +152,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Item that was selected before the current one.
 	/// </summary>
-	private FileModelDto? _previousSelectedItem;
+	private FileDto? _previousSelectedItem;
 	#endregion
 
 	#region Constructors
@@ -168,7 +168,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Closes editor associated with the object.
 	/// </summary>
-	public void CloseEditor(FileModelDto dto)
+	public void CloseEditor(FileDto dto)
 	{
 		Items.Remove(dto);
 
@@ -180,7 +180,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 	/// <summary>
 	/// Opens a file in built-in the editor.
 	/// </summary>
-	public void OpenInEditor(FileModelDto dto)
+	public void OpenInEditor(FileDto dto)
 	{
 		if (dto is null)
 		{
@@ -191,17 +191,17 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 		{
 			_logger.LogWarning($"The file is already opened in the built-in editor:{dto.GetPropertyValues(
 				true,
-				nameof(FileModelDto.Id),
-				nameof(FileModelDto.Name),
-				nameof(FileModelDto.EntityType))}");
+				nameof(FileDto.Id),
+				nameof(FileDto.Name),
+				nameof(FileDto.EntityType))}");
 
 			return;
 		}
 
 		_logger.LogInformation($"The file needs to be opened in the built-in editor:{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name))}");
 
 		dto.IsEditing = true;
 

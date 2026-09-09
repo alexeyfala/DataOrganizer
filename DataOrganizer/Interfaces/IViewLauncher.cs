@@ -35,23 +35,23 @@ public interface IViewLauncher
 	/// Configures <see cref="EditorWindow" />.
 	/// </summary>
 	EditorWindow ConfigureEditorWindow(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default);
 
 	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
 	FavoritesWindow ConfigureFavoritesWindow(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles);
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles);
 
 	/// <summary>
 	/// Configures the main application window.
 	/// </summary>
-	Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy);
+	Window ConfigureMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
 	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.

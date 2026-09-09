@@ -92,7 +92,7 @@ public sealed class FolderProtection : IFolderProtection
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task ChangePasswordAsync(FolderModelDto folder, CancellationToken token = default)
+	public async Task ChangePasswordAsync(FolderDto folder, CancellationToken token = default)
 	{
 		if (folder.EncryptedDek is null)
 		{
@@ -150,8 +150,8 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc />
 	public async Task DecryptFolderAsync(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		CancellationToken token = default)
 	{
 		if (folder.EncryptedDek is null)
@@ -261,8 +261,8 @@ public sealed class FolderProtection : IFolderProtection
 
 	/// <inheritdoc />
 	public async Task EncryptFolderAsync(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		CancellationToken token = default)
 	{
 		using PinnedSecret password = await _dialogService.RequestPasswordAsync(
@@ -405,14 +405,14 @@ public sealed class FolderProtection : IFolderProtection
 	/// A note that cannot be converted throws, so the result is never partial.
 	/// </summary>
 	private NoteUpdate[] ProcessNotes(
-		FolderModelDto folder,
-		FileModelDto[] files,
+		FolderDto folder,
+		FileDto[] files,
 		PinnedBuffer dek,
 		bool encrypt)
 	{
 		List<NoteUpdate> notes = [];
 
-		ExplorerModelBaseDto[] objects =
+		ExplorerItemDtoBase[] objects =
 		[
 			.. folder.WithSubfolders(),
 			.. files
@@ -420,7 +420,7 @@ public sealed class FolderProtection : IFolderProtection
 
 		try
 		{
-			foreach (ExplorerModelBaseDto item in objects)
+			foreach (ExplorerItemDtoBase item in objects)
 			{
 				if (item.Note is not { } note || note.IsEmpty())
 				{

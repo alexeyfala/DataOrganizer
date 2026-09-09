@@ -102,7 +102,7 @@ public partial class EditorViewModel :
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
 	[NotifyCanExecuteChangedFor(nameof(ResetSelectedObjectCommand))]
-	public partial ExplorerModelBaseDto? SelectedObject { get; set; }
+	public partial ExplorerItemDtoBase? SelectedObject { get; set; }
 
 	/// <summary>
 	/// Window width.
@@ -154,8 +154,8 @@ public partial class EditorViewModel :
 	/// Called when <see cref="SelectedObject" /> changes.
 	/// </summary>
 	partial void OnSelectedObjectChanging(
-		ExplorerModelBaseDto? oldValue,
-		ExplorerModelBaseDto? newValue)
+		ExplorerItemDtoBase? oldValue,
+		ExplorerItemDtoBase? newValue)
 	{
 		if (IsReadOnly
 			|| IsActionInProgress
@@ -190,14 +190,14 @@ public partial class EditorViewModel :
 	/// Changes password for folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanChangePassword))]
-	internal async Task ChangePassword(FolderModelDto? dto)
+	internal async Task ChangePassword(FolderDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. dto
+		FileDto[] openedFiles = [.. dto
 			.Children
 			.GetFilesBy(IsOpened)];
 
@@ -217,14 +217,14 @@ public partial class EditorViewModel :
 	/// Decrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDecryptFolder))]
-	internal async Task DecryptFolder(FolderModelDto? dto)
+	internal async Task DecryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
+		FileDto[] files = [.. dto
 			.Children
 			.GetFiles()];
 
@@ -235,7 +235,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+		FileDto[] openedFiles = [.. files.Where(IsOpened)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -253,7 +253,7 @@ public partial class EditorViewModel :
 	/// Displays the note editing dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanEditNote))]
-	internal async Task EditNote(ExplorerModelBaseDto? dto)
+	internal async Task EditNote(ExplorerItemDtoBase? dto)
 	{
 		if (dto is null)
 		{
@@ -282,14 +282,14 @@ public partial class EditorViewModel :
 	/// Encrypts files in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanEncryptFolder))]
-	internal async Task EncryptFolder(FolderModelDto? dto)
+	internal async Task EncryptFolder(FolderDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
+		FileDto[] files = [.. dto
 			.Children
 			.GetFiles()];
 
@@ -300,7 +300,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+		FileDto[] openedFiles = [.. files.Where(IsOpened)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -318,7 +318,7 @@ public partial class EditorViewModel :
 	/// Executes the file in the operating system.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	internal async Task ExecuteFile(FileModelDto? dto)
+	internal async Task ExecuteFile(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -329,9 +329,9 @@ public partial class EditorViewModel :
 		{
 			_logger.LogWarning($"The file is already executing in the operating system:{dto.GetPropertyValues(
 				true,
-				nameof(FileModelDto.Id),
-				nameof(FileModelDto.Name),
-				nameof(FileModelDto.EntityType))}");
+				nameof(FileDto.Id),
+				nameof(FileDto.Name),
+				nameof(FileDto.EntityType))}");
 
 			return;
 		}
@@ -354,9 +354,9 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation($"The file needs to be executed in the operating system:{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name),
-			nameof(FileModelDto.EntityType))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name),
+			nameof(FileDto.EntityType))}");
 
 		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
@@ -375,8 +375,8 @@ public partial class EditorViewModel :
 
 			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
 				true,
-				nameof(FileModelDto.Id),
-				nameof(FileModelDto.EntityType))}");
+				nameof(FileDto.Id),
+				nameof(FileDto.EntityType))}");
 
 			return;
 		}
@@ -384,10 +384,10 @@ public partial class EditorViewModel :
 		_logger.LogInformation(
 			$"Contents of the {result.Contents.Length}-byte file loaded from the database:{dto.GetPropertyValues(
 				true,
-				nameof(FileModelDto.Id),
-				nameof(FileModelDto.Name),
-				nameof(FileModelDto.EntityType),
-				nameof(FileModelDto.UpdatedDate))}");
+				nameof(FileDto.Id),
+				nameof(FileDto.Name),
+				nameof(FileDto.EntityType),
+				nameof(FileDto.UpdatedDate))}");
 
 		byte[] contents = result.Contents;
 
@@ -454,7 +454,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
+		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(x => x.IsOpened() && x.EncryptionStatus == EncryptionStatus.Decrypted)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -470,7 +470,7 @@ public partial class EditorViewModel :
 	/// Hides file contents.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanHideFileContents))]
-	internal async Task HideFileContents(FileModelDto? dto)
+	internal async Task HideFileContents(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -504,7 +504,7 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="IContentVisibility.HideFolderContents" />
 	[RelayCommand(CanExecute = nameof(CanHideFolderContents))]
-	internal async Task HideFolderContents(FolderModelDto? dto)
+	internal async Task HideFolderContents(FolderDto? dto)
 	{
 		if (dto is null)
 		{
@@ -517,7 +517,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. dto
+		FileDto[] openedFiles = [.. dto
 			.Children
 			.GetFilesBy(IsOpened)];
 
@@ -539,7 +539,7 @@ public partial class EditorViewModel :
 	[RelayCommand(CanExecute = nameof(CanImport))]
 	internal async Task Import()
 	{
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
+		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(IsOpened)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -573,8 +573,8 @@ public partial class EditorViewModel :
 	/// Resets the <see cref="SelectedObject" />.
 	/// </summary>
 	/// <remarks>
-	/// Change to the <see cref="ExplorerModelBaseDto.IsSelected" /> property is saved to the database
-	/// using the <see cref="OnSelectedObjectChanging(ExplorerModelBaseDto?, ExplorerModelBaseDto?)" /> method.
+	/// Change to the <see cref="ExplorerItemDtoBase.IsSelected" /> property is saved to the database
+	/// using the <see cref="OnSelectedObjectChanging(ExplorerItemDtoBase?, ExplorerItemDtoBase?)" /> method.
 	/// </remarks>
 	[RelayCommand(CanExecute = nameof(CanResetSelectedObject))]
 	internal void ResetSelectedObject()
@@ -606,10 +606,10 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Sets <see cref="FileModelDto.IsFavorite" /> value.
+	/// Sets <see cref="FileDto.IsFavorite" /> value.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSetFavorite))]
-	internal Task SetFavorite(FileModelDto? dto)
+	internal Task SetFavorite(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -652,14 +652,14 @@ public partial class EditorViewModel :
 	/// Shows file contents in folder.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowFolderContents))]
-	internal async Task ShowFolderContents(FolderModelDto? dto)
+	internal async Task ShowFolderContents(FolderDto? dto)
 	{
 		if (dto is null)
 		{
 			return;
 		}
 
-		FileModelDto[] files = [.. dto
+		FileDto[] files = [.. dto
 			.Children
 			.GetFiles()];
 
@@ -670,7 +670,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FileModelDto[] openedFiles = [.. files.Where(IsOpened)];
+		FileDto[] openedFiles = [.. files.Where(IsOpened)];
 
 		if (!await TryCloseOpenedFilesAsync(openedFiles).ConfigureAwait(true))
 		{
@@ -690,7 +690,7 @@ public partial class EditorViewModel :
 	/// Displays the add object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanAdd))]
-	private async Task Add(FolderModelDto? parent)
+	private async Task Add(FolderDto? parent)
 	{
 		_logger.LogInformation("Adding an object using a dialog");
 
@@ -746,7 +746,7 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="CloseFile" />
 	[RelayCommand]
-	private void CloseOpenedFile(FileModelDto? dto)
+	private void CloseOpenedFile(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -764,7 +764,7 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="CopyContentViewModelBase.CopyContentAsync" />
 	[RelayCommand(CanExecute = nameof(CanCopyContent))]
-	private Task CopyContentByContextMenu(FileModelDto? dto)
+	private Task CopyContentByContextMenu(FileDto? dto)
 	{
 		if (dto is null
 			|| _app.FindWindow<EditorWindow>() is not { } window
@@ -783,7 +783,7 @@ public partial class EditorViewModel :
 	/// Copies object's name to clipboard.
 	/// </summary>
 	[RelayCommand]
-	private void CopyName(ExplorerModelBaseDto? dto)
+	private void CopyName(ExplorerItemDtoBase? dto)
 	{
 		try
 		{
@@ -796,7 +796,7 @@ public partial class EditorViewModel :
 
 			_exceptionHandler.Watch(_clipboard.SetTextAsync(dto.Name));
 
-			FolderModelDto[] parents = [.. dto
+			FolderDto[] parents = [.. dto
 				.GetAllParents()
 				.Reverse()];
 
@@ -817,9 +817,9 @@ public partial class EditorViewModel :
 	/// Displays the delete object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanDelete))]
-	private async Task Delete(ExplorerModelBaseDto? dto)
+	private async Task Delete(ExplorerItemDtoBase? dto)
 	{
-		ExplorerModelBaseDto? toBeDeleted = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeDeleted = dto ?? SelectedObject;
 
 		if (toBeDeleted is null)
 		{
@@ -828,7 +828,7 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		bool isopened = dto is FileModelDto file && file.IsOpened();
+		bool isopened = dto is FileDto file && file.IsOpened();
 
 		if (!await _dialogService
 			.RequestYesNoDialogAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
@@ -843,7 +843,7 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="EditingFilesViewModel.OpenInEditor" />
 	[RelayCommand(CanExecute = nameof(CanBeEditedOrExecuted))]
-	private async Task EditFile(FileModelDto? dto)
+	private async Task EditFile(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -917,17 +917,17 @@ public partial class EditorViewModel :
 
 		_logger.LogDebug($"Open a file context menu:{SelectedObject.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name))}");
 	}
 
 	/// <summary>
 	/// Displays the rename object dialog box.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanRename))]
-	private async Task Rename(ExplorerModelBaseDto? dto)
+	private async Task Rename(ExplorerItemDtoBase? dto)
 	{
-		ExplorerModelBaseDto? toBeRenamed = dto ?? SelectedObject;
+		ExplorerItemDtoBase? toBeRenamed = dto ?? SelectedObject;
 
 		if (toBeRenamed is null)
 		{
@@ -983,7 +983,7 @@ public partial class EditorViewModel :
 
 	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
 	[RelayCommand(CanExecute = nameof(CanShowFileContents))]
-	private Task ShowFileContents(FileModelDto? dto)
+	private Task ShowFileContents(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -997,7 +997,7 @@ public partial class EditorViewModel :
 	/// Displays the hotkey editor.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanShowHotkeysEditor))]
-	private async Task ShowHotkeysEditor(FileModelDto? dto)
+	private async Task ShowHotkeysEditor(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -1051,7 +1051,7 @@ public partial class EditorViewModel :
 	/// Shows a properties view.
 	/// </summary>
 	[RelayCommand]
-	private void ShowProperties(ExplorerModelBaseDto? dto)
+	private void ShowProperties(ExplorerItemDtoBase? dto)
 	{
 		if (dto is null)
 		{
@@ -1195,7 +1195,7 @@ public partial class EditorViewModel :
 
 	#region Methods
 	/// <inheritdoc />
-	public override void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public override void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		Hierarchy.AddRange(hierarchy);
 
@@ -1298,9 +1298,9 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Sets the <see cref="ExplorerModelBaseDto.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
+	/// Sets the <see cref="ExplorerItemDtoBase.IsSelected" /> to <c>True</c> and <see cref="SelectedObject" /> from <paramref name="selected"/>.
 	/// </summary>
-	public void SetSelectedObject(ExplorerModelBaseDto selected)
+	public void SetSelectedObject(ExplorerItemDtoBase selected)
 	{
 		selected.IsSelected = true;
 
@@ -1318,7 +1318,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		FolderModelDto[] parents = [.. found
+		FolderDto[] parents = [.. found
 			.GetAllParents()
 			.ForEach(x => x.IsExpanded = true)
 			.Reverse()];
@@ -1367,15 +1367,15 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Adds <see cref="ExplorerModelBase" /> to the database and <see cref="ExplorerModelBaseDto" /> to the <see cref="ViewModelBase.Hierarchy" />.
+	/// Adds <see cref="ExplorerItemBase" /> to the database and <see cref="ExplorerItemDtoBase" /> to the <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
-	internal async Task<ExplorerModelBaseDto?> AddAsync(
+	internal async Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
 		EntityKind entityType,
-		FolderModelDto? parent,
+		FolderDto? parent,
 		CancellationToken token = default)
 	{
-		ExplorerModelBaseDto? dto = await _hierarchyEditor
+		ExplorerItemDtoBase? dto = await _hierarchyEditor
 			.AddAsync(name, entityType, parent, Hierarchy, token)
 			.ConfigureAwait(false);
 
@@ -1391,7 +1391,7 @@ public partial class EditorViewModel :
 	/// Deletes an object from the database and from <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	internal async Task<bool> DeleteAsync(
-		ExplorerModelBaseDto dto,
+		ExplorerItemDtoBase dto,
 		CancellationToken token = default)
 	{
 		if (!await _hierarchyEditor
@@ -1401,13 +1401,13 @@ public partial class EditorViewModel :
 			return false;
 		}
 
-		if (dto is FileModelDto file)
+		if (dto is FileDto file)
 		{
 			CloseFile(file);
 
 			RemoveFromCopyHistory(file);
 		}
-		else if (dto is FolderModelDto folder)
+		else if (dto is FolderDto folder)
 		{
 			_contentVisibility.DiscardKeys(folder);
 		}
@@ -1421,7 +1421,7 @@ public partial class EditorViewModel :
 	/// Expands or collapses all folders in <see cref="ViewModelBase.Hierarchy" />.
 	/// </summary>
 	/// <remarks>
-	/// Changes to the <see cref="ExplorerModelBaseDto.IsExpanded" /> property of folders are saved to the database
+	/// Changes to the <see cref="ExplorerItemDtoBase.IsExpanded" /> property of folders are saved to the database
 	/// using the <see cref="Receive(FolderExpandedChangedMessage)" /> message handler.
 	/// </remarks>
 	internal Task ExpandCollapseAllFoldersAsync(bool isExpanded)
@@ -1431,7 +1431,7 @@ public partial class EditorViewModel :
 			ResetSelectedObject();
 		}
 
-		FolderModelDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
+		FolderDto[] folders = [.. Hierarchy.GetFoldersBy(x => x.IsExpanded != isExpanded)];
 
 		if (folders.IsEmpty())
 		{
@@ -1525,7 +1525,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <inheritdoc />
-	protected override void CloseEditingFile(FileModelDto file)
+	protected override void CloseEditingFile(FileDto file)
 	{
 		if (_editingFiles is not null)
 		{
@@ -1542,7 +1542,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFileContentsCommand" />.
 	/// </summary>
-	private static bool CanHideFileContents(FileModelDto? dto)
+	private static bool CanHideFileContents(FileDto? dto)
 	{
 		return dto is not null && dto.EncryptionStatus == EncryptionStatus.Decrypted;
 	}
@@ -1550,7 +1550,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideFolderContentsCommand" />.
 	/// </summary>
-	private static bool CanHideFolderContents(FolderModelDto? dto)
+	private static bool CanHideFolderContents(FolderDto? dto)
 	{
 		return dto?.EncryptionStatus.IsNotDefault() == true
 			&& dto.AnyChild(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
@@ -1559,7 +1559,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Returns a sequence with information on the properties of an object.
 	/// </summary>
-	private static IEnumerable<PropertyDescription> GetPropertyDescriptions(ExplorerModelBaseDto dto)
+	private static IEnumerable<PropertyDescription> GetPropertyDescriptions(ExplorerItemDtoBase dto)
 	{
 		const string format = "dd.MM.yyyy HH:mm:ss";
 
@@ -1580,8 +1580,8 @@ public partial class EditorViewModel :
 		yield return new(Strings.Updated, dto.UpdatedDate.ToString(format));
 	}
 
-	/// <inheritdoc cref="FileModelDto.IsOpened" />
-	private static bool IsOpened(FileModelDto dto) => dto.IsOpened();
+	/// <inheritdoc cref="FileDto.IsOpened" />
+	private static bool IsOpened(FileDto dto) => dto.IsOpened();
 
 	/// <summary>
 	/// Starts or stops clipboard history tracking to match <paramref name="isEnabled" />,
@@ -1619,7 +1619,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// <c>True</c> when file can be edited or executed.
 	/// </summary>
-	private bool CanBeEditedOrExecuted(FileModelDto? dto)
+	private bool CanBeEditedOrExecuted(FileDto? dto)
 	{
 		return !IsActionInProgress
 			&& dto is not null
@@ -1629,7 +1629,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="ChangePasswordCommand" />.
 	/// </summary>
-	private bool CanChangePassword(FolderModelDto? dto)
+	private bool CanChangePassword(FolderDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1639,12 +1639,12 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="CopyContentByContextMenuCommand" />.
 	/// </summary>
-	private bool CanCopyContent(FileModelDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
+	private bool CanCopyContent(FileDto? dto) => dto?.IsOpened() == false && !IsActionInProgress;
 
 	/// <summary>
 	/// Validates <see cref="DecryptFolderCommand" />.
 	/// </summary>
-	private bool CanDecryptFolder(FolderModelDto? dto)
+	private bool CanDecryptFolder(FolderDto? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1656,7 +1656,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="DeleteCommand" />.
 	/// </summary>
-	private bool CanDelete(ExplorerModelBaseDto? dto)
+	private bool CanDelete(ExplorerItemDtoBase? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1666,7 +1666,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="EditNoteCommand" />.
 	/// </summary>
-	private bool CanEditNote(ExplorerModelBaseDto? dto)
+	private bool CanEditNote(ExplorerItemDtoBase? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
@@ -1677,7 +1677,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="EncryptFolderCommand" />.
 	/// </summary>
-	private bool CanEncryptFolder(FolderModelDto? dto)
+	private bool CanEncryptFolder(FolderDto? dto)
 	{
 		// A folder can be encrypted only while it belongs to no keeper, itself included.
 		return !IsReadOnly
@@ -1705,12 +1705,12 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="RenameCommand" />.
 	/// </summary>
-	private bool CanRename(ExplorerModelBaseDto? dto)
+	private bool CanRename(ExplorerItemDtoBase? dto)
 	{
 		return !IsReadOnly
 			&& !IsActionInProgress
 			&& dto is not null
-			&& (dto is not FileModelDto file || !file.IsOpened());
+			&& (dto is not FileDto file || !file.IsOpened());
 	}
 
 	/// <summary>
@@ -1731,7 +1731,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private bool CanShowFileContents(FileModelDto? dto)
+	private bool CanShowFileContents(FileDto? dto)
 	{
 		return !IsActionInProgress
 			&& dto is not null
@@ -1741,7 +1741,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="ShowFileContentsCommand" />.
 	/// </summary>
-	private bool CanShowFolderContents(FolderModelDto? dto)
+	private bool CanShowFolderContents(FolderDto? dto)
 	{
 		return !IsActionInProgress
 			&& dto is not null
@@ -1772,7 +1772,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Tries to remove value from copy history.
 	/// </summary>
-	private void RemoveFromCopyHistory(FileModelDto file)
+	private void RemoveFromCopyHistory(FileDto file)
 	{
 		CopyHistorySettings
 			.Items
@@ -1782,7 +1782,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
-	private async Task<bool> ShowFileContentsAsync(FileModelDto dto)
+	private async Task<bool> ShowFileContentsAsync(FileDto dto)
 	{
 		_logger.LogInformation("Show file contents");
 
@@ -1826,7 +1826,7 @@ public partial class EditorViewModel :
 	/// Tries to close editing or executing files if any.
 	/// </summary>
 	private async Task<bool> TryCloseOpenedFilesAsync(
-		FileModelDto[] openedFiles,
+		FileDto[] openedFiles,
 		CancellationToken token = default)
 	{
 		if (openedFiles.IsNotEmpty())

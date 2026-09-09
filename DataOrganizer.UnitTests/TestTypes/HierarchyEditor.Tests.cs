@@ -37,20 +37,20 @@ internal class HierarchyEditorTests
 
 			dbAccess
 				.AddEntityAsync(Arg.Any<AddEntityParameters>())
-				.Returns(Substitute.For<ExplorerModelBase>());
+				.Returns(Substitute.For<ExplorerItemBase>());
 
 			builder.RegisterInstance(dbAccess);
 
 			IMapper mapper = Substitute.For<IMapper>();
 
 			mapper
-				.Map<ExplorerModelBase, ExplorerModelBaseDto>(Arg.Any<ExplorerModelBase>())
-				.Returns(Substitute.For<ExplorerModelBaseDto>());
+				.Map<ExplorerItemBase, ExplorerItemDtoBase>(Arg.Any<ExplorerItemBase>())
+				.Returns(Substitute.For<ExplorerItemDtoBase>());
 
 			builder.RegisterInstance(mapper);
 		});
 
-		FolderModelDto? parent = null;
+		FolderDto? parent = null;
 
 		if (hasParent)
 		{
@@ -66,10 +66,10 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerModelBaseDto> hierarchy = [];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [];
 
 		// Act
-		ExplorerModelBaseDto? entity = await sut.AddAsync(
+		ExplorerItemDtoBase? entity = await sut.AddAsync(
 			RandomString.Create(10),
 			type,
 			parent,
@@ -110,7 +110,7 @@ internal class HierarchyEditorTests
 	public async Task DeleteAsync_Deletes_Entity_In_Database_And_In_Treeview(EntityKind type)
 	{
 		// Arrange
-		ExplorerModelBaseDto toBeDeleted = type switch
+		ExplorerItemDtoBase toBeDeleted = type switch
 		{
 			EntityKind.Folder => TestData.CreateFolderDto(),
 			EntityKind.File => TestData.CreateFileDto(),
@@ -139,7 +139,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
 		hierarchy.Add(toBeDeleted);
 
@@ -164,7 +164,7 @@ internal class HierarchyEditorTests
 	public async Task DeleteAsync_Should_Not_Delete_Entity_In_Database_And_In_Treeview(EntityKind type)
 	{
 		// Arrange
-		ExplorerModelBaseDto entity = type switch
+		ExplorerItemDtoBase entity = type switch
 		{
 			EntityKind.Folder => TestData.CreateFolderDto(),
 			EntityKind.File => TestData.CreateFileDto(),
@@ -193,7 +193,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
 		hierarchy.Add(entity);
 
@@ -217,7 +217,7 @@ internal class HierarchyEditorTests
 	public async Task RenameAsync_Renames_Dto_And_Updates_Name_In_Database_Entity()
 	{
 		// Arrange
-		ExplorerModelBaseDto dto = Substitute.For<ExplorerModelBaseDto>();
+		ExplorerItemDtoBase dto = Substitute.For<ExplorerItemDtoBase>();
 
 		string newName = RandomString.Create(10);
 
@@ -231,7 +231,7 @@ internal class HierarchyEditorTests
 
 			dbAccess.UpdateFolderPropertiesAsync(
 				Arg.Any<Guid>(),
-				Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 			.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -263,7 +263,7 @@ internal class HierarchyEditorTests
 	public async Task RenameAsync_Should_Do_Nothing_If_Name_Is_The_Same()
 	{
 		// Arrange
-		ExplorerModelBaseDto toBeRenamed = Substitute.For<ExplorerModelBaseDto>();
+		ExplorerItemDtoBase toBeRenamed = Substitute.For<ExplorerItemDtoBase>();
 
 		string newName = RandomString.Create(10);
 

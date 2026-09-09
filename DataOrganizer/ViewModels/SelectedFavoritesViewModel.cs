@@ -42,9 +42,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public partial string? CategorySearch { get; set; }
 
 	/// <summary>
-	/// A sequence of <see cref="FileModelDto" />.
+	/// A sequence of <see cref="FileDto" />.
 	/// </summary>
-	public ReadOnlyObservableCollection<FileModelDto> Favorites => _favoritesFilter.Visible;
+	public ReadOnlyObservableCollection<FileDto> Favorites => _favoritesFilter.Visible;
 
 	/// <summary>
 	/// Search value within <see cref="Favorites" />.
@@ -79,7 +79,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// The selected object in the <see cref="Favorites" />.
 	/// </summary>
 	[ObservableProperty]
-	public partial FileModelDto? SelectedFavorite { get; set; }
+	public partial FileDto? SelectedFavorite { get; set; }
 
 	/// <inheritdoc cref="FavoritesViewSettings.SelectedPairs" />
 	public List<FavoriteSelection> SelectedPairs { get; } = [];
@@ -120,7 +120,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Called when <see cref="SelectedFavorite" /> changes.
 	/// </summary>
-	partial void OnSelectedFavoriteChanged(FileModelDto? oldValue, FileModelDto? newValue)
+	partial void OnSelectedFavoriteChanged(FileDto? oldValue, FileDto? newValue)
 	{
 		_previousSelectedFavorite = oldValue;
 
@@ -179,7 +179,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// <inheritdoc cref="FilteredCollection{T}" />
 	/// </summary>
-	private readonly FilteredCollection<FileModelDto> _favoritesFilter;
+	private readonly FilteredCollection<FileDto> _favoritesFilter;
 
 	/// <summary>
 	/// Previous <see cref="SelectedCategory" /> value.
@@ -189,7 +189,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Previous <see cref="SelectedFavorite" /> value.
 	/// </summary>
-	private FileModelDto? _previousSelectedFavorite;
+	private FileDto? _previousSelectedFavorite;
 	#endregion
 
 	#region Constructors
@@ -333,9 +333,9 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 
 	/// <summary>
-	/// Adds <see cref="FileModelDto" /> objects to the source.
+	/// Adds <see cref="FileDto" /> objects to the source.
 	/// </summary>
-	internal void AddTestFavorites(IEnumerable<FileModelDto> items)
+	internal void AddTestFavorites(IEnumerable<FileDto> items)
 	{
 		if (!AppDomain
 			.CurrentDomain

@@ -51,7 +51,7 @@ public sealed class ContentCipher : IContentCipher
 
 	#region Methods
 	/// <inheritdoc />
-	public byte[] Decrypt(FileModelDto file, byte[] input)
+	public byte[] Decrypt(FileDto file, byte[] input)
 	{
 		// Empty content is written without encryption, so there is nothing to open here.
 		if (input.IsEmpty())
@@ -105,7 +105,7 @@ public sealed class ContentCipher : IContentCipher
 
 	/// <inheritdoc />
 	public async Task<byte[]?> TryToDecryptContentsAsync(
-		FileModelDto file,
+		FileDto file,
 		byte[] contents,
 		string header,
 		CancellationToken token = default)

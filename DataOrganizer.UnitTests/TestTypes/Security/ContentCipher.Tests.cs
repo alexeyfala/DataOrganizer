@@ -29,9 +29,9 @@ internal class ContentCipherTests
 	public void Decrypt_Does_Work()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -85,7 +85,7 @@ internal class ContentCipherTests
 	public void Decrypt_Hands_Empty_Contents_Back()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -216,7 +216,7 @@ internal class ContentCipherTests
 	public async Task TryToDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -247,9 +247,9 @@ internal class ContentCipherTests
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -303,9 +303,9 @@ internal class ContentCipherTests
 	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 

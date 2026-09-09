@@ -36,7 +36,7 @@ internal class CopyContentViewModelBaseTests
 		// Arrange
 		string content = RandomString.Create(20);
 
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: isEncrypted
+		FileDto file = TestData.CreateFileDto(encryptionStatus: isEncrypted
 			? EncryptionStatus.Encrypted
 			: EncryptionStatus.None);
 
@@ -61,7 +61,7 @@ internal class CopyContentViewModelBaseTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(Encoding.UTF8.GetBytes(content));
 
 			builder.RegisterInstance(clipboard);
@@ -134,7 +134,7 @@ internal class CopyContentViewModelBaseTests
 		#endregion
 
 		#region Methods
-		public Task InvokeCopyContentAsync(FileModelDto file, ItemsControl container)
+		public Task InvokeCopyContentAsync(FileDto file, ItemsControl container)
 		{
 			return CopyContentAsync(file, container, updateView: false);
 		}

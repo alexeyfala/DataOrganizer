@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 namespace Repository.Interfaces;
 
 /// <summary>
-/// Repository for <see cref="ExplorerModelBase" />.
+/// Repository for <see cref="ExplorerItemBase" />.
 /// </summary>
-public interface IExplorerModelBaseRepository
+public interface IExplorerItemRepository
 {
 	#region Methods
 	/// <inheritdoc cref="RepositoryBase{T}.CountAsync" />
 	Task<int> CountOfAsync(
-		Expression<Func<ExplorerModelBase, bool>> condition,
+		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default);
 
 	/// <inheritdoc cref="RepositoryBase{T}.ExistsAsync" />
-	Task<bool> ExistsAsync(Expression<Func<ExplorerModelBase, bool>> condition, CancellationToken token = default);
+	Task<bool> ExistsAsync(Expression<Func<ExplorerItemBase, bool>> condition, CancellationToken token = default);
 	#endregion
 }

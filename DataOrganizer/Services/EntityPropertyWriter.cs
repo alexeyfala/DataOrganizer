@@ -38,7 +38,7 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 		bool isExpanded,
 		CancellationToken token = default)
 	{
-		const string propertyName = nameof(FolderModelDto.IsExpanded);
+		const string propertyName = nameof(FolderDto.IsExpanded);
 
 		_logger.LogDebug(
 			$@"Update ""{propertyName}"" property in of folder ""{folderId}"" in database is requested");
@@ -50,14 +50,14 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 	}
 
 	/// <inheritdoc />
-	public Task<bool> UpdateIsFavoriteAsync(FileModelDto dto, CancellationToken token = default)
+	public Task<bool> UpdateIsFavoriteAsync(FileDto dto, CancellationToken token = default)
 	{
-		const string propertyName = nameof(FileModelDto.IsFavorite);
+		const string propertyName = nameof(FileDto.IsFavorite);
 
 		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
 			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
+			nameof(ExplorerItemDtoBase.EntityType),
+			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
 		return _dbAccess.UpdateFilePropertiesAsync(dto.Id,
@@ -68,15 +68,15 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 
 	/// <inheritdoc />
 	public Task<bool> UpdateIsSelectedAsync(
-		ExplorerModelBaseDto dto,
+		ExplorerItemDtoBase dto,
 		CancellationToken token = default)
 	{
-		const string propertyName = nameof(ExplorerModelBaseDto.IsSelected);
+		const string propertyName = nameof(ExplorerItemDtoBase.IsSelected);
 
 		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
 			true,
-			nameof(ExplorerModelBaseDto.EntityType),
-			nameof(ExplorerModelBaseDto.Name),
+			nameof(ExplorerItemDtoBase.EntityType),
+			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
 		return dto.EntityType switch

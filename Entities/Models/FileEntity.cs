@@ -4,10 +4,10 @@ using System.Xml.Serialization;
 namespace Entities.Models;
 
 /// <summary>
-/// File model in a virtual file system.
+/// A file in the virtual file system.
 /// </summary>
 [XmlType(TypeName = File)]
-public sealed class FileModel : ExplorerModelBase
+public sealed class FileEntity : ExplorerItemBase
 {
 	#region Properties
 	/// <summary>
@@ -18,7 +18,7 @@ public sealed class FileModel : ExplorerModelBase
 	/// <summary>
 	/// Hotkeys used to copy content to the clipboard.
 	/// </summary>
-	public List<HotkeyModel> Hotkeys { get; init; } = [];
+	public List<HotkeyEntity> Hotkeys { get; init; } = [];
 
 	/// <summary>
 	/// Used in "Favorites" mode.

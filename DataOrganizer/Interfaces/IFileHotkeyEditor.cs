@@ -17,9 +17,9 @@ public interface IFileHotkeyEditor
 	/// Overwrites the hotkeys of a file, rejecting a sequence already assigned to another file.
 	/// </summary>
 	Task<OverwriteHotkeysOutcome> OverwriteAsync(
-		FileModelDto dto,
+		FileDto dto,
 		KeyStroke[] newHotkeys,
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
 	#endregion
 }

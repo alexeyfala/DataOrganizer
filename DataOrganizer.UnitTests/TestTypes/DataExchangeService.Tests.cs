@@ -55,11 +55,11 @@ internal class DataExchangeServiceTests
 				});
 
 			dbAccess
-				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderEntity>>())
 				.Returns(true);
 
 			dbAccess
-				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.AddFilesAsync(Arg.Any<IEnumerable<FileEntity>>())
 				.Returns(true);
 
 			builder.RegisterInstance(entityLoader);
@@ -82,7 +82,7 @@ internal class DataExchangeServiceTests
 
 		entityLoader
 			.Received()
-			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
+			.Map(Arg.Any<IEnumerable<FolderEntity>>(), Arg.Any<IEnumerable<FileEntity>>());
 	}
 
 	/// <summary>
@@ -127,7 +127,7 @@ internal class DataExchangeServiceTests
 
 		await serializer.Received().SerializeAsync(
 			Arg.Any<Stream>(),
-			Arg.Any<ExplorerModelBase[]>(),
+			Arg.Any<ExplorerItemBase[]>(),
 			Arg.Any<JsonSerializerOptions>(),
 			Arg.Any<CancellationToken>());
 	}
@@ -207,7 +207,7 @@ internal class DataExchangeServiceTests
 
 		serializer
 			.Received()
-			.Serialize(Arg.Any<Stream>(), Arg.Any<ExplorerModelBase[]>());
+			.Serialize(Arg.Any<Stream>(), Arg.Any<ExplorerItemBase[]>());
 	}
 
 	/// <summary>
@@ -240,8 +240,8 @@ internal class DataExchangeServiceTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.DeserializeAsync<ExplorerModelBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(default(ExplorerModelBase[]));
+				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(default(ExplorerItemBase[]));
 
 			builder.RegisterInstance(fileSystem);
 
@@ -342,8 +342,8 @@ internal class DataExchangeServiceTests
 				.Returns(new XDocument(new XElement("ArrayOfEntry")));
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
-				.Returns(default(ExplorerModelBase[]));
+				.Deserialize<ExplorerItemBase[]>(Arg.Any<XDocument>())
+				.Returns(default(ExplorerItemBase[]));
 
 			builder.RegisterInstance(fileSystem);
 
@@ -377,7 +377,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -489,8 +489,8 @@ internal class DataExchangeServiceTests
 
 #pragma warning disable CA2012 // Use ValueTasks correctly
 			serializer
-				.DeserializeAsync<ExplorerModelBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(new ValueTask<ExplorerModelBase[]?>([]));
+				.DeserializeAsync<ExplorerItemBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+				.Returns(new ValueTask<ExplorerItemBase[]?>([]));
 #pragma warning restore CA2012 // Use ValueTasks correctly
 
 			builder.RegisterInstance(dbAccess);
@@ -596,7 +596,7 @@ internal class DataExchangeServiceTests
 				.Returns(new XDocument(new XElement("ArrayOfEntry")));
 
 			serializer
-				.Deserialize<ExplorerModelBase[]>(Arg.Any<XDocument>())
+				.Deserialize<ExplorerItemBase[]>(Arg.Any<XDocument>())
 				.Returns([]);
 
 			builder.RegisterInstance(dbAccess);
@@ -627,9 +627,9 @@ internal class DataExchangeServiceTests
 	public async Task ImportEntitiesAsync_Does_Work(ImportMode variant)
 	{
 		// Arrange
-		ExplorerModelBase[] entities = [.. TestData
+		ExplorerItemBase[] entities = [.. TestData
 			.CreateFolders(5)
-			.Concat<ExplorerModelBase>(TestData.CreateFiles(5))];
+			.Concat<ExplorerItemBase>(TestData.CreateFiles(5))];
 
 		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = default);
 
@@ -647,11 +647,11 @@ internal class DataExchangeServiceTests
 			}
 
 			dbAccess
-				.AddFoldersAsync(Arg.Any<IEnumerable<FolderModel>>())
+				.AddFoldersAsync(Arg.Any<IEnumerable<FolderEntity>>())
 				.Returns(true);
 
 			dbAccess
-				.AddFilesAsync(Arg.Any<IEnumerable<FileModel>>())
+				.AddFilesAsync(Arg.Any<IEnumerable<FileEntity>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dbAccess);
@@ -679,7 +679,7 @@ internal class DataExchangeServiceTests
 
 		entityLoader
 			.Received()
-			.Map(Arg.Any<IEnumerable<FolderModel>>(), Arg.Any<IEnumerable<FileModel>>());
+			.Map(Arg.Any<IEnumerable<FolderEntity>>(), Arg.Any<IEnumerable<FileEntity>>());
 	}
 
 	/// <summary>
@@ -689,9 +689,9 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSQLiteAsync_Does_Work()
 	{
 		// Arrange
-		Collection<ExplorerModelBaseDto> hierarchy = [.. TestData
+		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData
 			.CreateFoldersDto(5)
-			.Concat<ExplorerModelBaseDto>(TestData.CreateFilesDto(5))];
+			.Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -742,9 +742,9 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSQLiteAsync_Fails_When_The_Database_Cannot_Be_Read()
 	{
 		// Arrange
-		Collection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
-		List<ExplorerModelBaseDto> objects = [];
+		List<ExplorerItemDtoBase> objects = [];
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -752,7 +752,7 @@ internal class DataExchangeServiceTests
 		{
 			entityLoader
 				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
-				.Returns((ExplorerModelBaseDto[]?)null);
+				.Returns((ExplorerItemDtoBase[]?)null);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 

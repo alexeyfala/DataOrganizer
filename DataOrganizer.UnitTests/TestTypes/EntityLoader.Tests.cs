@@ -53,11 +53,11 @@ internal class EntityLoaderTests
 				.Returns(Substitute.For<TypeAdapterConfig>());
 
 			mapper
-				.Map<IEnumerable<FileModel>, FileModelDto[]>(Arg.Any<IEnumerable<FileModel>>())
+				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
 				.Returns([.. TestData.CreateFilesDto(fileCount)]);
 
 			mapper
-				.Map<IEnumerable<FolderModel>, FolderModelDto[]>(Arg.Any<IEnumerable<FolderModel>>())
+				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
 				.Returns([.. TestData.CreateFoldersDto(folderCount)]);
 
 			builder.RegisterInstance(mapper);
@@ -68,7 +68,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerModelBaseDto[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
+		ExplorerItemDtoBase[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
 
 		// Assert
 		hierarchy?.Length
@@ -132,7 +132,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerModelBaseDto[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
+		ExplorerItemDtoBase[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
 
 		// Assert
 		hierarchy
@@ -147,17 +147,17 @@ internal class EntityLoaderTests
 	public void Map_Marks_The_Subtree_Of_A_Password_Keeper_As_Encrypted()
 	{
 		// Arrange
-		FolderModelDto keeper = TestData.CreateFolderDto();
+		FolderDto keeper = TestData.CreateFolderDto();
 
 		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto plainFolder = TestData.CreateFolderDto();
+		FolderDto plainFolder = TestData.CreateFolderDto();
 
-		FileModelDto keptFile = TestData.CreateFileDto();
+		FileDto keptFile = TestData.CreateFileDto();
 
 		keptFile.ParentId = keeper.Id;
 
-		FileModelDto plainFile = TestData.CreateFileDto();
+		FileDto plainFile = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -168,11 +168,11 @@ internal class EntityLoaderTests
 				.Returns(Substitute.For<TypeAdapterConfig>());
 
 			mapper
-				.Map<IEnumerable<FileModel>, FileModelDto[]>(Arg.Any<IEnumerable<FileModel>>())
+				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
 				.Returns([keptFile, plainFile]);
 
 			mapper
-				.Map<IEnumerable<FolderModel>, FolderModelDto[]>(Arg.Any<IEnumerable<FolderModel>>())
+				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
 				.Returns([keeper, plainFolder]);
 
 			builder.RegisterInstance(mapper);

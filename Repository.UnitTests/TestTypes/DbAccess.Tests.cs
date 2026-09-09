@@ -59,7 +59,7 @@ internal class DbAccessTests
 			TypedParameter.From(fileRepository));
 
 		// Act
-		ExplorerModelBase? entity = await sut.AddEntityAsync(parameters);
+		ExplorerItemBase? entity = await sut.AddEntityAsync(parameters);
 
 		// Assert
 		entity
@@ -94,21 +94,21 @@ internal class DbAccessTests
 		{
 			entity
 				.Should()
-				.BeOfType<FolderModel>();
+				.BeOfType<FolderEntity>();
 
 			await folderRepository
 				.Received()
-				.AddAsync(Arg.Any<FolderModel>());
+				.AddAsync(Arg.Any<FolderEntity>());
 		}
 		else
 		{
 			entity
 				.Should()
-				.BeOfType<FileModel>();
+				.BeOfType<FileEntity>();
 
 			await fileRepository
 				.Received()
-				.AddAsync(Arg.Any<FileModel>());
+				.AddAsync(Arg.Any<FileEntity>());
 		}
 	}
 
@@ -119,7 +119,7 @@ internal class DbAccessTests
 	public async Task AddFilesAsync_Adds_Files_To_Database()
 	{
 		// Arrange
-		FileModel[] files = [.. TestData.CreateFiles(5)];
+		FileEntity[] files = [.. TestData.CreateFiles(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -141,7 +141,7 @@ internal class DbAccessTests
 
 		await repository
 			.Received()
-			.AddRangeAsync(Arg.Any<IEnumerable<FileModel>>());
+			.AddRangeAsync(Arg.Any<IEnumerable<FileEntity>>());
 
 		await dbConnection
 			.Received()
@@ -155,7 +155,7 @@ internal class DbAccessTests
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
 	{
 		// Arrange
-		FolderModel[] folders = [.. TestData.CreateFolders(5)];
+		FolderEntity[] folders = [.. TestData.CreateFolders(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -177,7 +177,7 @@ internal class DbAccessTests
 
 		await repository
 			.Received()
-			.AddRangeAsync(Arg.Any<IEnumerable<FolderModel>>());
+			.AddRangeAsync(Arg.Any<IEnumerable<FolderEntity>>());
 
 		await dbConnection
 			.Received()
@@ -206,7 +206,7 @@ internal class DbAccessTests
 			TypedParameter.From(repository));
 
 		// Act
-		HotkeyModel[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
+		HotkeyEntity[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
 
 		// Assert
 		result
@@ -219,7 +219,7 @@ internal class DbAccessTests
 
 		await repository
 			.Received(keyStrokes.Length)
-			.AddAsync(Arg.Any<HotkeyModel>());
+			.AddAsync(Arg.Any<HotkeyEntity>());
 
 		await dbConnection
 			.Received()
@@ -639,12 +639,12 @@ internal class DbAccessTests
 		// Arrange
 		const int expectedCount = 7;
 
-		IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
+		IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			repository
-				.CountOfAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
+				.CountOfAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
 				.Returns(expectedCount);
 
 			builder.RegisterInstance(repository);
@@ -941,7 +941,7 @@ internal class DbAccessTests
 	public async Task GetAllFilesAsync_Returns_Files()
 	{
 		// Arrange
-		FileModel[] expectedResult = [.. TestData.CreateFiles(100)];
+		FileEntity[] expectedResult = [.. TestData.CreateFiles(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -957,7 +957,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FileModel[] result = await sut.GetAllFilesAsync(OptionalFileProperties.None);
+		FileEntity[] result = await sut.GetAllFilesAsync(OptionalFileProperties.None);
 
 		// Assert
 		result
@@ -972,7 +972,7 @@ internal class DbAccessTests
 	public async Task GetAllFoldersAsync_Returns_Folders()
 	{
 		// Arrange
-		FolderModel[] expectedResult = [.. TestData.CreateFolders(100)];
+		FolderEntity[] expectedResult = [.. TestData.CreateFolders(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -988,7 +988,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FolderModel[] result = await sut.GetAllFoldersAsync();
+		FolderEntity[] result = await sut.GetAllFoldersAsync();
 
 		// Assert
 		result
@@ -1003,7 +1003,7 @@ internal class DbAccessTests
 	public async Task GetFileContentsAsync_Returns_File_Contents()
 	{
 		// Arrange
-		FileModel file = TestData.CreateFile();
+		FileEntity file = TestData.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1042,7 +1042,7 @@ internal class DbAccessTests
 	public async Task GetFilePropertiesAsync_Returns_File_Properties()
 	{
 		// Arrange
-		FileModel file = TestData.CreateFile();
+		FileEntity file = TestData.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1073,13 +1073,13 @@ internal class DbAccessTests
 	public async Task GetFilesContentsAsync_Yields_Pair_For_Each_Identifier()
 	{
 		// Arrange
-		FileModel[] files = [.. TestData.CreateFiles(3)];
+		FileEntity[] files = [.. TestData.CreateFiles(3)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileRepository repository = Substitute.For<IFileRepository>();
 
-			foreach (FileModel file in files)
+			foreach (FileEntity file in files)
 			{
 				repository
 					.GetContentsAsync(file.Id)
@@ -1120,10 +1120,10 @@ internal class DbAccessTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
+			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
 
 			repository
-				.ExistsAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
+				.ExistsAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
 				.Returns(true);
 
 			builder.RegisterInstance(repository);
@@ -1147,7 +1147,7 @@ internal class DbAccessTests
 	public async Task UpdateFileAndFolderPropertiesAsync_Returns_False_When_A_Write_Throws()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
@@ -1159,7 +1159,7 @@ internal class DbAccessTests
 			fileRepository
 				.UpdatePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>(),
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 					Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
 
@@ -1171,7 +1171,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, new Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>());
+		bool result = await sut.UpdateFileAndFolderPropertiesAsync(fileUpdates, new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		// Assert
 		result
@@ -1190,22 +1190,22 @@ internal class DbAccessTests
 
 		Guid folderId = Guid.NewGuid();
 
-		Action<UpdateSettersBuilder<FileModel>>[] fileSetters =
+		Action<UpdateSettersBuilder<FileEntity>>[] fileSetters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
-		Action<UpdateSettersBuilder<FolderModel>>[] folderSetters =
+		Action<UpdateSettersBuilder<FolderEntity>>[] folderSetters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates = new()
 		{
 			[fileId] = fileSetters
 		};
 
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates = new()
 		{
 			[folderId] = folderSetters
 		};
@@ -1255,8 +1255,8 @@ internal class DbAccessTests
 
 		// Act
 		bool result = await sut.UpdateFileAndFolderPropertiesAsync(
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>(),
-			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>());
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>(),
+			new Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		// Assert
 		result
@@ -1265,13 +1265,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileEntity}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
@@ -1281,7 +1281,7 @@ internal class DbAccessTests
 			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
 				.Returns(0);
 
 			builder.RegisterInstance(repository);
@@ -1299,13 +1299,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns false when the file does not exist.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileEntity}}[], System.Threading.CancellationToken)" />: returns false when the file does not exist.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_False_When_File_Does_Not_Exist()
 	{
 		// Arrange
-		Action<UpdateSettersBuilder<FileModel>>[] setters =
+		Action<UpdateSettersBuilder<FileEntity>>[] setters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
@@ -1317,7 +1317,7 @@ internal class DbAccessTests
 			repository
 				.UpdatePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>())
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
 				.Returns(0);
 
 			builder.RegisterInstance(repository);
@@ -1335,13 +1335,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileModel}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FileEntity}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
@@ -1352,7 +1352,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
 				.Returns(updates.Count);
 
 			builder.RegisterInstance(repository);
@@ -1374,7 +1374,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileModel}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the file was updated.
+	/// <see cref="DbAccess.UpdateFilePropertiesAsync(Guid, Action{UpdateSettersBuilder{FileEntity}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the file was updated.
 	/// </summary>
 	[Test]
 	public async Task UpdateFilePropertiesAsync_Returns_True_When_File_Was_Updated()
@@ -1382,7 +1382,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		Action<UpdateSettersBuilder<FileModel>>[] setters =
+		Action<UpdateSettersBuilder<FileEntity>>[] setters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
@@ -1394,7 +1394,7 @@ internal class DbAccessTests
 			repository
 				.UpdatePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FileModel>>[]>())
+					Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>())
 				.Returns(1);
 
 			builder.RegisterInstance(repository);
@@ -1416,13 +1416,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderModel}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderEntity}}[]}, System.Threading.CancellationToken)" />: returns false when the batch update affects no rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Batch_Update_Affects_No_Rows()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
@@ -1432,7 +1432,7 @@ internal class DbAccessTests
 			IFolderRepository repository = Substitute.For<IFolderRepository>();
 
 			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(0);
 
 			builder.RegisterInstance(repository);
@@ -1450,13 +1450,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderModel}}[], System.Threading.CancellationToken)" />: returns false when the folder does not exist.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderEntity}}[], System.Threading.CancellationToken)" />: returns false when the folder does not exist.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_False_When_Folder_Does_Not_Exist()
 	{
 		// Arrange
-		Action<UpdateSettersBuilder<FolderModel>>[] setters =
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
@@ -1468,7 +1468,7 @@ internal class DbAccessTests
 			repository
 				.UpdatePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(0);
 
 			builder.RegisterInstance(repository);
@@ -1486,13 +1486,13 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderModel}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(IDictionary{Guid, Action{UpdateSettersBuilder{FolderEntity}}[]}, System.Threading.CancellationToken)" />: returns true and forwards the updates when the batch update affects rows.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Batch_Update_Affects_Any_Rows()
 	{
 		// Arrange
-		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
+		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
@@ -1503,7 +1503,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			repository
-				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.UpdatePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(updates.Count);
 
 			builder.RegisterInstance(repository);
@@ -1525,7 +1525,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderModel}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the folder was updated.
+	/// <see cref="DbAccess.UpdateFolderPropertiesAsync(Guid, Action{UpdateSettersBuilder{FolderEntity}}[], System.Threading.CancellationToken)" />: returns true and forwards the setters when the folder was updated.
 	/// </summary>
 	[Test]
 	public async Task UpdateFolderPropertiesAsync_Returns_True_When_Folder_Was_Updated()
@@ -1533,7 +1533,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid folderId = Guid.NewGuid();
 
-		Action<UpdateSettersBuilder<FolderModel>>[] setters =
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters =
 		[
 			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
@@ -1545,7 +1545,7 @@ internal class DbAccessTests
 			repository
 				.UpdatePropertiesAsync(
 					Arg.Any<Guid>(),
-					Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+					Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(1);
 
 			builder.RegisterInstance(repository);

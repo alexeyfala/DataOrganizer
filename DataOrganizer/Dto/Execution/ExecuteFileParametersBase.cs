@@ -6,8 +6,8 @@ namespace DataOrganizer.Dto.Execution;
 public abstract class ExecuteFileParametersBase
 {
 	#region Properties
-	/// <inheritdoc cref="FileModelDto" />
-	public required FileModelDto File { get; init; }
+	/// <inheritdoc cref="FileDto" />
+	public required FileDto File { get; init; }
 
 	/// <summary>
 	/// Identifier of the password keeper holding the key of the file; <c>null</c> for plain contents.

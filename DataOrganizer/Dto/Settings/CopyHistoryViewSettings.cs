@@ -31,7 +31,7 @@ public sealed class CopyHistoryViewSettings
 	/// <summary>
 	/// Adds objects to <see cref="Items" /> from <paramref name="source" /> if they are in <paramref name="hierarchy" />.
 	/// </summary>
-	public void AddItems(IEnumerable<Guid> source, IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public void AddItems(IEnumerable<Guid> source, IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		source.ForEach(id =>
 		{

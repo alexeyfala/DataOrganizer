@@ -6,21 +6,21 @@ using System.Text.Json;
 
 namespace Entities.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(HotkeyModel)}"" type")]
-internal class HotkeyModelTests
+[TestFixture(Description = $@"Tests of ""{nameof(HotkeyEntity)}"" type")]
+internal class HotkeyEntityTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="HotkeyModel" />: names written to Json are read back as the same hotkey.
+	/// <see cref="HotkeyEntity" />: names written to Json are read back as the same hotkey.
 	/// </summary>
 	[Test]
 	public void Reads_Enums_By_Name()
 	{
 		// Arrange
-		HotkeyModel hotkey = CreateHotkey(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
+		HotkeyEntity hotkey = CreateHotkey(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
 
 		// Act
-		HotkeyModel? result = JsonSerializer.Deserialize<HotkeyModel>(JsonSerializer.Serialize(hotkey));
+		HotkeyEntity? result = JsonSerializer.Deserialize<HotkeyEntity>(JsonSerializer.Serialize(hotkey));
 
 		// Assert
 		result
@@ -39,7 +39,7 @@ internal class HotkeyModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeyModel" />: names the library no longer has do not break reading the hotkey.
+	/// <see cref="HotkeyEntity" />: names the library no longer has do not break reading the hotkey.
 	/// </summary>
 	[Test]
 	public void Reads_Unknown_Names_As_Fallbacks()
@@ -51,7 +51,7 @@ internal class HotkeyModelTests
 			.Replace(@"""LeftCtrl""", @"""LeftHyper""", StringComparison.Ordinal);
 
 		// Act
-		HotkeyModel? result = JsonSerializer.Deserialize<HotkeyModel>(json);
+		HotkeyEntity? result = JsonSerializer.Deserialize<HotkeyEntity>(json);
 
 		// Assert
 		result
@@ -70,13 +70,13 @@ internal class HotkeyModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeyModel" />: a hotkey is written to Json by name, not by number.
+	/// <see cref="HotkeyEntity" />: a hotkey is written to Json by name, not by number.
 	/// </summary>
 	[Test]
 	public void Writes_Enums_As_Names()
 	{
 		// Arrange
-		HotkeyModel hotkey = CreateHotkey(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
+		HotkeyEntity hotkey = CreateHotkey(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
 
 		// Act
 		string result = JsonSerializer.Serialize(hotkey);
@@ -94,7 +94,7 @@ internal class HotkeyModelTests
 	/// <summary>
 	/// Creates a hotkey with the given key and mask.
 	/// </summary>
-	private static HotkeyModel CreateHotkey(KeyCode code, EventMask mask)
+	private static HotkeyEntity CreateHotkey(KeyCode code, EventMask mask)
 	{
 		return new()
 		{

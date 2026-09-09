@@ -77,7 +77,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto dto = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -91,7 +91,7 @@ internal class KeyboardInputHookTests
 
 		dto
 			.Hotkeys
-			.AddRange(keyStrokes.ToHotkeyModelsDto());
+			.AddRange(keyStrokes.ToHotkeyDtos());
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
@@ -110,7 +110,7 @@ internal class KeyboardInputHookTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
 
 			builder.RegisterInstance(contentCipher);
@@ -150,7 +150,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -164,7 +164,7 @@ internal class KeyboardInputHookTests
 
 		dto
 			.Hotkeys
-			.AddRange(keyStrokes.ToHotkeyModelsDto());
+			.AddRange(keyStrokes.ToHotkeyDtos());
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
@@ -185,7 +185,7 @@ internal class KeyboardInputHookTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(contentCipher);

@@ -6,18 +6,18 @@ using System.Collections.Generic;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FolderModelDto)}"" type")]
-internal class FolderModelDtoTests
+[TestFixture(Description = $@"Tests of ""{nameof(FolderDto)}"" type")]
+internal class FolderDtoTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FolderModelDto.AnyChild" />: returns false when no descendant satisfies the condition.
+	/// <see cref="FolderDto.AnyChild" />: returns false when no descendant satisfies the condition.
 	/// </summary>
 	[Test]
 	public void AnyChild_Returns_False_When_No_Child_Matches()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
 		AddChild(root, CreateFile("a"));
 
@@ -31,15 +31,15 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.AnyChild" />: returns true when a deeply nested descendant matches.
+	/// <see cref="FolderDto.AnyChild" />: returns true when a deeply nested descendant matches.
 	/// </summary>
 	[Test]
 	public void AnyChild_Returns_True_When_A_Nested_Child_Matches()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
-		FolderModelDto sub = CreateFolder("sub");
+		FolderDto sub = CreateFolder("sub");
 
 		AddChild(root, sub);
 
@@ -55,13 +55,13 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.AnyFile" />: returns false when only folders match the condition.
+	/// <see cref="FolderDto.AnyFile" />: returns false when only folders match the condition.
 	/// </summary>
 	[Test]
 	public void AnyFile_Returns_False_When_Only_Folders_Match()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
 		AddChild(root, CreateFolder("target"));
 
@@ -75,15 +75,15 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.AnyFile" />: returns true when a nested file satisfies the condition.
+	/// <see cref="FolderDto.AnyFile" />: returns true when a nested file satisfies the condition.
 	/// </summary>
 	[Test]
 	public void AnyFile_Returns_True_When_A_Nested_File_Matches()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
-		FolderModelDto sub = CreateFolder("sub");
+		FolderDto sub = CreateFolder("sub");
 
 		AddChild(root, sub);
 
@@ -99,25 +99,25 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="ExplorerModelBaseDto.FindPasswordKeeper" />: a file is never a keeper itself, so the
+	/// <see cref="ExplorerItemDtoBase.FindPasswordKeeper" />: a file is never a keeper itself, so the
 	/// search starts at its parent.
 	/// </summary>
 	[Test]
 	public void FindPasswordKeeper_Of_A_File_Returns_The_Parent_Keeper()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
-		FolderModelDto child = CreateFolder("child");
+		FolderDto child = CreateFolder("child");
 
-		FileModelDto file = CreateFile("file");
+		FileDto file = CreateFile("file");
 
 		AddChild(keeper, child);
 
 		AddChild(child, file);
 
 		// Act
-		FolderModelDto? result = file.FindPasswordKeeper();
+		FolderDto? result = file.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -126,20 +126,20 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="ExplorerModelBaseDto.FindPasswordKeeper" />: returns null when a file belongs to no keeper.
+	/// <see cref="ExplorerItemDtoBase.FindPasswordKeeper" />: returns null when a file belongs to no keeper.
 	/// </summary>
 	[Test]
 	public void FindPasswordKeeper_Of_A_File_Without_A_Keeper_Returns_Null()
 	{
 		// Arrange
-		FolderModelDto parent = CreateFolder("parent");
+		FolderDto parent = CreateFolder("parent");
 
-		FileModelDto file = CreateFile("file");
+		FileDto file = CreateFile("file");
 
 		AddChild(parent, file);
 
 		// Act
-		FolderModelDto? result = file.FindPasswordKeeper();
+		FolderDto? result = file.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -148,20 +148,20 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns null when no keeper exists in the chain.
+	/// <see cref="FolderDto.FindPasswordKeeper" />: returns null when no keeper exists in the chain.
 	/// </summary>
 	[Test]
 	public void FindPasswordKeeper_Returns_Null_When_No_Keeper_In_Chain()
 	{
 		// Arrange
-		FolderModelDto parent = CreateFolder("parent");
+		FolderDto parent = CreateFolder("parent");
 
-		FolderModelDto child = CreateFolder("child");
+		FolderDto child = CreateFolder("child");
 
 		AddChild(parent, child);
 
 		// Act
-		FolderModelDto? result = child.FindPasswordKeeper();
+		FolderDto? result = child.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -170,20 +170,20 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns the nearest parent keeper when self is not one.
+	/// <see cref="FolderDto.FindPasswordKeeper" />: returns the nearest parent keeper when self is not one.
 	/// </summary>
 	[Test]
 	public void FindPasswordKeeper_Returns_Parent_Keeper_When_Self_Is_Not()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
-		FolderModelDto child = CreateFolder("child");
+		FolderDto child = CreateFolder("child");
 
 		AddChild(keeper, child);
 
 		// Act
-		FolderModelDto? result = child.FindPasswordKeeper();
+		FolderDto? result = child.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -192,16 +192,16 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.FindPasswordKeeper" />: returns itself when self is a password keeper.
+	/// <see cref="FolderDto.FindPasswordKeeper" />: returns itself when self is a password keeper.
 	/// </summary>
 	[Test]
 	public void FindPasswordKeeper_Returns_Self_When_Self_Is_Password_Keeper()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateFolder("keeper", encryptedDek: [1]);
+		FolderDto keeper = CreateFolder("keeper", encryptedDek: [1]);
 
 		// Act
-		FolderModelDto? result = keeper.FindPasswordKeeper();
+		FolderDto? result = keeper.FindPasswordKeeper();
 
 		// Assert
 		result
@@ -210,19 +210,19 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.GetAllChildren" />: returns every descendant flattened into a single sequence.
+	/// <see cref="FolderDto.GetAllChildren" />: returns every descendant flattened into a single sequence.
 	/// </summary>
 	[Test]
 	public void GetAllChildren_Returns_All_Descendants_Flattened()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
-		FolderModelDto sub = CreateFolder("sub");
+		FolderDto sub = CreateFolder("sub");
 
-		FileModelDto nested = CreateFile("nested");
+		FileDto nested = CreateFile("nested");
 
-		FileModelDto top = CreateFile("top");
+		FileDto top = CreateFile("top");
 
 		AddChild(root, sub);
 
@@ -231,7 +231,7 @@ internal class FolderModelDtoTests
 		AddChild(root, top);
 
 		// Act
-		List<ExplorerModelBaseDto> result = [.. root.GetAllChildren()];
+		List<ExplorerItemDtoBase> result = [.. root.GetAllChildren()];
 
 		// Assert
 		result
@@ -244,21 +244,21 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.GetFiles" />: returns only the files matching the condition across the whole subtree.
+	/// <see cref="FolderDto.GetFiles" />: returns only the files matching the condition across the whole subtree.
 	/// </summary>
 	[Test]
 	public void GetFiles_Returns_Only_Matching_Files()
 	{
 		// Arrange
-		FolderModelDto root = CreateFolder();
+		FolderDto root = CreateFolder();
 
-		FileModelDto keptTop = CreateFile("keep");
+		FileDto keptTop = CreateFile("keep");
 
-		FolderModelDto sub = CreateFolder("sub");
+		FolderDto sub = CreateFolder("sub");
 
-		FileModelDto keptNested = CreateFile("keep");
+		FileDto keptNested = CreateFile("keep");
 
-		FileModelDto skipped = CreateFile("skip");
+		FileDto skipped = CreateFile("skip");
 
 		AddChild(root, keptTop);
 
@@ -269,7 +269,7 @@ internal class FolderModelDtoTests
 		AddChild(sub, skipped);
 
 		// Act
-		List<FileModelDto> result = [.. root.GetFiles(file => file.Name == "keep")];
+		List<FileDto> result = [.. root.GetFiles(file => file.Name == "keep")];
 
 		// Assert
 		result
@@ -282,13 +282,13 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns false when the encrypted DEK is empty.
+	/// <see cref="FolderDto.IsPasswordKeeper" />: returns false when the encrypted DEK is empty.
 	/// </summary>
 	[Test]
 	public void IsPasswordKeeper_Returns_False_When_Dek_Empty()
 	{
 		// Arrange
-		FolderModelDto folder = CreateFolder("folder", encryptedDek: []);
+		FolderDto folder = CreateFolder("folder", encryptedDek: []);
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -300,13 +300,13 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns false when the encrypted DEK is missing.
+	/// <see cref="FolderDto.IsPasswordKeeper" />: returns false when the encrypted DEK is missing.
 	/// </summary>
 	[Test]
 	public void IsPasswordKeeper_Returns_False_When_Dek_Missing()
 	{
 		// Arrange
-		FolderModelDto folder = CreateFolder("folder");
+		FolderDto folder = CreateFolder("folder");
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -318,13 +318,13 @@ internal class FolderModelDtoTests
 	}
 
 	/// <summary>
-	/// <see cref="FolderModelDto.IsPasswordKeeper" />: returns true when the encrypted DEK is present.
+	/// <see cref="FolderDto.IsPasswordKeeper" />: returns true when the encrypted DEK is present.
 	/// </summary>
 	[Test]
 	public void IsPasswordKeeper_Returns_True_When_Dek_Present()
 	{
 		// Arrange
-		FolderModelDto folder = CreateFolder("folder", encryptedDek: [1]);
+		FolderDto folder = CreateFolder("folder", encryptedDek: [1]);
 
 		// Act
 		bool result = folder.IsPasswordKeeper();
@@ -340,7 +340,7 @@ internal class FolderModelDtoTests
 	/// <summary>
 	/// Links a child to a parent folder, wiring both the parent reference and the children collection.
 	/// </summary>
-	private static void AddChild(FolderModelDto parent, ExplorerModelBaseDto child)
+	private static void AddChild(FolderDto parent, ExplorerItemDtoBase child)
 	{
 		child.Parent = parent;
 
@@ -350,7 +350,7 @@ internal class FolderModelDtoTests
 	/// <summary>
 	/// Creates a file DTO with the required base members populated.
 	/// </summary>
-	private static FileModelDto CreateFile(string name = "") => new()
+	private static FileDto CreateFile(string name = "") => new()
 	{
 		Id = Guid.NewGuid(),
 		Index = 0,
@@ -363,7 +363,7 @@ internal class FolderModelDtoTests
 	/// <summary>
 	/// Creates a folder DTO with the required base members populated and optional password-keeper data.
 	/// </summary>
-	private static FolderModelDto CreateFolder(
+	private static FolderDto CreateFolder(
 		string name = "",
 		byte[]? encryptedDek = null) => new()
 		{

@@ -113,9 +113,9 @@ public static class TestData
 	};
 
 	/// <summary>
-	/// Creates a <see cref="FileModel" /> object of <see cref="EntityKind.File" /> content, with random properties.
+	/// Creates a <see cref="FileEntity" /> object of <see cref="EntityKind.File" /> content, with random properties.
 	/// </summary>
-	public static FileModel CreateFile(in Guid id = default) => new()
+	public static FileEntity CreateFile(in Guid id = default) => new()
 	{
 		CreatedDate = DateTime.Now,
 		EntityType = EntityKind.File,
@@ -126,9 +126,9 @@ public static class TestData
 	};
 
 	/// <summary>
-	/// Creates a <see cref="FileModelDto" /> object with random properties.
+	/// Creates a <see cref="FileDto" /> object with random properties.
 	/// </summary>
-	public static FileModelDto CreateFileDto(
+	public static FileDto CreateFileDto(
 		in Guid id = default,
 		in bool isEditing = false,
 		in bool isExecuting = false,
@@ -146,9 +146,9 @@ public static class TestData
 		};
 
 	/// <summary>
-	/// Creates the required number of random <see cref="FileModel" /> objects.
+	/// Creates the required number of random <see cref="FileEntity" /> objects.
 	/// </summary>
-	public static IEnumerable<FileModel> CreateFiles(int count)
+	public static IEnumerable<FileEntity> CreateFiles(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
@@ -157,9 +157,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="FileModelDto" /> objects.
+	/// Creates the required number of random <see cref="FileDto" /> objects.
 	/// </summary>
-	public static IEnumerable<FileModelDto> CreateFilesDto(
+	public static IEnumerable<FileDto> CreateFilesDto(
 		int count,
 		bool isEditing = false,
 		bool isExecuting = false,
@@ -175,9 +175,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates a <see cref="FolderModel" /> with random properties.
+	/// Creates a <see cref="FolderEntity" /> with random properties.
 	/// </summary>
-	public static FolderModel CreateFolder(in Guid id = default) => new()
+	public static FolderEntity CreateFolder(in Guid id = default) => new()
 	{
 		CreatedDate = DateTime.Now,
 		EntityType = EntityKind.Folder,
@@ -188,9 +188,9 @@ public static class TestData
 	};
 
 	/// <summary>
-	/// Creates a <see cref="FolderModelDto" /> with random properties.
+	/// Creates a <see cref="FolderDto" /> with random properties.
 	/// </summary>
-	public static FolderModelDto CreateFolderDto(
+	public static FolderDto CreateFolderDto(
 		in Guid id = default,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
 		{
@@ -204,9 +204,9 @@ public static class TestData
 		};
 
 	/// <summary>
-	/// Creates the required number of random <see cref="FolderModel" /> objects.
+	/// Creates the required number of random <see cref="FolderEntity" /> objects.
 	/// </summary>
-	public static IEnumerable<FolderModel> CreateFolders(int count)
+	public static IEnumerable<FolderEntity> CreateFolders(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
@@ -215,9 +215,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="FolderModelDto" /> objects.
+	/// Creates the required number of random <see cref="FolderDto" /> objects.
 	/// </summary>
-	public static IEnumerable<FolderModelDto> CreateFoldersDto(int count)
+	public static IEnumerable<FolderDto> CreateFoldersDto(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
@@ -237,9 +237,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="HotkeyModel" /> objects.
+	/// Creates the required number of random <see cref="HotkeyEntity" /> objects.
 	/// </summary>
-	public static IEnumerable<HotkeyModel> CreateHotkeys(int count)
+	public static IEnumerable<HotkeyEntity> CreateHotkeys(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
@@ -254,9 +254,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="HotkeyModelDto" /> objects.
+	/// Creates the required number of random <see cref="HotkeyDto" /> objects.
 	/// </summary>
-	public static IEnumerable<HotkeyModelDto> CreateHotkeysDto(int count)
+	public static IEnumerable<HotkeyDto> CreateHotkeysDto(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{

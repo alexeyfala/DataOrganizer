@@ -17,7 +17,7 @@ public sealed record NoteUpdate(
 {
 	#region Methods
 	/// <summary>
-	/// <c>True</c> when the note belongs to a <see cref="FolderModelDto" />.
+	/// <c>True</c> when the note belongs to a <see cref="FolderDto" />.
 	/// </summary>
 	public bool IsFolderNote() => EntityType == EntityKind.Folder;
 	#endregion

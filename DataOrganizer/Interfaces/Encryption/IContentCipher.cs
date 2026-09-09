@@ -20,7 +20,7 @@ public interface IContentCipher
 	/// </summary>
 	/// <exception cref="InvalidOperationException">The file has no password keeper, or its keeper is locked.</exception>
 	/// <exception cref="AuthenticationTagMismatchException">The key or the purpose does not fit the content, or the content has been altered.</exception>
-	byte[] Decrypt(FileModelDto file, byte[] input);
+	byte[] Decrypt(FileDto file, byte[] input);
 
 	/// <summary>
 	/// Decrypts contents held under an unlocked keeper; <c>null</c> reports a refusal, which is logged.
@@ -37,7 +37,7 @@ public interface IContentCipher
 	/// Empty content is handed back untouched, without asking for a password.
 	/// </summary>
 	Task<byte[]?> TryToDecryptContentsAsync(
-		FileModelDto file,
+		FileDto file,
 		byte[] contents,
 		string header,
 		CancellationToken token = default);

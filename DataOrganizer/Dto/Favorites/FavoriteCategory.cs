@@ -9,13 +9,13 @@ namespace DataOrganizer.Dto.Favorites;
 
 [DebuggerDisplay($"{nameof(Id)} = {{{nameof(Id)}}}, {nameof(Name)} = {{{nameof(Name)}}}")]
 [ObservableObject]
-public sealed partial class FavoriteCategory : EntityModelBaseDto, INamed
+public sealed partial class FavoriteCategory : EntityDtoBase, INamed
 {
 	#region Properties
 	/// <summary>
 	/// Child objects.
 	/// </summary>
-	public required List<FileModelDto> Children { get; init; }
+	public required List<FileDto> Children { get; init; }
 
 	/// <inheritdoc cref="Enums.EncryptionStatus" />
 	public required EncryptionStatus EncryptionStatus { get; init; }

@@ -50,15 +50,15 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerModelBaseDto[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default)
+	public async Task<ExplorerItemDtoBase[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default)
 	{
 		try
 		{
-			FolderModel[] dbFolders = await _dbAccess
+			FolderEntity[] dbFolders = await _dbAccess
 				.GetAllFoldersAsync(token)
 				.ConfigureAwait(false);
 
-			FileModel[] dbFiles = await _dbAccess
+			FileEntity[] dbFiles = await _dbAccess
 				.GetAllFilesAsync(OptionalFileProperties.None, token)
 				.ConfigureAwait(false);
 
@@ -83,9 +83,9 @@ public sealed class EntityLoader : IEntityLoader
 	}
 
 	/// <inheritdoc />
-	public ExplorerModelBaseDto[] Map(IEnumerable<FolderModel> dbFolders, IEnumerable<FileModel> dbFiles)
+	public ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> dbFolders, IEnumerable<FileEntity> dbFiles)
 	{
-		FileModelDto[] dtoFiles = _mapper.Map<IEnumerable<FileModel>, FileModelDto[]>(dbFiles);
+		FileDto[] dtoFiles = _mapper.Map<IEnumerable<FileEntity>, FileDto[]>(dbFiles);
 
 		dtoFiles.ForEach(file =>
 		{
@@ -98,7 +98,7 @@ public sealed class EntityLoader : IEntityLoader
 
 			// After importing from JSON or XML, or adding to the database, the order of hotkeys is broken,
 			// so it needs to be restored.
-			HotkeyModelDto[] orderedHotkeys = [.. file
+			HotkeyDto[] orderedHotkeys = [.. file
 				.Hotkeys
 				.OrderBy(x => x.Index)];
 
@@ -109,8 +109,8 @@ public sealed class EntityLoader : IEntityLoader
 			file.SetHotkeysToolTip();
 		});
 
-		ExplorerModelBaseDto[] hierarchy = _mapper
-			.Map<IEnumerable<FolderModel>, FolderModelDto[]>(dbFolders)
+		ExplorerItemDtoBase[] hierarchy = _mapper
+			.Map<IEnumerable<FolderEntity>, FolderDto[]>(dbFolders)
 			.ToHierarchical(dtoFiles)
 			.ToArray()
 			.SortByIndexRecursively();
@@ -140,22 +140,22 @@ public sealed class EntityLoader : IEntityLoader
 	{
 		TypeAdapterConfig config = mapper.Config;
 
-		config.NewConfig<HotkeyModel, HotkeyModelDto>();
+		config.NewConfig<HotkeyEntity, HotkeyDto>();
 
 		config
-			.NewConfig<FileModel, FileModelDto>()
+			.NewConfig<FileEntity, FileDto>()
 			.Ignore(dest => dest.Parent!);
 
 		config
-			.NewConfig<FolderModel, FolderModelDto>()
+			.NewConfig<FolderEntity, FolderDto>()
 			.Ignore(dest => dest.Parent!)
 			.Ignore(dest => dest.Children);
 
 		config
-			.NewConfig<ExplorerModelBase, ExplorerModelBaseDto>()
-			.MapWith(src => src.GetType() == typeof(FileModel)
-				? ((FileModel)src).Adapt<FileModelDto>(config)
-				: ((FolderModel)src).Adapt<FolderModelDto>(config));
+			.NewConfig<ExplorerItemBase, ExplorerItemDtoBase>()
+			.MapWith(src => src.GetType() == typeof(FileEntity)
+				? ((FileEntity)src).Adapt<FileDto>(config)
+				: ((FolderEntity)src).Adapt<FolderDto>(config));
 
 		if (AppInfo.IsDebug)
 		{

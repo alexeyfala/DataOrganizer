@@ -245,9 +245,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc />
 	public EditorWindow ConfigureEditorWindow(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles,
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles,
 		in Guid showObjectId = default)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(EditorWindow)}""");
@@ -316,9 +316,9 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc />
 	public FavoritesWindow ConfigureFavoritesWindow(
-		IEnumerable<ExplorerModelBaseDto> hierarchy,
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
+		IEnumerable<ExplorerItemDtoBase> hierarchy,
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(FavoritesWindow)}""");
 
@@ -361,7 +361,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	public Window ConfigureMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
 
@@ -636,7 +636,7 @@ public class ViewLauncher : IViewLauncher
 	/// <summary>
 	/// Shutdowns the application.
 	/// </summary>
-	private async Task ShutdownAppAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
+	private async Task ShutdownAppAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		_autoLock.Stop();
 
@@ -671,7 +671,7 @@ public class ViewLauncher : IViewLauncher
 			}
 		}
 
-		async Task ShutdownAsync(IEnumerable<ExplorerModelBaseDto> hierarchy)
+		async Task ShutdownAsync(IEnumerable<ExplorerItemDtoBase> hierarchy)
 		{
 			if (_app.FindWindow<ConsoleWindow>(x => !x.ViewModel.IsSaved) is { } console)
 			{

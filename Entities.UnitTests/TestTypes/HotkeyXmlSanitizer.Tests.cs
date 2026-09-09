@@ -28,7 +28,7 @@ internal class HotkeyXmlSanitizerTests
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		ReadHotkey(document, nameof(HotkeyModel.Code))
+		ReadHotkey(document, nameof(HotkeyEntity.Code))
 			.Should()
 			.Be(nameof(KeyCode.VcA));
 	}
@@ -42,13 +42,13 @@ internal class HotkeyXmlSanitizerTests
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
 
-		string mask = ReadHotkey(document, nameof(HotkeyModel.Mask));
+		string mask = ReadHotkey(document, nameof(HotkeyEntity.Mask));
 
 		// Act
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		ReadHotkey(document, nameof(HotkeyModel.Mask))
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
 			.Should()
 			.Be(mask);
 	}
@@ -63,13 +63,13 @@ internal class HotkeyXmlSanitizerTests
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl | EventMask.LeftShift);
 
-		WriteHotkey(document, nameof(HotkeyModel.Code), "VcKanji");
+		WriteHotkey(document, nameof(HotkeyEntity.Code), "VcKanji");
 
 		// Act
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		HotkeyModel result = Deserialize(document);
+		HotkeyEntity result = Deserialize(document);
 
 		result
 			.Code
@@ -91,13 +91,13 @@ internal class HotkeyXmlSanitizerTests
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
 
-		WriteHotkey(document, nameof(HotkeyModel.Code), "VcKanji");
+		WriteHotkey(document, nameof(HotkeyEntity.Code), "VcKanji");
 
 		// Act
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		ReadHotkey(document, nameof(HotkeyModel.Code))
+		ReadHotkey(document, nameof(HotkeyEntity.Code))
 			.Should()
 			.Be(nameof(KeyCode.VcUndefined));
 	}
@@ -112,13 +112,13 @@ internal class HotkeyXmlSanitizerTests
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
 
-		WriteHotkey(document, nameof(HotkeyModel.Mask), "LeftShift LeftHyper");
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), "LeftShift LeftHyper");
 
 		// Act
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		ReadHotkey(document, nameof(HotkeyModel.Mask))
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
 			.Should()
 			.Be(nameof(EventMask.None));
 	}
@@ -132,13 +132,13 @@ internal class HotkeyXmlSanitizerTests
 		// Arrange
 		XDocument document = CreateDocument(KeyCode.VcA, EventMask.LeftCtrl);
 
-		WriteHotkey(document, nameof(HotkeyModel.Mask), string.Empty);
+		WriteHotkey(document, nameof(HotkeyEntity.Mask), string.Empty);
 
 		// Act
 		HotkeyXmlSanitizer.Sanitize(document);
 
 		// Assert
-		ReadHotkey(document, nameof(HotkeyModel.Mask))
+		ReadHotkey(document, nameof(HotkeyEntity.Mask))
 			.Should()
 			.Be(nameof(EventMask.None));
 	}
@@ -150,7 +150,7 @@ internal class HotkeyXmlSanitizerTests
 	public void Sanitizes_A_Document_Without_Hotkeys()
 	{
 		// Arrange
-		XDocument document = XDocument.Parse(Serialize([new FolderModel { Name = "folder" }]));
+		XDocument document = XDocument.Parse(Serialize([new FolderEntity { Name = "folder" }]));
 
 		string xml = document.ToString();
 
@@ -171,7 +171,7 @@ internal class HotkeyXmlSanitizerTests
 	/// </summary>
 	private static XDocument CreateDocument(KeyCode code, EventMask mask)
 	{
-		FileModel file = new()
+		FileEntity file = new()
 		{
 			Id = Guid.NewGuid(),
 			Name = "file"
@@ -193,16 +193,16 @@ internal class HotkeyXmlSanitizerTests
 	/// <summary>
 	/// Reads the single hotkey of a document back.
 	/// </summary>
-	private static HotkeyModel Deserialize(XDocument document)
+	private static HotkeyEntity Deserialize(XDocument document)
 	{
-		XmlSerializer serializer = new(typeof(ExplorerModelBase[]));
+		XmlSerializer serializer = new(typeof(ExplorerItemBase[]));
 
 		using XmlReader documentReader = document.CreateReader();
 
 		using XmlReader reader = XmlReader.Create(documentReader, new XmlReaderSettings());
 
-		return ((ExplorerModelBase[])serializer.Deserialize(reader)!)
-			.OfType<FileModel>()
+		return ((ExplorerItemBase[])serializer.Deserialize(reader)!)
+			.OfType<FileEntity>()
 			.Single()
 			.Hotkeys
 			.Single();
@@ -214,7 +214,7 @@ internal class HotkeyXmlSanitizerTests
 	private static string ReadHotkey(XDocument document, string element)
 	{
 		return document
-			.Descendants(HotkeyModel.Hotkey)
+			.Descendants(HotkeyEntity.Hotkey)
 			.Single()
 			.Element(element)!
 			.Value;
@@ -223,9 +223,9 @@ internal class HotkeyXmlSanitizerTests
 	/// <summary>
 	/// Writes entities as the application does when exporting them.
 	/// </summary>
-	private static string Serialize(ExplorerModelBase[] entities)
+	private static string Serialize(ExplorerItemBase[] entities)
 	{
-		XmlSerializer serializer = new(typeof(ExplorerModelBase[]));
+		XmlSerializer serializer = new(typeof(ExplorerItemBase[]));
 
 		using StringWriter writer = new();
 
@@ -240,7 +240,7 @@ internal class HotkeyXmlSanitizerTests
 	private static void WriteHotkey(XDocument document, string element, string value)
 	{
 		document
-			.Descendants(HotkeyModel.Hotkey)
+			.Descendants(HotkeyEntity.Hotkey)
 			.Single()
 			.Element(element)!
 			.Value = value;

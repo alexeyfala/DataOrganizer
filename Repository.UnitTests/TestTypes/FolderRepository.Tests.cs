@@ -22,13 +22,13 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderModel root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = CreateFolder(Guid.NewGuid());
 
-		FolderModel child = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity child = CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderModel otherRoot = CreateFolder(Guid.NewGuid());
+		FolderEntity otherRoot = CreateFolder(Guid.NewGuid());
 
-		FolderModel otherChild = CreateFolder(Guid.NewGuid(), otherRoot.Id);
+		FolderEntity otherChild = CreateFolder(Guid.NewGuid(), otherRoot.Id);
 
 		database
 			.Context
@@ -58,7 +58,7 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderModel root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = CreateFolder(Guid.NewGuid());
 
 		database
 			.Context
@@ -88,13 +88,13 @@ internal class FolderRepositoryTests
 		// Arrange
 		using TestDatabase database = new();
 
-		FolderModel root = CreateFolder(Guid.NewGuid());
+		FolderEntity root = CreateFolder(Guid.NewGuid());
 
-		FolderModel childA = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity childA = CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderModel childB = CreateFolder(Guid.NewGuid(), root.Id);
+		FolderEntity childB = CreateFolder(Guid.NewGuid(), root.Id);
 
-		FolderModel grandChild = CreateFolder(Guid.NewGuid(), childA.Id);
+		FolderEntity grandChild = CreateFolder(Guid.NewGuid(), childA.Id);
 
 		database
 			.Context
@@ -135,7 +135,7 @@ internal class FolderRepositoryTests
 	/// <summary>
 	/// Creates a folder model with the given identifier and optional parent.
 	/// </summary>
-	private static FolderModel CreateFolder(Guid id, Guid? parentId = null) => new()
+	private static FolderEntity CreateFolder(Guid id, Guid? parentId = null) => new()
 	{
 		Id = id,
 		Index = 0,

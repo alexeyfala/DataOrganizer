@@ -27,7 +27,7 @@ public interface IKeyboardInputHook : IDisposable
 	/// <summary>
 	/// Starts tracking global keyboard input.
 	/// </summary>
-	Task StartTrackingAsync(IEnumerable<ExplorerModelBaseDto> hierarchy, CancellationToken token = default);
+	Task StartTrackingAsync(IEnumerable<ExplorerItemDtoBase> hierarchy, CancellationToken token = default);
 
 	/// <summary>
 	/// Stops tracking global keyboard input.

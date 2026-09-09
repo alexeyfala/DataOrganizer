@@ -12,7 +12,7 @@ public interface IEntityPropertyWriter
 {
 	#region Methods
 	/// <summary>
-	/// Updates the <see cref="FolderModelDto.IsExpanded" /> property of a folder in the database.
+	/// Updates the <see cref="FolderDto.IsExpanded" /> property of a folder in the database.
 	/// </summary>
 	Task<bool> UpdateIsExpandedAsync(
 		Guid folderId,
@@ -20,13 +20,13 @@ public interface IEntityPropertyWriter
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the <see cref="FileModelDto.IsFavorite" /> property of a file in the database.
+	/// Updates the <see cref="FileDto.IsFavorite" /> property of a file in the database.
 	/// </summary>
-	Task<bool> UpdateIsFavoriteAsync(FileModelDto dto, CancellationToken token = default);
+	Task<bool> UpdateIsFavoriteAsync(FileDto dto, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates the <see cref="ExplorerModelBaseDto.IsSelected" /> property of an object in the database.
+	/// Updates the <see cref="ExplorerItemDtoBase.IsSelected" /> property of an object in the database.
 	/// </summary>
-	Task<bool> UpdateIsSelectedAsync(ExplorerModelBaseDto dto, CancellationToken token = default);
+	Task<bool> UpdateIsSelectedAsync(ExplorerItemDtoBase dto, CancellationToken token = default);
 	#endregion
 }

@@ -41,7 +41,7 @@ internal class FolderProtectionTests
 	public async Task ChangePasswordAsync_Confirms_Only_The_New_Password()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -89,7 +89,7 @@ internal class FolderProtectionTests
 	public async Task ChangePasswordAsync_Does_Not_Ask_For_A_New_Password_When_The_Old_One_Is_Wrong()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		byte[] encryptedDek = TestData.CreateRandomBytes(10);
 
@@ -120,7 +120,7 @@ internal class FolderProtectionTests
 
 		await dbAccess
 			.DidNotReceive()
-			.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>());
+			.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>());
 
 		folder.EncryptedDek
 			.Should()
@@ -135,7 +135,7 @@ internal class FolderProtectionTests
 	public async Task ChangePasswordAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		byte[] encryptedDek = TestData.CreateRandomBytes(10);
 
@@ -160,7 +160,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -191,13 +191,13 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		folder.Note = TestData.CreateRandomBytes(10);
 
-		FolderModelDto subfolder = TestData.CreateFolderDto();
+		FolderDto subfolder = TestData.CreateFolderDto();
 
 		subfolder.Note = TestData.CreateRandomBytes(10);
 
@@ -205,11 +205,11 @@ internal class FolderProtectionTests
 			.Children
 			.Add(subfolder);
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file.Note = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [file];
+		FileDto[] files = [file];
 
 		byte[] decryptedNote = TestData.CreateRandomBytes(10);
 
@@ -246,15 +246,15 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
 				.Returns(true);
 
 			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(true);
 
 			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]>>())
+				.UpdateFolderPropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]>>())
 				.Returns(true);
 
 			builder.RegisterInstance(dialogService);
@@ -290,11 +290,11 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -337,11 +337,11 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		IEncryptedContentWriter contentWriter = null!;
 
@@ -400,11 +400,11 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Drops_The_Key_Of_A_Converted_Folder([Values] bool isWriteDone)
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
@@ -462,13 +462,13 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Keeps_The_Notes_Of_A_Done_Conversion()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		folder.Note = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
+		FileDto[] files = [.. TestData.CreateFilesDto(1)];
 
 		byte[] decryptedNote = [5, 6, 7, 8];
 
@@ -524,11 +524,11 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [TestData.CreateFileDto()];
+		FileDto[] files = [TestData.CreateFileDto()];
 
 		IEncryptedContentWriter contentWriter = null!;
 
@@ -581,11 +581,11 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [TestData.CreateFileDto()];
+		FileDto[] files = [TestData.CreateFileDto()];
 
 		ValidatedContents[] loaded =
 		[
@@ -635,13 +635,13 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Wipes_The_Notes_When_One_Cannot_Be_Decrypted()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		folder.Note = TestData.CreateRandomBytes(10);
 
-		FolderModelDto subfolder = TestData.CreateFolderDto();
+		FolderDto subfolder = TestData.CreateFolderDto();
 
 		subfolder.Note = TestData.CreateRandomBytes(10);
 
@@ -649,7 +649,7 @@ internal class FolderProtectionTests
 			.Children
 			.Add(subfolder);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
+		FileDto[] files = [.. TestData.CreateFilesDto(1)];
 
 		byte[] decryptedNote = [5, 6, 7, 8];
 
@@ -706,13 +706,13 @@ internal class FolderProtectionTests
 	public async Task DecryptFolderAsync_Wipes_The_Plain_Text_When_The_Write_Fails()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		folder.Note = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
+		FileDto[] files = [.. TestData.CreateFilesDto(1)];
 
 		byte[] decryptedContents = [1, 2, 3, 4];
 
@@ -786,9 +786,9 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Asks_For_A_New_Password()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [TestData.CreateFileDto()];
+		FileDto[] files = [TestData.CreateFileDto()];
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -826,9 +826,9 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		files[0].Note = TestData.CreateRandomBytes(10);
 
@@ -877,7 +877,7 @@ internal class FolderProtectionTests
 
 		await dbAccess
 			.DidNotReceive()
-			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>());
+			.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>());
 	}
 
 
@@ -890,9 +890,9 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		IEncryptedContentWriter contentWriter = null!;
 
@@ -954,13 +954,13 @@ internal class FolderProtectionTests
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		file.Note = TestData.CreateRandomBytes(10);
 
-		FileModelDto[] files = [file];
+		FileDto[] files = [file];
 
 		byte[] encryptedNote = TestData.CreateRandomBytes(10);
 
@@ -999,11 +999,11 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
-				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>())
+				.UpdateFilePropertiesAsync(Arg.Any<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>())
 				.Returns(true);
 
 			dbAccess
-				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderModel>>[]>())
+				.UpdateFolderPropertiesAsync(Arg.Any<Guid>(), Arg.Any<Action<UpdateSettersBuilder<FolderEntity>>[]>())
 				.Returns(true);
 
 			builder.RegisterInstance(encryption);
@@ -1041,9 +1041,9 @@ internal class FolderProtectionTests
 
 		DatabaseBackup backup = TestData.CreateDatabaseBackup(fileSystem);
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
+		FileDto[] files = [.. TestData.CreateFilesDto(1)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1111,9 +1111,9 @@ internal class FolderProtectionTests
 	public async Task EncryptFolderAsync_Wipes_The_Loaded_Contents()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
+		FileDto[] files = [.. TestData.CreateFilesDto(1)];
 
 		ValidatedContents[] loaded =
 		[

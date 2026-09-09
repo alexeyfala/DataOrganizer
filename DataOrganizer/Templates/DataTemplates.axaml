@@ -39,7 +39,7 @@
 	<!-- FileInListTemplate -->
 	<DataTemplate
 		x:Key="FileInListTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,Auto,*,Auto">

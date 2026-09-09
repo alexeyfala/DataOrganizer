@@ -13,7 +13,7 @@
 	<!-- FolderInTreeViewTemplate -->
 	<TreeDataTemplate
 		x:Key="FolderInTreeViewTemplate"
-		x:DataType="entities:FolderModelDto"
+		x:DataType="entities:FolderDto"
 		ItemsSource="{ReflectionBinding Children,
 		                                Mode=OneTime}">
 		<Grid
@@ -61,7 +61,7 @@
 	<!-- FileInTreeViewTemplate -->
 	<DataTemplate
 		x:Key="FileInTreeViewTemplate"
-		x:DataType="entities:FileModelDto">
+		x:DataType="entities:FileDto">
 		<Grid
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">

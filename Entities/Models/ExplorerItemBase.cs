@@ -7,7 +7,7 @@ using System.Xml.Serialization;
 namespace Entities.Models;
 
 /// <summary>
-/// The base model for virtual file system objects.
+/// The base of the objects that make up the virtual file system.
 /// </summary>
 [DebuggerDisplay(
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
@@ -15,13 +15,13 @@ namespace Entities.Models;
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(FolderModel), Folder)]
-[JsonDerivedType(typeof(FileModel), File)]
+[JsonDerivedType(typeof(FolderEntity), Folder)]
+[JsonDerivedType(typeof(FileEntity), File)]
 
 [XmlType(TypeName = "Entry")]
-[XmlInclude(typeof(FolderModel))]
-[XmlInclude(typeof(FileModel))]
-public abstract class ExplorerModelBase : EntityModelBase
+[XmlInclude(typeof(FolderEntity))]
+[XmlInclude(typeof(FileEntity))]
+public abstract class ExplorerItemBase : EntityBase
 {
 	#region Properties
 	/// <summary>
@@ -56,7 +56,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public FolderModel? Parent { get; set; }
+	public FolderEntity? Parent { get; set; }
 
 	/// <summary>
 	/// Parent object identifier.
@@ -73,12 +73,12 @@ public abstract class ExplorerModelBase : EntityModelBase
 
 	#region Data
 	/// <summary>
-	/// String literal for <see cref="FileModel" /> derived type.
+	/// String literal for <see cref="FileEntity" /> derived type.
 	/// </summary>
 	public const string File = "File";
 
 	/// <summary>
-	/// String literal for <see cref="FolderModel" /> derived type.
+	/// String literal for <see cref="FolderEntity" /> derived type.
 	/// </summary>
 	public const string Folder = "Folder";
 	#endregion

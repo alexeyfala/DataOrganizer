@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepository
+public sealed class FolderRepository : RepositoryBase<FolderEntity>, IFolderRepository
 {
 	#region Constructors
 	public FolderRepository(SqliteDbContext context) : base(context)
@@ -23,7 +23,7 @@ public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepos
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FolderModel[]> GetAllAsync(CancellationToken token = default) => FindAll().ToArrayAsync(token);
+	public Task<FolderEntity[]> GetAllAsync(CancellationToken token = default) => FindAll().ToArrayAsync(token);
 
 	/// <inheritdoc />
 	public async IAsyncEnumerable<Guid> GetFolderSubtreeIdsAsync(
@@ -59,7 +59,7 @@ public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepos
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
@@ -67,13 +67,13 @@ public sealed class FolderRepository : RepositoryBase<FolderModel>, IFolderRepos
 
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
 
-		static KeyValuePair<Expression<Func<FolderModel, bool>>, Action<UpdateSettersBuilder<FolderModel>>[]> ToFilter(
-			KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> entry)
+		static KeyValuePair<Expression<Func<FolderEntity, bool>>, Action<UpdateSettersBuilder<FolderEntity>>[]> ToFilter(
+			KeyValuePair<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> entry)
 		{
 			return new(x => x.Id == entry.Key, entry.Value);
 		}

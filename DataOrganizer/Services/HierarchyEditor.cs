@@ -50,11 +50,11 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerModelBaseDto?> AddAsync(
+	public async Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
 		EntityKind entityType,
-		FolderModelDto? parent,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		FolderDto? parent,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation($"Adding a {entityType switch
@@ -88,14 +88,14 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		_logger.LogInformation($"The object has been added to the database:{entity.GetPropertyValues(
 			true,
-			nameof(ExplorerModelBase.Id),
-			nameof(ExplorerModelBase.Name),
-			nameof(ExplorerModelBase.EntityType),
-			nameof(ExplorerModelBase.ParentId))}");
+			nameof(ExplorerItemBase.Id),
+			nameof(ExplorerItemBase.Name),
+			nameof(ExplorerItemBase.EntityType),
+			nameof(ExplorerItemBase.ParentId))}");
 
 		try
 		{
-			ExplorerModelBaseDto dto = _mapper.Map<ExplorerModelBase, ExplorerModelBaseDto>(entity);
+			ExplorerItemDtoBase dto = _mapper.Map<ExplorerItemBase, ExplorerItemDtoBase>(entity);
 
 			dto.Parent = parent;
 
@@ -129,8 +129,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 	/// <inheritdoc />
 	public async Task<bool> DeleteAsync(
-		ExplorerModelBaseDto dto,
-		Collection<ExplorerModelBaseDto> hierarchy,
+		ExplorerItemDtoBase dto,
+		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
 		bool result = dto.EntityType switch
@@ -163,7 +163,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 	/// <inheritdoc />
 	public async Task<bool> RenameAsync(
-		ExplorerModelBaseDto dto,
+		ExplorerItemDtoBase dto,
 		string newName,
 		DateTime updatedDate,
 		CancellationToken token = default)
@@ -223,9 +223,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <summary>
 	/// Returns a reference to the collection to add the object to.
 	/// </summary>
-	private static Collection<ExplorerModelBaseDto> GetCollectionToAdd(
-		FolderModelDto? parent,
-		Collection<ExplorerModelBaseDto> collection) => parent switch
+	private static Collection<ExplorerItemDtoBase> GetCollectionToAdd(
+		FolderDto? parent,
+		Collection<ExplorerItemDtoBase> collection) => parent switch
 		{
 			not null => parent.Children,
 			null => collection
@@ -234,9 +234,9 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <summary>
 	/// Returns a reference to the collection containing the object to be removed.
 	/// </summary>
-	private static Collection<ExplorerModelBaseDto> GetCollectionToDelete(
-		ExplorerModelBaseDto target,
-		Collection<ExplorerModelBaseDto> collection) => target.Parent switch
+	private static Collection<ExplorerItemDtoBase> GetCollectionToDelete(
+		ExplorerItemDtoBase target,
+		Collection<ExplorerItemDtoBase> collection) => target.Parent switch
 		{
 			not null => target.Parent.Children,
 			null => collection

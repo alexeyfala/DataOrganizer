@@ -22,7 +22,7 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto[] dtos =
+		FileDto[] dtos =
 		[
 			TestData.CreateFileDto(),
 			TestData.CreateFileDto(),
@@ -55,9 +55,9 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto kept = TestData.CreateFileDto();
+		FileDto kept = TestData.CreateFileDto();
 
-		FileModelDto closed = TestData.CreateFileDto();
+		FileDto closed = TestData.CreateFileDto();
 
 		sut.OpenInEditor(kept);
 
@@ -91,7 +91,7 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		sut.OpenInEditor(dto);
 
@@ -119,7 +119,7 @@ internal class EditingFilesViewModelTests
 	public void CloseTab_Removes_Tab_From_TabControl()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsEditing = true;
 
@@ -147,7 +147,7 @@ internal class EditingFilesViewModelTests
 	public void OpenInEditor_Cannot_Open_File_Twice()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsEditing = true;
 
@@ -171,7 +171,7 @@ internal class EditingFilesViewModelTests
 	public void OpenInEditor_Opens_File_In_Built_In_Editor()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -206,10 +206,10 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto first = TestData.CreateFileDto();
+		FileDto first = TestData.CreateFileDto();
 
 		// Becomes the previously selected tab once the third file is opened.
-		FileModelDto second = TestData.CreateFileDto();
+		FileDto second = TestData.CreateFileDto();
 
 		new[] { first, second, TestData.CreateFileDto() }.ForEach(sut.OpenInEditor);
 
@@ -236,7 +236,7 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto first = TestData.CreateFileDto();
+		FileDto first = TestData.CreateFileDto();
 
 		sut.OpenInEditor(first);
 
@@ -267,7 +267,7 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto second = TestData.CreateFileDto();
+		FileDto second = TestData.CreateFileDto();
 
 		new[] { TestData.CreateFileDto(), second, TestData.CreateFileDto() }.ForEach(sut.OpenInEditor);
 

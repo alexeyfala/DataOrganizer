@@ -110,7 +110,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 	/// Copies the contents of an object to the system clipboard.
 	/// </summary>
 	protected async Task CopyContentAsync(
-		FileModelDto file,
+		FileDto file,
 		ItemsControl container,
 		bool updateView,
 		CancellationToken token = default)
@@ -174,7 +174,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 					_logger.LogException(ex);
 				}
 
-				FolderModelDto[] parents = [.. file.GetAllParents().Reverse()];
+				FolderDto[] parents = [.. file.GetAllParents().Reverse()];
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{

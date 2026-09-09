@@ -12,17 +12,17 @@ using System.Linq;
 
 namespace DataOrganizer.Dto.Entities;
 
-/// <inheritdoc cref="FolderModel" />
-public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeeper
+/// <inheritdoc cref="FolderEntity" />
+public sealed partial class FolderDto : ExplorerItemDtoBase, IPasswordKeeper
 {
 	#region Properties
-	/// <inheritdoc cref="FolderModel.Children" />
-	public override ObservableCollection<ExplorerModelBaseDto> Children { get; } = [];
+	/// <inheritdoc cref="FolderEntity.Children" />
+	public override ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
 
 	/// <inheritdoc />
 	public byte[]? EncryptedDek { get; set; }
 
-	/// <inheritdoc cref="FolderModel.IsExpanded" />
+	/// <inheritdoc cref="FolderEntity.IsExpanded" />
 	[ObservableProperty]
 	public override partial bool IsExpanded { get; set; }
 	#endregion
@@ -48,22 +48,22 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeep
 	/// <summary>
 	/// <c>True</c> when any child satisfies the condition.
 	/// </summary>
-	public bool AnyChild(Predicate<ExplorerModelBaseDto> condition)
+	public bool AnyChild(Predicate<ExplorerItemDtoBase> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(Children);
+		Stack<ExplorerItemDtoBase> stack = new(Children);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			if (condition(item))
 			{
 				return true;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -76,22 +76,22 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeep
 	/// <summary>
 	/// <c>True</c> when any child file satisfies the condition.
 	/// </summary>
-	public bool AnyFile(Predicate<FileModelDto> condition)
+	public bool AnyFile(Predicate<FileDto> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(Children);
+		Stack<ExplorerItemDtoBase> stack = new(Children);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
-			if (item is FileModelDto file && condition(file))
+			if (item is FileDto file && condition(file))
 			{
 				return true;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -105,24 +105,24 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeep
 	/// <remarks>
 	/// A folder protects its own contents as well, hence the check of the folder itself.
 	/// </remarks>
-	public override FolderModelDto? FindPasswordKeeper() => IsPasswordKeeper() ? this : base.FindPasswordKeeper();
+	public override FolderDto? FindPasswordKeeper() => IsPasswordKeeper() ? this : base.FindPasswordKeeper();
 
 	/// <summary>
 	/// Returns a flat sequence of all child objects.
 	/// </summary>
-	public IEnumerable<ExplorerModelBaseDto> GetAllChildren()
+	public IEnumerable<ExplorerItemDtoBase> GetAllChildren()
 	{
-		Stack<ExplorerModelBaseDto> stack = new(Children);
+		Stack<ExplorerItemDtoBase> stack = new(Children);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
 			yield return item;
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -131,24 +131,24 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeep
 	}
 
 	/// <summary>
-	/// Filters child objects of <see cref="FolderModelDto" /> by condition.
+	/// Filters child objects of <see cref="FolderDto" /> by condition.
 	/// </summary>
-	public IEnumerable<FileModelDto> GetFiles(Predicate<FileModelDto> condition)
+	public IEnumerable<FileDto> GetFiles(Predicate<FileDto> condition)
 	{
-		Stack<ExplorerModelBaseDto> stack = new(Children);
+		Stack<ExplorerItemDtoBase> stack = new(Children);
 
 		while (stack.Count > 0)
 		{
-			ExplorerModelBaseDto item = stack.Pop();
+			ExplorerItemDtoBase item = stack.Pop();
 
-			if (item is FileModelDto file && condition(file))
+			if (item is FileDto file && condition(file))
 			{
 				yield return file;
 			}
 
-			if (item is FolderModelDto folder)
+			if (item is FolderDto folder)
 			{
-				foreach (ExplorerModelBaseDto child in folder.Children)
+				foreach (ExplorerItemDtoBase child in folder.Children)
 				{
 					stack.Push(child);
 				}
@@ -164,7 +164,7 @@ public sealed partial class FolderModelDto : ExplorerModelBaseDto, IPasswordKeep
 	/// <summary>
 	/// Returns the folder itself and its immediate subfolders as one sequence.
 	/// </summary>
-	public IEnumerable<ExplorerModelBaseDto> WithSubfolders()
+	public IEnumerable<ExplorerItemDtoBase> WithSubfolders()
 	{
 		return this
 			.ToEnumerable()

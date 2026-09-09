@@ -34,10 +34,10 @@ internal class SqliteDbContextTests
 			.Clear();
 
 		// Act
-		FileModel[] result = await LoadFilesAsync(database);
+		FileEntity[] result = await LoadFilesAsync(database);
 
 		// Assert
-		HotkeyModel hotkey = result
+		HotkeyEntity hotkey = result
 			.Should()
 			.ContainSingle()
 			.Which
@@ -76,10 +76,10 @@ internal class SqliteDbContextTests
 			.Clear();
 
 		// Act
-		FileModel[] result = await LoadFilesAsync(database);
+		FileEntity[] result = await LoadFilesAsync(database);
 
 		// Assert
-		HotkeyModel hotkey = result
+		HotkeyEntity hotkey = result
 			.Should()
 			.ContainSingle()
 			.Which
@@ -116,10 +116,10 @@ internal class SqliteDbContextTests
 			.Clear();
 
 		// Act
-		FileModel[] result = await LoadFilesAsync(database);
+		FileEntity[] result = await LoadFilesAsync(database);
 
 		// Assert
-		HotkeyModel hotkey = result
+		HotkeyEntity hotkey = result
 			.Should()
 			.ContainSingle()
 			.Which
@@ -174,7 +174,7 @@ internal class SqliteDbContextTests
 	{
 		Guid ownerId = Guid.NewGuid();
 
-		FileModel file = new()
+		FileEntity file = new()
 		{
 			Id = ownerId,
 			Index = 0,
@@ -242,11 +242,11 @@ internal class SqliteDbContextTests
 	/// <summary>
 	/// Loads the files together with their hotkeys.
 	/// </summary>
-	private static Task<FileModel[]> LoadFilesAsync(TestDatabase database)
+	private static Task<FileEntity[]> LoadFilesAsync(TestDatabase database)
 	{
 		return database
 			.Context
-			.Set<FileModel>()
+			.Set<FileEntity>()
 			.Include(x => x.Hotkeys)
 			.ToArrayAsync();
 	}

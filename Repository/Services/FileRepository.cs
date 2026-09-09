@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Services;
 
-public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
+public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 {
 	#region Constructors
 	public FileRepository(SqliteDbContext context) : base(context)
@@ -23,7 +23,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default)
+	public Task<FileEntity[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default)
 	{
 		bool includeContents = optionalProperties.HasFlag(OptionalFileProperties.Contents);
 
@@ -31,7 +31,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 		return (includeContents, includeProperties) switch
 		{
-			(false, false) => FindAll().Select(x => new FileModel
+			(false, false) => FindAll().Select(x => new FileEntity
 			{
 				CreatedDate = x.CreatedDate,
 				EntityType = x.EntityType,
@@ -45,7 +45,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 				ParentId = x.ParentId,
 				UpdatedDate = x.UpdatedDate
 			}).ToArrayAsync(token),
-			(true, false) => FindAll().Select(x => new FileModel
+			(true, false) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
 				CreatedDate = x.CreatedDate,
@@ -60,7 +60,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 				ParentId = x.ParentId,
 				UpdatedDate = x.UpdatedDate
 			}).ToArrayAsync(token),
-			(false, true) => FindAll().Select(x => new FileModel
+			(false, true) => FindAll().Select(x => new FileEntity
 			{
 				CreatedDate = x.CreatedDate,
 				EntityType = x.EntityType,
@@ -75,7 +75,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 				Properties = x.Properties, // ← Include.
 				UpdatedDate = x.UpdatedDate
 			}).ToArrayAsync(token),
-			(true, true) => FindAll().Select(x => new FileModel
+			(true, true) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
 				CreatedDate = x.CreatedDate,
@@ -133,7 +133,7 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateAsync(x => x.Id == id, setters, token);
@@ -141,13 +141,13 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 	/// <inheritdoc />
 	public Task<int> UpdatePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default)
 	{
 		return ExecuteUpdateRangeAsync(updates.Select(ToFilter), token);
 
-		static KeyValuePair<Expression<Func<FileModel, bool>>, Action<UpdateSettersBuilder<FileModel>>[]> ToFilter(
-			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileModel>>[]> entry)
+		static KeyValuePair<Expression<Func<FileEntity, bool>>, Action<UpdateSettersBuilder<FileEntity>>[]> ToFilter(
+			KeyValuePair<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> entry)
 		{
 			return new(x => x.Id == entry.Key, entry.Value);
 		}

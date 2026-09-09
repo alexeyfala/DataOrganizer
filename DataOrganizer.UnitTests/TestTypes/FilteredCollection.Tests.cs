@@ -20,9 +20,9 @@ internal class FilteredCollectionTests
 	public void AddRange_Populates_Source_And_Visible_Sequence()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(5)];
+		FileDto[] items = [.. TestData.CreateFilesDto(5)];
 
 		// Act
 		sut.AddRange(items);
@@ -44,7 +44,7 @@ internal class FilteredCollectionTests
 	public void Clear_Empties_The_Source()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -68,9 +68,9 @@ internal class FilteredCollectionTests
 	public void Contains_Returns_True_For_Existing_Item()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -91,7 +91,7 @@ internal class FilteredCollectionTests
 	public void Dispose_Is_Idempotent_And_Clears_Source()
 	{
 		// Arrange
-		FilteredCollection<FileModelDto> sut = CreateSut();
+		FilteredCollection<FileDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -116,16 +116,16 @@ internal class FilteredCollectionTests
 	public void FirstOrDefaultFromSource_Returns_Matching_Item()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
-		FileModelDto target = items[1];
+		FileDto target = items[1];
 
 		// Act
-		FileModelDto? result = sut.FirstOrDefaultFromSource(x => x.Id == target.Id);
+		FileDto? result = sut.FirstOrDefaultFromSource(x => x.Id == target.Id);
 
 		// Assert
 		result
@@ -140,12 +140,12 @@ internal class FilteredCollectionTests
 	public void FirstOrDefaultFromSource_Returns_Null_If_No_Item_Matches()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
 		// Act
-		FileModelDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
+		FileDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
 
 		// Assert
 		result
@@ -160,13 +160,13 @@ internal class FilteredCollectionTests
 	public void InsertAndRebuild_Does_Nothing_When_Item_Already_Present()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
-		FileModelDto duplicate = items[2];
+		FileDto duplicate = items[2];
 
 		// Act
 		sut.InsertAndRebuild(duplicate, 0);
@@ -188,11 +188,11 @@ internal class FilteredCollectionTests
 	public void InsertAndRebuild_Places_Item_At_Specified_Visible_Index()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
-		FileModelDto inserted = TestData.CreateFileDto();
+		FileDto inserted = TestData.CreateFileDto();
 
 		// Act
 		sut.InsertAndRebuild(inserted, 0);
@@ -212,7 +212,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
 
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
 		bool executed = false;
 
@@ -232,9 +232,9 @@ internal class FilteredCollectionTests
 	public void Remove_Removes_Item_From_Source()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -258,9 +258,9 @@ internal class FilteredCollectionTests
 	public void Reorder_Moves_Item_To_Specified_Visible_Index()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -280,9 +280,9 @@ internal class FilteredCollectionTests
 	public void SelectFromSource_Projects_Source_Items()
 	{
 		// Arrange
-		using FilteredCollection<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -298,16 +298,16 @@ internal class FilteredCollectionTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a fresh <see cref="FilteredCollection{T}" /> over <see cref="FileModelDto" /> with no filter and Index ordering.
+	/// Creates a fresh <see cref="FilteredCollection{T}" /> over <see cref="FileDto" /> with no filter and Index ordering.
 	/// </summary>
-	private static FilteredCollection<FileModelDto> CreateSut()
+	private static FilteredCollection<FileDto> CreateSut()
 	{
 		// Reset synchronization context so DynamicData applies changes inline.
 		SynchronizationContext.SetSynchronizationContext(null);
 
-		IObservable<Func<FileModelDto, bool>> filter = Observable.Return<Func<FileModelDto, bool>>(_ => true);
+		IObservable<Func<FileDto, bool>> filter = Observable.Return<Func<FileDto, bool>>(_ => true);
 
-		return new FilteredCollection<FileModelDto>(filter);
+		return new FilteredCollection<FileDto>(filter);
 	}
 	#endregion
 }

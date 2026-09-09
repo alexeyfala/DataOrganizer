@@ -41,12 +41,12 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Executed in operating system files.
 	/// </summary>
-	public ObservableCollection<FileModelDto> ExecutingFiles { get; } = [];
+	public ObservableCollection<FileDto> ExecutingFiles { get; } = [];
 
 	/// <summary>
 	/// Hierarchical sequence of objects.
 	/// </summary>
-	public ObservableCollection<ExplorerModelBaseDto> Hierarchy { get; } = [];
+	public ObservableCollection<ExplorerItemDtoBase> Hierarchy { get; } = [];
 
 	/// <summary>
 	/// <c>True</c> when clipboard history tracking is enabled in settings.
@@ -67,7 +67,7 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Opened in editor files.
 	/// </summary>
-	public List<FileModelDto> OpenedInEditorFiles { get; } = [];
+	public List<FileDto> OpenedInEditorFiles { get; } = [];
 	#endregion
 
 	#region Auto-Generated Commands
@@ -75,7 +75,7 @@ public abstract partial class ViewModelBase :
 	/// Closes a file executing in the operating system.
 	/// </summary>
 	[RelayCommand]
-	internal void CloseExecutingFile(FileModelDto? dto)
+	internal void CloseExecutingFile(FileDto? dto)
 	{
 		if (dto is null)
 		{
@@ -84,9 +84,9 @@ public abstract partial class ViewModelBase :
 
 		_logger.LogInformation($"Closing an executed file in the operating system:{dto.GetPropertyValues(
 			true,
-			nameof(FileModelDto.Id),
-			nameof(FileModelDto.Name),
-			nameof(FileModelDto.EntityType))}");
+			nameof(FileDto.Id),
+			nameof(FileDto.Name),
+			nameof(FileDto.EntityType))}");
 
 		_dispatcher.Post(() =>
 		{
@@ -210,12 +210,12 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Adds objects to <see cref="Hierarchy" />.
 	/// </summary>
-	public abstract void AddHierarchy(IEnumerable<ExplorerModelBaseDto> hierarchy);
+	public abstract void AddHierarchy(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
 	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void InsertToCopyHistory(FileModelDto file, bool updateView)
+	public void InsertToCopyHistory(FileDto file, bool updateView)
 	{
 		if (CopyHistorySettings
 			.Items
@@ -264,15 +264,15 @@ public abstract partial class ViewModelBase :
 	/// Closes editing and executing files.
 	/// </summary>
 	internal void CloseFiles(
-		IEnumerable<FileModelDto> editingFiles,
-		IEnumerable<FileModelDto> executingFiles)
+		IEnumerable<FileDto> editingFiles,
+		IEnumerable<FileDto> executingFiles)
 	{
-		foreach (FileModelDto file in editingFiles)
+		foreach (FileDto file in editingFiles)
 		{
 			CloseEditingFile(file);
 		}
 
-		foreach (FileModelDto file in executingFiles)
+		foreach (FileDto file in executingFiles)
 		{
 			CloseExecutingFile(file);
 		}
@@ -301,12 +301,12 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Closes editing file.
 	/// </summary>
-	protected virtual void CloseEditingFile(FileModelDto file) => file.IsEditing = false;
+	protected virtual void CloseEditingFile(FileDto file) => file.IsEditing = false;
 
 	/// <summary>
 	/// Closes file that is being edited or executed;
 	/// </summary>
-	protected void CloseFile(FileModelDto file)
+	protected void CloseFile(FileDto file)
 	{
 		if (file.IsEditing)
 		{
@@ -362,7 +362,7 @@ public abstract partial class ViewModelBase :
 		// Unlike hiding by hand, the lock is not called off by an editor that failed to persist its changes.
 		await FlushEditorsAsync().ConfigureAwait(true);
 
-		FileModelDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
+		FileDto[] openedFiles = [.. Hierarchy.GetFilesBy(static x => x.IsOpened())];
 
 		CloseFiles(
 			openedFiles.Where(x => x.IsEditing),

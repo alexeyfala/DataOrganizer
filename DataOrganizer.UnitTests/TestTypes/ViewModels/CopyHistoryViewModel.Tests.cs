@@ -116,7 +116,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(5)];
+		FileDto[] items = [.. TestData.CreateFilesDto(5)];
 
 		sut.AddTestCopyHistory(items);
 
@@ -141,7 +141,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		FileModelDto[] items = [.. TestData.CreateFilesDto(5)];
+		FileDto[] items = [.. TestData.CreateFilesDto(5)];
 
 		// Act
 		sut.Initialize(items, items[0].Id);
@@ -169,11 +169,11 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		FileModelDto[] existing = [.. TestData.CreateFilesDto(3)];
+		FileDto[] existing = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddTestCopyHistory(existing);
 
-		FileModelDto newItem = TestData.CreateFileDto();
+		FileDto newItem = TestData.CreateFileDto();
 
 		// Act
 		sut.InsertOrMoveToTop(newItem);
@@ -197,7 +197,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		FileModelDto[] existing = [.. TestData.CreateFilesDto(3)];
+		FileDto[] existing = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddTestCopyHistory(existing);
 
@@ -249,7 +249,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		FileModelDto[] existing = [.. TestData.CreateFilesDto(3)];
+		FileDto[] existing = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddTestCopyHistory(existing);
 

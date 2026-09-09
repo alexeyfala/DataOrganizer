@@ -28,7 +28,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Deletes_Hotkeys_In_Database_And_Returns_EmptySequence()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto
 			.Hotkeys
@@ -66,17 +66,17 @@ internal class FileHotkeyEditorTests
 		// Arrange
 		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
-		FileModelDto owner = TestData.CreateFileDto();
+		FileDto owner = TestData.CreateFileDto();
 
 		owner
 			.Hotkeys
-			.AddRange(newHotkeys.ToHotkeyModelsDto());
+			.AddRange(newHotkeys.ToHotkeyDtos());
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
 
-		ExplorerModelBaseDto[] hierarchy = [owner];
+		ExplorerItemDtoBase[] hierarchy = [owner];
 
 		// Act
 		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(TestData.CreateFileDto(), newHotkeys, hierarchy);
@@ -94,7 +94,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_Rewritten()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
@@ -105,7 +105,7 @@ internal class FileHotkeyEditorTests
 			IMapper mapper = Substitute.For<IMapper>();
 
 			mapper
-				.Map<HotkeyModel[], HotkeyModelDto[]>(Arg.Any<HotkeyModel[]>())
+				.Map<HotkeyEntity[], HotkeyDto[]>(Arg.Any<HotkeyEntity[]>())
 				.Returns([.. TestData.CreateHotkeysDto(newHotkeys.Length)]);
 
 			builder.RegisterInstance(mapper);
@@ -145,11 +145,11 @@ internal class FileHotkeyEditorTests
 		// Arrange
 		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto
 			.Hotkeys
-			.AddRange(newHotkeys.ToHotkeyModelsDto());
+			.AddRange(newHotkeys.ToHotkeyDtos());
 
 		using AutoMock mock = AutoMock.GetLoose();
 

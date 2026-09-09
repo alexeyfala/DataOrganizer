@@ -32,24 +32,24 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Adds an entity to the database.
 	/// </summary>
-	Task<ExplorerModelBase?> AddEntityAsync(
+	Task<ExplorerItemBase?> AddEntityAsync(
 		AddEntityParameters parameters,
 		CancellationToken token = default);
 
 	/// <summary>
 	/// Adds a file sequence to the database.
 	/// </summary>
-	Task<bool> AddFilesAsync(IEnumerable<FileModel> files, CancellationToken token = default);
+	Task<bool> AddFilesAsync(IEnumerable<FileEntity> files, CancellationToken token = default);
 
 	/// <summary>
 	/// Adds a folder sequence to the database.
 	/// </summary>
-	Task<bool> AddFoldersAsync(IEnumerable<FolderModel> folders, CancellationToken token = default);
+	Task<bool> AddFoldersAsync(IEnumerable<FolderEntity> folders, CancellationToken token = default);
 
 	/// <summary>
-	/// Adds <see cref="FileModel.Hotkeys" /> to the entity.
+	/// Adds <see cref="FileEntity.Hotkeys" /> to the entity.
 	/// </summary>
-	Task<HotkeyModel[]> AddHotkeysAsync(
+	Task<HotkeyEntity[]> AddHotkeysAsync(
 		Guid fileId,
 		KeyStroke[] hotkeys,
 		CancellationToken token = default);
@@ -78,33 +78,33 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default);
 
-	/// <inheritdoc cref="IExplorerModelBaseRepository.CountOfAsync" />
+	/// <inheritdoc cref="IExplorerItemRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
-		Expression<Func<ExplorerModelBase, bool>> condition,
+		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Deletes an <see cref="FileModel" /> from the database by identifier.
+	/// Deletes an <see cref="FileEntity" /> from the database by identifier.
 	/// </summary>
 	Task<bool> DeleteFileAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Deletes an <see cref="FolderModel" /> from the database by identifier.
+	/// Deletes an <see cref="FolderEntity" /> from the database by identifier.
 	/// </summary>
 	Task<bool> DeleteFolderAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Deletes <see cref="FileModel.Hotkeys" /> from the database by file identifier.
+	/// Deletes <see cref="FileEntity.Hotkeys" /> from the database by file identifier.
 	/// </summary>
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
 	/// <inheritdoc cref="IFileRepository.GetAllAsync" />
-	Task<FileModel[]> GetAllFilesAsync(
+	Task<FileEntity[]> GetAllFilesAsync(
 		OptionalFileProperties optionalProperties,
 		CancellationToken token = default);
 
 	/// <inheritdoc cref="IFolderRepository.GetAllAsync" />
-	Task<FolderModel[]> GetAllFoldersAsync(CancellationToken token = default);
+	Task<FolderEntity[]> GetAllFoldersAsync(CancellationToken token = default);
 
 	/// <inheritdoc cref="IDbContextService.GetDbFilePath" />
 	string GetDbFilePath();
@@ -115,7 +115,7 @@ public interface IDbAccess : IDisposable
 	Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns <see cref="FileModel.Properties" />.
+	/// Returns <see cref="FileEntity.Properties" />.
 	/// </summary>
 	Task<string?> GetFilePropertiesAsync(Guid id, CancellationToken token = default);
 
@@ -147,42 +147,42 @@ public interface IDbAccess : IDisposable
 	Task<bool> RestoreFromBackupAsync(string backupFilePath, CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of multiple <see cref="FileModel" /> and <see cref="FolderModel" /> entities
+	/// Updates properties of multiple <see cref="FileEntity" /> and <see cref="FolderEntity" /> entities
 	/// in a single transaction. An empty set of updates is not a failure.
 	/// </summary>
 	Task<bool> UpdateFileAndFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates,
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> folderUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> fileUpdates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> folderUpdates,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of <see cref="FileModel" />.
+	/// Updates properties of <see cref="FileEntity" />.
 	/// </summary>
 	Task<bool> UpdateFilePropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FileModel>>[] setters,
+		Action<UpdateSettersBuilder<FileEntity>>[] setters,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of multiple <see cref="FileModel" /> entities in a single transaction.
+	/// Updates properties of multiple <see cref="FileEntity" /> entities in a single transaction.
 	/// </summary>
 	Task<bool> UpdateFilePropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of <see cref="FolderModel" />.
+	/// Updates properties of <see cref="FolderEntity" />.
 	/// </summary>
 	Task<bool> UpdateFolderPropertiesAsync(
 		Guid id,
-		Action<UpdateSettersBuilder<FolderModel>>[] setters,
+		Action<UpdateSettersBuilder<FolderEntity>>[] setters,
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Updates properties of multiple <see cref="FolderModel" /> entities in a single transaction.
+	/// Updates properties of multiple <see cref="FolderEntity" /> entities in a single transaction.
 	/// </summary>
 	Task<bool> UpdateFolderPropertiesAsync(
-		IDictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates,
+		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default);
 	#endregion
 }

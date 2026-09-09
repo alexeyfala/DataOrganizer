@@ -50,7 +50,7 @@ internal class EditorViewModelTests
 		// Arrange
 		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
-		ExplorerModelBaseDto created = Substitute.For<ExplorerModelBaseDto>();
+		ExplorerItemDtoBase created = Substitute.For<ExplorerItemDtoBase>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -58,8 +58,8 @@ internal class EditorViewModelTests
 				.AddAsync(
 					Arg.Any<string>(),
 					Arg.Any<EntityKind>(),
-					Arg.Any<FolderModelDto>(),
-					Arg.Any<Collection<ExplorerModelBaseDto>>(),
+					Arg.Any<FolderDto>(),
+					Arg.Any<Collection<ExplorerItemDtoBase>>(),
 					Arg.Any<CancellationToken>())
 				.Returns(created);
 
@@ -68,12 +68,12 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		FolderModelDto? parent = hasParent ? TestData.CreateFolderDto() : null;
+		FolderDto? parent = hasParent ? TestData.CreateFolderDto() : null;
 
 		string name = RandomString.Create(10);
 
 		// Act
-		ExplorerModelBaseDto? entity = await sut.AddAsync(name, type, parent);
+		ExplorerItemDtoBase? entity = await sut.AddAsync(name, type, parent);
 
 		// Assert
 		entity
@@ -103,7 +103,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestData.CreateFilesDto(5))];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -121,15 +121,15 @@ internal class EditorViewModelTests
 	public async Task ChangePassword_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder
 			.Children
@@ -168,7 +168,7 @@ internal class EditorViewModelTests
 
 		await folderProtection
 			.Received()
-			.ChangePasswordAsync(Arg.Any<FolderModelDto>());
+			.ChangePasswordAsync(Arg.Any<FolderDto>());
 	}
 
 	/// <summary>
@@ -178,7 +178,7 @@ internal class EditorViewModelTests
 	public void CloseExecutingFile_Closes_File()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsExecuting = true;
 
@@ -218,9 +218,9 @@ internal class EditorViewModelTests
 	public void CloseFiles_Closes_Editing_And_Executing_Files()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(2)];
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(2)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(2)];
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(2)];
 
 		editingFiles.ForEach(x => x.IsEditing = true);
 
@@ -273,15 +273,15 @@ internal class EditorViewModelTests
 	public async Task DecryptFolder_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder
 			.Children
@@ -320,7 +320,7 @@ internal class EditorViewModelTests
 
 		await folderProtection
 			.Received()
-			.DecryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
+			.DecryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
 	}
 
 	/// <summary>
@@ -330,14 +330,14 @@ internal class EditorViewModelTests
 	public async Task DeleteAsync_Closes_File_On_Success()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(isExecuting: true);
+		FileDto file = TestData.CreateFileDto(isExecuting: true);
 
 		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
 		hierarchyEditor
 			.DeleteAsync(
-				Arg.Any<ExplorerModelBaseDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<ExplorerItemDtoBase>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
 				Arg.Any<CancellationToken>())
 			.Returns(true);
 
@@ -383,7 +383,7 @@ internal class EditorViewModelTests
 	public async Task DeleteAsync_Drops_The_Key_Of_A_Deleted_Folder()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -391,8 +391,8 @@ internal class EditorViewModelTests
 
 		hierarchyEditor
 			.DeleteAsync(
-				Arg.Any<ExplorerModelBaseDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<ExplorerItemDtoBase>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
 				Arg.Any<CancellationToken>())
 			.Returns(true);
 
@@ -429,14 +429,14 @@ internal class EditorViewModelTests
 	public async Task DeleteAsync_Keeps_File_When_Editor_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(isExecuting: true);
+		FileDto file = TestData.CreateFileDto(isExecuting: true);
 
 		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
 		hierarchyEditor
 			.DeleteAsync(
-				Arg.Any<ExplorerModelBaseDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<ExplorerItemDtoBase>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
 				Arg.Any<CancellationToken>())
 			.Returns(false);
 
@@ -472,7 +472,7 @@ internal class EditorViewModelTests
 	public async Task DeleteAsync_Keeps_The_Key_When_Editor_Fails()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -480,8 +480,8 @@ internal class EditorViewModelTests
 
 		hierarchyEditor
 			.DeleteAsync(
-				Arg.Any<ExplorerModelBaseDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<ExplorerItemDtoBase>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
 				Arg.Any<CancellationToken>())
 			.Returns(false);
 
@@ -516,14 +516,14 @@ internal class EditorViewModelTests
 	public async Task DeleteAsync_Leaves_The_Keys_Alone_For_A_Deleted_File()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		IHierarchyEditor hierarchyEditor = Substitute.For<IHierarchyEditor>();
 
 		hierarchyEditor
 			.DeleteAsync(
-				Arg.Any<ExplorerModelBaseDto>(),
-				Arg.Any<Collection<ExplorerModelBaseDto>>(),
+				Arg.Any<ExplorerItemDtoBase>(),
+				Arg.Any<Collection<ExplorerItemDtoBase>>(),
 				Arg.Any<CancellationToken>())
 			.Returns(true);
 
@@ -560,7 +560,7 @@ internal class EditorViewModelTests
 	public async Task EditNote_Declares_The_Note_Of_A_Protected_Object_Sensitive([Values] EncryptionStatus encryptionStatus)
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(encryptionStatus: encryptionStatus);
+		FileDto file = TestData.CreateFileDto(encryptionStatus: encryptionStatus);
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -597,7 +597,7 @@ internal class EditorViewModelTests
 	public async Task EditNote_Delegates_To_Note_Editor()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		string storedNote = RandomString.Create(20);
 
@@ -656,7 +656,7 @@ internal class EditorViewModelTests
 	public async Task EditNote_Keeps_Note_When_Dialog_Is_Cancelled()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto();
+		FileDto file = TestData.CreateFileDto();
 
 		INoteEditor noteEditor = Substitute.For<INoteEditor>();
 
@@ -684,7 +684,7 @@ internal class EditorViewModelTests
 
 		// Assert
 		await noteEditor.DidNotReceive().EditAsync(
-			Arg.Any<ExplorerModelBaseDto>(),
+			Arg.Any<ExplorerItemDtoBase>(),
 			Arg.Any<string>(),
 			Arg.Any<DateTime>(),
 			Arg.Any<CancellationToken>());
@@ -767,15 +767,15 @@ internal class EditorViewModelTests
 	public async Task EncryptFolder_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder
 			.Children
@@ -814,7 +814,7 @@ internal class EditorViewModelTests
 
 		await folderProtection
 			.Received()
-			.EncryptFolderAsync(Arg.Any<FolderModelDto>(), Arg.Any<FileModelDto[]>());
+			.EncryptFolderAsync(Arg.Any<FolderDto>(), Arg.Any<FileDto[]>());
 	}
 
 	/// <summary>
@@ -857,7 +857,7 @@ internal class EditorViewModelTests
 	public async Task ExecuteFile_Does_Work()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		IExecutionEngine engine = Substitute.For<IExecutionEngine>();
 
@@ -930,11 +930,11 @@ internal class EditorViewModelTests
 	public async Task ExpandCollapseAllFoldersAsync_Should_Act_To_All_Folders([Values] bool isExpandAll)
 	{
 		// Arrange
-		FolderModelDto selectedFolder = TestData.CreateFolderDto();
+		FolderDto selectedFolder = TestData.CreateFolderDto();
 
 		selectedFolder.IsSelected = true;
 
-		FolderModelDto[] folders = [.. TestData.CreateFoldersDto(5)];
+		FolderDto[] folders = [.. TestData.CreateFoldersDto(5)];
 
 		folders = [.. folders, .. selectedFolder.ToEnumerable()];
 
@@ -1070,7 +1070,7 @@ internal class EditorViewModelTests
 
 			await hook
 				.Received()
-				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+				.StartTrackingAsync(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 
 			settingsStore
 				.Received()
@@ -1139,12 +1139,12 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
@@ -1185,7 +1185,7 @@ internal class EditorViewModelTests
 		// Marking the objects and dropping the keys belongs to the encryption service.
 		contentVisibility
 			.Received(1)
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -1196,7 +1196,7 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(
+		FileDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -1231,7 +1231,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.DidNotReceive()
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -1241,7 +1241,7 @@ internal class EditorViewModelTests
 	public async Task HideFileContents_Does_Work([Values] bool isEditing)
 	{
 		// Arrange
-		FileModelDto file = isEditing
+		FileDto file = isEditing
 			? TestData.CreateFileDto(isEditing: true)
 			: TestData.CreateFileDto(isExecuting: true);
 
@@ -1289,7 +1289,7 @@ internal class EditorViewModelTests
 	public async Task HideFileContents_Keeps_Contents_When_An_Editor_Cannot_Save()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(
+		FileDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -1326,7 +1326,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.DidNotReceive()
-			.HideFileContents(Arg.Any<FileModelDto>());
+			.HideFileContents(Arg.Any<FileDto>());
 	}
 
 	/// <summary>
@@ -1336,15 +1336,15 @@ internal class EditorViewModelTests
 	public async Task HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder
 			.Children
@@ -1383,7 +1383,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.Received()
-			.HideFolderContents(Arg.Any<FolderModelDto>());
+			.HideFolderContents(Arg.Any<FolderDto>());
 	}
 
 	/// <summary>
@@ -1393,9 +1393,9 @@ internal class EditorViewModelTests
 	public async Task HideFolderContents_Keeps_Contents_When_An_Editor_Cannot_Save()
 	{
 		// Arrange
-		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		FileModelDto file = TestData.CreateFileDto(
+		FileDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -1432,7 +1432,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.DidNotReceive()
-			.HideFolderContents(Arg.Any<FolderModelDto>());
+			.HideFolderContents(Arg.Any<FolderDto>());
 	}
 
 	/// <summary>
@@ -1442,11 +1442,11 @@ internal class EditorViewModelTests
 	public async Task Import_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
@@ -1481,7 +1481,7 @@ internal class EditorViewModelTests
 		// Assert
 		await dataExchange
 			.Received()
-			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>());
+			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -1494,7 +1494,7 @@ internal class EditorViewModelTests
 		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
 
 		dataExchange
-			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
 			.Returns(new ImportDataResult([], ImportMode.Replace));
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
@@ -1527,7 +1527,7 @@ internal class EditorViewModelTests
 		IDataExchangeService dataExchange = Substitute.For<IDataExchangeService>();
 
 		dataExchange
-			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
+			.ImportDataAsync(Arg.Any<Collection<ExplorerItemDtoBase>>())
 			.Returns(new ImportDataResult([], ImportMode.Append));
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
@@ -1569,7 +1569,7 @@ internal class EditorViewModelTests
 			Y = positiveValue
 		};
 
-		FileModelDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
+		FileDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -1718,11 +1718,11 @@ internal class EditorViewModelTests
 	public async Task Receive_SessionAutoLocked_Closes_Files_And_Hides_Contents()
 	{
 		// Arrange
-		FileModelDto editingFile = TestData.CreateFileDto(
+		FileDto editingFile = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
-		FileModelDto executingFile = TestData.CreateFileDto(
+		FileDto executingFile = TestData.CreateFileDto(
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -1777,7 +1777,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.Received(1)
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -1788,7 +1788,7 @@ internal class EditorViewModelTests
 	public async Task Receive_SessionAutoLocked_Hides_Contents_When_An_Editor_Cannot_Save()
 	{
 		// Arrange
-		FileModelDto file = TestData.CreateFileDto(
+		FileDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -1835,7 +1835,7 @@ internal class EditorViewModelTests
 
 		contentVisibility
 			.Received(1)
-			.HideAllContents(Arg.Any<IEnumerable<ExplorerModelBaseDto>>());
+			.HideAllContents(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -1845,7 +1845,7 @@ internal class EditorViewModelTests
 	public void ResetSelectedObject_Resets_IsSelected_Property_And_Resets_SelectedObject()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsSelected = true;
 
@@ -1927,7 +1927,7 @@ internal class EditorViewModelTests
 		// Arrange
 		IEntityPropertyWriter propertyWriter = Substitute.For<IEntityPropertyWriter>();
 
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsFavorite = initialValue;
 
@@ -1955,7 +1955,7 @@ internal class EditorViewModelTests
 	public void SetSelectedObject_Sets_Object_IsSelected_Property_To_True_And_SelectedObject()
 	{
 		// Arrange
-		FileModelDto dto = TestData.CreateFileDto();
+		FileDto dto = TestData.CreateFileDto();
 
 		dto.IsSelected = false;
 
@@ -1990,9 +1990,9 @@ internal class EditorViewModelTests
 			using AutoMock windowMock = AutoMock.GetLoose();
 
 			viewLauncher.ConfigureFavoritesWindow(
-				Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
-				Arg.Any<IEnumerable<FileModelDto>>(),
-				Arg.Any<IEnumerable<FileModelDto>>())
+				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+				Arg.Any<IEnumerable<FileDto>>(),
+				Arg.Any<IEnumerable<FileDto>>())
 			.Returns(windowMock.Create<FavoritesWindow>());
 
 			builder.RegisterInstance(viewLauncher);
@@ -2009,9 +2009,9 @@ internal class EditorViewModelTests
 			.BeFalse();
 
 		viewLauncher.Received().ConfigureFavoritesWindow(
-			Arg.Any<IEnumerable<ExplorerModelBaseDto>>(),
-			Arg.Any<IEnumerable<FileModelDto>>(),
-			Arg.Any<IEnumerable<FileModelDto>>());
+			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
+			Arg.Any<IEnumerable<FileDto>>(),
+			Arg.Any<IEnumerable<FileDto>>());
 	}
 
 	/// <summary>
@@ -2043,15 +2043,15 @@ internal class EditorViewModelTests
 	public async Task ShowFolderContents_Does_Work()
 	{
 		// Arrange
-		FileModelDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isEditing: true)];
 
-		FileModelDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
 			count: 5,
 			isExecuting: true)];
 
-		FolderModelDto folder = TestData.CreateFolderDto();
+		FolderDto folder = TestData.CreateFolderDto();
 
 		folder
 			.Children
@@ -2090,7 +2090,7 @@ internal class EditorViewModelTests
 
 		await contentVisibility
 			.Received()
-			.ShowFolderContentsAsync(Arg.Any<FolderModelDto>());
+			.ShowFolderContentsAsync(Arg.Any<FolderDto>());
 	}
 	#endregion
 }

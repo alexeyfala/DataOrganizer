@@ -107,7 +107,7 @@ internal class KeeperUnlockerTests
 		// Arrange
 		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
-		FolderModelDto keeper = CreateKeeper();
+		FolderDto keeper = CreateKeeper();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -153,7 +153,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Keeps_A_Wrapper_Of_The_Current_Cost()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateKeeper();
+		FolderDto keeper = CreateKeeper();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -194,7 +194,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Keeps_The_Wrapper_When_The_Write_Is_Refused()
 	{
 		// Arrange
-		FolderModelDto keeper = CreateKeeper();
+		FolderDto keeper = CreateKeeper();
 
 		byte[]? wrapped = keeper.EncryptedDek;
 
@@ -347,7 +347,7 @@ internal class KeeperUnlockerTests
 
 		byte[] rewrapped = TestData.CreateRandomBytes(20);
 
-		FolderModelDto keeper = CreateKeeper();
+		FolderDto keeper = CreateKeeper();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -423,9 +423,9 @@ internal class KeeperUnlockerTests
 	/// <summary>
 	/// Creates a keeper carrying a wrapped key.
 	/// </summary>
-	private static FolderModelDto CreateKeeper()
+	private static FolderDto CreateKeeper()
 	{
-		FolderModelDto keeper = TestData.CreateFolderDto(
+		FolderDto keeper = TestData.CreateFolderDto(
 			encryptionStatus: EncryptionStatus.Encrypted);
 
 		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
