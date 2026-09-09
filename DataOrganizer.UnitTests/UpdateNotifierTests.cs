@@ -6,7 +6,7 @@ using NSubstitute;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UpdateNotifier)}"" type")]
 internal class UpdateNotifierTests

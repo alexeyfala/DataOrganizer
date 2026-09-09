@@ -4,7 +4,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using System;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotifyPropertyChangedExtensions)}"" type")]
 internal partial class NotifyPropertyChangedExtensionsTests

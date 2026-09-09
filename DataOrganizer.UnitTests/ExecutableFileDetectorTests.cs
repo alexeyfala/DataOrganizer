@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutableFileDetector)}"" type")]
 internal class ExecutableFileDetectorTests

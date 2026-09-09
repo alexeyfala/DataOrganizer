@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
@@ -18,8 +17,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptedContentWriter)}"" type")]
 internal class EncryptedContentWriterTests

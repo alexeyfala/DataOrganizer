@@ -3,11 +3,11 @@ using Entities.Enums;
 using Entities.Models;
 using Repository.Enums;
 using Repository.Services;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using System;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileRepository)}"" type")]
 internal class FileRepositoryTests

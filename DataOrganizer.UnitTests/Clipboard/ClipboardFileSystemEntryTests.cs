@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Models.Clipboard;
 using System.IO;
 
-namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+namespace DataOrganizer.UnitTests.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardFileSystemEntry)}"" type")]
 internal class ClipboardFileSystemEntryTests

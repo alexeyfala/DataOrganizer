@@ -6,7 +6,7 @@ using NSubstitute;
 using Shared.Common;
 using System;
 
-namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+namespace DataOrganizer.UnitTests.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardSensitivityMarkerWriter)}"" type")]
 internal class ClipboardSensitivityMarkerWriterTests

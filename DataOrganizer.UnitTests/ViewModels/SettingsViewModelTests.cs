@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
@@ -11,8 +10,9 @@ using Material.Colors;
 using Material.Styles.Themes.Base;
 using NSubstitute;
 using System;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsViewModel)}"" type")]
 internal class SettingsViewModelTests

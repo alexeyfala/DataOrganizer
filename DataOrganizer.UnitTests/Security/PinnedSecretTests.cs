@@ -3,7 +3,7 @@ using DataOrganizer.Helpers.Security;
 using System;
 using System.Text;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PinnedSecret)}"" type")]
 internal class PinnedSecretTests

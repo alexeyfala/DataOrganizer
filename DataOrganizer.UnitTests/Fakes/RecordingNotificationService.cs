@@ -2,7 +2,7 @@ using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Fakes;
 
 /// <summary>
 /// Test-only <see cref="INotificationService" /> that keeps the last message asked for,

@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalHookRunner)}"" type")]
 internal class GlobalHookRunnerTests

@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
@@ -19,8 +18,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileChangeTracker)}"" type")]
 internal class FileChangeTrackerTests

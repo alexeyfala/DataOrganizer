@@ -1,15 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.UnitTests.Helpers;
 using DataOrganizer.Services.Encryption;
 using System;
 using System.Security.Cryptography;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SessionKeyStore)}"" type")]
 internal class SessionKeyStoreTests

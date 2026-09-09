@@ -5,7 +5,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using System.Threading;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(Extensions.ObservableExtensions)}"" type")]
 internal class ObservableExtensionsTests

@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Clipboard;
@@ -20,8 +19,9 @@ using Shared.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ViewLauncher)}"" type")]
 internal class ViewLauncherTests

@@ -7,7 +7,7 @@ using Serilog;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
 internal class GlobalExceptionHandlerTests

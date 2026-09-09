@@ -1,4 +1,4 @@
 using Avalonia.Headless;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests;
 
 [assembly: AvaloniaTestApplication(typeof(TestAppBuilder))]

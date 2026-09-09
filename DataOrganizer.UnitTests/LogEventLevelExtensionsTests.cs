@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Extensions;
 using Serilog.Events;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LogEventLevelExtensions)}"" type")]
 internal class LogEventLevelExtensionsTests

@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
@@ -24,8 +23,9 @@ using SharpHook.Testing;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyboardInputHook)}"" type")]
 internal class KeyboardInputHookTests

@@ -11,14 +11,14 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+namespace DataOrganizer.UnitTests.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogService)}"" type")]
 internal class ClipboardLogServiceTests

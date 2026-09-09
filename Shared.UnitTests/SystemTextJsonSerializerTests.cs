@@ -2,7 +2,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Shared.Services;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SystemTextJsonSerializer)}"" type")]
 internal class SystemTextJsonSerializerTests

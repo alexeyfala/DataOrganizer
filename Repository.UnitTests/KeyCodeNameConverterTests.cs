@@ -3,7 +3,7 @@ using Repository.Converters;
 using SharpHook.Data;
 using System;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyCodeNameConverter)}"" type")]
 internal class KeyCodeNameConverterTests

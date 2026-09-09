@@ -1,15 +1,15 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
 using NSubstitute;
 using Shared.Common;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Notes;
+namespace DataOrganizer.UnitTests.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteReader)}"" type")]
 internal class NoteReaderTests

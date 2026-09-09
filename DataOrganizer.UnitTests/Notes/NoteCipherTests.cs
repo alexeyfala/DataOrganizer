@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
@@ -13,8 +12,9 @@ using Shared.Common;
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Notes;
+namespace DataOrganizer.UnitTests.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteCipher)}"" type")]
 internal class NoteCipherTests

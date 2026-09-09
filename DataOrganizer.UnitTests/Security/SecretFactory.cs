@@ -1,9 +1,9 @@
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers.Security;
 using Shared.Common;
 using System;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Security;
 
 /// <summary>
 /// Builds pinned secrets for the tests.

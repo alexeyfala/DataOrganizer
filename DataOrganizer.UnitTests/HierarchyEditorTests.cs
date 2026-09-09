@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services;
 using Entities.Enums;
@@ -15,8 +14,9 @@ using Shared.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HierarchyEditor)}"" type")]
 internal class HierarchyEditorTests

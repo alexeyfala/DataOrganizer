@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using Shared.Extensions;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(Int32Extensions)}"" type")]
 internal class Int32ExtensionsTests

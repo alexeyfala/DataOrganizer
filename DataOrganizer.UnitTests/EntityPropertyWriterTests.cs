@@ -1,6 +1,5 @@
 using Autofac;
 using Autofac.Extras.Moq;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services;
 using Entities.Enums;
@@ -10,8 +9,9 @@ using NSubstitute;
 using Repository.Interfaces;
 using System;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityPropertyWriter)}"" type")]
 internal class EntityPropertyWriterTests

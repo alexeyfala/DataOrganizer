@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PasswordStrengthEstimator)}"" type")]
 internal class PasswordStrengthEstimatorTests

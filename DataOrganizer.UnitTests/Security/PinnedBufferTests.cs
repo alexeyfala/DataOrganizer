@@ -4,7 +4,7 @@ using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PinnedBuffer)}"" type")]
 internal class PinnedBufferTests

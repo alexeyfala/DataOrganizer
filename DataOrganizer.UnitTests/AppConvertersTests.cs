@@ -3,7 +3,7 @@ using DataOrganizer.Converters;
 using System;
 using System.Globalization;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppConverters)}"" type")]
 internal class AppConvertersTests

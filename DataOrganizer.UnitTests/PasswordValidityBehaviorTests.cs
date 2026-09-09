@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Behaviors;
 using DataOrganizer.Enums;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(PasswordValidityBehavior)}"" type")]
 internal class PasswordValidityBehaviorTests

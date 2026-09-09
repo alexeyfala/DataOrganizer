@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FuncExtensions)}"" type")]
 internal class FuncExtensionsTests

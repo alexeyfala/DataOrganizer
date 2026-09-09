@@ -5,12 +5,12 @@ using Microsoft.Data.Sqlite;
 using NSubstitute;
 using Repository.Interfaces;
 using Repository.Services;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using Shared.Interfaces;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
 internal class DbMaintenanceTests

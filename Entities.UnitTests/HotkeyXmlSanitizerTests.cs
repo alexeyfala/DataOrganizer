@@ -9,7 +9,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
-namespace Entities.UnitTests.TestTypes;
+namespace Entities.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeyXmlSanitizer)}"" type")]
 internal class HotkeyXmlSanitizerTests

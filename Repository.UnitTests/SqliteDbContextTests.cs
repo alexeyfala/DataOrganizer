@@ -3,13 +3,13 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using SharpHook.Data;
 using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqliteDbContext)}"" type")]
 internal class SqliteDbContextTests

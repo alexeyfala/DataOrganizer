@@ -4,7 +4,7 @@ using NUnit.Framework.Internal;
 using System;
 using System.Diagnostics;
 
-namespace CommonTestHelpers.Attributes;
+namespace TestSupport;
 
 /// <summary>
 /// Marks a test as ignored when a debugger is attached. Useful for tests that intentionally

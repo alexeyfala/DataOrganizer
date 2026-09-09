@@ -1,13 +1,13 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SelectedFavoritesViewModel)}"" type")]
 internal class SelectedFavoritesViewModelTests

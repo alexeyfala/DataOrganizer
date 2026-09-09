@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Fakes;
 
 /// <summary>
 /// Minimal in-memory <see cref="IFileSystem" /> for unit tests. Only the byte

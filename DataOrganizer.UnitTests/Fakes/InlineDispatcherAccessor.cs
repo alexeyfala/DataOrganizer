@@ -3,7 +3,7 @@ using DataOrganizer.Interfaces;
 using System;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Fakes;
 
 /// <summary>
 /// Test-only <see cref="IDispatcherAccessor" /> that executes posted work synchronously on the

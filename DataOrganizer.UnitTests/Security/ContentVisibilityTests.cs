@@ -1,14 +1,12 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
-using DataOrganizer.UnitTests.Helpers;
 using NSubstitute;
 using NSubstitute.ReceivedExtensions;
 using Shared.Extensions;
@@ -17,8 +15,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentVisibility)}"" type")]
 internal class ContentVisibilityTests

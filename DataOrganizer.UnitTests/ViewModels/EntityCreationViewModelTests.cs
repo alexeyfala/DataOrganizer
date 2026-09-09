@@ -8,7 +8,7 @@ using Shared.Common;
 using Shared.Interfaces;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityCreationViewModel)}"" type")]
 internal class EntityCreationViewModelTests

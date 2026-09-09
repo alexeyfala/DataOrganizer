@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.Data.Sqlite;
@@ -12,7 +11,7 @@ using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using Shared.Common;
 using Shared.Interfaces;
 using Shared.Services;
@@ -23,8 +22,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests

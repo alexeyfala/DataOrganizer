@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using Microsoft.Data.Sqlite;
 using Repository.Interceptors;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using Shared.Common;
 using System;
 using System.Data.Common;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmas)}"" type")]
 internal class SqlitePragmasTests

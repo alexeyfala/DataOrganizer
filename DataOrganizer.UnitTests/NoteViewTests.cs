@@ -6,7 +6,7 @@ using DataOrganizer.Behaviors;
 using DataOrganizer.Views;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteView)}"" type")]
 internal class NoteViewTests

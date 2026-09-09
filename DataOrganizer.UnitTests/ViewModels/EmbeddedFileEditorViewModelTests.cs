@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Headless.NUnit;
 using AvaloniaEdit;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
@@ -14,8 +13,9 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedFileEditorViewModel)}"" type")]
 internal class EmbeddedFileEditorViewModelTests

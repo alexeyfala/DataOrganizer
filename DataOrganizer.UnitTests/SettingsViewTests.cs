@@ -3,7 +3,6 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Controls;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
@@ -13,8 +12,9 @@ using DataOrganizer.Views.Settings;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsView)}"" type")]
 internal class SettingsViewTests

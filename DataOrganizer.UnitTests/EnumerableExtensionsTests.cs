@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
@@ -13,8 +12,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumerableExtensions)}"" type")]
 internal class EnumerableExtensionsTests

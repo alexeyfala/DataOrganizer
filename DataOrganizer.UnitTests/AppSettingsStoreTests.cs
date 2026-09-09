@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
@@ -9,8 +8,9 @@ using DataOrganizer.Services.Settings;
 using NSubstitute;
 using Shared.Interfaces;
 using System.IO;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppSettingsStore)}"" type")]
 internal class AppSettingsStoreTests

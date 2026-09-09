@@ -7,7 +7,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using NSubstitute;
 using Shared.Common;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveCopyBehavior)}"" type")]
 internal class SensitiveCopyBehaviorTests

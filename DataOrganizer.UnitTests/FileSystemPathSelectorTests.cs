@@ -1,9 +1,9 @@
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Views;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemPathSelector)}"" type")]
 internal class FileSystemPathSelectorTests

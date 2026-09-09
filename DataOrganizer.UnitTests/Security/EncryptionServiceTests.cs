@@ -1,18 +1,17 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
-using DataOrganizer.UnitTests.Helpers;
 using NSec.Cryptography;
 using Repository.Dto;
 using System;
 using System.Buffers.Binary;
 using System.Security.Authentication;
 using System.Security.Cryptography;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptionService)}"" type")]
 internal class EncryptionServiceTests

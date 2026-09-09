@@ -7,7 +7,7 @@ using Shared.Interfaces;
 using System;
 using System.IO;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatabaseBackup)}"" type")]
 internal class DatabaseBackupTests

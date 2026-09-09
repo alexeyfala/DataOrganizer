@@ -4,7 +4,7 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Models.Dataset;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordMover)}"" type")]
 internal class DatasetRecordMoverTests

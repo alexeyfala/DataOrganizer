@@ -1,6 +1,5 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Attributes;
 using Shared.Services;
 using System;
 using System.IO;
@@ -9,8 +8,9 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using TestSupport;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SystemXmlSerializer)}"" type")]
 internal class SystemXmlSerializerTests

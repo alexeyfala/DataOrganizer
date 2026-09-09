@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.ViewModels;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MultilineTextEditViewModel)}"" type")]
 internal class MultilineTextEditViewModelTests

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Repository.DbContexts;
 using System;
 
-namespace Repository.UnitTests.Helpers;
+namespace Repository.UnitTests.Fixtures;
 
 /// <summary>
 /// Owns an open in-memory SQLite connection and a schema-created <see cref="SqliteDbContext" /> for a single test.

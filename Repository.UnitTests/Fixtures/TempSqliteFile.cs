@@ -4,7 +4,7 @@ using System;
 using System.Data.Common;
 using System.IO;
 
-namespace Repository.UnitTests.Helpers;
+namespace Repository.UnitTests.Fixtures;
 
 /// <summary>
 /// A SQLite database file in a private temporary folder, removed when the test ends.

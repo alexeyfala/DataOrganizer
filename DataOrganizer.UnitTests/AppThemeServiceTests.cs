@@ -10,7 +10,7 @@ using Material.Styles.Themes.Base;
 using NSubstitute;
 using System;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppThemeService)}"" type")]
 internal class AppThemeServiceTests

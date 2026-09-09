@@ -4,7 +4,7 @@ using System;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(Argon2Settings)}"" type")]
 internal class Argon2SettingsTests

@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
@@ -18,8 +17,9 @@ using SharpHook.Testing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeysEditorViewModel)}"" type")]
 internal class HotkeysEditorViewModelTests

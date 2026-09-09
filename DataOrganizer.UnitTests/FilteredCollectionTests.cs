@@ -1,13 +1,13 @@
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilteredCollection<>)}"" type")]
 internal class FilteredCollectionTests

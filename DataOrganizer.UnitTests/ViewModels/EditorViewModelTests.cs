@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
@@ -17,7 +16,7 @@ using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Entities.Enums;
@@ -32,8 +31,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EditorViewModel)}"" type")]
 internal class EditorViewModelTests

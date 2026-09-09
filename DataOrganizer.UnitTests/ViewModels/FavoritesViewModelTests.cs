@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Settings;
@@ -12,7 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using NSubstitute;
@@ -21,8 +20,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FavoritesViewModel)}"" type")]
 internal class FavoritesViewModelTests

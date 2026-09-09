@@ -3,7 +3,7 @@ using DataOrganizer.Helpers.Notes;
 using Shared.Common;
 using Shared.Properties;
 
-namespace DataOrganizer.UnitTests.TestTypes.Notes;
+namespace DataOrganizer.UnitTests.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteHeaderBuilder)}"" type")]
 internal class NoteHeaderBuilderTests

@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using Shared.Extensions;
 using System;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GenericExtensions)}"" type")]
 internal class GenericExtensionsTests

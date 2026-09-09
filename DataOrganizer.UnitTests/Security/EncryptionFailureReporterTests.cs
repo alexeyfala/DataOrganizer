@@ -5,13 +5,13 @@ using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services.Encryption;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using Shared.Properties;
 using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptionFailureReporter)}"" type")]
 internal class EncryptionFailureReporterTests

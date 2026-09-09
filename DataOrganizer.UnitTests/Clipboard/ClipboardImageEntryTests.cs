@@ -3,7 +3,7 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Models.Clipboard;
 using Shared.Properties;
 
-namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+namespace DataOrganizer.UnitTests.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardImageEntry)}"" type")]
 internal class ClipboardImageEntryTests

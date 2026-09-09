@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -19,8 +18,9 @@ using NSubstitute;
 using Shared.Properties;
 using System;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DialogService)}"" type")]
 internal class DialogServiceTests

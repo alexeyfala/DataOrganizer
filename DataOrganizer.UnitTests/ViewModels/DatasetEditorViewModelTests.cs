@@ -2,13 +2,12 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Models.Dataset;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -24,8 +23,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetEditorViewModel)}"" type")]
 internal class DatasetEditorViewModelTests

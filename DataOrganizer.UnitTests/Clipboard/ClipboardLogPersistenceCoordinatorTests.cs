@@ -13,7 +13,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using Serilog;
@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes.Clipboard;
+namespace DataOrganizer.UnitTests.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogPersistenceCoordinator)}"" type")]
 internal class ClipboardLogPersistenceCoordinatorTests

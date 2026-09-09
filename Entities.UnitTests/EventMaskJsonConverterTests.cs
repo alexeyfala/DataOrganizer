@@ -4,7 +4,7 @@ using SharpHook.Data;
 using System;
 using System.Text.Json;
 
-namespace Entities.UnitTests.TestTypes;
+namespace Entities.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EventMaskJsonConverter)}"" type")]
 internal class EventMaskJsonConverterTests

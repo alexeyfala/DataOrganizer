@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.ViewModels;
 using System;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ConsoleViewModel)}"" type")]
 internal class ConsoleViewModelTests

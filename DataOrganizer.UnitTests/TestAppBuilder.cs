@@ -1,6 +1,6 @@
 using Avalonia;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests;
 
 /// <summary>
 /// Required class for testing Avalonia application<br />

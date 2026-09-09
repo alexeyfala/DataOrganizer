@@ -4,7 +4,7 @@ using DataOrganizer.Enums;
 using DataOrganizer.ViewModels;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ImportListSelectorViewModel)}"" type")]
 internal class ImportListSelectorViewModelTests

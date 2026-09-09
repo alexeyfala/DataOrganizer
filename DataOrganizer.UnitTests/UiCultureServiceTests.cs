@@ -4,7 +4,7 @@ using DataOrganizer.Services;
 using Shared.Properties;
 using System.Globalization;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UiCultureService)}"" type")]
 internal class UiCultureServiceTests

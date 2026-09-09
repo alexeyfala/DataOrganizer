@@ -17,7 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CommonTestHelpers.Helpers;
+namespace TestSupport;
 
 /// <summary>
 /// Contains help methods for test purposes.

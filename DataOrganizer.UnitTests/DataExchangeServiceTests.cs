@@ -2,7 +2,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
@@ -26,8 +25,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DataExchangeService)}"" type")]
 internal class DataExchangeServiceTests

@@ -1,7 +1,6 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Settings;
@@ -11,8 +10,9 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.Security;
+namespace DataOrganizer.UnitTests.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AutoLockService)}"" type")]
 internal class AutoLockServiceTests

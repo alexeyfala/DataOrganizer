@@ -2,12 +2,12 @@ using AwesomeAssertions;
 using Entities.Enums;
 using Entities.Models;
 using Repository.Services;
-using Repository.UnitTests.Helpers;
+using Repository.UnitTests.Fixtures;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.TestTypes;
+namespace Repository.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FolderRepository)}"" type")]
 internal class FolderRepositoryTests

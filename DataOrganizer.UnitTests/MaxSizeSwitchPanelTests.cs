@@ -5,7 +5,7 @@ using Avalonia.Threading;
 using AwesomeAssertions;
 using DataOrganizer.Controls;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MaxSizeSwitchPanel)}"" type")]
 internal class MaxSizeSwitchPanelTests

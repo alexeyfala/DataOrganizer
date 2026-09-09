@@ -1,13 +1,13 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using CommonTestHelpers.Helpers;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels;
 using System;
 using System.Linq;
 using System.Threading;
+using TestSupport;
 
-namespace DataOrganizer.UnitTests.TestTypes.ViewModels;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CopyHistoryViewModel)}"" type")]
 internal class CopyHistoryViewModelTests

@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using Serilog.Core;
 using Shared.Extensions;
 
-namespace Shared.UnitTests.TestTypes;
+namespace Shared.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SerilogExtensions)}"" type")]
 internal class SerilogExtensionsTests

@@ -4,12 +4,12 @@ using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
-using DataOrganizer.UnitTests.Helpers;
+using DataOrganizer.UnitTests.Fakes;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 
-namespace DataOrganizer.UnitTests.TestTypes;
+namespace DataOrganizer.UnitTests;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotificationService)}"" type")]
 internal class NotificationServiceTests
