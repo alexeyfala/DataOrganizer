@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Encryption;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Editor;
 using Entities.Models;
 using Shared.Extensions;
 using System;

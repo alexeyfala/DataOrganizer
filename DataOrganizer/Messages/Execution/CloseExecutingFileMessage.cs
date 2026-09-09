@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Entities;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Execution;
 
 /// <summary>
 /// Notification raised to request closing a file currently executing in the operating system.

@@ -12,7 +12,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.ViewModels;
 using Repository.Dto;
 using Repository.Interfaces;

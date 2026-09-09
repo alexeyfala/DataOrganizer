@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Services.Encryption;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

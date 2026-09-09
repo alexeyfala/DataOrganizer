@@ -31,7 +31,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
 using Entities.Enums;
 using Entities.Models;

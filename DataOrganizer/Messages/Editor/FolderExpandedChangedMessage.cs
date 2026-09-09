@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Editor;
 
 /// <summary>
 /// Notification raised to request when folder expanded or collapsed.

@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Hotkeys;
 using DialogHostAvalonia;
 using Repository.Dto;
 using Shared.Extensions;

@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Encryption;
 using Serilog;
 using Shared.Extensions;
 using System;

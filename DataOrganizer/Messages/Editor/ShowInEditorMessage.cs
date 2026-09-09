@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using System;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Editor;
 
 /// <summary>
 /// Notification raised to show object in the editor.

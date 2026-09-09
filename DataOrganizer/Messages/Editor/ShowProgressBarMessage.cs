@@ -1,4 +1,4 @@
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Editor;
 
 /// <summary>
 /// Notification raised to request displaying (<c>True</c>) or hiding (<c>False</c>) a progress bar in the editor.

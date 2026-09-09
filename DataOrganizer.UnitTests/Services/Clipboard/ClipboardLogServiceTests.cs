@@ -8,7 +8,7 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Fakes;

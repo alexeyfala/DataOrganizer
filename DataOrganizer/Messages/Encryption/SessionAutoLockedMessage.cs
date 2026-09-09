@@ -1,4 +1,4 @@
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Encryption;
 
 /// <summary>
 /// Notification raised when the auto-lock countdown expires and the decrypted contents are to be hidden.

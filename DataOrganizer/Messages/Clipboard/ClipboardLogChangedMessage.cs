@@ -1,6 +1,6 @@
 using DataOrganizer.Enums.Clipboard;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Clipboard;
 
 /// <summary>
 /// Notification raised by the clipboard log service when its in-memory entries change.

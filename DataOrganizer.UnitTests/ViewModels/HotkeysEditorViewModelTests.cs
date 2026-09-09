@@ -4,7 +4,7 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Hotkeys;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using DataOrganizer.ViewModels;
 using Moq;

@@ -11,7 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Fakes;

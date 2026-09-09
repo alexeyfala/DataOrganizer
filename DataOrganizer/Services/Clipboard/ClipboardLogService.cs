@@ -9,7 +9,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Storage;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;

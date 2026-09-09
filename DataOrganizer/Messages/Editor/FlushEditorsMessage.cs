@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Editor;
 
 /// <summary>
 /// Request asking every open editor to persist its pending changes; a reply of <c>False</c> means the

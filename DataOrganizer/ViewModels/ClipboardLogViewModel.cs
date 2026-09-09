@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Clipboard;
 using DataOrganizer.Models.Clipboard;
 using DynamicData.Binding;
 using Serilog;

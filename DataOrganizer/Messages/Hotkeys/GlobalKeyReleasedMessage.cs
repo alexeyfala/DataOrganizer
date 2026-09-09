@@ -1,6 +1,6 @@
 using SharpHook.Data;
 
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Hotkeys;
 
 /// <summary>
 /// Notification raised by the global hook owner when a key is released.

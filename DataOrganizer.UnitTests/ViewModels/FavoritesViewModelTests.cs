@@ -13,7 +13,7 @@ using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Views;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Encryption;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;

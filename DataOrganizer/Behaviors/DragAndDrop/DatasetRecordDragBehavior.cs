@@ -6,7 +6,7 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Interfaces;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Dataset;
 using DataOrganizer.Models.Dataset;
 using System;
 using System.Diagnostics;

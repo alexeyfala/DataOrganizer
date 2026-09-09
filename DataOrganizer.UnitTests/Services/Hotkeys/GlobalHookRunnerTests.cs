@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.Services.Hotkeys;
 using Moq;
 using Serilog;

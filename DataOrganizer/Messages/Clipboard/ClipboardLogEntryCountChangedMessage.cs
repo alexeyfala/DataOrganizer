@@ -1,4 +1,4 @@
-namespace DataOrganizer.Messages;
+namespace DataOrganizer.Messages.Clipboard;
 
 /// <summary>
 /// Raised when the number of clipboard log entries changes (entries added or removed).

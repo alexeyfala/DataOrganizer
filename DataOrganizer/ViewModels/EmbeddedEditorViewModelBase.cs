@@ -9,7 +9,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
-using DataOrganizer.Messages;
+using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
 using Entities.Models;
 using Repository.Interfaces;
