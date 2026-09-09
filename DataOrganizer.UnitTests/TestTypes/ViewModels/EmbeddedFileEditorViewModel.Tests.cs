@@ -85,7 +85,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 		editor.Text
 			.Should()
-			.Be(TextHelper.Utf8Encoding.GetString(contents));
+			.Be(TextDefaults.Encoding.GetString(contents));
 
 		sut.IsWordWrap
 			.Should()

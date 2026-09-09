@@ -9,18 +9,18 @@ using System.Threading;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(FilterEngine<>)}"" type")]
-internal class FilterEngineTests
+[TestFixture(Description = $@"Tests of ""{nameof(FilteredCollection<>)}"" type")]
+internal class FilteredCollectionTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.AddRange" /> and <see cref="FilterEngine{TModel}.IsSourceEmpty" />: added items populate both the source and the visible sequence.
+	/// <see cref="FilteredCollection{TModel}.AddRange" /> and <see cref="FilteredCollection{TModel}.IsSourceEmpty" />: added items populate both the source and the visible sequence.
 	/// </summary>
 	[Test]
 	public void AddRange_Populates_Source_And_Visible_Sequence()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(5)];
 
@@ -38,13 +38,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Clear" />: clearing empties both the source and the visible sequence.
+	/// <see cref="FilteredCollection{TModel}.Clear" />: clearing empties both the source and the visible sequence.
 	/// </summary>
 	[Test]
 	public void Clear_Empties_The_Source()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -62,13 +62,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Contains" />: returns true for an existing item and false for an unknown one.
+	/// <see cref="FilteredCollection{TModel}.Contains" />: returns true for an existing item and false for an unknown one.
 	/// </summary>
 	[Test]
 	public void Contains_Returns_True_For_Existing_Item()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -85,13 +85,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Dispose" />: disposing twice does not throw and clears the source.
+	/// <see cref="FilteredCollection{TModel}.Dispose" />: disposing twice does not throw and clears the source.
 	/// </summary>
 	[Test]
 	public void Dispose_Is_Idempotent_And_Clears_Source()
 	{
 		// Arrange
-		FilterEngine<FileModelDto> sut = CreateSut();
+		FilteredCollection<FileModelDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -110,13 +110,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />: returns the source item matching the predicate.
+	/// <see cref="FilteredCollection{TModel}.FirstOrDefaultFromSource" />: returns the source item matching the predicate.
 	/// </summary>
 	[Test]
 	public void FirstOrDefaultFromSource_Returns_Matching_Item()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -134,13 +134,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.FirstOrDefaultFromSource" />: returns null when no source item matches the predicate.
+	/// <see cref="FilteredCollection{TModel}.FirstOrDefaultFromSource" />: returns null when no source item matches the predicate.
 	/// </summary>
 	[Test]
 	public void FirstOrDefaultFromSource_Returns_Null_If_No_Item_Matches()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -154,13 +154,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.InsertAndRebuild" />: an already present item is not re-inserted and order is preserved.
+	/// <see cref="FilteredCollection{TModel}.InsertAndRebuild" />: an already present item is not re-inserted and order is preserved.
 	/// </summary>
 	[Test]
 	public void InsertAndRebuild_Does_Nothing_When_Item_Already_Present()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -182,13 +182,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.InsertAndRebuild" />: a new item is placed at the specified visible index.
+	/// <see cref="FilteredCollection{TModel}.InsertAndRebuild" />: a new item is placed at the specified visible index.
 	/// </summary>
 	[Test]
 	public void InsertAndRebuild_Places_Item_At_Specified_Visible_Index()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		sut.AddRange(TestData.CreateFilesDto(3));
 
@@ -204,7 +204,7 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.PostToUi" />: the action runs inline when no synchronization context is set.
+	/// <see cref="FilteredCollection{TModel}.PostToUi" />: the action runs inline when no synchronization context is set.
 	/// </summary>
 	[Test]
 	public void PostToUi_Executes_Action_Inline_When_No_Context()
@@ -212,7 +212,7 @@ internal class FilterEngineTests
 		// Arrange
 		SynchronizationContext.SetSynchronizationContext(null);
 
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		bool executed = false;
 
@@ -226,13 +226,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Remove" />: removing an item returns true and drops it from the source.
+	/// <see cref="FilteredCollection{TModel}.Remove" />: removing an item returns true and drops it from the source.
 	/// </summary>
 	[Test]
 	public void Remove_Removes_Item_From_Source()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -252,13 +252,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Reorder" />: an item is moved to the specified visible index.
+	/// <see cref="FilteredCollection{TModel}.Reorder" />: an item is moved to the specified visible index.
 	/// </summary>
 	[Test]
 	public void Reorder_Moves_Item_To_Specified_Visible_Index()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -274,13 +274,13 @@ internal class FilterEngineTests
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.SelectFromSource" />: projects each source item through the selector.
+	/// <see cref="FilteredCollection{TModel}.SelectFromSource" />: projects each source item through the selector.
 	/// </summary>
 	[Test]
 	public void SelectFromSource_Projects_Source_Items()
 	{
 		// Arrange
-		using FilterEngine<FileModelDto> sut = CreateSut();
+		using FilteredCollection<FileModelDto> sut = CreateSut();
 
 		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
@@ -298,16 +298,16 @@ internal class FilterEngineTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a fresh <see cref="FilterEngine{T}" /> over <see cref="FileModelDto" /> with no filter and Index ordering.
+	/// Creates a fresh <see cref="FilteredCollection{T}" /> over <see cref="FileModelDto" /> with no filter and Index ordering.
 	/// </summary>
-	private static FilterEngine<FileModelDto> CreateSut()
+	private static FilteredCollection<FileModelDto> CreateSut()
 	{
 		// Reset synchronization context so DynamicData applies changes inline.
 		SynchronizationContext.SetSynchronizationContext(null);
 
 		IObservable<Func<FileModelDto, bool>> filter = Observable.Return<Func<FileModelDto, bool>>(_ => true);
 
-		return new FilterEngine<FileModelDto>(filter);
+		return new FilteredCollection<FileModelDto>(filter);
 	}
 	#endregion
 }

@@ -111,7 +111,7 @@ internal class KeyboardInputHookTests
 
 			contentCipher
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum));
+				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
 
 			builder.RegisterInstance(contentCipher);
 
@@ -178,7 +178,7 @@ internal class KeyboardInputHookTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(new ValidatedContents
 				{
-					Contents = TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum),
+					Contents = TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum),
 					IsValid = true
 				});
 

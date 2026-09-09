@@ -6,9 +6,9 @@ using System.Linq;
 namespace DataOrganizer.Helpers;
 
 /// <summary>
-/// Reflection helpers for objects that participate in the CommunityToolkit messenger.
+/// Reads, by reflection, the message channels a CommunityToolkit messenger recipient listens to.
 /// </summary>
-internal static class MessengerHelper
+internal static class MessengerSubscriptions
 {
 	#region Methods
 	/// <summary>

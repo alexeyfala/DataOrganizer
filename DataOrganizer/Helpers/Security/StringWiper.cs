@@ -3,7 +3,10 @@ using System.Runtime.InteropServices;
 
 namespace DataOrganizer.Helpers.Security;
 
-internal static class SecureStringHelper
+/// <summary>
+/// Zeroes out the memory of a string that held a secret.
+/// </summary>
+internal static class StringWiper
 {
 	#region Methods
 	/// <summary>
@@ -17,7 +20,7 @@ internal static class SecureStringHelper
 			.AsSpan()
 			.CopyTo(secret.AsSpan());
 
-		WipeString(value);
+		Wipe(value);
 
 		return secret;
 	}
@@ -29,7 +32,7 @@ internal static class SecureStringHelper
 	/// The intern pool is shared by the whole process, so wiping such an instance would corrupt
 	/// every literal equal to it. A secret never comes from a literal, so nothing is lost here.
 	/// </remarks>
-	public static void WipeString(string value)
+	public static void Wipe(string value)
 	{
 		if (ReferenceEquals(string.IsInterned(value), value))
 		{

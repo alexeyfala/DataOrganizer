@@ -44,22 +44,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	#endregion
 
 	#region Commands
-	/// <inheritdoc cref="TextEditorHelper.Copy" />
-	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorHelper.Copy, TextEditorHelper.CanCopy);
+	/// <inheritdoc cref="TextEditorOperations.Copy" />
+	public RelayCommand<TextArea> CopyCommand { get; } = new(TextEditorOperations.Copy, TextEditorOperations.CanCopy);
 
-	/// <inheritdoc cref="TextEditorHelper.Find" />
-	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorHelper.Find);
+	/// <inheritdoc cref="TextEditorOperations.Find" />
+	public RelayCommand<TextArea> FindCommand { get; } = new(TextEditorOperations.Find);
 
-	/// <inheritdoc cref="TextEditorHelper.ScrollToEnd" />
-	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorHelper.ScrollToEnd);
+	/// <inheritdoc cref="TextEditorOperations.ScrollToEnd" />
+	public RelayCommand<TextEditor> ScrollToEndCommand { get; } = new(TextEditorOperations.ScrollToEnd);
 
-	/// <inheritdoc cref="TextEditorHelper.ScrollToTop" />
-	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorHelper.ScrollToTop);
+	/// <inheritdoc cref="TextEditorOperations.ScrollToTop" />
+	public RelayCommand<TextEditor> ScrollToTopCommand { get; } = new(TextEditorOperations.ScrollToTop);
 
-	/// <inheritdoc cref="TextEditorHelper.SelectAll" />
-	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorHelper.SelectAll, TextEditorHelper.CanSelectAll);
+	/// <inheritdoc cref="TextEditorOperations.SelectAll" />
+	public RelayCommand<TextEditor> SelectAllCommand { get; } = new(TextEditorOperations.SelectAll, TextEditorOperations.CanSelectAll);
 
-	/// <inheritdoc cref="TextEditorHelper.Spin" />
+	/// <inheritdoc cref="TextEditorOperations.Spin" />
 	public RelayCommand<SpinEventArgs> SpinCommand { get; }
 	#endregion
 
@@ -101,15 +101,15 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			editor.Text = TextHelper
-				.Utf8Encoding
+			editor.Text = TextDefaults
+				.Encoding
 				.GetString(output);
 
 			_lastSavedContentHash = SHA256.HashData(output);
 
 			try
 			{
-				TextEditorHelper.SubscribePointerWheelChanged(
+				TextEditorOperations.SubscribePointerWheelChanged(
 					editor,
 					() => FontSize,
 					() => FontSize);
@@ -176,7 +176,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			return;
 		}
 
-		TextEditorHelper.UnsubscribePointerWheelChanged(
+		TextEditorOperations.UnsubscribePointerWheelChanged(
 			editor,
 			() => FontSize,
 			() => FontSize);
@@ -237,7 +237,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			notification,
 			exceptionHandler)
 	{
-		SpinCommand = new(e => TextEditorHelper.Spin(e, FontSize, () => FontSize));
+		SpinCommand = new(e => TextEditorOperations.Spin(e, FontSize, () => FontSize));
 	}
 	#endregion
 
@@ -370,8 +370,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private void EnqueueSave(TextEditor editor)
 	{
-		byte[] contents = TextHelper
-			.Utf8Encoding
+		byte[] contents = TextDefaults
+			.Encoding
 			.GetBytes(editor.Text);
 
 		if (_saveChannel

@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace DataOrganizer.UnitTests.TestTypes.Security;
 
-[TestFixture(Description = $@"Tests of ""{nameof(SecureStringHelper)}"" type")]
-internal class SecureStringHelperTests
+[TestFixture(Description = $@"Tests of ""{nameof(StringWiper)}"" type")]
+internal class StringWiperTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="SecureStringHelper.CaptureAndWipe" />: the returned pinned secret has the same length and content as the source.
+	/// <see cref="StringWiper.CaptureAndWipe" />: the returned pinned secret has the same length and content as the source.
 	/// </summary>
 	[Test]
 	public void CaptureAndWipe_Copies_Content_Into_Pinned_Secret_With_Same_Length()
@@ -22,7 +22,7 @@ internal class SecureStringHelperTests
 		string source = new(sample.ToCharArray());
 
 		// Act
-		using PinnedSecret secret = SecureStringHelper.CaptureAndWipe(source);
+		using PinnedSecret secret = StringWiper.CaptureAndWipe(source);
 
 		// Assert
 		secret.Length
@@ -35,7 +35,7 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="SecureStringHelper.CaptureAndWipe" />: the original source string is zeroed out after capture.
+	/// <see cref="StringWiper.CaptureAndWipe" />: the original source string is zeroed out after capture.
 	/// </summary>
 	[Test]
 	public void CaptureAndWipe_Wipes_Original_String_Memory()
@@ -44,7 +44,7 @@ internal class SecureStringHelperTests
 		string source = new("payload".ToCharArray());
 
 		// Act
-		using PinnedSecret _ = SecureStringHelper.CaptureAndWipe(source);
+		using PinnedSecret _ = StringWiper.CaptureAndWipe(source);
 
 		// Assert
 		source
@@ -54,16 +54,16 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="SecureStringHelper.WipeString" />: an empty string is left untouched and no exception is thrown.
+	/// <see cref="StringWiper.Wipe" />: an empty string is left untouched and no exception is thrown.
 	/// </summary>
 	[Test]
-	public void WipeString_Does_Nothing_For_Empty_String()
+	public void Wipe_Does_Nothing_For_Empty_String()
 	{
 		// Arrange
 		string source = new([]);
 
 		// Act
-		Action act = () => SecureStringHelper.WipeString(source);
+		Action act = () => StringWiper.Wipe(source);
 
 		// Assert
 		act
@@ -76,17 +76,17 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="SecureStringHelper.WipeString" />: an interned instance is left alone, since the
+	/// <see cref="StringWiper.Wipe" />: an interned instance is left alone, since the
 	/// intern pool is shared by the whole process.
 	/// </summary>
 	[Test]
-	public void WipeString_Leaves_An_Interned_String_Alone()
+	public void Wipe_Leaves_An_Interned_String_Alone()
 	{
 		// Arrange
 		string interned = string.Intern(new(['s', 'h', 'a', 'r', 'e', 'd']));
 
 		// Act
-		SecureStringHelper.WipeString(interned);
+		StringWiper.Wipe(interned);
 
 		// Assert
 		interned
@@ -95,16 +95,16 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="SecureStringHelper.WipeString" />: every character of the string is replaced with the null character.
+	/// <see cref="StringWiper.Wipe" />: every character of the string is replaced with the null character.
 	/// </summary>
 	[Test]
-	public void WipeString_Replaces_All_Characters_With_Null()
+	public void Wipe_Replaces_All_Characters_With_Null()
 	{
 		// Arrange
 		string source = new("secret-data".ToCharArray());
 
 		// Act
-		SecureStringHelper.WipeString(source);
+		StringWiper.Wipe(source);
 
 		// Assert
 		source
@@ -114,11 +114,11 @@ internal class SecureStringHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="SecureStringHelper.WipeString" />: the guard compares instances, so a copy of an
+	/// <see cref="StringWiper.Wipe" />: the guard compares instances, so a copy of an
 	/// interned string is still wiped and the pooled one survives.
 	/// </summary>
 	[Test]
-	public void WipeString_Wipes_A_Copy_Of_An_Interned_String()
+	public void Wipe_Wipes_A_Copy_Of_An_Interned_String()
 	{
 		// Arrange
 		string interned = string.Intern(new(['t', 'w', 'i', 'n']));
@@ -126,7 +126,7 @@ internal class SecureStringHelperTests
 		string copy = new(['t', 'w', 'i', 'n']);
 
 		// Act
-		SecureStringHelper.WipeString(copy);
+		StringWiper.Wipe(copy);
 
 		// Assert
 		copy

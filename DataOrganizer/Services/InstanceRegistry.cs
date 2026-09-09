@@ -101,8 +101,8 @@ public sealed class InstanceRegistry : IInstanceRegistry
 		{
 			stream.SetLength(0);
 
-			byte[] pid = TextHelper
-				.Utf8Encoding
+			byte[] pid = TextDefaults
+				.Encoding
 				.GetBytes(Environment.ProcessId.ToString(CultureInfo.InvariantCulture));
 
 			stream.Write(pid);

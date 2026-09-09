@@ -129,7 +129,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 
 		if (!TryResolve(e, out ObservableCollection<DatasetRecordBase> target, out int index, out _)
 			|| Records is null
-			|| DatasetRecordMoveHelper.FindOwner(Records, dragged) is not { } source)
+			|| DatasetRecordMover.FindOwner(Records, dragged) is not { } source)
 		{
 			e.DragEffects = DragDropEffects.None;
 
@@ -154,10 +154,12 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 			return;
 		}
 
-		if (DatasetRecordMoveHelper.Move(source, dragged, target, index))
+		if (!DatasetRecordMover.Move(source, dragged, target, index))
 		{
-			MovedCommand?.Execute(dragged);
+			return;
 		}
+
+		MovedCommand?.Execute(dragged);
 	}
 	#endregion
 
@@ -287,7 +289,7 @@ internal sealed class DatasetDropRecordInsideBehavior : Behavior<Control>
 			? e.GetPosition(AssociatedObject).Y / AssociatedObject.Bounds.Height
 			: 0.0;
 
-		return DatasetRecordMoveHelper.TryResolveTarget(
+		return DatasetRecordMover.TryResolveTarget(
 			Records,
 			dragged,
 			AssociatedObject.DataContext as DatasetRecordBase,

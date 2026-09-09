@@ -9,7 +9,10 @@ using System.Linq.Expressions;
 
 namespace DataOrganizer.Helpers.Text;
 
-internal static class TextEditorHelper
+/// <summary>
+/// Editing, scrolling and zooming operations on the embedded text editor.
+/// </summary>
+internal static class TextEditorOperations
 {
 	#region Event Handlers
 	/// <summary>

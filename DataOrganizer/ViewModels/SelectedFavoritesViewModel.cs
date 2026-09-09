@@ -172,14 +172,14 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" />
+	/// <inheritdoc cref="FilteredCollection{T}" />
 	/// </summary>
-	private readonly FilterEngine<FavoriteCategory> _categoriesFilter;
+	private readonly FilteredCollection<FavoriteCategory> _categoriesFilter;
 
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" />
+	/// <inheritdoc cref="FilteredCollection{T}" />
 	/// </summary>
-	private readonly FilterEngine<FileModelDto> _favoritesFilter;
+	private readonly FilteredCollection<FileModelDto> _favoritesFilter;
 
 	/// <summary>
 	/// Previous <see cref="SelectedCategory" /> value.
@@ -243,7 +243,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
+	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for categories.
 	/// </summary>
 	private void CategoriesNotifier_CollectionChanged(
 		object? sender,
@@ -260,7 +260,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	}
 
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
+	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler for favorites.
 	/// </summary>
 	private void FavoritesNotifier_CollectionChanged(
 		object? sender,

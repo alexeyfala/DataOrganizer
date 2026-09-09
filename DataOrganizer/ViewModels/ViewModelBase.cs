@@ -290,7 +290,7 @@ public abstract partial class ViewModelBase :
 	{
 		base.AfterDispose();
 
-		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		if (MessengerSubscriptions.FormatUnsubscriptionLog(this) is { } logLine)
 		{
 			_logger.LogDebug(logLine);
 		}

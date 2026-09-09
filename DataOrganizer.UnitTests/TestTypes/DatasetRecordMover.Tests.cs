@@ -6,12 +6,12 @@ using System.Collections.ObjectModel;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordMoveHelper)}"" type")]
-internal class DatasetRecordMoveHelperTests
+[TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordMover)}"" type")]
+internal class DatasetRecordMoverTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.FindOwner" />: returns the owning children collection for a deeply nested record.
+	/// <see cref="DatasetRecordMover.FindOwner" />: returns the owning children collection for a deeply nested record.
 	/// </summary>
 	[Test]
 	public void FindOwner_Returns_Children_For_Nested_Record()
@@ -30,7 +30,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [outer];
 
 		// Act
-		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMoveHelper.FindOwner(root, deep);
+		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMover.FindOwner(root, deep);
 
 		// Assert
 		owner
@@ -39,7 +39,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.FindOwner" />: returns <c>null</c> when the record is not present anywhere.
+	/// <see cref="DatasetRecordMover.FindOwner" />: returns <c>null</c> when the record is not present anywhere.
 	/// </summary>
 	[Test]
 	public void FindOwner_Returns_Null_When_Absent()
@@ -50,7 +50,7 @@ internal class DatasetRecordMoveHelperTests
 		ValueRecord stranger = new() { Value = "stranger" };
 
 		// Act
-		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMoveHelper.FindOwner(root, stranger);
+		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMover.FindOwner(root, stranger);
 
 		// Assert
 		owner
@@ -59,7 +59,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.FindOwner" />: returns the root collection for a top-level record.
+	/// <see cref="DatasetRecordMover.FindOwner" />: returns the root collection for a top-level record.
 	/// </summary>
 	[Test]
 	public void FindOwner_Returns_Root_For_Top_Level_Record()
@@ -70,7 +70,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a];
 
 		// Act
-		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMoveHelper.FindOwner(root, a);
+		ObservableCollection<DatasetRecordBase>? owner = DatasetRecordMover.FindOwner(root, a);
 
 		// Assert
 		owner
@@ -79,7 +79,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.IsSelfOrDescendant" />: <c>False</c> for an unrelated collection.
+	/// <see cref="DatasetRecordMover.IsSelfOrDescendant" />: <c>False</c> for an unrelated collection.
 	/// </summary>
 	[Test]
 	public void IsSelfOrDescendant_False_For_Unrelated_Collection()
@@ -90,7 +90,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> unrelated = [new ValueRecord { Value = "A" }];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.IsSelfOrDescendant(group, unrelated);
+		bool result = DatasetRecordMover.IsSelfOrDescendant(group, unrelated);
 
 		// Assert
 		result
@@ -99,7 +99,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.IsSelfOrDescendant" />: <c>True</c> for a descendant group's children collection.
+	/// <see cref="DatasetRecordMover.IsSelfOrDescendant" />: <c>True</c> for a descendant group's children collection.
 	/// </summary>
 	[Test]
 	public void IsSelfOrDescendant_True_For_Descendant_Children()
@@ -112,7 +112,7 @@ internal class DatasetRecordMoveHelperTests
 		parent.Children.Add(child);
 
 		// Act
-		bool result = DatasetRecordMoveHelper.IsSelfOrDescendant(parent, child.Children);
+		bool result = DatasetRecordMover.IsSelfOrDescendant(parent, child.Children);
 
 		// Assert
 		result
@@ -121,7 +121,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.IsSelfOrDescendant" />: <c>True</c> for the group's own children collection.
+	/// <see cref="DatasetRecordMover.IsSelfOrDescendant" />: <c>True</c> for the group's own children collection.
 	/// </summary>
 	[Test]
 	public void IsSelfOrDescendant_True_For_Own_Children()
@@ -130,7 +130,7 @@ internal class DatasetRecordMoveHelperTests
 		RecordsGroup group = new() { Name = "group" };
 
 		// Act
-		bool result = DatasetRecordMoveHelper.IsSelfOrDescendant(group, group.Children);
+		bool result = DatasetRecordMover.IsSelfOrDescendant(group, group.Children);
 
 		// Assert
 		result
@@ -139,7 +139,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: a target index beyond the count is clamped to the last slot.
+	/// <see cref="DatasetRecordMover.Move" />: a target index beyond the count is clamped to the last slot.
 	/// </summary>
 	[Test]
 	public void Move_Clamps_Target_Index_Beyond_Count()
@@ -152,7 +152,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, b];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(root, a, root, 99);
+		bool result = DatasetRecordMover.Move(root, a, root, 99);
 
 		// Assert
 		result
@@ -165,7 +165,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: moves a root record into a group, appended at the end.
+	/// <see cref="DatasetRecordMover.Move" />: moves a root record into a group, appended at the end.
 	/// </summary>
 	[Test]
 	public void Move_Into_Group_Appends_At_End()
@@ -182,7 +182,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, group];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(root, a, group.Children, group.Children.Count);
+		bool result = DatasetRecordMover.Move(root, a, group.Children, group.Children.Count);
 
 		// Assert
 		result
@@ -199,7 +199,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: moves a record out of a group back to the root.
+	/// <see cref="DatasetRecordMover.Move" />: moves a record out of a group back to the root.
 	/// </summary>
 	[Test]
 	public void Move_Out_Of_Group_To_Root()
@@ -218,7 +218,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [group];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(group.Children, x, root, root.Count);
+		bool result = DatasetRecordMover.Move(group.Children, x, root, root.Count);
 
 		// Assert
 		result
@@ -235,7 +235,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: returns <c>false</c> and changes nothing when the record is absent.
+	/// <see cref="DatasetRecordMover.Move" />: returns <c>false</c> and changes nothing when the record is absent.
 	/// </summary>
 	[Test]
 	public void Move_Returns_False_When_Record_Absent()
@@ -248,7 +248,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(root, stranger, root, 0);
+		bool result = DatasetRecordMover.Move(root, stranger, root, 0);
 
 		// Assert
 		result
@@ -261,7 +261,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: dropping a record onto its own slot leaves the order
+	/// <see cref="DatasetRecordMover.Move" />: dropping a record onto its own slot leaves the order
 	/// unchanged and raises no collection notification (the guard behind the anti-scroll-jump fix).
 	/// </summary>
 	[Test]
@@ -281,7 +281,7 @@ internal class DatasetRecordMoveHelperTests
 		root.CollectionChanged += (_, _) => raised = true;
 
 		// Act: slot 2 for "B" (index 1) resolves to its own position.
-		bool result = DatasetRecordMoveHelper.Move(root, b, root, 2);
+		bool result = DatasetRecordMover.Move(root, b, root, 2);
 
 		// Assert
 		result
@@ -298,7 +298,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: within one collection, moves the record toward the end.
+	/// <see cref="DatasetRecordMover.Move" />: within one collection, moves the record toward the end.
 	/// </summary>
 	[Test]
 	public void Move_Within_Collection_Reorders_Down()
@@ -313,7 +313,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, b, c];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(root, a, root, 3);
+		bool result = DatasetRecordMover.Move(root, a, root, 3);
 
 		// Assert
 		result
@@ -326,7 +326,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.Move" />: within one collection, moves the record toward the start.
+	/// <see cref="DatasetRecordMover.Move" />: within one collection, moves the record toward the start.
 	/// </summary>
 	[Test]
 	public void Move_Within_Collection_Reorders_Up()
@@ -341,7 +341,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, b, c];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.Move(root, c, root, 0);
+		bool result = DatasetRecordMover.Move(root, c, root, 0);
 
 		// Assert
 		result
@@ -354,7 +354,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: a null context (empty surface) appends to the root.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: a null context (empty surface) appends to the root.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Empty_Surface_Appends_To_Root()
@@ -367,7 +367,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(
+		bool result = DatasetRecordMover.TryResolveTarget(
 			root,
 			dragged,
 			null,
@@ -395,7 +395,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: refuses to drop a group into one of its descendants.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: refuses to drop a group into one of its descendants.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Group_Into_Descendant_Returns_False()
@@ -410,7 +410,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [group];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(root, group, descendant, 0.5, out _, out _, out _);
+		bool result = DatasetRecordMover.TryResolveTarget(root, group, descendant, 0.5, out _, out _, out _);
 
 		// Assert
 		result
@@ -419,7 +419,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: refuses to drop a group into itself.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: refuses to drop a group into itself.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Group_Into_Itself_Returns_False()
@@ -430,7 +430,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [group];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(root, group, group, 0.5, out _, out _, out _);
+		bool result = DatasetRecordMover.TryResolveTarget(root, group, group, 0.5, out _, out _, out _);
 
 		// Assert
 		result
@@ -439,7 +439,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: a group context targets its children, appended at the end.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: a group context targets its children, appended at the end.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Group_Targets_Children_At_End()
@@ -456,7 +456,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [group];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(
+		bool result = DatasetRecordMover.TryResolveTarget(
 			root,
 			dragged,
 			group,
@@ -484,7 +484,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: refuses to drop a record onto itself.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: refuses to drop a record onto itself.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Onto_Itself_Returns_False()
@@ -495,7 +495,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(root, a, a, 0.5, out _, out _, out _);
+		bool result = DatasetRecordMover.TryResolveTarget(root, a, a, 0.5, out _, out _, out _);
 
 		// Assert
 		result
@@ -504,7 +504,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: over a record's lower half inserts after it.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: over a record's lower half inserts after it.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Record_Lower_Half_Inserts_After()
@@ -519,7 +519,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, b];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(
+		bool result = DatasetRecordMover.TryResolveTarget(
 			root,
 			dragged,
 			b,
@@ -547,7 +547,7 @@ internal class DatasetRecordMoveHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="DatasetRecordMoveHelper.TryResolveTarget" />: over a record's upper half inserts before it.
+	/// <see cref="DatasetRecordMover.TryResolveTarget" />: over a record's upper half inserts before it.
 	/// </summary>
 	[Test]
 	public void TryResolveTarget_Record_Upper_Half_Inserts_Before()
@@ -562,7 +562,7 @@ internal class DatasetRecordMoveHelperTests
 		ObservableCollection<DatasetRecordBase> root = [a, b];
 
 		// Act
-		bool result = DatasetRecordMoveHelper.TryResolveTarget(
+		bool result = DatasetRecordMover.TryResolveTarget(
 			root,
 			dragged,
 			b,

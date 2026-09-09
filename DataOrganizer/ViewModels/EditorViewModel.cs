@@ -336,7 +336,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (ExecutableFileHelper.IsExecutable(dto.Name))
+		if (ExecutableFileDetector.IsExecutable(dto.Name))
 		{
 			string text =
 				$"{string.Format(Strings.TheFileMayRunProgramOrScriptOnYourDevice, dto.Name, Environment.NewLine)}" +

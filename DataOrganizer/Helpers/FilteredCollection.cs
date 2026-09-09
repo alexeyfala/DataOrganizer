@@ -22,7 +22,7 @@ namespace DataOrganizer.Helpers;
 /// projection driven by a caller-supplied predicate stream. Not thread-safe — created and used on the
 /// UI thread, with the captured <see cref="SynchronizationContext"/> marshalling notifications back to it.
 /// </summary>
-internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyPropertyChanged
+internal sealed class FilteredCollection<TModel> : IDisposable where TModel : INotifyPropertyChanged
 {
 	#region Properties
 	/// <summary>
@@ -61,7 +61,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 
 	#region Constructors
 	/// <summary>
-	/// Creates a new <see cref="FilterEngine{TModel}"/>.
+	/// Creates a new <see cref="FilteredCollection{TModel}"/>.
 	/// </summary>
 	/// <param name="filterPredicate">Stream of predicates that drive the filter.</param>
 	/// <param name="autoRefreshOn">
@@ -69,7 +69,7 @@ internal sealed class FilterEngine<TModel> : IDisposable where TModel : INotifyP
 	/// property changes on a source item (e.g. <c>x =&gt; x.Name</c>). Pass <c>null</c> to skip per-item INPC
 	/// tracking; property changes on existing items then have no effect until the predicate itself changes.
 	/// </param>
-	public FilterEngine(
+	public FilteredCollection(
 		IObservable<Func<TModel, bool>> filterPredicate,
 		Expression<Func<TModel, object?>>? autoRefreshOn = null)
 	{

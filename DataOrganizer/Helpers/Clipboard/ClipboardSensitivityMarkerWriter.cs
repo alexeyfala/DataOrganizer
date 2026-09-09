@@ -103,7 +103,7 @@ internal static class ClipboardSensitivityMarkerWriter
 
 		if (OperatingSystem.IsLinux())
 		{
-			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextHelper.Utf8Encoding.GetBytes("secret"))];
+			return [(DataFormat.CreateBytesPlatformFormat(ClipboardSensitivityMarkers.KdePasswordManagerHint), TextDefaults.Encoding.GetBytes("secret"))];
 		}
 
 		if (OperatingSystem.IsMacOS())

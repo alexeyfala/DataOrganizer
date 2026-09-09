@@ -8,7 +8,7 @@ namespace DataOrganizer.Helpers;
 /// <summary>
 /// Moves a <see cref="DatasetRecordBase" /> within a record tree, including across groups.
 /// </summary>
-internal static class DatasetRecordMoveHelper
+internal static class DatasetRecordMover
 {
 	#region Methods
 	/// <summary>

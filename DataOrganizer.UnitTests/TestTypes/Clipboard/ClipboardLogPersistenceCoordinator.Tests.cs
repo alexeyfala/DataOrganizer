@@ -556,7 +556,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
-	private static PinnedBuffer Password(string value) => new(TextHelper.Utf8Encoding.GetBytes(value));
+	private static PinnedBuffer Password(string value) => new(TextDefaults.Encoding.GetBytes(value));
 
 	/// <summary>
 	/// A settings store whose <see cref="AppSettings.PersistClipboardHistory" /> equals <paramref name="persist" />.

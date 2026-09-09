@@ -527,8 +527,8 @@ public sealed class ClipboardLogService : IClipboardLogService
 	{
 		using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
 
-		hash.AppendData(TextHelper
-			.Utf8Encoding
+		hash.AppendData(TextDefaults
+			.Encoding
 			.GetBytes(text));
 
 		// Only the presence of companion formats — not their payloads, which Office can re-render
@@ -557,7 +557,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			builder.Append('\0');
 		}
 
-		return ComputeHash(TextHelper.Utf8Encoding.GetBytes(builder.ToString()));
+		return ComputeHash(TextDefaults.Encoding.GetBytes(builder.ToString()));
 	}
 
 	/// <summary>
@@ -683,7 +683,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			return;
 		}
 
-		item.Set(format, TextHelper.Utf8Encoding.GetBytes(payload));
+		item.Set(format, TextDefaults.Encoding.GetBytes(payload));
 	}
 
 	/// <summary>
@@ -1183,7 +1183,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 			{
 				DataTransferItem gnomeItem = new();
 
-				gnomeItem.Set(gnomeFormat, TextHelper.Utf8Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
+				gnomeItem.Set(gnomeFormat, TextDefaults.Encoding.GetBytes(BuildGnomeCopiedFiles(resolved)));
 
 				transfer.Add(gnomeItem);
 			}
@@ -1356,7 +1356,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 			return bytes is null
 				? null
-				: TextHelper.Utf8Encoding.GetString(bytes);
+				: TextDefaults.Encoding.GetString(bytes);
 		}
 		catch (Exception ex)
 		{

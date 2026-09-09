@@ -7,7 +7,7 @@ namespace DataOrganizer.Helpers;
 /// <summary>
 /// Detects whether a file is potentially executable based on its extension.
 /// </summary>
-internal static class ExecutableFileHelper
+internal static class ExecutableFileDetector
 {
 	#region Data
 	/// <summary>

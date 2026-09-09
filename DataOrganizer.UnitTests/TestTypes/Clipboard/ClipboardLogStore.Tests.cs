@@ -754,7 +754,7 @@ internal class ClipboardLogStoreTests
 	/// <summary>
 	/// UTF-8 password bytes.
 	/// </summary>
-	private static PinnedBuffer Password(string value) => new(TextHelper.Utf8Encoding.GetBytes(value));
+	private static PinnedBuffer Password(string value) => new(TextDefaults.Encoding.GetBytes(value));
 
 	/// <summary>
 	/// A minimal text entry.

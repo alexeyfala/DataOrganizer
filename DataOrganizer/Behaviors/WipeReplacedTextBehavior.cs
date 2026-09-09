@@ -34,7 +34,7 @@ internal sealed class WipeReplacedTextBehavior : Behavior<TextBox>
 		}
 
 		// The control already holds the new value, so the replaced one is read by nobody.
-		SecureStringHelper.WipeString(replaced);
+		StringWiper.Wipe(replaced);
 	}
 	#endregion
 

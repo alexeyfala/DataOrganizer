@@ -5,7 +5,10 @@ using System;
 
 namespace DataOrganizer.Helpers;
 
-internal sealed class WordOccurrenceTransformer : DocumentColorizingTransformer
+/// <summary>
+/// Paints every occurrence of a word in the editor with the given brush.
+/// </summary>
+internal sealed class WordOccurrenceColorizer : DocumentColorizingTransformer
 {
 	#region Data
 	/// <summary>
@@ -20,7 +23,7 @@ internal sealed class WordOccurrenceTransformer : DocumentColorizingTransformer
 	#endregion
 
 	#region Constructors
-	public WordOccurrenceTransformer(string word, IBrush brush)
+	public WordOccurrenceColorizer(string word, IBrush brush)
 	{
 		_word = word;
 

@@ -148,7 +148,7 @@ public sealed class DialogService : IDialogService
 	{
 		MultilineTextEditViewModel viewModel = _viewFactory.CreateViewModel<MultilineTextEditViewModel>();
 
-		viewModel.Header = NoteHelper.BuildHeader(name);
+		viewModel.Header = NoteHeaderBuilder.Build(name);
 
 		viewModel.IsSensitive = isSensitive;
 
@@ -352,7 +352,7 @@ public sealed class DialogService : IDialogService
 		{
 			if (confirmed && !string.IsNullOrWhiteSpace(input.Text))
 			{
-				return SecureStringHelper.CaptureAndWipe(input.Text);
+				return StringWiper.CaptureAndWipe(input.Text);
 			}
 
 			return new(length: 0);
@@ -371,7 +371,7 @@ public sealed class DialogService : IDialogService
 		{
 			if (!string.IsNullOrEmpty(target.Text))
 			{
-				SecureStringHelper.WipeString(target.Text);
+				StringWiper.Wipe(target.Text);
 			}
 
 			target.Text = null;

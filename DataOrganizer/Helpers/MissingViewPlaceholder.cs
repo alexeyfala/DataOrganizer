@@ -7,7 +7,7 @@ namespace DataOrganizer.Helpers;
 /// <summary>
 /// Factory for the placeholder control shown when no matching template is found.
 /// </summary>
-internal static class PlugControl
+internal static class MissingViewPlaceholder
 {
 	#region Methods
 	/// <summary>

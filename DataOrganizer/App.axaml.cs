@@ -439,7 +439,7 @@ public sealed class App : Application
 					outputTemplate: $"[{{Timestamp:{LogDefaults.TimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
 					rollingInterval: RollingInterval.Day,
 					retainedFileCountLimit: 10,
-					encoding: TextHelper.Utf8Encoding,
+					encoding: TextDefaults.Encoding,
 					preserveLogFileName: false,
 					rollOnEachProcessRun: false);
 			});

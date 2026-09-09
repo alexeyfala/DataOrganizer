@@ -5,12 +5,12 @@ using System;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(MessengerHelper)}"" type")]
-internal class MessengerHelperTests
+[TestFixture(Description = $@"Tests of ""{nameof(MessengerSubscriptions)}"" type")]
+internal class MessengerSubscriptionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="MessengerHelper.FormatUnsubscriptionLog{T}" />: includes the recipient type name, the channel count and every message name.
+	/// <see cref="MessengerSubscriptions.FormatUnsubscriptionLog{T}" />: includes the recipient type name, the channel count and every message name.
 	/// </summary>
 	[Test]
 	public void FormatUnsubscriptionLog_Includes_Type_Name_And_Channel_Count()
@@ -19,7 +19,7 @@ internal class MessengerHelperTests
 		MultiSubscription recipient = new();
 
 		// Act
-		string? result = MessengerHelper.FormatUnsubscriptionLog(recipient);
+		string? result = MessengerSubscriptions.FormatUnsubscriptionLog(recipient);
 
 		// Assert
 		result
@@ -40,7 +40,7 @@ internal class MessengerHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="MessengerHelper.FormatUnsubscriptionLog{T}" />: returns null when the recipient subscribes to no channels.
+	/// <see cref="MessengerSubscriptions.FormatUnsubscriptionLog{T}" />: returns null when the recipient subscribes to no channels.
 	/// </summary>
 	[Test]
 	public void FormatUnsubscriptionLog_Returns_Null_When_No_Subscriptions()
@@ -49,7 +49,7 @@ internal class MessengerHelperTests
 		NoSubscriptions recipient = new();
 
 		// Act
-		string? result = MessengerHelper.FormatUnsubscriptionLog(recipient);
+		string? result = MessengerSubscriptions.FormatUnsubscriptionLog(recipient);
 
 		// Assert
 		result
@@ -58,13 +58,13 @@ internal class MessengerHelperTests
 	}
 
 	/// <summary>
-	/// <see cref="MessengerHelper.FormatUnsubscriptionLog{T}" />: throws when the recipient is null.
+	/// <see cref="MessengerSubscriptions.FormatUnsubscriptionLog{T}" />: throws when the recipient is null.
 	/// </summary>
 	[Test]
 	public void FormatUnsubscriptionLog_Throws_When_Recipient_Null()
 	{
 		// Act
-		Action act = () => MessengerHelper.FormatUnsubscriptionLog<object>(null!);
+		Action act = () => MessengerSubscriptions.FormatUnsubscriptionLog<object>(null!);
 
 		// Assert
 		act

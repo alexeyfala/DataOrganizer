@@ -117,8 +117,8 @@ internal static class AppConverters
 			_ => Brushes.Transparent
 		});
 
-	/// <inheritdoc cref="NoteHelper.BuildHeader" />
-	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHelper.BuildHeader);
+	/// <inheritdoc cref="NoteHeaderBuilder.Build" />
+	public static FuncValueConverter<string?, string?> NoteHeader { get; } = new(NoteHeaderBuilder.Build);
 
 	/// <summary>
 	/// Color a password rating is shown in; transparent while there is nothing to rate.

@@ -59,9 +59,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 	#region Data
 	/// <summary>
-	/// <inheritdoc cref="FilterEngine{T}" /> <see cref="Items" />.
+	/// <inheritdoc cref="FilteredCollection{T}" /> <see cref="Items" />.
 	/// </summary>
-	private readonly FilterEngine<FileModelDto> _filter;
+	private readonly FilteredCollection<FileModelDto> _filter;
 
 	/// <summary>
 	/// Previous <see cref="SelectedItem" /> value.
@@ -109,7 +109,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="FilterEngine{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler.
+	/// <see cref="FilteredCollection{TModel}.Visible" />.<see cref="INotifyCollectionChanged.CollectionChanged" /> event handler.
 	/// </summary>
 	private void Filter_CollectionChanged(
 		object? sender,

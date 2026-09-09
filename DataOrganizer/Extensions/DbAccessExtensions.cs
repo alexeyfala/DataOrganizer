@@ -28,7 +28,7 @@ internal static class DbAccessExtensions
 			.CountOfAsync(x => x.ParentId == null)
 			.ConfigureAwait(false);
 
-		string fileText = TextHelper
+		string fileText = SampleText
 			.LoremIpsum
 			.Repeat(5, Environment.NewLine + Environment.NewLine);
 
@@ -43,8 +43,8 @@ internal static class DbAccessExtensions
 			levels: levels,
 			datasets: datasets,
 			startIndex: total,
-			fileContents: TextHelper.Utf8Encoding.GetBytes(fileText),
-			datasetContents: TextHelper.Utf8Encoding.GetBytes(records)).ConfigureAwait(false);
+			fileContents: TextDefaults.Encoding.GetBytes(fileText),
+			datasetContents: TextDefaults.Encoding.GetBytes(records)).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -52,7 +52,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<RecordsGroup> CreateGroups(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 
@@ -71,7 +71,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<KeyValueRecord> CreateKeyValueRecords(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 
@@ -124,7 +124,7 @@ internal static class DbAccessExtensions
 	/// </summary>
 	public static IEnumerable<ValueRecord> CreateValueRecords(int count)
 	{
-		string note = TextHelper
+		string note = SampleText
 			.LoremIpsum
 			.Repeat(1, Environment.NewLine + Environment.NewLine);
 

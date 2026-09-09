@@ -113,8 +113,8 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 
 		try
 		{
-			string text = TextHelper
-				.Utf8Encoding
+			string text = TextDefaults
+				.Encoding
 				.GetString(contents);
 
 			if (string.IsNullOrEmpty(text))

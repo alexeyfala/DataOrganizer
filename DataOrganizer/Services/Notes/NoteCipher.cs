@@ -67,8 +67,8 @@ public sealed class NoteCipher : INoteCipher
 			return null;
 		}
 
-		byte[] decoded = TextHelper
-			.Utf8Encoding
+		byte[] decoded = TextDefaults
+			.Encoding
 			.GetBytes(note);
 
 		if (item.EncryptionStatus == EncryptionStatus.None)
@@ -97,8 +97,8 @@ public sealed class NoteCipher : INoteCipher
 	/// </summary>
 	private static string ToText(byte[] note)
 	{
-		return TextHelper
-			.Utf8Encoding
+		return TextDefaults
+			.Encoding
 			.GetString(note);
 	}
 	#endregion

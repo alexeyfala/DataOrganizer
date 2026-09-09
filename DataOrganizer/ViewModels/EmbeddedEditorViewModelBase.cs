@@ -185,7 +185,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	{
 		base.AfterDispose();
 
-		if (MessengerHelper.FormatUnsubscriptionLog(this) is { } logLine)
+		if (MessengerSubscriptions.FormatUnsubscriptionLog(this) is { } logLine)
 		{
 			_logger.LogDebug(logLine);
 		}

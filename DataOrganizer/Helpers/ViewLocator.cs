@@ -45,9 +45,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 			return control;
 		}
 
-		return PlugControl.Create(param?.GetType().Name);
-
-		//return GetPlugControl(param?.GetType().Name);
+		return MissingViewPlaceholder.Create(param?.GetType().Name);
 	}
 
 	/// <inheritdoc />
