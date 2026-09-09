@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using DataOrganizer.Interfaces;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Windows;
 
 /// <summary>
 /// Keeps the position and the size a window had in the <see cref="WindowState.Normal" /> state,

@@ -2,7 +2,7 @@ using DataOrganizer.Interfaces;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Services;
 
 /// <summary>
 /// Shows messages one after another on the surface of a presenter, holding back the ones waiting for their turn.

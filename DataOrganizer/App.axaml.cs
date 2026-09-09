@@ -24,6 +24,7 @@ using DataOrganizer.Services.Explorer;
 using DataOrganizer.Services.Notes;
 using DataOrganizer.Services.Settings;
 using DataOrganizer.Services.Updates;
+using DataOrganizer.Templates;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Views.Settings;

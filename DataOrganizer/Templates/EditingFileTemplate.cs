@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Templates;
 
 /// <summary>
 /// Builds and caches the editor control for a file opened in the built-in editor.

@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Templates;
 
 /// <summary>
 /// Factory for the placeholder control shown when no matching template is found.

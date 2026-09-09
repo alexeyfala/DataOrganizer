@@ -1,6 +1,5 @@
 //using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.Helpers;
 using DataOrganizer.ViewModels;
 
 namespace DataOrganizer.Windows;

@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Services;
 
 /// <summary>
 /// Timings and limits every message channel keeps to, so that a toast and a snackbar behave alike.
