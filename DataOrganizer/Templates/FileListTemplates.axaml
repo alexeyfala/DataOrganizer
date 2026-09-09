@@ -2,39 +2,14 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:dto="using:DataOrganizer.Dto"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:repositoryDto="using:Repository.Dto"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
-
-	<!-- RightSideSheetHeaderTemplate -->
-	<DataTemplate x:Key="RightSideSheetHeaderTemplate">
-		<StackPanel Orientation="Horizontal">
-			<ToggleButton
-				Classes="primary"
-				Content="{materialIcons:MaterialIconTextExt Kind=ChevronDoubleRight,
-				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsChecked="{Binding $parent[Window].((vm:EditorViewModel)DataContext).IsRightSideSheetOpened, Mode=TwoWay}"
-				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.Hide}" />
-
-			<Button
-				Classes="primary"
-				Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ClearRightSideSheetCommand}"
-				Content="{materialIcons:MaterialIconTextExt Kind=Close,
-				                                            IconSize={StaticResource ToolBarIconSize}}"
-				Foreground="{StaticResource WarningBrush}"
-				Theme="{StaticResource MaterialFlatButton}"
-				ToolTip.Tip="{x:Static prop:Strings.Clear}" />
-		</StackPanel>
-	</DataTemplate>
 
 	<!-- FileInListTemplate -->
 	<DataTemplate
@@ -142,52 +117,6 @@
 				</EventTriggerBehavior>
 			</Interaction.Behaviors>
 		</Grid>
-	</DataTemplate>
-
-	<!-- MaterialDesignColorSampleTemplate -->
-	<DataTemplate x:Key="MaterialDesignColorSampleTemplate">
-		<Grid ColumnDefinitions="*,Auto">
-			<TextBlock
-				Grid.Column="0"
-				Margin="0.0,0.0,6.0,0.0"
-				Text="{Binding Mode=OneWay}" />
-
-			<Rectangle
-				Grid.Column="1"
-				Classes="ColorSampleStyle"
-				Fill="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
-		</Grid>
-	</DataTemplate>
-
-	<!-- ObjectPropertyTemplate -->
-	<DataTemplate
-		x:Key="ObjectPropertyTemplate"
-		x:DataType="repositoryDto:PropertyDescription">
-		<Grid ColumnDefinitions="Auto,*,Auto">
-			<SelectableTextBlock Grid.Column="0">
-				<Run Text="{Binding PropertyName, Mode=OneTime}" />
-				<Run Text=":" />
-			</SelectableTextBlock>
-
-			<SelectableTextBlock
-				Grid.Column="2"
-				Text="{Binding Value, Mode=OneTime}" />
-		</Grid>
-	</DataTemplate>
-
-	<!-- SnackbarMessageTemplate -->
-	<DataTemplate
-		x:Key="SnackbarMessageTemplate"
-		x:DataType="dto:SnackbarContent"
-		DataType="dto:SnackbarContent">
-		
-		<!-- The default text menu is a popup: opening it takes the pointer off the message, and the message closes with the menu still on it. -->
-		<SelectableTextBlock
-			Classes="SnackbarTextBlockStyle"
-			Classes.Error="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Error}}"
-			Classes.Warning="{Binding Level, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static enums:SnackbarMessageLevel.Warning}}"
-			ContextFlyout="{x:Null}"
-			Text="{Binding Text, Mode=OneTime}" />
 	</DataTemplate>
 
 	<!-- CopyHistoryTemplate -->

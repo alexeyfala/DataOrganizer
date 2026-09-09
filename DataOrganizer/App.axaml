@@ -22,13 +22,21 @@
 
 				<ResourceInclude Source="/Templates/DatasetTemplates.axaml" />
 
-				<ResourceInclude Source="/Templates/DataTemplates.axaml" />
+				<ResourceInclude Source="/Templates/EditorTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/EditorTreeViewTemplates.axaml" />
 
 				<ResourceInclude Source="/Templates/FavoritesTemplates.axaml" />
 
+				<ResourceInclude Source="/Templates/FileListTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/NotificationTemplates.axaml" />
+
 				<ResourceInclude Source="/Templates/OpenedFilesTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/PropertiesTemplates.axaml" />
+
+				<ResourceInclude Source="/Templates/SettingsTemplates.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 

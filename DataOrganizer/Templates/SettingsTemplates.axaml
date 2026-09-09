@@ -1,0 +1,20 @@
+<ResourceDictionary
+	xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:DataOrganizer.Converters">
+
+	<!-- MaterialDesignColorSampleTemplate -->
+	<DataTemplate x:Key="MaterialDesignColorSampleTemplate">
+		<Grid ColumnDefinitions="*,Auto">
+			<TextBlock
+				Grid.Column="0"
+				Margin="0.0,0.0,6.0,0.0"
+				Text="{Binding Mode=OneWay}" />
+
+			<Rectangle
+				Grid.Column="1"
+				Classes="ColorSampleStyle"
+				Fill="{Binding Mode=OneWay, Converter={x:Static converters:AppConverters.MaterialDesignColorToBrush}}" />
+		</Grid>
+	</DataTemplate>
+</ResourceDictionary>
