@@ -1,7 +1,7 @@
 using Serilog.Events;
 using System.ComponentModel;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Runtime;
 
 /// <summary>
 /// Application installation parameters passed on the command line.

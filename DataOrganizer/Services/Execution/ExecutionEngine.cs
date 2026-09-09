@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
 using Serilog;
 using Shared.Extensions;

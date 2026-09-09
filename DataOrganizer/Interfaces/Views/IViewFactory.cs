@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Views;
 
 /// <summary>
 /// Provides methods for creating views.

@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Storage;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Storage;
 
 public sealed class StorageAccessor : IStorageAccessor
 {

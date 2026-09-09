@@ -7,11 +7,13 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Hotkeys;
 using Moq;
 using NSubstitute;
 using Repository.Dto;
@@ -25,7 +27,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Hotkeys;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyboardInputHook)}"" type")]
 internal class KeyboardInputHookTests

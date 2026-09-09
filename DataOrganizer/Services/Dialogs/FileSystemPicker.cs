@@ -2,13 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using Shared.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Dialogs;
 
 public sealed class FileSystemPicker : IFileSystemPicker
 {

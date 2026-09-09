@@ -2,10 +2,10 @@ using Autofac.Extras.Moq;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Dialogs;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemPicker)}"" type")]
 internal class FileSystemPickerTests

@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Hierarchy;
 using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
@@ -11,7 +11,7 @@ using System;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityPropertyWriter)}"" type")]
 internal class EntityPropertyWriterTests

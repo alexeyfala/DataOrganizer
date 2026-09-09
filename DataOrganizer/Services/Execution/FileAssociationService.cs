@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Execution;
 using System;
 using System.Runtime.InteropServices;
 
@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
  * HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.txt\OpenWithList
  */
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Execution;
 
 /// <inheritdoc cref="IFileAssociationService" />
 public sealed partial class FileAssociationService : IFileAssociationService

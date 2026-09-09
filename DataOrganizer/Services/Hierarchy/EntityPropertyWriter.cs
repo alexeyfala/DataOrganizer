@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Enums;
 using Repository.Interfaces;
 using Serilog;
@@ -8,7 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Hierarchy;
 
 public sealed class EntityPropertyWriter : IEntityPropertyWriter
 {

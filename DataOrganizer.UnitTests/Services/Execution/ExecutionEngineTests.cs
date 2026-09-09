@@ -3,7 +3,6 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Services.Execution;
 using NSubstitute;

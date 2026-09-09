@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Dialogs;
 
 /// <summary>
 /// Provides dialogs for selecting file system entries.

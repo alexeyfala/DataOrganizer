@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Views;
 
 /// <summary>
 /// Manages the life cycle of application windows and user controls.

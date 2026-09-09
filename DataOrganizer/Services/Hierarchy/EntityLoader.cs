@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;
@@ -17,7 +17,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Hierarchy;
 
 public sealed class EntityLoader : IEntityLoader
 {

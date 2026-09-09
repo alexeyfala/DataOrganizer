@@ -1,7 +1,7 @@
-using DataOrganizer.Services;
+using DataOrganizer.Services.Execution;
 using System.Runtime.Versioning;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Execution;
 
 [SupportedOSPlatform("windows")]
 [TestFixture(Description = $@"Tests of ""{nameof(WindowsAppPickerService)}"" type")]

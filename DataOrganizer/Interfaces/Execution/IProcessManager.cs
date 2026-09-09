@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Execution;
 
 /// <summary>
 /// Provides a means of interacting with <see cref="Process" />.

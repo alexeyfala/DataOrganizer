@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Services.Execution;
 using Microsoft.Extensions.Time.Testing;
 using NSubstitute;

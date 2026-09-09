@@ -1,7 +1,8 @@
 using Avalonia;
 using Avalonia.Platform;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Serilog;
@@ -9,7 +10,7 @@ using Shared.Common;
 using Shared.Extensions;
 using System;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Notifications;
 
 public sealed class ToastPresenter : IToastPresenter
 {

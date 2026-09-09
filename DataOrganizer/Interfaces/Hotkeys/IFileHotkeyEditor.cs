@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Hotkeys;
 
 /// <summary>
 /// Overwrites the hotkeys of a file in the database and in the hierarchy.

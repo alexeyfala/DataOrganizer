@@ -6,7 +6,7 @@ using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using Entities.Models;

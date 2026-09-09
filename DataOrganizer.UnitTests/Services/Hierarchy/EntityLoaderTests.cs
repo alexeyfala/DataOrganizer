@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Hierarchy;
 using Entities.Models;
 using Mapster;
 using MapsterMapper;
@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityLoader)}"" type")]
 internal class EntityLoaderTests

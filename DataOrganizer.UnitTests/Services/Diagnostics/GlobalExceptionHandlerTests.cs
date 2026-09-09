@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Diagnostics;
 using NSubstitute;
 using Serilog;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Diagnostics;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalExceptionHandler)}"" type")]
 internal class GlobalExceptionHandlerTests

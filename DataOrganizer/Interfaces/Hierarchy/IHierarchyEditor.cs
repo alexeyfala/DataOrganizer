@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Hierarchy;
 
 /// <summary>
 /// Adds, renames, and deletes explorer objects in the database and in the hierarchy.

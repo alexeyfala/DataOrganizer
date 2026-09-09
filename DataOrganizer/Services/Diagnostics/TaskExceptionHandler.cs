@@ -1,9 +1,9 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Diagnostics;
 
 public class TaskExceptionHandler : ITaskExceptionHandler
 {

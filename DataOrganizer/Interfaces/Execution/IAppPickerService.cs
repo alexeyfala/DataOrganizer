@@ -2,7 +2,7 @@ using DataOrganizer.Dto.Execution;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Execution;
 
 /// <summary>
 /// Bridge between OS-level "open with" candidate enumeration and the UI dialog

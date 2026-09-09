@@ -10,12 +10,12 @@
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
-	xmlns:interfaces="using:DataOrganizer.Interfaces"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:notifications="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notificationBehaviors="using:DataOrganizer.Behaviors.Notifications"
+	xmlns:notifications="using:DataOrganizer.Interfaces.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -47,7 +47,7 @@
 			HostName="{Binding $self.Name}"
 			SnackbarHorizontalAlignment="Center">
 			<Interaction.Behaviors>
-				<notifications:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
+				<notificationBehaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type notifications:ISnackbarPresenter}}" />
 			</Interaction.Behaviors>
 
 			<materialControls:NavigationDrawer

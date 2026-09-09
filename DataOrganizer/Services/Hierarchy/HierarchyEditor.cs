@@ -1,6 +1,7 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
@@ -14,7 +15,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Hierarchy;
 
 public sealed class HierarchyEditor : IHierarchyEditor
 {

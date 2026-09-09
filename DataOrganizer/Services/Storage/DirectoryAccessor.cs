@@ -1,5 +1,5 @@
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Explorer;
+using DataOrganizer.Interfaces.Storage;
 using Serilog;
 using Shared.Common;
 using Shared.Enums;
@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Storage;
 
 public sealed class DirectoryAccessor : IDirectoryAccessor
 {

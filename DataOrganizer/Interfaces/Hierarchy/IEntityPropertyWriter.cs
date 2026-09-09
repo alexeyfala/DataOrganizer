@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Hierarchy;
 
 /// <summary>
 /// Persists individual property changes of explorer objects to the database.

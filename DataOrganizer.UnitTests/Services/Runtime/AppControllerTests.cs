@@ -1,10 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Runtime;
 using NSubstitute;
 using Repository.Enums;
 using Repository.Interfaces;
@@ -17,7 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Runtime;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppController)}"" type")]
 internal class AppControllerTests

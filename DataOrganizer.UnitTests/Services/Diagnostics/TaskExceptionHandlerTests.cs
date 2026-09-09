@@ -1,14 +1,14 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Diagnostics;
 using NSubstitute;
 using Serilog;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Diagnostics;
 
 [TestFixture(Description = $@"Tests of ""{nameof(TaskExceptionHandler)}"" type")]
 internal class TaskExceptionHandlerTests

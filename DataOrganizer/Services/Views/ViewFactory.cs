@@ -1,9 +1,9 @@
 using Avalonia.Controls;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Views;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Views;
 
 /// <inheritdoc cref="IViewFactory" />
 internal sealed class ViewFactory : IViewFactory

@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Execution;
 using Shared.Common;
 using Shared.Enums;
 using Shared.Extensions;
@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Execution;
 
 /// <inheritdoc cref="IProcessManager" />
 public sealed class ProcessManager : IProcessManager

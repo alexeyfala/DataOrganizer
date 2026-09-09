@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Runtime;
 
 /// <summary>
 /// Tracks concurrently running application instances and assigns each a distinct number.

@@ -6,6 +6,7 @@ using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Models.Dataset;
 using DataOrganizer.UnitTests.Fakes;
 using DataOrganizer.ViewModels;

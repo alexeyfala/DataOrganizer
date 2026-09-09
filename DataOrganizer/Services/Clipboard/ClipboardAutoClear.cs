@@ -1,7 +1,7 @@
 using Avalonia.Input;
 using DataOrganizer.Helpers.Clipboard;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
 using System;

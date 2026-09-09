@@ -1,11 +1,11 @@
 using DataOrganizer.Helpers.Text;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Runtime;
 
 public sealed class InstanceRegistry : IInstanceRegistry
 {

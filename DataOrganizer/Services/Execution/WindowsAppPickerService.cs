@@ -1,6 +1,7 @@
 using Avalonia.Media.Imaging;
 using DataOrganizer.Dto.Execution;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Execution;
 using Microsoft.Win32;
 using Serilog;
 using Shared.Extensions;
@@ -16,7 +17,7 @@ using DrawingBitmap = System.Drawing.Bitmap;
 using Icon = System.Drawing.Icon;
 using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Execution;
 
 /// <summary>
 /// Windows-only implementation of <see cref="IAppPickerService" />. Enumerates

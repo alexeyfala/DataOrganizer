@@ -5,7 +5,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors.Security;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using NSubstitute;

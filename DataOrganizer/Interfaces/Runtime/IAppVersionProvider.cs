@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Runtime;
 
 /// <summary>
 /// Provides the running application version.

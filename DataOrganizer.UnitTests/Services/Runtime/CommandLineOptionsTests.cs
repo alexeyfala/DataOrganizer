@@ -2,11 +2,11 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Extensions;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Runtime;
 using Serilog.Events;
 using System;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Runtime;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CommandLineOptions)}"" type")]
 internal class CommandLineOptionsTests

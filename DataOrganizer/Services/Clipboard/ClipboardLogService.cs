@@ -8,6 +8,7 @@ using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Storage;
 using DataOrganizer.Messages;
 using DataOrganizer.Models.Clipboard;
 using Serilog;

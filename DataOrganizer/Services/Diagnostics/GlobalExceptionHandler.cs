@@ -1,4 +1,4 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using Serilog;
 using Shared.Extensions;
 using System;
@@ -9,7 +9,7 @@ using System.Reactive.Disposables.Fluent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Diagnostics;
 
 internal sealed class GlobalExceptionHandler : IGlobalExceptionHandler
 {

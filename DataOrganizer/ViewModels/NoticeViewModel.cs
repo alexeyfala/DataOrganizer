@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Storage;
 using Serilog;
 
 namespace DataOrganizer.ViewModels;

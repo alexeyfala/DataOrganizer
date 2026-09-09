@@ -2,7 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Shared.Common;
@@ -13,7 +14,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Views;
 
 internal sealed class ConsoleWindowHost : IConsoleWindowHost
 {

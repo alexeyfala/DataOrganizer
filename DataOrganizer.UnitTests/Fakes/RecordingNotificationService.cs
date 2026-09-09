@@ -1,6 +1,6 @@
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
 
 namespace DataOrganizer.UnitTests.Fakes;
 

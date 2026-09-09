@@ -9,10 +9,15 @@ using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +32,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Size = System.Drawing.Size;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Views;
 
 /// <inheritdoc cref="IViewLauncher" />
 public class ViewLauncher : IViewLauncher

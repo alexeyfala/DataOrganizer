@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Storage;
 
 /// <summary>
 /// Provides tools to work with directories.

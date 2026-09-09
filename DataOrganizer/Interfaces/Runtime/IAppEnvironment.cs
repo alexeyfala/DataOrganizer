@@ -2,7 +2,7 @@ using Shared.Common;
 using System;
 using System.IO;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Runtime;
 
 /// <summary>
 /// Provides tools for working with the application environment.

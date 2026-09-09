@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Hotkeys;
 using Moq;
 using Serilog;
 using SharpHook;
@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Hotkeys;
 
 [TestFixture(Description = $@"Tests of ""{nameof(GlobalHookRunner)}"" type")]
 internal class GlobalHookRunnerTests

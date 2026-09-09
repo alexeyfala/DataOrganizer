@@ -10,9 +10,10 @@ using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Enums.Views;
 using DataOrganizer.Helpers.Security;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using NSubstitute;
@@ -22,7 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ViewLauncher)}"" type")]
 internal class ViewLauncherTests

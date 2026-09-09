@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Hotkeys;
 
 /// <summary>
 /// Owns the process-wide global keyboard hook.

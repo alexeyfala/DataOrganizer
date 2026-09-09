@@ -2,7 +2,7 @@ using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 

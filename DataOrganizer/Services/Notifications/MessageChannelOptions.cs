@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Notifications;
 
 /// <summary>
 /// Timings and limits every message channel keeps to, so that a toast and a snackbar behave alike.

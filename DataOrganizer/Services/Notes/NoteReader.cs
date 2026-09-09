@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

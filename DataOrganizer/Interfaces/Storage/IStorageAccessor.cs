@@ -1,7 +1,7 @@
 using Avalonia.Platform.Storage;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Storage;
 
 /// <summary>
 /// Provides means to interact with Avalonia's storage provider.

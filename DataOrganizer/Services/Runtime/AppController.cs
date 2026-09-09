@@ -2,11 +2,15 @@ using Avalonia.Controls;
 using Cysharp.Text;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Execution;
+using DataOrganizer.Interfaces.Hierarchy;
+using DataOrganizer.Interfaces.Notifications;
+using DataOrganizer.Interfaces.Runtime;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
+using DataOrganizer.Interfaces.Views;
 using Repository.Enums;
 using Repository.Interfaces;
 using Serilog;
@@ -21,7 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using OSVersion = OSVersionExtension.OSVersion;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Runtime;
 
 public sealed class AppController : IAppController
 {

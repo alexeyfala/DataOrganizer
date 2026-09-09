@@ -8,8 +8,10 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using DataOrganizer.Interfaces.Settings;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Views;
+using DataOrganizer.Services.Dialogs;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Views.Settings;
@@ -20,7 +22,7 @@ using System;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Dialogs;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DialogService)}"" type")]
 internal class DialogServiceTests

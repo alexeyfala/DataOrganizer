@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Diagnostics;
 
 /// <summary>
 /// Handles "Fire-and-forget" possible task exceptions.

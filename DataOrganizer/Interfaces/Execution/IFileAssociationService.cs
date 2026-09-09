@@ -1,6 +1,6 @@
 using Shared.Enums;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Execution;
 
 /// <summary>
 /// Contains methods that allow you to determine which applications to use to open files accepted by the <see cref="OperatingSystemKind.Windows" /> operating system.

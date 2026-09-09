@@ -1,6 +1,6 @@
 using System;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Diagnostics;
 
 /// <summary>
 /// Provides a means of detecting unhandled exceptions in an application.

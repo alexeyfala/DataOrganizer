@@ -1,13 +1,13 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Interfaces;
-using DataOrganizer.Services;
+using DataOrganizer.Interfaces.Runtime;
+using DataOrganizer.Services.Runtime;
 using NSubstitute;
 using Shared.Common;
 using System.IO;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Runtime;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
 internal class AppEnvironmentTests

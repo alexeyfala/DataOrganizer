@@ -6,6 +6,9 @@ using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Dialogs;
+using DataOrganizer.Interfaces.Views;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
 using DataOrganizer.Views.Settings;
@@ -20,7 +23,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Dialogs;
 
 public sealed class DialogService : IDialogService
 {

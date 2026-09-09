@@ -4,7 +4,7 @@ using AwesomeAssertions;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Services;
+using DataOrganizer.Services.Hotkeys;
 using Entities.Models;
 using MapsterMapper;
 using NSubstitute;
@@ -15,7 +15,7 @@ using System;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Services;
+namespace DataOrganizer.UnitTests.Services.Hotkeys;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileHotkeyEditor)}"" type")]
 internal class FileHotkeyEditorTests

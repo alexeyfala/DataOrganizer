@@ -1,5 +1,5 @@
 using Cysharp.Text;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using Serilog.Events;
 using Shared.Extensions;
 using System;
@@ -8,7 +8,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Runtime;
 
 /// <inheritdoc cref="ICommandLineOptions" />
 public sealed class CommandLineOptions : ICommandLineOptions

@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Notifications;
 
 /// <summary>
 /// Shows one message at a time on a surface of its own.

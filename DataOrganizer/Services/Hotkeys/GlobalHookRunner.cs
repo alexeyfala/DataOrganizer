@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
+using DataOrganizer.Interfaces.Hotkeys;
 using DataOrganizer.Messages;
 using Serilog;
 using Shared.Extensions;
@@ -9,7 +10,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Hotkeys;
 
 public sealed class GlobalHookRunner : IGlobalHookRunner
 {

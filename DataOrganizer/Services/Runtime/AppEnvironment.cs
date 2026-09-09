@@ -1,8 +1,8 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Runtime;
 using Shared.Common;
 using System.IO;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Runtime;
 
 public sealed class AppEnvironment : IAppEnvironment
 {

@@ -2,7 +2,8 @@ using Comparation;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Hotkeys;
+using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using MapsterMapper;
 using Repository.Dto;
@@ -16,7 +17,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Hotkeys;
 
 public sealed class FileHotkeyEditor : IFileHotkeyEditor
 {

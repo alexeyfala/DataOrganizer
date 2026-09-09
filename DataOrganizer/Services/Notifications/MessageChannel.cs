@@ -1,8 +1,8 @@
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Notifications;
 
 /// <summary>
 /// Shows messages one after another on the surface of a presenter, holding back the ones waiting for their turn.

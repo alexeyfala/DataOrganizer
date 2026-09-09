@@ -1,4 +1,4 @@
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Notifications;
 
 /// <summary>
 /// Speaks to the user: a toast outside the main window and snackbar messages inside it.

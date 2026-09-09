@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Fakes;
 using Shared.Properties;

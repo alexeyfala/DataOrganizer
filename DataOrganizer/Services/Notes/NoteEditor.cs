@@ -1,8 +1,8 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
-using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
+using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
 using Repository.Interfaces;
 using Serilog;

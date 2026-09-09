@@ -2,7 +2,7 @@ using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Interfaces;
+namespace DataOrganizer.Interfaces.Views;
 
 /// <summary>
 /// Owns the lifetime of <see cref="ConsoleWindow" /> and its <see cref="ConsoleViewModel" />:

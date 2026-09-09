@@ -1,5 +1,5 @@
 using Avalonia;
-using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 

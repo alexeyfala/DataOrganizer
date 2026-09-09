@@ -2,11 +2,12 @@ using Avalonia.Threading;
 using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
+using DataOrganizer.Interfaces.Notifications;
 using Serilog;
 using Shared.Extensions;
 using System;
 
-namespace DataOrganizer.Services;
+namespace DataOrganizer.Services.Notifications;
 
 public sealed class NotificationService : INotificationService
 {
