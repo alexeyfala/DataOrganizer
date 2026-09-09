@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Notes;
 using DataOrganizer.Helpers.Security;
@@ -9,7 +9,7 @@ using DataOrganizer.Views;
 using DataOrganizer.Views.Settings;
 using DialogHostAvalonia;
 using Entities.Enums;
-using Repository.DTO;
+using Repository.Dto;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

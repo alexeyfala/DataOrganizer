@@ -6,7 +6,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
 using NSec.Cryptography;
-using Repository.DTO;
+using Repository.Dto;
 using System;
 using System.Buffers.Binary;
 using System.Security.Authentication;
@@ -213,7 +213,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer input = sut.CreateRandomDek();
 
-		using PinnedBuffer secret = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer secret = new(TestData.CreateRandomBytes(32));
 
 		// Act
 		byte[]? encrypted = sut.EncryptWithSessionId(input, secret, _identity);
@@ -348,7 +348,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] damaged = TestUtils.CreateRandomBytes(50);
+		byte[] damaged = TestData.CreateRandomBytes(50);
 
 		ContentsIsValidPair[] contents =
 		[
@@ -518,7 +518,7 @@ internal class EncryptionServiceTests
 		byte[] encrypted = sut.EncryptWithDek(input, sut.CreateRandomDek(), _identity);
 
 		// Act
-		Action act = () => sut.DecryptWithDek(encrypted, SecretUtils.CreateRandomKey(16), _identity);
+		Action act = () => sut.DecryptWithDek(encrypted, SecretFactory.CreateRandomKey(16), _identity);
 
 		// Assert
 		act
@@ -569,9 +569,9 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer input = sut.CreateRandomDek();
 
-		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer sessionId = new(TestData.CreateRandomBytes(32));
 
-		using PinnedBuffer wrongSessionId = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer wrongSessionId = new(TestData.CreateRandomBytes(32));
 
 		// Act
 		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
@@ -632,7 +632,7 @@ internal class EncryptionServiceTests
 
 		EncryptionService sut = mock.Create<EncryptionService>();
 
-		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer sessionId = new(TestData.CreateRandomBytes(32));
 
 		// Act
 		Action act = () => sut.DecryptWithSessionId(input, sessionId, _identity);
@@ -842,7 +842,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		byte[] secret = TestUtils.CreateRandomBytes(32);
+		byte[] secret = TestData.CreateRandomBytes(32);
 
 		using PinnedBuffer secretBuffer = new(secret);
 
@@ -937,7 +937,7 @@ internal class EncryptionServiceTests
 			.GetBytes(TextHelper.LoremIpsum);
 
 		// Act
-		Action act = () => sut.EncryptWithDek(input, SecretUtils.CreateRandomKey(16), _identity);
+		Action act = () => sut.EncryptWithDek(input, SecretFactory.CreateRandomKey(16), _identity);
 
 		// Assert
 		act
@@ -963,7 +963,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer input = sut.CreateRandomDek();
 
-		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer sessionId = new(TestData.CreateRandomBytes(32));
 
 		// Act, Assert
 		byte[]? encrypted = sut.EncryptWithSessionId(input, sessionId, _identity);
@@ -996,7 +996,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer input = new(TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum));
 
-		using PinnedBuffer sessionId = new(TestUtils.CreateRandomBytes(32));
+		using PinnedBuffer sessionId = new(TestData.CreateRandomBytes(32));
 
 		// Act
 		Action act = () => sut.EncryptWithSessionId(input, sessionId, _identity);

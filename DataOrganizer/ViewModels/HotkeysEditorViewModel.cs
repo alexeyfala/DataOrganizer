@@ -6,7 +6,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using DialogHostAvalonia;
-using Repository.DTO;
+using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook.Data;

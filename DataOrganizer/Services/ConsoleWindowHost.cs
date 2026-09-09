@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
@@ -32,8 +32,8 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="IViewFactory" />
 	private readonly IViewFactory _viewFactory;
@@ -44,7 +44,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 		Application app,
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		IViewFactory viewFactory)
 	{
 		_app = app;
@@ -67,7 +67,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 	{
 		ConsoleWindow window = _viewFactory.CreateWindow<ConsoleWindow>(ViewModel);
 
-		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppUtils.AppVersion}";
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {Strings.Console} - {AppInfo.AppVersion}";
 
 		string settingsFilePath = _appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
 

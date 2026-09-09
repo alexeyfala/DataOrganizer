@@ -65,15 +65,15 @@ internal class KeyValueInputViewModelTests
 		// Arrange
 		const int length = 10;
 
-		string defaultButtonText = AppUtils.CreateRandomString(length);
+		string defaultButtonText = RandomString.Create(length);
 
-		string key = AppUtils.CreateRandomString(length);
+		string key = RandomString.Create(length);
 
-		string keyHint = AppUtils.CreateRandomString(length);
+		string keyHint = RandomString.Create(length);
 
-		string value = AppUtils.CreateRandomString(length);
+		string value = RandomString.Create(length);
 
-		string valueHint = AppUtils.CreateRandomString(length);
+		string valueHint = RandomString.Create(length);
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -129,7 +129,7 @@ internal class KeyValueInputViewModelTests
 		// Act
 		sut.Initialize(new()
 		{
-			DefaultButtonText = AppUtils.CreateRandomString(10),
+			DefaultButtonText = RandomString.Create(10),
 			MaskKeyInput = maskKeyInput
 		});
 
@@ -153,7 +153,7 @@ internal class KeyValueInputViewModelTests
 		// Act
 		sut.Initialize(new()
 		{
-			DefaultButtonText = AppUtils.CreateRandomString(10),
+			DefaultButtonText = RandomString.Create(10),
 			IsSensitive = isSensitive
 		});
 
@@ -177,7 +177,7 @@ internal class KeyValueInputViewModelTests
 		// Act
 		sut.Initialize(new()
 		{
-			DefaultButtonText = AppUtils.CreateRandomString(10),
+			DefaultButtonText = RandomString.Create(10),
 			MaskValueInput = maskValueInput
 		});
 

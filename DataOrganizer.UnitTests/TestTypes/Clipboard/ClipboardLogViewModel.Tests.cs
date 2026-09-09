@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.ViewModels;

@@ -2,7 +2,7 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
-	xmlns:dataset="using:DataOrganizer.DTO.Dataset"
+	xmlns:dataset="using:DataOrganizer.Dto.Dataset"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:views="using:DataOrganizer.Views"

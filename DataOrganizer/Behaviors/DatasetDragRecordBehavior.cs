@@ -5,7 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Messages;
 using System;

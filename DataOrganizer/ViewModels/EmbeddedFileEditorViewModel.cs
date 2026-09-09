@@ -5,12 +5,12 @@ using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -223,7 +223,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -435,7 +435,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			if (!IsReadOnly)
 			{
 				await SavePropertiesAsync(
-					_jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions),
+					_jsonSerializer.Serialize(CreateProperties(), JsonDefaults.Options),
 					token);
 			}
 		}
@@ -542,7 +542,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// </summary>
 	private Task TrySavePropertiesAsync(CancellationToken token = default)
 	{
-		string json = _jsonSerializer.Serialize(CreateProperties(), AppUtils.JsonOptions);
+		string json = _jsonSerializer.Serialize(CreateProperties(), JsonDefaults.Options);
 
 		SetPropertiesCallback?.Invoke(json);
 

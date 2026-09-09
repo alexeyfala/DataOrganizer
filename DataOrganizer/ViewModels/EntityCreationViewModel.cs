@@ -1,7 +1,7 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using Shared.Interfaces;
 using Shared.Properties;
@@ -72,8 +72,8 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 	#endregion
 
 	#region Constructors
@@ -81,7 +81,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 		Application app,
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ITaskExceptionHandler exceptionHandler) : base(app, exceptionHandler)
 	{
 		_appEnvironment = appEnvironment;

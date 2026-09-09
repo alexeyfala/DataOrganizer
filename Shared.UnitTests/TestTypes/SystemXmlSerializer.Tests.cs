@@ -12,8 +12,8 @@ using System.Xml.Serialization;
 
 namespace Shared.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(XmlSerializerWrapper)}"" type")]
-internal class XmlSerializerWrapperTests
+[TestFixture(Description = $@"Tests of ""{nameof(SystemXmlSerializer)}"" type")]
+internal class SystemXmlSerializerTests
 {
 	#region Data
 	/// <summary>
@@ -33,7 +33,7 @@ internal class XmlSerializerWrapperTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: reads a document that has already been parsed.
+	/// <see cref="SystemXmlSerializer.Deserialize{T}" />: reads a document that has already been parsed.
 	/// </summary>
 	[Test]
 	public void Deserialize_Reads_A_Document()
@@ -41,7 +41,7 @@ internal class XmlSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
+		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
 
 		XmlSample sample = new()
 		{
@@ -61,7 +61,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// <see cref="XmlSerializerWrapper.Deserialize{T}" />: throws when the XML contains a DTD declaration.
+	/// <see cref="SystemXmlSerializer.Deserialize{T}" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
 	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
@@ -70,7 +70,7 @@ internal class XmlSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
+		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
 
 		// Act
 		Action act = () => sut.Deserialize<XmlSample>(MaliciousXml);
@@ -84,7 +84,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// <see cref="XmlSerializerWrapper.LoadDocumentAsync" />: reads a stream into a document.
+	/// <see cref="SystemXmlSerializer.LoadDocumentAsync" />: reads a stream into a document.
 	/// </summary>
 	[Test]
 	public async Task LoadDocumentAsync_Reads_A_Stream()
@@ -92,7 +92,7 @@ internal class XmlSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
+		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
 
 		XmlSample sample = new()
 		{
@@ -117,7 +117,7 @@ internal class XmlSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// <see cref="XmlSerializerWrapper.LoadDocumentAsync" />: throws when the XML contains a DTD declaration.
+	/// <see cref="SystemXmlSerializer.LoadDocumentAsync" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
 	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]
@@ -126,7 +126,7 @@ internal class XmlSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		XmlSerializerWrapper sut = mock.Create<XmlSerializerWrapper>();
+		SystemXmlSerializer sut = mock.Create<SystemXmlSerializer>();
 
 		await using MemoryStream stream = new(Encoding.UTF8.GetBytes(MaliciousXml));
 

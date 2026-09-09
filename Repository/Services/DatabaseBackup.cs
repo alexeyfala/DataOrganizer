@@ -60,7 +60,7 @@ public sealed class DatabaseBackup : IDisposable
 	{
 		return Path.Combine(
 			GetDirectoryPath(databaseFilePath),
-			Guid.NewGuid().ToString("N") + AppUtils.SQLiteExtension);
+			Guid.NewGuid().ToString("N") + KnownFileExtensions.Sqlite);
 	}
 
 	/// <summary>

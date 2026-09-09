@@ -10,6 +10,6 @@ public sealed class AppVersionProvider : IAppVersionProvider
 {
 	#region Properties
 	/// <inheritdoc />
-	public string? CurrentVersion => AppUtils.AppVersion;
+	public string? CurrentVersion => AppInfo.AppVersion;
 	#endregion
 }

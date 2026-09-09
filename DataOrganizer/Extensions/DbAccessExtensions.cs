@@ -1,7 +1,7 @@
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Helpers.Text;
 using Entities.Enums;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
@@ -34,7 +34,7 @@ internal static class DbAccessExtensions
 
 		string records = JsonSerializer.Serialize(Enumerable
 			.Repeat(CreateRandomRecords(levels: levels), 20)
-			.SelectMany(x => x), AppUtils.JsonOptions);
+			.SelectMany(x => x), JsonDefaults.Options);
 
 		await AddRandomObjectsAsync(
 			dbAccess,
@@ -60,7 +60,7 @@ internal static class DbAccessExtensions
 		{
 			yield return new RecordsGroup()
 			{
-				Name = $"Group_{AppUtils.CreateRandomString(10)}",
+				Name = $"Group_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -79,8 +79,8 @@ internal static class DbAccessExtensions
 		{
 			yield return new KeyValueRecord()
 			{
-				Key = $"Key_{AppUtils.CreateRandomString(10)}",
-				Value = $"Value_{AppUtils.CreateRandomString(10)}",
+				Key = $"Key_{RandomString.Create(10)}",
+				Value = $"Value_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -132,7 +132,7 @@ internal static class DbAccessExtensions
 		{
 			yield return new ValueRecord()
 			{
-				Value = $"Value_{AppUtils.CreateRandomString(10)}",
+				Value = $"Value_{RandomString.Create(10)}",
 				Note = note
 			};
 		}
@@ -167,7 +167,7 @@ internal static class DbAccessExtensions
 			{
 				EntityType = EntityType.Folder,
 				Index = startIndex++,
-				Name = $"{i + 1}_Folder_{AppUtils.CreateRandomString(6)}",
+				Name = $"{i + 1}_Folder_{RandomString.Create(6)}",
 				ParentId = parentId
 			};
 
@@ -195,7 +195,7 @@ internal static class DbAccessExtensions
 				EntityType = EntityType.File,
 				FileContents = fileContents,
 				Index = startIndex++,
-				Name = $"{i + 1}_File_{AppUtils.CreateRandomString(6)}.{AppUtils.CreateRandomString(3).ToLower()}",
+				Name = $"{i + 1}_File_{RandomString.Create(6)}.{RandomString.Create(3).ToLower()}",
 				ParentId = parentId
 			};
 
@@ -211,7 +211,7 @@ internal static class DbAccessExtensions
 				EntityType = EntityType.DataSet,
 				FileContents = datasetContents,
 				Index = startIndex++,
-				Name = $"{i + 1}_Dataset_{AppUtils.CreateRandomString(6)}",
+				Name = $"{i + 1}_Dataset_{RandomString.Create(6)}",
 				ParentId = parentId
 			};
 

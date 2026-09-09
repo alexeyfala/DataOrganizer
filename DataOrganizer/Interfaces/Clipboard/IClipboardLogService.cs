@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

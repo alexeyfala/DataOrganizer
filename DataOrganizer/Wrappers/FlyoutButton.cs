@@ -143,7 +143,7 @@ internal sealed class FlyoutButton : Button
 	//	}
 
 	//	await System.Threading.Tasks.Task
-	//		.Delay(Shared.Common.AppUtils.TipDelay)
+	//		.Delay(DataOrganizer.Helpers.UiConstants.TipDelay)
 	//		.ConfigureAwait(true);
 
 	//	if (!IsPointerOver)

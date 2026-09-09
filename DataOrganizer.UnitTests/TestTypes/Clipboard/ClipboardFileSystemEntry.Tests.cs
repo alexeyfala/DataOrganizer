@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using System.IO;
 
 namespace DataOrganizer.UnitTests.TestTypes.Clipboard;

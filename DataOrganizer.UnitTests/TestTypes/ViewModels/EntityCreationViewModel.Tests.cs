@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Shared.Common;
@@ -48,12 +48,12 @@ internal class EntityCreationViewModelTests
 			IsDatasetSelected = false,
 			IsFileSelected = false,
 			IsFolderSelected = true,
-			Name = AppUtils.CreateRandomString(10)
+			Name = RandomString.Create(10)
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())
@@ -118,12 +118,12 @@ internal class EntityCreationViewModelTests
 			IsDatasetSelected = false,
 			IsFileSelected = false,
 			IsFolderSelected = false,
-			Name = AppUtils.CreateRandomString(10)
+			Name = RandomString.Create(10)
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())

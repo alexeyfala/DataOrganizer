@@ -59,9 +59,9 @@ internal partial class NotifyPropertyChangedExtensionsTests
 
 	#region Helpers
 	/// <summary>
-	/// Simple <see cref="IName" /> implementation for predicate matching tests.
+	/// Simple <see cref="INamed" /> implementation for predicate matching tests.
 	/// </summary>
-	private sealed class NameHolder : IName
+	private sealed class NameHolder : INamed
 	{
 		public NameHolder(string name) => Name = name;
 

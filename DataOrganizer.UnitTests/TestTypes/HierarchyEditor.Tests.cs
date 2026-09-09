@@ -2,14 +2,14 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services;
 using Entities.Enums;
 using Entities.Models;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Common;
 using System;
@@ -70,7 +70,7 @@ internal class HierarchyEditorTests
 
 		// Act
 		ExplorerModelBaseDto? entity = await sut.AddAsync(
-			AppUtils.CreateRandomString(10),
+			RandomString.Create(10),
 			type,
 			parent,
 			hierarchy);
@@ -112,8 +112,8 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerModelBaseDto toBeDeleted = type switch
 		{
-			EntityType.Folder => TestUtils.CreateFolderDto(),
-			EntityType.File => TestUtils.CreateFileDto(),
+			EntityType.Folder => TestData.CreateFolderDto(),
+			EntityType.File => TestData.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -139,7 +139,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestUtils.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
 		hierarchy.Add(toBeDeleted);
 
@@ -166,8 +166,8 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerModelBaseDto entity = type switch
 		{
-			EntityType.Folder => TestUtils.CreateFolderDto(),
-			EntityType.File => TestUtils.CreateFileDto(),
+			EntityType.Folder => TestData.CreateFolderDto(),
+			EntityType.File => TestData.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -193,7 +193,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestUtils.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
 		hierarchy.Add(entity);
 
@@ -219,9 +219,9 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerModelBaseDto dto = Substitute.For<ExplorerModelBaseDto>();
 
-		string newName = AppUtils.CreateRandomString(10);
+		string newName = RandomString.Create(10);
 
-		dto.Name = AppUtils.CreateRandomString(10);
+		dto.Name = RandomString.Create(10);
 
 		DateTime updatedDate = DateTime.Now;
 
@@ -265,7 +265,7 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerModelBaseDto toBeRenamed = Substitute.For<ExplorerModelBaseDto>();
 
-		string newName = AppUtils.CreateRandomString(10);
+		string newName = RandomString.Create(10);
 
 		toBeRenamed.Name = newName;
 

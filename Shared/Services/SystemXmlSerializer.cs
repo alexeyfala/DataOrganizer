@@ -9,7 +9,7 @@ using System.Xml.Serialization;
 
 namespace Shared.Services;
 
-public sealed class XmlSerializerWrapper : IXmlSerializerWrapper
+public sealed class SystemXmlSerializer : IXmlSerializer
 {
 	#region Methods
 	/// <inheritdoc />

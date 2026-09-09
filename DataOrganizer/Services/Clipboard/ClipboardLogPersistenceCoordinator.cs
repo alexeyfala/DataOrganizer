@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;

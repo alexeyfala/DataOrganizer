@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Services;
 using Entities.Enums;
 using Entities.Models;
@@ -55,7 +55,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsFavoriteAsync(TestUtils.CreateFileDto());
+		await sut.UpdateIsFavoriteAsync(TestData.CreateFileDto());
 
 		// Assert
 		await dbAccess
@@ -112,7 +112,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsSelectedAsync(TestUtils.CreateFolderDto());
+		await sut.UpdateIsSelectedAsync(TestData.CreateFolderDto());
 
 		// Assert
 		await dbAccess

@@ -17,7 +17,7 @@ public interface IExplorerModelBaseRepository
 		Expression<Func<ExplorerModelBase, bool>> condition,
 		CancellationToken token = default);
 
-	/// <inheritdoc cref="RepositoryBase{T}.IsExistsAsync" />
-	Task<bool> IsExistsAsync(Expression<Func<ExplorerModelBase, bool>> condition, CancellationToken token = default);
+	/// <inheritdoc cref="RepositoryBase{T}.ExistsAsync" />
+	Task<bool> ExistsAsync(Expression<Func<ExplorerModelBase, bool>> condition, CancellationToken token = default);
 	#endregion
 }

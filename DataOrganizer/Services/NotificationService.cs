@@ -1,5 +1,5 @@
 using Avalonia.Threading;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;

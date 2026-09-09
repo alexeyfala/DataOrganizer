@@ -3,8 +3,8 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Execution;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
@@ -37,11 +37,11 @@ internal class FileChangeTrackerTests
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-		byte[] expectedHash = TestUtils.CreateRandomBytes(32);
+		byte[] expectedHash = TestData.CreateRandomBytes(32);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] contents = TestUtils.CreateRandomBytes(32);
+			byte[] contents = TestData.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -67,9 +67,9 @@ internal class FileChangeTrackerTests
 		TrackChangesParameters parameters = new()
 		{
 			PreviousHash = expectedHash,
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10)
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10)
 		};
 
 		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -99,13 +99,13 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = TestUtils.CreateRandomBytes(32);
+			byte[] previousContents = TestData.CreateRandomBytes(32);
 
-			byte[] currentContents = TestUtils.CreateRandomBytes(32);
+			byte[] currentContents = TestData.CreateRandomBytes(32);
 
-			byte[] encryptedContents = TestUtils.CreateRandomBytes(48);
+			byte[] encryptedContents = TestData.CreateRandomBytes(48);
 
-			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+			byte[] currentHash = TestData.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -150,10 +150,10 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = TestUtils.CreateRandomBytes(32),
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10),
+			PreviousHash = TestData.CreateRandomBytes(32),
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10),
 			KeeperId = Guid.NewGuid()
 		};
 
@@ -182,9 +182,9 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] contents = TestUtils.CreateRandomBytes(32);
+			byte[] contents = TestData.CreateRandomBytes(32);
 
-			byte[] hash = TestUtils.CreateRandomBytes(32);
+			byte[] hash = TestData.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -209,10 +209,10 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = TestUtils.CreateRandomBytes(32),
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10)
+			PreviousHash = TestData.CreateRandomBytes(32),
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10)
 		};
 
 		// Act
@@ -253,11 +253,11 @@ internal class FileChangeTrackerTests
 
 			fileSystem
 				.OpenRead(Arg.Any<string>())
-				.Returns(_ => new MemoryStream(TestUtils.CreateRandomBytes(32)));
+				.Returns(_ => new MemoryStream(TestData.CreateRandomBytes(32)));
 
 			fileSystem
 				.ComputeStreamHashAsync(Arg.Any<HashAlgorithmName>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
-				.Returns(TestUtils.CreateRandomBytes(32));
+				.Returns(TestData.CreateRandomBytes(32));
 
 			dbAccess
 				.UpdateFilePropertiesAsync(
@@ -275,10 +275,10 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = TestUtils.CreateRandomBytes(32),
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10)
+			PreviousHash = TestData.CreateRandomBytes(32),
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10)
 		};
 
 		// Act
@@ -311,11 +311,11 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = TestUtils.CreateRandomBytes(32);
+			byte[] previousContents = TestData.CreateRandomBytes(32);
 
-			byte[] currentContents = TestUtils.CreateRandomBytes(32);
+			byte[] currentContents = TestData.CreateRandomBytes(32);
 
-			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+			byte[] currentHash = TestData.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -354,10 +354,10 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = TestUtils.CreateRandomBytes(32),
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10),
+			PreviousHash = TestData.CreateRandomBytes(32),
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10),
 			KeeperId = Guid.NewGuid()
 		};
 
@@ -387,11 +387,11 @@ internal class FileChangeTrackerTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			byte[] previousContents = TestUtils.CreateRandomBytes(32);
+			byte[] previousContents = TestData.CreateRandomBytes(32);
 
-			byte[] currentContents = TestUtils.CreateRandomBytes(32);
+			byte[] currentContents = TestData.CreateRandomBytes(32);
 
-			byte[] currentHash = TestUtils.CreateRandomBytes(32);
+			byte[] currentHash = TestData.CreateRandomBytes(32);
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -430,10 +430,10 @@ internal class FileChangeTrackerTests
 
 		TrackChangesParameters parameters = new()
 		{
-			PreviousHash = TestUtils.CreateRandomBytes(32),
-			File = TestUtils.CreateFileDto(),
-			FileName = TestUtils.CreateRandomFileName(10),
-			FilePath = TestUtils.CreateRandomFileName(10)
+			PreviousHash = TestData.CreateRandomBytes(32),
+			File = TestData.CreateFileDto(),
+			FileName = TestData.CreateRandomFileName(10),
+			FilePath = TestData.CreateRandomFileName(10)
 		};
 
 		DateTime before = DateTime.Now;

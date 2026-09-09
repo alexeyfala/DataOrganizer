@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
@@ -23,9 +23,9 @@ internal class NoteReaderTests
 	public void ReadNote_Reports_Failure_When_Decoding_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -57,11 +57,11 @@ internal class NoteReaderTests
 	public void ReadNote_Returns_Decoded_Note()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -93,9 +93,9 @@ internal class NoteReaderTests
 	public void ReadNote_Returns_Null_When_Encrypted()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		INoteCipher noteCipher = Substitute.For<INoteCipher>();
 
@@ -151,7 +151,7 @@ internal class NoteReaderTests
 	public void ReadNote_Returns_Null_When_Note_Is_Absent([Values] bool isEmpty)
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file.Note = isEmpty ? [] : null;
 

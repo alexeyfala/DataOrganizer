@@ -85,7 +85,7 @@ internal class SqlitePragmasTests
 		// Arrange
 		using TempSqliteFile file = new();
 
-		string marker = AppUtils.CreateRandomString(64);
+		string marker = RandomString.Create(64);
 
 		using (SqliteConnection connection = file.Open())
 		{

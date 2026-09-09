@@ -23,12 +23,12 @@ public sealed class FileSystem : IFileSystem
 	/// </summary>
 	private const string TemporaryFileExtension = ".tmp";
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 	#endregion
 
 	#region Constructors
-	public FileSystem(IJsonSerializerWrapper jsonSerializer) => _jsonSerializer = jsonSerializer;
+	public FileSystem(IJsonSerializer jsonSerializer) => _jsonSerializer = jsonSerializer;
 	#endregion
 
 	#region Methods
@@ -283,7 +283,7 @@ public sealed class FileSystem : IFileSystem
 			Directory.CreateDirectory(parentDirectory);
 		}
 
-		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, AppUtils.JsonOptions));
+		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, JsonDefaults.Options));
 
 		if (!isHide)
 		{

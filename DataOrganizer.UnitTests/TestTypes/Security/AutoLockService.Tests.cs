@@ -3,7 +3,7 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
 using DataOrganizer.Services.Encryption;
@@ -236,7 +236,7 @@ internal class AutoLockServiceTests
 	/// </summary>
 	private static AppSettings CreateSettings(int autoLockMinutes)
 	{
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.AutoLockMinutes = autoLockMinutes;
 

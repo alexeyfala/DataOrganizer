@@ -4,7 +4,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.DbContexts;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Enums;
 using Repository.Interceptors;
 using Repository.Interfaces;
@@ -662,7 +662,7 @@ public sealed class DbAccess : IDbAccess
 
 	/// <inheritdoc />
 	public async Task<FileModel[]> GetAllFilesAsync(
-		OptionalFileProperty optionalProperties,
+		OptionalFileProperties optionalProperties,
 		CancellationToken token = default)
 	{
 		try
@@ -815,7 +815,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> IsExistsAsync(Guid id, CancellationToken token = default)
+	public async Task<bool> ExistsAsync(Guid id, CancellationToken token = default)
 	{
 		try
 		{
@@ -824,7 +824,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _baseRepository
-				.IsExistsAsync(x => x.Id == id, token)
+				.ExistsAsync(x => x.Id == id, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)

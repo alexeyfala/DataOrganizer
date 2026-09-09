@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
 using Entities.Enums;
 using Repository.Interfaces;

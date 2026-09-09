@@ -16,7 +16,7 @@ internal class NoteHelperTests
 	public void BuildHeader_Returns_The_Label_With_A_Name()
 	{
 		// Arrange
-		string name = AppUtils.CreateRandomString(10);
+		string name = RandomString.Create(10);
 
 		// Act
 		string header = NoteHelper.BuildHeader(name);

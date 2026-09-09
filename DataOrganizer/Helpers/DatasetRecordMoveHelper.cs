@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums;
 using System;
 using System.Collections.ObjectModel;

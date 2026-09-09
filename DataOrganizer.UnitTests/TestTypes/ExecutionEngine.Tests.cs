@@ -2,8 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Execution;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Services.Execution;
@@ -30,11 +30,11 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
+		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -44,7 +44,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestUtils.CreateRandomDirectoryName());
+				.Returns(TestData.CreateRandomDirectoryName());
 
 			fileSystem
 				.IsFileExists(Arg.Any<string>())
@@ -54,13 +54,13 @@ internal class ExecutionEngineTests
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestUtils.CreateRandomIntFrom10To100();
+					x[1] = TestData.CreateRandomIntFrom10To100();
 
 					return true;
 				});
 
 			processUtils
-				.IsProcessExists(Arg.Any<int>())
+				.ProcessExists(Arg.Any<int>())
 				.Returns(true);
 
 			fileAssociation
@@ -117,7 +117,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -147,7 +147,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -164,10 +164,10 @@ internal class ExecutionEngineTests
 			.Returns(true);
 
 		processUtils
-			.IsProcessExists(Arg.Any<int>())
+			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
+		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 
@@ -204,7 +204,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -213,10 +213,10 @@ internal class ExecutionEngineTests
 			.Returns(true);
 
 		processUtils
-			.IsProcessExists(Arg.Any<int>())
+			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
+		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 
@@ -257,13 +257,13 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileChangeTracker changeTracker = Substitute.For<IFileChangeTracker>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
+		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -271,13 +271,13 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestUtils.CreateRandomDirectoryName());
+				.Returns(TestData.CreateRandomDirectoryName());
 
 			processUtils
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestUtils.CreateRandomIntFrom10To100();
+					x[1] = TestData.CreateRandomIntFrom10To100();
 
 					return true;
 				});
@@ -349,7 +349,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -369,14 +369,14 @@ internal class ExecutionEngineTests
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
-		byte[] contents = TestUtils.CreateRandomBytes(16);
+		byte[] contents = TestData.CreateRandomBytes(16);
 
 		byte[] expectedHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents);
 
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = contents,
-			File = TestUtils.CreateFileDto(id: Guid.NewGuid()),
+			File = TestData.CreateFileDto(id: Guid.NewGuid()),
 			IsReadOnly = isReadOnly
 		};
 
@@ -418,7 +418,7 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
@@ -431,7 +431,7 @@ internal class ExecutionEngineTests
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = [],
-			File = TestUtils.CreateFileDto(id: Guid.NewGuid()),
+			File = TestData.CreateFileDto(id: Guid.NewGuid()),
 			IsReadOnly = true
 		};
 
@@ -457,11 +457,11 @@ internal class ExecutionEngineTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileModelDto dto = TestUtils.CreateFileDto(id: Guid.NewGuid());
+		FileModelDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processUtils, fileAssociation);
 
@@ -497,7 +497,7 @@ internal class ExecutionEngineTests
 	/// </summary>
 	private static AutoMock CreateConfiguredMock(
 		IFileSystem fileSystem,
-		IProcessUtils processUtils,
+		IProcessManager processUtils,
 		IFileAssociationService fileAssociation,
 		IFileChangeTracker? changeTracker = null)
 	{
@@ -512,13 +512,13 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestUtils.CreateRandomDirectoryName());
+				.Returns(TestData.CreateRandomDirectoryName());
 
 			processUtils
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestUtils.CreateRandomIntFrom10To100();
+					x[1] = TestData.CreateRandomIntFrom10To100();
 
 					return true;
 				});

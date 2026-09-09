@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Services;
 using Entities.Models;
@@ -40,11 +40,11 @@ internal class EntityLoaderTests
 
 			dbAccess
 				.GetAllFoldersAsync()
-				.Returns([.. TestUtils.CreateFolders(folderCount)]);
+				.Returns([.. TestData.CreateFolders(folderCount)]);
 
 			dbAccess
-				.GetAllFilesAsync(OptionalFileProperty.None)
-				.Returns([.. TestUtils.CreateFiles(fileCount)]);
+				.GetAllFilesAsync(OptionalFileProperties.None)
+				.Returns([.. TestData.CreateFiles(fileCount)]);
 
 			IMapper mapper = Substitute.For<IMapper>();
 
@@ -54,11 +54,11 @@ internal class EntityLoaderTests
 
 			mapper
 				.Map<IEnumerable<FileModel>, FileModelDto[]>(Arg.Any<IEnumerable<FileModel>>())
-				.Returns([.. TestUtils.CreateFilesDto(fileCount)]);
+				.Returns([.. TestData.CreateFilesDto(fileCount)]);
 
 			mapper
 				.Map<IEnumerable<FolderModel>, FolderModelDto[]>(Arg.Any<IEnumerable<FolderModel>>())
-				.Returns([.. TestUtils.CreateFoldersDto(folderCount)]);
+				.Returns([.. TestData.CreateFoldersDto(folderCount)]);
 
 			builder.RegisterInstance(mapper);
 
@@ -147,17 +147,17 @@ internal class EntityLoaderTests
 	public void Map_Marks_The_Subtree_Of_A_Password_Keeper_As_Encrypted()
 	{
 		// Arrange
-		FolderModelDto keeper = TestUtils.CreateFolderDto();
+		FolderModelDto keeper = TestData.CreateFolderDto();
 
-		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto plainFolder = TestUtils.CreateFolderDto();
+		FolderModelDto plainFolder = TestData.CreateFolderDto();
 
-		FileModelDto keptFile = TestUtils.CreateFileDto();
+		FileModelDto keptFile = TestData.CreateFileDto();
 
 		keptFile.ParentId = keeper.Id;
 
-		FileModelDto plainFile = TestUtils.CreateFileDto();
+		FileModelDto plainFile = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

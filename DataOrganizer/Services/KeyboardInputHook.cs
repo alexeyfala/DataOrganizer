@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
@@ -11,7 +11,7 @@ using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Messages;
 using DataOrganizer.ViewModels;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;

@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
@@ -59,7 +59,7 @@ public sealed class EntityLoader : IEntityLoader
 				.ConfigureAwait(false);
 
 			FileModel[] dbFiles = await _dbAccess
-				.GetAllFilesAsync(OptionalFileProperty.None, token)
+				.GetAllFilesAsync(OptionalFileProperties.None, token)
 				.ConfigureAwait(false);
 
 			_logger.LogInformation(
@@ -157,7 +157,7 @@ public sealed class EntityLoader : IEntityLoader
 				? ((FileModel)src).Adapt<FileModelDto>(config)
 				: ((FolderModel)src).Adapt<FolderModelDto>(config));
 
-		if (AppUtils.IsDebug)
+		if (AppInfo.IsDebug)
 		{
 #pragma warning disable CS0168 // Variable is declared but never used
 			try

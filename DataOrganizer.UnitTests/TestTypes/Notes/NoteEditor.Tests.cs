@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Services.Notes;
 using Entities.Enums;
@@ -29,9 +29,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -81,9 +81,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Database_Update_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
-		byte[] encoded = TestUtils.CreateRandomBytes(10);
+		byte[] encoded = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -101,7 +101,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			DateTime.Now);
 
 		// Assert
@@ -122,7 +122,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Fails()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -144,7 +144,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			DateTime.Now);
 
 		// Assert
@@ -166,7 +166,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Throws()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -188,7 +188,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			DateTime.Now);
 
 		// Assert
@@ -212,7 +212,7 @@ internal class NoteEditorTests
 		// Arrange
 		FileModelDto file = CreateFile(entityType);
 
-		byte[] encoded = TestUtils.CreateRandomBytes(10);
+		byte[] encoded = TestData.CreateRandomBytes(10);
 
 		DateTime updatedDate = DateTime.Now.AddDays(1);
 
@@ -243,7 +243,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			file,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			updatedDate);
 
 		// Assert
@@ -273,9 +273,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
-		byte[] encoded = TestUtils.CreateRandomBytes(10);
+		byte[] encoded = TestData.CreateRandomBytes(10);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -304,7 +304,7 @@ internal class NoteEditorTests
 		// Act
 		bool result = await sut.EditAsync(
 			folder,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			DateTime.Now);
 
 		// Assert
@@ -330,9 +330,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
-		byte[] replaced = TestUtils.CreateRandomBytes(10);
+		byte[] replaced = TestData.CreateRandomBytes(10);
 
 		file.Note = replaced;
 
@@ -351,7 +351,7 @@ internal class NoteEditorTests
 
 			noteCipher
 				.Encode(file, Arg.Any<string>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(dbAccess);
 
@@ -363,7 +363,7 @@ internal class NoteEditorTests
 		// Act
 		await sut.EditAsync(
 			file,
-			AppUtils.CreateRandomString(20),
+			RandomString.Create(20),
 			DateTime.Now);
 
 		// Assert
@@ -383,7 +383,7 @@ internal class NoteEditorTests
 		EntityType = entityType,
 		Id = Guid.NewGuid(),
 		Index = 0,
-		Name = AppUtils.CreateRandomString(10),
+		Name = RandomString.Create(10),
 		UpdatedDate = DateTime.Now
 	};
 	#endregion

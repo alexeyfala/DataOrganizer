@@ -46,7 +46,7 @@ internal class DatabaseBackupTests
 		Path
 			.GetExtension(filePath)
 			.Should()
-			.Be(AppUtils.SQLiteExtension);
+			.Be(KnownFileExtensions.Sqlite);
 
 		DatabaseBackup
 			.CreateFilePath(DatabaseFilePath)

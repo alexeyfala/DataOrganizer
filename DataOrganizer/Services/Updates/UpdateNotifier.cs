@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Updates;
+using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Updates;
 using Shared.Properties;
@@ -11,8 +11,8 @@ namespace DataOrganizer.Services.Updates;
 public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processUtils;
 
 	/// <inheritdoc cref="IUpdateCheckService" />
 	private readonly IUpdateCheckService _updateCheckService;
@@ -20,7 +20,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Constructors
 	public UpdateNotifier(
-		IProcessUtils processUtils,
+		IProcessManager processUtils,
 		IUpdateCheckService updateCheckService)
 	{
 		_processUtils = processUtils;

@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Dataset;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dataset;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
-using Repository.DTO;
+using Repository.Dto;
 using Shared.Common;
 using Shared.Properties;
 using SharpHook.Data;
@@ -27,9 +27,9 @@ internal class EnumerableExtensionsTests
 	public void AllBy_Returns_False_If_Any_Item_Does_Not_Satisfy_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto child = TestUtils.CreateFileDto(isEditing: true);
+		FileModelDto child = TestData.CreateFileDto(isEditing: true);
 
 		root.Children.Add(child);
 
@@ -51,9 +51,9 @@ internal class EnumerableExtensionsTests
 	public void AllBy_Returns_True_When_All_Items_Match_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
 		root.Children.Add(nested);
 
@@ -75,7 +75,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
 	{
 		// Arrange
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(3)];
+		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(3)];
 
 		// Act
 		bool result = hierarchy.ContainsBy(x => x.Id == Guid.NewGuid());
@@ -93,11 +93,11 @@ internal class EnumerableExtensionsTests
 	public void ContainsFileBy_File_Predicate_Returns_True_When_Matching_File_Exists_Deep()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
-		FileModelDto target = TestUtils.CreateFileDto();
+		FileModelDto target = TestData.CreateFileDto();
 
 		nested.Children.Add(target);
 
@@ -121,7 +121,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsId_Returns_False_When_No_Object_With_Given_Id()
 	{
 		// Arrange
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(3)];
+		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(3)];
 
 		// Act
 		bool result = hierarchy.ContainsId(Guid.NewGuid());
@@ -139,9 +139,9 @@ internal class EnumerableExtensionsTests
 	public void ContainsId_Returns_True_When_Hierarchy_Contains_Object_With_Given_Id()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto target = TestUtils.CreateFileDto();
+		FileModelDto target = TestData.CreateFileDto();
 
 		root.Children.Add(target);
 
@@ -163,11 +163,11 @@ internal class EnumerableExtensionsTests
 	public void FilterBy_Returns_Flat_Sequence_Of_Items_Satisfying_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto file1 = TestUtils.CreateFileDto();
+		FileModelDto file1 = TestData.CreateFileDto();
 
-		FileModelDto file2 = TestUtils.CreateFileDto();
+		FileModelDto file2 = TestData.CreateFileDto();
 
 		root.Children.Add(file1);
 
@@ -195,9 +195,9 @@ internal class EnumerableExtensionsTests
 	public void FilterFilesById_Returns_Files_With_Matching_Identifiers()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		foreach (FileModelDto file in files)
 		{
@@ -225,11 +225,11 @@ internal class EnumerableExtensionsTests
 	public void FindBy_Returns_Matching_Item_From_Nested_Folder()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
-		FileModelDto target = TestUtils.CreateFileDto();
+		FileModelDto target = TestData.CreateFileDto();
 
 		nested.Children.Add(target);
 
@@ -253,7 +253,7 @@ internal class EnumerableExtensionsTests
 	public void FindBy_Returns_Null_When_No_Item_Satisfies_Condition()
 	{
 		// Arrange
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(3)];
+		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(3)];
 
 		// Act
 		ExplorerModelBaseDto? result = hierarchy.FindBy(x => x.Id == Guid.NewGuid());
@@ -271,9 +271,9 @@ internal class EnumerableExtensionsTests
 	public void FindById_Delegates_To_FindBy()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto target = TestUtils.CreateFileDto();
+		FileModelDto target = TestData.CreateFileDto();
 
 		root.Children.Add(target);
 
@@ -295,13 +295,13 @@ internal class EnumerableExtensionsTests
 	public void FindFileBy_Returns_First_File_Matching_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto file = TestUtils.CreateFileDto(isEditing: true);
+		FileModelDto file = TestData.CreateFileDto(isEditing: true);
 
 		root.Children.Add(file);
 
-		root.Children.Add(TestUtils.CreateFolderDto());
+		root.Children.Add(TestData.CreateFolderDto());
 
 		ExplorerModelBaseDto[] hierarchy = [root];
 
@@ -321,9 +321,9 @@ internal class EnumerableExtensionsTests
 	public void FindFolderBy_Returns_First_Folder_Matching_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto target = TestUtils.CreateFolderDto();
+		FolderModelDto target = TestData.CreateFolderDto();
 
 		root.Children.Add(target);
 
@@ -345,15 +345,15 @@ internal class EnumerableExtensionsTests
 	public void Flatten_Returns_Every_Record_Including_Nested_Group_Children()
 	{
 		// Arrange
-		ValueRecord leaf1 = new() { Value = AppUtils.CreateRandomString(5) };
+		ValueRecord leaf1 = new() { Value = RandomString.Create(5) };
 
-		ValueRecord leaf2 = new() { Value = AppUtils.CreateRandomString(5) };
+		ValueRecord leaf2 = new() { Value = RandomString.Create(5) };
 
-		RecordsGroup nested = new() { Name = AppUtils.CreateRandomString(5) };
+		RecordsGroup nested = new() { Name = RandomString.Create(5) };
 
 		nested.Children.Add(leaf2);
 
-		RecordsGroup root = new() { Name = AppUtils.CreateRandomString(5) };
+		RecordsGroup root = new() { Name = RandomString.Create(5) };
 
 		root.Children.Add(leaf1);
 
@@ -381,11 +381,11 @@ internal class EnumerableExtensionsTests
 	public void GetCount_For_DatasetRecord_Returns_Total_Count_Including_Children()
 	{
 		// Arrange
-		RecordsGroup group = new() { Name = AppUtils.CreateRandomString(5) };
+		RecordsGroup group = new() { Name = RandomString.Create(5) };
 
-		group.Children.Add(new ValueRecord { Value = AppUtils.CreateRandomString(5) });
+		group.Children.Add(new ValueRecord { Value = RandomString.Create(5) });
 
-		group.Children.Add(new ValueRecord { Value = AppUtils.CreateRandomString(5) });
+		group.Children.Add(new ValueRecord { Value = RandomString.Create(5) });
 
 		DatasetRecordBase[] hierarchy = [group];
 
@@ -405,15 +405,15 @@ internal class EnumerableExtensionsTests
 	public void GetCount_For_Hierarchy_Counts_Files_And_Folders()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		root.Children.Add(TestUtils.CreateFileDto());
+		root.Children.Add(TestData.CreateFileDto());
 
-		root.Children.Add(TestUtils.CreateFileDto());
+		root.Children.Add(TestData.CreateFileDto());
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
-		nested.Children.Add(TestUtils.CreateFileDto());
+		nested.Children.Add(TestData.CreateFileDto());
 
 		root.Children.Add(nested);
 
@@ -439,13 +439,13 @@ internal class EnumerableExtensionsTests
 	public void GetFiles_Returns_Files_From_All_Levels_Of_Hierarchy()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto rootFile = TestUtils.CreateFileDto();
+		FileModelDto rootFile = TestData.CreateFileDto();
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
-		FileModelDto nestedFile = TestUtils.CreateFileDto();
+		FileModelDto nestedFile = TestData.CreateFileDto();
 
 		nested.Children.Add(nestedFile);
 
@@ -475,11 +475,11 @@ internal class EnumerableExtensionsTests
 	public void GetFilesBy_Returns_Files_Matching_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FileModelDto editing = TestUtils.CreateFileDto(isEditing: true);
+		FileModelDto editing = TestData.CreateFileDto(isEditing: true);
 
-		FileModelDto idle = TestUtils.CreateFileDto();
+		FileModelDto idle = TestData.CreateFileDto();
 
 		root.Children.Add(editing);
 
@@ -506,7 +506,7 @@ internal class EnumerableExtensionsTests
 	public void GetFilesWithUnreadableHotkeys_Returns_File_With_Unreadable_Key()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
 		FileModelDto damaged = CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
 
@@ -558,7 +558,7 @@ internal class EnumerableExtensionsTests
 	public void GetFilesWithUnreadableHotkeys_Skips_File_Without_Hotkeys()
 	{
 		// Arrange
-		ExplorerModelBaseDto[] hierarchy = [TestUtils.CreateFileDto()];
+		ExplorerModelBaseDto[] hierarchy = [TestData.CreateFileDto()];
 
 		// Act
 		FileModelDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
@@ -598,13 +598,13 @@ internal class EnumerableExtensionsTests
 	public void GetFolders_Returns_All_Folders_Including_Nested()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto nested = TestUtils.CreateFolderDto();
+		FolderModelDto nested = TestData.CreateFolderDto();
 
 		root.Children.Add(nested);
 
-		root.Children.Add(TestUtils.CreateFileDto());
+		root.Children.Add(TestData.CreateFileDto());
 
 		ExplorerModelBaseDto[] hierarchy = [root];
 
@@ -628,9 +628,9 @@ internal class EnumerableExtensionsTests
 	public void GetFoldersBy_Returns_Folders_Matching_Condition()
 	{
 		// Arrange
-		FolderModelDto root = TestUtils.CreateFolderDto();
+		FolderModelDto root = TestData.CreateFolderDto();
 
-		FolderModelDto target = TestUtils.CreateFolderDto();
+		FolderModelDto target = TestData.CreateFolderDto();
 
 		root.Children.Add(target);
 
@@ -721,7 +721,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Counts_The_Rest()
 	{
 		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5)];
+		FileModelDto[] files = [.. TestData.CreateFilesDto(5)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -747,7 +747,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Names_Every_File()
 	{
 		// Arrange
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] files = [.. TestData.CreateFilesDto(3)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -839,15 +839,15 @@ internal class EnumerableExtensionsTests
 	public void SortByIndexRecursively_Sorts_Top_Level_And_Nested_Children_By_Index()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
 		folder.Index = 1;
 
-		FileModelDto child1 = TestUtils.CreateFileDto();
+		FileModelDto child1 = TestData.CreateFileDto();
 
 		child1.Index = 30;
 
-		FileModelDto child2 = TestUtils.CreateFileDto();
+		FileModelDto child2 = TestData.CreateFileDto();
 
 		child2.Index = 10;
 
@@ -855,7 +855,7 @@ internal class EnumerableExtensionsTests
 
 		folder.Children.Add(child2);
 
-		FileModelDto rootFile = TestUtils.CreateFileDto();
+		FileModelDto rootFile = TestData.CreateFileDto();
 
 		rootFile.Index = 0;
 
@@ -881,7 +881,7 @@ internal class EnumerableExtensionsTests
 	public void SortChildrenByIndexRecursively_Returns_Without_Action_For_Empty_Folder()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
 		// Act
 		Action act = () => folder.SortChildrenByIndexRecursively();
@@ -903,7 +903,7 @@ internal class EnumerableExtensionsTests
 	public void ToCodeMaskPairs_Maps_HotkeyModelDto_To_CodeMaskPair()
 	{
 		// Arrange
-		HotkeyModelDto[] hotkeys = [.. TestUtils.CreateHotkeysDto(3)];
+		HotkeyModelDto[] hotkeys = [.. TestData.CreateHotkeysDto(3)];
 
 		// Act
 		CodeMaskPair[] result = [.. hotkeys.ToCodeMaskPairs()];
@@ -932,15 +932,15 @@ internal class EnumerableExtensionsTests
 	public void ToHierarchical_Builds_Parent_Child_Links_And_Yields_Roots()
 	{
 		// Arrange
-		FolderModelDto rootFolder = TestUtils.CreateFolderDto();
+		FolderModelDto rootFolder = TestData.CreateFolderDto();
 
-		FolderModelDto childFolder = TestUtils.CreateFolderDto();
+		FolderModelDto childFolder = TestData.CreateFolderDto();
 
 		childFolder.ParentId = rootFolder.Id;
 
-		FileModelDto rootFile = TestUtils.CreateFileDto();
+		FileModelDto rootFile = TestData.CreateFileDto();
 
-		FileModelDto childFile = TestUtils.CreateFileDto();
+		FileModelDto childFile = TestData.CreateFileDto();
 
 		childFile.ParentId = childFolder.Id;
 
@@ -1026,7 +1026,7 @@ internal class EnumerableExtensionsTests
 	/// </summary>
 	private static FileModelDto CreateFileWithHotkey(KeyCode code, EventMask mask)
 	{
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys

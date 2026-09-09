@@ -1,6 +1,6 @@
 using AwesomeAssertions;
-using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Clipboard.Persistence;
+using DataOrganizer.Dto.Clipboard;
+using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Helpers.Clipboard;
 using System.Collections.Generic;
 using System.Text.Json;

@@ -1,7 +1,7 @@
 using Baksteen.Extensions.DeepCopy;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DialogHostAvalonia;

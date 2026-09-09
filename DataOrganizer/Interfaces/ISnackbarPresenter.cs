@@ -1,4 +1,4 @@
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using Material.Styles.Controls;
 
 namespace DataOrganizer.Interfaces;

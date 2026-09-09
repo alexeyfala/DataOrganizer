@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Helpers.Security;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Encryption;
+using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Enums;
 using System.Threading;
 using System.Threading.Tasks;

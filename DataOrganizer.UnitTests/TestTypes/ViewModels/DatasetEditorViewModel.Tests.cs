@@ -3,8 +3,8 @@ using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -13,7 +13,7 @@ using DataOrganizer.ViewModels;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
@@ -38,17 +38,17 @@ internal class DatasetEditorViewModelTests
 	public async Task AddGroupAsync_Adds_Group([Values] bool addToGroup)
 	{
 		// Arrange
-		string name = AppUtils.CreateRandomString(10);
+		string name = RandomString.Create(10);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -159,7 +159,7 @@ internal class DatasetEditorViewModelTests
 	public async Task AddKeyValueAsync_Adds_Key_And_Value_Record([Values] bool addToGroup)
 	{
 		// Arrange
-		string key = AppUtils.CreateRandomString(10);
+		string key = RandomString.Create(10);
 
 		string value = key;
 
@@ -167,11 +167,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -224,15 +224,15 @@ internal class DatasetEditorViewModelTests
 	public async Task AddKeyValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(10);
+		string text = RandomString.Create(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -298,17 +298,17 @@ internal class DatasetEditorViewModelTests
 	public async Task AddValueAsync_Adds_Value_Record([Values] bool addToGroup)
 	{
 		// Arrange
-		string value = AppUtils.CreateRandomString(10);
+		string value = RandomString.Create(10);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -361,15 +361,15 @@ internal class DatasetEditorViewModelTests
 	public async Task AddValueAsync_Hides_New_Record_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(10);
+		string text = RandomString.Create(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -414,7 +414,7 @@ internal class DatasetEditorViewModelTests
 
 			ContentsIsValidPair pair = new()
 			{
-				Contents = TestUtils.CreateRandomBytes(10),
+				Contents = TestData.CreateRandomBytes(10),
 				IsValid = true
 			};
 
@@ -422,7 +422,7 @@ internal class DatasetEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(pair);
 
-			IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
 
 			jsonSerializer
 				.Deserialize<DatasetRecordBase[]>(Arg.Any<byte[]>())
@@ -455,7 +455,7 @@ internal class DatasetEditorViewModelTests
 	public async Task ContainerLoaded_Shoud_Not_Tries_Add_Records_If_File_Content_Is_Empty()
 	{
 		// Arrange
-		IJsonSerializerWrapper jsonSerializer = Substitute.For<IJsonSerializerWrapper>();
+		IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -511,8 +511,8 @@ internal class DatasetEditorViewModelTests
 
 		KeyValueRecord record = new()
 		{
-			Key = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -558,11 +558,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -608,8 +608,8 @@ internal class DatasetEditorViewModelTests
 
 		KeyValueRecord record = new()
 		{
-			Key = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -639,8 +639,8 @@ internal class DatasetEditorViewModelTests
 		KeyValueRecord record = new()
 		{
 			IsHidden = isHidden,
-			Key = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -661,9 +661,9 @@ internal class DatasetEditorViewModelTests
 	public async Task EditKeyValueAsync_Edits_Record([Values] bool isSameValue)
 	{
 		// Arrange
-		string key = AppUtils.CreateRandomString(10);
+		string key = RandomString.Create(10);
 
-		string value = AppUtils.CreateRandomString(10);
+		string value = RandomString.Create(10);
 
 		KeyValueRecord target = new();
 
@@ -678,11 +678,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -739,8 +739,8 @@ internal class DatasetEditorViewModelTests
 
 		RecordsGroup record = new()
 		{
-			Name = AppUtils.CreateRandomString(10),
-			Note = AppUtils.CreateRandomString(10)
+			Name = RandomString.Create(10),
+			Note = RandomString.Create(10)
 		};
 
 		// Act
@@ -782,8 +782,8 @@ internal class DatasetEditorViewModelTests
 
 		RecordsGroup record = new()
 		{
-			Name = AppUtils.CreateRandomString(10),
-			Note = AppUtils.CreateRandomString(10)
+			Name = RandomString.Create(10),
+			Note = RandomString.Create(10)
 		};
 
 		// Act
@@ -825,9 +825,9 @@ internal class DatasetEditorViewModelTests
 
 		KeyValueRecord record = new()
 		{
-			Key = AppUtils.CreateRandomString(10),
-			Note = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Key = RandomString.Create(10),
+			Note = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -870,8 +870,8 @@ internal class DatasetEditorViewModelTests
 
 		ValueRecord record = new()
 		{
-			Note = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Note = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -894,7 +894,7 @@ internal class DatasetEditorViewModelTests
 	public async Task EditNoteAsync_Edits_Note_Of_Record()
 	{
 		// Arrange
-		string note = AppUtils.CreateRandomString(10);
+		string note = RandomString.Create(10);
 
 		ValueRecord target = new();
 
@@ -902,11 +902,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -944,7 +944,7 @@ internal class DatasetEditorViewModelTests
 		ValueRecord record = new()
 		{
 			IsHidden = isHidden,
-			Value = AppUtils.CreateRandomString(10)
+			Value = RandomString.Create(10)
 		};
 
 		// Act
@@ -965,7 +965,7 @@ internal class DatasetEditorViewModelTests
 	public async Task EditValueAsync_Edits_Record([Values] bool isSameValue)
 	{
 		// Arrange
-		string value = AppUtils.CreateRandomString(10);
+		string value = RandomString.Create(10);
 
 		ValueRecord target = new();
 
@@ -978,11 +978,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1023,11 +1023,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1119,11 +1119,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1155,11 +1155,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1174,8 +1174,8 @@ internal class DatasetEditorViewModelTests
 
 		KeyValueRecord record = new()
 		{
-			Key = AppUtils.CreateRandomString(10),
-			Value = AppUtils.CreateRandomString(10)
+			Key = RandomString.Create(10),
+			Value = RandomString.Create(10)
 		};
 
 		bool highlighted = false;
@@ -1204,7 +1204,7 @@ internal class DatasetEditorViewModelTests
 	public async Task RenameGroupAsync_Renames_Group([Values] bool isSameValue)
 	{
 		// Arrange
-		string name = AppUtils.CreateRandomString(10);
+		string name = RandomString.Create(10);
 
 		RecordsGroup group = new();
 
@@ -1217,11 +1217,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1265,11 +1265,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1339,11 +1339,11 @@ internal class DatasetEditorViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(serializer);
 

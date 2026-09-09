@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Shared.Services;
 
-public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
+public sealed class SystemTextJsonSerializer : IJsonSerializer
 {
 	#region Methods
 	/// <inheritdoc />
@@ -99,7 +99,7 @@ public sealed class JsonSerializerWrapper : IJsonSerializerWrapper
 				builder.AppendLine("to Json");
 			}
 
-			builder.Append(Serialize(target, AppUtils.JsonOptions));
+			builder.Append(Serialize(target, JsonDefaults.Options));
 		}
 		else if (type.FullName is { } typeName)
 		{

@@ -142,13 +142,13 @@ public sealed class App : Application
 		services.AddTransient<IFolderRepository, FolderRepository>();
 		services.AddTransient<IHierarchyEditor, HierarchyEditor>();
 		services.AddTransient<IHotkeysRepository, HotkeysRepository>();
-		services.AddTransient<IJsonSerializerWrapper, JsonSerializerWrapper>();
+		services.AddTransient<IJsonSerializer, SystemTextJsonSerializer>();
 		services.AddTransient<IKeeperUnlocker, KeeperUnlocker>();
 		services.AddTransient<ILinuxExplorerManager, LinuxExplorerManager>();
 		services.AddTransient<INoteCipher, NoteCipher>();
 		services.AddTransient<INoteEditor, NoteEditor>();
 		services.AddTransient<INoteReader, NoteReader>();
-		services.AddTransient<IProcessUtils, ProcessUtils>();
+		services.AddTransient<IProcessManager, ProcessManager>();
 		services.AddTransient<ISensitiveClipboardWriter, SensitiveClipboardWriter>();
 		services.AddTransient<IStorageAccessor, StorageAccessor>();
 		services.AddTransient<ITaskExceptionHandler, TaskExceptionHandler>();
@@ -157,7 +157,7 @@ public sealed class App : Application
 		services.AddTransient<IViewFactory, ViewFactory>();
 		services.AddTransient<IViewLauncher, ViewLauncher>();
 		services.AddTransient<IWindowsExplorerManager, WindowsExplorerManager>();
-		services.AddTransient<IXmlSerializerWrapper, XmlSerializerWrapper>();
+		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 
 		#region View locator
@@ -253,7 +253,7 @@ public sealed class App : Application
 	/// </summary>
 	private static string[] AddDebugCommandLineArgs(string[] args)
 	{
-		if (AppUtils.IsDebug)
+		if (AppInfo.IsDebug)
 		{
 			return args
 				//.AddHelpArg()
@@ -303,7 +303,7 @@ public sealed class App : Application
 
 			string dataSource = Path.Combine(
 				directoryPath,
-				AppUtils.AppName + AppUtils.SQLiteExtension);
+				AppInfo.AppName + KnownFileExtensions.Sqlite);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{
@@ -342,7 +342,7 @@ public sealed class App : Application
 		client
 			.DefaultRequestHeaders
 			.UserAgent
-			.ParseAdd($"{AppUtils.AppName}/{AppUtils.AppVersion}");
+			.ParseAdd($"{AppInfo.AppName}/{AppInfo.AppVersion}");
 
 		client
 			.DefaultRequestHeaders
@@ -363,7 +363,7 @@ public sealed class App : Application
 
 		string filePath = Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-			$"{AppUtils.AppName}_Critical_Errors{AppUtils.TxtExtension}");
+			$"{AppInfo.AppName}_Critical_Errors{KnownFileExtensions.Txt}");
 
 		File.AppendAllText(
 			filePath,
@@ -430,13 +430,13 @@ public sealed class App : Application
 				string path = Path.Combine(
 					provider.GetRequiredService<IAppEnvironment>().AppDataDirectoryPath,
 					"Logs",
-					AppUtils.TxtExtension);
+					KnownFileExtensions.Txt);
 
 				configure.FileEx(
 					path: path,
 					periodFormat: "dd.MM.yyyy",
 					restrictedToMinimumLevel: options.MinimumLogEventLevel,
-					outputTemplate: $"[{{Timestamp:{AppUtils.LogTimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
+					outputTemplate: $"[{{Timestamp:{LogDefaults.TimestampFormat}}}] [{{Level:u3}}] {{Message:lj}}{{NewLine}}{{Exception}}",
 					rollingInterval: RollingInterval.Day,
 					retainedFileCountLimit: 10,
 					encoding: TextHelper.Utf8Encoding,

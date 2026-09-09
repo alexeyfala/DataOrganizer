@@ -27,7 +27,7 @@ public interface IFileRepository
 	/// </summary>
 	/// <param name="optionalProperties">Bitwise combination of optional properties to include in the result.</param>
 	/// <param name="token">Cancellation token.</param>
-	Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default);
+	Task<FileModel[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns value from <see cref="FileModel.Contents" />.

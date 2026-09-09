@@ -9,8 +9,8 @@ using System.Reflection;
 
 namespace DataOrganizer.Services;
 
-/// <inheritdoc cref="IProcessUtils" />
-public sealed class ProcessUtils : IProcessUtils
+/// <inheritdoc cref="IProcessManager" />
+public sealed class ProcessManager : IProcessManager
 {
 	#region Methods
 	/// <inheritdoc />
@@ -29,7 +29,7 @@ public sealed class ProcessUtils : IProcessUtils
 	}
 
 	/// <inheritdoc />
-	public bool IsProcessExists(int processId)
+	public bool ProcessExists(int processId)
 	{
 		return Process
 			.GetProcesses()
@@ -104,7 +104,7 @@ public sealed class ProcessUtils : IProcessUtils
 		{
 			Arguments = filePath.SurroundWithQuotesIfNeeded(),
 			CreateNoWindow = true,
-			FileName = AppUtils.PlatformSpecificExplorer,
+			FileName = PlatformInfo.FileOpener,
 			UseShellExecute = false
 		}
 	};

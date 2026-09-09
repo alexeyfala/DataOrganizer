@@ -21,7 +21,7 @@ internal class SensitiveCopyBehaviorTests
 	{
 		// Arrange
 		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			AppUtils.CreateRandomString(16),
+			RandomString.Create(16),
 			isSensitive: false);
 
 		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);
@@ -47,7 +47,7 @@ internal class SensitiveCopyBehaviorTests
 	{
 		// Arrange
 		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			AppUtils.CreateRandomString(16),
+			RandomString.Create(16),
 			isSensitive: true);
 
 		input.ClearSelection();
@@ -74,7 +74,7 @@ internal class SensitiveCopyBehaviorTests
 	public void Copy_Writes_The_Selection_Of_A_Text_Block()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(16);
+		string text = RandomString.Create(16);
 
 		SelectableTextBlock textBlock = new()
 		{
@@ -109,7 +109,7 @@ internal class SensitiveCopyBehaviorTests
 	public void Copy_Writes_The_Selection_Of_A_Text_Box()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(16);
+		string text = RandomString.Create(16);
 
 		(_, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(text, isSensitive: true);
 
@@ -166,7 +166,7 @@ internal class SensitiveCopyBehaviorTests
 	{
 		// Arrange
 		(SensitiveCopyBehavior sut, TextBox input, ISensitiveClipboardWriter writer) = CreateSetup(
-			AppUtils.CreateRandomString(16),
+			RandomString.Create(16),
 			isSensitive: true);
 
 		RoutedEventArgs args = new(TextBox.CopyingToClipboardEvent);

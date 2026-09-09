@@ -35,7 +35,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperty.Contents | OptionalFileProperty.Properties);
+		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties);
 
 		// Assert
 		FileModel file = result
@@ -74,7 +74,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperty.Contents);
+		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Contents);
 
 		// Assert
 		FileModel file = result
@@ -111,7 +111,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperty.None);
+		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.None);
 
 		// Assert
 		FileModel file = result
@@ -152,7 +152,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileModel[] result = await sut.GetAllAsync(OptionalFileProperty.Properties);
+		FileModel[] result = await sut.GetAllAsync(OptionalFileProperties.Properties);
 
 		// Assert
 		FileModel file = result

@@ -1,7 +1,7 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Settings;
@@ -133,7 +133,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -384,7 +384,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys

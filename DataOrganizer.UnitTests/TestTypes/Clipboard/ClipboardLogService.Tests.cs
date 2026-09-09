@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;

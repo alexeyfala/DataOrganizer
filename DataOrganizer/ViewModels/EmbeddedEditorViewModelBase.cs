@@ -99,8 +99,8 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <inheritdoc cref="ITaskExceptionHandler" />
 	protected readonly ITaskExceptionHandler _exceptionHandler;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	protected readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	protected readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	protected readonly ILogger _logger;
@@ -129,7 +129,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 		Application app,
 		IContentCipher contentCipher,
 		IDbAccess dbAccess,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,

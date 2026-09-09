@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces.Notes;
 

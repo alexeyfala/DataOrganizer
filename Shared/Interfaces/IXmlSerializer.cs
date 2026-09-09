@@ -7,9 +7,9 @@ using System.Xml.Linq;
 namespace Shared.Interfaces;
 
 /// <summary>
-/// Wrapper over methods in <see cref="System.Xml.Serialization" />.
+/// Serializes and deserializes Xml through <see cref="System.Xml.Serialization" />.
 /// </summary>
-public interface IXmlSerializerWrapper
+public interface IXmlSerializer
 {
 	#region Methods
 	/// <summary>

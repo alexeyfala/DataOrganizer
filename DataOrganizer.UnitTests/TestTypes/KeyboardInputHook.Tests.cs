@@ -4,7 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Text;
@@ -15,7 +15,7 @@ using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using Moq;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Extensions;
 using SharpHook;
@@ -48,11 +48,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestUtils.CreateFilesDto(5));
+			.AddRange(TestData.CreateFilesDto(5));
 
 		sut
 			.InputStack
-			.AddRange(TestUtils.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateCodeMaskPairs(5));
 
 		// Act
 		sut.Dispose();
@@ -77,7 +77,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto dto = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -103,7 +103,7 @@ internal class KeyboardInputHookTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(new ContentsIsValidPair
 				{
-					Contents = TestUtils.CreateRandomBytes(10),
+					Contents = TestData.CreateRandomBytes(10),
 					IsValid = true
 				});
 
@@ -150,7 +150,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -186,7 +186,7 @@ internal class KeyboardInputHookTests
 
 			contentCipher
 				.TryToDecryptContentsAsync(Arg.Any<FileModelDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TestUtils.CreateRandomBytes(10));
+				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(contentCipher);
 
@@ -257,11 +257,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestUtils.CreateFilesDto(5));
+			.AddRange(TestData.CreateFilesDto(5));
 
 		sut
 			.InputStack
-			.AddRange(TestUtils.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateCodeMaskPairs(5));
 
 		await runner.StartAsync();
 

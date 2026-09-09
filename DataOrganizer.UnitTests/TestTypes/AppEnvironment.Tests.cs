@@ -116,7 +116,7 @@ internal class AppEnvironmentTests
 		// Assert
 		result
 			.Should()
-			.Be(AppUtils.AppNameParted);
+			.Be(AppInfo.AppNameParted);
 	}
 
 	/// <summary>
@@ -145,7 +145,7 @@ internal class AppEnvironmentTests
 		// Assert
 		result
 			.Should()
-			.Be($"{AppUtils.AppNameParted} (2)");
+			.Be($"{AppInfo.AppNameParted} (2)");
 	}
 
 	/// <summary>

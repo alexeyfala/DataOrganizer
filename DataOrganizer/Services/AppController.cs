@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using Cysharp.Text;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
@@ -259,7 +259,7 @@ public sealed class AppController : IAppController
 		}
 
 		_logger.LogInformationWithTemplate(
-			$"{AppUtils.AppNameParted} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
+			$"{AppInfo.AppNameParted} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
 
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 

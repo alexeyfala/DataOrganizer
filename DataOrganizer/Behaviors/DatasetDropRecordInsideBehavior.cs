@@ -5,7 +5,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Xaml.Interactivity;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
 using System.Collections.ObjectModel;

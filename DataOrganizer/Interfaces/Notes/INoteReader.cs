@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 
 namespace DataOrganizer.Interfaces.Notes;
 

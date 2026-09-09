@@ -1,7 +1,7 @@
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
-using Repository.DTO;
+using Repository.Dto;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

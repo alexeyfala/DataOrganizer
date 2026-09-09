@@ -50,8 +50,8 @@ public sealed class AppEnvironment : IAppEnvironment
 	public string GetAppInstanceName()
 	{
 		return _appCount == 1
-			? AppUtils.AppNameParted
-			: $"{AppUtils.AppNameParted} ({_appCount})";
+			? AppInfo.AppNameParted
+			: $"{AppInfo.AppNameParted} ({_appCount})";
 	}
 
 	/// <inheritdoc />

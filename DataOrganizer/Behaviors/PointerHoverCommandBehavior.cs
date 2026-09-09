@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
+using DataOrganizer.Helpers;
 using Shared.Common;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -56,7 +57,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	public static readonly StyledProperty<int> DelayProperty = AvaloniaProperty
 		.Register<PointerHoverCommandBehavior, int>(
 			nameof(Delay),
-			AppUtils.TipDelay);
+			UiConstants.TipDelay);
 	#endregion
 
 	#region Event Handlers

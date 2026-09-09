@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Repository.Services;
 using Serilog;

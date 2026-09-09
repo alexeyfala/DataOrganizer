@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using Shared.Extensions;
@@ -25,7 +25,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	public AppSettingsStore(
 		IAppEnvironment appEnvironment,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer)
+		IJsonSerializer jsonSerializer)
 	{
 		_appEnvironment = appEnvironment;
 
@@ -59,7 +59,7 @@ public sealed class AppSettingsStore : IAppSettingsStore
 	/// Loads <see cref="AppSettings" /> data from file.
 	/// Falls back to the default settings when the file is missing or malformed.
 	/// </summary>
-	private AppSettings LoadFromFile(IJsonSerializerWrapper jsonSerializer)
+	private AppSettings LoadFromFile(IJsonSerializer jsonSerializer)
 	{
 		return jsonSerializer.FromFile<AppSettings>(GetFilePath()) is { } settings && settings.IsNotDefault()
 			? settings

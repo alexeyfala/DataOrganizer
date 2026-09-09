@@ -6,14 +6,14 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Input;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -34,9 +34,9 @@ internal class CopyContentViewModelBaseTests
 	public async Task CopyContentAsync_Flags_Sensitive_When_Encrypted([Values] bool isEncrypted)
 	{
 		// Arrange
-		string content = AppUtils.CreateRandomString(20);
+		string content = RandomString.Create(20);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: isEncrypted
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: isEncrypted
 			? EncryptionStatus.Encrypted
 			: EncryptionStatus.None);
 
@@ -47,14 +47,14 @@ internal class CopyContentViewModelBaseTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.IsExistsAsync(file.Id, Arg.Any<CancellationToken>())
+				.ExistsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(true);
 
 			dbAccess
 				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(new ContentsIsValidPair
 				{
-					Contents = TestUtils.CreateRandomBytes(8),
+					Contents = TestData.CreateRandomBytes(8),
 					IsValid = true
 				});
 

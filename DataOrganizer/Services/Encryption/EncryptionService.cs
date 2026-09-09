@@ -1,9 +1,9 @@
-using DataOrganizer.DTO.Encryption;
+using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
 using NSec.Cryptography;
-using Repository.DTO;
+using Repository.Dto;
 using Shared.Extensions;
 using System;
 using System.Collections.Generic;

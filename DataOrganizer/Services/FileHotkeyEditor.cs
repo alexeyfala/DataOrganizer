@@ -1,11 +1,11 @@
 using Comparation;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using Entities.Models;
 using MapsterMapper;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;

@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Extensions;
@@ -58,8 +58,8 @@ public class ViewLauncher : IViewLauncher
 
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="IKeyboardInputHook" />
 	private readonly Lazy<IKeyboardInputHook> _keyboardInputHook;
@@ -90,7 +90,7 @@ public class ViewLauncher : IViewLauncher
 		IDialogService dialogService,
 		IExecutionEngine executionEngine,
 		IFileSystem fileSystem,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IExecutionSandbox sandbox,
 		INotificationService notification,
@@ -256,7 +256,7 @@ public class ViewLauncher : IViewLauncher
 
 		EditorWindow window = _viewFactory.CreateWindow<EditorWindow>(viewModel);
 
-		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppUtils.AppVersion}";
+		window.Title = $"{_appEnvironment.GetAppInstanceName()} - {AppInfo.AppVersion}";
 
 		viewModel.AddHierarchy(hierarchy);
 

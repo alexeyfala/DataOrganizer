@@ -2,8 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Services.Encryption;
 using Entities.Enums;
@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -34,11 +34,11 @@ internal class EncryptedContentWriterTests
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			BackupFilePath = TestData.CreateRandomFileName(10),
 			Contents = [],
 			EncryptedDek = null,
 			Files = [],
-			Folder = TestUtils.CreateFolderDto(),
+			Folder = TestData.CreateFolderDto(),
 			NewStatus = default,
 			Notes = []
 		};
@@ -69,17 +69,17 @@ internal class EncryptedContentWriterTests
 	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)
 	{
 		// Arrange
-		EncryptionStatus randomStatus = TestUtils.GetRandomEnumValueExcept(newStatus);
+		EncryptionStatus randomStatus = TestData.GetRandomEnumValueExcept(newStatus);
 
-		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: randomStatus);
+		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: randomStatus);
 
-		FileModelDto[] files = [.. TestUtils.CreateFilesDto(5, encryptionStatus: randomStatus)];
+		FileModelDto[] files = [.. TestData.CreateFilesDto(5, encryptionStatus: randomStatus)];
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			BackupFilePath = TestData.CreateRandomFileName(10),
 			Contents = [],
-			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			EncryptedDek = TestData.CreateRandomBytes(10),
 			Files = files,
 			Folder = folder,
 			NewStatus = newStatus,
@@ -128,11 +128,11 @@ internal class EncryptedContentWriterTests
 		// Arrange
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			BackupFilePath = TestData.CreateRandomFileName(10),
 			Contents = [],
-			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			EncryptedDek = TestData.CreateRandomBytes(10),
 			Files = [],
-			Folder = TestUtils.CreateFolderDto(),
+			Folder = TestData.CreateFolderDto(),
 			NewStatus = default,
 			Notes = []
 		};
@@ -173,35 +173,35 @@ internal class EncryptedContentWriterTests
 	public async Task UpdateDatabaseAsync_Saves_Notes()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
-		FolderModelDto subfolder = TestUtils.CreateFolderDto();
+		FolderModelDto subfolder = TestData.CreateFolderDto();
 
 		folder
 			.Children
 			.Add(subfolder);
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
-		byte[] folderNote = TestUtils.CreateRandomBytes(10);
+		byte[] folderNote = TestData.CreateRandomBytes(10);
 
-		byte[] subfolderNote = TestUtils.CreateRandomBytes(10);
+		byte[] subfolderNote = TestData.CreateRandomBytes(10);
 
-		byte[] fileNote = TestUtils.CreateRandomBytes(10);
+		byte[] fileNote = TestData.CreateRandomBytes(10);
 
 		UpdateDatabaseParameters parameters = new()
 		{
-			BackupFilePath = TestUtils.CreateRandomFileName(10),
+			BackupFilePath = TestData.CreateRandomFileName(10),
 			Contents =
 			[
 				new ContentsIsValidPair
 				{
-					Contents = TestUtils.CreateRandomBytes(10),
+					Contents = TestData.CreateRandomBytes(10),
 					Id = file.Id,
 					IsValid = true
 				}
 			],
-			EncryptedDek = TestUtils.CreateRandomBytes(10),
+			EncryptedDek = TestData.CreateRandomBytes(10),
 			Files = [file],
 			Folder = folder,
 			NewStatus = EncryptionStatus.Encrypted,

@@ -21,7 +21,7 @@ internal class ClipboardSensitivityMarkerWriterTests
 		// Arrange
 		DataTransferItem item = new();
 
-		item.SetText(AppUtils.CreateRandomString(16));
+		item.SetText(RandomString.Create(16));
 
 		DataTransfer transfer = new();
 
@@ -46,7 +46,7 @@ internal class ClipboardSensitivityMarkerWriterTests
 		ClipboardSensitivityMarkerWriter.Configure(autoClear);
 
 		// Act
-		ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+		ClipboardSensitivityMarkerWriter.CreateSensitiveText(RandomString.Create(16));
 
 		// Assert
 		autoClear
@@ -61,7 +61,7 @@ internal class ClipboardSensitivityMarkerWriterTests
 	public void CreateSensitiveText_Attaches_Ownership_Marker()
 	{
 		// Act
-		DataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+		DataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(RandomString.Create(16));
 
 		// Assert
 		ClipboardSensitivityMarkerWriter
@@ -80,7 +80,7 @@ internal class ClipboardSensitivityMarkerWriterTests
 		string identifier = ExpectedMarkerIdentifier();
 
 		// Act
-		IDataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(AppUtils.CreateRandomString(16));
+		IDataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(RandomString.Create(16));
 
 		// Assert
 		transfer
@@ -96,7 +96,7 @@ internal class ClipboardSensitivityMarkerWriterTests
 	public void CreateSensitiveText_Carries_Text()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(16);
+		string text = RandomString.Create(16);
 
 		// Act
 		IDataTransfer transfer = ClipboardSensitivityMarkerWriter.CreateSensitiveText(text);

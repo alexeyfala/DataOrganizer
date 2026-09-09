@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -54,17 +54,17 @@ internal class ContentVisibilityTests
 	public void DiscardKeys_Does_Work()
 	{
 		// Arrange
-		FolderModelDto keeper = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		nested.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		nested.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		nested.Parent = keeper;
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested
 			.Children
@@ -104,13 +104,13 @@ internal class ContentVisibilityTests
 	public void HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		folder
 			.Children
-			.AddRange(TestUtils.CreateFilesDto(5));
+			.AddRange(TestData.CreateFilesDto(5));
 
-		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -144,11 +144,11 @@ internal class ContentVisibilityTests
 	public void HideFolderContents_Keeps_The_Key_While_The_Keeper_Has_Shown_Content()
 	{
 		// Arrange
-		FolderModelDto keeper = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto keeper = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested.Parent = keeper;
 
@@ -158,7 +158,7 @@ internal class ContentVisibilityTests
 
 		nested
 			.Children
-			.AddRange(TestUtils.CreateFilesDto(3, encryptionStatus: EncryptionStatus.Decrypted));
+			.AddRange(TestData.CreateFilesDto(3, encryptionStatus: EncryptionStatus.Decrypted));
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -187,11 +187,11 @@ internal class ContentVisibilityTests
 	public async Task ShowFileContentsAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
-		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
 			.Children
@@ -211,11 +211,11 @@ internal class ContentVisibilityTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(10));
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(10));
 
 			builder.RegisterInstance(dialogService);
 
@@ -250,11 +250,11 @@ internal class ContentVisibilityTests
 	public async Task ShowFileContentsAsync_Reports_A_Refused_Key()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto();
+		FolderModelDto folder = TestData.CreateFolderDto();
 
-		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		folder
 			.Children
@@ -264,7 +264,7 @@ internal class ContentVisibilityTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -298,13 +298,13 @@ internal class ContentVisibilityTests
 	public async Task ShowFolderContentsAsync_Does_Work()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		folder
 			.Children
-			.AddRange(TestUtils.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
+			.AddRange(TestData.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -318,11 +318,11 @@ internal class ContentVisibilityTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
-			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			builder.RegisterInstance(encryption);
 
@@ -358,13 +358,13 @@ internal class ContentVisibilityTests
 	public async Task ShowFolderContentsAsync_Reports_A_Refused_Key()
 	{
 		// Arrange
-		FolderModelDto folder = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FolderModelDto folder = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		folder.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			RegisterUnlocker(builder, SecretUtils.CreateRandomKey(32));
+			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 

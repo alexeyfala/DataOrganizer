@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using Entities.Enums;
 using System;
 using System.Collections.Generic;

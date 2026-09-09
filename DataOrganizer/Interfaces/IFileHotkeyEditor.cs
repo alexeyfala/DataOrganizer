@@ -1,6 +1,6 @@
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
-using Repository.DTO;
+using Repository.Dto;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;

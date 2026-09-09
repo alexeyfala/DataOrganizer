@@ -1,8 +1,8 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Favorites;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Notes;

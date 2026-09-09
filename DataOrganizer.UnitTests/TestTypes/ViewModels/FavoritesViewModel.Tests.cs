@@ -5,8 +5,8 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
@@ -39,7 +39,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		ExplorerModelBaseDto[] hierarchy = [.. TestUtils.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
+		ExplorerModelBaseDto[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerModelBaseDto>(TestData.CreateFilesDto(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -96,22 +96,22 @@ internal class FavoritesViewModelTests
 		sut
 			.FavoritesSettings
 			.Categories
-			.AddRange(TestUtils.CreateFavoriteCategories(count));
+			.AddRange(TestData.CreateFavoriteCategories(count));
 
 		sut
 			.FavoritesSettings
 			.OrderedCategories
-			.AddRange(TestUtils.CreateGuids(count));
+			.AddRange(TestData.CreateGuids(count));
 
 		sut
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestUtils.CreateCategoryFavoritePairs(count));
+			.AddRange(TestData.CreateCategoryFavoritePairs(count));
 
 		sut
 			.CopyHistorySettings
 			.Items
-			.AddRange(TestUtils.CreateGuids(count));
+			.AddRange(TestData.CreateGuids(count));
 
 		// Act
 		sut.Dispose();
@@ -141,7 +141,7 @@ internal class FavoritesViewModelTests
 	public void Initialize_Initializes_Properties()
 	{
 		// Arrange
-		int positiveValue = TestUtils.CreateRandomInt(100, 300);
+		int positiveValue = TestData.CreateRandomInt(100, 300);
 
 		FavoritesWindowSettings windowSettings = new()
 		{
@@ -154,12 +154,12 @@ internal class FavoritesViewModelTests
 		FavoritesViewSettings favoritesSettings = new()
 		{
 			NavigationColumnWidth = positiveValue - 20,
-			OrderedCategories = [.. TestUtils.CreateGuids(5)],
+			OrderedCategories = [.. TestData.CreateGuids(5)],
 			SelectedCategoryId = Guid.NewGuid(),
-			SelectedPairs = [.. TestUtils.CreateCategoryFavoritePairs(5)]
+			SelectedPairs = [.. TestData.CreateCategoryFavoritePairs(5)]
 		};
 
-		FileModelDto[] historyFiles = [.. TestUtils.CreateFilesDto(5)];
+		FileModelDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -231,7 +231,7 @@ internal class FavoritesViewModelTests
 	public void InsertToCopyHistory_Inserts_New_Value_To_Top()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -240,7 +240,7 @@ internal class FavoritesViewModelTests
 		sut
 			.CopyHistorySettings
 			.Items
-			.AddRange(TestUtils.CreateGuids(5));
+			.AddRange(TestData.CreateGuids(5));
 
 		// Act
 		sut.InsertToCopyHistory(file, false);
@@ -258,7 +258,7 @@ internal class FavoritesViewModelTests
 	public async Task Receive_SessionAutoLocked_Hides_Contents()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(
+		FileModelDto file = TestData.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 
@@ -357,7 +357,7 @@ internal class FavoritesViewModelTests
 	public void ShowOnHoverEnabled_Initialization()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.ShowFavoritesOnHover = true;
 

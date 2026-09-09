@@ -1,6 +1,6 @@
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Enums;
 using Repository.Services;
 using System;
@@ -100,7 +100,7 @@ public interface IDbAccess : IDisposable
 
 	/// <inheritdoc cref="IFileRepository.GetAllAsync" />
 	Task<FileModel[]> GetAllFilesAsync(
-		OptionalFileProperty optionalProperties,
+		OptionalFileProperties optionalProperties,
 		CancellationToken token = default);
 
 	/// <inheritdoc cref="IFolderRepository.GetAllAsync" />
@@ -129,7 +129,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// <c>True</c> when an object with the specified ID exists in the database.
 	/// </summary>
-	Task<bool> IsExistsAsync(Guid id, CancellationToken token = default);
+	Task<bool> ExistsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// <c>True</c> when a SQLite database is valid.

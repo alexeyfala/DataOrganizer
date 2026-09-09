@@ -1,9 +1,9 @@
 using Cysharp.Text;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Dataset;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dataset;
+using DataOrganizer.Dto.Entities;
 using Entities.Enums;
-using Repository.DTO;
+using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook.Data;

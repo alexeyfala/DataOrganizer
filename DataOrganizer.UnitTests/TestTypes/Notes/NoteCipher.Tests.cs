@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces.Encryption;
@@ -30,7 +30,7 @@ internal class NoteCipherTests
 		// Arrange
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper
 			.Children
@@ -38,7 +38,7 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -62,11 +62,11 @@ internal class NoteCipherTests
 	public void Decode_Decrypts_The_Note_Of_The_Keeper_Itself()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		keeper.Note = TestUtils.CreateRandomBytes(10);
+		keeper.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -97,11 +97,11 @@ internal class NoteCipherTests
 	public void Decode_Decrypts_When_Keeper_Is_A_Distant_Ancestor()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		FolderModelDto nested = TestUtils.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FolderModelDto nested = TestData.CreateFolderDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper
 			.Children
@@ -109,7 +109,7 @@ internal class NoteCipherTests
 
 		nested.Parent = keeper;
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		nested
 			.Children
@@ -117,7 +117,7 @@ internal class NoteCipherTests
 
 		file.Parent = nested;
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -148,11 +148,11 @@ internal class NoteCipherTests
 	public void Decode_Decrypts_When_Protected()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper
 			.Children
@@ -160,7 +160,7 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -194,7 +194,7 @@ internal class NoteCipherTests
 		// Arrange
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		keeper.Note = TestUtils.CreateRandomBytes(10);
+		keeper.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -228,7 +228,7 @@ internal class NoteCipherTests
 		// Arrange
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper
 			.Children
@@ -236,7 +236,7 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -270,7 +270,7 @@ internal class NoteCipherTests
 		// Arrange
 		FolderModelDto keeper = CreateKeeper(isUnlocked: false);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		keeper
 			.Children
@@ -278,7 +278,7 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -306,9 +306,9 @@ internal class NoteCipherTests
 	public void Decode_Returns_Null_When_Keeper_Is_Missing()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		file.Note = TestUtils.CreateRandomBytes(10);
+		file.Note = TestData.CreateRandomBytes(10);
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -336,7 +336,7 @@ internal class NoteCipherTests
 	public void Decode_Returns_Null_When_Note_Is_Absent([Values] bool isEmpty)
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file.Note = isEmpty ? [] : null;
 
@@ -360,9 +360,9 @@ internal class NoteCipherTests
 	public void Decode_Returns_Text_When_Not_Protected()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file.Note = Encoding.UTF8.GetBytes(text);
 
@@ -392,11 +392,11 @@ internal class NoteCipherTests
 	public void Encode_Encrypts_When_Protected()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
 		FolderModelDto keeper = CreateKeeper(isUnlocked: true);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		keeper
 			.Children
@@ -404,7 +404,7 @@ internal class NoteCipherTests
 
 		file.Parent = keeper;
 
-		byte[] encrypted = TestUtils.CreateRandomBytes(10);
+		byte[] encrypted = TestData.CreateRandomBytes(10);
 
 		byte[]? passedText = null;
 
@@ -449,7 +449,7 @@ internal class NoteCipherTests
 		// Arrange
 		FolderModelDto keeper = CreateKeeper(isUnlocked: false);
 
-		FileModelDto file = TestUtils.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileModelDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		keeper
 			.Children
@@ -464,7 +464,7 @@ internal class NoteCipherTests
 		NoteCipher sut = mock.Create<NoteCipher>(TypedParameter.From(contentCipher));
 
 		// Act
-		byte[]? result = sut.Encode(file, AppUtils.CreateRandomString(20));
+		byte[]? result = sut.Encode(file, RandomString.Create(20));
 
 		// Assert
 		result
@@ -483,7 +483,7 @@ internal class NoteCipherTests
 	public void Encode_Returns_Null_When_Text_Is_Blank([Values(null, "", "   ")] string? text)
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -505,9 +505,9 @@ internal class NoteCipherTests
 	public void Encode_Returns_Utf8_When_Not_Protected()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(20);
+		string text = RandomString.Create(20);
 
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -549,7 +549,7 @@ internal class NoteCipherTests
 				{
 					passedText = x.ArgAt<byte[]>(2);
 
-					return TestUtils.CreateRandomBytes(10);
+					return TestData.CreateRandomBytes(10);
 				});
 
 			builder.RegisterInstance(contentCipher);
@@ -558,7 +558,7 @@ internal class NoteCipherTests
 		NoteCipher sut = mock.Create<NoteCipher>();
 
 		// Act
-		_ = sut.Encode(keeper, AppUtils.CreateRandomString(20));
+		_ = sut.Encode(keeper, RandomString.Create(20));
 
 		// Assert
 		passedText
@@ -575,10 +575,10 @@ internal class NoteCipherTests
 	/// </summary>
 	private static FolderModelDto CreateKeeper(bool isUnlocked)
 	{
-		FolderModelDto keeper = TestUtils.CreateFolderDto(
+		FolderModelDto keeper = TestData.CreateFolderDto(
 			encryptionStatus: isUnlocked ? EncryptionStatus.Decrypted : EncryptionStatus.Encrypted);
 
-		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		return keeper;
 	}

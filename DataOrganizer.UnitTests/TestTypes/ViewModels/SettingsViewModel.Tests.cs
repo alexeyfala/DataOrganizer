@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
@@ -47,7 +47,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_CheckForUpdates()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.CheckForUpdates = false;
 
@@ -80,7 +80,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_Language()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -160,7 +160,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_ShowFavoritesOnHover()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.ShowFavoritesOnHover = false;
 
@@ -239,7 +239,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_TrackClipboardHistory()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.TrackClipboardHistory = false;
 
@@ -272,7 +272,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Applies_TrackHotkeys()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.TrackHotkeys = false;
 
@@ -305,7 +305,7 @@ internal class SettingsViewModelTests
 	public void CurrentSettings_Initialization()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.ShowFavoritesOnHover = true;
 
@@ -364,7 +364,7 @@ internal class SettingsViewModelTests
 	public void RestoreDefaultSettingsCommand_CanExecute_Returns_False_When_The_View_Already_Holds_Defaults()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+		AppSettings settings = TestData.CreateRandomSettings(trackHotkeys: true);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -405,7 +405,7 @@ internal class SettingsViewModelTests
 	public void RestoreDefaultSettingsCommand_Fills_Defaults_Without_Saving()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings(trackHotkeys: true);
+		AppSettings settings = TestData.CreateRandomSettings(trackHotkeys: true);
 
 		settings.LastNotifiedVersion = "9.9.9";
 
@@ -493,7 +493,7 @@ internal class SettingsViewModelTests
 	public void SaveAndCloseCommand_CanExecute_Returns_False_When_Settings_Not_Changed()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -526,7 +526,7 @@ internal class SettingsViewModelTests
 	public void SaveAndCloseCommand_CanExecute_Returns_True_After_Settings_Are_Changed()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		settings.TrackHotkeys = false;
 
@@ -572,7 +572,7 @@ internal class SettingsViewModelTests
 
 			settingsStore
 				.Settings
-				.Returns(TestUtils.CreateRandomSettings());
+				.Returns(TestData.CreateRandomSettings());
 
 			builder.RegisterInstance(settingsStore);
 

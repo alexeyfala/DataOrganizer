@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Encryption;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Encryption;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;

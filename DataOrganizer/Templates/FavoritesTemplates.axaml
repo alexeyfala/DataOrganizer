@@ -3,7 +3,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
-	xmlns:favorites="using:DataOrganizer.DTO.Favorites"
+	xmlns:favorites="using:DataOrganizer.Dto.Favorites"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"

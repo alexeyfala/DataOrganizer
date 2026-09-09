@@ -1,7 +1,7 @@
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels;
 using Shared.Extensions;
 
@@ -24,9 +24,9 @@ internal class EditingFilesViewModelTests
 
 		FileModelDto[] dtos =
 		[
-			TestUtils.CreateFileDto(),
-			TestUtils.CreateFileDto(),
-			TestUtils.CreateFileDto()
+			TestData.CreateFileDto(),
+			TestData.CreateFileDto(),
+			TestData.CreateFileDto()
 		];
 
 		dtos.ForEach(sut.OpenInEditor);
@@ -55,9 +55,9 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto kept = TestUtils.CreateFileDto();
+		FileModelDto kept = TestData.CreateFileDto();
 
-		FileModelDto closed = TestUtils.CreateFileDto();
+		FileModelDto closed = TestData.CreateFileDto();
 
 		sut.OpenInEditor(kept);
 
@@ -91,14 +91,14 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		sut.OpenInEditor(dto);
 
 		// Act
 		bool canExecuteWithSingleTab = sut.CloseOtherTabsCommand.CanExecute(dto);
 
-		sut.OpenInEditor(TestUtils.CreateFileDto());
+		sut.OpenInEditor(TestData.CreateFileDto());
 
 		bool canExecuteWithSecondTab = sut.CloseOtherTabsCommand.CanExecute(dto);
 
@@ -119,7 +119,7 @@ internal class EditingFilesViewModelTests
 	public void CloseTab_Removes_Tab_From_TabControl()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		dto.IsEditing = true;
 
@@ -147,7 +147,7 @@ internal class EditingFilesViewModelTests
 	public void OpenInEditor_Cannot_Open_File_Twice()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		dto.IsEditing = true;
 
@@ -171,7 +171,7 @@ internal class EditingFilesViewModelTests
 	public void OpenInEditor_Opens_File_In_Built_In_Editor()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -206,12 +206,12 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto first = TestUtils.CreateFileDto();
+		FileModelDto first = TestData.CreateFileDto();
 
 		// Becomes the previously selected tab once the third file is opened.
-		FileModelDto second = TestUtils.CreateFileDto();
+		FileModelDto second = TestData.CreateFileDto();
 
-		new[] { first, second, TestUtils.CreateFileDto() }.ForEach(sut.OpenInEditor);
+		new[] { first, second, TestData.CreateFileDto() }.ForEach(sut.OpenInEditor);
 
 		sut.CloseTab(first);
 
@@ -236,11 +236,11 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto first = TestUtils.CreateFileDto();
+		FileModelDto first = TestData.CreateFileDto();
 
 		sut.OpenInEditor(first);
 
-		sut.OpenInEditor(TestUtils.CreateFileDto());
+		sut.OpenInEditor(TestData.CreateFileDto());
 
 		sut.CloseTab(first);
 
@@ -267,9 +267,9 @@ internal class EditingFilesViewModelTests
 
 		EditingFilesViewModel sut = mock.Create<EditingFilesViewModel>();
 
-		FileModelDto second = TestUtils.CreateFileDto();
+		FileModelDto second = TestData.CreateFileDto();
 
-		new[] { TestUtils.CreateFileDto(), second, TestUtils.CreateFileDto() }.ForEach(sut.OpenInEditor);
+		new[] { TestData.CreateFileDto(), second, TestData.CreateFileDto() }.ForEach(sut.OpenInEditor);
 
 		// Act
 		sut.SwitchToPreviousTabCommand.Execute(null);

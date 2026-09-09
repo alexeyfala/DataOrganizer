@@ -23,7 +23,7 @@ internal sealed class LogCallbackSink : ILogEventSink
 	/// <inheritdoc />
 	public void Emit(LogEvent logEvent)
 	{
-		string message = $"[{logEvent.Timestamp.ToString(AppUtils.LogTimestampFormat)}] {logEvent.Level.ToShort()} {logEvent.RenderMessage()}{Environment.NewLine}";
+		string message = $"[{logEvent.Timestamp.ToString(LogDefaults.TimestampFormat)}] {logEvent.Level.ToShort()} {logEvent.RenderMessage()}{Environment.NewLine}";
 
 		if (logEvent.Exception is { } ex)
 		{

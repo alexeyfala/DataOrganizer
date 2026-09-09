@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Settings;
-using DataOrganizer.DTO.Updates;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
@@ -37,8 +37,8 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	/// <inheritdoc cref="IHttpClientFactory" />
 	private readonly IHttpClientFactory _httpClientFactory;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -57,7 +57,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 	public UpdateCheckService(
 		IHttpClientFactory httpClientFactory,
 		IAppSettingsStore settingsStore,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		TimeProvider timeProvider,
 		ILogger logger,
 		IAppVersionProvider versionProvider)

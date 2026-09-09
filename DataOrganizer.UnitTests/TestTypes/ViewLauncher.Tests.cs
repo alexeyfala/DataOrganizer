@@ -6,7 +6,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
@@ -34,7 +34,7 @@ internal class ViewLauncherTests
 	public void ConfigureClipboardLogWindow_Applies_Saved_Settings()
 	{
 		// Arrange
-		int positiveValue = TestUtils.CreateRandomInt(100, 300);
+		int positiveValue = TestData.CreateRandomInt(100, 300);
 
 		ClipboardLogWindowSettings settings = new()
 		{
@@ -59,7 +59,7 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
@@ -165,7 +165,7 @@ internal class ViewLauncherTests
 	public void ConfigureEditorView_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
-		int positiveValue = TestUtils.CreateRandomInt(100, 300);
+		int positiveValue = TestData.CreateRandomInt(100, 300);
 
 		EditorWindowSettings settings = new()
 		{
@@ -187,7 +187,7 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<EditorWindowSettings>(Arg.Any<string>())
@@ -279,7 +279,7 @@ internal class ViewLauncherTests
 	public void ConfigureFavoritesWindow_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
-		int positiveValue = TestUtils.CreateRandomInt(100, 300);
+		int positiveValue = TestData.CreateRandomInt(100, 300);
 
 		FavoritesWindowSettings settings = new()
 		{
@@ -299,7 +299,7 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<FavoritesWindowSettings>(Arg.Any<string>())
@@ -424,7 +424,7 @@ internal class ViewLauncherTests
 
 			IViewFactory viewFactory = Substitute.For<IViewFactory>();
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<CurrentWindow>(Arg.Any<string>())
@@ -623,13 +623,13 @@ internal class ViewLauncherTests
 			.ViewModel
 			.FavoritesSettings
 			.Categories
-			.AddRange(TestUtils.CreateFavoriteCategories(5));
+			.AddRange(TestData.CreateFavoriteCategories(5));
 
 		window
 			.ViewModel
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestUtils.CreateCategoryFavoritePairs(5));
+			.AddRange(TestData.CreateCategoryFavoritePairs(5));
 
 		// Act
 		await sut.SaveFavoritesSettingsAsync(window);

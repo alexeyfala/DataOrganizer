@@ -9,10 +9,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Behaviors;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Execution;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Execution;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
@@ -28,7 +28,7 @@ using DataOrganizer.Windows;
 using Entities.Enums;
 using Entities.Models;
 using Material.Styles.Controls;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -1109,8 +1109,8 @@ public partial class EditorViewModel :
 	/// <inheritdoc cref="INoteReader" />
 	private readonly INoteReader _noteReader;
 
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processUtils;
 
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
@@ -1147,7 +1147,7 @@ public partial class EditorViewModel :
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		INotificationService notification,
-		IProcessUtils processUtils,
+		IProcessManager processUtils,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(

@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
@@ -35,7 +35,7 @@ internal class KeeperUnlockerTests
 
 		dialogService
 			.RequestPasswordAsync(Arg.Any<string>())
-			.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+			.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(dialogService));
 
@@ -63,7 +63,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Hands_The_Key_Over()
 	{
 		// Arrange
-		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -71,7 +71,7 @@ internal class KeeperUnlockerTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -105,7 +105,7 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Hands_The_Key_Over_When_The_Rewrap_Throws()
 	{
 		// Arrange
-		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
 		FolderModelDto keeper = CreateKeeper();
 
@@ -163,7 +163,7 @@ internal class KeeperUnlockerTests
 		{
 			builder.RegisterInstance(CreateDialogService());
 
-			builder.RegisterInstance(CreateEncryption(SecretUtils.CreateRandomKey()));
+			builder.RegisterInstance(CreateEncryption(SecretFactory.CreateRandomKey()));
 
 			builder.RegisterInstance(dbAccess);
 		});
@@ -203,8 +203,8 @@ internal class KeeperUnlockerTests
 			builder.RegisterInstance(CreateDialogService());
 
 			builder.RegisterInstance(CreateEncryption(
-				SecretUtils.CreateRandomKey(),
-				TestUtils.CreateRandomBytes(20)));
+				SecretFactory.CreateRandomKey(),
+				TestData.CreateRandomBytes(20)));
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -275,7 +275,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		PinnedBuffer? result = await sut.RequestDekAsync(
-			TestUtils.CreateFolderDto(),
+			TestData.CreateFolderDto(),
 			"header");
 
 		// Assert
@@ -304,7 +304,7 @@ internal class KeeperUnlockerTests
 
 			dialogService
 				.RequestPasswordAsync(Arg.Any<string>())
-				.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
@@ -343,9 +343,9 @@ internal class KeeperUnlockerTests
 	public async Task RequestDekAsync_Writes_The_Wrapper_At_The_Current_Cost()
 	{
 		// Arrange
-		using PinnedBuffer dek = SecretUtils.CreateRandomKey();
+		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
-		byte[] rewrapped = TestUtils.CreateRandomBytes(20);
+		byte[] rewrapped = TestData.CreateRandomBytes(20);
 
 		FolderModelDto keeper = CreateKeeper();
 
@@ -393,7 +393,7 @@ internal class KeeperUnlockerTests
 
 		dialogService
 			.RequestPasswordAsync(Arg.Any<string>())
-			.ReturnsForAnyArgs(SecretUtils.CreateRandomSecret());
+			.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 		return dialogService;
 	}
@@ -425,10 +425,10 @@ internal class KeeperUnlockerTests
 	/// </summary>
 	private static FolderModelDto CreateKeeper()
 	{
-		FolderModelDto keeper = TestUtils.CreateFolderDto(
+		FolderModelDto keeper = TestData.CreateFolderDto(
 			encryptionStatus: EncryptionStatus.Encrypted);
 
-		keeper.EncryptedDek = TestUtils.CreateRandomBytes(10);
+		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
 
 		return keeper;
 	}

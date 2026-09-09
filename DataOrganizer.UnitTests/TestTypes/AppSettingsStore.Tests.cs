@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Settings;
@@ -23,7 +23,7 @@ internal class AppSettingsStoreTests
 	public void Overwrite_Overwrites_Settings()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -124,11 +124,11 @@ internal class AppSettingsStoreTests
 	public void Settings_Obtained_From_File()
 	{
 		// Arrange
-		AppSettings settings = TestUtils.CreateRandomSettings();
+		AppSettings settings = TestData.CreateRandomSettings();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.FromFile<AppSettings>(Arg.Any<string>())

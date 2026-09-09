@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.DTO.Clipboard;
+using DataOrganizer.Dto.Clipboard;
 using Shared.Properties;
 using System;
 using System.Linq;

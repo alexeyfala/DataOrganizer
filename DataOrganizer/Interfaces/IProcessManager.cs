@@ -5,7 +5,7 @@ namespace DataOrganizer.Interfaces;
 /// <summary>
 /// Provides a means of interacting with <see cref="Process" />.
 /// </summary>
-public interface IProcessUtils
+public interface IProcessManager
 {
 	#region Methods
 	/// <summary>
@@ -16,7 +16,7 @@ public interface IProcessUtils
 	/// <summary>
 	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
 	/// </summary>
-	bool IsProcessExists(int processId);
+	bool ProcessExists(int processId);
 
 	/// <inheritdoc cref="Process.Kill()" />
 	void KillProcess(int processId);

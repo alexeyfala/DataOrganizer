@@ -6,7 +6,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using AwesomeAssertions;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Enums;
 using Material.Ripple;
 using Material.Styles.Controls;

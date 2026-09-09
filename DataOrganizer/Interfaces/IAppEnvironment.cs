@@ -32,9 +32,9 @@ public interface IAppEnvironment
 	/// </summary>
 	static string GetAppDataDirectoryPath()
 	{
-		string appDirectory = AppUtils.IsDebug
-			? AppUtils.AppName + "_Debug"
-			: AppUtils.AppName;
+		string appDirectory = AppInfo.IsDebug
+			? AppInfo.AppName + "_Debug"
+			: AppInfo.AppName;
 
 		return Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

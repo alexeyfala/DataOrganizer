@@ -6,7 +6,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
@@ -316,7 +316,7 @@ internal class DialogServiceTests
 
 		settingsStore
 			.Settings
-			.Returns(TestUtils.CreateRandomSettings());
+			.Returns(TestData.CreateRandomSettings());
 
 		SettingsViewModel viewModel = new(
 			settingsStore,

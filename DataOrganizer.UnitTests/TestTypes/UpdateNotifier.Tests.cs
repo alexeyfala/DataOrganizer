@@ -1,4 +1,4 @@
-using DataOrganizer.DTO.Updates;
+using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Services.Updates;
@@ -42,7 +42,7 @@ internal class UpdateNotifierTests
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessUtils
+		context.ProcessManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -66,7 +66,7 @@ internal class UpdateNotifierTests
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessUtils
+		context.ProcessManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -97,7 +97,7 @@ internal class UpdateNotifierTests
 			.DidNotReceive()
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
 
-		context.ProcessUtils
+		context.ProcessManager
 			.DidNotReceive()
 			.StartProcess(Arg.Any<string>(), out _);
 	}
@@ -128,7 +128,7 @@ internal class UpdateNotifierTests
 			.Received(1)
 			.ConfirmUpdateAsync(Arg.Is<string>(static x => x != null && x.Contains("0.2.0")), Arg.Any<CancellationToken>());
 
-		context.ProcessUtils
+		context.ProcessManager
 			.Received(1)
 			.StartProcess(ReleaseUrl, out _);
 	}
@@ -152,12 +152,12 @@ internal class UpdateNotifierTests
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(promptAnswer);
 
-		IProcessUtils processUtils = Substitute.For<IProcessUtils>();
+		IProcessManager processUtils = Substitute.For<IProcessManager>();
 
 		return new Context
 		{
 			Prompt = prompt,
-			ProcessUtils = processUtils,
+			ProcessManager = processUtils,
 			Sut = new UpdateNotifier(processUtils, updateCheckService)
 		};
 	}
@@ -170,7 +170,7 @@ internal class UpdateNotifierTests
 	private sealed class Context
 	{
 		#region Properties
-		public required IProcessUtils ProcessUtils { get; init; }
+		public required IProcessManager ProcessManager { get; init; }
 		public required IUpdatePrompt Prompt { get; init; }
 		public required UpdateNotifier Sut { get; init; }
 		#endregion

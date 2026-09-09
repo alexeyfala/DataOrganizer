@@ -8,7 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
@@ -46,8 +46,8 @@ internal class DbAccessTests
 		AddEntityParameters parameters = new()
 		{
 			EntityType = type,
-			Index = TestUtils.CreateRandomIntFrom10To100(),
-			Name = AppUtils.CreateRandomString(10),
+			Index = TestData.CreateRandomIntFrom10To100(),
+			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
 		};
 
@@ -119,7 +119,7 @@ internal class DbAccessTests
 	public async Task AddFilesAsync_Adds_Files_To_Database()
 	{
 		// Arrange
-		FileModel[] files = [.. TestUtils.CreateFiles(5)];
+		FileModel[] files = [.. TestData.CreateFiles(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -155,7 +155,7 @@ internal class DbAccessTests
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
 	{
 		// Arrange
-		FolderModel[] folders = [.. TestUtils.CreateFolders(5)];
+		FolderModel[] folders = [.. TestData.CreateFolders(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -193,7 +193,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		CodeMaskPair[] pairs = [.. TestUtils.CreateCodeMaskPairs(5)];
+		CodeMaskPair[] pairs = [.. TestData.CreateCodeMaskPairs(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -246,7 +246,7 @@ internal class DbAccessTests
 			.GetDbFilePath()
 			.Returns(file.FilePath);
 
-		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializerWrapper>());
+		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializer>());
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -398,7 +398,7 @@ internal class DbAccessTests
 
 		DbAccess sut = mock.Create<DbAccess>(
 			TypedParameter.From(dbConnection),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializerWrapper>())));
+			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -479,7 +479,7 @@ internal class DbAccessTests
 
 		DbAccess sut = mock.Create<DbAccess>(
 			TypedParameter.From(dbConnection),
-			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializerWrapper>())));
+			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
 
 		// Act
 		DbConnectionStatus result = await sut.ConnectAsync();
@@ -562,7 +562,7 @@ internal class DbAccessTests
 		{
 			EntityType = EntityType.Folder,
 			Index = 0,
-			Name = AppUtils.CreateRandomString(10),
+			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
 		}))
 			.Should()
@@ -774,7 +774,7 @@ internal class DbAccessTests
 
 		Guid[] subtreeIds = [rootId, Guid.NewGuid(), Guid.NewGuid()];
 
-		Guid[] fileIds = [.. TestUtils.CreateGuids(4)];
+		Guid[] fileIds = [.. TestData.CreateGuids(4)];
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
@@ -941,14 +941,14 @@ internal class DbAccessTests
 	public async Task GetAllFilesAsync_Returns_Files()
 	{
 		// Arrange
-		FileModel[] expectedResult = [.. TestUtils.CreateFiles(100)];
+		FileModel[] expectedResult = [.. TestData.CreateFiles(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
-				.GetAllAsync(OptionalFileProperty.None)
+				.GetAllAsync(OptionalFileProperties.None)
 				.Returns(expectedResult);
 
 			builder.RegisterInstance(repository);
@@ -957,7 +957,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		FileModel[] result = await sut.GetAllFilesAsync(OptionalFileProperty.None);
+		FileModel[] result = await sut.GetAllFilesAsync(OptionalFileProperties.None);
 
 		// Assert
 		result
@@ -972,7 +972,7 @@ internal class DbAccessTests
 	public async Task GetAllFoldersAsync_Returns_Folders()
 	{
 		// Arrange
-		FolderModel[] expectedResult = [.. TestUtils.CreateFolders(100)];
+		FolderModel[] expectedResult = [.. TestData.CreateFolders(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1003,7 +1003,7 @@ internal class DbAccessTests
 	public async Task GetFileContentsAsync_Returns_File_Contents()
 	{
 		// Arrange
-		FileModel file = TestUtils.CreateFile();
+		FileModel file = TestData.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1042,7 +1042,7 @@ internal class DbAccessTests
 	public async Task GetFilePropertiesAsync_Returns_File_Properties()
 	{
 		// Arrange
-		FileModel file = TestUtils.CreateFile();
+		FileModel file = TestData.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1073,7 +1073,7 @@ internal class DbAccessTests
 	public async Task GetFilesContentsAsync_Yields_Pair_For_Each_Identifier()
 	{
 		// Arrange
-		FileModel[] files = [.. TestUtils.CreateFiles(3)];
+		FileModel[] files = [.. TestData.CreateFiles(3)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1110,10 +1110,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.IsExistsAsync" />: returns true when an entity matches the id.
+	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id.
 	/// </summary>
 	[Test]
-	public async Task IsExistsAsync_Returns_True_When_Entity_Exists()
+	public async Task ExistsAsync_Returns_True_When_Entity_Exists()
 	{
 		// Arrange
 		Guid id = Guid.NewGuid();
@@ -1123,7 +1123,7 @@ internal class DbAccessTests
 			IExplorerModelBaseRepository repository = Substitute.For<IExplorerModelBaseRepository>();
 
 			repository
-				.IsExistsAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
+				.ExistsAsync(Arg.Any<Expression<Func<ExplorerModelBase, bool>>>())
 				.Returns(true);
 
 			builder.RegisterInstance(repository);
@@ -1132,7 +1132,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.IsExistsAsync(id);
+		bool result = await sut.ExistsAsync(id);
 
 		// Assert
 		result
@@ -1149,7 +1149,7 @@ internal class DbAccessTests
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
 		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1192,12 +1192,12 @@ internal class DbAccessTests
 
 		Action<UpdateSettersBuilder<FileModel>>[] fileSetters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		Action<UpdateSettersBuilder<FolderModel>>[] folderSetters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> fileUpdates = new()
@@ -1273,7 +1273,7 @@ internal class DbAccessTests
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
 		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1307,7 +1307,7 @@ internal class DbAccessTests
 		// Arrange
 		Action<UpdateSettersBuilder<FileModel>>[] setters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1343,8 +1343,8 @@ internal class DbAccessTests
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]> updates = new()
 		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestUtils.CreateRandomIntFrom10To100())]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
 		};
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
@@ -1384,7 +1384,7 @@ internal class DbAccessTests
 
 		Action<UpdateSettersBuilder<FileModel>>[] setters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
@@ -1424,7 +1424,7 @@ internal class DbAccessTests
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
 		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))]
 		};
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1458,7 +1458,7 @@ internal class DbAccessTests
 		// Arrange
 		Action<UpdateSettersBuilder<FolderModel>>[] setters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -1494,8 +1494,8 @@ internal class DbAccessTests
 		// Arrange
 		Dictionary<Guid, Action<UpdateSettersBuilder<FolderModel>>[]> updates = new()
 		{
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestUtils.CreateRandomIntFrom10To100())]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
 		};
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();
@@ -1535,7 +1535,7 @@ internal class DbAccessTests
 
 		Action<UpdateSettersBuilder<FolderModel>>[] setters =
 		[
-			x => x.SetProperty(x => x.Name, AppUtils.CreateRandomString(10))
+			x => x.SetProperty(x => x.Name, RandomString.Create(10))
 		];
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();

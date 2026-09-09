@@ -1,12 +1,12 @@
-using DataOrganizer.DTO.Entities;
-using DataOrganizer.DTO.Favorites;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Entities;
+using DataOrganizer.Dto.Favorites;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Enums;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;
 using Material.Styles.Themes.Base;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Services;
 using Serilog.Core;
 using Shared.Common;
@@ -22,7 +22,7 @@ namespace CommonTestHelpers.Helpers;
 /// <summary>
 /// Contains help methods for test purposes.
 /// </summary>
-public static class TestUtils
+public static class TestData
 {
 	#region Methods
 	/// <summary>
@@ -109,7 +109,7 @@ public static class TestUtils
 		EncryptionStatus = EncryptionStatus.None,
 		Id = Guid.NewGuid(),
 		Index = default,
-		Name = AppUtils.CreateRandomString(10)
+		Name = RandomString.Create(10)
 	};
 
 	/// <summary>
@@ -121,7 +121,7 @@ public static class TestUtils
 		EntityType = EntityType.File,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
-		Name = AppUtils.CreateRandomString(10),
+		Name = RandomString.Create(10),
 		UpdatedDate = DateTime.Now
 	};
 
@@ -141,7 +141,7 @@ public static class TestUtils
 			Index = CreateRandomIntFrom10To100(),
 			IsEditing = isEditing,
 			IsExecuting = isExecuting,
-			Name = AppUtils.CreateRandomString(10),
+			Name = RandomString.Create(10),
 			UpdatedDate = DateTime.Now
 		};
 
@@ -183,7 +183,7 @@ public static class TestUtils
 		EntityType = EntityType.Folder,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
-		Name = AppUtils.CreateRandomString(10),
+		Name = RandomString.Create(10),
 		UpdatedDate = DateTime.Now
 	};
 
@@ -199,7 +199,7 @@ public static class TestUtils
 			EntityType = EntityType.Folder,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
-			Name = AppUtils.CreateRandomString(10),
+			Name = RandomString.Create(10),
 			UpdatedDate = DateTime.Now
 		};
 
@@ -290,7 +290,7 @@ public static class TestUtils
 	/// </summary>
 	public static string CreateRandomDirectoryName()
 	{
-		return $"{AppUtils.CreateRandomString(6)}_directory";
+		return $"{RandomString.Create(6)}_directory";
 	}
 
 	/// <summary>
@@ -327,7 +327,7 @@ public static class TestUtils
 	/// </summary>
 	public static string CreateRandomFileName(int length, string extension)
 	{
-		return $"{AppUtils.CreateRandomString(length)}_file{extension}";
+		return $"{RandomString.Create(length)}_file{extension}";
 	}
 
 	/// <summary>
@@ -335,7 +335,7 @@ public static class TestUtils
 	/// </summary>
 	public static string CreateRandomFileName(int length)
 	{
-		return $"{AppUtils.CreateRandomString(length)}_file.{AppUtils.CreateRandomString(3).ToLower()}";
+		return $"{RandomString.Create(length)}_file.{RandomString.Create(3).ToLower()}";
 	}
 
 	/// <summary>

@@ -2,8 +2,8 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Settings;
-using DataOrganizer.DTO.Updates;
+using DataOrganizer.Dto.Settings;
+using DataOrganizer.Dto.Updates;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Services.Updates;
@@ -408,7 +408,7 @@ internal class UpdateCheckServiceTests
 	{
 		FakeTimeProvider time = new();
 
-		AppSettings settings = TestUtils.CreateRandomSettings() with
+		AppSettings settings = TestData.CreateRandomSettings() with
 		{
 			CheckForUpdates = checkForUpdates,
 			LastNotifiedVersion = lastNotifiedVersion,
@@ -448,7 +448,7 @@ internal class UpdateCheckServiceTests
 
 			builder.RegisterInstance(versionProvider);
 
-			builder.RegisterInstance<IJsonSerializerWrapper>(new JsonSerializerWrapper());
+			builder.RegisterInstance<IJsonSerializer>(new SystemTextJsonSerializer());
 
 			builder.RegisterInstance<TimeProvider>(time);
 		});

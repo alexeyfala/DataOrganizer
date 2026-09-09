@@ -23,11 +23,11 @@ public sealed class FileRepository : RepositoryBase<FileModel>, IFileRepository
 
 	#region Methods
 	/// <inheritdoc />
-	public Task<FileModel[]> GetAllAsync(OptionalFileProperty optionalProperties, CancellationToken token = default)
+	public Task<FileModel[]> GetAllAsync(OptionalFileProperties optionalProperties, CancellationToken token = default)
 	{
-		bool includeContents = optionalProperties.HasFlag(OptionalFileProperty.Contents);
+		bool includeContents = optionalProperties.HasFlag(OptionalFileProperties.Contents);
 
-		bool includeProperties = optionalProperties.HasFlag(OptionalFileProperty.Properties);
+		bool includeProperties = optionalProperties.HasFlag(OptionalFileProperties.Properties);
 
 		return (includeContents, includeProperties) switch
 		{

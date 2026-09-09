@@ -1,7 +1,7 @@
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
@@ -9,7 +9,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Windows;
 using Entities.Helpers;
 using Entities.Models;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces;
 using Repository.Services;
@@ -32,16 +32,6 @@ namespace DataOrganizer.Services;
 public sealed class DataExchangeService : IDataExchangeService
 {
 	#region Data
-	/// <summary>
-	/// JSON file extension.
-	/// </summary>
-	internal const string JsonExt = ".json";
-
-	/// <summary>
-	/// XML file extension.
-	/// </summary>
-	internal const string XmlExt = ".xml";
-
 	/// <summary>
 	/// MIME type for JSON files.
 	/// </summary>
@@ -79,8 +69,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystem" />
 	private readonly IFileSystem _fileSystem;
 
-	/// <inheritdoc cref="IJsonSerializerWrapper" />
-	private readonly IJsonSerializerWrapper _jsonSerializer;
+	/// <inheritdoc cref="IJsonSerializer" />
+	private readonly IJsonSerializer _jsonSerializer;
 
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
@@ -94,8 +84,8 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <inheritdoc cref="IFileSystemPicker" />
 	private readonly IFileSystemPicker _picker;
 
-	/// <inheritdoc cref="IXmlSerializerWrapper" />
-	private readonly IXmlSerializerWrapper _xmlSerializer;
+	/// <inheritdoc cref="IXmlSerializer" />
+	private readonly IXmlSerializer _xmlSerializer;
 	#endregion
 
 	#region Constructors
@@ -105,7 +95,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		[
 			new("All Supported Files")
 			{
-				Patterns = [$"*{JsonExt}", $"*{XmlExt}", $"*{AppUtils.SQLiteExtension}"],
+				Patterns = [$"*{KnownFileExtensions.Json}", $"*{KnownFileExtensions.Xml}", $"*{KnownFileExtensions.Sqlite}"],
 				MimeTypes = [JsonMime, XmlMime, SqliteMime]
 			}
 		];
@@ -114,17 +104,17 @@ public sealed class DataExchangeService : IDataExchangeService
 		[
 			new("JSON File")
 			{
-				Patterns = [$"*{JsonExt}"],
+				Patterns = [$"*{KnownFileExtensions.Json}"],
 				MimeTypes = [JsonMime]
 			},
 			new("XML File")
 			{
-				Patterns = [$"*{XmlExt}"],
+				Patterns = [$"*{KnownFileExtensions.Xml}"],
 				MimeTypes = [XmlMime]
 			},
 			new("SQLite Database File")
 			{
-				Patterns = [$"*{AppUtils.SQLiteExtension}"],
+				Patterns = [$"*{KnownFileExtensions.Sqlite}"],
 				MimeTypes = [SqliteMime]
 			}
 		];
@@ -140,11 +130,11 @@ public sealed class DataExchangeService : IDataExchangeService
 		IEntityLoader entityLoader,
 		IFileSystem fileSystem,
 		IFileSystemPicker picker,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
-		IXmlSerializerWrapper xmlSerializer)
+		IXmlSerializer xmlSerializer)
 	{
 		_dbAccess = dbAccess;
 
@@ -174,10 +164,10 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		FilePickerSaveOptions options = new()
 		{
-			DefaultExtension = JsonExt.TrimStart('.'),
+			DefaultExtension = KnownFileExtensions.Json.TrimStart('.'),
 			FileTypeChoices = ExportFilePickerTypes,
 			ShowOverwritePrompt = true,
-			SuggestedFileName = AppUtils.AppName,
+			SuggestedFileName = AppInfo.AppName,
 			Title = Strings.SaveAs
 		};
 
@@ -194,15 +184,15 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case JsonExt:
+				case KnownFileExtensions.Json:
 					await ExportToJsonAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case XmlExt:
+				case KnownFileExtensions.Xml:
 					await ExportToXmlAsync(filePath, token).ConfigureAwait(false);
 					break;
 
-				case AppUtils.SQLiteExtension:
+				case KnownFileExtensions.Sqlite:
 					await ExportToSQLiteAsync(filePath, token).ConfigureAwait(false);
 					break;
 
@@ -276,7 +266,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			switch (Path.GetExtension(filePath))
 			{
-				case JsonExt:
+				case KnownFileExtensions.Json:
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
@@ -294,7 +284,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case XmlExt:
+				case KnownFileExtensions.Xml:
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
@@ -312,7 +302,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					}
 					break;
 
-				case AppUtils.SQLiteExtension:
+				case KnownFileExtensions.Sqlite:
 					if (!_dbAccess.IsValidSQLiteDatabase(filePath) || !await ImportFromSQLiteAsync(
 						filePath,
 						variant,
@@ -596,7 +586,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		await using Stream stream = _fileSystem.CreateSequentialWrite(filePath);
 
 		await _jsonSerializer
-			.SerializeAsync(stream, entities, AppUtils.JsonOptions, token)
+			.SerializeAsync(stream, entities, JsonDefaults.Options, token)
 			.ConfigureAwait(false);
 	}
 
@@ -640,7 +630,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			.ConfigureAwait(false);
 
 		FileModel[] dbFiles = await _dbAccess
-			.GetAllFilesAsync(OptionalFileProperty.Contents | OptionalFileProperty.Properties, token)
+			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties, token)
 			.ConfigureAwait(false);
 
 		return [.. dbFolders.Concat<ExplorerModelBase>(dbFiles)];

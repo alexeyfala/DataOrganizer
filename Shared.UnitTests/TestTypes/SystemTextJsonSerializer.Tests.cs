@@ -4,12 +4,12 @@ using Shared.Services;
 
 namespace Shared.UnitTests.TestTypes;
 
-[TestFixture(Description = $@"Tests of ""{nameof(JsonSerializerWrapper)}"" type")]
-internal class JsonSerializerWrapperTests
+[TestFixture(Description = $@"Tests of ""{nameof(SystemTextJsonSerializer)}"" type")]
+internal class SystemTextJsonSerializerTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="JsonSerializerWrapper.ToReadableJson{T}" />: includes the type name and JSON body for a non-null value.
+	/// <see cref="SystemTextJsonSerializer.ToReadableJson{T}" />: includes the type name and JSON body for a non-null value.
 	/// </summary>
 	[Test]
 	public void ToReadableJson_Includes_Type_Name_And_Json_Body_For_Non_Null_Value()
@@ -17,7 +17,7 @@ internal class JsonSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
+		SystemTextJsonSerializer sut = mock.Create<SystemTextJsonSerializer>();
 
 		Sample value = new() { Name = "epsilon", Number = 5 };
 
@@ -39,7 +39,7 @@ internal class JsonSerializerWrapperTests
 	}
 
 	/// <summary>
-	/// <see cref="JsonSerializerWrapper.ToReadableJson{T}" />: includes the type name and a null marker for a null reference.
+	/// <see cref="SystemTextJsonSerializer.ToReadableJson{T}" />: includes the type name and a null marker for a null reference.
 	/// </summary>
 	[Test]
 	public void ToReadableJson_Returns_Null_Marker_For_Null_Reference()
@@ -47,7 +47,7 @@ internal class JsonSerializerWrapperTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
 
-		JsonSerializerWrapper sut = mock.Create<JsonSerializerWrapper>();
+		SystemTextJsonSerializer sut = mock.Create<SystemTextJsonSerializer>();
 
 		// Act
 		string result = sut.ToReadableJson<Sample>(null);

@@ -1,5 +1,5 @@
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Execution;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Interfaces;
@@ -41,8 +41,8 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// <inheritdoc cref="ILogger" />
 	private readonly ILogger _logger;
 
-	/// <inheritdoc cref="IProcessUtils" />
-	private readonly IProcessUtils _processUtils;
+	/// <inheritdoc cref="IProcessManager" />
+	private readonly IProcessManager _processUtils;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -63,7 +63,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IProcessUtils processUtils,
+		IProcessManager processUtils,
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
@@ -623,7 +623,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// </summary>
 	private void TryKillProcess(int processId)
 	{
-		if (processId.IsDefault() || !_processUtils.IsProcessExists(processId))
+		if (processId.IsDefault() || !_processUtils.ProcessExists(processId))
 		{
 			return;
 		}

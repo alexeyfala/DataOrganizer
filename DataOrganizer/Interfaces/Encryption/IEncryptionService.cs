@@ -1,5 +1,5 @@
 using DataOrganizer.Helpers.Security;
-using Repository.DTO;
+using Repository.Dto;
 using System;
 using System.Collections.Generic;
 using System.Security.Authentication;

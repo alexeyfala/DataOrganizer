@@ -5,14 +5,14 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Dataset;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Common;
@@ -608,7 +608,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		IDbAccess dbAccess,
 		IDialogService dialogService,
 		IDispatcherAccessor dispatcher,
-		IJsonSerializerWrapper jsonSerializer,
+		IJsonSerializer jsonSerializer,
 		ILogger logger,
 		IMessenger messenger,
 		INotificationService notification,
@@ -658,7 +658,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			WithinRecordOffset = anchor.WithinRecordOffset
 		};
 
-		string json = _jsonSerializer.Serialize(properties, AppUtils.JsonOptions);
+		string json = _jsonSerializer.Serialize(properties, JsonDefaults.Options);
 
 		SetPropertiesCallback?.Invoke(json);
 

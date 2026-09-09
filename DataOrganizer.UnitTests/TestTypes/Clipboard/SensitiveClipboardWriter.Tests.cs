@@ -21,7 +21,7 @@ internal class SensitiveClipboardWriterTests
 	public async Task Write_Places_A_Marked_Payload()
 	{
 		// Arrange
-		string text = AppUtils.CreateRandomString(16);
+		string text = RandomString.Create(16);
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 

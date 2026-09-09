@@ -4,11 +4,11 @@ using Avalonia.Headless.NUnit;
 using AvaloniaEdit;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
+using DataOrganizer.Dto;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Interfaces;
 using Shared.Services;
@@ -28,9 +28,9 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Loads_Text_To_Editor()
 	{
 		// Arrange
-		byte[] contents = TestUtils.CreateRandomBytes(10);
+		byte[] contents = TestData.CreateRandomBytes(10);
 
-		double fontSize = TestUtils.CreateRandomDouble(6.0, 64.0);
+		double fontSize = TestData.CreateRandomDouble(6.0, 64.0);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -58,9 +58,9 @@ internal class EmbeddedFileEditorViewModelTests
 
 			dbAccess
 				.GetFilePropertiesAsync(Arg.Any<Guid>())
-				.Returns(new JsonSerializerWrapper().Serialize(properties));
+				.Returns(new SystemTextJsonSerializer().Serialize(properties));
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.Deserialize<FileProperties>(Arg.Any<string>())

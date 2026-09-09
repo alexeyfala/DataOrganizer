@@ -8,7 +8,7 @@
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
-	xmlns:entities="using:DataOrganizer.DTO.Entities"
+	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:interfaces="using:DataOrganizer.Interfaces"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"

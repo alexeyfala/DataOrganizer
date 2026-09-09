@@ -45,7 +45,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			string? appTarget = AppUtils.CurrentOs switch
+			string? appTarget = PlatformInfo.CurrentOs switch
 			{
 				OperatingSystemType.Windows => Environment.ProcessPath,
 				OperatingSystemType.Linux => ResolveLinuxAppFile(),
@@ -103,7 +103,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			}
 
 			Process.Start(
-				AppUtils.PlatformSpecificExplorer,
+				PlatformInfo.FileOpener,
 				directoryPath.SurroundWithQuotesIfNeeded());
 		}
 		catch (Exception ex)
@@ -131,7 +131,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 			string directory = Path.GetDirectoryName(filePath)!;
 
-			switch (AppUtils.CurrentOs)
+			switch (PlatformInfo.CurrentOs)
 			{
 				case OperatingSystemType.Windows:
 					if (_winExplorerManager.TryForegroundFolder(directory, filePath))
@@ -139,7 +139,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 						return;
 					}
 
-					Process.Start(AppUtils.PlatformSpecificExplorer, "/select, " + filePath);
+					Process.Start(PlatformInfo.FileOpener, "/select, " + filePath);
 					break;
 
 				case OperatingSystemType.Linux:
@@ -159,7 +159,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					break;
 
 				case OperatingSystemType.MacOs:
-					Process.Start(AppUtils.PlatformSpecificExplorer, GetMacOsReveal(filePath));
+					Process.Start(PlatformInfo.FileOpener, GetMacOsReveal(filePath));
 					break;
 
 				default:

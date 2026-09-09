@@ -1,5 +1,5 @@
-using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Clipboard.Persistence;
+using DataOrganizer.Dto.Clipboard;
+using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;

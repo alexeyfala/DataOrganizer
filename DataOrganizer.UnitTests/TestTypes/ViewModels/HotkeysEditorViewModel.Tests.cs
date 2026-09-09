@@ -9,7 +9,7 @@ using DataOrganizer.Messages;
 using DataOrganizer.Services;
 using DataOrganizer.ViewModels;
 using Moq;
-using Repository.DTO;
+using Repository.Dto;
 using Shared.Extensions;
 using Shared.Properties;
 using SharpHook;
@@ -38,7 +38,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestUtils.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateCodeMaskPairs(5));
 
 		// Act
 		sut.Clear();
@@ -68,7 +68,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestUtils.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateCodeMaskPairs(5));
 
 		// Act
 		sut.Dispose();
@@ -300,7 +300,7 @@ internal class HotkeysEditorViewModelTests
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
 	{
 		// Arrange
-		CodeMaskPair[] pairs = [.. TestUtils.CreateCodeMaskPairs(5)];
+		CodeMaskPair[] pairs = [.. TestData.CreateCodeMaskPairs(5)];
 
 		using AutoMock mock = AutoMock.GetLoose();
 

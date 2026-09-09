@@ -1,9 +1,9 @@
 namespace DataOrganizer.Interfaces;
 
 /// <summary>
-/// An interface with the <see cref="Name" /> property.
+/// An object that carries a name.
 /// </summary>
-internal interface IName
+internal interface INamed
 {
 	#region Properties
 	/// <summary>

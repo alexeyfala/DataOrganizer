@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Styling;
-using DataOrganizer.DTO.Settings;
+using DataOrganizer.Dto.Settings;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Settings;
 using Material.Colors;

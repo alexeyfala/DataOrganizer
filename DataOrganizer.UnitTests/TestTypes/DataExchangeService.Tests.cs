@@ -3,15 +3,15 @@ using Autofac.Extras.Moq;
 using Avalonia.Platform.Storage;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Services;
 using DataOrganizer.Windows;
 using Entities.Models;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Common;
 using Shared.Extensions;
@@ -50,8 +50,8 @@ internal class DataExchangeServiceTests
 				.LoadFromDb(Arg.Any<string>())
 				.Returns(new LoadFromDbResult
 				{
-					Files = [.. TestUtils.CreateFiles(5)],
-					Folders = [.. TestUtils.CreateFolders(5)]
+					Files = [.. TestData.CreateFiles(5)],
+					Folders = [.. TestData.CreateFolders(5)]
 				});
 
 			dbAccess
@@ -94,7 +94,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+		IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -106,7 +106,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt));
+				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Json));
 
 			builder.RegisterInstance(picker);
 
@@ -147,7 +147,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension));
+				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite));
 
 			builder.RegisterInstance(picker);
 
@@ -174,7 +174,7 @@ internal class DataExchangeServiceTests
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
-		IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+		IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -186,7 +186,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt));
+				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Xml));
 
 			builder.RegisterInstance(picker);
 
@@ -225,11 +225,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Json)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -237,7 +237,7 @@ internal class DataExchangeServiceTests
 				.OpenSequentialRead(Arg.Any<string>())
 				.Returns(new MemoryStream());
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
 				.DeserializeAsync<ExplorerModelBase[]>(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
@@ -282,11 +282,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(picker);
 
@@ -323,11 +323,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Xml)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -335,7 +335,7 @@ internal class DataExchangeServiceTests
 				.OpenSequentialRead(Arg.Any<string>())
 				.Returns(new MemoryStream());
 
-			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
 			serializer
 				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
@@ -377,7 +377,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
 	{
 		// Arrange
-		FileModelDto file = TestUtils.CreateFileDto();
+		FileModelDto file = TestData.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -398,11 +398,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
@@ -467,13 +467,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.JsonExt)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Json)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.ClearDatabaseAsync()
@@ -485,7 +485,7 @@ internal class DataExchangeServiceTests
 				.OpenSequentialRead(Arg.Any<string>())
 				.Returns(new MemoryStream());
 
-			IJsonSerializerWrapper serializer = Substitute.For<IJsonSerializerWrapper>();
+			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 #pragma warning disable CA2012 // Use ValueTasks correctly
 			serializer
@@ -526,13 +526,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, AppUtils.SQLiteExtension)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.IsValidSQLiteDatabase(Arg.Any<string>())
@@ -571,13 +571,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestUtils.CreateRandomFileName(10, DataExchangeService.XmlExt)]);
+				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.BackupDatabaseAsync()
-				.Returns(TestUtils.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.ClearDatabaseAsync()
@@ -589,7 +589,7 @@ internal class DataExchangeServiceTests
 				.OpenSequentialRead(Arg.Any<string>())
 				.Returns(new MemoryStream());
 
-			IXmlSerializerWrapper serializer = Substitute.For<IXmlSerializerWrapper>();
+			IXmlSerializer serializer = Substitute.For<IXmlSerializer>();
 
 			serializer
 				.LoadDocumentAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
@@ -627,9 +627,9 @@ internal class DataExchangeServiceTests
 	public async Task ImportEntitiesAsync_Does_Work(ImportListVariant variant)
 	{
 		// Arrange
-		ExplorerModelBase[] entities = [.. TestUtils
+		ExplorerModelBase[] entities = [.. TestData
 			.CreateFolders(5)
-			.Concat<ExplorerModelBase>(TestUtils.CreateFiles(5))];
+			.Concat<ExplorerModelBase>(TestData.CreateFiles(5))];
 
 		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = default);
 
@@ -689,9 +689,9 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSQLiteAsync_Does_Work()
 	{
 		// Arrange
-		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestData
 			.CreateFoldersDto(5)
-			.Concat<ExplorerModelBaseDto>(TestUtils.CreateFilesDto(5))];
+			.Concat<ExplorerModelBaseDto>(TestData.CreateFilesDto(5))];
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -742,7 +742,7 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSQLiteAsync_Fails_When_The_Database_Cannot_Be_Read()
 	{
 		// Arrange
-		Collection<ExplorerModelBaseDto> hierarchy = [.. TestUtils.CreateFoldersDto(5)];
+		Collection<ExplorerModelBaseDto> hierarchy = [.. TestData.CreateFoldersDto(5)];
 
 		List<ExplorerModelBaseDto> objects = [];
 

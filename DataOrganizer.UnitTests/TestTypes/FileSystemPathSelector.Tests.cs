@@ -19,7 +19,7 @@ internal class FileSystemPathSelectorTests
 		FileSystemPathSelector sut = new()
 		{
 			// Act
-			Path = TestUtils.CreateRandomFileName(10)
+			Path = TestData.CreateRandomFileName(10)
 		};
 
 		// Assert
@@ -37,7 +37,7 @@ internal class FileSystemPathSelectorTests
 		// Arrange
 		FileSystemPathSelector sut = new()
 		{
-			Path = TestUtils.CreateRandomFileName(10)
+			Path = TestData.CreateRandomFileName(10)
 		};
 
 		// Act

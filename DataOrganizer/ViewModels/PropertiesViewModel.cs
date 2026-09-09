@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using DialogHostAvalonia;
-using Repository.DTO;
+using Repository.Dto;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.ViewModels;

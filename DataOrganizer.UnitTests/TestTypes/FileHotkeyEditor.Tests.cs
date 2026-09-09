@@ -2,14 +2,14 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Services;
 using Entities.Models;
 using MapsterMapper;
 using NSubstitute;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Shared.Extensions;
 using System;
@@ -28,11 +28,11 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Deletes_Hotkeys_In_Database_And_Returns_EmptySequence()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		dto
 			.Hotkeys
-			.AddRange(TestUtils.CreateHotkeysDto(5));
+			.AddRange(TestData.CreateHotkeysDto(5));
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -64,9 +64,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_AlreadyInUse()
 	{
 		// Arrange
-		CodeMaskPair[] newHotkeys = [.. TestUtils.CreateCodeMaskPairs(5)];
+		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
 
-		FileModelDto owner = TestUtils.CreateFileDto();
+		FileModelDto owner = TestData.CreateFileDto();
 
 		owner
 			.Hotkeys
@@ -79,7 +79,7 @@ internal class FileHotkeyEditorTests
 		ExplorerModelBaseDto[] hierarchy = [owner];
 
 		// Act
-		OverwriteHotkeysResult result = await sut.OverwriteAsync(TestUtils.CreateFileDto(), newHotkeys, hierarchy);
+		OverwriteHotkeysResult result = await sut.OverwriteAsync(TestData.CreateFileDto(), newHotkeys, hierarchy);
 
 		// Assert
 		result
@@ -94,9 +94,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_Rewritten()
 	{
 		// Arrange
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
-		CodeMaskPair[] newHotkeys = [.. TestUtils.CreateCodeMaskPairs(5)];
+		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -106,7 +106,7 @@ internal class FileHotkeyEditorTests
 
 			mapper
 				.Map<HotkeyModel[], HotkeyModelDto[]>(Arg.Any<HotkeyModel[]>())
-				.Returns([.. TestUtils.CreateHotkeysDto(newHotkeys.Length)]);
+				.Returns([.. TestData.CreateHotkeysDto(newHotkeys.Length)]);
 
 			builder.RegisterInstance(mapper);
 
@@ -143,9 +143,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_SameHotkeys()
 	{
 		// Arrange
-		CodeMaskPair[] newHotkeys = [.. TestUtils.CreateCodeMaskPairs(5)];
+		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
 
-		FileModelDto dto = TestUtils.CreateFileDto();
+		FileModelDto dto = TestData.CreateFileDto();
 
 		dto
 			.Hotkeys

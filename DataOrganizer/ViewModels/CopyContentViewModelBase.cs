@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers.Clipboard;
@@ -11,7 +11,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
-using Repository.DTO;
+using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;
 using Shared.Extensions;
@@ -118,7 +118,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 		try
 		{
 			if (!await _dbAccess
-				.IsExistsAsync(file.Id, token)
+				.ExistsAsync(file.Id, token)
 				.ConfigureAwait(true))
 			{
 				_notification.ShowErrorSnackbar($@"""{file.Name}"" {Strings.DoesNotExist}");

@@ -1,6 +1,6 @@
 using AwesomeAssertions;
 using CommonTestHelpers.Helpers;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Helpers;
 using System;
 using System.Linq;
@@ -22,7 +22,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(5)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(5)];
 
 		// Act
 		sut.AddRange(items);
@@ -46,7 +46,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		sut.AddRange(TestUtils.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFilesDto(3));
 
 		// Act
 		sut.Clear();
@@ -70,7 +70,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -79,7 +79,7 @@ internal class FilterEngineTests
 			.Should()
 			.BeTrue();
 
-		sut.Contains(TestUtils.CreateFileDto())
+		sut.Contains(TestData.CreateFileDto())
 			.Should()
 			.BeFalse();
 	}
@@ -93,7 +93,7 @@ internal class FilterEngineTests
 		// Arrange
 		FilterEngine<FileModelDto> sut = CreateSut();
 
-		sut.AddRange(TestUtils.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFilesDto(3));
 
 		// Act
 		Action act = () =>
@@ -118,7 +118,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -142,7 +142,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		sut.AddRange(TestUtils.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFilesDto(3));
 
 		// Act
 		FileModelDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
@@ -162,7 +162,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -190,9 +190,9 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		sut.AddRange(TestUtils.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFilesDto(3));
 
-		FileModelDto inserted = TestUtils.CreateFileDto();
+		FileModelDto inserted = TestData.CreateFileDto();
 
 		// Act
 		sut.InsertAndRebuild(inserted, 0);
@@ -234,7 +234,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -260,7 +260,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 
@@ -282,7 +282,7 @@ internal class FilterEngineTests
 		// Arrange
 		using FilterEngine<FileModelDto> sut = CreateSut();
 
-		FileModelDto[] items = [.. TestUtils.CreateFilesDto(3)];
+		FileModelDto[] items = [.. TestData.CreateFilesDto(3)];
 
 		sut.AddRange(items);
 

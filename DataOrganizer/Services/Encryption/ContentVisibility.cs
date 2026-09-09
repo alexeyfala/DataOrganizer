@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.DTO.Entities;
+using DataOrganizer.Dto.Entities;
 using DataOrganizer.Enums;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;

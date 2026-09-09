@@ -1,8 +1,8 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.DTO.Clipboard;
-using DataOrganizer.DTO.Clipboard.Persistence;
+using DataOrganizer.Dto.Clipboard;
+using DataOrganizer.Dto.Clipboard.Persistence;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;

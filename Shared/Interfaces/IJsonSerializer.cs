@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace Shared.Interfaces;
 
 /// <summary>
-/// Wrapper over methods in <see cref="System.Text.Json" />.
+/// Serializes and deserializes Json through <see cref="System.Text.Json" />.
 /// </summary>
-public interface IJsonSerializerWrapper
+public interface IJsonSerializer
 {
 	#region Methods
 	/// <summary>

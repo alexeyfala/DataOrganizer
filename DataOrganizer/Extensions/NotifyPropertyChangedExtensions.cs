@@ -13,7 +13,7 @@ internal static class NotifyPropertyChangedExtensions
 	/// <summary>
 	/// Creates a predicate for filtering.
 	/// </summary>
-	public static IObservable<Func<IName, bool>> FilterPredicate<T>(
+	public static IObservable<Func<INamed, bool>> FilterPredicate<T>(
 		this T target,
 		Expression<Func<T, string?>> whenValueChanged) where T : INotifyPropertyChanged
 	{
@@ -26,7 +26,7 @@ internal static class NotifyPropertyChangedExtensions
 					.Merge(stream.Skip(1).Throttle(TimeSpan.FromMilliseconds(500L)));
 			}).Select(Predicate);
 
-		static Func<IName, bool> Predicate(string? value) =>
+		static Func<INamed, bool> Predicate(string? value) =>
 			string.IsNullOrWhiteSpace(value)
 				? _ => true
 				: x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase);
