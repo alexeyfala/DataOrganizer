@@ -11,8 +11,12 @@ using System;
 using System.Linq;
 using FontWeight = Avalonia.Media.FontWeight;
 
-namespace DataOrganizer.Wrappers;
+namespace DataOrganizer.Controls;
 
+/// <summary>
+/// A menu-style button that builds its content from <see cref="Icon" /> and <see cref="Header" />,
+/// and closes the flyout it sits in when clicked, unless it opens a flyout of its own.
+/// </summary>
 internal sealed class FlyoutButton : Button
 {
 	#region Properties

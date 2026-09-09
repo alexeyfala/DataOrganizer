@@ -6,8 +6,8 @@
 	xmlns:helpers="using:DataOrganizer.Helpers"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
@@ -111,13 +111,13 @@
 					</ContentControl.Styles>
 
 					<ContentControl.ContentTemplate>
-						<templateSelectors:ClipboardLogEntryTemplateSelector>
+						<selectors:ClipboardLogEntryTemplateSelector>
 							<StaticResource ResourceKey="ClipboardFilesEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardImageEntryTemplate" />
 
 							<StaticResource ResourceKey="ClipboardTextEntryTemplate" />
-						</templateSelectors:ClipboardLogEntryTemplateSelector>
+						</selectors:ClipboardLogEntryTemplateSelector>
 					</ContentControl.ContentTemplate>
 				</ContentControl>
 

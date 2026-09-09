@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using System;
 using System.Collections.Specialized;
 
-namespace DataOrganizer.Wrappers;
+namespace DataOrganizer.Controls;
 
 /// <summary>
 /// A panel that displays a single child selected by <see cref="SelectedIndex" /> while sizing

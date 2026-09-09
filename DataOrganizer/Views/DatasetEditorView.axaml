@@ -4,12 +4,12 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:componentModel="using:System.ComponentModel"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	x:DataType="vm:DatasetEditorViewModel"
 	mc:Ignorable="d">
 
@@ -41,17 +41,17 @@
 						OverlayDismissEventPassThrough="True"
 						Placement="Right">
 						<StackPanel Orientation="Vertical">
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddKeyValueCommand}"
 								Header="{x:Static prop:Strings.AddKeyAndValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddValueCommand}"
 								Header="{x:Static prop:Strings.AddValue}"
 								Icon="Plus" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding AddGroupCommand}"
 								Header="{x:Static prop:Strings.AddGroup}"
 								Icon="ShapeRectanglePlus" />
@@ -132,13 +132,13 @@
 								</Style>
 							</StackPanel.Styles>
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding SortAscendingDescendingCommand}"
 								CommandParameter="{x:Static componentModel:ListSortDirection.Ascending}"
 								Header="{x:Static prop:Strings.SortAscending}"
 								Icon="SortAlphabeticalAscending" />
 
-							<wrappers:FlyoutButton
+							<controls:FlyoutButton
 								Command="{Binding SortAscendingDescendingCommand}"
 								CommandParameter="{x:Static componentModel:ListSortDirection.Descending}"
 								Header="{x:Static prop:Strings.SortDescending}"

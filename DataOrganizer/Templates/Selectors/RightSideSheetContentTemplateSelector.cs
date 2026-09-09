@@ -2,8 +2,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DataOrganizer.Enums;
 
-namespace DataOrganizer.Templates.TemplateSelectors;
+namespace DataOrganizer.Templates.Selectors;
 
+/// <summary>
+/// Picks the template for the right side sheet by the requested content kind.
+/// </summary>
 internal sealed class RightSideSheetContentTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
 	#region Methods

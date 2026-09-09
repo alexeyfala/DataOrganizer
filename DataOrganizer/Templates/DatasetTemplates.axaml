@@ -4,7 +4,7 @@
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:dataset="using:DataOrganizer.Dto.Dataset"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -186,13 +186,13 @@
 					<DataTemplate>
 						<ItemsControl ItemsSource="{Binding Mode=OneWay}">
 							<ItemsControl.ItemTemplate>
-								<templateSelectors:DatasetRecordTemplateSelector>
+								<selectors:DatasetRecordTemplateSelector>
 									<StaticResource ResourceKey="KeyValueRecordTemplate" />
 
 									<StaticResource ResourceKey="RecordsGroupTemplate" />
 
 									<StaticResource ResourceKey="ValueRecordTemplate" />
-								</templateSelectors:DatasetRecordTemplateSelector>
+								</selectors:DatasetRecordTemplateSelector>
 							</ItemsControl.ItemTemplate>
 
 							<ItemsControl.ItemContainerTheme>

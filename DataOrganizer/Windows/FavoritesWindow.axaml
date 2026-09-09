@@ -12,8 +12,8 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:FavoritesViewModel"
 	Background="Transparent"
@@ -154,11 +154,11 @@
 
 									<ContentControl Content="{Binding PopupContent, Mode=OneWay}">
 										<ContentControl.ContentTemplate>
-											<templateSelectors:FavoritesPopupContentTemplateSelector>
+											<selectors:FavoritesPopupContentTemplateSelector>
 												<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 												<StaticResource ResourceKey="SelectedFavoritesViewTemplate" />
-											</templateSelectors:FavoritesPopupContentTemplateSelector>
+											</selectors:FavoritesPopupContentTemplateSelector>
 										</ContentControl.ContentTemplate>
 
 										<ContentControl.KeyBindings>

@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Threading;
 using AwesomeAssertions;
-using DataOrganizer.Wrappers;
+using DataOrganizer.Controls;
 
 namespace DataOrganizer.UnitTests.TestTypes;
 

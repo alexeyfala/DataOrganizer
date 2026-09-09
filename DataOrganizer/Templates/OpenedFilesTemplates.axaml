@@ -2,14 +2,14 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:views="using:DataOrganizer.Views"
-	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers">
+	xmlns:vm="using:DataOrganizer.ViewModels">
 
 	<!-- ExecutingFileTemplate -->
 	<DataTemplate
@@ -36,7 +36,7 @@
 							Classes="NameInFlyoutTextBlockStyle"
 							Text="{Binding Name, Mode=OneWay}" />
 
-						<wrappers:FlyoutButton
+						<controls:FlyoutButton
 							Command="{Binding $parent[Window].((vm:EditorViewModel)DataContext).ShowInListCommand}"
 							CommandParameter="{Binding Id}"
 							Foreground="{StaticResource MaterialBodyBrush}"

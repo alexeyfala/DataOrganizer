@@ -2,8 +2,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DataOrganizer.Enums;
 
-namespace DataOrganizer.Templates.TemplateSelectors;
+namespace DataOrganizer.Templates.Selectors;
 
+/// <summary>
+/// Picks the template for the favorites popup by the requested content kind.
+/// </summary>
 internal sealed class FavoritesPopupContentTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
 	#region Methods

@@ -4,6 +4,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
 	xmlns:behaviors="using:DataOrganizer.Behaviors"
+	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
@@ -15,9 +16,8 @@
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
-	xmlns:templateSelectors="using:DataOrganizer.Templates.TemplateSelectors"
+	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
-	xmlns:wrappers="using:DataOrganizer.Wrappers"
 	Width="{Binding ViewWidth, Mode=OneWayToSource}"
 	x:DataType="vm:EditorViewModel"
 	Icon="/Assets/Logo.ico"
@@ -257,12 +257,12 @@
 												</Style>
 											</StackPanel.Styles>
 
-											<wrappers:FlyoutButton
+											<controls:FlyoutButton
 												Command="{Binding ImportCommand}"
 												Header="{x:Static prop:Strings.ImportList}"
 												Icon="Import" />
 
-											<wrappers:FlyoutButton
+											<controls:FlyoutButton
 												Command="{Binding ExportCommand}"
 												Header="{x:Static prop:Strings.ExportList}"
 												Icon="Export" />
@@ -367,11 +367,11 @@
 							SideSheetPadding="4.0"
 							Theme="{StaticResource ScrollableSideSheet}">
 							<materialControls:SideSheet.SideSheetContentTemplate>
-								<templateSelectors:RightSideSheetContentTemplateSelector>
+								<selectors:RightSideSheetContentTemplateSelector>
 									<StaticResource ResourceKey="CopyHistoryTemplate" />
 
 									<StaticResource ResourceKey="ExecutingFilesTemplate" />
-								</templateSelectors:RightSideSheetContentTemplateSelector>
+								</selectors:RightSideSheetContentTemplateSelector>
 							</materialControls:SideSheet.SideSheetContentTemplate>
 						</materialControls:SideSheet>
 

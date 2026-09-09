@@ -5,8 +5,11 @@ using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Helpers;
 using System.Linq;
 
-namespace DataOrganizer.Templates.TemplateSelectors;
+namespace DataOrganizer.Templates.Selectors;
 
+/// <summary>
+/// Picks the template for a dataset record by the record's runtime type.
+/// </summary>
 internal sealed class DatasetRecordTemplateSelector : TemplateSelectorBase, IDataTemplate
 {
 	#region Methods

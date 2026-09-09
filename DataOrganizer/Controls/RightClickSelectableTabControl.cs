@@ -4,7 +4,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using System;
 
-namespace DataOrganizer.Wrappers;
+namespace DataOrganizer.Controls;
 
 /// <summary>
 /// A <see cref="TabControl" /> that also selects a tab on a right click, so that a context menu
