@@ -106,7 +106,7 @@ internal class FavoritesViewModelTests
 		sut
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestData.CreateCategoryFavoritePairs(count));
+			.AddRange(TestData.CreateFavoriteSelections(count));
 
 		sut
 			.CopyHistorySettings
@@ -156,7 +156,7 @@ internal class FavoritesViewModelTests
 			NavigationColumnWidth = positiveValue - 20,
 			OrderedCategories = [.. TestData.CreateGuids(5)],
 			SelectedCategoryId = Guid.NewGuid(),
-			SelectedPairs = [.. TestData.CreateCategoryFavoritePairs(5)]
+			SelectedPairs = [.. TestData.CreateFavoriteSelections(5)]
 		};
 
 		FileModelDto[] historyFiles = [.. TestData.CreateFilesDto(5)];

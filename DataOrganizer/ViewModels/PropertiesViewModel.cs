@@ -14,7 +14,7 @@ internal sealed partial class PropertiesViewModel
 	/// <summary>
 	/// The list of properties.
 	/// </summary>
-	public ObservableCollection<PropertyNameValuePair> Properties { get; } = [];
+	public ObservableCollection<PropertyDescription> Properties { get; } = [];
 	#endregion Properties
 
 	#region Auto-Generated Commands

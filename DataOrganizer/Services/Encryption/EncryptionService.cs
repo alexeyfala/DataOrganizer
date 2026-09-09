@@ -111,9 +111,9 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> DecryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek)
+	public IEnumerable<ValidatedContents> DecryptContents(ValidatedContents[] contents, PinnedBuffer dek)
 	{
-		foreach (ContentsIsValidPair item in contents)
+		foreach (ValidatedContents item in contents)
 		{
 			yield return ConvertContents(item, dek, encrypt: false);
 		}
@@ -175,9 +175,9 @@ public sealed class EncryptionService : IEncryptionService
 	}
 
 	/// <inheritdoc />
-	public IEnumerable<ContentsIsValidPair> EncryptContents(ContentsIsValidPair[] contents, PinnedBuffer dek)
+	public IEnumerable<ValidatedContents> EncryptContents(ValidatedContents[] contents, PinnedBuffer dek)
 	{
-		foreach (ContentsIsValidPair item in contents)
+		foreach (ValidatedContents item in contents)
 		{
 			yield return ConvertContents(item, dek, encrypt: true);
 		}
@@ -625,8 +625,8 @@ public sealed class EncryptionService : IEncryptionService
 	/// Converts one content with the DEK. Empty content travels as it is, and a failure marks the pair
 	/// invalid instead of breaking the whole sequence.
 	/// </summary>
-	private ContentsIsValidPair ConvertContents(
-		ContentsIsValidPair item,
+	private ValidatedContents ConvertContents(
+		ValidatedContents item,
 		PinnedBuffer dek,
 		bool encrypt)
 	{

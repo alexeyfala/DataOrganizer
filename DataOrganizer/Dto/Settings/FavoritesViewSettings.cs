@@ -33,8 +33,8 @@ public sealed class FavoritesViewSettings
 	public Guid SelectedCategoryId { get; set; }
 
 	/// <summary>
-	/// A sequence of <see cref="CategoryFavoritePair" />.
+	/// A sequence of <see cref="FavoriteSelection" />.
 	/// </summary>
-	public List<CategoryFavoritePair> SelectedPairs { get; set; } = [];
+	public List<FavoriteSelection> SelectedPairs { get; set; } = [];
 	#endregion
 }

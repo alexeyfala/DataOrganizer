@@ -1,6 +1,9 @@
 namespace DataOrganizer.Dto;
 
-public readonly struct DraggedIndexTargetIndexPair
+/// <summary>
+/// The move of an item from one position in a collection to another.
+/// </summary>
+public readonly struct IndexMove
 {
 	#region Properties
 	/// <summary>

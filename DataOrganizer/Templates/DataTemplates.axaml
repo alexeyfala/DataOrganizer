@@ -162,7 +162,7 @@
 	<!-- ObjectPropertyTemplate -->
 	<DataTemplate
 		x:Key="ObjectPropertyTemplate"
-		x:DataType="repositoryDto:PropertyNameValuePair">
+		x:DataType="repositoryDto:PropertyDescription">
 		<Grid ColumnDefinitions="Auto,*,Auto">
 			<SelectableTextBlock Grid.Column="0">
 				<Run Text="{Binding PropertyName, Mode=OneTime}" />

@@ -185,7 +185,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per pair owned by the given file and saves changes.
+	/// <see cref="DbAccess.AddHotkeysAsync" />: adds one hotkey per key stroke owned by the given file and saves changes.
 	/// </summary>
 	[Test]
 	public async Task AddHotkeysAsync_Adds_Hotkeys_To_Database_And_Returns_Created_Models()
@@ -193,7 +193,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		CodeMaskPair[] pairs = [.. TestData.CreateCodeMaskPairs(5)];
+		KeyStroke[] keyStrokes = [.. TestData.CreateKeyStrokes(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -206,19 +206,19 @@ internal class DbAccessTests
 			TypedParameter.From(repository));
 
 		// Act
-		HotkeyModel[] result = await sut.AddHotkeysAsync(fileId, pairs);
+		HotkeyModel[] result = await sut.AddHotkeysAsync(fileId, keyStrokes);
 
 		// Assert
 		result
 			.Should()
-			.HaveCount(pairs.Length);
+			.HaveCount(keyStrokes.Length);
 
 		result
 			.Should()
 			.OnlyContain(x => x.OwnerId == fileId);
 
 		await repository
-			.Received(pairs.Length)
+			.Received(keyStrokes.Length)
 			.AddAsync(Arg.Any<HotkeyModel>());
 
 		await dbConnection
@@ -997,7 +997,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetFileContentsAsync" />: returns a valid pair with the file's id and contents.
+	/// <see cref="DbAccess.GetFileContentsAsync" />: returns a valid result with the file's id and contents.
 	/// </summary>
 	[Test]
 	public async Task GetFileContentsAsync_Returns_File_Contents()
@@ -1019,7 +1019,7 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		ContentsIsValidPair result = await sut.GetFileContentsAsync(file.Id);
+		ValidatedContents result = await sut.GetFileContentsAsync(file.Id);
 
 		// Assert
 		result.IsValid
@@ -1067,7 +1067,7 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetFilesContentsAsync" />: yields a valid contents pair for each requested identifier.
+	/// <see cref="DbAccess.GetFilesContentsAsync" />: yields valid contents for each requested identifier.
 	/// </summary>
 	[Test]
 	public async Task GetFilesContentsAsync_Yields_Pair_For_Each_Identifier()
@@ -1092,11 +1092,11 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		List<ContentsIsValidPair> results = [];
+		List<ValidatedContents> results = [];
 
-		await foreach (ContentsIsValidPair pair in sut.GetFilesContentsAsync(files.Select(x => x.Id)))
+		await foreach (ValidatedContents contents in sut.GetFilesContentsAsync(files.Select(x => x.Id)))
 		{
-			results.Add(pair);
+			results.Add(contents);
 		}
 
 		// Assert

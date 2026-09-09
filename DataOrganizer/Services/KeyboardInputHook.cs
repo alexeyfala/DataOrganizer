@@ -41,7 +41,7 @@ public sealed class KeyboardInputHook :
 	/// <summary>
 	/// Stack of pressed keys.
 	/// </summary>
-	internal List<CodeMaskPair> InputStack { get; } = [];
+	internal List<KeyStroke> InputStack { get; } = [];
 	#endregion
 
 	#region Data
@@ -253,14 +253,14 @@ public sealed class KeyboardInputHook :
 
 			foreach (FileModelDto file in Files)
 			{
-				CodeMaskPair[] hotkeys = [.. file.Hotkeys.ToCodeMaskPairs()];
+				KeyStroke[] hotkeys = [.. file.Hotkeys.ToKeyStrokes()];
 
 				if (!hotkeys.SequenceEqual(InputStack.TakeLast(hotkeys.Length)))
 				{
 					continue;
 				}
 
-				ContentsIsValidPair result = await _dbAccess
+				ValidatedContents result = await _dbAccess
 					.GetFileContentsAsync(file.Id, token)
 					.ConfigureAwait(false);
 

@@ -230,7 +230,7 @@ internal class FolderProtectionTests
 			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -360,7 +360,7 @@ internal class FolderProtectionTests
 			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			dbAccess
@@ -423,7 +423,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -481,7 +481,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -541,7 +541,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: false)]);
 
 			dbAccess
@@ -587,7 +587,7 @@ internal class FolderProtectionTests
 
 		FileModelDto[] files = [TestData.CreateFileDto()];
 
-		ContentsIsValidPair[] loaded =
+		ValidatedContents[] loaded =
 		[
 			new()
 			{
@@ -662,7 +662,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			// The first note opens, the second one does not.
@@ -733,10 +733,10 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.DecryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.DecryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns(
 				[
-					new ContentsIsValidPair
+					new ValidatedContents
 					{
 						Contents = decryptedContents,
 						Id = files[0].Id,
@@ -843,7 +843,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -913,7 +913,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -979,7 +979,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -1070,7 +1070,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption
@@ -1115,7 +1115,7 @@ internal class FolderProtectionTests
 
 		FileModelDto[] files = [.. TestData.CreateFilesDto(1)];
 
-		ContentsIsValidPair[] loaded =
+		ValidatedContents[] loaded =
 		[
 			new()
 			{
@@ -1138,7 +1138,7 @@ internal class FolderProtectionTests
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
 
 			encryption
-				.EncryptContents(Arg.Any<ContentsIsValidPair[]>(), Arg.Any<PinnedBuffer>())
+				.EncryptContents(Arg.Any<ValidatedContents[]>(), Arg.Any<PinnedBuffer>())
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			encryption

@@ -3,8 +3,11 @@ using System.Diagnostics;
 
 namespace Repository.Dto;
 
+/// <summary>
+/// A single key press together with the modifiers held down with it.
+/// </summary>
 [DebuggerDisplay($"{nameof(Code)} = {{{nameof(Code)}}}, {nameof(Mask)} = {{{nameof(Mask)}}}")]
-public readonly record struct CodeMaskPair
+public readonly record struct KeyStroke
 {
 	#region Properties
 	/// <inheritdoc cref="KeyCode" />

@@ -170,7 +170,7 @@ public sealed class FolderProtection : IFolderProtection
 			return;
 		}
 
-		ContentsIsValidPair[] result = [];
+		ValidatedContents[] result = [];
 
 		NoteUpdate[] notes = [];
 
@@ -181,7 +181,7 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ContentsIsValidPair[] contents = await _dbAccess
+			ValidatedContents[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
@@ -279,7 +279,7 @@ public sealed class FolderProtection : IFolderProtection
 		{
 			using ProgressScope _ = _messenger.ShowProgress();
 
-			ContentsIsValidPair[] contents = await _dbAccess
+			ValidatedContents[] contents = await _dbAccess
 				.GetFilesContentsAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
@@ -295,7 +295,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-				ContentsIsValidPair[] result = [.. _encryption.EncryptContents(contents, dek)];
+				ValidatedContents[] result = [.. _encryption.EncryptContents(contents, dek)];
 
 				if (!AreContentsValid(result, contents.Length))
 				{
@@ -367,7 +367,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <c>True</c> when every content is readable, carries an identifier, and there are as many of
 	/// them as expected.
 	/// </summary>
-	private static bool AreContentsValid(ContentsIsValidPair[] contents, int expectedCount)
+	private static bool AreContentsValid(ValidatedContents[] contents, int expectedCount)
 	{
 		return contents.Length == expectedCount
 			&& contents.All(x => x.IsValid && x.Id.IsNotDefault());
@@ -376,7 +376,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <summary>
 	/// Overwrites the buffers of the given contents.
 	/// </summary>
-	private static void WipeContents(ContentsIsValidPair[] contents)
+	private static void WipeContents(ValidatedContents[] contents)
 	{
 		contents.ForEach(x => x.Contents.ZeroMemory());
 	}
@@ -389,7 +389,7 @@ public sealed class FolderProtection : IFolderProtection
 	/// <summary>
 	/// Writes the identifiers of the contents that could not be converted to the log.
 	/// </summary>
-	private void LogInvalidContents(ContentsIsValidPair[] contents)
+	private void LogInvalidContents(ValidatedContents[] contents)
 	{
 		string identifiers = string.Join(", ", contents
 			.Where(x => !x.IsValid)

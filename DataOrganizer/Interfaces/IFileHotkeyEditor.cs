@@ -18,7 +18,7 @@ public interface IFileHotkeyEditor
 	/// </summary>
 	Task<OverwriteHotkeysResult> OverwriteAsync(
 		FileModelDto dto,
-		CodeMaskPair[] newHotkeys,
+		KeyStroke[] newHotkeys,
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default);
 	#endregion

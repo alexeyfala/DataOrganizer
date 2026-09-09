@@ -228,7 +228,7 @@ internal class DialogServiceTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Act
-		Task<ValueIsValidPair> task = sut.RequestMultilineTextAsync("text", name);
+		Task<TextInputResult> task = sut.RequestMultilineTextAsync("text", name);
 
 		Dispatcher.UIThread.RunJobs();
 

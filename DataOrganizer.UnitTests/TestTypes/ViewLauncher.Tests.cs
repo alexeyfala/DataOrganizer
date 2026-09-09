@@ -629,7 +629,7 @@ internal class ViewLauncherTests
 			.ViewModel
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestData.CreateCategoryFavoritePairs(5));
+			.AddRange(TestData.CreateFavoriteSelections(5));
 
 		// Act
 		await sut.SaveFavoritesSettingsAsync(window);

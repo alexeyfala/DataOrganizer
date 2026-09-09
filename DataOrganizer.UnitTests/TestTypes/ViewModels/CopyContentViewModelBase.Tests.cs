@@ -52,7 +52,7 @@ internal class CopyContentViewModelBaseTests
 
 			dbAccess
 				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
-				.Returns(new ContentsIsValidPair
+				.Returns(new ValidatedContents
 				{
 					Contents = TestData.CreateRandomBytes(8),
 					IsValid = true

@@ -52,7 +52,7 @@ public partial class FileModelDto : ExplorerModelBaseDto
 	/// </summary>
 	public void SetHotkeysToolTip()
 	{
-		CodeMaskPair[] hotkeys = [.. Hotkeys.ToCodeMaskPairs()];
+		KeyStroke[] hotkeys = [.. Hotkeys.ToKeyStrokes()];
 
 		HotkeysToolTip = hotkeys.IsNotEmpty()
 			? $"{Strings.Hotkeys}: {hotkeys.GetHotkeysPresentation()}"

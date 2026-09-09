@@ -26,9 +26,9 @@ public static class TestData
 {
 	#region Methods
 	/// <summary>
-	/// Creates a <see cref="CategoryFavoritePair" /> with random properties.
+	/// Creates a <see cref="FavoriteSelection" /> with random properties.
 	/// </summary>
-	public static CategoryFavoritePair CreateCategoryFavoritePair()
+	public static FavoriteSelection CreateFavoriteSelection()
 	{
 		return new()
 		{
@@ -38,20 +38,20 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="CategoryFavoritePair" /> objects.
+	/// Creates the required number of random <see cref="FavoriteSelection" /> objects.
 	/// </summary>
-	public static IEnumerable<CategoryFavoritePair> CreateCategoryFavoritePairs(int count)
+	public static IEnumerable<FavoriteSelection> CreateFavoriteSelections(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
-			yield return CreateCategoryFavoritePair();
+			yield return CreateFavoriteSelection();
 		}
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="CodeMaskPair" /> objects.
+	/// Creates the required number of random <see cref="KeyStroke" /> objects.
 	/// </summary>
-	public static IEnumerable<CodeMaskPair> CreateCodeMaskPairs(int count)
+	public static IEnumerable<KeyStroke> CreateKeyStrokes(int count)
 	{
 		for (int i = 0; i < count; i++)
 		{
@@ -64,9 +64,9 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="ContentsIsValidPair" /> objects.
+	/// Creates the required number of random <see cref="ValidatedContents" /> objects.
 	/// </summary>
-	public static IEnumerable<ContentsIsValidPair> CreateContents(
+	public static IEnumerable<ValidatedContents> CreateContents(
 		int count,
 		bool isValid,
 		bool generateId = true)

@@ -15,7 +15,7 @@ public sealed record UpdateDatabaseParameters
 	/// <summary>
 	/// The sequence of contents.
 	/// </summary>
-	public required ContentsIsValidPair[] Contents { get; init; }
+	public required ValidatedContents[] Contents { get; init; }
 
 	/// <inheritdoc cref="FolderModelDto.EncryptedDek" />
 	public required byte[]? EncryptedDek { get; init; }

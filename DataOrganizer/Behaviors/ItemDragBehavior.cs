@@ -464,7 +464,7 @@ internal sealed class ItemDragBehavior : Behavior<Control>
 		{
 			if (_draggedIndex >= 0 && _targetIndex >= 0 && _draggedIndex != _targetIndex)
 			{
-				ItemDraggedCommand?.Execute(new DraggedIndexTargetIndexPair
+				ItemDraggedCommand?.Execute(new IndexMove
 				{
 					DraggedIndex = _draggedIndex,
 					TargetIndex = _targetIndex

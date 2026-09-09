@@ -358,7 +358,7 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// Returns a string representation of the sequence <see cref="HotkeyModelDto" />.
 	/// </summary>
-	public static string GetHotkeysPresentation(this CodeMaskPair[] hotKeys)
+	public static string GetHotkeysPresentation(this KeyStroke[] hotKeys)
 	{
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 
@@ -503,11 +503,11 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="HotkeyModelDto" /> to a sequence of <see cref="CodeMaskPair" />.
+	/// Transforms a sequence of <see cref="HotkeyModelDto" /> to a sequence of <see cref="KeyStroke" />.
 	/// </summary>
-	public static IEnumerable<CodeMaskPair> ToCodeMaskPairs(this IEnumerable<HotkeyModelDto> sequence)
+	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyModelDto> sequence)
 	{
-		return sequence.Select(x => new CodeMaskPair
+		return sequence.Select(x => new KeyStroke
 		{
 			Code = x.Code,
 			Mask = x.Mask
@@ -557,16 +557,16 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModelDto" />.
+	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyModelDto" />.
 	/// </summary>
 	public static IEnumerable<HotkeyModelDto> ToHotkeyModelsDto(
-		this CodeMaskPair[] sequence,
+		this KeyStroke[] sequence,
 		Guid id = default,
 		Guid ownerId = default)
 	{
 		for (int i = 0; i < sequence.Length; i++)
 		{
-			CodeMaskPair x = sequence[i];
+			KeyStroke x = sequence[i];
 
 			yield return new()
 			{
@@ -582,7 +582,7 @@ internal static class EnumerableExtensions
 	/// <summary>
 	/// Counts files and folders in hierarchy.
 	/// </summary>
-	internal static FilesFoldersNumberPair GetCount(this IEnumerable<ExplorerModelBaseDto> hierarchy)
+	internal static HierarchyCounts GetCount(this IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
 		uint files = default;
 

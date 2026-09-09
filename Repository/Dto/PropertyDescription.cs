@@ -3,10 +3,10 @@ using System.Diagnostics;
 namespace Repository.Dto;
 
 /// <summary>
-/// The pair of <see cref="PropertyName" /> and <see cref="Value" /> values.
+/// A named property of an object as it is shown to the user.
 /// </summary>
 [DebuggerDisplay($"{nameof(PropertyName)} = {{{nameof(PropertyName)}}}, {nameof(Value)} = {{{nameof(Value)}}}")]
-public sealed class PropertyNameValuePair
+public sealed class PropertyDescription
 {
 	#region Properties
 	/// <summary>
@@ -21,7 +21,7 @@ public sealed class PropertyNameValuePair
 	#endregion
 
 	#region Constructors
-	public PropertyNameValuePair(string propertyName, object? value)
+	public PropertyDescription(string propertyName, object? value)
 	{
 		PropertyName = propertyName;
 

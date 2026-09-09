@@ -38,7 +38,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestData.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateKeyStrokes(5));
 
 		// Act
 		sut.Clear();
@@ -68,7 +68,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestData.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -84,7 +84,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: adds the code-mask pair to the buffer when a modifier mask is active.
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: adds the key stroke to the buffer when a modifier mask is active.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Adds_Pair_To_Buffer_When_Mask_Is_Active()
@@ -112,7 +112,7 @@ internal class HotkeysEditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: never adds more pairs than the maximum hotkey count.
+	/// <see cref="HotkeysEditorViewModel.HandleKeyReleased" />: never adds more keyStrokes than the maximum hotkey count.
 	/// </summary>
 	[Test]
 	public void HandleKeyReleased_Adds_Values_No_More_Than_Maximum_Value()
@@ -122,14 +122,14 @@ internal class HotkeysEditorViewModelTests
 
 		HotkeysEditorViewModel sut = mock.Create<HotkeysEditorViewModel>();
 
-		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
 		{
 			Code = KeyCode.VcA,
 			Mask = EventMask.LeftCtrl
 		}, 100)];
 
 		// Act
-		pairs.ForEach(x => sut.HandleKeyReleased(x.Mask, x.Code));
+		keyStrokes.ForEach(x => sut.HandleKeyReleased(x.Mask, x.Code));
 
 		// Assert
 		sut.Buffer.Count
@@ -300,7 +300,7 @@ internal class HotkeysEditorViewModelTests
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
 	{
 		// Arrange
-		CodeMaskPair[] pairs = [.. TestData.CreateCodeMaskPairs(5)];
+		KeyStroke[] keyStrokes = [.. TestData.CreateKeyStrokes(5)];
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -310,7 +310,7 @@ internal class HotkeysEditorViewModelTests
 		{
 			sut
 				.Buffer
-				.AddRange(pairs);
+				.AddRange(keyStrokes);
 		}
 
 		// Act
@@ -319,7 +319,7 @@ internal class HotkeysEditorViewModelTests
 		// Assert
 		sut.Preview
 			.Should()
-			.Be(isAnyInBuffer ? pairs.GetHotkeysPresentation() : Strings.AssigningHotkeys);
+			.Be(isAnyInBuffer ? keyStrokes.GetHotkeysPresentation() : Strings.AssigningHotkeys);
 	}
 
 	/// <summary>

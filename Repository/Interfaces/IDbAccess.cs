@@ -51,7 +51,7 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<HotkeyModel[]> AddHotkeysAsync(
 		Guid fileId,
-		CodeMaskPair[] hotkeys,
+		KeyStroke[] hotkeys,
 		CancellationToken token = default);
 
 	/// <summary>
@@ -110,9 +110,9 @@ public interface IDbAccess : IDisposable
 	string GetDbFilePath();
 
 	/// <summary>
-	/// Returns <see cref="ContentsIsValidPair" />.
+	/// Returns <see cref="ValidatedContents" />.
 	/// </summary>
-	Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default);
+	Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns <see cref="FileModel.Properties" />.
@@ -120,9 +120,9 @@ public interface IDbAccess : IDisposable
 	Task<string?> GetFilePropertiesAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a sequense of <see cref="ContentsIsValidPair" /> by file identifiers.
+	/// Returns a sequense of <see cref="ValidatedContents" /> by file identifiers.
 	/// </summary>
-	IAsyncEnumerable<ContentsIsValidPair> GetFilesContentsAsync(
+	IAsyncEnumerable<ValidatedContents> GetFilesContentsAsync(
 		IEnumerable<Guid> identifiers,
 		CancellationToken token = default);
 
@@ -139,7 +139,7 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// Loads all entities from the specified database.
 	/// </summary>
-	LoadFromDbResult LoadFromDb(string dataSource);
+	LoadedEntities LoadFromDb(string dataSource);
 
 	/// <summary>
 	/// Restores database from backup.

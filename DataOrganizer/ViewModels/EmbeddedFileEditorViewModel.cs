@@ -82,7 +82,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		_editor = editor;
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(true);
 

@@ -52,7 +52,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(TestData.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -83,7 +83,7 @@ internal class KeyboardInputHookTests
 
 		const EventMask mask = EventMask.LeftCtrl;
 
-		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
 		{
 			Code = code,
 			Mask = mask
@@ -91,7 +91,7 @@ internal class KeyboardInputHookTests
 
 		dto
 			.Hotkeys
-			.AddRange(pairs.ToHotkeyModelsDto());
+			.AddRange(keyStrokes.ToHotkeyModelsDto());
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
@@ -101,7 +101,7 @@ internal class KeyboardInputHookTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ContentsIsValidPair
+				.Returns(new ValidatedContents
 				{
 					Contents = TestData.CreateRandomBytes(10),
 					IsValid = true
@@ -128,7 +128,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(pairs);
+			.AddRange(keyStrokes);
 
 		// Act
 		await sut.HandleKeyReleasedAsync(mask, code);
@@ -156,7 +156,7 @@ internal class KeyboardInputHookTests
 
 		const EventMask mask = EventMask.LeftCtrl;
 
-		CodeMaskPair[] pairs = [.. Enumerable.Repeat(new CodeMaskPair()
+		KeyStroke[] keyStrokes = [.. Enumerable.Repeat(new KeyStroke()
 		{
 			Code = code,
 			Mask = mask
@@ -164,7 +164,7 @@ internal class KeyboardInputHookTests
 
 		dto
 			.Hotkeys
-			.AddRange(pairs.ToHotkeyModelsDto());
+			.AddRange(keyStrokes.ToHotkeyModelsDto());
 
 		IClipboardAccessor clipboard = Substitute.For<IClipboardAccessor>();
 
@@ -176,7 +176,7 @@ internal class KeyboardInputHookTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(new ContentsIsValidPair
+				.Returns(new ValidatedContents
 				{
 					Contents = TextHelper.Utf8Encoding.GetBytes(TextHelper.LoremIpsum),
 					IsValid = true
@@ -205,7 +205,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(pairs);
+			.AddRange(keyStrokes);
 
 		// Act
 		await sut.HandleKeyReleasedAsync(mask, code);
@@ -261,7 +261,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.InputStack
-			.AddRange(TestData.CreateCodeMaskPairs(5));
+			.AddRange(TestData.CreateKeyStrokes(5));
 
 		await runner.StartAsync();
 

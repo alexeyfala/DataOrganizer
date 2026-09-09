@@ -126,7 +126,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 				return;
 			}
 
-			ContentsIsValidPair result = await _dbAccess
+			ValidatedContents result = await _dbAccess
 				.GetFileContentsAsync(file.Id, token)
 				.ConfigureAwait(true);
 

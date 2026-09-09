@@ -194,7 +194,7 @@ internal class EncryptedContentWriterTests
 			BackupFilePath = TestData.CreateRandomFileName(10),
 			Contents =
 			[
-				new ContentsIsValidPair
+				new ValidatedContents
 				{
 					Contents = TestData.CreateRandomBytes(10),
 					Id = file.Id,

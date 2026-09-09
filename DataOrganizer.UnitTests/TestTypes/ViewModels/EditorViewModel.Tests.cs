@@ -572,7 +572,7 @@ internal class EditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -615,7 +615,7 @@ internal class EditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair(true, editedNote));
+				.Returns(new TextInputResult(true, editedNote));
 
 			INoteReader noteReader = Substitute.For<INoteReader>();
 
@@ -670,7 +670,7 @@ internal class EditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 
@@ -869,7 +869,7 @@ internal class EditorViewModelTests
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ContentsIsValidPair pair = new()
+			ValidatedContents contents = new()
 			{
 				Contents = [],
 				IsValid = true
@@ -877,7 +877,7 @@ internal class EditorViewModelTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
+				.Returns(contents);
 
 			builder.RegisterInstance(dbAccess);
 

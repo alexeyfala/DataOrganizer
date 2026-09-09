@@ -5,10 +5,10 @@ using System.Diagnostics;
 namespace DataOrganizer.Dto;
 
 /// <summary>
-/// The number of <see cref="Files" /> and <see cref="Folders" />.
+/// The number of files and folders in a hierarchy.
 /// </summary>
 [DebuggerDisplay($"{nameof(Files)} = {{{nameof(Files)}}}, {nameof(Folders)} = {{{nameof(Folders)}}}")]
-internal readonly struct FilesFoldersNumberPair
+internal readonly struct HierarchyCounts
 {
 	#region Properties
 	/// <summary>

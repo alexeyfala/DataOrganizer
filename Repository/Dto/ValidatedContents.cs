@@ -4,10 +4,10 @@ using System.Diagnostics;
 namespace Repository.Dto;
 
 /// <summary>
-/// The pair of <see cref="Contents" /> and <see cref="IsValid" /> values.
+/// The contents of a file together with the verdict on whether they are usable.
 /// </summary>
 [DebuggerDisplay($"{nameof(IsValid)} = {{{nameof(IsValid)}}}")]
-public sealed class ContentsIsValidPair
+public sealed class ValidatedContents
 {
 	#region Properties
 	/// <summary>

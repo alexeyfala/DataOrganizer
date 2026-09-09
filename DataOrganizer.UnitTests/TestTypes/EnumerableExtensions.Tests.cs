@@ -420,7 +420,7 @@ internal class EnumerableExtensionsTests
 		ExplorerModelBaseDto[] hierarchy = [root];
 
 		// Act
-		FilesFoldersNumberPair result = hierarchy.GetCount();
+		HierarchyCounts result = hierarchy.GetCount();
 
 		// Assert
 		result.Files
@@ -655,14 +655,14 @@ internal class EnumerableExtensionsTests
 	public void GetHotkeysPresentation_Includes_Mask_When_Not_Default()
 	{
 		// Arrange
-		CodeMaskPair[] pairs =
+		KeyStroke[] keyStrokes =
 		[
 			new() { Code = KeyCode.VcA, Mask = EventMask.LeftCtrl },
 			new() { Code = KeyCode.VcB, Mask = EventMask.None }
 		];
 
 		// Act
-		string result = pairs.GetHotkeysPresentation();
+		string result = keyStrokes.GetHotkeysPresentation();
 
 		// Assert
 		result
@@ -681,10 +681,10 @@ internal class EnumerableExtensionsTests
 	public void GetHotkeysPresentation_Returns_Empty_String_For_Empty_Sequence()
 	{
 		// Arrange
-		CodeMaskPair[] pairs = [];
+		KeyStroke[] keyStrokes = [];
 
 		// Act
-		string result = pairs.GetHotkeysPresentation();
+		string result = keyStrokes.GetHotkeysPresentation();
 
 		// Assert
 		result
@@ -699,14 +699,14 @@ internal class EnumerableExtensionsTests
 	public void GetHotkeysPresentation_Skips_Mask_When_Default()
 	{
 		// Arrange
-		CodeMaskPair[] pairs =
+		KeyStroke[] keyStrokes =
 		[
 			new() { Code = KeyCode.VcA, Mask = EventMask.None },
 			new() { Code = KeyCode.VcB, Mask = EventMask.None }
 		];
 
 		// Act
-		string result = pairs.GetHotkeysPresentation();
+		string result = keyStrokes.GetHotkeysPresentation();
 
 		// Assert
 		result
@@ -897,16 +897,16 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.ToCodeMaskPairs" />: maps each hotkey to a code-mask pair preserving code and mask.
+	/// <see cref="EnumerableExtensions.ToKeyStrokes" />: maps each hotkey to a key stroke preserving code and mask.
 	/// </summary>
 	[Test]
-	public void ToCodeMaskPairs_Maps_HotkeyModelDto_To_CodeMaskPair()
+	public void ToKeyStrokes_Maps_HotkeyModelDto_To_KeyStroke()
 	{
 		// Arrange
 		HotkeyModelDto[] hotkeys = [.. TestData.CreateHotkeysDto(3)];
 
 		// Act
-		CodeMaskPair[] result = [.. hotkeys.ToCodeMaskPairs()];
+		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];
 
 		// Assert
 		result
@@ -974,7 +974,7 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.ToHotkeyModelsDto" />: maps pairs to hotkey models with sequential indexes and shared ids.
+	/// <see cref="EnumerableExtensions.ToHotkeyModelsDto" />: maps keyStrokes to hotkey models with sequential indexes and shared ids.
 	/// </summary>
 	[Test]
 	public void ToHotkeyModelsDto_Maps_Pairs_With_Sequential_Indexes()
@@ -984,14 +984,14 @@ internal class EnumerableExtensionsTests
 
 		Guid ownerId = Guid.NewGuid();
 
-		CodeMaskPair[] pairs =
+		KeyStroke[] keyStrokes =
 		[
 			new() { Code = KeyCode.VcA, Mask = EventMask.LeftCtrl },
 			new() { Code = KeyCode.VcB, Mask = EventMask.LeftShift }
 		];
 
 		// Act
-		HotkeyModelDto[] result = [.. pairs.ToHotkeyModelsDto(id, ownerId)];
+		HotkeyModelDto[] result = [.. keyStrokes.ToHotkeyModelsDto(id, ownerId)];
 
 		// Assert
 		result

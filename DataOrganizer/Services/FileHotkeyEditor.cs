@@ -55,7 +55,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 	/// <inheritdoc />
 	public async Task<OverwriteHotkeysResult> OverwriteAsync(
 		FileModelDto dto,
-		CodeMaskPair[] newHotkeys,
+		KeyStroke[] newHotkeys,
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{

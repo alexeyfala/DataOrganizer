@@ -57,7 +57,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(FileId)
 			.ConfigureAwait(true);
 
@@ -373,13 +373,13 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_ => null
 		};
 
-		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
 			record.Note,
 			header,
 			isSensitive: IsEncrypted)
 			.ConfigureAwait(false);
 
-		if (!result.IsValid)
+		if (!result.IsConfirmed)
 		{
 			return;
 		}

@@ -36,7 +36,7 @@ internal class SelectedFavoritesViewModelTests
 
 		sut
 			.SelectedPairs
-			.AddRange(TestData.CreateCategoryFavoritePairs(count));
+			.AddRange(TestData.CreateFavoriteSelections(count));
 
 		sut.SelectedCategory = TestData.CreateFavoriteCategory();
 
@@ -92,7 +92,7 @@ internal class SelectedFavoritesViewModelTests
 			selectedCategoryId: categories[0].Id,
 			categories: categories,
 			orderedCategories: [.. categories.OrderBy(x => x.Name).Select(x => x.Id)],
-			selectedPairs: [.. TestData.CreateCategoryFavoritePairs(count)]);
+			selectedPairs: [.. TestData.CreateFavoriteSelections(count)]);
 
 		// Assert
 		sut.NavigationColumnWidth.Value

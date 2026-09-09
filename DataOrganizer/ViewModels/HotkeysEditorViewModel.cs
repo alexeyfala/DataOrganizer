@@ -38,7 +38,7 @@ public sealed partial class HotkeysEditorViewModel :
 	/// <summary>
 	/// Buffer of keys for which the mask is used.
 	/// </summary>
-	public ObservableCollection<CodeMaskPair> Buffer { get; } = [];
+	public ObservableCollection<KeyStroke> Buffer { get; } = [];
 
 	/// <summary>
 	/// <c>True</c> when the user has saved the hotkeys.

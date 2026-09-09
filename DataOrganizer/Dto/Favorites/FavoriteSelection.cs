@@ -7,7 +7,7 @@ namespace DataOrganizer.Dto.Favorites;
 /// A combination of the selected category and the child object selected within it.
 /// </summary>
 [DebuggerDisplay($"{nameof(CategoryId)} = {{{nameof(CategoryId)}}}, {nameof(FavoriteId)} = {{{nameof(FavoriteId)}}}")]
-public class CategoryFavoritePair
+public class FavoriteSelection
 {
 	#region Properties
 	/// <summary>

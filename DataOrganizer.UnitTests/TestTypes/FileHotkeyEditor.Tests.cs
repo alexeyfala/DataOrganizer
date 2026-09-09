@@ -64,7 +64,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_AlreadyInUse()
 	{
 		// Arrange
-		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
+		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
 		FileModelDto owner = TestData.CreateFileDto();
 
@@ -96,7 +96,7 @@ internal class FileHotkeyEditorTests
 		// Arrange
 		FileModelDto dto = TestData.CreateFileDto();
 
-		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
+		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -133,7 +133,7 @@ internal class FileHotkeyEditorTests
 
 		await dbAccess
 			.Received()
-			.AddHotkeysAsync(Arg.Any<Guid>(), Arg.Any<CodeMaskPair[]>());
+			.AddHotkeysAsync(Arg.Any<Guid>(), Arg.Any<KeyStroke[]>());
 	}
 
 	/// <summary>
@@ -143,7 +143,7 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_SameHotkeys()
 	{
 		// Arrange
-		CodeMaskPair[] newHotkeys = [.. TestData.CreateCodeMaskPairs(5)];
+		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
 
 		FileModelDto dto = TestData.CreateFileDto();
 

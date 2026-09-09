@@ -55,7 +55,7 @@ public sealed class DialogService : IDialogService
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys)
+	public async Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<KeyStroke> initialHotkeys)
 	{
 		HotkeysEditorViewModel viewModel = _viewFactory.CreateViewModel<HotkeysEditorViewModel>();
 
@@ -119,7 +119,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<StringKeyValuePair?> RequestKeyValueInputAsync(
+	public async Task<KeyValueInput?> RequestKeyValueInputAsync(
 		KeyValueInputParameters parameters,
 		CancellationToken token = default)
 	{
@@ -140,7 +140,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<ValueIsValidPair> RequestMultilineTextAsync(
+	public async Task<TextInputResult> RequestMultilineTextAsync(
 		string? text,
 		string? name = null,
 		bool isSensitive = false,
@@ -163,7 +163,7 @@ public sealed class DialogService : IDialogService
 			return new();
 		}
 
-		return new(IsValid: true, Value: viewModel.Text);
+		return new(IsConfirmed: true, Value: viewModel.Text);
 	}
 
 	/// <inheritdoc />
@@ -293,7 +293,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public void ShowProperties(IEnumerable<PropertyNameValuePair> properties)
+	public void ShowProperties(IEnumerable<PropertyDescription> properties)
 	{
 		PropertiesViewModel viewModel = _viewFactory.CreateViewModel<PropertiesViewModel>();
 

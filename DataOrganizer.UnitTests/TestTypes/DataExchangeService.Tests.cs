@@ -48,7 +48,7 @@ internal class DataExchangeServiceTests
 
 			dbAccess
 				.LoadFromDb(Arg.Any<string>())
-				.Returns(new LoadFromDbResult
+				.Returns(new LoadedEntities
 				{
 					Files = [.. TestData.CreateFiles(5)],
 					Folders = [.. TestData.CreateFolders(5)]

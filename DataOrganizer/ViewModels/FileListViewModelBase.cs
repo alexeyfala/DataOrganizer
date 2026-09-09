@@ -83,7 +83,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 			return;
 		}
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(file.Id)
 			.ConfigureAwait(false);
 

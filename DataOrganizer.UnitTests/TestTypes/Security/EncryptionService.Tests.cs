@@ -299,7 +299,7 @@ internal class EncryptionServiceTests
 
 		using PinnedBuffer dek = sut.CreateRandomDek();
 
-		ContentsIsValidPair[] contents =
+		ValidatedContents[] contents =
 		[
 			new()
 			{
@@ -310,7 +310,7 @@ internal class EncryptionServiceTests
 		];
 
 		// Act
-		ContentsIsValidPair[] result = [.. sut.DecryptContents(contents, dek)];
+		ValidatedContents[] result = [.. sut.DecryptContents(contents, dek)];
 
 		// Assert
 		result
@@ -350,7 +350,7 @@ internal class EncryptionServiceTests
 
 		byte[] damaged = TestData.CreateRandomBytes(50);
 
-		ContentsIsValidPair[] contents =
+		ValidatedContents[] contents =
 		[
 			new()
 			{
@@ -367,7 +367,7 @@ internal class EncryptionServiceTests
 		];
 
 		// Act
-		ContentsIsValidPair[] result = [.. sut.DecryptContents(contents, dek)];
+		ValidatedContents[] result = [.. sut.DecryptContents(contents, dek)];
 
 		// Assert
 		result[0]
@@ -772,7 +772,7 @@ internal class EncryptionServiceTests
 			.Utf8Encoding
 			.GetBytes(TextHelper.LoremIpsum);
 
-		ContentsIsValidPair[] contents =
+		ValidatedContents[] contents =
 		[
 			new()
 			{
@@ -789,9 +789,9 @@ internal class EncryptionServiceTests
 		];
 
 		// Act
-		ContentsIsValidPair[] encrypted = [.. sut.EncryptContents(contents, dek)];
+		ValidatedContents[] encrypted = [.. sut.EncryptContents(contents, dek)];
 
-		ContentsIsValidPair[] decrypted = [.. sut.DecryptContents(encrypted, dek)];
+		ValidatedContents[] decrypted = [.. sut.DecryptContents(encrypted, dek)];
 
 		// Assert
 		encrypted[0]

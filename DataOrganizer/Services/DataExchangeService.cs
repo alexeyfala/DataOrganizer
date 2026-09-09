@@ -366,7 +366,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		LoadFromDbResult result = _dbAccess.LoadFromDb(filePath);
+		LoadedEntities result = _dbAccess.LoadFromDb(filePath);
 
 		RegenerateId(result.Folders, result.Files);
 

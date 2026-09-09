@@ -17,7 +17,7 @@ public interface IDialogService
 	/// <summary>
 	/// Displays the hotkey editor.
 	/// </summary>
-	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<CodeMaskPair> initialHotkeys);
+	Task<EditingHotkeysResult> EditHotkeysAsync(IEnumerable<KeyStroke> initialHotkeys);
 
 	/// <summary>
 	/// Shows the "open with" picker with <paramref name="candidates" /> and returns the
@@ -35,7 +35,7 @@ public interface IDialogService
 	/// <summary>
 	/// Requests the user to enter a string key and optionally a value.
 	/// </summary>
-	Task<StringKeyValuePair?> RequestKeyValueInputAsync(
+	Task<KeyValueInput?> RequestKeyValueInputAsync(
 		KeyValueInputParameters parameters,
 		CancellationToken token = default);
 
@@ -43,7 +43,7 @@ public interface IDialogService
 	/// Requests the user to enter a multiline text; <paramref name="name" /> is put into the header of the dialog.
 	/// A sensitive text is copied out of the dialog with the clipboard sensitivity markers.
 	/// </summary>
-	Task<ValueIsValidPair> RequestMultilineTextAsync(
+	Task<TextInputResult> RequestMultilineTextAsync(
 		string? text,
 		string? name = null,
 		bool isSensitive = false,
@@ -84,7 +84,7 @@ public interface IDialogService
 	/// <summary>
 	/// Shows a properties dialog.
 	/// </summary>
-	void ShowProperties(IEnumerable<PropertyNameValuePair> properties);
+	void ShowProperties(IEnumerable<PropertyDescription> properties);
 
 	/// <summary>
 	/// Shows application settings.

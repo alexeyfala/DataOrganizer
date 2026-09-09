@@ -232,7 +232,7 @@ public sealed class DbAccess : IDbAccess
 	/// <inheritdoc />
 	public async Task<HotkeyModel[]> AddHotkeysAsync(
 		Guid fileId,
-		CodeMaskPair[] hotkeys,
+		KeyStroke[] hotkeys,
 		CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -730,7 +730,7 @@ public sealed class DbAccess : IDbAccess
 	public string GetDbFilePath() => _dbContextService.GetDbFilePath();
 
 	/// <inheritdoc />
-	public async Task<ContentsIsValidPair> GetFileContentsAsync(Guid id, CancellationToken token = default)
+	public async Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default)
 	{
 		try
 		{
@@ -804,7 +804,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async IAsyncEnumerable<ContentsIsValidPair> GetFilesContentsAsync(
+	public async IAsyncEnumerable<ValidatedContents> GetFilesContentsAsync(
 		IEnumerable<Guid> identifiers,
 		[EnumeratorCancellation] CancellationToken token = default)
 	{
@@ -912,7 +912,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public LoadFromDbResult LoadFromDb(string dataSource)
+	public LoadedEntities LoadFromDb(string dataSource)
 	{
 		using SqliteDbContext context = GetSQliteDbContext(dataSource);
 
@@ -1271,13 +1271,13 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="CodeMaskPair" /> to a sequence of <see cref="HotkeyModel" />.
+	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyModel" />.
 	/// </summary>
-	private static IEnumerable<HotkeyModel> ToHotkeyModels(CodeMaskPair[] sequence, Guid ownerId)
+	private static IEnumerable<HotkeyModel> ToHotkeyModels(KeyStroke[] sequence, Guid ownerId)
 	{
 		for (int i = 0; i < sequence.Length; i++)
 		{
-			CodeMaskPair x = sequence[i];
+			KeyStroke x = sequence[i];
 
 			yield return new()
 			{

@@ -262,13 +262,13 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Editing a note of an object using dialog");
 
-		ValueIsValidPair result = await _dialogService.RequestMultilineTextAsync(
+		TextInputResult result = await _dialogService.RequestMultilineTextAsync(
 			_noteReader.ReadNote(dto),
 			dto.Name,
 			isSensitive: dto.EncryptionStatus != EncryptionStatus.None)
 			.ConfigureAwait(false);
 
-		if (!result.IsValid)
+		if (!result.IsConfirmed)
 		{
 			return;
 		}
@@ -363,7 +363,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		ContentsIsValidPair result = await _dbAccess
+		ValidatedContents result = await _dbAccess
 			.GetFileContentsAsync(dto.Id)
 			.ConfigureAwait(true);
 
@@ -1015,7 +1015,7 @@ public partial class EditorViewModel :
 		}
 
 		EditingHotkeysResult result = await _dialogService
-			.EditHotkeysAsync(dto.Hotkeys.ToCodeMaskPairs())
+			.EditHotkeysAsync(dto.Hotkeys.ToKeyStrokes())
 			.ConfigureAwait(false);
 
 		if (result.IsSaved)
@@ -1559,7 +1559,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Returns a sequence with information on the properties of an object.
 	/// </summary>
-	private static IEnumerable<PropertyNameValuePair> GetPropertyDescriptions(ExplorerModelBaseDto dto)
+	private static IEnumerable<PropertyDescription> GetPropertyDescriptions(ExplorerModelBaseDto dto)
 	{
 		const string format = "dd.MM.yyyy HH:mm:ss";
 

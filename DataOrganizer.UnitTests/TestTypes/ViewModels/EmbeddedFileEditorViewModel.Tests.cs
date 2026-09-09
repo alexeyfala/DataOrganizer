@@ -36,7 +36,7 @@ internal class EmbeddedFileEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ContentsIsValidPair pair = new()
+			ValidatedContents fileContents = new()
 			{
 				Contents = [.. contents],
 				IsValid = true
@@ -44,7 +44,7 @@ internal class EmbeddedFileEditorViewModelTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
+				.Returns(fileContents);
 
 			FileProperties properties = new()
 			{

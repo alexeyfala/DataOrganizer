@@ -2,7 +2,10 @@ using Entities.Models;
 
 namespace Repository.Dto;
 
-public sealed class LoadFromDbResult
+/// <summary>
+/// The entities read out of a database file.
+/// </summary>
+public sealed class LoadedEntities
 {
 	#region Properties
 	/// <summary>

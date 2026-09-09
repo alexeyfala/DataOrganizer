@@ -412,7 +412,7 @@ internal class DatasetEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ContentsIsValidPair pair = new()
+			ValidatedContents contents = new()
 			{
 				Contents = TestData.CreateRandomBytes(10),
 				IsValid = true
@@ -420,7 +420,7 @@ internal class DatasetEditorViewModelTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
+				.Returns(contents);
 
 			IJsonSerializer jsonSerializer = Substitute.For<IJsonSerializer>();
 
@@ -461,7 +461,7 @@ internal class DatasetEditorViewModelTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			ContentsIsValidPair pair = new()
+			ValidatedContents contents = new()
 			{
 				Contents = [],
 				IsValid = true
@@ -469,7 +469,7 @@ internal class DatasetEditorViewModelTests
 
 			dbAccess
 				.GetFileContentsAsync(Arg.Any<Guid>())
-				.Returns(pair);
+				.Returns(contents);
 
 			builder.RegisterInstance(dbAccess);
 
@@ -725,7 +725,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -773,7 +773,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -816,7 +816,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 		});
@@ -861,7 +861,7 @@ internal class DatasetEditorViewModelTests
 					Arg.Any<string>(),
 					Arg.Any<bool>(),
 					Arg.Any<CancellationToken>())
-				.Returns(new ValueIsValidPair());
+				.Returns(new TextInputResult());
 
 			builder.RegisterInstance(dialogService);
 		});

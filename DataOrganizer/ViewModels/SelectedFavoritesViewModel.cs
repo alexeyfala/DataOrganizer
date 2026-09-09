@@ -82,7 +82,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	public partial FileModelDto? SelectedFavorite { get; set; }
 
 	/// <inheritdoc cref="FavoritesViewSettings.SelectedPairs" />
-	public List<CategoryFavoritePair> SelectedPairs { get; } = [];
+	public List<FavoriteSelection> SelectedPairs { get; } = [];
 	#endregion
 
 	#region Partial
@@ -138,7 +138,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// Handles when item in <see cref="Categories" /> has dragged.
 	/// </summary>
 	[RelayCommand]
-	private void CategoryDragged(DraggedIndexTargetIndexPair pair)
+	private void CategoryDragged(IndexMove pair)
 	{
 		FavoriteCategory selected = Categories[pair.DraggedIndex];
 
@@ -286,7 +286,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		Guid selectedCategoryId,
 		List<FavoriteCategory> categories,
 		List<Guid> orderedCategories,
-		List<CategoryFavoritePair> selectedPairs)
+		List<FavoriteSelection> selectedPairs)
 	{
 		NavigationColumnWidth = new(navigationColumnWidth);
 
