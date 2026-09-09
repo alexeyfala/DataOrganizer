@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
 using System;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Windows;
 
 /// <summary>
 /// Closes the associated <see cref="Window" /> when it loses focus, unless <see cref="KeepOpen" /> is set.

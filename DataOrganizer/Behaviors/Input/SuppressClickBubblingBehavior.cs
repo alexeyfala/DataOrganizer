@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Marks <see cref="Button.ClickEvent" /> as handled so it does not bubble to an outer control.

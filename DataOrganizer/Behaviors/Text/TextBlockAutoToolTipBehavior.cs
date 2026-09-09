@@ -8,7 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Text;
 
 /// <summary>
 /// Trims the associated <see cref="TextBlock" /> with an ellipsis and shows its full text

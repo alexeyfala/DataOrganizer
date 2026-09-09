@@ -2,11 +2,11 @@
 	x:Class="DataOrganizer.Views.DatasetFieldView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	mc:Ignorable="d">
 
@@ -42,8 +42,8 @@
 					Text="{Binding DisplayText, Mode=OneWay}">
 
 					<Interaction.Behaviors>
-						<behaviors:TextBlockAutoToolTipBehavior>
-							<behaviors:TextBlockAutoToolTipBehavior.IsEnabled>
+						<text:TextBlockAutoToolTipBehavior>
+							<text:TextBlockAutoToolTipBehavior.IsEnabled>
 								<MultiBinding Converter="{x:Static BoolConverters.And}">
 									<Binding
 										Mode="OneWay"
@@ -53,8 +53,8 @@
 										Mode="OneWay"
 										Path="!IsSensitive" />
 								</MultiBinding>
-							</behaviors:TextBlockAutoToolTipBehavior.IsEnabled>
-						</behaviors:TextBlockAutoToolTipBehavior>
+							</text:TextBlockAutoToolTipBehavior.IsEnabled>
+						</text:TextBlockAutoToolTipBehavior>
 					</Interaction.Behaviors>
 				</TextBlock>
 
@@ -64,8 +64,8 @@
 					NavigateUri="{Binding Text, Mode=OneWay}">
 					<TextBlock Text="{Binding DisplayText, Mode=OneWay}">
 						<Interaction.Behaviors>
-							<behaviors:TextBlockAutoToolTipBehavior>
-								<behaviors:TextBlockAutoToolTipBehavior.IsEnabled>
+							<text:TextBlockAutoToolTipBehavior>
+								<text:TextBlockAutoToolTipBehavior.IsEnabled>
 									<MultiBinding Converter="{x:Static BoolConverters.And}">
 										<Binding
 											Mode="OneWay"
@@ -75,8 +75,8 @@
 											Mode="OneWay"
 											Path="!IsSensitive" />
 									</MultiBinding>
-								</behaviors:TextBlockAutoToolTipBehavior.IsEnabled>
-							</behaviors:TextBlockAutoToolTipBehavior>
+								</text:TextBlockAutoToolTipBehavior.IsEnabled>
+							</text:TextBlockAutoToolTipBehavior>
 						</Interaction.Behaviors>
 					</TextBlock>
 				</HyperlinkButton>

@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Windows;
 
 /// <summary>
 /// Closes <see cref="Window" /> after the attached <see cref="Button" /> has been clicked.

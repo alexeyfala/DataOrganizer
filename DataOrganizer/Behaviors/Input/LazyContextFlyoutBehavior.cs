@@ -5,7 +5,7 @@ using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 using System;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Lazily creates and assigns a <see cref="Flyout" /> as <see cref="Control.ContextFlyout" />

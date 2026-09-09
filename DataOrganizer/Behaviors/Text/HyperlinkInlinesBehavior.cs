@@ -7,7 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Text.RegularExpressions;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Text;
 
 /// <summary>
 /// Populates <see cref="TextBlock.Inlines" /> of associated <see cref="TextBlock" />

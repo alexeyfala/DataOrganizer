@@ -1,13 +1,14 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:encEnums="using:DataOrganizer.Enums"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -26,7 +27,7 @@
 			</Grid.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:DisableRightClickSelectionBehavior />
+				<input:DisableRightClickSelectionBehavior />
 			</Interaction.Behaviors>
 
 			<Grid.ContextFlyout>
@@ -52,7 +53,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
@@ -93,7 +94,7 @@
 				VerticalAlignment="Center"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 

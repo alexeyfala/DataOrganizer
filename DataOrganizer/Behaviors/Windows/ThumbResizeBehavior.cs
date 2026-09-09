@@ -5,7 +5,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Windows;
 
 /// <summary>
 /// Resizes a target through <see cref="Width" /> / <see cref="Height" /> by accumulating

@@ -2,12 +2,12 @@
 	x:Class="DataOrganizer.Views.MultilineTextEditView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:security="using:DataOrganizer.Behaviors.Security"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:MultilineTextEditViewModel"
 	Theme="{StaticResource DialogTheme}"
@@ -40,7 +40,7 @@
 			<Interaction.Behaviors>
 				<AutoFocusBehavior />
 
-				<behaviors:SensitiveCopyBehavior
+				<security:SensitiveCopyBehavior
 					IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 					Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 			</Interaction.Behaviors>

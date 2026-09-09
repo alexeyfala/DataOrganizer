@@ -40,7 +40,7 @@
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
 
-		<!--#region Necessary for DataOrganizer.Behaviors.FluentThemeBehavior-->
+		<!--#region Necessary for DataOrganizer.Behaviors.Styling.FluentThemeBehavior-->
 		<system:Double x:Key="ControlContentThemeFontSize">14</system:Double>
 
 		<FontFamily x:Key="ContentControlThemeFontFamily">Consolas</FontFamily>

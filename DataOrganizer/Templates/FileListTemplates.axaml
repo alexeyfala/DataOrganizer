@@ -1,13 +1,14 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:enums="using:DataOrganizer.Enums"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -72,7 +73,7 @@
 				</materialIcons:MaterialIcon.Styles>
 
 				<Interaction.Behaviors>
-					<behaviors:PointerHoverCommandBehavior
+					<input:PointerHoverCommandBehavior
 						Command="{Binding $parent[UserControl].((vm:FileListViewModelBase)DataContext).PreviewPointerEnteredCommand}"
 						CommandParameter="{Binding #Icon}" />
 
@@ -89,7 +90,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
@@ -106,9 +107,9 @@
 				NoteReader="{markup:Resolve {x:Type notes:INoteReader}}" />
 
 			<Interaction.Behaviors>
-				<behaviors:DisableRightClickSelectionBehavior />
+				<input:DisableRightClickSelectionBehavior />
 
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInListContextMenuTemplate}" />
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInListContextMenuTemplate}" />
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction

@@ -3,7 +3,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Styling;
 
 /// <summary>
 /// Overrides the "Hand" cursor that Material.Avalonia's Expander template hard-codes on

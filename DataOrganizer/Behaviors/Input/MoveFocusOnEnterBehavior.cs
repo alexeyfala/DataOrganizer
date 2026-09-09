@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Moves the focus from the attached <see cref="InputElement" /> to <see cref="Target" />

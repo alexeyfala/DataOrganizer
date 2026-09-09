@@ -3,11 +3,11 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:AvaloniaEdit="using:AvaloniaEdit"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:EmbeddedFileEditorViewModel"
 	mc:Ignorable="d">
@@ -99,7 +99,7 @@
 			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
-				<behaviors:FluentThemeBehavior />
+				<styling:FluentThemeBehavior />
 
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction

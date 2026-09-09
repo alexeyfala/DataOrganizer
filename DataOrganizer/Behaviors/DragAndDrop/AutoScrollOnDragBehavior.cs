@@ -6,7 +6,7 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using System;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.DragAndDrop;
 
 // Source code taken from:
 // https://github.com/wieslawsoltes/Xaml.Behaviors/blob/master/src/Xaml.Behaviors.Interactions.Draggable/AutoScrollOnDragBehavior.cs

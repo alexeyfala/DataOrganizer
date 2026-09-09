@@ -1,14 +1,16 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.Models.Clipboard"
 	xmlns:helpers="using:DataOrganizer.Helpers"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:system="using:System"
-	xmlns:vm="using:DataOrganizer.ViewModels">
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
+	xmlns:vm="using:DataOrganizer.ViewModels"
+	xmlns:windows="using:DataOrganizer.Behaviors.Windows">
 
 	<system:Double x:Key="TextEntryMaxHeight">100.0</system:Double>
 	<system:Double x:Key="ImageEntryMaxWidth">160.0</system:Double>
@@ -36,7 +38,7 @@
 				TextTrimming="CharacterEllipsis"
 				TextWrapping="Wrap">
 				<Interaction.Behaviors>
-					<behaviors:SearchHighlightBehavior
+					<text:SearchHighlightBehavior
 						HighlightBrush="{StaticResource SearchHighlightBrush}"
 						HighlightForeground="{StaticResource SearchHighlightForegroundBrush}"
 						Query="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).SearchText}"
@@ -92,7 +94,7 @@
 			</Button.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:CloseWindowOnClickBehavior
+				<windows:CloseWindowOnClickBehavior
 					KeepOpen="{Binding $parent[Window].((vm:ClipboardLogViewModel)DataContext).KeepOpen}"
 					Window="{Binding $parent[Window]}" />
 			</Interaction.Behaviors>
@@ -163,7 +165,7 @@
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:SuppressClickBubblingBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<materialIcons:MaterialIcon
@@ -197,7 +199,7 @@
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:SuppressClickBubblingBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>
@@ -265,7 +267,7 @@
 							</ToggleButton.IsVisible>
 
 							<Interaction.Behaviors>
-								<behaviors:SuppressClickBubblingBehavior />
+								<input:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>

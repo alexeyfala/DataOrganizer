@@ -3,18 +3,19 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:avaloniaConverters="using:Avalonia.Data.Converters"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:dialogHost="using:DialogHostAvalonia"
 	xmlns:encryption="using:DataOrganizer.Interfaces.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:interfaces="using:DataOrganizer.Interfaces"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialControls="using:Material.Styles.Controls"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:notifications="using:DataOrganizer.Behaviors.Notifications"
 	xmlns:prop="using:Shared.Properties"
 	xmlns:selectors="using:DataOrganizer.Templates.Selectors"
 	xmlns:vm="using:DataOrganizer.ViewModels"
@@ -46,7 +47,7 @@
 			HostName="{Binding $self.Name}"
 			SnackbarHorizontalAlignment="Center">
 			<Interaction.Behaviors>
-				<behaviors:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
+				<notifications:SnackbarHostBehavior Presenter="{markup:Resolve {x:Type interfaces:ISnackbarPresenter}}" />
 			</Interaction.Behaviors>
 
 			<materialControls:NavigationDrawer
@@ -337,7 +338,7 @@
 							</TreeView.Styles>
 
 							<Interaction.Behaviors>
-								<behaviors:DisableRightClickSelectionBehavior />
+								<input:DisableRightClickSelectionBehavior />
 							</Interaction.Behaviors>
 
 							<TreeView.DataTemplates>

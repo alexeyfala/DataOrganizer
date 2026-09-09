@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Windows;
 
 /// <summary>
 /// Starts a native resize-drag of <see cref="Window" /> towards <see cref="Edge" /> when the attached

@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors;
+using DataOrganizer.Behaviors.Security;
 
-namespace DataOrganizer.UnitTests.Behaviors;
+namespace DataOrganizer.UnitTests.Behaviors.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WipeReplacedTextBehavior)}"" type")]
 internal class WipeReplacedTextBehaviorTests

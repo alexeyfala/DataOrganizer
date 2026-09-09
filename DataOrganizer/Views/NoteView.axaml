@@ -2,14 +2,16 @@
 	x:Class="DataOrganizer.Views.NoteView"
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:clipboard="using:DataOrganizer.Interfaces.Clipboard"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:security="using:DataOrganizer.Behaviors.Security"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	mc:Ignorable="d">
 
@@ -45,7 +47,7 @@
 			IsVisible="{Binding !IsLocked, Mode=OneWay}">
 
 			<Interaction.Behaviors>
-				<behaviors:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
+				<input:PointerHoverCommandBehavior Command="{Binding NotePointerEnteredCommand}" />
 			</Interaction.Behaviors>
 		</materialIcons:MaterialIcon>
 
@@ -135,9 +137,9 @@
 							</SelectableTextBlock.ContextFlyout>
 
 							<Interaction.Behaviors>
-								<behaviors:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
+								<text:HyperlinkInlinesBehavior Text="{Binding DisplayedNote}" />
 
-								<behaviors:SensitiveCopyBehavior
+								<security:SensitiveCopyBehavior
 									IsSensitive="{Binding IsSensitive, Mode=OneWay}"
 									Writer="{markup:Resolve {x:Type clipboard:ISensitiveClipboardWriter}}" />
 							</Interaction.Behaviors>

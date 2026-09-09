@@ -2,8 +2,12 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
+/// <summary>
+/// Keeps a right click from changing the selection of the associated control,
+/// by handling the press before it reaches the control itself.
+/// </summary>
 internal sealed class DisableRightClickSelectionBehavior : Behavior<Interactive>
 {
 	#region Event Handlers

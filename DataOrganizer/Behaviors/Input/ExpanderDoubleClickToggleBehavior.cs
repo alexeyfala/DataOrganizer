@@ -6,7 +6,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 using System.Linq;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Expands and collapses the attached <see cref="Expander" /> on a double click of its header.

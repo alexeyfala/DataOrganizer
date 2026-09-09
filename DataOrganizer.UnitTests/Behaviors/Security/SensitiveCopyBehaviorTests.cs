@@ -2,12 +2,12 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors;
+using DataOrganizer.Behaviors.Security;
 using DataOrganizer.Interfaces.Clipboard;
 using NSubstitute;
 using Shared.Common;
 
-namespace DataOrganizer.UnitTests.Behaviors;
+namespace DataOrganizer.UnitTests.Behaviors.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveCopyBehavior)}"" type")]
 internal class SensitiveCopyBehaviorTests

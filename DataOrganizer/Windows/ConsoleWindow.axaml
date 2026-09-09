@@ -3,11 +3,11 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:AvaloniaEdit="using:AvaloniaEdit"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	xmlns:prop="using:Shared.Properties"
+	xmlns:styling="using:DataOrganizer.Behaviors.Styling"
 	xmlns:vm="using:DataOrganizer.ViewModels"
 	x:DataType="vm:ConsoleViewModel"
 	Icon="/Assets/Logo.ico"
@@ -15,7 +15,7 @@
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Interaction.Behaviors>
-			<behaviors:FluentThemeBehavior />
+			<styling:FluentThemeBehavior />
 		</Interaction.Behaviors>
 
 		<Separator

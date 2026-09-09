@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless.NUnit;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors;
+using DataOrganizer.Behaviors.Security;
 using DataOrganizer.Views;
 using System.Linq;
 

@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Messages;
 using System;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.DragAndDrop;
 
 /// <summary>
 /// Scrolls the associated <see cref="ScrollViewer" /> vertically while a record drag hovers near its

@@ -6,7 +6,7 @@ using Shared.Common;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Executes a command once the pointer has rested over <see cref="AssociatedObject" />

@@ -8,7 +8,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Security;
 
 /// <summary>
 /// Observes <see cref="TextBox.Text" /> of the associated <see cref="TextBox" /> and of the

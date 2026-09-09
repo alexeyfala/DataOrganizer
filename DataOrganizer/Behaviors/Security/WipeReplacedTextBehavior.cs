@@ -6,7 +6,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Security;
 
 /// <summary>
 /// Wipes in place every string the attached <see cref="TextBox" /> replaces.

@@ -12,7 +12,7 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Text;
 
 /// <summary>
 /// Renders <see cref="SourceText" /> in the associated <see cref="TextBlock" />: full text trimmed

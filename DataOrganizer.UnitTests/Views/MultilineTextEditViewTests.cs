@@ -4,7 +4,7 @@ using Avalonia.Headless.NUnit;
 using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactivity;
 using AwesomeAssertions;
-using DataOrganizer.Behaviors;
+using DataOrganizer.Behaviors.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;

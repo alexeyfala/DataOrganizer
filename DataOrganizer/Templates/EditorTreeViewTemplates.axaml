@@ -1,12 +1,13 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:behaviors="using:DataOrganizer.Behaviors"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
+	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
 	xmlns:notes="using:DataOrganizer.Interfaces.Notes"
+	xmlns:text="using:DataOrganizer.Behaviors.Text"
 	xmlns:views="using:DataOrganizer.Views"
 	xmlns:vm="using:DataOrganizer.ViewModels">
 
@@ -27,7 +28,7 @@
 			</Grid.Styles>
 
 			<Interaction.Behaviors>
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FolderInTreeViewContextMenuTemplate}" />
 			</Interaction.Behaviors>
 
 			<Grid Grid.Column="0">
@@ -44,7 +45,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 
@@ -66,7 +67,7 @@
 			Background="Transparent"
 			ColumnDefinitions="Auto,*,Auto">
 			<Interaction.Behaviors>
-				<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
+				<input:LazyContextFlyoutBehavior ContentTemplate="{StaticResource FileInTreeViewContextMenuTemplate}" />
 
 				<EventTriggerBehavior EventName="DoubleTapped">
 					<InvokeCommandAction
@@ -93,7 +94,7 @@
 				Classes="DtoNameTextBlockStyle"
 				Text="{Binding Name, Mode=OneWay}">
 				<Interaction.Behaviors>
-					<behaviors:TextBlockAutoToolTipBehavior />
+					<text:TextBlockAutoToolTipBehavior />
 				</Interaction.Behaviors>
 			</TextBlock>
 

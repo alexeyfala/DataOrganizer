@@ -10,7 +10,7 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Models.Dataset;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.DragAndDrop;
 
 /// <summary>
 /// Accepts a record dragged by <see cref="DatasetRecordDragBehavior" /> and moves it into the

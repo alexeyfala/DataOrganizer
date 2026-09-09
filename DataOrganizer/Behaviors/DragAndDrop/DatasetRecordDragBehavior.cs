@@ -12,7 +12,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.DragAndDrop;
 
 /// <summary>
 /// Drags the associated record with the mouse alone, carrying both an in-process payload for reordering

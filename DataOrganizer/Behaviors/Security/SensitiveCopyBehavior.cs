@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Interfaces.Clipboard;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Security;
 
 /// <summary>
 /// Writes the copy taken from the attached <see cref="TextBox" /> or <see cref="SelectableTextBlock" />

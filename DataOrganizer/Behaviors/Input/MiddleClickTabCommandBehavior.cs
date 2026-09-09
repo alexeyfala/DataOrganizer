@@ -5,7 +5,7 @@ using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using System.Windows.Input;
 
-namespace DataOrganizer.Behaviors;
+namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
 /// Executes a command for the tab that was clicked with the middle mouse button,
