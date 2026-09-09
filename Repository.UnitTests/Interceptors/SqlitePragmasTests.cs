@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Interceptors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmas)}"" type")]
 internal class SqlitePragmasTests

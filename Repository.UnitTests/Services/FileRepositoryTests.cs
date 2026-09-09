@@ -7,7 +7,7 @@ using Repository.UnitTests.Fixtures;
 using System;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileRepository)}"" type")]
 internal class FileRepositoryTests

@@ -4,7 +4,7 @@ using SharpHook.Data;
 using System;
 using System.Text.Json;
 
-namespace Entities.UnitTests;
+namespace Entities.UnitTests.Models;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HotkeyEntity)}"" type")]
 internal class HotkeyEntityTests

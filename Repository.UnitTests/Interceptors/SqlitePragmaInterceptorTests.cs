@@ -5,7 +5,7 @@ using Repository.Interceptors;
 using System.Data.Common;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Interceptors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqlitePragmaInterceptor)}"" type")]
 internal class SqlitePragmaInterceptorTests

@@ -24,7 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests

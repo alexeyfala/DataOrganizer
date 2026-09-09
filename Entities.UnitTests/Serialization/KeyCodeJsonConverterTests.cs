@@ -4,7 +4,7 @@ using SharpHook.Data;
 using System;
 using System.Text.Json;
 
-namespace Entities.UnitTests;
+namespace Entities.UnitTests.Serialization;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyCodeJsonConverter)}"" type")]
 internal class KeyCodeJsonConverterTests

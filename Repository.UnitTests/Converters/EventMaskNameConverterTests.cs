@@ -3,7 +3,7 @@ using Repository.Converters;
 using SharpHook.Data;
 using System;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EventMaskNameConverter)}"" type")]
 internal class EventMaskNameConverterTests

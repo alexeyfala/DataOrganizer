@@ -9,7 +9,7 @@ using System;
 using System.Data.Common;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.DbContexts;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SqliteDbContext)}"" type")]
 internal class SqliteDbContextTests

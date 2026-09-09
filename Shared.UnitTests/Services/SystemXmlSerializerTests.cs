@@ -10,7 +10,7 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using TestSupport;
 
-namespace Shared.UnitTests;
+namespace Shared.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SystemXmlSerializer)}"" type")]
 internal class SystemXmlSerializerTests

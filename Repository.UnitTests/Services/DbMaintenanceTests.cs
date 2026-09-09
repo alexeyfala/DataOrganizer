@@ -10,7 +10,7 @@ using Shared.Interfaces;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests;
+namespace Repository.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
 internal class DbMaintenanceTests

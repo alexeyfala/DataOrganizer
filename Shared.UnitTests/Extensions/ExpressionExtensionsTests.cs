@@ -3,7 +3,7 @@ using Shared.Extensions;
 using System;
 using System.Linq.Expressions;
 
-namespace Shared.UnitTests;
+namespace Shared.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExpressionExtensions)}"" type")]
 internal class ExpressionExtensionsTests
