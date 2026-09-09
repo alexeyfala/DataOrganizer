@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-//using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
 using DataOrganizer.Interfaces;
 using Material.Styles.Controls;
