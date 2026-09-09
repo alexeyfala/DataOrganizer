@@ -1,0 +1,16 @@
+using Entities.Models;
+using System;
+
+namespace DataOrganizer.Dto.Entities;
+
+/// <inheritdoc cref="EntityModelBase" />
+public abstract class EntityModelBaseDto
+{
+	#region Properties
+	/// <inheritdoc cref="EntityModelBase.Id" />
+	public required Guid Id { get; init; }
+
+	/// <inheritdoc cref="EntityModelBase.Index" />
+	public required int Index { get; set; }
+	#endregion
+}
