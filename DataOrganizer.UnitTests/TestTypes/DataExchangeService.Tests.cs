@@ -622,9 +622,9 @@ internal class DataExchangeServiceTests
 	/// <summary>
 	/// <see cref="DataExchangeService.ImportEntitiesAsync" />: imports entities, stamps their dates, and maps them via the entity loader for both append and replace variants.
 	/// </summary>
-	[TestCase(ImportListVariant.Append)]
-	[TestCase(ImportListVariant.Replace)]
-	public async Task ImportEntitiesAsync_Does_Work(ImportListVariant variant)
+	[TestCase(ImportMode.Append)]
+	[TestCase(ImportMode.Replace)]
+	public async Task ImportEntitiesAsync_Does_Work(ImportMode variant)
 	{
 		// Arrange
 		ExplorerModelBase[] entities = [.. TestData
@@ -639,7 +639,7 @@ internal class DataExchangeServiceTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			if (variant == ImportListVariant.Replace)
+			if (variant == ImportMode.Replace)
 			{
 				dbAccess
 					.ClearDatabaseAsync()

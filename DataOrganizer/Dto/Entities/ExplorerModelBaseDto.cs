@@ -34,7 +34,7 @@ public abstract partial class ExplorerModelBaseDto : EntityModelBaseDto, INamed
 	public partial EncryptionStatus EncryptionStatus { get; set; }
 
 	/// <inheritdoc cref="ExplorerModelBase.EntityType" />
-	public required EntityType EntityType { get; init; }
+	public required EntityKind EntityType { get; init; }
 
 	/// <inheritdoc cref="FolderModel.IsExpanded" />
 	/// <remarks>

@@ -114,7 +114,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerModelBase entity = parameters.EntityType == EntityType.Folder
+			ExplorerModelBase entity = parameters.EntityType == EntityKind.Folder
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 

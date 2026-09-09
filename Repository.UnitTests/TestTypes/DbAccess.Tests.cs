@@ -34,7 +34,7 @@ internal class DbAccessTests
 	/// <see cref="DbAccess.AddEntityAsync" />: creates a folder or file entity with the supplied parameters and saves changes.
 	/// </summary>
 	[Test]
-	public async Task AddEntityAsync_Returns_Entity([Values] EntityType type)
+	public async Task AddEntityAsync_Returns_Entity([Values] EntityKind type)
 	{
 		// Arrange
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
@@ -90,7 +90,7 @@ internal class DbAccessTests
 			.Received()
 			.SaveChangesAsync();
 
-		if (type == EntityType.Folder)
+		if (type == EntityKind.Folder)
 		{
 			entity
 				.Should()
@@ -560,7 +560,7 @@ internal class DbAccessTests
 
 		(await sut.AddEntityAsync(new()
 		{
-			EntityType = EntityType.Folder,
+			EntityType = EntityKind.Folder,
 			Index = 0,
 			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()

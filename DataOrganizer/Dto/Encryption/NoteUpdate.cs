@@ -12,13 +12,13 @@ namespace DataOrganizer.Dto.Encryption;
 /// <param name="Note">The note in its new form.</param>
 public sealed record NoteUpdate(
 	Guid Id,
-	EntityType EntityType,
+	EntityKind EntityType,
 	byte[] Note)
 {
 	#region Methods
 	/// <summary>
 	/// <c>True</c> when the note belongs to a <see cref="FolderModelDto" />.
 	/// </summary>
-	public bool IsFolderNote() => EntityType == EntityType.Folder;
+	public bool IsFolderNote() => EntityType == EntityKind.Folder;
 	#endregion
 }

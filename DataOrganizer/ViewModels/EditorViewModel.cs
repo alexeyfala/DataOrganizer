@@ -92,9 +92,9 @@ public partial class EditorViewModel :
 	[ObservableProperty]
 	public partial GridLength NavigationColumnWidth { get; set; }
 
-	/// <inheritdoc cref="RightSideSheetContentType" />
+	/// <inheritdoc cref="RightSideSheetContentKind" />
 	[ObservableProperty]
-	public partial RightSideSheetContentType RightSideSheetContent { get; set; }
+	public partial RightSideSheetContentKind RightSideSheetContent { get; set; }
 
 	/// <summary>
 	/// The selected object in <see cref="TreeView" /> from <see cref="ViewModelBase.Hierarchy" />.
@@ -142,12 +142,12 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		RightSideSheetContent = RightSideSheetContentType.None;
+		RightSideSheetContent = RightSideSheetContentKind.None;
 	}
 
 	/// <summary>
@@ -548,12 +548,12 @@ public partial class EditorViewModel :
 
 		if (await _dataExchange
 			.ImportDataAsync(Hierarchy)
-			.ConfigureAwait(true) is not { } result || result.Variant == ImportListVariant.None)
+			.ConfigureAwait(true) is not { } result || result.Variant == ImportMode.None)
 		{
 			return;
 		}
 
-		if (result.Variant == ImportListVariant.Replace)
+		if (result.Variant == ImportMode.Replace)
 		{
 			CopyHistorySettings
 				.Items
@@ -713,12 +713,12 @@ public partial class EditorViewModel :
 	[RelayCommand]
 	private async Task ClearRightSideSheet()
 	{
-		if (RightSideSheetContent == RightSideSheetContentType.None)
+		if (RightSideSheetContent == RightSideSheetContentKind.None)
 		{
 			return;
 		}
 
-		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
 			if (CopyHistorySettings.Items.Count == 0 || !await _dialogService
 				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
@@ -729,7 +729,7 @@ public partial class EditorViewModel :
 
 			ClearCopyHistory();
 		}
-		else if (RightSideSheetContent == RightSideSheetContentType.ExecutingFiles)
+		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
 			if (ExecutingFiles.Count == 0 || !await _dialogService
 				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
@@ -965,7 +965,7 @@ public partial class EditorViewModel :
 	/// Controls the display of the copy history in right side sheet.
 	/// </summary>
 	[RelayCommand]
-	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentType.CopyHistory);
+	private void ShowCopyHistory() => SwitchRightSideSheetContent(RightSideSheetContentKind.CopyHistory);
 
 	/// <summary>
 	/// Controls the display of the executing files in right side sheet.
@@ -973,12 +973,12 @@ public partial class EditorViewModel :
 	[RelayCommand]
 	private void ShowExecutingFiles()
 	{
-		if (RightSideSheetContent == RightSideSheetContentType.CopyHistory)
+		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
 
-		SwitchRightSideSheetContent(RightSideSheetContentType.ExecutingFiles);
+		SwitchRightSideSheetContent(RightSideSheetContentKind.ExecutingFiles);
 	}
 
 	/// <inheritdoc cref="IContentVisibility.ShowFileContentsAsync" />
@@ -1371,7 +1371,7 @@ public partial class EditorViewModel :
 	/// </summary>
 	internal async Task<ExplorerModelBaseDto?> AddAsync(
 		string name,
-		EntityType entityType,
+		EntityKind entityType,
 		FolderModelDto? parent,
 		CancellationToken token = default)
 	{
@@ -1567,9 +1567,9 @@ public partial class EditorViewModel :
 			Strings.Type,
 			dto.EntityType switch
 			{
-				EntityType.Folder => Strings.Folder,
-				EntityType.File => Strings.File,
-				EntityType.DataSet => Strings.Dataset,
+				EntityKind.Folder => Strings.Folder,
+				EntityKind.File => Strings.File,
+				EntityKind.DataSet => Strings.Dataset,
 				_ => throw new NotImplementedException()
 			});
 
@@ -1801,7 +1801,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Switches the right side sheet content.
 	/// </summary>
-	private void SwitchRightSideSheetContent(RightSideSheetContentType type)
+	private void SwitchRightSideSheetContent(RightSideSheetContentKind type)
 	{
 		if (RightSideSheetContent == type)
 		{
@@ -1812,8 +1812,8 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation($"Show {type switch
 		{
-			RightSideSheetContentType.CopyHistory => "copy history",
-			RightSideSheetContentType.ExecutingFiles => "executing files",
+			RightSideSheetContentKind.CopyHistory => "copy history",
+			RightSideSheetContentKind.ExecutingFiles => "executing files",
 			_ => "unknown"
 		}}");
 

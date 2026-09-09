@@ -75,7 +75,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 	{
 		control = null;
 
-		if (file.EntityType == EntityType.File)
+		if (file.EntityType == EntityKind.File)
 		{
 			EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
 
@@ -85,7 +85,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 
 			return true;
 		}
-		else if (file.EntityType == EntityType.DataSet)
+		else if (file.EntityType == EntityKind.DataSet)
 		{
 			DatasetEditorViewModel viewModel = _viewFactory.CreateViewModel<DatasetEditorViewModel>();
 

@@ -96,7 +96,7 @@ public sealed class ProcessManager : IProcessManager
 
 	#region Helpers
 	/// <summary>
-	/// Creates a process to open a file on an operating system other than <see cref="OperatingSystemType.Windows" />.
+	/// Creates a process to open a file on an operating system other than <see cref="OperatingSystemKind.Windows" />.
 	/// </summary>
 	private static Process CreateNonWindowsProcess(string filePath) => new()
 	{
@@ -110,7 +110,7 @@ public sealed class ProcessManager : IProcessManager
 	};
 
 	/// <summary>
-	/// Creates a process to open a file in the <see cref="OperatingSystemType.Windows" /> operating system.
+	/// Creates a process to open a file in the <see cref="OperatingSystemKind.Windows" /> operating system.
 	/// </summary>
 	private static Process CreateWindowsProcess(string filePath) => new()
 	{

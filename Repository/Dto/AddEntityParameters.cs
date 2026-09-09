@@ -8,7 +8,7 @@ public readonly struct AddEntityParameters
 {
 	#region Properties
 	/// <inheritdoc cref="ExplorerModelBase.EntityType" />
-	public required EntityType EntityType { get; init; }
+	public required EntityKind EntityType { get; init; }
 
 	/// <inheritdoc cref="FileModel.Contents" />
 	public byte[]? FileContents { get; init; }

@@ -28,12 +28,12 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportListVariant result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync();
 
 		// Assert
 		result
 			.Should()
-			.Be(ImportListVariant.Append);
+			.Be(ImportMode.Append);
 	}
 
 	/// <summary>
@@ -54,12 +54,12 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportListVariant result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync();
 
 		// Assert
 		result
 			.Should()
-			.Be(ImportListVariant.None);
+			.Be(ImportMode.None);
 	}
 
 	/// <summary>
@@ -78,12 +78,12 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.ApplyCommand.Execute(null));
 
-		ImportListVariant result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync();
 
 		// Assert
 		result
 			.Should()
-			.Be(ImportListVariant.Replace);
+			.Be(ImportMode.Replace);
 	}
 
 	/// <summary>
@@ -100,12 +100,12 @@ internal class ImportListSelectorViewModelTests
 		// Act
 		_ = Task.Run(() => sut.CancelCommand.Execute(null));
 
-		ImportListVariant result = await sut.GetResultAsync();
+		ImportMode result = await sut.GetResultAsync();
 
 		// Assert
 		result
 			.Should()
-			.Be(ImportListVariant.None);
+			.Be(ImportMode.None);
 	}
 	#endregion
 }

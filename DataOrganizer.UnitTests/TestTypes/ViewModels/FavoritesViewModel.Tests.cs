@@ -407,7 +407,7 @@ internal class FavoritesViewModelTests
 
 		sut.PopupContent
 			.Should()
-			.Be(FavoritesPopupContentType.Favorites);
+			.Be(FavoritesPopupContentKind.Favorites);
 
 		sut.IsPopupFixed
 			.Should()

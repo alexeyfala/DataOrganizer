@@ -9,7 +9,7 @@ namespace DataOrganizer.Behaviors;
 /// Starts a native resize-drag of <see cref="Window" /> towards <see cref="Edge" /> when the attached
 /// control is pressed with the left mouse button.
 /// </summary>
-internal sealed class ResizeWindowBehavior : Behavior<Control>
+internal sealed class WindowResizeBehavior : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
@@ -36,13 +36,13 @@ internal sealed class ResizeWindowBehavior : Behavior<Control>
 	/// Identifies the <see cref="Edge" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<WindowEdge> EdgeProperty = AvaloniaProperty
-		.Register<ResizeWindowBehavior, WindowEdge>(name: nameof(Edge));
+		.Register<WindowResizeBehavior, WindowEdge>(name: nameof(Edge));
 
 	/// <summary>
 	/// Identifies the <see cref="Window" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<Window?> WindowProperty = AvaloniaProperty
-		.Register<ResizeWindowBehavior, Window?>(name: nameof(Window));
+		.Register<WindowResizeBehavior, Window?>(name: nameof(Window));
 	#endregion
 
 	#region Event Handlers

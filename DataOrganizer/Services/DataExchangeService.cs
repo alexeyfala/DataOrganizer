@@ -215,7 +215,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		ImportListVariant variant = ImportListVariant.Replace;
+		ImportMode variant = ImportMode.Replace;
 
 		if (hierarchy.Count != 0)
 		{
@@ -223,7 +223,7 @@ public sealed class DataExchangeService : IDataExchangeService
 				.SelectImportVariantAsync(token)
 				.ConfigureAwait(true);
 
-			if (variant == ImportListVariant.None)
+			if (variant == ImportMode.None)
 			{
 				return null;
 			}
@@ -396,12 +396,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	internal async Task<bool> ImportEntitiesAsync(
 		ExplorerModelBase[] entities,
-		ImportListVariant variant,
+		ImportMode variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default)
 	{
-		if (variant == ImportListVariant.Replace && !await _dbAccess
+		if (variant == ImportMode.Replace && !await _dbAccess
 			.ClearDatabaseAsync(token)
 			.ConfigureAwait(false))
 		{
@@ -418,7 +418,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		RegenerateId(folders, files);
 
-		if (variant == ImportListVariant.Append)
+		if (variant == ImportMode.Append)
 		{
 			SetupIndex(hierarchy, folders, files);
 		}
@@ -441,7 +441,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			folders,
 			files));
 
-		if (variant == ImportListVariant.Replace)
+		if (variant == ImportMode.Replace)
 		{
 			hierarchy.Clear();
 		}
@@ -641,7 +641,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
-		ImportListVariant variant,
+		ImportMode variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
@@ -674,19 +674,19 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private Task<bool> ImportFromSQLiteAsync(
 		string filePath,
-		ImportListVariant variant,
+		ImportMode variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)
 	{
 		return variant switch
 		{
-			ImportListVariant.Replace => ReplaceFromSQLiteAsync(
+			ImportMode.Replace => ReplaceFromSQLiteAsync(
 				filePath,
 				objects,
 				hierarchy,
 				token),
-			ImportListVariant.Append => AppendFromSQLiteAsync(
+			ImportMode.Append => AppendFromSQLiteAsync(
 				filePath,
 				objects,
 				hierarchy,
@@ -700,7 +700,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<bool> ImportFromXmlAsync(
 		string filePath,
-		ImportListVariant variant,
+		ImportMode variant,
 		List<ExplorerModelBaseDto> objects,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token)

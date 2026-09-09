@@ -1,9 +1,9 @@
 namespace DataOrganizer.Enums;
 
 /// <summary>
-/// Variant of populating objects in list when importing.
+/// How imported objects are put into the existing list.
 /// </summary>
-public enum ImportListVariant
+public enum ImportMode
 {
 	None,
 	Append,

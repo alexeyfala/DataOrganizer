@@ -81,11 +81,11 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 
 		return dto.EntityType switch
 		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
+			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
 			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			EntityKind.File or EntityKind.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
 			], token),

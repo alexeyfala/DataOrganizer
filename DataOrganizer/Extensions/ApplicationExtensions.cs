@@ -147,15 +147,15 @@ internal static class ApplicationExtensions
 	/// <summary>
 	/// Returns the current application theme.
 	/// </summary>
-	public static CurrentTheme GetCurrentTheme(this Application target)
+	public static AppTheme GetCurrentTheme(this Application target)
 	{
 		object key = target
 			.ActualThemeVariant
 			.Key;
 
 		return key is "Dark"
-			? CurrentTheme.Dark
-			: CurrentTheme.Light;
+			? AppTheme.Dark
+			: AppTheme.Light;
 	}
 
 	/// <summary>

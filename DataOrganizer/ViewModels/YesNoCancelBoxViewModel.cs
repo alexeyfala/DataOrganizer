@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <c>YesNoCancelBox</c>.
+/// View model for <c>YesNoCancelBoxView</c>.
 /// </summary>
-public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelResult>
+public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<YesNoCancelAnswer>
 {
 	#region Properties
 	/// <summary>
@@ -52,42 +52,42 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	/// Handles "Cancel" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private Task CancelButtonPressed() => SetResultAsync(YesNoCancelResult.Cancel);
+	private Task CancelButtonPressed() => SetResultAsync(YesNoCancelAnswer.Cancel);
 
 	/// <summary>
 	/// Handles "No" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private Task NoButtonPressed() => SetResultAsync(YesNoCancelResult.No);
+	private Task NoButtonPressed() => SetResultAsync(YesNoCancelAnswer.No);
 
 	/// <summary>
 	/// Handles "Yes" button pressed.
 	/// </summary>
 	[RelayCommand]
-	private Task YesButtonPressed() => SetResultAsync(YesNoCancelResult.Yes);
+	private Task YesButtonPressed() => SetResultAsync(YesNoCancelAnswer.Yes);
 	#endregion
 
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<YesNoCancelResult> GetResultAsync(
-		YesNoCancelVariant variant,
+	public Task<YesNoCancelAnswer> GetResultAsync(
+		YesNoCancelButtons variant,
 		CancellationToken token = default)
 	{
 		switch (variant)
 		{
-			case YesNoCancelVariant.YesNo:
+			case YesNoCancelButtons.YesNo:
 				NoButtonVisible = true;
 
 				NoIsCancel = true;
 				break;
 
-			case YesNoCancelVariant.YesCancel:
+			case YesNoCancelButtons.YesCancel:
 				CancelButtonVisible = true;
 
 				CancelIsCancel = true;
 				break;
 
-			case YesNoCancelVariant.YesNoCancel:
+			case YesNoCancelButtons.YesNoCancel:
 				NoButtonVisible = true;
 
 				CancelButtonVisible = true;
@@ -100,7 +100,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 		}
 
 		return GetResultAsync(
-			defaultResult: YesNoCancelResult.Cancel,
+			defaultResult: YesNoCancelAnswer.Cancel,
 			token: token);
 	}
 	#endregion

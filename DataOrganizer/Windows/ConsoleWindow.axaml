@@ -15,7 +15,7 @@
 
 	<Grid RowDefinitions="Auto,Auto,Auto,*">
 		<Interaction.Behaviors>
-			<behaviors:StyledElementAddFluentThemeBehavior />
+			<behaviors:FluentThemeBehavior />
 		</Interaction.Behaviors>
 
 		<Separator

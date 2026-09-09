@@ -9,12 +9,12 @@ using System;
 namespace DataOrganizer.Behaviors;
 
 // Source code taken from:
-// https://github.com/wieslawsoltes/Xaml.Behaviors/blob/master/src/Xaml.Behaviors.Interactions.Draggable/AutoScrollDuringDragBehavior.cs
+// https://github.com/wieslawsoltes/Xaml.Behaviors/blob/master/src/Xaml.Behaviors.Interactions.Draggable/AutoScrollOnDragBehavior.cs
 
 /// <summary>
 /// Automatically scrolls the associated <see cref="ScrollViewer"/> when the pointer is dragged near its edges.
 /// </summary>
-internal sealed class AutoScrollDuringDragBehavior : StyledElementBehavior<Visual>
+internal sealed class AutoScrollOnDragBehavior : StyledElementBehavior<Visual>
 {
 	#region Properties
 	/// <summary>
@@ -41,13 +41,13 @@ internal sealed class AutoScrollDuringDragBehavior : StyledElementBehavior<Visua
 	/// Identifies the <see cref="EdgeDistance"/> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> EdgeDistanceProperty = AvaloniaProperty
-		.Register<AutoScrollDuringDragBehavior, double>(nameof(EdgeDistance), 20);
+		.Register<AutoScrollOnDragBehavior, double>(nameof(EdgeDistance), 20);
 
 	/// <summary>
 	/// Identifies the <see cref="ScrollDelta"/> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> ScrollDeltaProperty = AvaloniaProperty
-		.Register<AutoScrollDuringDragBehavior, double>(nameof(ScrollDelta), 10);
+		.Register<AutoScrollOnDragBehavior, double>(nameof(ScrollDelta), 10);
 	#endregion
 
 	#region Data

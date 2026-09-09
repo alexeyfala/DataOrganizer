@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DataOrganizer.ViewModels;
 
 /// <summary>
-/// View model for <c>PasswordBox</c>.
+/// View model for <c>PasswordBoxView</c>.
 /// </summary>
 public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 {

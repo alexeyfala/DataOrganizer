@@ -14,7 +14,7 @@ public static class PlatformInfo
 	/// <summary>
 	/// Current operating system.
 	/// </summary>
-	public static OperatingSystemType CurrentOs { get; } = GetCurrentOs();
+	public static OperatingSystemKind CurrentOs { get; } = GetCurrentOs();
 
 	/// <summary>
 	/// The name of the program for opening files depending on the operating system.
@@ -29,7 +29,7 @@ public static class PlatformInfo
 	/// <remarks>
 	/// The value obtained using <see cref="CallerFilePathAttribute" /> passed at compile time
 	/// and depends on the type of computer on which the code is compiled.
-	/// Compiling code for <see cref="OperatingSystemType.Linux" /> happens in <see cref="OperatingSystemType.Windows" />,
+	/// Compiling code for <see cref="OperatingSystemKind.Linux" /> happens in <see cref="OperatingSystemKind.Windows" />,
 	/// so it is necessary to replace the '\' characters in the path to <see cref="Path.DirectorySeparatorChar" />.
 	/// </remarks>
 	public static string GetEntryPath(string filePath)
@@ -44,21 +44,21 @@ public static class PlatformInfo
 	/// <summary>
 	/// Returns a value for <see cref="CurrentOs" />.
 	/// </summary>
-	private static OperatingSystemType GetCurrentOs()
+	private static OperatingSystemKind GetCurrentOs()
 	{
 		if (OperatingSystem.IsWindows())
 		{
-			return OperatingSystemType.Windows;
+			return OperatingSystemKind.Windows;
 		}
 
 		if (OperatingSystem.IsLinux())
 		{
-			return OperatingSystemType.Linux;
+			return OperatingSystemKind.Linux;
 		}
 
 		return OperatingSystem.IsMacOS()
-			? OperatingSystemType.MacOs
-			: OperatingSystemType.Unknown;
+			? OperatingSystemKind.MacOs
+			: OperatingSystemKind.Unknown;
 	}
 
 	/// <summary>
@@ -66,9 +66,9 @@ public static class PlatformInfo
 	/// </summary>
 	private static string GetFileOpener() => CurrentOs switch
 	{
-		OperatingSystemType.Windows => "explorer",
-		OperatingSystemType.Linux => "xdg-open",
-		OperatingSystemType.MacOs => "open",
+		OperatingSystemKind.Windows => "explorer",
+		OperatingSystemKind.Linux => "xdg-open",
+		OperatingSystemKind.MacOs => "open",
 		_ => throw new NotImplementedException()
 	};
 	#endregion

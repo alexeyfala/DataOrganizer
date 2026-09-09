@@ -18,7 +18,7 @@ public interface IHierarchyEditor
 	/// </summary>
 	Task<ExplorerModelBaseDto?> AddAsync(
 		string name,
-		EntityType entityType,
+		EntityKind entityType,
 		FolderModelDto? parent,
 		Collection<ExplorerModelBaseDto> hierarchy,
 		CancellationToken token = default);

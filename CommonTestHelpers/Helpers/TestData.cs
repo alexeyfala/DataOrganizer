@@ -113,12 +113,12 @@ public static class TestData
 	};
 
 	/// <summary>
-	/// Creates a <see cref="FileModel" /> object of <see cref="EntityType.File" /> content, with random properties.
+	/// Creates a <see cref="FileModel" /> object of <see cref="EntityKind.File" /> content, with random properties.
 	/// </summary>
 	public static FileModel CreateFile(in Guid id = default) => new()
 	{
 		CreatedDate = DateTime.Now,
-		EntityType = EntityType.File,
+		EntityType = EntityKind.File,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
 		Name = RandomString.Create(10),
@@ -136,7 +136,7 @@ public static class TestData
 		{
 			CreatedDate = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
-			EntityType = EntityType.File,
+			EntityType = EntityKind.File,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
 			IsEditing = isEditing,
@@ -180,7 +180,7 @@ public static class TestData
 	public static FolderModel CreateFolder(in Guid id = default) => new()
 	{
 		CreatedDate = DateTime.Now,
-		EntityType = EntityType.Folder,
+		EntityType = EntityKind.Folder,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
 		Name = RandomString.Create(10),
@@ -196,7 +196,7 @@ public static class TestData
 		{
 			CreatedDate = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
-			EntityType = EntityType.Folder,
+			EntityType = EntityKind.Folder,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
 			Name = RandomString.Create(10),

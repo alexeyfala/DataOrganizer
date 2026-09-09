@@ -47,7 +47,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+	public async Task<UpdateDatabaseOutcome> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default)
 	{
@@ -97,7 +97,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
 				.ConfigureAwait(false))
 			{
-				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseResult.FailedToSaveInDb)
+				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.FailedToSaveInDb)
 					.ConfigureAwait(false);
 			}
 
@@ -115,7 +115,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.Folder
 				.EncryptedDek = parameters.EncryptedDek;
 
-			return UpdateDatabaseResult.Done;
+			return UpdateDatabaseOutcome.Done;
 
 			void SetDek(UpdateSettersBuilder<FolderModel> builder)
 			{
@@ -128,7 +128,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 
 			return await RestoreAsync(
 				parameters.BackupFilePath,
-				UpdateDatabaseResult.ExceptionThrown).ConfigureAwait(false);
+				UpdateDatabaseOutcome.ExceptionThrown).ConfigureAwait(false);
 		}
 	}
 	#endregion
@@ -165,7 +165,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	/// <summary>
 	/// Reports the failure and rolls the database back to the copy taken before the conversion.
 	/// </summary>
-	private async Task<UpdateDatabaseResult> RestoreAsync(string backupFilePath, UpdateDatabaseResult result)
+	private async Task<UpdateDatabaseOutcome> RestoreAsync(string backupFilePath, UpdateDatabaseOutcome result)
 	{
 		_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 

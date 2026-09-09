@@ -15,7 +15,7 @@ internal class YesNoCancelBoxViewModelTests
 	/// <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: each variant shows the expected buttons and cancel flags.
 	/// </summary>
 	[Test]
-	public async Task GetResultAsync_Controls_Buttons([Values] YesNoCancelVariant variant)
+	public async Task GetResultAsync_Controls_Buttons([Values] YesNoCancelButtons variant)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -30,7 +30,7 @@ internal class YesNoCancelBoxViewModelTests
 		// Assert
 		switch (variant)
 		{
-			case YesNoCancelVariant.YesNo:
+			case YesNoCancelButtons.YesNo:
 				sut.NoButtonVisible
 					.Should()
 					.BeTrue();
@@ -40,7 +40,7 @@ internal class YesNoCancelBoxViewModelTests
 					.BeTrue();
 				break;
 
-			case YesNoCancelVariant.YesCancel:
+			case YesNoCancelButtons.YesCancel:
 				sut.CancelButtonVisible
 					.Should()
 					.BeTrue();
@@ -50,7 +50,7 @@ internal class YesNoCancelBoxViewModelTests
 					.BeTrue();
 				break;
 
-			case YesNoCancelVariant.YesNoCancel:
+			case YesNoCancelButtons.YesNoCancel:
 				sut.NoButtonVisible
 					.Should()
 					.BeTrue();
@@ -73,7 +73,7 @@ internal class YesNoCancelBoxViewModelTests
 	/// <see cref="YesNoCancelBoxViewModel.GetResultAsync" />: the pressed button determines the returned result.
 	/// </summary>
 	[Test]
-	public async Task GetResultAsync_Does_Work([Values] YesNoCancelResult expected)
+	public async Task GetResultAsync_Does_Work([Values] YesNoCancelAnswer expected)
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -85,19 +85,19 @@ internal class YesNoCancelBoxViewModelTests
 		{
 			switch (expected)
 			{
-				case YesNoCancelResult.No:
+				case YesNoCancelAnswer.No:
 					sut
 						.NoButtonPressedCommand
 						.Execute(null);
 					break;
 
-				case YesNoCancelResult.Cancel:
+				case YesNoCancelAnswer.Cancel:
 					sut
 						.CancelButtonPressedCommand
 						.Execute(null);
 					break;
 
-				case YesNoCancelResult.Yes:
+				case YesNoCancelAnswer.Yes:
 					sut
 						.YesButtonPressedCommand
 						.Execute(null);
@@ -108,7 +108,7 @@ internal class YesNoCancelBoxViewModelTests
 			}
 		});
 
-		YesNoCancelResult result = await sut.GetResultAsync(YesNoCancelVariant.YesNoCancel);
+		YesNoCancelAnswer result = await sut.GetResultAsync(YesNoCancelButtons.YesNoCancel);
 
 		// Assert
 		result

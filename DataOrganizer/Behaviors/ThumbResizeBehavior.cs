@@ -11,7 +11,7 @@ namespace DataOrganizer.Behaviors;
 /// Resizes a target through <see cref="Width" /> / <see cref="Height" /> by accumulating
 /// <see cref="Thumb.DragDelta" /> increments of the attached <see cref="Thumb" />, towards <see cref="Edge" />.
 /// </summary>
-internal sealed class DragResizeBehavior : Behavior<Thumb>
+internal sealed class ThumbResizeBehavior : Behavior<Thumb>
 {
 	#region Properties
 	/// <summary>
@@ -56,25 +56,25 @@ internal sealed class DragResizeBehavior : Behavior<Thumb>
 	/// Identifies the <see cref="Edge" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<WindowEdge> EdgeProperty = AvaloniaProperty
-		.Register<DragResizeBehavior, WindowEdge>(name: nameof(Edge));
+		.Register<ThumbResizeBehavior, WindowEdge>(name: nameof(Edge));
 
 	/// <summary>
 	/// Identifies the <see cref="Height" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> HeightProperty = AvaloniaProperty
-		.Register<DragResizeBehavior, double>(name: nameof(Height), defaultBindingMode: BindingMode.TwoWay);
+		.Register<ThumbResizeBehavior, double>(name: nameof(Height), defaultBindingMode: BindingMode.TwoWay);
 
 	/// <summary>
 	/// Identifies the <see cref="MinimumSize" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> MinimumSizeProperty = AvaloniaProperty
-		.Register<DragResizeBehavior, double>(name: nameof(MinimumSize), defaultValue: 100.0);
+		.Register<ThumbResizeBehavior, double>(name: nameof(MinimumSize), defaultValue: 100.0);
 
 	/// <summary>
 	/// Identifies the <see cref="Width" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> WidthProperty = AvaloniaProperty
-		.Register<DragResizeBehavior, double>(name: nameof(Width), defaultBindingMode: BindingMode.TwoWay);
+		.Register<ThumbResizeBehavior, double>(name: nameof(Width), defaultBindingMode: BindingMode.TwoWay);
 	#endregion
 
 	#region Event Handlers

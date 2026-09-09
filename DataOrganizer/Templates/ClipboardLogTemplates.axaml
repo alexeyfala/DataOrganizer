@@ -163,7 +163,7 @@
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:HandleClickBehavior />
+								<behaviors:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<materialIcons:MaterialIcon
@@ -197,7 +197,7 @@
 										CommandParameter="{Binding}" />
 								</EventTriggerBehavior>
 
-								<behaviors:HandleClickBehavior />
+								<behaviors:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>
@@ -265,7 +265,7 @@
 							</ToggleButton.IsVisible>
 
 							<Interaction.Behaviors>
-								<behaviors:HandleClickBehavior />
+								<behaviors:SuppressClickBubblingBehavior />
 							</Interaction.Behaviors>
 
 							<ToggleButton.Styles>

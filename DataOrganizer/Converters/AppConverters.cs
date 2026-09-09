@@ -85,12 +85,12 @@ internal static class AppConverters
 			_ => default
 		});
 
-	public static FuncValueConverter<EntityType, MaterialIconKind> EntityTypeToIconKind { get; } =
+	public static FuncValueConverter<EntityKind, MaterialIconKind> EntityTypeToIconKind { get; } =
 		new(type => type switch
 		{
-			EntityType.Folder => MaterialIconKind.Folder,
-			EntityType.File => MaterialIconKind.FileOutline,
-			EntityType.DataSet => MaterialIconKind.ViewSplitHorizontal,
+			EntityKind.Folder => MaterialIconKind.Folder,
+			EntityKind.File => MaterialIconKind.FileOutline,
+			EntityKind.DataSet => MaterialIconKind.ViewSplitHorizontal,
 			_ => default
 		});
 

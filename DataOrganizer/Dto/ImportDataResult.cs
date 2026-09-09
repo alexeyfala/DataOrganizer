@@ -6,4 +6,4 @@ namespace DataOrganizer.Dto;
 
 public sealed record ImportDataResult(
 	IEnumerable<ExplorerModelBaseDto> ImportedItems,
-	ImportListVariant Variant);
+	ImportMode Variant);

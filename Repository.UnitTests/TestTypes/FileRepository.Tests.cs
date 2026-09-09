@@ -179,7 +179,7 @@ internal class FileRepositoryTests
 		Id = Guid.NewGuid(),
 		Index = 0,
 		Name = "file",
-		EntityType = EntityType.File,
+		EntityType = EntityKind.File,
 		Contents = contents,
 		Properties = properties
 	};

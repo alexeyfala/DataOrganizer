@@ -179,7 +179,7 @@ internal class SqliteDbContextTests
 			Id = ownerId,
 			Index = 0,
 			Name = "file",
-			EntityType = EntityType.File,
+			EntityType = EntityKind.File,
 			Contents = []
 		};
 

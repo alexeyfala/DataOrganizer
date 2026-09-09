@@ -3,7 +3,7 @@ using Shared.Enums;
 namespace DataOrganizer.Interfaces.Explorer;
 
 /// <summary>
-/// Provides tools for working with file managers in <see cref="OperatingSystemType.Linux" />.
+/// Provides tools for working with file managers in <see cref="OperatingSystemKind.Linux" />.
 /// </summary>
 public interface ILinuxExplorerManager
 {

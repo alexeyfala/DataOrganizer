@@ -53,7 +53,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<OverwriteHotkeysResult> OverwriteAsync(
+	public async Task<OverwriteHotkeysOutcome> OverwriteAsync(
 		FileModelDto dto,
 		KeyStroke[] newHotkeys,
 		IEnumerable<ExplorerModelBaseDto> hierarchy,
@@ -69,7 +69,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 			.Hotkeys
 			.SequenceEqual(temp, comparer))
 		{
-			return OverwriteHotkeysResult.SameHotkeys;
+			return OverwriteHotkeysOutcome.SameHotkeys;
 		}
 
 		if (temp.IsNotEmpty() && hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
@@ -78,7 +78,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 			_notification.ShowWarningSnackbar($@"{string.Format(Strings.HotkeysAlreadyAssignedFor, sequence)} ""{existed.Name}""");
 
-			return OverwriteHotkeysResult.AlreadyInUse;
+			return OverwriteHotkeysOutcome.AlreadyInUse;
 		}
 
 		try
@@ -96,7 +96,7 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 
 			if (newHotkeys.IsEmpty())
 			{
-				return OverwriteHotkeysResult.EmptySequence;
+				return OverwriteHotkeysOutcome.EmptySequence;
 			}
 
 			try
@@ -111,13 +111,13 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 					.Hotkeys
 					.AddRange(mapped);
 
-				return OverwriteHotkeysResult.Rewritten;
+				return OverwriteHotkeysOutcome.Rewritten;
 			}
 			catch (Exception ex)
 			{
 				_logger.LogException(ex);
 
-				return OverwriteHotkeysResult.ExceptionThrown;
+				return OverwriteHotkeysOutcome.ExceptionThrown;
 			}
 		}
 		finally

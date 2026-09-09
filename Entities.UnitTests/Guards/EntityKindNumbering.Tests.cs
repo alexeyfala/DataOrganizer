@@ -5,8 +5,8 @@ using System.Linq;
 
 namespace Entities.UnitTests.Guards;
 
-[TestFixture(Description = $@"Guards the numbers ""{nameof(EntityType)}"" is stored with")]
-internal class EntityTypeNumberingTests
+[TestFixture(Description = $@"Guards the numbers ""{nameof(EntityKind)}"" is stored with")]
+internal class EntityKindNumberingTests
 {
 	#region Methods
 	/// <summary>
@@ -17,15 +17,15 @@ internal class EntityTypeNumberingTests
 	public void Members_Keep_Their_Numbers()
 	{
 		// Assert
-		((int)EntityType.Folder)
+		((int)EntityKind.Folder)
 			.Should()
 			.Be(0);
 
-		((int)EntityType.File)
+		((int)EntityKind.File)
 			.Should()
 			.Be(1);
 
-		((int)EntityType.DataSet)
+		((int)EntityKind.DataSet)
 			.Should()
 			.Be(2);
 	}
@@ -38,7 +38,7 @@ internal class EntityTypeNumberingTests
 	{
 		// Act
 		int[] numbers = [.. Enum
-			.GetValues<EntityType>()
+			.GetValues<EntityKind>()
 			.Select(x => (int)x)
 			.Order()];
 

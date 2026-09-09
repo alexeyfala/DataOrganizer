@@ -3,7 +3,7 @@ namespace DataOrganizer.Enums;
 /// <summary>
 /// Outcome of writing a converted folder to the database.
 /// </summary>
-public enum UpdateDatabaseResult
+public enum UpdateDatabaseOutcome
 {
 	/// <summary>
 	/// The transaction was rejected; the database is rolled back to the copy taken before the conversion.

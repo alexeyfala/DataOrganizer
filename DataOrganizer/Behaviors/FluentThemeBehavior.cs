@@ -9,7 +9,11 @@ namespace DataOrganizer.Behaviors;
 
 // Nuget: Avalonia.Themes.Fluent
 
-internal sealed class StyledElementAddFluentThemeBehavior : Behavior<StyledElement>
+/// <summary>
+/// Adds the Fluent theme and the AvaloniaEdit Fluent styles to the attached element,
+/// so that the embedded editor is rendered by the theme it is written for.
+/// </summary>
+internal sealed class FluentThemeBehavior : Behavior<StyledElement>
 {
 	#region Methods
 	/// <inheritdoc />

@@ -11,7 +11,7 @@ namespace DataOrganizer.Behaviors;
 /// regular <c>Style</c> setter can't beat it; writing the value as a local property on
 /// the realized element after <c>TemplateApplied</c> wins via the priority chain.
 /// </summary>
-internal sealed class OverrideExpanderToggleCursorBehavior : Behavior<Expander>
+internal sealed class ExpanderToggleCursorBehavior : Behavior<Expander>
 {
 	#region Data
 	private static readonly Cursor DefaultCursor = new(StandardCursorType.Arrow);

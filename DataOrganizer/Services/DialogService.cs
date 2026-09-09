@@ -109,13 +109,13 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = $"{Strings.CloseFilesBeingEdited}?";
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
 
-		YesNoCancelResult result = await viewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+		YesNoCancelAnswer result = await viewModel
+			.GetResultAsync(YesNoCancelButtons.YesCancel, token)
 			.ConfigureAwait(false);
 
-		return result == YesNoCancelResult.Yes;
+		return result == YesNoCancelAnswer.Yes;
 	}
 
 	/// <inheritdoc />
@@ -192,7 +192,7 @@ public sealed class DialogService : IDialogService
 
 				viewModel.IsConfirmationVisible = mode == PasswordPromptMode.Create;
 
-				PasswordBox view = _viewFactory.CreateUserControl<PasswordBox>(viewModel);
+				PasswordBoxView view = _viewFactory.CreateUserControl<PasswordBoxView>(viewModel);
 
 				_exceptionHandler.Watch(DialogHost.Show(view));
 
@@ -223,13 +223,13 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
 
-		YesNoCancelResult result = await viewModel
-			.GetResultAsync(YesNoCancelVariant.YesCancel, token)
+		YesNoCancelAnswer result = await viewModel
+			.GetResultAsync(YesNoCancelButtons.YesCancel, token)
 			.ConfigureAwait(false);
 
-		return result == YesNoCancelResult.Yes;
+		return result == YesNoCancelAnswer.Yes;
 	}
 
 	/// <inheritdoc />
@@ -239,17 +239,17 @@ public sealed class DialogService : IDialogService
 
 		viewModel.Text = text;
 
-		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBox>(viewModel)));
+		_exceptionHandler.Watch(DialogHost.Show(_viewFactory.CreateUserControl<YesNoCancelBoxView>(viewModel)));
 
-		YesNoCancelResult result = await viewModel
-			.GetResultAsync(YesNoCancelVariant.YesNo, token)
+		YesNoCancelAnswer result = await viewModel
+			.GetResultAsync(YesNoCancelButtons.YesNo, token)
 			.ConfigureAwait(false);
 
-		return result == YesNoCancelResult.Yes;
+		return result == YesNoCancelAnswer.Yes;
 	}
 
 	/// <inheritdoc />
-	public Task<ImportListVariant> SelectImportVariantAsync(CancellationToken token = default)
+	public Task<ImportMode> SelectImportVariantAsync(CancellationToken token = default)
 	{
 		ImportListSelectorViewModel viewModel = _viewFactory.CreateViewModel<ImportListSelectorViewModel>();
 
@@ -276,11 +276,11 @@ public sealed class DialogService : IDialogService
 				return null;
 			}
 
-			EntityType entityType = viewModel switch
+			EntityKind entityType = viewModel switch
 			{
-				{ IsFolderSelected: true } => EntityType.Folder,
-				{ IsFileSelected: true } => EntityType.File,
-				{ IsDatasetSelected: true } => EntityType.DataSet,
+				{ IsFolderSelected: true } => EntityKind.Folder,
+				{ IsFileSelected: true } => EntityKind.File,
+				{ IsDatasetSelected: true } => EntityKind.DataSet,
 				_ => throw new NotImplementedException()
 			};
 

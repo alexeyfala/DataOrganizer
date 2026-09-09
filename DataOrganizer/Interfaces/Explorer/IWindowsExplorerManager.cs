@@ -3,7 +3,7 @@ using Shared.Enums;
 namespace DataOrganizer.Interfaces.Explorer;
 
 /// <summary>
-/// Provides tools for working with "Explorer" in <see cref="OperatingSystemType.Windows" />.
+/// Provides tools for working with "Explorer" in <see cref="OperatingSystemKind.Windows" />.
 /// </summary>
 public interface IWindowsExplorerManager
 {

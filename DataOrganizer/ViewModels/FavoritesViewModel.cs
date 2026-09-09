@@ -51,9 +51,9 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
 	public partial bool IsPopupOpen { get; set; }
 
-	/// <inheritdoc cref="FavoritesPopupContentType" />
+	/// <inheritdoc cref="FavoritesPopupContentKind" />
 	[ObservableProperty]
-	public partial FavoritesPopupContentType PopupContent { get; set; }
+	public partial FavoritesPopupContentKind PopupContent { get; set; }
 
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupHeight" />
 	[ObservableProperty]
@@ -101,7 +101,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		SaveContent();
 
-		PopupContent = FavoritesPopupContentType.None;
+		PopupContent = FavoritesPopupContentKind.None;
 
 		UpdateCommands();
 
@@ -117,8 +117,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// Called when <see cref="PopupContent" /> changes.
 	/// </summary>
 	partial void OnPopupContentChanged(
-		FavoritesPopupContentType oldValue,
-		FavoritesPopupContentType newValue) => _previousPopupContent = oldValue;
+		FavoritesPopupContentKind oldValue,
+		FavoritesPopupContentKind newValue) => _previousPopupContent = oldValue;
 	#endregion
 
 	#region Auto-Generated Commands
@@ -143,7 +143,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		SaveContent();
 
-		ShowContentInPopup(FavoritesPopupContentType.Favorites);
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
 	}
 
 	/// <summary>
@@ -178,7 +178,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		SaveContent();
 
-		ShowContentInPopup(FavoritesPopupContentType.CopyHistory);
+		ShowContentInPopup(FavoritesPopupContentKind.CopyHistory);
 	}
 
 	/// <summary>
@@ -203,7 +203,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <summary>
 	/// Previous <see cref="PopupContent" /> value.
 	/// </summary>
-	private FavoritesPopupContentType _previousPopupContent;
+	private FavoritesPopupContentKind _previousPopupContent;
 	#endregion
 
 	#region Constructors
@@ -259,7 +259,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	{
 		bool wasPopupOpen = IsPopupOpen;
 
-		ShowContentInPopup(FavoritesPopupContentType.Favorites);
+		ShowContentInPopup(FavoritesPopupContentKind.Favorites);
 
 		return _dispatcher.PostAsync(async () =>
 		{
@@ -344,16 +344,16 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// </summary>
 	public void SaveContent()
 	{
-		if (PopupContent == FavoritesPopupContentType.None)
+		if (PopupContent == FavoritesPopupContentKind.None)
 		{
 			return;
 		}
 
-		if (PopupContent == FavoritesPopupContentType.Favorites)
+		if (PopupContent == FavoritesPopupContentKind.Favorites)
 		{
 			SaveFavorites();
 		}
-		else if (PopupContent == FavoritesPopupContentType.CopyHistory)
+		else if (PopupContent == FavoritesPopupContentKind.CopyHistory)
 		{
 			SaveCopyHistory();
 		}
@@ -408,7 +408,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			.Items
 			.Clear();
 
-		PopupContent = FavoritesPopupContentType.None;
+		PopupContent = FavoritesPopupContentKind.None;
 
 		_copyHistory?.Dispose();
 
@@ -420,12 +420,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <summary>
 	/// Validates <see cref="ShowCopyHistoryCommand" />.
 	/// </summary>
-	private bool CanShowCopyHistory() => PopupContent != FavoritesPopupContentType.CopyHistory;
+	private bool CanShowCopyHistory() => PopupContent != FavoritesPopupContentKind.CopyHistory;
 
 	/// <summary>
 	/// Validates <see cref="ShowFavoritesCommand" />.
 	/// </summary>
-	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentType.Favorites;
+	private bool CanShowFavorites() => PopupContent != FavoritesPopupContentKind.Favorites;
 
 	/// <summary>
 	/// Validates <see cref="ShowPopupOnHoverCommand" />.
@@ -469,15 +469,15 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// </summary>
 	private void RestorePopupContent()
 	{
-		if (_previousPopupContent != FavoritesPopupContentType.None)
+		if (_previousPopupContent != FavoritesPopupContentKind.None)
 		{
 			switch (_previousPopupContent)
 			{
-				case FavoritesPopupContentType.CopyHistory:
+				case FavoritesPopupContentKind.CopyHistory:
 					ShowCopyHistory();
 					break;
 
-				case FavoritesPopupContentType.Favorites:
+				case FavoritesPopupContentKind.Favorites:
 					ShowFavorites();
 					break;
 			}
@@ -524,7 +524,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// Sets <see cref="PopupContent" /> from <paramref name="content"/>,
 	/// <see cref="IsPopupOpen" /> to <c>True</c> and updates commands.
 	/// </summary>
-	private void ShowContentInPopup(FavoritesPopupContentType content)
+	private void ShowContentInPopup(FavoritesPopupContentKind content)
 	{
 		PopupContent = content;
 

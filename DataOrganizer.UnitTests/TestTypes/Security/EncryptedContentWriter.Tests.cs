@@ -50,12 +50,12 @@ internal class EncryptedContentWriterTests
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>(TypedParameter.From(dbAccess));
 
 		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseResult.FailedToSaveInDb);
+			.Be(UpdateDatabaseOutcome.FailedToSaveInDb);
 
 		await dbAccess
 			.Received()
@@ -102,12 +102,12 @@ internal class EncryptedContentWriterTests
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
 
 		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseResult.Done);
+			.Be(UpdateDatabaseOutcome.Done);
 
 		parameters.Folder.EncryptionStatus
 			.Should()
@@ -153,12 +153,12 @@ internal class EncryptedContentWriterTests
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
 
 		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseResult.ExceptionThrown);
+			.Be(UpdateDatabaseOutcome.ExceptionThrown);
 
 		await dbAccess
 			.Received()
@@ -207,9 +207,9 @@ internal class EncryptedContentWriterTests
 			NewStatus = EncryptionStatus.Encrypted,
 			Notes =
 			[
-				new NoteUpdate(folder.Id, EntityType.Folder, folderNote),
-				new NoteUpdate(subfolder.Id, EntityType.Folder, subfolderNote),
-				new NoteUpdate(file.Id, EntityType.File, fileNote)
+				new NoteUpdate(folder.Id, EntityKind.Folder, folderNote),
+				new NoteUpdate(subfolder.Id, EntityKind.Folder, subfolderNote),
+				new NoteUpdate(file.Id, EntityKind.File, fileNote)
 			]
 		};
 
@@ -229,12 +229,12 @@ internal class EncryptedContentWriterTests
 		EncryptedContentWriter sut = mock.Create<EncryptedContentWriter>();
 
 		// Act
-		UpdateDatabaseResult result = await sut.UpdateDatabaseAsync(parameters);
+		UpdateDatabaseOutcome result = await sut.UpdateDatabaseAsync(parameters);
 
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseResult.Done);
+			.Be(UpdateDatabaseOutcome.Done);
 
 		await dbAccess.Received(1).UpdateFileAndFolderPropertiesAsync(
 			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FileModel>>[]>>(x =>

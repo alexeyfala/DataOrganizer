@@ -1,9 +1,9 @@
 namespace Entities.Enums;
 
 /// <summary>
-/// Type of entity.
+/// Kind of object in the virtual file system.
 /// </summary>
-public enum EntityType
+public enum EntityKind
 {
 	Folder,
 	File,

@@ -180,7 +180,7 @@ internal class ExplorerModelBaseDtoTests
 		Name = name,
 		CreatedDate = DateTime.UtcNow,
 		UpdatedDate = DateTime.UtcNow,
-		EntityType = EntityType.File
+		EntityType = EntityKind.File
 	};
 
 	/// <summary>
@@ -193,7 +193,7 @@ internal class ExplorerModelBaseDtoTests
 		Name = name,
 		CreatedDate = DateTime.UtcNow,
 		UpdatedDate = DateTime.UtcNow,
-		EntityType = EntityType.Folder
+		EntityType = EntityKind.Folder
 	};
 	#endregion
 }

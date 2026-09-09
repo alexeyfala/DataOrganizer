@@ -165,7 +165,7 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.Folder,
+				EntityType = EntityKind.Folder,
 				Index = startIndex++,
 				Name = $"{i + 1}_Folder_{RandomString.Create(6)}",
 				ParentId = parentId
@@ -192,7 +192,7 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.File,
+				EntityType = EntityKind.File,
 				FileContents = fileContents,
 				Index = startIndex++,
 				Name = $"{i + 1}_File_{RandomString.Create(6)}.{RandomString.Create(3).ToLower()}",
@@ -208,7 +208,7 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityType.DataSet,
+				EntityType = EntityKind.DataSet,
 				FileContents = datasetContents,
 				Index = startIndex++,
 				Name = $"{i + 1}_Dataset_{RandomString.Create(6)}",

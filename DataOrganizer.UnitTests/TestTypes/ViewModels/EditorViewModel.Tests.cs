@@ -44,7 +44,7 @@ internal class EditorViewModelTests
 	/// </summary>
 	[Test]
 	public async Task AddAsync_Delegates_To_Hierarchy_Editor(
-		[Values] EntityType type,
+		[Values] EntityKind type,
 		[Values] bool hasParent)
 	{
 		// Arrange
@@ -57,7 +57,7 @@ internal class EditorViewModelTests
 			hierarchyEditor
 				.AddAsync(
 					Arg.Any<string>(),
-					Arg.Any<EntityType>(),
+					Arg.Any<EntityKind>(),
 					Arg.Any<FolderModelDto>(),
 					Arg.Any<Collection<ExplorerModelBaseDto>>(),
 					Arg.Any<CancellationToken>())
@@ -1495,7 +1495,7 @@ internal class EditorViewModelTests
 
 		dataExchange
 			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
-			.Returns(new ImportDataResult([], ImportListVariant.Replace));
+			.Returns(new ImportDataResult([], ImportMode.Replace));
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 
@@ -1528,7 +1528,7 @@ internal class EditorViewModelTests
 
 		dataExchange
 			.ImportDataAsync(Arg.Any<Collection<ExplorerModelBaseDto>>())
-			.Returns(new ImportDataResult([], ImportListVariant.Append));
+			.Returns(new ImportDataResult([], ImportMode.Append));
 
 		IContentVisibility contentVisibility = Substitute.For<IContentVisibility>();
 

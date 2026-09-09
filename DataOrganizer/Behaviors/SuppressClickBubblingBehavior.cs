@@ -7,7 +7,7 @@ namespace DataOrganizer.Behaviors;
 /// <summary>
 /// Marks <see cref="Button.ClickEvent" /> as handled so it does not bubble to an outer control.
 /// </summary>
-internal sealed class HandleClickBehavior : Behavior<Button>
+internal sealed class SuppressClickBubblingBehavior : Behavior<Button>
 {
 	#region Event Handlers
 	/// <summary>

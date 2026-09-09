@@ -357,7 +357,7 @@ internal class FolderModelDtoTests
 		Name = name,
 		CreatedDate = DateTime.UtcNow,
 		UpdatedDate = DateTime.UtcNow,
-		EntityType = EntityType.File
+		EntityType = EntityKind.File
 	};
 
 	/// <summary>
@@ -372,7 +372,7 @@ internal class FolderModelDtoTests
 			Name = name,
 			CreatedDate = DateTime.UtcNow,
 			UpdatedDate = DateTime.UtcNow,
-			EntityType = EntityType.Folder,
+			EntityType = EntityKind.Folder,
 			EncryptedDek = encryptedDek
 		};
 	#endregion

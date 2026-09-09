@@ -180,7 +180,7 @@
 						Cursor="LeftSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<behaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="West" />
 						</Interaction.Behaviors>
@@ -195,7 +195,7 @@
 						Cursor="TopLeftCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<behaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthWest" />
@@ -210,7 +210,7 @@
 						Cursor="TopSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<behaviors:ThumbResizeBehavior
 								Height="{Binding PopupHeight}"
 								Edge="North" />
 						</Interaction.Behaviors>
@@ -225,7 +225,7 @@
 						Cursor="TopRightCorner"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<behaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Height="{Binding PopupHeight}"
 								Edge="NorthEast" />
@@ -240,7 +240,7 @@
 						Cursor="RightSide"
 						Theme="{StaticResource ThumbTheme}">
 						<Interaction.Behaviors>
-							<behaviors:DragResizeBehavior
+							<behaviors:ThumbResizeBehavior
 								Width="{Binding PopupWidth}"
 								Edge="East" />
 						</Interaction.Behaviors>

@@ -45,7 +45,7 @@
 			</ListBox.KeyBindings>
 
 			<Interaction.Behaviors>
-				<behaviors:AutoScrollDuringDragBehavior />
+				<behaviors:AutoScrollOnDragBehavior />
 			</Interaction.Behaviors>
 
 			<ListBox.Styles>

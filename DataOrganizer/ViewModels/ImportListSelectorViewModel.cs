@@ -11,7 +11,7 @@ namespace DataOrganizer.ViewModels;
 /// <summary>
 /// View model for <c>ImportListSelectorView</c>.
 /// </summary>
-internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportListVariant>
+internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModelBase<ImportMode>
 {
 	#region Properties
 	/// <summary>
@@ -42,22 +42,22 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	{
 		if (Replace)
 		{
-			return SetResultAsync(ImportListVariant.Replace);
+			return SetResultAsync(ImportMode.Replace);
 		}
 
 		if (AddToList)
 		{
-			return SetResultAsync(ImportListVariant.Append);
+			return SetResultAsync(ImportMode.Append);
 		}
 
-		return SetResultAsync(ImportListVariant.None);
+		return SetResultAsync(ImportMode.None);
 	}
 
 	/// <summary>
 	/// Cancel.
 	/// </summary>
 	[RelayCommand]
-	private Task Cancel() => SetResultAsync(ImportListVariant.None);
+	private Task Cancel() => SetResultAsync(ImportMode.None);
 	#endregion
 
 	#region Constructors
@@ -70,10 +70,10 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 
 	#region Methods
 	/// <inheritdoc cref="AsyncResultViewModelBase{TResult}.GetResultAsync" />
-	public Task<ImportListVariant> GetResultAsync(CancellationToken token = default)
+	public Task<ImportMode> GetResultAsync(CancellationToken token = default)
 	{
 		return GetResultAsync(
-			defaultResult: ImportListVariant.None,
+			defaultResult: ImportMode.None,
 			token: token);
 	}
 	#endregion

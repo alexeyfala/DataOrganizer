@@ -88,7 +88,7 @@ internal sealed class DatasetAutoScrollOnDragBehavior :
 	{
 		if (!IsEnabled
 			|| AssociatedObject is null
-			|| e.DataTransfer.TryGetValue(DatasetDragRecordBehavior.RecordFormat) is null)
+			|| e.DataTransfer.TryGetValue(DatasetRecordDragBehavior.RecordFormat) is null)
 		{
 			_direction = 0;
 

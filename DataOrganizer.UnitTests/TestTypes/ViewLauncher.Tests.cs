@@ -427,8 +427,8 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<CurrentWindow>(Arg.Any<string>())
-				.Returns(CurrentWindow.Favorites);
+				.FromFile<WindowKind>(Arg.Any<string>())
+				.Returns(WindowKind.Favorites);
 
 			viewFactory
 				.CreateViewModel<FavoritesViewModel>()
@@ -598,7 +598,7 @@ internal class ViewLauncherTests
 			Arg.Any<bool>());
 
 		fileSystem.Received().SerializeToJsonFile(
-			CurrentWindow.Editor,
+			WindowKind.Editor,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 	}
@@ -653,7 +653,7 @@ internal class ViewLauncherTests
 			Arg.Any<bool>());
 
 		fileSystem.Received().SerializeToJsonFile(
-			CurrentWindow.Favorites,
+			WindowKind.Favorites,
 			Arg.Any<string>(),
 			Arg.Any<bool>());
 	}

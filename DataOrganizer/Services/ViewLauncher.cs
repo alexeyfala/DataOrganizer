@@ -363,14 +363,14 @@ public class ViewLauncher : IViewLauncher
 	/// <inheritdoc />
 	public Window ConfigureMainWindow(IEnumerable<ExplorerModelBaseDto> hierarchy)
 	{
-		string filePath = _appEnvironment.GetSettingsFilePath(nameof(CurrentWindow));
+		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
 
-		if (_jsonSerializer.FromFile<CurrentWindow>(filePath) is { } settings)
+		if (_jsonSerializer.FromFile<WindowKind>(filePath) is { } settings)
 		{
 			return settings switch
 			{
-				CurrentWindow.Editor => ConfigureEditorWindow(hierarchy, [], []),
-				CurrentWindow.Favorites => ConfigureFavoritesWindow(hierarchy, [], []),
+				WindowKind.Editor => ConfigureEditorWindow(hierarchy, [], []),
+				WindowKind.Favorites => ConfigureFavoritesWindow(hierarchy, [], []),
 				_ => throw new NotImplementedException()
 			};
 		}
@@ -431,8 +431,8 @@ public class ViewLauncher : IViewLauncher
 				false);
 
 			_fileSystem.SerializeToJsonFile(
-				CurrentWindow.Editor,
-				_appEnvironment.GetSettingsFilePath(nameof(CurrentWindow)),
+				WindowKind.Editor,
+				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
 				false);
 
 			if (!window
@@ -485,8 +485,8 @@ public class ViewLauncher : IViewLauncher
 				false);
 
 			_fileSystem.SerializeToJsonFile(
-				CurrentWindow.Favorites,
-				_appEnvironment.GetSettingsFilePath(nameof(CurrentWindow)),
+				WindowKind.Favorites,
+				_appEnvironment.GetSettingsFilePath(nameof(WindowKind)),
 				false);
 
 			if (!window

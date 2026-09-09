@@ -99,7 +99,7 @@
 			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
-				<behaviors:StyledElementAddFluentThemeBehavior />
+				<behaviors:FluentThemeBehavior />
 
 				<EventTriggerBehavior EventName="Loaded">
 					<InvokeCommandAction

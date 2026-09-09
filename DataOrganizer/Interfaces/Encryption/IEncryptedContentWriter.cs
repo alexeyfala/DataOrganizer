@@ -14,7 +14,7 @@ public interface IEncryptedContentWriter
 	/// <summary>
 	/// Writes the processed contents, notes and the wrapped key, and applies the new status to the objects.
 	/// </summary>
-	Task<UpdateDatabaseResult> UpdateDatabaseAsync(
+	Task<UpdateDatabaseOutcome> UpdateDatabaseAsync(
 		UpdateDatabaseParameters parameters,
 		CancellationToken token = default);
 	#endregion

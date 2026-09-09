@@ -414,7 +414,7 @@ internal class FolderProtectionTests
 
 			contentWriter
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-				.Returns(isWriteDone ? UpdateDatabaseResult.Done : UpdateDatabaseResult.FailedToSaveInDb);
+				.Returns(isWriteDone ? UpdateDatabaseOutcome.Done : UpdateDatabaseOutcome.FailedToSaveInDb);
 
 			builder.RegisterInstance(contentWriter);
 
@@ -724,7 +724,7 @@ internal class FolderProtectionTests
 
 			contentWriter
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-				.Returns(UpdateDatabaseResult.FailedToSaveInDb);
+				.Returns(UpdateDatabaseOutcome.FailedToSaveInDb);
 
 			builder.RegisterInstance(contentWriter);
 
@@ -1054,7 +1054,7 @@ internal class FolderProtectionTests
 			{
 				contentWriter
 					.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-					.Returns(UpdateDatabaseResult.ExceptionThrown);
+					.Returns(UpdateDatabaseOutcome.ExceptionThrown);
 			}
 
 			fileSystem
@@ -1184,7 +1184,7 @@ internal class FolderProtectionTests
 
 		contentWriter
 			.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-			.Returns(UpdateDatabaseResult.Done);
+			.Returns(UpdateDatabaseOutcome.Done);
 
 		builder.RegisterInstance(contentWriter);
 

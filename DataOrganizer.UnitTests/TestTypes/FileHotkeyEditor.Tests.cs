@@ -41,12 +41,12 @@ internal class FileHotkeyEditorTests
 		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
 
 		// Act
-		OverwriteHotkeysResult result = await sut.OverwriteAsync(dto, [], []);
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, [], []);
 
 		// Assert
 		result
 			.Should()
-			.Be(OverwriteHotkeysResult.EmptySequence);
+			.Be(OverwriteHotkeysOutcome.EmptySequence);
 
 		dto.Hotkeys
 			.Should()
@@ -79,12 +79,12 @@ internal class FileHotkeyEditorTests
 		ExplorerModelBaseDto[] hierarchy = [owner];
 
 		// Act
-		OverwriteHotkeysResult result = await sut.OverwriteAsync(TestData.CreateFileDto(), newHotkeys, hierarchy);
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(TestData.CreateFileDto(), newHotkeys, hierarchy);
 
 		// Assert
 		result
 			.Should()
-			.Be(OverwriteHotkeysResult.AlreadyInUse);
+			.Be(OverwriteHotkeysOutcome.AlreadyInUse);
 	}
 
 	/// <summary>
@@ -116,12 +116,12 @@ internal class FileHotkeyEditorTests
 		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
 
 		// Act
-		OverwriteHotkeysResult result = await sut.OverwriteAsync(dto, newHotkeys, []);
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, newHotkeys, []);
 
 		// Assert
 		result
 			.Should()
-			.Be(OverwriteHotkeysResult.Rewritten);
+			.Be(OverwriteHotkeysOutcome.Rewritten);
 
 		dto.Hotkeys
 			.Should()
@@ -156,12 +156,12 @@ internal class FileHotkeyEditorTests
 		FileHotkeyEditor sut = mock.Create<FileHotkeyEditor>();
 
 		// Act
-		OverwriteHotkeysResult result = await sut.OverwriteAsync(dto, newHotkeys, []);
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(dto, newHotkeys, []);
 
 		// Assert
 		result
 			.Should()
-			.Be(OverwriteHotkeysResult.SameHotkeys);
+			.Be(OverwriteHotkeysOutcome.SameHotkeys);
 	}
 	#endregion
 }

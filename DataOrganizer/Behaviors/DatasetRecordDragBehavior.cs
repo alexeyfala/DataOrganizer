@@ -18,7 +18,7 @@ namespace DataOrganizer.Behaviors;
 /// Drags the associated record with the mouse alone, carrying both an in-process payload for reordering
 /// inside the editor and plain text for other applications; the drop location decides which is consumed.
 /// </summary>
-internal sealed class DatasetDragRecordBehavior : Behavior<Control>
+internal sealed class DatasetRecordDragBehavior : Behavior<Control>
 {
 	#region Properties
 	/// <summary>
@@ -54,19 +54,19 @@ internal sealed class DatasetDragRecordBehavior : Behavior<Control>
 	/// Identifies the <see cref="DragThreshold" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<double> DragThresholdProperty = AvaloniaProperty
-		.Register<DatasetDragRecordBehavior, double>(name: nameof(DragThreshold), 4.0);
+		.Register<DatasetRecordDragBehavior, double>(name: nameof(DragThreshold), 4.0);
 
 	/// <summary>
 	/// Identifies the <see cref="Record" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<DatasetRecordBase?> RecordProperty = AvaloniaProperty
-		.Register<DatasetDragRecordBehavior, DatasetRecordBase?>(name: nameof(Record));
+		.Register<DatasetRecordDragBehavior, DatasetRecordBase?>(name: nameof(Record));
 
 	/// <summary>
 	/// Identifies the <see cref="Text" /> avalonia property.
 	/// </summary>
 	public static readonly StyledProperty<string?> TextProperty = AvaloniaProperty
-		.Register<DatasetDragRecordBehavior, string?>(name: nameof(Text));
+		.Register<DatasetRecordDragBehavior, string?>(name: nameof(Text));
 	#endregion
 
 	#region Data

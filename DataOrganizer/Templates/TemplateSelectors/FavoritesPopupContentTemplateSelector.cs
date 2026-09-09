@@ -12,13 +12,13 @@ internal sealed class FavoritesPopupContentTemplateSelector : TemplateSelectorBa
 	{
 		return param switch
 		{
-			FavoritesPopupContentType.CopyHistory => DataTemplates[0].Build(param),
-			FavoritesPopupContentType.Favorites => DataTemplates[1].Build(param),
+			FavoritesPopupContentKind.CopyHistory => DataTemplates[0].Build(param),
+			FavoritesPopupContentKind.Favorites => DataTemplates[1].Build(param),
 			_ => new()
 		};
 	}
 
 	/// <inheritdoc />
-	public bool Match(object? data) => data is FavoritesPopupContentType;
+	public bool Match(object? data) => data is FavoritesPopupContentKind;
 	#endregion
 }

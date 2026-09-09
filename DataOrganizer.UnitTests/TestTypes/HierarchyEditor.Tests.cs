@@ -27,7 +27,7 @@ internal class HierarchyEditorTests
 	/// </summary>
 	[Test]
 	public async Task AddAsync_Returns_Entity(
-		[Values] EntityType type,
+		[Values] EntityKind type,
 		[Values] bool hasParent)
 	{
 		// Arrange
@@ -58,7 +58,7 @@ internal class HierarchyEditorTests
 			{
 				Id = Guid.NewGuid(),
 				CreatedDate = default,
-				EntityType = EntityType.Folder,
+				EntityType = EntityKind.Folder,
 				Index = 0,
 				UpdatedDate = default
 			};
@@ -105,15 +105,15 @@ internal class HierarchyEditorTests
 	/// <summary>
 	/// <see cref="HierarchyEditor.DeleteAsync" />: on success the entity is removed from the hierarchy.
 	/// </summary>
-	[TestCase(EntityType.Folder)]
-	[TestCase(EntityType.File)]
-	public async Task DeleteAsync_Deletes_Entity_In_Database_And_In_Treeview(EntityType type)
+	[TestCase(EntityKind.Folder)]
+	[TestCase(EntityKind.File)]
+	public async Task DeleteAsync_Deletes_Entity_In_Database_And_In_Treeview(EntityKind type)
 	{
 		// Arrange
 		ExplorerModelBaseDto toBeDeleted = type switch
 		{
-			EntityType.Folder => TestData.CreateFolderDto(),
-			EntityType.File => TestData.CreateFileDto(),
+			EntityKind.Folder => TestData.CreateFolderDto(),
+			EntityKind.File => TestData.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -121,7 +121,7 @@ internal class HierarchyEditorTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			if (type == EntityType.Folder)
+			if (type == EntityKind.Folder)
 			{
 				dbAccess
 					.DeleteFolderAsync(toBeDeleted.Id)
@@ -159,15 +159,15 @@ internal class HierarchyEditorTests
 	/// <summary>
 	/// <see cref="HierarchyEditor.DeleteAsync" />: when the database delete fails the entity stays in the hierarchy.
 	/// </summary>
-	[TestCase(EntityType.Folder)]
-	[TestCase(EntityType.File)]
-	public async Task DeleteAsync_Should_Not_Delete_Entity_In_Database_And_In_Treeview(EntityType type)
+	[TestCase(EntityKind.Folder)]
+	[TestCase(EntityKind.File)]
+	public async Task DeleteAsync_Should_Not_Delete_Entity_In_Database_And_In_Treeview(EntityKind type)
 	{
 		// Arrange
 		ExplorerModelBaseDto entity = type switch
 		{
-			EntityType.Folder => TestData.CreateFolderDto(),
-			EntityType.File => TestData.CreateFileDto(),
+			EntityKind.Folder => TestData.CreateFolderDto(),
+			EntityKind.File => TestData.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -175,7 +175,7 @@ internal class HierarchyEditorTests
 		{
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
-			if (type == EntityType.Folder)
+			if (type == EntityKind.Folder)
 			{
 				dbAccess
 					.DeleteFolderAsync(entity.Id)

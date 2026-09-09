@@ -47,9 +47,9 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		{
 			string? appTarget = PlatformInfo.CurrentOs switch
 			{
-				OperatingSystemType.Windows => Environment.ProcessPath,
-				OperatingSystemType.Linux => ResolveLinuxAppFile(),
-				OperatingSystemType.MacOs => ResolveMacOsBundle(),
+				OperatingSystemKind.Windows => Environment.ProcessPath,
+				OperatingSystemKind.Linux => ResolveLinuxAppFile(),
+				OperatingSystemKind.MacOs => ResolveMacOsBundle(),
 				_ => throw new NotImplementedException()
 			};
 
@@ -133,7 +133,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 			switch (PlatformInfo.CurrentOs)
 			{
-				case OperatingSystemType.Windows:
+				case OperatingSystemKind.Windows:
 					if (_winExplorerManager.TryForegroundFolder(directory, filePath))
 					{
 						return;
@@ -142,7 +142,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					Process.Start(PlatformInfo.FileOpener, "/select, " + filePath);
 					break;
 
-				case OperatingSystemType.Linux:
+				case OperatingSystemKind.Linux:
 					// Reuse an already-open window if possible (X11 cannot select the file inside it).
 					if (_linuxExplorerManager.TryForegroundFolder(directory))
 					{
@@ -158,7 +158,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					OpenDirectory(directory, logger);
 					break;
 
-				case OperatingSystemType.MacOs:
+				case OperatingSystemKind.MacOs:
 					Process.Start(PlatformInfo.FileOpener, GetMacOsReveal(filePath));
 					break;
 
@@ -175,12 +175,12 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	#region Helpers
 	/// <summary>
-	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemType.MacOs" />.
+	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemKind.MacOs" />.
 	/// </summary>
 	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
 
 	/// <summary>
-	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemType.MacOs" /> by walking up
+	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOs" /> by walking up
 	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
 	/// </summary>
 	private static string? ResolveMacOsBundle()
@@ -203,7 +203,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	}
 
 	/// <summary>
-	/// Resolves the application file to reveal on <see cref="OperatingSystemType.Linux" /> — the native
+	/// Resolves the application file to reveal on <see cref="OperatingSystemKind.Linux" /> — the native
 	/// apphost next to the app, falling back to the entry assembly; <c>null</c> when neither exists.
 	/// </summary>
 	/// <remarks>

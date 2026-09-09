@@ -207,7 +207,7 @@ internal class NoteEditorTests
 	/// </summary>
 
 	[Test]
-	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityType.File, EntityType.DataSet)] EntityType entityType)
+	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.DataSet)] EntityKind entityType)
 	{
 		// Arrange
 		FileModelDto file = CreateFile(entityType);
@@ -377,7 +377,7 @@ internal class NoteEditorTests
 	/// <summary>
 	/// Creates a file or a dataset.
 	/// </summary>
-	private static FileModelDto CreateFile(EntityType entityType) => new()
+	private static FileModelDto CreateFile(EntityKind entityType) => new()
 	{
 		CreatedDate = DateTime.Now,
 		EntityType = entityType,

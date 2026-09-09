@@ -1,9 +1,9 @@
 namespace DataOrganizer.Enums;
 
 /// <summary>
-/// Current theme of the application.
+/// Theme the application is displayed with.
 /// </summary>
-internal enum CurrentTheme
+internal enum AppTheme
 {
 	Dark,
 	Light

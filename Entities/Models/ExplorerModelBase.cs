@@ -32,7 +32,7 @@ public abstract class ExplorerModelBase : EntityModelBase
 	public DateTime CreatedDate { get; set; }
 
 	/// <inheritdoc cref="Enums.EntityType" />
-	public EntityType EntityType { get; init; }
+	public EntityKind EntityType { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when the object is selected in the list.

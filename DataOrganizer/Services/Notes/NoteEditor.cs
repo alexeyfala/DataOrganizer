@@ -79,12 +79,12 @@ public sealed class NoteEditor : INoteEditor
 
 		Task<bool> task = item.EntityType switch
 		{
-			EntityType.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
+			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
 			], token),
-			EntityType.File or EntityType.DataSet => _dbAccess.UpdateFilePropertiesAsync(item.Id,
+			EntityKind.File or EntityKind.DataSet => _dbAccess.UpdateFilePropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)

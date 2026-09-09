@@ -238,11 +238,11 @@ public sealed class App : Application
 		services.AddTransient<ImportListSelectorView>();
 		services.AddTransient<KeyValueInputView>();
 		services.AddTransient<MultilineTextEditView>();
-		services.AddTransient<PasswordBox>();
+		services.AddTransient<PasswordBoxView>();
 		services.AddTransient<PropertiesView>();
 		services.AddTransient<SettingsView>();
 		services.AddTransient<ToastWindow>();
-		services.AddTransient<YesNoCancelBox>();
+		services.AddTransient<YesNoCancelBoxView>();
 		#endregion
 	}
 	#endregion

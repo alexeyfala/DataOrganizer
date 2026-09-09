@@ -1,9 +1,9 @@
 namespace DataOrganizer.Enums;
 
 /// <summary>
-/// The result of values: Yes, No, Cancel.
+/// The button the user answered a dialog with.
 /// </summary>
-public enum YesNoCancelResult
+public enum YesNoCancelAnswer
 {
 	No,
 	Cancel,

@@ -41,7 +41,7 @@
 				Text="{Binding Key, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<behaviors:DatasetDragRecordBehavior
+					<behaviors:DatasetRecordDragBehavior
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Key, Mode=OneWay}" />
 				</Interaction.Behaviors>
@@ -59,7 +59,7 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditKeyValueCommand}">
 				<Interaction.Behaviors>
-					<behaviors:DatasetDragRecordBehavior
+					<behaviors:DatasetRecordDragBehavior
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
@@ -97,7 +97,7 @@
 				Text="{Binding Value, Mode=OneWay}"
 				TextBlockDoubleTappedCommand="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).EditValueCommand}">
 				<Interaction.Behaviors>
-					<behaviors:DatasetDragRecordBehavior
+					<behaviors:DatasetRecordDragBehavior
 						Record="{Binding Mode=OneWay}"
 						Text="{Binding Value, Mode=OneWay}" />
 				</Interaction.Behaviors>
@@ -141,7 +141,7 @@
 							ColumnDefinitions="Auto,*">
 
 							<Interaction.Behaviors>
-								<behaviors:ExpanderHeaderExpandCollapseByDoubleClickBehavior />
+								<behaviors:ExpanderDoubleClickToggleBehavior />
 
 								<behaviors:DatasetDropRecordInsideBehavior
 									IsEnabled="{Binding $parent[UserControl].((vm:DatasetEditorViewModel)DataContext).IsReadOnly, Mode=OneWay, Converter={x:Static BoolConverters.Not}}"
@@ -173,7 +173,7 @@
 								NoteName="{Binding Name, Mode=OneWay}"
 								Text="{Binding Name, Mode=OneWay}">
 								<Interaction.Behaviors>
-									<behaviors:DatasetDragRecordBehavior
+									<behaviors:DatasetRecordDragBehavior
 										Record="{Binding Mode=OneWay}"
 										Text="{Binding Name, Mode=OneWay}" />
 								</Interaction.Behaviors>
@@ -207,7 +207,7 @@
 				<Interaction.Behaviors>
 					<behaviors:LazyContextFlyoutBehavior ContentTemplate="{StaticResource RecordsGroupContextMenuTemplate}" />
 
-					<behaviors:OverrideExpanderToggleCursorBehavior />
+					<behaviors:ExpanderToggleCursorBehavior />
 
 					<EventTriggerBehavior EventName="Expanded">
 						<InvokeCommandAction

@@ -3,7 +3,7 @@ using Shared.Enums;
 namespace DataOrganizer.Interfaces;
 
 /// <summary>
-/// Contains methods that allow you to determine which applications to use to open files accepted by the <see cref="OperatingSystemType.Windows" /> operating system.
+/// Contains methods that allow you to determine which applications to use to open files accepted by the <see cref="OperatingSystemKind.Windows" /> operating system.
 /// </summary>
 public interface IFileAssociationService
 {

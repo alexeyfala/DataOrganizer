@@ -8,7 +8,10 @@ using System.Linq;
 
 namespace DataOrganizer.Behaviors;
 
-internal sealed class ExpanderHeaderExpandCollapseByDoubleClickBehavior : Behavior<Interactive>
+/// <summary>
+/// Expands and collapses the attached <see cref="Expander" /> on a double click of its header.
+/// </summary>
+internal sealed class ExpanderDoubleClickToggleBehavior : Behavior<Interactive>
 {
 	#region Event Handlers
 	/// <summary>
