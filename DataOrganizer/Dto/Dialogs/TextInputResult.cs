@@ -1,4 +1,4 @@
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Dialogs;
 
 /// <summary>
 /// The text a dialog returns, valid only when the user confirmed the input.

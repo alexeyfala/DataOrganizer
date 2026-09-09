@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using Avalonia.Input;
 using AwesomeAssertions;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;

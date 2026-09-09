@@ -1,4 +1,4 @@
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Dialogs;
 
 public sealed class KeyValueInputParameters
 {

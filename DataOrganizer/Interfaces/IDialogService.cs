@@ -1,4 +1,5 @@
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dialogs;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers.Security;
 using Repository.Dto;

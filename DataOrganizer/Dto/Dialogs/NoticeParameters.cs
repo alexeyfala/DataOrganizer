@@ -1,6 +1,6 @@
 using Shared.Common;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Dialogs;
 
 /// <summary>
 /// Content of a notice shown in a window of its own.

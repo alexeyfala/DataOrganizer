@@ -1,5 +1,5 @@
 using Avalonia.Media.Imaging;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Execution;
 using DataOrganizer.Interfaces;
 using Microsoft.Win32;
 using Serilog;

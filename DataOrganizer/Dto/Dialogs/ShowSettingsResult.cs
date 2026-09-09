@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Settings;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Dialogs;
 
 /// <summary>
 /// Result of displaying settings.

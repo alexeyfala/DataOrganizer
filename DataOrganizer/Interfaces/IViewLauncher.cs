@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform;
-using DataOrganizer.Dto;
+using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Windows;

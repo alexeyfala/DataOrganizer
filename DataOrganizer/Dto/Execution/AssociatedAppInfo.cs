@@ -1,6 +1,6 @@
 using Avalonia.Media.Imaging;
 
-namespace DataOrganizer.Dto;
+namespace DataOrganizer.Dto.Execution;
 
 /// <summary>
 /// Describes an application that can open a file: display name, executable path and
