@@ -1,6 +1,6 @@
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;

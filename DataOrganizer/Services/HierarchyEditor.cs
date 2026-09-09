@@ -1,4 +1,5 @@
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using Entities.Enums;
 using Entities.Models;

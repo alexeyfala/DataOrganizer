@@ -1,6 +1,7 @@
 using DataOrganizer.Dto.Dialogs;
 using DataOrganizer.Dto.Execution;
 using DataOrganizer.Enums;
+using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Helpers.Security;
 using Repository.Dto;
 using System.Collections.Generic;

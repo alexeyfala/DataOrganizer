@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,7 +17,7 @@ public sealed partial class FavoriteCategory : EntityDtoBase, INamed
 	/// </summary>
 	public required List<FileDto> Children { get; init; }
 
-	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
 	public required EncryptionStatus EncryptionStatus { get; init; }
 
 	/// <summary>

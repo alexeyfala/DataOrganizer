@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Views;
 
 /// <summary>
 /// The main window the application runs with.

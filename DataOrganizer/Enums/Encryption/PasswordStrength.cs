@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Encryption;
 
 /// <summary>
 /// How much guessing a password is estimated to withstand.

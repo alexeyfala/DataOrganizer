@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Dialogs;
 
 /// <summary>
 /// The set of buttons a confirmation dialog offers.

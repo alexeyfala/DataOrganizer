@@ -1,8 +1,8 @@
 <ResourceDictionary
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
-	xmlns:enums="using:DataOrganizer.Enums"
 	xmlns:input="using:DataOrganizer.Behaviors.Input"
 	xmlns:markup="using:DataOrganizer.Markup"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -49,7 +49,7 @@
 				Background="Transparent"
 				Cursor="Help"
 				Foreground="{StaticResource MaterialBodyBrush}"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static enums:EncryptionStatus.Encrypted}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.Encrypted}}">
 				<materialIcons:MaterialIcon.IsEnabled>
 					<MultiBinding Converter="{x:Static BoolConverters.And}">
 						<Binding

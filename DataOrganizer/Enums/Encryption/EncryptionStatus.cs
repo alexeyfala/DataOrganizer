@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Encryption;
 
 /// <summary>
 /// The status of encryption.

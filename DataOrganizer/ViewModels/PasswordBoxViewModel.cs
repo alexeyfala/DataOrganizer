@@ -1,7 +1,7 @@
 using Avalonia;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using Shared.Properties;
 using System.Globalization;

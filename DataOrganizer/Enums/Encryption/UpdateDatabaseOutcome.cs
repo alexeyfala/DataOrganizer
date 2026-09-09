@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Encryption;
 
 /// <summary>
 /// Outcome of writing a converted folder to the database.

@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Dto.Favorites;
 using DataOrganizer.Dto.Settings;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using Entities.Enums;
 using Entities.Models;
 using Material.Colors;

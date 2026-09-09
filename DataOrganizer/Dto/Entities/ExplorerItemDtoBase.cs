@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using Entities.Enums;
 using Entities.Models;
@@ -29,7 +29,7 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// <inheritdoc cref="ExplorerItemBase.CreatedDate" />
 	public required DateTime CreatedDate { get; init; }
 
-	/// <inheritdoc cref="Enums.EncryptionStatus" />
+	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
 

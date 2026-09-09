@@ -1,4 +1,4 @@
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using System;
 
 namespace DataOrganizer.Helpers.Security;

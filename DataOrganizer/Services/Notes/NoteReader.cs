@@ -1,5 +1,5 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Notes;
 using Serilog;

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Dialogs;
 using DataOrganizer.Interfaces;
 using System;
 using System.Threading;

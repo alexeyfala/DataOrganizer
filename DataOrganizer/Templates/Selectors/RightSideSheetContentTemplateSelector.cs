@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Views;
 
 namespace DataOrganizer.Templates.Selectors;
 

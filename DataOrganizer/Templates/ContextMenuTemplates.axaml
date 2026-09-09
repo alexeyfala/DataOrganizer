@@ -4,7 +4,7 @@
 	xmlns:controls="using:DataOrganizer.Controls"
 	xmlns:converters="using:DataOrganizer.Converters"
 	xmlns:dataset="using:DataOrganizer.Models.Dataset"
-	xmlns:encEnums="using:DataOrganizer.Enums"
+	xmlns:encryption="using:DataOrganizer.Enums.Encryption"
 	xmlns:entities="using:DataOrganizer.Dto.Entities"
 	xmlns:entityEnums="using:Entities.Enums"
 	xmlns:materialIcons="using:Material.Icons.Avalonia"
@@ -419,12 +419,12 @@
 				Header="{x:Static prop:Strings.Note}"
 				Icon="NoteTextOutline" />
 
-			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}" />
+			<Separator IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}" />
 
 			<controls:FlyoutButton
 				Header="{x:Static prop:Strings.Encryption}"
 				Icon="LockOutline"
-				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encEnums:EncryptionStatus.None}}">
+				IsVisible="{Binding EncryptionStatus, Mode=OneWay, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static encryption:EncryptionStatus.None}}">
 				<Button.Flyout>
 					<Flyout
 						OverlayDismissEventPassThrough="True"

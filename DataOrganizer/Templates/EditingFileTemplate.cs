@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces;
 using DataOrganizer.ViewModels;
 using DataOrganizer.Views;
@@ -103,7 +104,7 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 
 		void Initialize(EmbeddedEditorViewModelBase viewModel)
 		{
-			if (file.EncryptionStatus == Enums.EncryptionStatus.Decrypted
+			if (file.EncryptionStatus == Enums.Encryption.EncryptionStatus.Decrypted
 				&& file.FindParent(x => x.IsPasswordKeeper()) is { } keeper)
 			{
 				viewModel.KeeperId = keeper.Id;

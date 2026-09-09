@@ -1,5 +1,5 @@
 using AwesomeAssertions;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Helpers.Security;
 
 namespace DataOrganizer.UnitTests.Helpers.Security;

@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Encryption;
 
 /// <summary>
 /// The field a ciphertext belongs to. Separates the domains a key is used in,

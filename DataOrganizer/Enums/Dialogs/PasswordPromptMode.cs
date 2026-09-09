@@ -1,4 +1,4 @@
-namespace DataOrganizer.Enums;
+namespace DataOrganizer.Enums.Dialogs;
 
 /// <summary>
 /// The purpose a password box is opened for.

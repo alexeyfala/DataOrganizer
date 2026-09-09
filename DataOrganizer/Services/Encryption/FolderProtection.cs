@@ -1,7 +1,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Dto.Encryption;
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums;
+using DataOrganizer.Enums.Dialogs;
+using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
