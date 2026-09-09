@@ -11,7 +11,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DataOrganizer.Helpers;
 
-internal sealed class ViewLocator : IDataTemplate, IViewCache
+/// <summary>
+/// Builds and caches the editor control for a file opened in the built-in editor.
+/// </summary>
+internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 {
 	#region Data
 	/// <summary>
@@ -24,7 +27,7 @@ internal sealed class ViewLocator : IDataTemplate, IViewCache
 	#endregion
 
 	#region Constructors
-	public ViewLocator(IViewFactory viewFactory) => _viewFactory = viewFactory;
+	public EditingFileTemplate(IViewFactory viewFactory) => _viewFactory = viewFactory;
 	#endregion
 
 	#region Methods

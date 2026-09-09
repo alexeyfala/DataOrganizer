@@ -96,7 +96,7 @@ public sealed class App : Application
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
-		DataTemplates.Add(serviceProvider.GetRequiredService<ViewLocator>());
+		DataTemplates.Add(serviceProvider.GetRequiredService<EditingFileTemplate>());
 
 		_ = serviceProvider
 			.GetRequiredService<IAppController>()
@@ -161,8 +161,8 @@ public sealed class App : Application
 		#endregion
 
 		#region View locator
-		services.AddSingleton<ViewLocator>();
-		services.AddSingleton<IViewCache>(x => x.GetRequiredService<ViewLocator>());
+		services.AddSingleton<EditingFileTemplate>();
+		services.AddSingleton<IViewCache>(x => x.GetRequiredService<EditingFileTemplate>());
 		#endregion
 
 		#region Singletons
