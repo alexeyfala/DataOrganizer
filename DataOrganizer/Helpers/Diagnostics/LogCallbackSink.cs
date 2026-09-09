@@ -5,7 +5,7 @@ using Shared.Common;
 using System;
 using System.Diagnostics;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Diagnostics;
 
 /// <summary>
 /// Provides the ability to programmatically read logs.

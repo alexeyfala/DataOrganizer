@@ -1,9 +1,9 @@
 using AwesomeAssertions;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Diagnostics;
 using System;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Helpers.Diagnostics;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MessengerSubscriptions)}"" type")]
 internal class MessengerSubscriptionsTests

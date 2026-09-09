@@ -2,7 +2,7 @@ using System;
 using System.Collections.Frozen;
 using System.IO;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Execution;
 
 /// <summary>
 /// Detects whether a file is potentially executable based on its extension.

@@ -1,10 +1,10 @@
 using AwesomeAssertions;
 using DataOrganizer.Enums;
-using DataOrganizer.Helpers;
+using DataOrganizer.Helpers.Dataset;
 using DataOrganizer.Models.Dataset;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.UnitTests.Helpers;
+namespace DataOrganizer.UnitTests.Helpers.Dataset;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatasetRecordMover)}"" type")]
 internal class DatasetRecordMoverTests

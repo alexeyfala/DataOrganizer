@@ -3,7 +3,7 @@ using DataOrganizer.Models.Dataset;
 using System;
 using System.Collections.ObjectModel;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Dataset;
 
 /// <summary>
 /// Moves a <see cref="DatasetRecordBase" /> within a record tree, including across groups.

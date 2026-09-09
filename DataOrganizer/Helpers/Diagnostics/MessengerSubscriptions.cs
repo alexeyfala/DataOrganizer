@@ -3,7 +3,7 @@ using Shared.Extensions;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.Helpers;
+namespace DataOrganizer.Helpers.Diagnostics;
 
 /// <summary>
 /// Reads, by reflection, the message channels a CommunityToolkit messenger recipient listens to.
