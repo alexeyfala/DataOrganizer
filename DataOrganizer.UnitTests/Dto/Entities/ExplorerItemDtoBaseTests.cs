@@ -4,7 +4,7 @@ using Entities.Enums;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Dto.Entities;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExplorerItemDtoBase)}"" type")]
 internal class ExplorerItemDtoBaseTests

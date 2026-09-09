@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DataExchangeService)}"" type")]
 internal class DataExchangeServiceTests

@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Views.Settings;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsView)}"" type")]
 internal class SettingsViewTests

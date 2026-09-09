@@ -11,7 +11,7 @@ using DataOrganizer.Views;
 using NSubstitute;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyValueInputView)}"" type")]
 internal class KeyValueInputViewTests

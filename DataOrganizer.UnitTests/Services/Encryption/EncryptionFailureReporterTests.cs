@@ -11,7 +11,7 @@ using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Services.Encryption;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EncryptionFailureReporter)}"" type")]
 internal class EncryptionFailureReporterTests

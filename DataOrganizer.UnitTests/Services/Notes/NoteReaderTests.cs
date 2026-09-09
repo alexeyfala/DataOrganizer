@@ -9,7 +9,7 @@ using NSubstitute;
 using Shared.Common;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Notes;
+namespace DataOrganizer.UnitTests.Services.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteReader)}"" type")]
 internal class NoteReaderTests

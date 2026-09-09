@@ -10,7 +10,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Execution;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionSandbox)}"" type")]
 internal class ExecutionSandboxTests

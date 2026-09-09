@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using DataOrganizer.Helpers;
 using System;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MessengerSubscriptions)}"" type")]
 internal class MessengerSubscriptionsTests

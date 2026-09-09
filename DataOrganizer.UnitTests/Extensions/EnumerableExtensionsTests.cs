@@ -14,7 +14,7 @@ using System.Globalization;
 using System.Linq;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Extensions;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumerableExtensions)}"" type")]
 internal class EnumerableExtensionsTests

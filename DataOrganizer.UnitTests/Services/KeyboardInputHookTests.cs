@@ -25,7 +25,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(KeyboardInputHook)}"" type")]
 internal class KeyboardInputHookTests

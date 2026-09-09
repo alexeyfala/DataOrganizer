@@ -7,7 +7,7 @@ using DataOrganizer.ViewModels;
 using NSubstitute;
 using System;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EmbeddedEditorViewModelBase)}"" type")]
 internal class EmbeddedEditorViewModelBaseTests

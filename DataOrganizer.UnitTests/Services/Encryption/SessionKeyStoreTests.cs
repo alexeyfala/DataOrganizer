@@ -8,7 +8,7 @@ using System;
 using System.Security.Cryptography;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Services.Encryption;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SessionKeyStore)}"" type")]
 internal class SessionKeyStoreTests

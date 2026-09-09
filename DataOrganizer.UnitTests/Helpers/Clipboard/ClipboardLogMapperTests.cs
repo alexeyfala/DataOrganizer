@@ -5,7 +5,7 @@ using DataOrganizer.Models.Clipboard;
 using System.Collections.Generic;
 using System.Text.Json;
 
-namespace DataOrganizer.UnitTests.Clipboard;
+namespace DataOrganizer.UnitTests.Helpers.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogMapper)}"" type")]
 internal class ClipboardLogMapperTests

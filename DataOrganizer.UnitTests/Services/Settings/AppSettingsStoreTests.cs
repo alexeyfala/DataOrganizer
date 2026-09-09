@@ -10,7 +10,7 @@ using Shared.Interfaces;
 using System.IO;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Settings;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppSettingsStore)}"" type")]
 internal class AppSettingsStoreTests

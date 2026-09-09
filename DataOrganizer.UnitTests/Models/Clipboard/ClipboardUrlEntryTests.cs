@@ -5,7 +5,7 @@ using Shared.Properties;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Clipboard;
+namespace DataOrganizer.UnitTests.Models.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardUrlEntry)}"" type")]
 internal class ClipboardUrlEntryTests

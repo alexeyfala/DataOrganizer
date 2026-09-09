@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Converters;
 using System.Globalization;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Converters;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EnumToBoolConverter)}"" type")]
 internal class EnumToBoolConverterTests

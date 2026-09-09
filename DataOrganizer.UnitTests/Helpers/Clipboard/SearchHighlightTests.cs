@@ -2,7 +2,7 @@ using AwesomeAssertions;
 using DataOrganizer.Helpers.Clipboard;
 using System.Collections.Generic;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Helpers.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SearchHighlight)}"" type")]
 internal class SearchHighlightTests

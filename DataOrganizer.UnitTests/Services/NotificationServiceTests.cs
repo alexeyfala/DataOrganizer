@@ -9,7 +9,7 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NotificationService)}"" type")]
 internal class NotificationServiceTests

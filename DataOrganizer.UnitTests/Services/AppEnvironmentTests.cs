@@ -7,7 +7,7 @@ using NSubstitute;
 using Shared.Common;
 using System.IO;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AppEnvironment)}"" type")]
 internal class AppEnvironmentTests

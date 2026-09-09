@@ -10,7 +10,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading;
 
-namespace DataOrganizer.UnitTests.Clipboard;
+namespace DataOrganizer.UnitTests.ViewModels;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogViewModel)}"" type")]
 internal class ClipboardLogViewModelTests

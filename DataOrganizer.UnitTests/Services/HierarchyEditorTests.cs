@@ -16,7 +16,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(HierarchyEditor)}"" type")]
 internal class HierarchyEditorTests

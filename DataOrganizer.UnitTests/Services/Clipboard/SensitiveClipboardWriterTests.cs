@@ -8,7 +8,7 @@ using NSubstitute;
 using Shared.Common;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Clipboard;
+namespace DataOrganizer.UnitTests.Services.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveClipboardWriter)}"" type")]
 internal class SensitiveClipboardWriterTests

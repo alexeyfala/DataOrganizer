@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Services.Encryption;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AutoLockService)}"" type")]
 internal class AutoLockServiceTests

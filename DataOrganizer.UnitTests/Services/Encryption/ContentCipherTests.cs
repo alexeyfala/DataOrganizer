@@ -15,7 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Services.Encryption;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ContentCipher)}"" type")]
 internal class ContentCipherTests

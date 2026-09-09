@@ -19,7 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Updates;
 
 [TestFixture(Description = $@"Tests of ""{nameof(UpdateCheckService)}"" type")]
 internal class UpdateCheckServiceTests

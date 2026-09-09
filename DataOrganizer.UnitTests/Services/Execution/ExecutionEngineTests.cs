@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Execution;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionEngine)}"" type")]
 internal class ExecutionEngineTests

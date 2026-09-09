@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests.Clipboard;
+namespace DataOrganizer.UnitTests.Services.Clipboard;
 
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardAutoClear)}"" type")]
 internal class ClipboardAutoClearTests

@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Roslynator", "RCS1021:Convert lambda expression body to expression body", Justification = "<Pending>", Scope = "member", Target = "~M:DataOrganizer.UnitTests.Clipboard.ClipboardAutoClearTests.CreateContext(System.Boolean)~DataOrganizer.UnitTests.Clipboard.ClipboardAutoClearTests.Context")]
+[assembly: SuppressMessage("Roslynator", "RCS1021:Convert lambda expression body to expression body", Justification = "<Pending>", Scope = "member", Target = "~M:DataOrganizer.UnitTests.Services.Clipboard.ClipboardAutoClearTests.CreateContext(System.Boolean)~DataOrganizer.UnitTests.Services.Clipboard.ClipboardAutoClearTests.Context")]

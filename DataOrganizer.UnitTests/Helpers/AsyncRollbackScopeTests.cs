@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(AsyncRollbackScope)}"" type")]
 internal class AsyncRollbackScopeTests

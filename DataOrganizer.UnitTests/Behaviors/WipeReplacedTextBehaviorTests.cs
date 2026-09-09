@@ -3,7 +3,7 @@ using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Behaviors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(WipeReplacedTextBehavior)}"" type")]
 internal class WipeReplacedTextBehaviorTests

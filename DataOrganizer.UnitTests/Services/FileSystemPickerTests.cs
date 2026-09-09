@@ -5,7 +5,7 @@ using AwesomeAssertions;
 using DataOrganizer.Services;
 using System.Threading.Tasks;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemPicker)}"" type")]
 internal class FileSystemPickerTests

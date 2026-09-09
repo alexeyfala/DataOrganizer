@@ -20,7 +20,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Execution;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileChangeTracker)}"" type")]
 internal class FileChangeTrackerTests

@@ -11,7 +11,7 @@ using System;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(EntityPropertyWriter)}"" type")]
 internal class EntityPropertyWriterTests

@@ -15,7 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Notes;
+namespace DataOrganizer.UnitTests.Services.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteEditor)}"" type")]
 internal class NoteEditorTests

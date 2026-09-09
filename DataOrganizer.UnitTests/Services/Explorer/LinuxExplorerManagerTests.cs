@@ -1,6 +1,6 @@
 using DataOrganizer.Services.Explorer;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services.Explorer;
 
 [TestFixture(Description = $@"Tests of ""{nameof(LinuxExplorerManager)}"" type")]
 internal class LinuxExplorerManagerTests

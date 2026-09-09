@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using DataOrganizer.Views;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Views;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FileSystemPathSelector)}"" type")]
 internal class FileSystemPathSelectorTests

@@ -1,7 +1,7 @@
 using AwesomeAssertions;
 using DataOrganizer.Helpers.Security;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Helpers.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(SensitiveTextDetector)}"" type")]
 internal class SensitiveTextDetectorTests

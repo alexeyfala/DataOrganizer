@@ -3,7 +3,7 @@ using DataOrganizer.Helpers.Security;
 using System;
 using System.Linq;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Helpers.Security;
 
 [TestFixture(Description = $@"Tests of ""{nameof(StringWiper)}"" type")]
 internal class StringWiperTests

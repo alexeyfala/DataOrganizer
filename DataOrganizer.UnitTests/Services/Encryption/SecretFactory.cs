@@ -3,7 +3,7 @@ using Shared.Common;
 using System;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Security;
+namespace DataOrganizer.UnitTests.Services.Encryption;
 
 /// <summary>
 /// Builds pinned secrets for the tests.

@@ -6,7 +6,7 @@ using DataOrganizer.Services;
 using Serilog.Events;
 using System;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Services;
 
 [TestFixture(Description = $@"Tests of ""{nameof(CommandLineOptions)}"" type")]
 internal class CommandLineOptionsTests

@@ -4,7 +4,7 @@ using Avalonia.Input;
 using AwesomeAssertions;
 using DataOrganizer.Behaviors;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Behaviors;
 
 [TestFixture(Description = $@"Tests of ""{nameof(MoveFocusOnEnterBehavior)}"" type")]
 internal class MoveFocusOnEnterBehaviorTests

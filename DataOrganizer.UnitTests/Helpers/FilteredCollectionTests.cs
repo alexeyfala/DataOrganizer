@@ -7,7 +7,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests;
+namespace DataOrganizer.UnitTests.Helpers;
 
 [TestFixture(Description = $@"Tests of ""{nameof(FilteredCollection<>)}"" type")]
 internal class FilteredCollectionTests

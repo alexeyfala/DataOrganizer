@@ -14,7 +14,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TestSupport;
 
-namespace DataOrganizer.UnitTests.Notes;
+namespace DataOrganizer.UnitTests.Services.Notes;
 
 [TestFixture(Description = $@"Tests of ""{nameof(NoteCipher)}"" type")]
 internal class NoteCipherTests
