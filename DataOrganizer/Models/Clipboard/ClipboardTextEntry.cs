@@ -2,7 +2,7 @@ using DataOrganizer.Helpers;
 using DataOrganizer.Helpers.Security;
 using Shared.Properties;
 
-namespace DataOrganizer.Dto.Clipboard;
+namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
 /// Plain-text clipboard entry, optionally carrying HTML / RTF companion formats.

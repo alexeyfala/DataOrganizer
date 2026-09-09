@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Messages;
+using DataOrganizer.Models.Clipboard;
 using DynamicData.Binding;
 using Serilog;
 using Shared.Extensions;

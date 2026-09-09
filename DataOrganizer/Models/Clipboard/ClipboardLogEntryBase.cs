@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace DataOrganizer.Dto.Clipboard;
+namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
 /// Base type for one record in the in-memory system clipboard log.

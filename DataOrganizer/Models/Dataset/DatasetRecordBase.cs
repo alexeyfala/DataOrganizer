@@ -3,7 +3,7 @@ using System.Reactive;
 using System.Reactive.Subjects;
 using System.Text.Json.Serialization;
 
-namespace DataOrganizer.Dto.Dataset;
+namespace DataOrganizer.Models.Dataset;
 
 [JsonDerivedType(typeof(KeyValueRecord), "KeyValue")]
 [JsonDerivedType(typeof(RecordsGroup), "Group")]

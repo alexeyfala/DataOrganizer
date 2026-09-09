@@ -5,7 +5,7 @@ using System;
 using System.Buffers.Binary;
 using System.IO;
 
-namespace DataOrganizer.Dto.Clipboard;
+namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
 /// Image clipboard entry backed by the original full-size PNG bytes.

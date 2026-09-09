@@ -12,6 +12,7 @@ using DataOrganizer.Helpers.Clipboard;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Models.Dataset;
 using Repository.Dto;
 using Repository.Interfaces;
 using Serilog;

@@ -1,7 +1,7 @@
 using AwesomeAssertions;
-using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums;
 using DataOrganizer.Helpers;
+using DataOrganizer.Models.Dataset;
 using System.Collections.ObjectModel;
 
 namespace DataOrganizer.UnitTests.TestTypes;

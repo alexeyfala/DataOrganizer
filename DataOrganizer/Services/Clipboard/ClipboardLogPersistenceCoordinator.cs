@@ -6,6 +6,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
+using DataOrganizer.Models.Clipboard;
 using Serilog;
 using Shared.Extensions;
 using System;

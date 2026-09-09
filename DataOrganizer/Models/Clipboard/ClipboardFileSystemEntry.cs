@@ -1,6 +1,6 @@
 using SystemPath = System.IO.Path;
 
-namespace DataOrganizer.Dto.Clipboard;
+namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
 /// One filesystem item captured in a <see cref="Clipboard.ClipboardFilesEntry" />.

@@ -1,5 +1,5 @@
-using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Enums;
+using DataOrganizer.Models.Dataset;
 using System;
 using System.Collections.ObjectModel;
 

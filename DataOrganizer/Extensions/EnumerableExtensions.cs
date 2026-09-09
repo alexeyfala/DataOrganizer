@@ -1,7 +1,7 @@
 using Cysharp.Text;
 using DataOrganizer.Dto;
-using DataOrganizer.Dto.Dataset;
 using DataOrganizer.Dto.Entities;
+using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Repository.Dto;
 using Shared.Extensions;

@@ -7,6 +7,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Models.Clipboard;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Shared.Extensions;

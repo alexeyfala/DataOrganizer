@@ -1,9 +1,9 @@
 using Autofac;
 using Autofac.Extras.Moq;
 using AwesomeAssertions;
-using DataOrganizer.Dto.Clipboard;
 using DataOrganizer.Enums.Clipboard;
 using DataOrganizer.Interfaces.Clipboard;
+using DataOrganizer.Models.Clipboard;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using System;

@@ -3,7 +3,7 @@ using Shared.Properties;
 using System;
 using System.Collections.Generic;
 
-namespace DataOrganizer.Dto.Clipboard;
+namespace DataOrganizer.Models.Clipboard;
 
 /// <summary>
 /// Text entry whose whole trimmed content matches an absolute http(s) URL.

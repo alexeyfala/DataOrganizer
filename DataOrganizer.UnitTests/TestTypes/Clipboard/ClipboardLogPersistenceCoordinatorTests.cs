@@ -11,6 +11,7 @@ using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Clipboard;
 using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Messages;
+using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.UnitTests.Helpers;
 using Microsoft.Extensions.Time.Testing;

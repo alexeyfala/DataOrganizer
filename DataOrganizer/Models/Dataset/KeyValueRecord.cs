@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Diagnostics;
 
-namespace DataOrganizer.Dto.Dataset;
+namespace DataOrganizer.Models.Dataset;
 
 [DebuggerDisplay(
 	$"{nameof(Type)} = {{{nameof(Type)}}}, " +

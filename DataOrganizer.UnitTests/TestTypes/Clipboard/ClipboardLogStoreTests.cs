@@ -8,6 +8,7 @@ using DataOrganizer.Helpers.Security;
 using DataOrganizer.Helpers.Text;
 using DataOrganizer.Interfaces;
 using DataOrganizer.Interfaces.Encryption;
+using DataOrganizer.Models.Clipboard;
 using DataOrganizer.Services.Clipboard;
 using DataOrganizer.Services.Encryption;
 using DataOrganizer.UnitTests.Helpers;
