@@ -210,23 +210,6 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates the required number of random <see cref="HotkeyEntity" /> objects.
-	/// </summary>
-	public static IEnumerable<HotkeyEntity> CreateHotkeys(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return new()
-			{
-				Code = CreateRandomEnumValue<KeyCode>(),
-				Id = Guid.NewGuid(),
-				Mask = CreateRandomEnumValue<EventMask>(),
-				OwnerId = Guid.NewGuid()
-			};
-		}
-	}
-
-	/// <summary>
 	/// Creates the required number of random <see cref="KeyStroke" /> objects.
 	/// </summary>
 	public static IEnumerable<KeyStroke> CreateKeyStrokes(int count)
@@ -330,17 +313,6 @@ public static class TestData
 	/// Generates a random number between 10 and 100.
 	/// </summary>
 	public static int CreateRandomIntFrom10To100() => CreateRandomInt(10, 101);
-
-	/// <summary>
-	/// Creates a sequence of the required length from a factory.
-	/// </summary>
-	public static IEnumerable<T> CreateSequence<T>(Func<T> factory, int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return factory();
-		}
-	}
 
 	/// <summary>
 	/// Creates an <see cref="AppSettings" /> object with fixed values.
