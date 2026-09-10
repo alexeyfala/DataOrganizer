@@ -63,6 +63,11 @@ public sealed class EncryptionService : IEncryptionService
 	};
 
 	/// <summary>
+	/// Domain separation label for the session key derivation.
+	/// </summary>
+	private static readonly byte[] _sessionKeyInfo = "DataOrganizer.SessionDek.v1"u8.ToArray();
+
+	/// <summary>
 	/// The session-based format: the derivation from a random secret has no cost to record,
 	/// a secret of the running session is never wrong, and the plaintext is a single key.
 	/// </summary>
@@ -77,11 +82,6 @@ public sealed class EncryptionService : IEncryptionService
 		},
 		KeyFactory = DeriveSessionKey
 	};
-
-	/// <summary>
-	/// Domain separation label for the session key derivation.
-	/// </summary>
-	private static readonly byte[] _sessionKeyInfo = "DataOrganizer.SessionDek.v1"u8.ToArray();
 	#endregion
 
 	#region Methods
