@@ -50,9 +50,9 @@ if (-not $Version) {
         throw "No <AppVersion> property found in Directory.Build.props; cannot determine the release version."
     }
 }
-$appName = Get-PropsValue 'AppNameParted'
+$appName = Get-PropsValue 'AppDisplayName'
 if (-not $appName) {
-    throw "No <AppNameParted> property found in Directory.Build.props; cannot determine the application name."
+    throw "No <AppDisplayName> property found in Directory.Build.props; cannot determine the application name."
 }
 
 if (-not $TemplateFile) {

@@ -31,6 +31,6 @@ public sealed class NoticeParameters
 	/// <summary>
 	/// Title of the window.
 	/// </summary>
-	public string Title { get; init; } = AppInfo.AppNameParted;
+	public string Title { get; init; } = AppInfo.AppDisplayName;
 	#endregion
 }

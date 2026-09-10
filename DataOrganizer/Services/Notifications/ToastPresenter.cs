@@ -72,7 +72,7 @@ public sealed class ToastPresenter : IToastPresenter
 
 			ToastWindow window = _viewFactory.CreateWindow<ToastWindow>(viewModel);
 
-			viewModel.Title = AppInfo.AppNameParted;
+			viewModel.Title = AppInfo.AppDisplayName;
 
 			viewModel.Message = content;
 

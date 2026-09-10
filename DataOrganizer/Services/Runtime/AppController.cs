@@ -263,7 +263,7 @@ public sealed class AppController : IAppController
 		}
 
 		_logger.LogInformationWithTemplate(
-			$"{AppInfo.AppNameParted} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
+			$"{AppInfo.AppDisplayName} ({Assembly.GetEntryAssembly().GetVersionWithSuffix()})");
 
 		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
 

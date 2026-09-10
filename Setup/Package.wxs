@@ -42,9 +42,9 @@
 			Details tab in Windows Explorer.
 		-->
 		<SummaryInformation
-			Comments="$(var.AppNameParted) installer. Copyright (c) 2026 $(var.Manufacturer). Licensed under $(var.License)."
-			Description="$(var.AppNameParted) $(var.AppVersion) Setup"
-			Keywords="Installer, MSI, $(var.AppNameParted)" />
+			Comments="$(var.AppDisplayName) installer. Copyright (c) 2026 $(var.Manufacturer). Licensed under $(var.License)."
+			Description="$(var.AppDisplayName) $(var.AppVersion) Setup"
+			Keywords="Installer, MSI, $(var.AppDisplayName)" />
 
 		<!--
 			https://docs.firegiant.com/wix3/wixui/dialog_reference/wixui_advanced
@@ -104,7 +104,7 @@
 			ConfigurableDirectory="APPLICATIONFOLDER"
 			Description="The core elements that must be installed"
 			Id="Main"
-			Title="$(var.AppNameParted) Application">
+			Title="$(var.AppDisplayName) Application">
 			<ComponentGroupRef Id="Components" />
 		</Feature>
 

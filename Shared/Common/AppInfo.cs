@@ -12,14 +12,14 @@ public static class AppInfo
 {
 	#region Properties
 	/// <summary>
+	/// Application name shown to the user: "Data Organizer".
+	/// </summary>
+	public static string AppDisplayName { get; }
+
+	/// <summary>
 	/// Application name "DataOrganizer".
 	/// </summary>
 	public static string AppName { get; }
-
-	/// <summary>
-	/// Application name "Data Organizer".
-	/// </summary>
-	public static string AppNameParted { get; }
 
 	/// <summary>
 	/// Application version.
@@ -42,12 +42,12 @@ public static class AppInfo
 			.GetExecutingAssembly()
 			.GetCustomAttributes<AssemblyMetadataAttribute>()];
 
-		AppName = attributes
-			.First(x => x.Key == "AppName")
+		AppDisplayName = attributes
+			.First(x => x.Key == "AppDisplayName")
 			.Value!;
 
-		AppNameParted = attributes
-			.First(x => x.Key == "AppNameParted")
+		AppName = attributes
+			.First(x => x.Key == "AppName")
 			.Value!;
 	}
 	#endregion
