@@ -18,9 +18,9 @@ public static class ExpressionExtensions
 	{
 		PropertyInfo? propertyInfo = expression.GetPropertyInfo();
 
-		object? entity = expression.GetEntityReference();
+		object? owner = expression.GetOwnerReference();
 
-		propertyInfo?.SetValue(entity, value);
+		propertyInfo?.SetValue(owner, value);
 	}
 	#endregion
 
@@ -30,7 +30,7 @@ public static class ExpressionExtensions
 	/// </summary>
 	/// <typeparam name="T">Property type.</typeparam>
 	/// <param name="expression">Property in the form of a lambda expression.</param>
-	private static object? GetEntityReference<T>(this Expression<Func<T>> expression)
+	private static object? GetOwnerReference<T>(this Expression<Func<T>> expression)
 	{
 		MemberExpression? pExpression;
 

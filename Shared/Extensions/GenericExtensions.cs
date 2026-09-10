@@ -14,7 +14,7 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into an array along with other objects.
 	/// </summary>
-	public static T[] AsArray<T>(this T entity, params T[] others) => [.. entity.ToEnumerable(others)];
+	public static T[] AsArray<T>(this T value, params T[] others) => [.. value.ToEnumerable(others)];
 
 	/// <summary>
 	/// Copies the values ​​of writable passed properties in objects of different types via reflection.
@@ -218,7 +218,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
-	public static bool IsDefault<T>([NotNullWhen(false)] this T argument) => EqualityComparer<T>.Default.Equals(argument, default);
+	public static bool IsDefault<T>([NotNullWhen(false)] this T value) => EqualityComparer<T>.Default.Equals(value, default);
 
 	/// <summary>
 	/// <c>True</c> when the value is not the default value for its type.
@@ -226,7 +226,7 @@ public static class GenericExtensions
 	/// <remarks>
 	/// null for classes, null (empty) for Nullable structs, zero, false, etc. for other structs
 	///</remarks>
-	public static bool IsNotDefault<T>([NotNullWhen(true)] this T argument) => !argument.IsDefault();
+	public static bool IsNotDefault<T>([NotNullWhen(true)] this T value) => !value.IsDefault();
 
 	/// <summary>
 	/// Sets the value of a property via reflection.
@@ -247,9 +247,9 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
 	/// </summary>
-	public static IEnumerable<T> ToEnumerable<T>(this T entity, params T[] others)
+	public static IEnumerable<T> ToEnumerable<T>(this T value, params T[] others)
 	{
-		yield return entity;
+		yield return value;
 
 		foreach (T item in others)
 		{
@@ -260,9 +260,9 @@ public static class GenericExtensions
 	/// <summary>
 	/// Converts an object into a sequence along with other objects.
 	/// </summary>
-	public static IEnumerable<T> ToEnumerable<T>(this T entity, IEnumerable<T> others)
+	public static IEnumerable<T> ToEnumerable<T>(this T value, IEnumerable<T> others)
 	{
-		yield return entity;
+		yield return value;
 
 		foreach (T item in others)
 		{
