@@ -25,7 +25,7 @@ internal class EntityKindNumberingTests
 			.Should()
 			.Be(1);
 
-		((int)EntityKind.DataSet)
+		((int)EntityKind.Dataset)
 			.Should()
 			.Be(2);
 	}

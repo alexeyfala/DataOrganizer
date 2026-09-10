@@ -208,7 +208,7 @@ internal static class DbAccessExtensions
 		{
 			AddEntityParameters parameters = new()
 			{
-				EntityType = EntityKind.DataSet,
+				EntityType = EntityKind.Dataset,
 				FileContents = datasetContents,
 				Index = startIndex++,
 				Name = $"{i + 1}_Dataset_{RandomString.Create(6)}",

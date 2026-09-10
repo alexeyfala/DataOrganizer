@@ -18,7 +18,7 @@ public static class HotkeyXmlSanitizer
 	/// </summary>
 	public static void Sanitize(XDocument document)
 	{
-		foreach (XElement hotkey in document.Descendants(HotkeyEntity.Hotkey))
+		foreach (XElement hotkey in document.Descendants(HotkeyEntity.HotkeyElementName))
 		{
 			if (hotkey.Element(nameof(HotkeyEntity.Code)) is { } code
 				&& EnumNameReader.Read(code.Value, KeyCode.VcUndefined) == KeyCode.VcUndefined)

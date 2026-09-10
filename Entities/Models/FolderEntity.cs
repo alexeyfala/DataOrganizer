@@ -7,7 +7,7 @@ namespace Entities.Models;
 /// <summary>
 /// A folder in the virtual file system.
 /// </summary>
-[XmlType(TypeName = Folder)]
+[XmlType(TypeName = FolderTypeName)]
 public sealed class FolderEntity : ExplorerItemBase
 {
 	#region Properties
@@ -19,7 +19,7 @@ public sealed class FolderEntity : ExplorerItemBase
 	public Collection<ExplorerItemBase> Children { get; } = [];
 
 	/// <summary>
-	/// Encrypted DEK (Data Encryption Key)
+	/// Encrypted DEK (Data Encryption Key).
 	/// </summary>
 	public byte[]? EncryptedDek { get; init; }
 

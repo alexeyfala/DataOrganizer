@@ -90,7 +90,7 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 
 			return true;
 		}
-		else if (file.EntityType == EntityKind.DataSet)
+		else if (file.EntityType == EntityKind.Dataset)
 		{
 			DatasetEditorViewModel viewModel = _viewFactory.CreateViewModel<DatasetEditorViewModel>();
 

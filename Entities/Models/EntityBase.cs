@@ -14,7 +14,7 @@ public abstract class EntityBase
 	public Guid Id { get; set; }
 
 	/// <summary>
-	/// The index of the object in the parent collection (necessary for correct positioning in the collection).
+	/// Position of the object among its siblings.
 	/// </summary>
 	public int Index { get; set; }
 	#endregion

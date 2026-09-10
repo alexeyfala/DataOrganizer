@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Interfaces.Hierarchy;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
@@ -63,7 +62,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		{
 			EntityKind.Folder => "folder",
 			EntityKind.File => "file",
-			EntityKind.DataSet => "dataset",
+			EntityKind.Dataset => "dataset",
 			_ => throw new NotImplementedException()
 		}} to the database.");
 
@@ -188,7 +187,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 				x => x.SetProperty(x => x.Name, newName),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
 			], token),
-			EntityKind.File or EntityKind.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.Name, newName),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)

@@ -7,5 +7,5 @@ public enum EntityKind
 {
 	Folder,
 	File,
-	DataSet
+	Dataset
 }

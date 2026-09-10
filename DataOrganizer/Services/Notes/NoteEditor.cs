@@ -1,5 +1,4 @@
 using DataOrganizer.Dto.Entities;
-using DataOrganizer.Enums.Encryption;
 using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
@@ -85,7 +84,7 @@ public sealed class NoteEditor : INoteEditor
 				x => x.SetProperty(x => x.Note, encoded),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
 			], token),
-			EntityKind.File or EntityKind.DataSet => _dbAccess.UpdateFilePropertiesAsync(item.Id,
+			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
 				x => x.SetProperty(x => x.UpdatedDate, updatedDate)

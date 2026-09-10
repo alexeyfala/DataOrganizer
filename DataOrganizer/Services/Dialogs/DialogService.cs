@@ -285,7 +285,7 @@ public sealed class DialogService : IDialogService
 			{
 				{ IsFolderSelected: true } => EntityKind.Folder,
 				{ IsFileSelected: true } => EntityKind.File,
-				{ IsDatasetSelected: true } => EntityKind.DataSet,
+				{ IsDatasetSelected: true } => EntityKind.Dataset,
 				_ => throw new NotImplementedException()
 			};
 

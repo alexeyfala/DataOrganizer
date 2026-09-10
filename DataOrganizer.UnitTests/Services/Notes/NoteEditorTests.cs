@@ -207,7 +207,7 @@ internal class NoteEditorTests
 	/// </summary>
 
 	[Test]
-	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.DataSet)] EntityKind entityType)
+	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind entityType)
 	{
 		// Arrange
 		FileDto file = CreateFile(entityType);

@@ -85,7 +85,7 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 			[
 				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
 			], token),
-			EntityKind.File or EntityKind.DataSet => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
+			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.IsSelected, dto.IsSelected)
 			], token),

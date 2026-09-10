@@ -90,7 +90,7 @@ internal static class AppConverters
 		{
 			EntityKind.Folder => MaterialIconKind.Folder,
 			EntityKind.File => MaterialIconKind.FileOutline,
-			EntityKind.DataSet => MaterialIconKind.ViewSplitHorizontal,
+			EntityKind.Dataset => MaterialIconKind.ViewSplitHorizontal,
 			_ => default
 		});
 

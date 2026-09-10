@@ -6,7 +6,7 @@ namespace Entities.Models;
 /// <summary>
 /// A file in the virtual file system.
 /// </summary>
-[XmlType(TypeName = File)]
+[XmlType(TypeName = FileTypeName)]
 public sealed class FileEntity : ExplorerItemBase
 {
 	#region Properties
@@ -21,7 +21,7 @@ public sealed class FileEntity : ExplorerItemBase
 	public List<HotkeyEntity> Hotkeys { get; init; } = [];
 
 	/// <summary>
-	/// Used in "Favorites" mode.
+	/// <c>True</c> when the file is marked as a favorite.
 	/// </summary>
 	public bool IsFavorite { get; init; }
 

@@ -15,8 +15,8 @@ namespace Entities.Models;
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
-[JsonDerivedType(typeof(FolderEntity), Folder)]
-[JsonDerivedType(typeof(FileEntity), File)]
+[JsonDerivedType(typeof(FolderEntity), FolderTypeName)]
+[JsonDerivedType(typeof(FileEntity), FileTypeName)]
 
 [XmlType(TypeName = "Entry")]
 [XmlInclude(typeof(FolderEntity))]
@@ -31,7 +31,7 @@ public abstract class ExplorerItemBase : EntityBase
 	[XmlIgnore]
 	public DateTime CreatedDate { get; set; }
 
-	/// <inheritdoc cref="Enums.EntityType" />
+	/// <inheritdoc cref="EntityKind" />
 	public EntityKind EntityType { get; init; }
 
 	/// <summary>
@@ -47,7 +47,7 @@ public abstract class ExplorerItemBase : EntityBase
 	public string Name { get; init; } = string.Empty;
 
 	/// <summary>
-	/// Note.
+	/// Note in its stored binary form.
 	/// </summary>
 	public byte[]? Note { get; init; }
 
@@ -73,13 +73,13 @@ public abstract class ExplorerItemBase : EntityBase
 
 	#region Data
 	/// <summary>
-	/// String literal for <see cref="FileEntity" /> derived type.
+	/// The name that identifies <see cref="FileEntity" /> in serialized documents.
 	/// </summary>
-	public const string File = "File";
+	public const string FileTypeName = "File";
 
 	/// <summary>
-	/// String literal for <see cref="FolderEntity" /> derived type.
+	/// The name that identifies <see cref="FolderEntity" /> in serialized documents.
 	/// </summary>
-	public const string Folder = "Folder";
+	public const string FolderTypeName = "Folder";
 	#endregion
 }

@@ -1577,7 +1577,7 @@ public partial class EditorViewModel :
 			{
 				EntityKind.Folder => Strings.Folder,
 				EntityKind.File => Strings.File,
-				EntityKind.DataSet => Strings.Dataset,
+				EntityKind.Dataset => Strings.Dataset,
 				_ => throw new NotImplementedException()
 			});
 

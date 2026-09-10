@@ -381,7 +381,7 @@
 				Icon="{OnPlatform Default=MicrosoftWindows,
 				                  macOS=Apple,
 				                  Linux=Linux}"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityKind.DataSet}}" />
+				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityKind.Dataset}}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CloseOpenedFileCommand}"

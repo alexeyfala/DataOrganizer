@@ -214,7 +214,7 @@ internal class HotkeyXmlSanitizerTests
 	private static string ReadHotkey(XDocument document, string element)
 	{
 		return document
-			.Descendants(HotkeyEntity.Hotkey)
+			.Descendants(HotkeyEntity.HotkeyElementName)
 			.Single()
 			.Element(element)!
 			.Value;
@@ -240,7 +240,7 @@ internal class HotkeyXmlSanitizerTests
 	private static void WriteHotkey(XDocument document, string element, string value)
 	{
 		document
-			.Descendants(HotkeyEntity.Hotkey)
+			.Descendants(HotkeyEntity.HotkeyElementName)
 			.Single()
 			.Element(element)!
 			.Value = value;

@@ -14,7 +14,7 @@ namespace Entities.Models;
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
 	$"{nameof(Code)} = {{{nameof(Code)}}}, " +
 	$"{nameof(Mask)} = {{{nameof(Mask)}}}")]
-[XmlType(TypeName = Hotkey)]
+[XmlType(TypeName = HotkeyElementName)]
 public sealed class HotkeyEntity : EntityBase
 {
 	#region Properties
@@ -41,8 +41,8 @@ public sealed class HotkeyEntity : EntityBase
 
 	#region Data
 	/// <summary>
-	/// String literal for the XML element of a hotkey.
+	/// The name of the XML element that holds a hotkey.
 	/// </summary>
-	public const string Hotkey = "Hotkey";
+	public const string HotkeyElementName = "Hotkey";
 	#endregion
 }
