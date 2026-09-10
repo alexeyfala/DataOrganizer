@@ -31,7 +31,7 @@ using DataOrganizer.Windows;
 using Entities.Enums;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using System;

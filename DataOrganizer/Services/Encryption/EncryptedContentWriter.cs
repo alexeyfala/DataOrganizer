@@ -6,7 +6,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

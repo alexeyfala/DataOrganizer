@@ -12,7 +12,7 @@ using DataOrganizer.Windows;
 using Entities.Models;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using Shared.Interfaces;

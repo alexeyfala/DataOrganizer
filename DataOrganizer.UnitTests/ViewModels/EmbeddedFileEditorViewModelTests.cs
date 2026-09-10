@@ -8,7 +8,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using Shared.Services;
 using System;

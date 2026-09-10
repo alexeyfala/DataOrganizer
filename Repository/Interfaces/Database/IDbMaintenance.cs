@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Interfaces;
+namespace Repository.Interfaces.Database;
 
 /// <summary>
 /// Housekeeping of the database file itself.

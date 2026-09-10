@@ -1,13 +1,13 @@
 using AwesomeAssertions;
 using NSubstitute;
-using Repository.Services;
+using Repository.Services.Database;
 using Serilog.Core;
 using Shared.Common;
 using Shared.Interfaces;
 using System;
 using System.IO;
 
-namespace Repository.UnitTests.Services;
+namespace Repository.UnitTests.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DatabaseBackup)}"" type")]
 internal class DatabaseBackupTests

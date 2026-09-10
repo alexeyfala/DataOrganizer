@@ -23,7 +23,7 @@ using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Windows;
 using DynamicData;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;

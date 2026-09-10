@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Repository.Services;
+namespace Repository.Services.Database;
 
 /// <summary>
 /// A copy of the database that is erased when the operation owning it ends.

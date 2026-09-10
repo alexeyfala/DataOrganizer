@@ -20,7 +20,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Messages.Encryption;
 using DataOrganizer.Messages.Execution;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

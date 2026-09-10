@@ -12,7 +12,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Editor;
 using DataOrganizer.Windows;
 using Entities.Models;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;

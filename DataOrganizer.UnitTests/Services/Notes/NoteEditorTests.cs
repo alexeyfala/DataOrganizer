@@ -8,7 +8,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using System;
 using System.Threading;

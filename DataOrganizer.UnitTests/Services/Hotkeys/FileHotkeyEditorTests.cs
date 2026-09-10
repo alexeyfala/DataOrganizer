@@ -9,7 +9,7 @@ using Entities.Models;
 using MapsterMapper;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Extensions;
 using System;
 using System.Threading.Tasks;

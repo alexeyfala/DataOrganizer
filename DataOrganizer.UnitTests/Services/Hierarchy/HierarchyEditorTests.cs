@@ -9,7 +9,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using System;
 using System.Collections.ObjectModel;

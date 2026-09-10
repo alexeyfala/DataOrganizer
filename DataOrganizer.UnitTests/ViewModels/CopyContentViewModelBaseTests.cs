@@ -15,7 +15,7 @@ using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.ViewModels;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using System.Text;

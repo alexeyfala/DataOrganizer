@@ -6,7 +6,7 @@ using Entities.Enums;
 using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using NSubstitute;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using System;
 using System.Threading.Tasks;
 using TestSupport;

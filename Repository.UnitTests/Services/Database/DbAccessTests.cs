@@ -10,7 +10,8 @@ using NSubstitute.ExceptionExtensions;
 using Repository.Dto;
 using Repository.Enums;
 using Repository.Interfaces;
-using Repository.Services;
+using Repository.Interfaces.Database;
+using Repository.Services.Database;
 using Repository.UnitTests.Fixtures;
 using Shared.Common;
 using Shared.Interfaces;
@@ -24,7 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestSupport;
 
-namespace Repository.UnitTests.Services;
+namespace Repository.UnitTests.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbAccess)}"" type")]
 internal class DbAccessTests

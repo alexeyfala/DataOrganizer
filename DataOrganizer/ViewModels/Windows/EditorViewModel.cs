@@ -37,7 +37,7 @@ using Entities.Enums;
 using Entities.Models;
 using Material.Styles.Controls;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

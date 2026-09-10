@@ -17,7 +17,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Models.Dataset;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

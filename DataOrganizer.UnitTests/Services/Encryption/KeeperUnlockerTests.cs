@@ -10,7 +10,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Services.Encryption;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using System;
 using System.Security.Authentication;
 using System.Security.Cryptography;

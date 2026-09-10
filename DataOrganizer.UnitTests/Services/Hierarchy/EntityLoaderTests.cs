@@ -10,7 +10,7 @@ using MapsterMapper;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Repository.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Threading;

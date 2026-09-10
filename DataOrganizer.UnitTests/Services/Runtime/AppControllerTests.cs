@@ -10,7 +10,7 @@ using DataOrganizer.Interfaces.Views;
 using DataOrganizer.Services.Runtime;
 using NSubstitute;
 using Repository.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Interfaces;
 using Shared.Properties;
 using SharpHook.Data;

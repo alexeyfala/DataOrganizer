@@ -6,7 +6,7 @@ using Entities.Models;
 using Mapster;
 using MapsterMapper;
 using Repository.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

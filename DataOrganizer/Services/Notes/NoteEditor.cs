@@ -4,7 +4,7 @@ using DataOrganizer.Extensions;
 using DataOrganizer.Interfaces.Notes;
 using DataOrganizer.Interfaces.Notifications;
 using Entities.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

@@ -2,7 +2,7 @@ using DataOrganizer.Helpers.Text;
 using DataOrganizer.Models.Dataset;
 using Entities.Enums;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Common;
 using Shared.Extensions;
 using System;

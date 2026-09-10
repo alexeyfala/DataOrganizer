@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Headless.NUnit;
 using AwesomeAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Repository.Services;
+using Repository.Services.Database;
 using Shared.Services;
 using System;
 using System.Collections.Generic;

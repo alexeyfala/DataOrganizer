@@ -3,14 +3,14 @@ using Autofac.Extras.Moq;
 using AwesomeAssertions;
 using Microsoft.Data.Sqlite;
 using NSubstitute;
-using Repository.Interfaces;
-using Repository.Services;
+using Repository.Interfaces.Database;
+using Repository.Services.Database;
 using Repository.UnitTests.Fixtures;
 using Shared.Interfaces;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Repository.UnitTests.Services;
+namespace Repository.UnitTests.Services.Database;
 
 [TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
 internal class DbMaintenanceTests

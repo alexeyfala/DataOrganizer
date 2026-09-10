@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Repository.DbContexts;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Services;
+namespace Repository.Services.Database;
 
 public sealed class DbContextService : IDbContextService
 {

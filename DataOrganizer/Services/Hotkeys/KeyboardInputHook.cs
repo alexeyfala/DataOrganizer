@@ -16,7 +16,7 @@ using DataOrganizer.Messages.Hotkeys;
 using DataOrganizer.ViewModels;
 using DataOrganizer.ViewModels.Windows;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;

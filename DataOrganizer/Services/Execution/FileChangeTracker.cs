@@ -6,7 +6,7 @@ using DataOrganizer.Interfaces.Encryption;
 using DataOrganizer.Interfaces.Execution;
 using DataOrganizer.Interfaces.Notifications;
 using DataOrganizer.Messages.Execution;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;

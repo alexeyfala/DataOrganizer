@@ -17,7 +17,7 @@ using DataOrganizer.Services.Hotkeys;
 using Moq;
 using NSubstitute;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Shared.Extensions;
 using SharpHook;
 using SharpHook.Data;

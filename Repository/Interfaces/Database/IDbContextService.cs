@@ -7,7 +7,7 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Interfaces;
+namespace Repository.Interfaces.Database;
 
 /// <summary>
 /// Contains helper methods for <see cref="SqliteDbContext" />.

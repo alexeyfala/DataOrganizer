@@ -12,7 +12,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,5 @@
 using Repository.Interceptors;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Interfaces;
@@ -10,7 +10,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Services;
+namespace Repository.Services.Database;
 
 public sealed class DbMaintenance : IDbMaintenance
 {

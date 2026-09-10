@@ -12,7 +12,7 @@ using DataOrganizer.Interfaces.Settings;
 using DataOrganizer.Interfaces.Updates;
 using DataOrganizer.Interfaces.Views;
 using Repository.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Common;
 using Shared.Extensions;

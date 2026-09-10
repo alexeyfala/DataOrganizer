@@ -1,7 +1,7 @@
 using DataOrganizer.Dto.Entities;
 using DataOrganizer.Interfaces.Hierarchy;
 using Entities.Enums;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using System;

@@ -2,14 +2,14 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using Repository.Dto;
 using Repository.Enums;
-using Repository.Services;
+using Repository.Services.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Repository.Interfaces;
+namespace Repository.Interfaces.Database;
 
 /// <summary>
 /// Provides methods for interacting with the database.

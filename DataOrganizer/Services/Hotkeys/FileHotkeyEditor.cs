@@ -7,7 +7,7 @@ using DataOrganizer.Interfaces.Notifications;
 using Entities.Models;
 using MapsterMapper;
 using Repository.Dto;
-using Repository.Interfaces;
+using Repository.Interfaces.Database;
 using Serilog;
 using Shared.Extensions;
 using Shared.Properties;
