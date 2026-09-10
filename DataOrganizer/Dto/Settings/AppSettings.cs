@@ -19,7 +19,7 @@ public record AppSettings
 	public int AutoLockMinutes { get; set; }
 
 	/// <summary>
-	/// Indicates whether a check for a newer application version runs on startup.
+	/// <c>True</c> when a check for a newer application version runs on startup.
 	/// </summary>
 	public bool CheckForUpdates { get; set; } = true;
 
@@ -36,10 +36,10 @@ public record AppSettings
 	/// <summary>
 	/// Timestamp of the last completed update check, in UTC.
 	/// </summary>
-	public DateTimeOffset? LastUpdateCheckUtc { get; set; }
+	public DateTimeOffset? LastUpdateCheckAt { get; set; }
 
 	/// <summary>
-	/// Indicates whether the clipboard history should be persisted (encrypted) between sessions.
+	/// <c>True</c> when the clipboard history is kept, encrypted, between sessions.
 	/// </summary>
 	public bool PersistClipboardHistory { get; set; }
 
@@ -54,22 +54,22 @@ public record AppSettings
 	public required SecondaryColor SecondaryColor { get; set; }
 
 	/// <summary>
-	/// Indicates whether the favorites popup opens on hovering over the fix toggle.
+	/// <c>True</c> when the favorites popup opens on hovering over the fix toggle.
 	/// </summary>
 	public bool ShowFavoritesOnHover { get; set; }
 
 	/// <summary>
-	/// Theme.
+	/// Application theme: inherited from the system, light or dark.
 	/// </summary>
 	public required BaseThemeMode Theme { get; set; }
 
 	/// <summary>
-	/// Indicates whether clipboard history tracking should be enabled.
+	/// <c>True</c> when the clipboard history is tracked.
 	/// </summary>
 	public bool TrackClipboardHistory { get; set; }
 
 	/// <summary>
-	/// Indicates whether hotkey tracking should be enabled.
+	/// <c>True</c> when hotkeys are tracked.
 	/// </summary>
 	public bool TrackHotkeys { get; set; }
 	#endregion

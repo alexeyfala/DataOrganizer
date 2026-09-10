@@ -641,7 +641,7 @@ internal class ViewLauncherTests
 			.Should()
 			.BeEmpty();
 
-		window.ViewModel.FavoritesSettings.OrderedCategories
+		window.ViewModel.FavoritesSettings.OrderedCategoryIds
 			.Should()
 			.BeEmpty();
 

@@ -44,7 +44,7 @@
 
 			<ToggleButton
 				Content="{materialIcons:MaterialIconTextExt Kind=Wrap}"
-				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
+				IsChecked="{Binding WordWrap, Mode=TwoWay}"
 				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
 
 			<ToggleButton
@@ -124,7 +124,7 @@
 			HorizontalScrollBarVisibility="Auto"
 			IsReadOnly="True"
 			ShowLineNumbers="True"
-			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
+			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
 				<EventTriggerBehavior EventName="Loaded">

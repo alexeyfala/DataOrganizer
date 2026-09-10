@@ -170,7 +170,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			FavoritesSettings.NavigationColumnWidth,
 			FavoritesSettings.SelectedCategoryId,
 			FavoritesSettings.Categories,
-			FavoritesSettings.OrderedCategories,
+			FavoritesSettings.OrderedCategoryIds,
 			FavoritesSettings.SelectedPairs);
 	}
 
@@ -331,12 +331,12 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		FavoritesSettings.SelectedPairs = favoritesSettings.SelectedPairs;
 
-		FavoritesSettings.OrderedCategories = favoritesSettings.OrderedCategories;
+		FavoritesSettings.OrderedCategoryIds = favoritesSettings.OrderedCategoryIds;
 
-		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
+		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
 
 		if (CopyHistorySettings
-			.Items
+			.ItemIds
 			.Count > 0)
 		{
 			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
@@ -403,7 +403,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			.Clear();
 
 		FavoritesSettings
-			.OrderedCategories
+			.OrderedCategoryIds
 			.Clear();
 
 		FavoritesSettings
@@ -411,7 +411,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			.Clear();
 
 		CopyHistorySettings
-			.Items
+			.ItemIds
 			.Clear();
 
 		PopupContent = FavoritesPopupContentKind.None;
@@ -520,8 +520,8 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			.ClearAddRange(_favorites.SelectedPairs);
 
 		FavoritesSettings
-			.OrderedCategories
-			.ClearAddRange(_favorites.OrderedCategories);
+			.OrderedCategoryIds
+			.ClearAddRange(_favorites.OrderedCategoryIds);
 
 		_favorites.Dispose();
 	}

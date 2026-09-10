@@ -78,7 +78,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 		{
 			ViewModel.FontSize = settings.FontSize;
 
-			ViewModel.IsWordWrap = settings.IsWordWrap;
+			ViewModel.WordWrap = settings.WordWrap;
 
 			if (settings.Size is { Width: > 0, Height: > 0 })
 			{
@@ -128,7 +128,7 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 				{
 					FontSize = ViewModel.FontSize,
 					IsTopmost = window.Topmost,
-					IsWordWrap = ViewModel.IsWordWrap,
+					WordWrap = ViewModel.WordWrap,
 					WindowState = window.Placement.WindowState,
 					Size = new((int)window.Placement.Size.Width, (int)window.Placement.Size.Height),
 					X = window.Placement.Position.X,

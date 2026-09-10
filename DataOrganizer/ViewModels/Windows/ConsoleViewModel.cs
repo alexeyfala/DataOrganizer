@@ -39,9 +39,9 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// </summary>
 	public bool IsSaved { get; set; }
 
-	/// <inheritdoc cref="FileEditorState.IsWordWrap" />
+	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
-	public partial bool IsWordWrap { get; set; }
+	public partial bool WordWrap { get; set; }
 
 	/// <summary>
 	/// A reference to a method for writing a line of text.

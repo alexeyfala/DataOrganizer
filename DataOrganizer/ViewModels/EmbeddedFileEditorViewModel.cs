@@ -39,9 +39,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
-	/// <inheritdoc cref="FileEditorState.IsWordWrap" />
+	/// <inheritdoc cref="FileEditorState.WordWrap" />
 	[ObservableProperty]
-	public partial bool IsWordWrap { get; set; }
+	public partial bool WordWrap { get; set; }
 	#endregion
 
 	#region Commands
@@ -282,9 +282,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
 
 	/// <summary>
-	/// Called when <see cref="IsWordWrap" /> changes.
+	/// Called when <see cref="WordWrap" /> changes.
 	/// </summary>
-	partial void OnIsWordWrapChanged(bool value) => TrySavePersistentEditorState();
+	partial void OnWordWrapChanged(bool value) => TrySavePersistentEditorState();
 	#endregion
 
 	#region Methods
@@ -359,7 +359,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		{
 			CaretPosition = editor.TextArea.Caret.Position,
 			FontSize = FontSize,
-			IsWordWrap = IsWordWrap,
+			WordWrap = WordWrap,
 			ScrollOffset = new((int)editor.HorizontalOffset, (int)editor.VerticalOffset),
 			SelectionLength = editor.SelectionLength,
 			SelectionStart = editor.SelectionStart
@@ -407,7 +407,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			FontSize = state.FontSize;
 
-			IsWordWrap = state.IsWordWrap;
+			WordWrap = state.WordWrap;
 
 			editor.SelectionStart = state.SelectionStart;
 

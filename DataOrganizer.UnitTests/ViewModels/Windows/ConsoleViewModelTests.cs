@@ -50,7 +50,7 @@ internal class ConsoleViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.IsWordWrap
+		sut.WordWrap
 			.Should()
 			.BeFalse();
 

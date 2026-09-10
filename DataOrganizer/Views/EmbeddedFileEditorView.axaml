@@ -32,7 +32,7 @@
 				Classes="primary"
 				Content="{materialIcons:MaterialIconTextExt Kind=Wrap,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
-				IsChecked="{Binding IsWordWrap, Mode=TwoWay}"
+				IsChecked="{Binding WordWrap, Mode=TwoWay}"
 				ToolTip.Tip="{x:Static prop:Strings.WordWrap}" />
 
 			<Panel Classes="VerticalSeparatorPanelStyle" />
@@ -96,7 +96,7 @@
 			HorizontalScrollBarVisibility="Auto"
 			IsReadOnly="{Binding IsReadOnly, Mode=OneWay}"
 			ShowLineNumbers="True"
-			WordWrap="{Binding IsWordWrap, Mode=OneWay}">
+			WordWrap="{Binding WordWrap, Mode=OneWay}">
 
 			<Interaction.Behaviors>
 				<styling:FluentThemeBehavior />

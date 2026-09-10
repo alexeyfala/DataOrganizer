@@ -2,6 +2,9 @@ using System.Drawing;
 
 namespace DataOrganizer.Dto.Settings;
 
+/// <summary>
+/// The stored position and size of a window.
+/// </summary>
 public class PositionSizeSettings : PositionSettings
 {
 	#region Properties

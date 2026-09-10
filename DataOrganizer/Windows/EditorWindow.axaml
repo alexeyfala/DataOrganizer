@@ -306,7 +306,7 @@
 
 								<TextBlock
 									Classes="CountTextBlockStyle"
-									Text="{Binding CopyHistorySettings.Items.Count, Mode=OneWay}" />
+									Text="{Binding CopyHistorySettings.ItemIds.Count, Mode=OneWay}" />
 							</Panel>
 						</StackPanel>
 					</Grid>

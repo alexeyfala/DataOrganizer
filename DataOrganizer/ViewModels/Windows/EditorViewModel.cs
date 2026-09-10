@@ -564,7 +564,7 @@ public partial class EditorViewModel :
 		if (result.Variant == ImportMode.Replace)
 		{
 			CopyHistorySettings
-				.Items
+				.ItemIds
 				.Clear();
 
 			IsRightSideSheetOpened = false;
@@ -728,7 +728,7 @@ public partial class EditorViewModel :
 
 		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
-			if (CopyHistorySettings.Items.Count == 0 || !await _dialogService
+			if (CopyHistorySettings.ItemIds.Count == 0 || !await _dialogService
 				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
@@ -1266,9 +1266,9 @@ public partial class EditorViewModel :
 
 		IsReadOnly = windowSettings.IsReadOnly;
 
-		CopyHistorySettings.AddItems(copyHistorySettings.Items, Hierarchy);
+		CopyHistorySettings.AddItemIds(copyHistorySettings.ItemIds, Hierarchy);
 
-		if (CopyHistorySettings.Items.Count > 0)
+		if (CopyHistorySettings.ItemIds.Count > 0)
 		{
 			CopyHistorySettings.SelectedItemId = copyHistorySettings.SelectedItemId;
 		}
@@ -1783,7 +1783,7 @@ public partial class EditorViewModel :
 	private void RemoveFromCopyHistory(FileDto file)
 	{
 		CopyHistorySettings
-			.Items
+			.ItemIds
 			.Remove(file.Id);
 
 		_copyHistory?.Remove(file);

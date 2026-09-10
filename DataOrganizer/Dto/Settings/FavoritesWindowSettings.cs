@@ -1,5 +1,8 @@
 namespace DataOrganizer.Dto.Settings;
 
+/// <summary>
+/// Persisted settings of <c>FavoritesWindow</c>.
+/// </summary>
 public sealed class FavoritesWindowSettings : PositionSettings
 {
 	#region Properties

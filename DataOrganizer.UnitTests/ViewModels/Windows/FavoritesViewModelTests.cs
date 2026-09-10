@@ -104,7 +104,7 @@ internal class FavoritesViewModelTests
 
 		sut
 			.FavoritesSettings
-			.OrderedCategories
+			.OrderedCategoryIds
 			.AddRange(TestData.CreateGuids(count));
 
 		sut
@@ -114,7 +114,7 @@ internal class FavoritesViewModelTests
 
 		sut
 			.CopyHistorySettings
-			.Items
+			.ItemIds
 			.AddRange(TestData.CreateGuids(count));
 
 		// Act
@@ -125,7 +125,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeEmpty();
 
-		sut.FavoritesSettings.OrderedCategories
+		sut.FavoritesSettings.OrderedCategoryIds
 			.Should()
 			.BeEmpty();
 
@@ -133,7 +133,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeEmpty();
 
-		sut.CopyHistorySettings.Items
+		sut.CopyHistorySettings.ItemIds
 			.Should()
 			.BeEmpty();
 	}
@@ -158,7 +158,7 @@ internal class FavoritesViewModelTests
 		FavoritesViewSettings favoritesSettings = new()
 		{
 			NavigationColumnWidth = positiveValue - 20,
-			OrderedCategories = [.. TestData.CreateGuids(5)],
+			OrderedCategoryIds = [.. TestData.CreateGuids(5)],
 			SelectedCategoryId = Guid.NewGuid(),
 			SelectedPairs = [.. TestData.CreateFavoriteSelections(5)]
 		};
@@ -167,7 +167,7 @@ internal class FavoritesViewModelTests
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			Items = [.. historyFiles.Select(x => x.Id)],
+			ItemIds = [.. historyFiles.Select(x => x.Id)],
 			SelectedItemId = Guid.NewGuid()
 		};
 
@@ -215,17 +215,17 @@ internal class FavoritesViewModelTests
 			.Should()
 			.Contain(favoritesSettings.SelectedPairs);
 
-		sut.FavoritesSettings.OrderedCategories
+		sut.FavoritesSettings.OrderedCategoryIds
 			.Should()
-			.Contain(favoritesSettings.OrderedCategories);
+			.Contain(favoritesSettings.OrderedCategoryIds);
 
 		sut.CopyHistorySettings.SelectedItemId
 			.Should()
 			.Be(copyHistorySettings.SelectedItemId);
 
-		sut.CopyHistorySettings.Items
+		sut.CopyHistorySettings.ItemIds
 			.Should()
-			.Contain(copyHistorySettings.Items);
+			.Contain(copyHistorySettings.ItemIds);
 	}
 
 	/// <summary>
@@ -243,14 +243,14 @@ internal class FavoritesViewModelTests
 
 		sut
 			.CopyHistorySettings
-			.Items
+			.ItemIds
 			.AddRange(TestData.CreateGuids(5));
 
 		// Act
 		sut.InsertToCopyHistory(file, false);
 
 		// Assert
-		sut.CopyHistorySettings.Items[0]
+		sut.CopyHistorySettings.ItemIds[0]
 			.Should()
 			.Be(file.Id);
 	}

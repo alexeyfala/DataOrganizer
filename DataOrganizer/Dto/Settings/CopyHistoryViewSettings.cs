@@ -14,24 +14,24 @@ public sealed class CopyHistoryViewSettings
 {
 	#region Properties
 	/// <summary>
-	/// Copy content history.
+	/// Identifiers of the files kept in the copy history.
 	/// </summary>
 	/// <remarks>
 	/// Don't remove the "set;" accessor, it's required for deserialization.
 	/// </remarks>
-	public ObservableCollection<Guid> Items { get; set; } = [];
+	public ObservableCollection<Guid> ItemIds { get; set; } = [];
 
 	/// <summary>
-	/// The selected item identifier in <see cref="Items" />.
+	/// The selected item identifier in <see cref="ItemIds" />.
 	/// </summary>
 	public Guid SelectedItemId { get; set; }
 	#endregion
 
 	#region Methods
 	/// <summary>
-	/// Adds objects to <see cref="Items" /> from <paramref name="source" /> if they are in <paramref name="hierarchy" />.
+	/// Adds objects to <see cref="ItemIds" /> from <paramref name="source" /> if they are in <paramref name="hierarchy" />.
 	/// </summary>
-	public void AddItems(IEnumerable<Guid> source, IEnumerable<ExplorerItemDtoBase> hierarchy)
+	public void AddItemIds(IEnumerable<Guid> source, IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		source.ForEach(id =>
 		{
@@ -40,7 +40,7 @@ public sealed class CopyHistoryViewSettings
 				return;
 			}
 
-			Items.Add(id);
+			ItemIds.Add(id);
 		});
 	}
 	#endregion

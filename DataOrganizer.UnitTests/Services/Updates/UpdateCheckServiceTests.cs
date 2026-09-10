@@ -98,7 +98,7 @@ internal class UpdateCheckServiceTests
 			.Should()
 			.BeFalse();
 
-		context.Settings.LastUpdateCheckUtc
+		context.Settings.LastUpdateCheckAt
 			.Should()
 			.Be(context.Time.GetUtcNow());
 
@@ -227,7 +227,7 @@ internal class UpdateCheckServiceTests
 			.Should()
 			.BeFalse();
 
-		context.Settings.LastUpdateCheckUtc
+		context.Settings.LastUpdateCheckAt
 			.Should()
 			.BeNull();
 
@@ -412,7 +412,7 @@ internal class UpdateCheckServiceTests
 		{
 			CheckForUpdates = checkForUpdates,
 			LastNotifiedVersion = lastNotifiedVersion,
-			LastUpdateCheckUtc = sinceLastCheck is { } elapsed ? time.GetUtcNow() - elapsed : null
+			LastUpdateCheckAt = sinceLastCheck is { } elapsed ? time.GetUtcNow() - elapsed : null
 		};
 
 		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();

@@ -39,7 +39,9 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// </summary>
 	public bool IsEmpty => _filter.IsSourceEmpty;
 
-	/// <inheritdoc cref="CopyHistoryViewSettings.Items" />
+	/// <summary>
+	/// The copy-history files that pass the current filter.
+	/// </summary>
 	public ReadOnlyObservableCollection<FileDto> Items => _filter.Visible;
 
 	/// <inheritdoc cref="CopyHistoryViewSettings.SelectedItemId" />

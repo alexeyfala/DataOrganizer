@@ -25,7 +25,7 @@ public sealed class FavoritesViewSettings
 	/// <summary>
 	/// Ordered identifiers of categories.
 	/// </summary>
-	public List<Guid> OrderedCategories { get; set; } = [];
+	public List<Guid> OrderedCategoryIds { get; set; } = [];
 
 	/// <summary>
 	/// Selected category identifier.

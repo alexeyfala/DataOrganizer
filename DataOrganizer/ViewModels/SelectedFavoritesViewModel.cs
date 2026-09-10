@@ -69,8 +69,8 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	[ObservableProperty]
 	public partial GridLength NavigationColumnWidth { get; set; }
 
-	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategories" />
-	public List<Guid> OrderedCategories { get; } = [];
+	/// <inheritdoc cref="FavoritesViewSettings.OrderedCategoryIds" />
+	public List<Guid> OrderedCategoryIds { get; } = [];
 
 	/// <summary>
 	/// The selected object in the <see cref="Categories" />.
@@ -149,7 +149,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_categoriesFilter.PostToUi(() => SelectedCategory = selected);
 
-		OrderedCategories.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
+		OrderedCategoryIds.ClearAddRange(_categoriesFilter.SelectFromSource(x => x.Id));
 	}
 
 	/// <summary>
@@ -288,28 +288,28 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 		double navigationColumnWidth,
 		Guid selectedCategoryId,
 		List<FavoriteCategory> categories,
-		List<Guid> orderedCategories,
+		List<Guid> orderedCategoryIds,
 		List<FavoriteSelection> selectedPairs)
 	{
 		NavigationColumnWidth = new(navigationColumnWidth);
 
-		if (orderedCategories.Count > 0)
+		if (orderedCategoryIds.Count > 0)
 		{
 			Guid[] identifiers = [.. categories.Select(x => x.Id)];
 
-			for (int i = 0; i < orderedCategories.Count; i++)
+			for (int i = 0; i < orderedCategoryIds.Count; i++)
 			{
-				if (!identifiers.Contains(orderedCategories[i]))
+				if (!identifiers.Contains(orderedCategoryIds[i]))
 				{
-					orderedCategories.RemoveAt(i);
+					orderedCategoryIds.RemoveAt(i);
 				}
 			}
 
-			if (orderedCategories.Count > 0)
+			if (orderedCategoryIds.Count > 0)
 			{
-				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategories, x => x.Id)]);
+				categories.ClearAddRange([.. categories.OrderBySequenceKeepSource(orderedCategoryIds, x => x.Id)]);
 
-				OrderedCategories.AddRange(orderedCategories);
+				OrderedCategoryIds.AddRange(orderedCategoryIds);
 			}
 		}
 
@@ -363,7 +363,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 		_previousSelectedFavorite = null;
 
-		OrderedCategories.Clear();
+		OrderedCategoryIds.Clear();
 
 		SelectedCategory = null;
 

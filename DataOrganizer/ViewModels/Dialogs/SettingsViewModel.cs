@@ -465,7 +465,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		defaults.LastNotifiedVersion = CurrentSettings.LastNotifiedVersion;
 
-		defaults.LastUpdateCheckUtc = CurrentSettings.LastUpdateCheckUtc;
+		defaults.LastUpdateCheckAt = CurrentSettings.LastUpdateCheckAt;
 
 		return defaults;
 	}

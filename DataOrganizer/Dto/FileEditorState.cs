@@ -20,11 +20,6 @@ public readonly struct FileEditorState
 	public required double FontSize { get; init; }
 
 	/// <summary>
-	/// Indicates the need to wrap words.
-	/// </summary>
-	public required bool IsWordWrap { get; init; }
-
-	/// <summary>
 	/// The offset of scrolling position.
 	/// </summary>
 	public required Point ScrollOffset { get; init; }
@@ -38,5 +33,10 @@ public readonly struct FileEditorState
 	/// The start of selected text.
 	/// </summary>
 	public required int SelectionStart { get; init; }
+
+	/// <summary>
+	/// <c>True</c> when long lines are wrapped.
+	/// </summary>
+	public required bool WordWrap { get; init; }
 	#endregion
 }

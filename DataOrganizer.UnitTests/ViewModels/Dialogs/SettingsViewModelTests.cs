@@ -409,7 +409,7 @@ internal class SettingsViewModelTests
 
 		settings.LastNotifiedVersion = "9.9.9";
 
-		settings.LastUpdateCheckUtc = DateTimeOffset.UnixEpoch;
+		settings.LastUpdateCheckAt = DateTimeOffset.UnixEpoch;
 
 		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
 
@@ -449,7 +449,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be("9.9.9");
 
-		sut.CurrentSettings.LastUpdateCheckUtc
+		sut.CurrentSettings.LastUpdateCheckAt
 			.Should()
 			.Be(DateTimeOffset.UnixEpoch);
 

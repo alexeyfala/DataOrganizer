@@ -89,7 +89,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 
 		DateTimeOffset now = _timeProvider.GetUtcNow();
 
-		if (settings.LastUpdateCheckUtc is { } last && now - last < CheckInterval)
+		if (settings.LastUpdateCheckAt is { } last && now - last < CheckInterval)
 		{
 			return UpdateCheckResult.None;
 		}
@@ -107,7 +107,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 			return UpdateCheckResult.None;
 		}
 
-		settings.LastUpdateCheckUtc = now;
+		settings.LastUpdateCheckAt = now;
 
 		string? latest = null;
 

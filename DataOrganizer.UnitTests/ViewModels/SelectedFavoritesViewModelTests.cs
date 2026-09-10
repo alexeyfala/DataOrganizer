@@ -31,7 +31,7 @@ internal class SelectedFavoritesViewModelTests
 		sut.AddTestFavorites(TestData.CreateFilesDto(count));
 
 		sut
-			.OrderedCategories
+			.OrderedCategoryIds
 			.AddRange(TestData.CreateGuids(count));
 
 		sut
@@ -52,7 +52,7 @@ internal class SelectedFavoritesViewModelTests
 			.Should()
 			.BeTrue();
 
-		sut.OrderedCategories
+		sut.OrderedCategoryIds
 			.Should()
 			.BeEmpty();
 
@@ -91,7 +91,7 @@ internal class SelectedFavoritesViewModelTests
 			navigationColumnWidth: TestData.CreateRandomDouble(100.0, 300.0),
 			selectedCategoryId: categories[0].Id,
 			categories: categories,
-			orderedCategories: [.. categories.OrderBy(x => x.Name).Select(x => x.Id)],
+			orderedCategoryIds: [.. categories.OrderBy(x => x.Name).Select(x => x.Id)],
 			selectedPairs: [.. TestData.CreateFavoriteSelections(count)]);
 
 		// Assert
@@ -107,7 +107,7 @@ internal class SelectedFavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		sut.OrderedCategories
+		sut.OrderedCategoryIds
 			.Should()
 			.NotBeEmpty();
 

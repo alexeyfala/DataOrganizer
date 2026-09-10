@@ -1582,7 +1582,7 @@ internal class EditorViewModelTests
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
-			Items = [.. historyFiles.Select(x => x.Id)],
+			ItemIds = [.. historyFiles.Select(x => x.Id)],
 			SelectedItemId = Guid.NewGuid()
 		};
 
@@ -1633,9 +1633,9 @@ internal class EditorViewModelTests
 			.Should()
 			.Be(copyHistorySettings.SelectedItemId);
 
-		sut.CopyHistorySettings.Items
+		sut.CopyHistorySettings.ItemIds
 			.Should()
-			.Contain(copyHistorySettings.Items);
+			.Contain(copyHistorySettings.ItemIds);
 	}
 
 	/// <summary>

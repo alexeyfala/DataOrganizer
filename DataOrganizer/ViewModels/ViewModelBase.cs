@@ -112,7 +112,7 @@ public abstract partial class ViewModelBase :
 	private void CopyHistoryDisplayed(CopyHistoryViewModel? viewModel)
 	{
 		viewModel?.Initialize(
-			Hierarchy.FilterFilesById(CopyHistorySettings.Items),
+			Hierarchy.FilterFilesById(CopyHistorySettings.ItemIds),
 			CopyHistorySettings.SelectedItemId);
 
 		_copyHistory = viewModel;
@@ -225,17 +225,17 @@ public abstract partial class ViewModelBase :
 	public void InsertToCopyHistory(FileDto file, bool updateView)
 	{
 		if (CopyHistorySettings
-			.Items
+			.ItemIds
 			.Contains(file.Id))
 		{
 			CopyHistorySettings
-				.Items
-				.MoveToTop(CopyHistorySettings.Items.IndexOf(file.Id));
+				.ItemIds
+				.MoveToTop(CopyHistorySettings.ItemIds.IndexOf(file.Id));
 		}
 		else
 		{
 			CopyHistorySettings
-				.Items
+				.ItemIds
 				.Insert(0, file.Id);
 		}
 
@@ -399,7 +399,7 @@ public abstract partial class ViewModelBase :
 		Guid[] identifiers = [.. viewModel.GetIdentifiers()];
 
 		foreach (Guid item in CopyHistorySettings
-			.Items
+			.ItemIds
 			.ToArray())
 		{
 			if (identifiers.Contains(item))
@@ -408,7 +408,7 @@ public abstract partial class ViewModelBase :
 			}
 
 			CopyHistorySettings
-				.Items
+				.ItemIds
 				.Remove(item);
 		}
 	}

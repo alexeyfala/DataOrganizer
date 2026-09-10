@@ -1,5 +1,8 @@
 namespace DataOrganizer.Dto.Settings;
 
+/// <summary>
+/// The state of the object creation dialog, kept between openings.
+/// </summary>
 public readonly struct EntityCreationViewSettings
 {
 	#region Properties
@@ -19,7 +22,7 @@ public readonly struct EntityCreationViewSettings
 	public required bool IsFolderSelected { get; init; }
 
 	/// <summary>
-	/// Name.
+	/// The name typed for the new object.
 	/// </summary>
 	public required string Name { get; init; }
 	#endregion

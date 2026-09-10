@@ -50,7 +50,7 @@ internal class EmbeddedFileEditorViewModelTests
 			{
 				CaretPosition = default,
 				FontSize = fontSize,
-				IsWordWrap = true,
+				WordWrap = true,
 				ScrollOffset = default,
 				SelectionLength = default,
 				SelectionStart = default
@@ -87,7 +87,7 @@ internal class EmbeddedFileEditorViewModelTests
 			.Should()
 			.Be(TextDefaults.Encoding.GetString(contents));
 
-		sut.IsWordWrap
+		sut.WordWrap
 			.Should()
 			.BeTrue();
 
