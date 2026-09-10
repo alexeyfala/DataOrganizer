@@ -3,9 +3,11 @@ using Interop.UIAutomationClient;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace DataOrganizer.Services.Explorer;
 
+[SupportedOSPlatform("windows")]
 public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 {
 	#region Data
