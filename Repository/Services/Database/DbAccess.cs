@@ -282,91 +282,6 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<DatabaseBackup?> BackupDatabaseAsync(CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			string dbFilePath = GetDbFilePath();
-
-			if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
-			{
-				return null;
-			}
-
-			string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
-
-			_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
-
-			BackupSqliteParameters parameters = new()
-			{
-				ClearDestinationPool = true,
-				ClearSourcePool = false,
-				DestinationFilePath = backupFilePath,
-				SourceFilePath = dbFilePath
-			};
-
-			BackupSqliteDatabase(parameters);
-
-			if (!_fileSystem.FileExists(backupFilePath))
-			{
-				return null;
-			}
-
-			return new DatabaseBackup(
-				backupFilePath,
-				_fileSystem,
-				_logger);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return null;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task BackupSqliteDatabaseAsync(
-		BackupSqliteParameters parameters,
-		CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			BackupSqliteDatabase(parameters);
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
 	public async Task<bool> ClearDatabaseAsync(CancellationToken token = default)
 	{
 		if (IsWriteRefused())
@@ -476,6 +391,32 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task CopyDatabaseAsync(
+		CopyDatabaseParameters parameters,
+		CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			CopyDatabase(parameters);
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<int> CountOfAsync(
 		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default)
@@ -495,6 +436,65 @@ public sealed class DbAccess : IDbAccess
 			_logger.LogException(ex);
 
 			return default;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <inheritdoc />
+	public async Task<DatabaseBackup?> CreateBackupAsync(CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			string dbFilePath = GetDbFilePath();
+
+			if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
+			{
+				return null;
+			}
+
+			string backupFilePath = DatabaseBackup.CreateFilePath(dbFilePath);
+
+			_fileSystem.CreateDirectory(DatabaseBackup.GetDirectoryPath(dbFilePath));
+
+			CopyDatabaseParameters parameters = new()
+			{
+				ClearDestinationPool = true,
+				ClearSourcePool = false,
+				DestinationFilePath = backupFilePath,
+				SourceFilePath = dbFilePath
+			};
+
+			CopyDatabase(parameters);
+
+			if (!_fileSystem.FileExists(backupFilePath))
+			{
+				return null;
+			}
+
+			return new DatabaseBackup(
+				backupFilePath,
+				_fileSystem,
+				_logger);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return null;
 		}
 		finally
 		{
@@ -955,7 +955,7 @@ public sealed class DbAccess : IDbAccess
 				connection.Close();
 			}
 
-			BackupSqliteParameters parameters = new()
+			CopyDatabaseParameters parameters = new()
 			{
 				ClearDestinationPool = false,
 				ClearSourcePool = true,
@@ -963,7 +963,7 @@ public sealed class DbAccess : IDbAccess
 				SourceFilePath = backupFilePath
 			};
 
-			BackupSqliteDatabase(parameters);
+			CopyDatabase(parameters);
 
 			return true;
 		}
@@ -1209,8 +1209,18 @@ public sealed class DbAccess : IDbAccess
 	#endregion
 
 	#region Helpers
-	/// <inheritdoc cref="BackupSqliteDatabaseAsync" />
-	private static void BackupSqliteDatabase(BackupSqliteParameters parameters)
+	/// <inheritdoc cref="SqliteConnection.ClearPool" />
+	private static void ClearPool(SqliteDbContext context)
+	{
+		using SqliteConnection connection = (SqliteConnection)context
+			.Database
+			.GetDbConnection();
+
+		SqliteConnection.ClearPool(connection);
+	}
+
+	/// <inheritdoc cref="CopyDatabaseAsync" />
+	private static void CopyDatabase(CopyDatabaseParameters parameters)
 	{
 		SqliteConnectionStringBuilder sourceBuilder = new()
 		{
@@ -1241,16 +1251,6 @@ public sealed class DbAccess : IDbAccess
 		{
 			SqliteConnection.ClearPool(destination);
 		}
-	}
-
-	/// <inheritdoc cref="SqliteConnection.ClearPool" />
-	private static void ClearPool(SqliteDbContext context)
-	{
-		using SqliteConnection connection = (SqliteConnection)context
-			.Database
-			.GetDbConnection();
-
-		SqliteConnection.ClearPool(connection);
 	}
 
 	/// <summary>

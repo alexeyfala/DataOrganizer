@@ -1,9 +1,9 @@
 namespace Repository.Dto;
 
 /// <summary>
-/// Parameters for a SQLite database backup.
+/// Parameters of a copy of the database file made through SQLite.
 /// </summary>
-public readonly struct BackupSqliteParameters
+public readonly struct CopyDatabaseParameters
 {
 	#region Properties
 	/// <summary>

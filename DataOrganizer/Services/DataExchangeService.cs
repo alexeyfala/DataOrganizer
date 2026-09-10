@@ -249,7 +249,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 
 		using DatabaseBackup? backup = await _dbAccess
-			.BackupDatabaseAsync(token)
+			.CreateBackupAsync(token)
 			.ConfigureAwait(false);
 
 		if (backup is null)
@@ -598,7 +598,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private Task ExportToSQLiteAsync(string filePath, CancellationToken token)
 	{
-		BackupSqliteParameters parameters = new()
+		CopyDatabaseParameters parameters = new()
 		{
 			ClearDestinationPool = true,
 			ClearSourcePool = false,
@@ -606,7 +606,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			SourceFilePath = _dbAccess.GetDbFilePath()
 		};
 
-		return _dbAccess.BackupSqliteDatabaseAsync(parameters, token);
+		return _dbAccess.CopyDatabaseAsync(parameters, token);
 	}
 
 	/// <summary>

@@ -163,7 +163,7 @@ internal class DataExchangeServiceTests
 		// Assert
 		await dbAccess
 			.Received()
-			.BackupSqliteDatabaseAsync(Arg.Any<BackupSqliteParameters>());
+			.CopyDatabaseAsync(Arg.Any<CopyDatabaseParameters>());
 	}
 
 	/// <summary>
@@ -229,7 +229,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Json)]);
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -286,7 +286,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(picker);
@@ -327,7 +327,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Xml)]);
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -402,7 +402,7 @@ internal class DataExchangeServiceTests
 				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
@@ -473,7 +473,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
@@ -532,7 +532,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
@@ -577,7 +577,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess

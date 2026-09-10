@@ -242,7 +242,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
@@ -368,7 +368,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(dialogService);
@@ -433,7 +433,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(contentVisibility);
@@ -495,7 +495,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);
@@ -561,7 +561,7 @@ internal class FolderProtectionTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.BackupDatabaseAsync();
+			.CreateBackupAsync();
 
 		await contentWriter
 			.DidNotReceiveWithAnyArgs()
@@ -620,7 +620,7 @@ internal class FolderProtectionTests
 		// Assert
 		await dbAccess
 			.DidNotReceiveWithAnyArgs()
-			.BackupDatabaseAsync();
+			.CreateBackupAsync();
 
 		await contentWriter
 			.DidNotReceiveWithAnyArgs()
@@ -679,7 +679,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);
@@ -755,7 +755,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);
@@ -873,7 +873,7 @@ internal class FolderProtectionTests
 		// Assert
 		await dbAccess
 			.DidNotReceive()
-			.BackupDatabaseAsync();
+			.CreateBackupAsync();
 
 		await dbAccess
 			.DidNotReceive()
@@ -921,7 +921,7 @@ internal class FolderProtectionTests
 				.Returns([]);
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);
@@ -995,7 +995,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
@@ -1082,7 +1082,7 @@ internal class FolderProtectionTests
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(backup);
 
 			builder.RegisterInstance(encryption);
@@ -1152,7 +1152,7 @@ internal class FolderProtectionTests
 				.Returns(loaded.ToAsyncEnumerable());
 
 			dbAccess
-				.BackupDatabaseAsync()
+				.CreateBackupAsync()
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(encryption);

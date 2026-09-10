@@ -213,7 +213,7 @@ public sealed class FolderProtection : IFolderProtection
 				encrypt: false);
 
 			using DatabaseBackup? backup = await _dbAccess
-				.BackupDatabaseAsync(token)
+				.CreateBackupAsync(token)
 				.ConfigureAwait(false);
 
 			if (backup is null)
@@ -324,7 +324,7 @@ public sealed class FolderProtection : IFolderProtection
 				// The copy insures the one irreversible operation against a bug in the conversion,
 				// and holds the contents in plain text until the operation ends.
 				using DatabaseBackup? backup = await _dbAccess
-					.BackupDatabaseAsync(token)
+					.CreateBackupAsync(token)
 					.ConfigureAwait(false);
 
 				if (backup is null)

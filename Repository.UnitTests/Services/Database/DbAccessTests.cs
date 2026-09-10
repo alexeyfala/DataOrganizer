@@ -228,10 +228,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.BackupDatabaseAsync" />: the copy appears in the folder of the copies and is gone once released.
+	/// <see cref="DbAccess.CreateBackupAsync" />: the copy appears in the folder of the copies and is gone once released.
 	/// </summary>
 	[Test]
-	public async Task BackupDatabaseAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
+	public async Task CreateBackupAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
 	{
 		// Arrange
 		using TempSqliteFile file = new();
@@ -256,7 +256,7 @@ internal class DbAccessTests
 			TypedParameter.From(fileSystem));
 
 		// Act
-		DatabaseBackup? backup = await sut.BackupDatabaseAsync();
+		DatabaseBackup? backup = await sut.CreateBackupAsync();
 
 		// Assert
 		backup

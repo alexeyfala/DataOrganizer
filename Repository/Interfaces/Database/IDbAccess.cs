@@ -55,18 +55,6 @@ public interface IDbAccess : IDisposable
 		CancellationToken token = default);
 
 	/// <summary>
-	/// Tries to backup database in file; the copy is erased when the returned instance is disposed.
-	/// </summary>
-	Task<DatabaseBackup?> BackupDatabaseAsync(CancellationToken token = default);
-
-	/// <summary>
-	/// Backups SQLite database.
-	/// </summary>
-	Task BackupSqliteDatabaseAsync(
-		BackupSqliteParameters parameters,
-		CancellationToken token = default);
-
-	/// <summary>
 	/// Completely clears the database.
 	/// </summary>
 	Task<bool> ClearDatabaseAsync(CancellationToken token = default);
@@ -78,10 +66,22 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<DbConnectionStatus> ConnectAsync(CancellationToken token = default);
 
+	/// <summary>
+	/// Copies one database file onto another through the SQLite backup API.
+	/// </summary>
+	Task CopyDatabaseAsync(
+		CopyDatabaseParameters parameters,
+		CancellationToken token = default);
+
 	/// <inheritdoc cref="IExplorerItemRepository.CountOfAsync" />
 	Task<int> CountOfAsync(
 		Expression<Func<ExplorerItemBase, bool>> condition,
 		CancellationToken token = default);
+
+	/// <summary>
+	/// Makes a temporary copy of the database; the copy is erased when the returned instance is disposed.
+	/// </summary>
+	Task<DatabaseBackup?> CreateBackupAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Deletes an <see cref="FileEntity" /> from the database by identifier.
