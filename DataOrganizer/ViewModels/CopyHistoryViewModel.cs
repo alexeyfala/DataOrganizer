@@ -146,7 +146,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// Returns a sequence of identifiers from <see cref="Items" />.
 	/// </summary>
-	public IEnumerable<Guid> GetIdentifiers() => _filter.SelectFromSource(x => x.Id);
+	public IEnumerable<Guid> GetItemIds() => _filter.SelectFromSource(x => x.Id);
 
 	/// <summary>
 	/// Performs initialization.
@@ -181,7 +181,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	/// <summary>
 	/// Adds <see cref="FileDto" /> objects to the source.
 	/// </summary>
-	internal void AddTestCopyHistory(IEnumerable<FileDto> items)
+	internal void SeedCopyHistory(IEnumerable<FileDto> items)
 	{
 		if (!AppDomain
 			.CurrentDomain

@@ -33,10 +33,10 @@ internal class KeyValueInputViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="KeyValueInputViewModel.DefaultPressedCommand" />: executing the command with a key set yields a true result.
+	/// <see cref="KeyValueInputViewModel.ConfirmCommand" />: executing the command with a key set yields a true result.
 	/// </summary>
 	[Test]
-	public async Task DefaultPressedCommand_Sets_True_Result_When_Key_Is_Provided()
+	public async Task ConfirmCommand_Sets_True_Result_When_Key_Is_Provided()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -46,7 +46,7 @@ internal class KeyValueInputViewModelTests
 		sut.Key = "some-key";
 
 		// Act
-		_ = Task.Run(() => sut.DefaultPressedCommand.Execute(null));
+		_ = Task.Run(() => sut.ConfirmCommand.Execute(null));
 
 		bool result = await sut.GetResultAsync();
 

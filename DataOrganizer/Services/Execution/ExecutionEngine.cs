@@ -41,7 +41,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 	private readonly ILogger _logger;
 
 	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processUtils;
+	private readonly IProcessManager _processManager;
 
 	/// <inheritdoc cref="IExecutionSandbox" />
 	private readonly IExecutionSandbox _sandbox;
@@ -62,7 +62,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 		IFileChangeTracker changeTracker,
 		IFileSystem fileSystem,
 		ILogger logger,
-		IProcessManager processUtils,
+		IProcessManager processManager,
 		IExecutionSandbox sandbox,
 		ITaskExceptionHandler exceptionHandler)
 	{
@@ -78,7 +78,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		_logger = logger;
 
-		_processUtils = processUtils;
+		_processManager = processManager;
 
 		_sandbox = sandbox;
 	}
@@ -534,9 +534,9 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 		if (selectedAppPath is not null)
 		{
-			_ = _processUtils.StartProcess(selectedAppPath, filePath, out processId);
+			_ = _processManager.StartProcess(selectedAppPath, filePath, out processId);
 		}
-		else if (!_processUtils.StartProcess(filePath, out processId))
+		else if (!_processManager.StartProcess(filePath, out processId))
 		{
 			_logger.LogDebug(
 				$@"File ""{fileId}"" was opened without an associated process — no extension or no system association.");
@@ -622,14 +622,14 @@ public sealed class ExecutionEngine : IExecutionEngine
 	/// </summary>
 	private void TryKillProcess(int processId)
 	{
-		if (processId.IsDefault() || !_processUtils.ProcessExists(processId))
+		if (processId.IsDefault() || !_processManager.ProcessExists(processId))
 		{
 			return;
 		}
 
 		try
 		{
-			_processUtils.KillProcess(processId);
+			_processManager.KillProcess(processId);
 		}
 		catch (Exception ex)
 		{

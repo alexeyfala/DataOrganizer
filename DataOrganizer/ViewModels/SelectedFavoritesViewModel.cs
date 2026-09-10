@@ -323,7 +323,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Adds <see cref="FavoriteCategory" /> objects to the source.
 	/// </summary>
-	internal void AddTestCategories(IEnumerable<FavoriteCategory> items)
+	internal void SeedCategories(IEnumerable<FavoriteCategory> items)
 	{
 		if (!AppDomain
 			.CurrentDomain
@@ -338,7 +338,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 	/// <summary>
 	/// Adds <see cref="FileDto" /> objects to the source.
 	/// </summary>
-	internal void AddTestFavorites(IEnumerable<FileDto> items)
+	internal void SeedFavorites(IEnumerable<FileDto> items)
 	{
 		if (!AppDomain
 			.CurrentDomain

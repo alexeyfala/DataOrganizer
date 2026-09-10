@@ -51,14 +51,14 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	{
 		object[] values = [.. multiBindings.AsNotNull()];
 
-		if (!GetFile(
+		if (!TryGetFile(
 			values,
 			out FileDto? file))
 		{
 			return;
 		}
 
-		if (!GetContainer(
+		if (!TryGetContainer(
 			values,
 			out SelectingItemsControl? container))
 		{
@@ -186,7 +186,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// </summary>
 	private static bool CanCopyContent(IEnumerable<object>? multiBindings)
 	{
-		if (GetFile(
+		if (TryGetFile(
 			multiBindings?.ToArray() ?? [],
 			out FileDto? file))
 		{
@@ -199,7 +199,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Tries to get reference to container from multi bindings.
 	/// </summary>
-	private static bool GetContainer(
+	private static bool TryGetContainer(
 		object[] values,
 		[NotNullWhen(true)] out SelectingItemsControl? container)
 	{
@@ -218,7 +218,7 @@ public abstract partial class FileListViewModelBase : CopyContentViewModelBase
 	/// <summary>
 	/// Tries to get reference to file from multi bindings.
 	/// </summary>
-	private static bool GetFile(
+	private static bool TryGetFile(
 		object[] values,
 		[NotNullWhen(true)] out FileDto? file)
 	{

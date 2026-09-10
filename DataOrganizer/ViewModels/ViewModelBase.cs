@@ -222,7 +222,7 @@ public abstract partial class ViewModelBase :
 	/// <summary>
 	/// Inserts or moves to top value in copy history.
 	/// </summary>
-	public void InsertToCopyHistory(FileDto file, bool updateView)
+	public void InsertIntoCopyHistory(FileDto file, bool updateView)
 	{
 		if (CopyHistorySettings
 			.ItemIds
@@ -396,7 +396,7 @@ public abstract partial class ViewModelBase :
 			CopyHistorySettings.SelectedItemId = default;
 		}
 
-		Guid[] identifiers = [.. viewModel.GetIdentifiers()];
+		Guid[] identifiers = [.. viewModel.GetItemIds()];
 
 		foreach (Guid item in CopyHistorySettings
 			.ItemIds

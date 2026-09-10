@@ -92,7 +92,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 		_jsonSerializer = jsonSerializer;
 
-		InitializeFromFile();
+		LoadFromFile();
 	}
 	#endregion
 
@@ -100,7 +100,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// <summary>
 	/// Saves settings in file.
 	/// </summary>
-	public void SaveSettingsInFile()
+	public void SaveSettingsToFile()
 	{
 		EntityCreationViewSettings settings = new()
 		{
@@ -126,7 +126,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	/// <summary>
 	/// Initializes settings from file.
 	/// </summary>
-	private void InitializeFromFile()
+	private void LoadFromFile()
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings));
 

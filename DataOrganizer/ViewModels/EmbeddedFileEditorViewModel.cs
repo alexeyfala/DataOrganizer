@@ -486,7 +486,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 					continue;
 				}
 
-				if (TryToEncrypt(latest) is not { } output)
+				if (TryEncrypt(latest) is not { } output)
 				{
 					_notification.ShowErrorSnackbar(Strings.FailedToProcessContents);
 

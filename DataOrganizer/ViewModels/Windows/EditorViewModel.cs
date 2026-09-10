@@ -70,7 +70,7 @@ public partial class EditorViewModel :
 	/// Information in the lower left corner.
 	/// </summary>
 	[ObservableProperty]
-	public partial string? BottomLeftCornerInfo { get; set; }
+	public partial string? HierarchySummary { get; set; }
 
 	/// <summary>
 	/// Controls the progress bar for an action.
@@ -453,7 +453,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Hides all file contents.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanHideAllFiles))]
+	[RelayCommand(CanExecute = nameof(CanHideAllFileContents))]
 	internal async Task HideAllFileContents()
 	{
 		// The contents cannot be hidden while an editor holds changes it was unable to persist.		
@@ -610,7 +610,7 @@ public partial class EditorViewModel :
 			return;
 		}
 
-		_processUtils.StartProcess(Environment.ProcessPath);
+		_processManager.StartProcess(Environment.ProcessPath);
 	}
 
 	/// <summary>
@@ -1083,7 +1083,7 @@ public partial class EditorViewModel :
 			.ShowSettingsAsync()
 			.ConfigureAwait(true);
 
-		await HandleChangeSettingsAsync(
+		await HandleSettingsChangedAsync(
 			result.IsSaved,
 			result.Settings).ConfigureAwait(false);
 	}
@@ -1118,7 +1118,7 @@ public partial class EditorViewModel :
 	private readonly INoteReader _noteReader;
 
 	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processUtils;
+	private readonly IProcessManager _processManager;
 
 	/// <inheritdoc cref="IEntityPropertyWriter" />
 	private readonly IEntityPropertyWriter _propertyWriter;
@@ -1155,7 +1155,7 @@ public partial class EditorViewModel :
 		INoteEditor noteEditor,
 		INoteReader noteReader,
 		INotificationService notification,
-		IProcessManager processUtils,
+		IProcessManager processManager,
 		ITaskExceptionHandler exceptionHandler,
 		IViewLauncher viewLauncher,
 		Lazy<IKeyboardInputHook> keyboardInputHook) : base(
@@ -1193,7 +1193,7 @@ public partial class EditorViewModel :
 
 		_noteReader = noteReader;
 
-		_processUtils = processUtils;
+		_processManager = processManager;
 
 		_propertyWriter = propertyWriter;
 
@@ -1207,7 +1207,7 @@ public partial class EditorViewModel :
 	{
 		Hierarchy.AddRange(hierarchy);
 
-		CountHierarchy();
+		UpdateHierarchySummary();
 	}
 
 	/// <inheritdoc />
@@ -1389,7 +1389,7 @@ public partial class EditorViewModel :
 
 		if (dto is not null)
 		{
-			CountHierarchy();
+			UpdateHierarchySummary();
 		}
 
 		return dto;
@@ -1420,7 +1420,7 @@ public partial class EditorViewModel :
 			_contentVisibility.DiscardKeys(folder);
 		}
 
-		CountHierarchy();
+		UpdateHierarchySummary();
 
 		return true;
 	}
@@ -1452,7 +1452,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Handles changing application settings.
 	/// </summary>
-	internal async Task HandleChangeSettingsAsync(
+	internal async Task HandleSettingsChangedAsync(
 		bool isSave,
 		AppSettings settings,
 		CancellationToken token = default)
@@ -1522,7 +1522,7 @@ public partial class EditorViewModel :
 	{
 		HideAllFileContentsCommand.NotifyCanExecuteChanged();
 
-		if (CanHideAllFiles())
+		if (CanHideAllFileContents())
 		{
 			_autoLock.Arm();
 		}
@@ -1703,7 +1703,7 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Validates <see cref="HideAllFileContentsCommand" />.
 	/// </summary>
-	private bool CanHideAllFiles() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
+	private bool CanHideAllFileContents() => Hierarchy.ContainsBy(x => x.EncryptionStatus == EncryptionStatus.Decrypted);
 
 	/// <summary>
 	/// Validates <see cref="ImportCommand" />.
@@ -1773,11 +1773,6 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
-	/// </summary>
-	private void CountHierarchy() => BottomLeftCornerInfo = Hierarchy.GetCount().AsString();
-
-	/// <summary>
 	/// Tries to remove value from copy history.
 	/// </summary>
 	private void RemoveFromCopyHistory(FileDto file)
@@ -1809,23 +1804,23 @@ public partial class EditorViewModel :
 	/// <summary>
 	/// Switches the right side sheet content.
 	/// </summary>
-	private void SwitchRightSideSheetContent(RightSideSheetContentKind type)
+	private void SwitchRightSideSheetContent(RightSideSheetContentKind content)
 	{
-		if (RightSideSheetContent == type)
+		if (RightSideSheetContent == content)
 		{
 			IsRightSideSheetOpened = false;
 
 			return;
 		}
 
-		_logger.LogInformation($"Show {type switch
+		_logger.LogInformation($"Show {content switch
 		{
 			RightSideSheetContentKind.CopyHistory => "copy history",
 			RightSideSheetContentKind.ExecutingFiles => "executing files",
 			_ => "unknown"
 		}}");
 
-		RightSideSheetContent = type;
+		RightSideSheetContent = content;
 
 		IsRightSideSheetOpened = true;
 	}
@@ -1871,5 +1866,10 @@ public partial class EditorViewModel :
 
 		return false;
 	}
+
+	/// <summary>
+	/// Counts the number of objects in <see cref="ViewModelBase.Hierarchy" />.
+	/// </summary>
+	private void UpdateHierarchySummary() => HierarchySummary = Hierarchy.GetCount().AsString();
 	#endregion
 }

@@ -293,7 +293,7 @@ public sealed class DialogService : IDialogService
 		}
 		finally
 		{
-			viewModel.SaveSettingsInFile();
+			viewModel.SaveSettingsToFile();
 		}
 	}
 

@@ -229,10 +229,10 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewModelBase.InsertToCopyHistory" />: inserts the new value at the top of copy history.
+	/// <see cref="ViewModelBase.InsertIntoCopyHistory" />: inserts the new value at the top of copy history.
 	/// </summary>
 	[Test]
-	public void InsertToCopyHistory_Inserts_New_Value_To_Top()
+	public void InsertIntoCopyHistory_Inserts_New_Value_To_Top()
 	{
 		// Arrange
 		FileDto file = TestData.CreateFileDto();
@@ -247,7 +247,7 @@ internal class FavoritesViewModelTests
 			.AddRange(TestData.CreateGuids(5));
 
 		// Act
-		sut.InsertToCopyHistory(file, false);
+		sut.InsertIntoCopyHistory(file, false);
 
 		// Assert
 		sut.CopyHistorySettings.ItemIds[0]
@@ -355,10 +355,10 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel.ShowOnHoverEnabled" />: is initialized from the application settings.
+	/// <see cref="FavoritesViewModel.IsShowOnHoverEnabled" />: is initialized from the application settings.
 	/// </summary>
 	[Test]
-	public void ShowOnHoverEnabled_Initialization()
+	public void IsShowOnHoverEnabled_Initialization()
 	{
 		// Arrange
 		AppSettings settings = TestData.CreateSettings();
@@ -380,7 +380,7 @@ internal class FavoritesViewModelTests
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
 		// Assert
-		sut.ShowOnHoverEnabled
+		sut.IsShowOnHoverEnabled
 			.Should()
 			.BeTrue();
 	}
@@ -399,7 +399,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.ShowOnHoverEnabled = true;
+		sut.IsShowOnHoverEnabled = true;
 
 		// Act
 		sut.ShowPopupOnHover();
@@ -451,7 +451,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.ShowOnHoverEnabled = true;
+		sut.IsShowOnHoverEnabled = true;
 
 		// Act
 		sut.IsPopupFixed = true;
@@ -477,7 +477,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		sut.ShowOnHoverEnabled = true;
+		sut.IsShowOnHoverEnabled = true;
 
 		// Act
 		sut.IsPopupOpen = true;
@@ -504,7 +504,7 @@ internal class FavoritesViewModelTests
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
 		// Act
-		sut.ShowOnHoverEnabled = true;
+		sut.IsShowOnHoverEnabled = true;
 
 		bool canExecute = sut
 			.ShowPopupOnHoverCommand

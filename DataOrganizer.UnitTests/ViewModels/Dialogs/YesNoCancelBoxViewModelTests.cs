@@ -31,7 +31,7 @@ internal class YesNoCancelBoxViewModelTests
 		switch (variant)
 		{
 			case YesNoCancelButtons.YesNo:
-				sut.NoButtonVisible
+				sut.IsNoButtonVisible
 					.Should()
 					.BeTrue();
 
@@ -41,7 +41,7 @@ internal class YesNoCancelBoxViewModelTests
 				break;
 
 			case YesNoCancelButtons.YesCancel:
-				sut.CancelButtonVisible
+				sut.IsCancelButtonVisible
 					.Should()
 					.BeTrue();
 
@@ -51,11 +51,11 @@ internal class YesNoCancelBoxViewModelTests
 				break;
 
 			case YesNoCancelButtons.YesNoCancel:
-				sut.NoButtonVisible
+				sut.IsNoButtonVisible
 					.Should()
 					.BeTrue();
 
-				sut.CancelButtonVisible
+				sut.IsCancelButtonVisible
 					.Should()
 					.BeTrue();
 

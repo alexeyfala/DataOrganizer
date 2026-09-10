@@ -12,7 +12,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 {
 	#region Data
 	/// <inheritdoc cref="IProcessManager" />
-	private readonly IProcessManager _processUtils;
+	private readonly IProcessManager _processManager;
 
 	/// <inheritdoc cref="IUpdateCheckService" />
 	private readonly IUpdateCheckService _updateCheckService;
@@ -20,10 +20,10 @@ public sealed class UpdateNotifier : IUpdateNotifier
 
 	#region Constructors
 	public UpdateNotifier(
-		IProcessManager processUtils,
+		IProcessManager processManager,
 		IUpdateCheckService updateCheckService)
 	{
-		_processUtils = processUtils;
+		_processManager = processManager;
 
 		_updateCheckService = updateCheckService;
 	}
@@ -56,7 +56,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			return;
 		}
 
-		_processUtils.StartProcess(url, out _);
+		_processManager.StartProcess(url, out _);
 	}
 	#endregion
 }

@@ -32,6 +32,16 @@ internal sealed partial class NoteView : UserControl
 	}
 
 	/// <summary>
+	/// Controls the display of popup for note.
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	public bool IsNoteOpen
+	{
+		get => GetValue(IsNoteOpenProperty);
+		set => SetValue(IsNoteOpenProperty, value);
+	}
+
+	/// <summary>
 	/// <c>True</c> when the note is sensitive: a copy of it carries the clipboard sensitivity markers.
 	/// </summary>
 	public bool IsSensitive
@@ -73,16 +83,6 @@ internal sealed partial class NoteView : UserControl
 		get => GetValue(NoteReaderProperty);
 		set => SetValue(NoteReaderProperty, value);
 	}
-
-	/// <summary>
-	/// Controls the display of popup for note.
-	/// </summary>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	public bool ShowNote
-	{
-		get => GetValue(ShowNoteProperty);
-		set => SetValue(ShowNoteProperty, value);
-	}
 	#endregion
 
 	#region Styled Properties
@@ -97,6 +97,12 @@ internal sealed partial class NoteView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<bool> IsLockedProperty = AvaloniaProperty
 		.Register<NoteView, bool>(name: nameof(IsLocked));
+
+	/// <summary>
+	/// Identifies the <see cref="IsNoteOpen" /> avalonia property.
+	/// </summary>
+	public static readonly StyledProperty<bool> IsNoteOpenProperty = AvaloniaProperty
+		.Register<NoteView, bool>(name: nameof(IsNoteOpen));
 
 	/// <summary>
 	/// Identifies the <see cref="IsSensitive" /> avalonia property.
@@ -127,12 +133,6 @@ internal sealed partial class NoteView : UserControl
 	/// </summary>
 	public static readonly StyledProperty<INoteReader?> NoteReaderProperty = AvaloniaProperty
 		.Register<NoteView, INoteReader?>(name: nameof(NoteReader));
-
-	/// <summary>
-	/// Identifies the <see cref="ShowNote" /> avalonia property.
-	/// </summary>
-	public static readonly StyledProperty<bool> ShowNoteProperty = AvaloniaProperty
-		.Register<NoteView, bool>(name: nameof(ShowNote));
 	#endregion
 
 	#region Auto-Generated Commands
@@ -174,7 +174,7 @@ internal sealed partial class NoteView : UserControl
 			return;
 		}
 
-		ShowNote = true;
+		IsNoteOpen = true;
 	}
 	#endregion
 

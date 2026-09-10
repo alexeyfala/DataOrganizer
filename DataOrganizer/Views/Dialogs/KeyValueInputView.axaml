@@ -73,7 +73,7 @@
 
 			<Button
 				Classes="primary"
-				Command="{Binding DefaultPressedCommand}"
+				Command="{Binding ConfirmCommand}"
 				Content="{Binding DefaultButtonText, Mode=OneWay}"
 				IsDefault="True" />
 

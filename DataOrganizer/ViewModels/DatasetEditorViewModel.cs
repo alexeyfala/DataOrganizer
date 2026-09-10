@@ -107,7 +107,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 					return;
 				}
 
-				await WaitItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
+				await WaitForItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
 				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
 
@@ -1128,7 +1128,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Waits until <paramref name="container" /> has realized at least one child.
 	/// </summary>
-	private static async Task<bool> WaitItemsRepeaterRealizedAsync(
+	private static async Task<bool> WaitForItemsRepeaterRealizedAsync(
 		ItemsRepeater container,
 		CancellationToken token = default)
 	{
@@ -1274,7 +1274,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	{
 		byte[] contents = _jsonSerializer.SerializeToUtf8Bytes(Records);
 
-		if (TryToEncrypt(contents) is not { } output)
+		if (TryEncrypt(contents) is not { } output)
 		{
 			_logger.LogError($@"{Strings.FailedToProcessContents} of file ""{FileId}""");
 

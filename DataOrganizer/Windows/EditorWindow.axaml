@@ -388,7 +388,7 @@
 								Grid.Column="0"
 								FontWeight="SemiBold"
 								Foreground="{StaticResource MaterialBodyBrush}"
-								Text="{Binding BottomLeftCornerInfo, Mode=OneWay}" />
+								Text="{Binding HierarchySummary, Mode=OneWay}" />
 
 							<StackPanel
 								Grid.Column="2"

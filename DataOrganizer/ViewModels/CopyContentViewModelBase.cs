@@ -161,7 +161,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (this is ViewModelBase viewModel)
 				{
-					viewModel.InsertToCopyHistory(file, updateView);
+					viewModel.InsertIntoCopyHistory(file, updateView);
 				}
 
 				try

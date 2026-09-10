@@ -153,13 +153,13 @@ internal class UpdateNotifierTests
 			.ConfirmUpdateAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
 			.Returns(promptAnswer);
 
-		IProcessManager processUtils = Substitute.For<IProcessManager>();
+		IProcessManager processManager = Substitute.For<IProcessManager>();
 
 		return new Context
 		{
 			Prompt = prompt,
-			ProcessManager = processUtils,
-			Sut = new UpdateNotifier(processUtils, updateCheckService)
+			ProcessManager = processManager,
+			Sut = new UpdateNotifier(processManager, updateCheckService)
 		};
 	}
 	#endregion

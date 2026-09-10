@@ -57,6 +57,13 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
 	public partial bool IsPopupOpen { get; set; }
 
+	/// <summary>
+	/// <c>True</c> when opening the popup on hover is enabled in settings.
+	/// </summary>
+	[ObservableProperty]
+	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
+	public partial bool IsShowOnHoverEnabled { get; set; }
+
 	/// <inheritdoc cref="FavoritesPopupContentKind" />
 	[ObservableProperty]
 	public partial FavoritesPopupContentKind PopupContent { get; set; }
@@ -68,13 +75,6 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <inheritdoc cref="FavoritesWindowSettings.PopupWidth" />
 	[ObservableProperty]
 	public partial double PopupWidth { get; set; }
-
-	/// <summary>
-	/// <c>True</c> when opening the popup on hover is enabled in settings.
-	/// </summary>
-	[ObservableProperty]
-	[NotifyCanExecuteChangedFor(nameof(ShowPopupOnHoverCommand))]
-	public partial bool ShowOnHoverEnabled { get; set; }
 	#endregion
 
 	#region Partial
@@ -245,7 +245,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			viewLauncher,
 			keyboardInputHook)
 	{
-		ShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
+		IsShowOnHoverEnabled = settingsStore.Settings is { ShowFavoritesOnHover: true };
 	}
 	#endregion
 
@@ -436,7 +436,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	/// <summary>
 	/// Validates <see cref="ShowPopupOnHoverCommand" />.
 	/// </summary>
-	private bool CanShowPopupOnHover() => ShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
+	private bool CanShowPopupOnHover() => IsShowOnHoverEnabled && !IsPopupFixed && !IsPopupOpen;
 
 	/// <summary>
 	/// Return a flat sequence of <see cref="FavoriteCategory" />.

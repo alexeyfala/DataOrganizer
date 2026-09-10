@@ -84,10 +84,10 @@ internal class EntityCreationViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityCreationViewModel.SaveSettingsInFile" />: serializes the settings to a JSON file.
+	/// <see cref="EntityCreationViewModel.SaveSettingsToFile" />: serializes the settings to a JSON file.
 	/// </summary>
 	[Test]
-	public void SaveSettingsInFile_Saves_Settings()
+	public void SaveSettingsToFile_Saves_Settings()
 	{
 		// Arrange
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
@@ -97,7 +97,7 @@ internal class EntityCreationViewModelTests
 		EntityCreationViewModel sut = mock.Create<EntityCreationViewModel>(TypedParameter.From(fileSystem));
 
 		// Act
-		sut.SaveSettingsInFile();
+		sut.SaveSettingsToFile();
 
 		// Assert
 		fileSystem.Received().SerializeToJsonFile(

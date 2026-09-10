@@ -103,7 +103,7 @@ public sealed partial class HotkeysEditorViewModel :
 	/// <summary>
 	/// <c>True</c> when the <see cref="Buffer" /> should be cleared.
 	/// </summary>
-	private bool _isClearBuffer;
+	private bool _isBufferCleared;
 	#endregion
 
 	#region Constructors
@@ -168,9 +168,9 @@ public sealed partial class HotkeysEditorViewModel :
 			return;
 		}
 
-		if (!_isClearBuffer)
+		if (!_isBufferCleared)
 		{
-			_isClearBuffer = true;
+			_isBufferCleared = true;
 
 			Buffer.Clear();
 		}

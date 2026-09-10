@@ -75,7 +75,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	{
 		if (_app.IsDialogHostOpened())
 		{
-			_exceptionHandler.Watch(WaitDialogCloseAsync(defaultResult, token));
+			_exceptionHandler.Watch(WaitForDialogCloseAsync(defaultResult, token));
 		}
 
 		return _source.Task;
@@ -89,7 +89,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	/// <remarks>
 	/// Needed in case the user closes the dialog without using provided buttons.
 	/// </remarks>
-	private async Task WaitDialogCloseAsync(
+	private async Task WaitForDialogCloseAsync(
 		TResult defaultResult,
 		CancellationToken token = default)
 	{

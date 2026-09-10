@@ -53,7 +53,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// Key.
 	/// </summary>
 	[ObservableProperty]
-	[NotifyCanExecuteChangedFor(nameof(DefaultPressedCommand))]
+	[NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
 	[NotifyPropertyChangedFor(nameof(IsKeyAccepted))]
 	public partial string? Key { get; set; }
 
@@ -86,8 +86,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	/// <summary>
 	/// Handles default button pressed.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(CanDefaultPressed))]
-	private Task DefaultPressed() => SetResultAsync(true);
+	[RelayCommand(CanExecute = nameof(CanConfirm))]
+	private Task Confirm() => SetResultAsync(true);
 	#endregion
 
 	#region Constructors
@@ -126,8 +126,8 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 
 	#region Helpers
 	/// <summary>
-	/// Validates <see cref="DefaultPressedCommand" />.
+	/// Validates <see cref="ConfirmCommand" />.
 	/// </summary>
-	private bool CanDefaultPressed() => !string.IsNullOrWhiteSpace(Key);
+	private bool CanConfirm() => !string.IsNullOrWhiteSpace(Key);
 	#endregion
 }

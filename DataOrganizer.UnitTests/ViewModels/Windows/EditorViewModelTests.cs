@@ -96,7 +96,7 @@ internal class EditorViewModelTests
 			sut.Hierarchy,
 			Arg.Any<CancellationToken>());
 
-		sut.BottomLeftCornerInfo
+		sut.HierarchySummary
 			.Should()
 			.NotBeNull();
 	}
@@ -993,10 +993,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: a changed auto-lock delay restarts the countdown at once.
+	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: a changed auto-lock delay restarts the countdown at once.
 	/// </summary>
 	[Test]
-	public async Task HandleChangeSettingsAsync_Applies_A_Changed_Auto_Lock_Delay()
+	public async Task HandleSettingsChangedAsync_Applies_A_Changed_Auto_Lock_Delay()
 	{
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
@@ -1025,7 +1025,7 @@ internal class EditorViewModelTests
 		changed.AutoLockMinutes = 5;
 
 		// Act
-		await sut.HandleChangeSettingsAsync(true, changed);
+		await sut.HandleSettingsChangedAsync(true, changed);
 
 		// Assert
 		autoLock
@@ -1034,10 +1034,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
+	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: on save hotkeys are restarted and settings persisted, otherwise the material theme is reapplied.
 	/// </summary>
 	[Test]
-	public async Task HandleChangeSettingsAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
+	public async Task HandleSettingsChangedAsync_Handles_Bussiness_Logic_After_Settings_Changing([Values] bool isSave)
 	{
 		// Arrange
 		IAppSettingsStore settingsStore = Substitute.For<IAppSettingsStore>();
@@ -1068,7 +1068,7 @@ internal class EditorViewModelTests
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
 		// Act
-		await sut.HandleChangeSettingsAsync(isSave, settings);
+		await sut.HandleSettingsChangedAsync(isSave, settings);
 
 		// Assert
 		if (isSave)
@@ -1099,10 +1099,10 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.HandleChangeSettingsAsync" />: an unchanged auto-lock delay leaves the countdown running.
+	/// <see cref="EditorViewModel.HandleSettingsChangedAsync" />: an unchanged auto-lock delay leaves the countdown running.
 	/// </summary>
 	[Test]
-	public async Task HandleChangeSettingsAsync_Keeps_An_Unchanged_Auto_Lock_Delay()
+	public async Task HandleSettingsChangedAsync_Keeps_An_Unchanged_Auto_Lock_Delay()
 	{
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
@@ -1129,7 +1129,7 @@ internal class EditorViewModelTests
 		sut.AddHierarchy([TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
 
 		// Act
-		await sut.HandleChangeSettingsAsync(true, settings);
+		await sut.HandleSettingsChangedAsync(true, settings);
 
 		// Assert
 		autoLock
@@ -1884,11 +1884,11 @@ internal class EditorViewModelTests
 	public void RestartApplication_Restarts_The_Application()
 	{
 		// Arrange
-		IProcessManager processUtils = Substitute.For<IProcessManager>();
+		IProcessManager processManager = Substitute.For<IProcessManager>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
-		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processUtils));
+		EditorViewModel sut = mock.Create<EditorViewModel>(TypedParameter.From(processManager));
 
 		// Act
 		sut.RestartApplication(null);
@@ -1898,7 +1898,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeTrue();
 
-		processUtils
+		processManager
 			.Received()
 			.StartProcess(Arg.Any<string>());
 	}

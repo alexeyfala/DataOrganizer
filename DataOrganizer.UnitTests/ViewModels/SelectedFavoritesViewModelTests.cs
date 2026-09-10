@@ -26,9 +26,9 @@ internal class SelectedFavoritesViewModelTests
 
 		const int count = 5;
 
-		sut.AddTestCategories(TestData.CreateFavoriteCategories(count));
+		sut.SeedCategories(TestData.CreateFavoriteCategories(count));
 
-		sut.AddTestFavorites(TestData.CreateFileDtos(count));
+		sut.SeedFavorites(TestData.CreateFileDtos(count));
 
 		sut
 			.OrderedCategoryIds

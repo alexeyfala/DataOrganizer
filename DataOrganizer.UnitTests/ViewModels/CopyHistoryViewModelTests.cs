@@ -24,7 +24,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		sut.AddTestCopyHistory(TestData.CreateFileDtos(5));
+		sut.SeedCopyHistory(TestData.CreateFileDtos(5));
 
 		sut.SelectedItem = TestData.CreateFileDto();
 
@@ -88,7 +88,7 @@ internal class CopyHistoryViewModelTests
 
 		CopyHistoryViewModel sut = mock.Create<CopyHistoryViewModel>();
 
-		sut.AddTestCopyHistory(TestData.CreateFileDtos(5));
+		sut.SeedCopyHistory(TestData.CreateFileDtos(5));
 
 		sut.SelectedItem = TestData.CreateFileDto();
 
@@ -106,10 +106,10 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel.GetIdentifiers" />: returns the ids of all items in history.
+	/// <see cref="CopyHistoryViewModel.GetItemIds" />: returns the ids of all items in history.
 	/// </summary>
 	[Test]
-	public void GetIdentifiers_Returns_Identifiers_Of_Objects_In_History()
+	public void GetItemIds_Returns_Ids_Of_Objects_In_History()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -118,10 +118,10 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] items = [.. TestData.CreateFileDtos(5)];
 
-		sut.AddTestCopyHistory(items);
+		sut.SeedCopyHistory(items);
 
 		// Act
-		Guid[] result = [.. sut.GetIdentifiers()];
+		Guid[] result = [.. sut.GetItemIds()];
 
 		// Assert
 		result.Should()
@@ -171,7 +171,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. TestData.CreateFileDtos(3)];
 
-		sut.AddTestCopyHistory(existing);
+		sut.SeedCopyHistory(existing);
 
 		FileDto newItem = TestData.CreateFileDto();
 
@@ -199,7 +199,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. TestData.CreateFileDtos(3)];
 
-		sut.AddTestCopyHistory(existing);
+		sut.SeedCopyHistory(existing);
 
 		int initialCount = sut.Items.Count;
 
@@ -251,7 +251,7 @@ internal class CopyHistoryViewModelTests
 
 		FileDto[] existing = [.. TestData.CreateFileDtos(3)];
 
-		sut.AddTestCopyHistory(existing);
+		sut.SeedCopyHistory(existing);
 
 		// Act
 		bool result = sut.Remove(existing[1]);

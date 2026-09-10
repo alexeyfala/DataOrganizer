@@ -263,7 +263,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Copies <see cref="Text" /> value to system clipboard.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsTextNotNull))]
+	[RelayCommand(CanExecute = nameof(HasText))]
 	private async Task CopyToClipboard()
 	{
 		if (string.IsNullOrWhiteSpace(Text) || TopLevel
@@ -385,7 +385,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	/// <summary>
 	/// Returns <c>True</c> if <see cref="Text" /> is not null.
 	/// </summary>
-	private bool IsTextNotNull() => !string.IsNullOrWhiteSpace(Text);
+	private bool HasText() => !string.IsNullOrWhiteSpace(Text);
 
 	/// <summary>
 	/// Sets <see cref="ColorSampleBrush" /> from string value.
