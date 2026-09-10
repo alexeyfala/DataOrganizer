@@ -76,5 +76,5 @@ public interface IFileRepository
 	Task<int> UpdatePropertiesAsync(
 		IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates,
 		CancellationToken token = default);
-	#endregion Methods
+	#endregion
 }

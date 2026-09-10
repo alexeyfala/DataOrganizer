@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.Input;
-using DataOrganizer.Views.Dialogs;
 using DialogHostAvalonia;
 using Repository.Dto;
 using System.Collections.ObjectModel;
@@ -16,7 +15,7 @@ internal sealed partial class PropertiesViewModel
 	/// The list of properties.
 	/// </summary>
 	public ObservableCollection<PropertyDescription> Properties { get; } = [];
-	#endregion Properties
+	#endregion
 
 	#region Auto-Generated Commands
 	/// <summary>

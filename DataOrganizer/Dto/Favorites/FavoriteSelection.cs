@@ -19,5 +19,5 @@ public class FavoriteSelection
 	/// Favorite identifier.
 	/// </summary>
 	public required Guid FavoriteId { get; set; }
-	#endregion Properties
+	#endregion
 }

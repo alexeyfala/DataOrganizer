@@ -78,5 +78,5 @@ public sealed class FolderRepository : RepositoryBase<FolderEntity>, IFolderRepo
 			return new(x => x.Id == entry.Key, entry.Value);
 		}
 	}
-	#endregion Methods
+	#endregion
 }

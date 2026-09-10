@@ -12,7 +12,7 @@ public sealed partial class EditorWindow : Window
 
 	/// <inheritdoc cref="EditorViewModel" />
 	public EditorViewModel ViewModel { get; } = null!;
-	#endregion Properties
+	#endregion
 
 	#region Constructors
 	public EditorWindow()

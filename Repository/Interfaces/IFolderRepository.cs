@@ -57,5 +57,5 @@ public interface IFolderRepository
 	Task<int> UpdatePropertiesAsync(
 		IDictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates,
 		CancellationToken token = default);
-	#endregion Methods
+	#endregion
 }

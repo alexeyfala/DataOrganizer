@@ -20,7 +20,7 @@ internal readonly struct HierarchyCounts
 	/// Number of folders.
 	/// </summary>
 	public required uint Folders { get; init; }
-	#endregion Properties
+	#endregion
 
 	#region Methods
 	/// <summary>

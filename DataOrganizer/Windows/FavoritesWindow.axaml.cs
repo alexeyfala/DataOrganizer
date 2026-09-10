@@ -11,7 +11,7 @@ public sealed partial class FavoritesWindow : Window
 
 	/// <inheritdoc cref="FavoritesViewModel" />
 	public FavoritesViewModel ViewModel { get; } = null!;
-	#endregion Properties
+	#endregion
 
 	#region Constructors
 	public FavoritesWindow()

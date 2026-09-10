@@ -11,7 +11,7 @@ public sealed partial class ConsoleWindow : Window
 
 	/// <inheritdoc cref="ConsoleViewModel" />
 	public ConsoleViewModel ViewModel { get; } = null!;
-	#endregion Properties
+	#endregion
 
 	#region Constructors
 	public ConsoleWindow()

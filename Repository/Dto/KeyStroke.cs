@@ -15,7 +15,7 @@ public readonly record struct KeyStroke
 
 	/// <inheritdoc cref="EventMask" />
 	public required EventMask Mask { get; init; }
-	#endregion Properties
+	#endregion
 
 	#region Methods
 	/// <summary>

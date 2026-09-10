@@ -21,5 +21,5 @@ public sealed class HotkeyDto : EntityDtoBase
 
 	/// <inheritdoc cref="HotkeyEntity.OwnerId" />
 	public required Guid OwnerId { get; init; }
-	#endregion Properties	
+	#endregion
 }

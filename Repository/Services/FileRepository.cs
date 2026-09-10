@@ -152,5 +152,5 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 			return new(x => x.Id == entry.Key, entry.Value);
 		}
 	}
-	#endregion Methods
+	#endregion
 }
