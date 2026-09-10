@@ -265,10 +265,10 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.ClearEntriesAsync" />: clears entries and raises ClearedForStop.
+	/// <see cref="ClipboardLogService.ClearEntriesAsync" />: clears entries and raises ClearedOnStop.
 	/// </summary>
 	[Test]
-	public async Task ClearEntriesAsync_Raises_ClearedForStop()
+	public async Task ClearEntriesAsync_Raises_ClearedOnStop()
 	{
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
@@ -298,7 +298,7 @@ internal class ClipboardLogServiceTests
 
 		received
 			.Should()
-			.Equal(ClipboardLogChangeKind.ClearedForStop);
+			.Equal(ClipboardLogChangeKind.ClearedOnStop);
 	}
 
 	/// <summary>

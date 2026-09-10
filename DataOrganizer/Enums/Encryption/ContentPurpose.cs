@@ -27,7 +27,7 @@ public enum ContentPurpose : byte
 	ClipboardDek = 4,
 
 	/// <summary>
-	/// Journal of the clipboard history.
+	/// The stored clipboard history.
 	/// </summary>
-	ClipboardJournal = 5
+	ClipboardLog = 5
 }

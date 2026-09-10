@@ -236,7 +236,7 @@ public sealed class FolderProtection : IFolderProtection
 
 			if (await _contentWriter
 				.UpdateDatabaseAsync(parameters, token)
-				.ConfigureAwait(false) is not UpdateDatabaseOutcome.Done)
+				.ConfigureAwait(false) is not UpdateDatabaseOutcome.Saved)
 			{
 				return;
 			}
@@ -347,7 +347,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				if (await _contentWriter
 					.UpdateDatabaseAsync(parameters, token)
-					.ConfigureAwait(false) is not UpdateDatabaseOutcome.Done)
+					.ConfigureAwait(false) is not UpdateDatabaseOutcome.Saved)
 				{
 					return;
 				}

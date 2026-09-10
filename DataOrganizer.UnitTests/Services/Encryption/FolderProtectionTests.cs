@@ -397,7 +397,7 @@ internal class FolderProtectionTests
 	/// so its session key goes with it.
 	/// </summary>
 	[Test]
-	public async Task DecryptFolderAsync_Drops_The_Key_Of_A_Converted_Folder([Values] bool isWriteDone)
+	public async Task DecryptFolderAsync_Drops_The_Key_Of_A_Converted_Folder([Values] bool isWriteSaved)
 	{
 		// Arrange
 		FolderDto folder = TestData.CreateFolderDto();
@@ -414,7 +414,7 @@ internal class FolderProtectionTests
 
 			contentWriter
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-				.Returns(isWriteDone ? UpdateDatabaseOutcome.Done : UpdateDatabaseOutcome.FailedToSaveInDb);
+				.Returns(isWriteSaved ? UpdateDatabaseOutcome.Saved : UpdateDatabaseOutcome.SaveFailed);
 
 			builder.RegisterInstance(contentWriter);
 
@@ -450,7 +450,7 @@ internal class FolderProtectionTests
 
 		// Assert
 		contentVisibility
-			.Received(isWriteDone ? 1 : 0)
+			.Received(isWriteSaved ? 1 : 0)
 			.DiscardKeys(folder);
 	}
 
@@ -724,7 +724,7 @@ internal class FolderProtectionTests
 
 			contentWriter
 				.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-				.Returns(UpdateDatabaseOutcome.FailedToSaveInDb);
+				.Returns(UpdateDatabaseOutcome.SaveFailed);
 
 			builder.RegisterInstance(contentWriter);
 
@@ -1184,7 +1184,7 @@ internal class FolderProtectionTests
 
 		contentWriter
 			.UpdateDatabaseAsync(Arg.Any<UpdateDatabaseParameters>(), Arg.Any<CancellationToken>())
-			.Returns(UpdateDatabaseOutcome.Done);
+			.Returns(UpdateDatabaseOutcome.Saved);
 
 		builder.RegisterInstance(contentWriter);
 

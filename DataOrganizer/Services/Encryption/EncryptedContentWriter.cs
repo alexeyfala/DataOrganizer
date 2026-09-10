@@ -97,7 +97,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.UpdateFileAndFolderPropertiesAsync(updates, folderUpdates, token)
 				.ConfigureAwait(false))
 			{
-				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.FailedToSaveInDb)
+				return await RestoreAsync(parameters.BackupFilePath, UpdateDatabaseOutcome.SaveFailed)
 					.ConfigureAwait(false);
 			}
 
@@ -115,7 +115,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				.Folder
 				.EncryptedDek = parameters.EncryptedDek;
 
-			return UpdateDatabaseOutcome.Done;
+			return UpdateDatabaseOutcome.Saved;
 
 			void SetDek(UpdateSettersBuilder<FolderEntity> builder)
 			{

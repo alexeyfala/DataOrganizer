@@ -132,7 +132,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		{
 			byte[] ciphertext = _sessionKeyStore.Encrypt(
 				_historyKeyId,
-				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				ContentIdentity.ForClipboardLog(_historyKeyId),
 				plaintext);
 
 			EnsureDirectory();
@@ -204,7 +204,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		{
 			plaintext = _sessionKeyStore.Decrypt(
 				_historyKeyId,
-				ContentIdentity.ForClipboardJournal(_historyKeyId),
+				ContentIdentity.ForClipboardLog(_historyKeyId),
 				ciphertext);
 		}
 		catch (CryptographicException ex)

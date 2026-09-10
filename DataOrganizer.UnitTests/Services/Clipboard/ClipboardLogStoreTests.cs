@@ -102,7 +102,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.EraseHistory" />: removes the journal but keeps the key and stays unlocked.
 	/// </summary>
 	[Test]
-	public async Task EraseHistory_Removes_Journal_But_Keeps_Key()
+	public async Task EraseHistory_Removes_Log_But_Keeps_Key()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -173,7 +173,7 @@ internal class ClipboardLogStoreTests
 	/// that does not finish leaves the previous one readable.
 	/// </summary>
 	[Test]
-	public async Task Save_Replaces_The_Journal_Atomically()
+	public async Task Save_Replaces_The_Log_Atomically()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -245,7 +245,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.SaveAsync" />: a later save replaces the previous journal.
 	/// </summary>
 	[Test]
-	public async Task Save_Twice_Overwrites_Previous_Journal()
+	public async Task Save_Twice_Overwrites_Previous_Log()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -486,7 +486,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_When_Journal_Is_Rejected_Returns_Empty()
+	public async Task TryUnlock_When_Log_Is_Rejected_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -607,7 +607,7 @@ internal class ClipboardLogStoreTests
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a corrupt journal yields no entries.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_With_Corrupt_Journal_Returns_Empty()
+	public async Task TryUnlock_With_Corrupt_Log_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();
@@ -645,7 +645,7 @@ internal class ClipboardLogStoreTests
 	/// damaged data, so the session still opens.
 	/// </summary>
 	[Test]
-	public async Task TryUnlock_With_Empty_Journal_Returns_Empty()
+	public async Task TryUnlock_With_Empty_Log_Returns_Empty()
 	{
 		// Arrange
 		InMemoryFileSystem files = new();

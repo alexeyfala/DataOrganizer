@@ -248,7 +248,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// <see cref="ClipboardLogPersistenceCoordinator.Receive" />: a tracking-off clear keeps the journal.
 	/// </summary>
 	[Test]
-	public void Receive_ClearedForStop_Keeps_History()
+	public void Receive_ClearedOnStop_Keeps_History()
 	{
 		// Arrange
 		IClipboardLogStore store = Substitute.For<IClipboardLogStore>();
@@ -260,7 +260,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
 		// Act
-		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedForStop));
+		sut.Receive(new ClipboardLogChangedMessage(ClipboardLogChangeKind.ClearedOnStop));
 
 		// Assert
 		store

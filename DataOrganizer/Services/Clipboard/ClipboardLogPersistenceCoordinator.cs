@@ -173,7 +173,7 @@ public sealed class ClipboardLogPersistenceCoordinator :
 				}
 				break;
 
-			case ClipboardLogChangeKind.ClearedForStop:
+			case ClipboardLogChangeKind.ClearedOnStop:
 				// Tracking toggled off: drop the pending save but keep the saved history on disk.
 				CancelPendingSave();
 				break;

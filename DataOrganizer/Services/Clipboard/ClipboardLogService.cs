@@ -178,7 +178,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		return ClearCoreAsync(
 			clearSystem: false,
 			preservePinned: false,
-			ClipboardLogChangeKind.ClearedForStop);
+			ClipboardLogChangeKind.ClearedOnStop);
 	}
 
 	/// <inheritdoc />

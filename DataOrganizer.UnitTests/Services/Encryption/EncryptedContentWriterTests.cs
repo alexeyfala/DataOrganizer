@@ -26,7 +26,7 @@ internal class EncryptedContentWriterTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns FailedToSaveInDb and restores the backup when the conversion cannot be saved.
+	/// <see cref="EncryptedContentWriter.UpdateDatabaseAsync" />: returns SaveFailed and restores the backup when the conversion cannot be saved.
 	/// </summary>
 	[Test]
 	public async Task UpdateDatabaseAsync_Cannot_Save_In_Database()
@@ -55,7 +55,7 @@ internal class EncryptedContentWriterTests
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseOutcome.FailedToSaveInDb);
+			.Be(UpdateDatabaseOutcome.SaveFailed);
 
 		await dbAccess
 			.Received()
@@ -107,7 +107,7 @@ internal class EncryptedContentWriterTests
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseOutcome.Done);
+			.Be(UpdateDatabaseOutcome.Saved);
 
 		parameters.Folder.EncryptionStatus
 			.Should()
@@ -234,7 +234,7 @@ internal class EncryptedContentWriterTests
 		// Assert
 		result
 			.Should()
-			.Be(UpdateDatabaseOutcome.Done);
+			.Be(UpdateDatabaseOutcome.Saved);
 
 		await dbAccess.Received(1).UpdateFileAndFolderPropertiesAsync(
 			Arg.Is<IDictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]>>(x =>
