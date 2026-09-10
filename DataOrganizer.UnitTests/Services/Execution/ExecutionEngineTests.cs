@@ -159,7 +159,7 @@ internal class ExecutionEngineTests
 			.Returns(true);
 
 		fileSystem
-			.WaitFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
+			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>())
 			.Returns(true);
 
 		processUtils
@@ -187,7 +187,7 @@ internal class ExecutionEngineTests
 		// Assert
 		await fileSystem
 			.Received()
-			.WaitFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
+			.WaitUntilFileUnlockedAsync(Arg.Any<string>(), Arg.Any<ILogger>(), Arg.Any<CancellationToken>());
 
 		fileSystem
 			.Received()

@@ -123,7 +123,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public void SetFileReadOnly(string filePath, bool value) => throw new NotSupportedException();
 
-	public ValueTask<bool> WaitFileUnlockedAsync(
+	public ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default) => throw new NotSupportedException();

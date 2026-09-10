@@ -323,7 +323,7 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	public async ValueTask<bool> WaitFileUnlockedAsync(
+	public async ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default)

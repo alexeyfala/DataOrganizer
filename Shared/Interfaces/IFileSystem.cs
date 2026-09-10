@@ -147,7 +147,7 @@ public interface IFileSystem
 	/// <c>False</c> if <paramref name="token" /> was cancelled while the file
 	/// was still locked. Never throws on cancellation.
 	/// </summary>
-	ValueTask<bool> WaitFileUnlockedAsync(
+	ValueTask<bool> WaitUntilFileUnlockedAsync(
 		string filePath,
 		ILogger? logger = null,
 		CancellationToken token = default);

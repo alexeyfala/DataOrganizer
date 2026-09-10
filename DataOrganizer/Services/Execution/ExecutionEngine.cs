@@ -149,7 +149,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 				cancellation.CancelAfter(TimeSpan.FromSeconds(timeout));
 
 				bool unlocked = await _fileSystem
-					.WaitFileUnlockedAsync(info.FilePath, token: cancellation.Token)
+					.WaitUntilFileUnlockedAsync(info.FilePath, token: cancellation.Token)
 					.ConfigureAwait(false);
 
 				if (unlocked)
