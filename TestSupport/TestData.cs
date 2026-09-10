@@ -26,44 +26,6 @@ public static class TestData
 {
 	#region Methods
 	/// <summary>
-	/// Creates a <see cref="FavoriteSelection" /> with random properties.
-	/// </summary>
-	public static FavoriteSelection CreateFavoriteSelection()
-	{
-		return new()
-		{
-			CategoryId = Guid.NewGuid(),
-			FavoriteId = Guid.NewGuid()
-		};
-	}
-
-	/// <summary>
-	/// Creates the required number of random <see cref="FavoriteSelection" /> objects.
-	/// </summary>
-	public static IEnumerable<FavoriteSelection> CreateFavoriteSelections(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return CreateFavoriteSelection();
-		}
-	}
-
-	/// <summary>
-	/// Creates the required number of random <see cref="KeyStroke" /> objects.
-	/// </summary>
-	public static IEnumerable<KeyStroke> CreateKeyStrokes(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return new()
-			{
-				Code = CreateRandomEnumValue<KeyCode>(),
-				Mask = CreateRandomEnumValue<EventMask>()
-			};
-		}
-	}
-
-	/// <summary>
 	/// Creates the required number of random <see cref="ValidatedContents" /> objects.
 	/// </summary>
 	public static IEnumerable<ValidatedContents> CreateContents(
@@ -111,6 +73,17 @@ public static class TestData
 		Index = default,
 		Name = RandomString.Create(10)
 	};
+
+	/// <summary>
+	/// Creates the required number of random <see cref="FavoriteSelection" /> objects.
+	/// </summary>
+	public static IEnumerable<FavoriteSelection> CreateFavoriteSelections(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return CreateFavoriteSelection();
+		}
+	}
 
 	/// <summary>
 	/// Creates a <see cref="FileEntity" /> object of <see cref="EntityKind.File" /> content, with random properties.
@@ -272,6 +245,21 @@ public static class TestData
 	}
 
 	/// <summary>
+	/// Creates the required number of random <see cref="KeyStroke" /> objects.
+	/// </summary>
+	public static IEnumerable<KeyStroke> CreateKeyStrokes(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return new()
+			{
+				Code = CreateRandomEnumValue<KeyCode>(),
+				Mask = CreateRandomEnumValue<EventMask>()
+			};
+		}
+	}
+
+	/// <summary>
 	/// Generates a random sequence of bytes.
 	/// </summary>
 	public static byte[] CreateRandomBytes(int length)
@@ -306,20 +294,6 @@ public static class TestData
 			.NextDouble();
 
 		return minValue + (value * (maxValue - minValue));
-	}
-
-	/// <summary>
-	/// Generates a random <see cref="Enum" /> value.
-	/// </summary>
-	public static T CreateRandomEnumValue<T>() where T : struct, Enum
-	{
-		T[] values = Enum.GetValues<T>();
-
-		int randomIndex = Random
-			.Shared
-			.Next(values.Length);
-
-		return (T)values.GetValue(randomIndex)!;
 	}
 
 	/// <summary>
@@ -396,6 +370,34 @@ public static class TestData
 			.Next(0, filtered.Length);
 
 		return filtered[index];
+	}
+	#endregion
+
+	#region Helpers
+	/// <summary>
+	/// Creates a <see cref="FavoriteSelection" /> with random properties.
+	/// </summary>
+	private static FavoriteSelection CreateFavoriteSelection()
+	{
+		return new()
+		{
+			CategoryId = Guid.NewGuid(),
+			FavoriteId = Guid.NewGuid()
+		};
+	}
+
+	/// <summary>
+	/// Generates a random <see cref="Enum" /> value.
+	/// </summary>
+	private static T CreateRandomEnumValue<T>() where T : struct, Enum
+	{
+		T[] values = Enum.GetValues<T>();
+
+		int randomIndex = Random
+			.Shared
+			.Next(values.Length);
+
+		return (T)values.GetValue(randomIndex)!;
 	}
 	#endregion
 }
