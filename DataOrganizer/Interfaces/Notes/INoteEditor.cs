@@ -17,7 +17,7 @@ public interface INoteEditor
 	Task<bool> EditAsync(
 		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default);
 	#endregion
 }

@@ -53,7 +53,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 	{
 		try
 		{
-			DateTime updatedDate = DateTime.Now;
+			DateTime updatedAt = DateTime.Now;
 
 			Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = parameters
 				.Contents
@@ -62,7 +62,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				return new Action<UpdateSettersBuilder<FileEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Contents, pair.Contents),
-					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
+					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
 				};
 			});
 
@@ -85,7 +85,7 @@ public sealed class EncryptedContentWriter : IEncryptedContentWriter
 				return new Action<UpdateSettersBuilder<FolderEntity>>[]
 				{
 					builder => builder.SetProperty(x => x.Note, note.Note),
-					builder => builder.SetProperty(x => x.UpdatedDate, updatedDate)
+					builder => builder.SetProperty(x => x.UpdatedAt, updatedAt)
 				};
 			});
 

@@ -51,7 +51,7 @@ public sealed class NoteEditor : INoteEditor
 	public async Task<bool> EditAsync(
 		ExplorerItemDtoBase item,
 		string? note,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		_logger.LogInformation("Editing a note of an object");
@@ -77,17 +77,17 @@ public sealed class NoteEditor : INoteEditor
 			return Fail(item);
 		}
 
-		Task<bool> task = item.EntityType switch
+		Task<bool> task = item.Kind switch
 		{
 			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
 			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(item.Id,
 			[
 				x => x.SetProperty(x => x.Note, encoded),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
 			_ => throw new NotImplementedException()
 		};
@@ -101,7 +101,7 @@ public sealed class NoteEditor : INoteEditor
 
 		item.Note = encoded;
 
-		item.UpdatedDate = updatedDate;
+		item.UpdatedAt = updatedAt;
 
 		// The replaced buffer holds the note itself as long as the object is not encrypted.
 		replaced?.ZeroMemory();

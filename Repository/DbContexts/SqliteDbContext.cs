@@ -64,12 +64,12 @@ public class SqliteDbContext : DbContext
 
 		modelBuilder
 			.Entity<ExplorerItemBase>()
-			.Property(x => x.CreatedDate)
+			.Property(x => x.CreatedAt)
 			.HasConversion(timeTicksRemoveConverter);
 
 		modelBuilder
 			.Entity<ExplorerItemBase>()
-			.Property(x => x.UpdatedDate)
+			.Property(x => x.UpdatedAt)
 			.HasConversion(timeTicksRemoveConverter);
 		#endregion
 

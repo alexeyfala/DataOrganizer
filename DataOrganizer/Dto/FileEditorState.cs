@@ -4,9 +4,9 @@ using System.Drawing;
 namespace DataOrganizer.Dto;
 
 /// <summary>
-/// The properties of file in built-in editor.
+/// State of the built-in editor for a file.
 /// </summary>
-public readonly struct FileProperties
+public readonly struct FileEditorState
 {
 	#region Properties
 	/// <summary>

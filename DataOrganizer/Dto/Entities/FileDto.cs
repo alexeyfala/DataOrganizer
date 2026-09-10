@@ -12,6 +12,9 @@ namespace DataOrganizer.Dto.Entities;
 public sealed partial class FileDto : ExplorerItemDtoBase
 {
 	#region Properties
+	/// <inheritdoc cref="FileEntity.EditorState" />
+	public string? EditorState { get; set; }
+
 	/// <inheritdoc cref="FileEntity.Hotkeys" />
 	public ObservableCollection<HotkeyDto> Hotkeys { get; init; } = [];
 
@@ -36,9 +39,6 @@ public sealed partial class FileDto : ExplorerItemDtoBase
 	/// <inheritdoc cref="FileEntity.IsFavorite" />
 	[ObservableProperty]
 	public partial bool IsFavorite { get; set; }
-
-	/// <inheritdoc cref="FileEntity.Properties" />
-	public string? Properties { get; set; }
 	#endregion
 
 	#region Methods

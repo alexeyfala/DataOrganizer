@@ -35,11 +35,11 @@ namespace DataOrganizer.ViewModels;
 public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
-	/// <inheritdoc cref="FileProperties.FontSize" />
+	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
-	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	/// <inheritdoc cref="FileEditorState.IsWordWrap" />
 	[ObservableProperty]
 	public partial bool IsWordWrap { get; set; }
 	#endregion
@@ -117,7 +117,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 				ApplyEditorSettings(editor);
 
-				await InitializePropertiesAsync(editor).ConfigureAwait(true);
+				await InitializeEditorStateAsync(editor).ConfigureAwait(true);
 
 				TimeSpan delay = TimeSpan.FromSeconds(0.5);
 
@@ -255,7 +255,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_exceptionHandler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySaveEditorStateAsync());
 		}
 	}
 
@@ -279,12 +279,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	/// <summary>
 	/// Called when <see cref="FontSize" /> changes.
 	/// </summary>
-	partial void OnFontSizeChanged(double value) => TrySavePersistentProperties();
+	partial void OnFontSizeChanged(double value) => TrySavePersistentEditorState();
 
 	/// <summary>
 	/// Called when <see cref="IsWordWrap" /> changes.
 	/// </summary>
-	partial void OnIsWordWrapChanged(bool value) => TrySavePersistentProperties();
+	partial void OnIsWordWrapChanged(bool value) => TrySavePersistentEditorState();
 	#endregion
 
 	#region Methods
@@ -346,9 +346,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Creates <see cref="FileProperties" /> from <see cref="EmbeddedFileEditorViewModel" /> and <see cref="TextEditor" /> properties.
+	/// Creates <see cref="FileEditorState" /> from the view model and the editor.
 	/// </summary>
-	private FileProperties CreateProperties()
+	private FileEditorState CreateEditorState()
 	{
 		if (_editor is not { } editor)
 		{
@@ -388,12 +388,12 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Initializes <see cref="EmbeddedFileEditorViewModel" /> properties from database.
+	/// Restores the editor state from the database.
 	/// </summary>
-	private async Task InitializePropertiesAsync(TextEditor editor, CancellationToken token = default)
+	private async Task InitializeEditorStateAsync(TextEditor editor, CancellationToken token = default)
 	{
-		string? value = InitialProperties ?? await _dbAccess
-			.GetFilePropertiesAsync(FileId, token)
+		string? value = InitialEditorState ?? await _dbAccess
+			.GetFileEditorStateAsync(FileId, token)
 			.ConfigureAwait(false);
 
 		if (value is null)
@@ -403,31 +403,31 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			FileProperties properties = _jsonSerializer.Deserialize<FileProperties>(value);
+			FileEditorState state = _jsonSerializer.Deserialize<FileEditorState>(value);
 
-			FontSize = properties.FontSize;
+			FontSize = state.FontSize;
 
-			IsWordWrap = properties.IsWordWrap;
+			IsWordWrap = state.IsWordWrap;
 
-			editor.SelectionStart = properties.SelectionStart;
+			editor.SelectionStart = state.SelectionStart;
 
-			editor.SelectionLength = properties.SelectionLength;
-
-			// Not implemented in TextEditor.
-			editor.ScrollToVerticalOffset(properties.ScrollOffset.Y);
+			editor.SelectionLength = state.SelectionLength;
 
 			// Not implemented in TextEditor.
-			editor.ScrollToHorizontalOffset(properties.ScrollOffset.X);
+			editor.ScrollToVerticalOffset(state.ScrollOffset.Y);
 
-			editor.ScrollToLine(properties.CaretPosition.Line);
+			// Not implemented in TextEditor.
+			editor.ScrollToHorizontalOffset(state.ScrollOffset.X);
+
+			editor.ScrollToLine(state.CaretPosition.Line);
 
 			editor
 				.TextArea
 				.Caret
-				.Position = properties.CaretPosition;
+				.Position = state.CaretPosition;
 
 			_logger.LogDebug(
-				$@"Properties ""{FileId}"" for editor are initialized:{properties.GetPropertyValues(true)}");
+				$@"Editor state of ""{FileId}"" is initialized:{state.GetPropertyValues(true)}");
 		}
 		catch (Exception ex)
 		{
@@ -435,8 +435,8 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 			if (!IsReadOnly)
 			{
-				await SavePropertiesAsync(
-					_jsonSerializer.Serialize(CreateProperties(), JsonDefaults.Options),
+				await SaveEditorStateAsync(
+					_jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options),
 					token);
 			}
 		}
@@ -523,9 +523,9 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Persists view-model properties once the editor is ready.
+	/// Persists the editor state once the editor is ready.
 	/// </summary>
-	private void TrySavePersistentProperties()
+	private void TrySavePersistentEditorState()
 	{
 		lock (_mutex)
 		{
@@ -534,27 +534,27 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				return;
 			}
 
-			_exceptionHandler.Watch(TrySavePropertiesAsync());
+			_exceptionHandler.Watch(TrySaveEditorStateAsync());
 		}
 	}
 
 	/// <summary>
-	/// Tries to save properties.
+	/// Tries to save the editor state.
 	/// </summary>
-	private Task TrySavePropertiesAsync(CancellationToken token = default)
+	private Task TrySaveEditorStateAsync(CancellationToken token = default)
 	{
-		string json = _jsonSerializer.Serialize(CreateProperties(), JsonDefaults.Options);
+		string json = _jsonSerializer.Serialize(CreateEditorState(), JsonDefaults.Options);
 
-		SetPropertiesCallback?.Invoke(json);
+		SetEditorStateCallback?.Invoke(json);
 
-		if (IsReadOnly || IsLastPropertiesEqualTo(json))
+		if (IsReadOnly || IsLastEditorStateEqualTo(json))
 		{
 			return Task.CompletedTask;
 		}
 
-		_lastSavedProperties = json;
+		_lastSavedEditorState = json;
 
-		return SavePropertiesAsync(json, token);
+		return SaveEditorStateAsync(json, token);
 	}
 	#endregion
 }

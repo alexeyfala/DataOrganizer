@@ -115,7 +115,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			ExplorerItemBase entity = parameters.EntityType == EntityKind.Folder
+			ExplorerItemBase entity = parameters.Kind == EntityKind.Folder
 				? await AddFolderAsync(parameters, token).ConfigureAwait(false)
 				: await AddFileAsync(parameters, token).ConfigureAwait(false);
 
@@ -773,7 +773,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async Task<string?> GetFilePropertiesAsync(Guid id, CancellationToken token = default)
+	public async Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default)
 	{
 		try
 		{
@@ -782,7 +782,7 @@ public sealed class DbAccess : IDbAccess
 				.ConfigureAwait(false);
 
 			return await _fileRepository
-				.GetPropertiesAsync(id, token)
+				.GetEditorStateAsync(id, token)
 				.ConfigureAwait(false);
 		}
 		catch (Exception ex)
@@ -1303,13 +1303,13 @@ public sealed class DbAccess : IDbAccess
 		FileEntity file = new()
 		{
 			Contents = parameters.FileContents.AsNotNull(),
-			CreatedDate = now,
-			EntityType = parameters.EntityType,
+			CreatedAt = now,
 			Id = Guid.NewGuid(),
 			Index = parameters.Index,
+			Kind = parameters.Kind,
 			Name = parameters.Name,
 			ParentId = parameters.ParentId,
-			UpdatedDate = now
+			UpdatedAt = now
 		};
 
 		await _fileRepository
@@ -1331,12 +1331,12 @@ public sealed class DbAccess : IDbAccess
 		FolderEntity folder = new()
 		{
 			Id = Guid.NewGuid(),
-			CreatedDate = now,
-			EntityType = parameters.EntityType,
+			CreatedAt = now,
+			Kind = parameters.Kind,
 			Index = parameters.Index,
 			Name = parameters.Name,
 			ParentId = parameters.ParentId,
-			UpdatedDate = now
+			UpdatedAt = now
 		};
 
 		await _folderRepository

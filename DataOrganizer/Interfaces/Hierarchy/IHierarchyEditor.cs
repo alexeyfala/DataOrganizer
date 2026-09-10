@@ -18,7 +18,7 @@ public interface IHierarchyEditor
 	/// </summary>
 	Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
-		EntityKind entityType,
+		EntityKind kind,
 		FolderDto? parent,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default);
@@ -37,7 +37,7 @@ public interface IHierarchyEditor
 	Task<bool> RenameAsync(
 		ExplorerItemDtoBase dto,
 		string newName,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default);
 	#endregion
 }

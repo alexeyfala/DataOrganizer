@@ -339,7 +339,7 @@ public partial class EditorViewModel :
 				true,
 				nameof(FileDto.Id),
 				nameof(FileDto.Name),
-				nameof(FileDto.EntityType))}");
+				nameof(FileDto.Kind))}");
 
 			return;
 		}
@@ -364,7 +364,7 @@ public partial class EditorViewModel :
 			true,
 			nameof(FileDto.Id),
 			nameof(FileDto.Name),
-			nameof(FileDto.EntityType))}");
+			nameof(FileDto.Kind))}");
 
 		if (dto.EncryptionStatus == EncryptionStatus.Encrypted && !await ShowFileContentsAsync(dto).ConfigureAwait(true))
 		{
@@ -384,7 +384,7 @@ public partial class EditorViewModel :
 			_logger.LogError($"{errorText}:{dto.GetPropertyValues(
 				true,
 				nameof(FileDto.Id),
-				nameof(FileDto.EntityType))}");
+				nameof(FileDto.Kind))}");
 
 			return;
 		}
@@ -394,8 +394,8 @@ public partial class EditorViewModel :
 				true,
 				nameof(FileDto.Id),
 				nameof(FileDto.Name),
-				nameof(FileDto.EntityType),
-				nameof(FileDto.UpdatedDate))}");
+				nameof(FileDto.Kind),
+				nameof(FileDto.UpdatedAt))}");
 
 		byte[] contents = result.Contents;
 
@@ -1379,12 +1379,12 @@ public partial class EditorViewModel :
 	/// </summary>
 	internal async Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
-		EntityKind entityType,
+		EntityKind kind,
 		FolderDto? parent,
 		CancellationToken token = default)
 	{
 		ExplorerItemDtoBase? dto = await _hierarchyEditor
-			.AddAsync(name, entityType, parent, Hierarchy, token)
+			.AddAsync(name, kind, parent, Hierarchy, token)
 			.ConfigureAwait(false);
 
 		if (dto is not null)
@@ -1573,7 +1573,7 @@ public partial class EditorViewModel :
 
 		yield return new(
 			Strings.Type,
-			dto.EntityType switch
+			dto.Kind switch
 			{
 				EntityKind.Folder => Strings.Folder,
 				EntityKind.File => Strings.File,
@@ -1583,9 +1583,9 @@ public partial class EditorViewModel :
 
 		yield return new(Strings.Name, dto.Name);
 
-		yield return new(Strings.Created, dto.CreatedDate.ToString(format));
+		yield return new(Strings.Created, dto.CreatedAt.ToString(format));
 
-		yield return new(Strings.Updated, dto.UpdatedDate.ToString(format));
+		yield return new(Strings.Updated, dto.UpdatedAt.ToString(format));
 	}
 
 	/// <inheritdoc cref="FileDto.IsOpened" />

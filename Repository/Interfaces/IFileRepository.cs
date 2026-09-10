@@ -40,9 +40,9 @@ public interface IFileRepository
 	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns value from <see cref="FileEntity.Properties" />.
+	/// Returns the stored editor state of a file.
 	/// </summary>
-	Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default);
+	Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entity from the database by Id.

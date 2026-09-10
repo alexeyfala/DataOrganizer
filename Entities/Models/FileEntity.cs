@@ -16,6 +16,11 @@ public sealed class FileEntity : ExplorerItemBase
 	public byte[] Contents { get; init; } = [];
 
 	/// <summary>
+	/// State of the built-in editor, in JSON format.
+	/// </summary>
+	public string? EditorState { get; init; }
+
+	/// <summary>
 	/// Hotkeys used to copy content to the clipboard.
 	/// </summary>
 	public List<HotkeyEntity> Hotkeys { get; init; } = [];
@@ -24,10 +29,5 @@ public sealed class FileEntity : ExplorerItemBase
 	/// <c>True</c> when the file is marked as a favorite.
 	/// </summary>
 	public bool IsFavorite { get; init; }
-
-	/// <summary>
-	/// Properties in Json format, when using the built-in editor.
-	/// </summary>
-	public string? Properties { get; init; }
 	#endregion
 }

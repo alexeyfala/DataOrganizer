@@ -14,7 +14,7 @@ namespace DataOrganizer.Dto.Entities;
 [ObservableObject]
 [DebuggerDisplay(
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
-	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
+	$"{nameof(Kind)} = {{{nameof(Kind)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
 public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 {
@@ -26,15 +26,12 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// </summary>
 	public virtual ObservableCollection<ExplorerItemDtoBase> Children { get; } = [];
 
-	/// <inheritdoc cref="ExplorerItemBase.CreatedDate" />
-	public required DateTime CreatedDate { get; init; }
+	/// <inheritdoc cref="ExplorerItemBase.CreatedAt" />
+	public required DateTime CreatedAt { get; init; }
 
 	/// <inheritdoc cref="Enums.Encryption.EncryptionStatus" />
 	[ObservableProperty]
 	public partial EncryptionStatus EncryptionStatus { get; set; }
-
-	/// <inheritdoc cref="ExplorerItemBase.EntityType" />
-	public required EntityKind EntityType { get; init; }
 
 	/// <inheritdoc cref="FolderEntity.IsExpanded" />
 	/// <remarks>
@@ -46,6 +43,9 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 
 	/// <inheritdoc cref="ExplorerItemBase.IsSelected" />
 	public bool IsSelected { get; set; }
+
+	/// <inheritdoc cref="ExplorerItemBase.Kind" />
+	public required EntityKind Kind { get; init; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Name" />
 	[ObservableProperty]
@@ -61,8 +61,8 @@ public abstract partial class ExplorerItemDtoBase : EntityDtoBase, INamed
 	/// <inheritdoc cref="ExplorerItemBase.ParentId" />
 	public Guid? ParentId { get; set; }
 
-	/// <inheritdoc cref="ExplorerItemBase.UpdatedDate" />
-	public required DateTime UpdatedDate { get; set; }
+	/// <inheritdoc cref="ExplorerItemBase.UpdatedAt" />
+	public required DateTime UpdatedAt { get; set; }
 	#endregion
 
 	#region Methods

@@ -57,10 +57,10 @@ internal class HierarchyEditorTests
 			parent = new()
 			{
 				Id = Guid.NewGuid(),
-				CreatedDate = default,
-				EntityType = EntityKind.Folder,
+				CreatedAt = default,
+				Kind = EntityKind.Folder,
 				Index = 0,
-				UpdatedDate = default
+				UpdatedAt = default
 			};
 		}
 
@@ -223,7 +223,7 @@ internal class HierarchyEditorTests
 
 		dto.Name = RandomString.Create(10);
 
-		DateTime updatedDate = DateTime.Now;
+		DateTime updatedAt = DateTime.Now;
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -240,7 +240,7 @@ internal class HierarchyEditorTests
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(dto, newName, updatedDate);
+		bool result = await sut.RenameAsync(dto, newName, updatedAt);
 
 		// Assert
 		result
@@ -251,9 +251,9 @@ internal class HierarchyEditorTests
 			.Should()
 			.Be(newName);
 
-		dto.UpdatedDate
+		dto.UpdatedAt
 			.Should()
-			.Be(updatedDate);
+			.Be(updatedAt);
 	}
 
 	/// <summary>
@@ -269,23 +269,23 @@ internal class HierarchyEditorTests
 
 		toBeRenamed.Name = newName;
 
-		DateTime updatedDate = DateTime.Now;
+		DateTime updatedAt = DateTime.Now;
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
 		// Act
-		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedDate);
+		bool result = await sut.RenameAsync(toBeRenamed, newName, updatedAt);
 
 		// Assert
 		result
 			.Should()
 			.BeFalse();
 
-		toBeRenamed.UpdatedDate
+		toBeRenamed.UpdatedAt
 			.Should()
-			.NotBe(updatedDate);
+			.NotBe(updatedAt);
 	}
 	#endregion
 }

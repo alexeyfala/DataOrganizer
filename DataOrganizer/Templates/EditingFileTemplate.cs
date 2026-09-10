@@ -80,7 +80,7 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 	{
 		control = null;
 
-		if (file.EntityType == EntityKind.File)
+		if (file.Kind == EntityKind.File)
 		{
 			EmbeddedFileEditorViewModel viewModel = _viewFactory.CreateViewModel<EmbeddedFileEditorViewModel>();
 
@@ -90,7 +90,7 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 
 			return true;
 		}
-		else if (file.EntityType == EntityKind.Dataset)
+		else if (file.Kind == EntityKind.Dataset)
 		{
 			DatasetEditorViewModel viewModel = _viewFactory.CreateViewModel<DatasetEditorViewModel>();
 
@@ -113,18 +113,18 @@ internal sealed class EditingFileTemplate : IDataTemplate, IViewCache
 
 			viewModel.FileId = file.Id;
 
-			viewModel.SetPropertiesCallback = SetProperties;
+			viewModel.SetEditorStateCallback = SetEditorState;
 
-			viewModel.SetUpdatedDateCallback = SetUpdatedDate;
+			viewModel.SetUpdatedAtCallback = SetUpdatedAt;
 
-			viewModel.InitialProperties = file.Properties;
+			viewModel.InitialEditorState = file.EditorState;
 
 			viewModel.Initialize();
 		}
 
-		void SetProperties(string properties) => file.Properties = properties;
+		void SetEditorState(string state) => file.EditorState = state;
 
-		void SetUpdatedDate(DateTime updatedDate) => file.UpdatedDate = updatedDate;
+		void SetUpdatedAt(DateTime updatedAt) => file.UpdatedAt = updatedAt;
 	}
 	#endregion
 }

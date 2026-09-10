@@ -69,7 +69,7 @@ internal class EntityPropertyWriterTests
 	/// <see cref="EntityPropertyWriter.UpdateIsSelectedAsync" />: the IsSelected property of a file or dataset is persisted via the file update.
 	/// </summary>
 	[Test]
-	public async Task UpdateIsSelectedAsync_Persists_File_In_Database([Values(EntityKind.File, EntityKind.Dataset)] EntityKind entityType)
+	public async Task UpdateIsSelectedAsync_Persists_File_In_Database([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -80,11 +80,11 @@ internal class EntityPropertyWriterTests
 
 		FileDto dto = new()
 		{
-			CreatedDate = default,
-			EntityType = entityType,
+			CreatedAt = default,
 			Id = Guid.NewGuid(),
 			Index = 0,
-			UpdatedDate = default
+			Kind = kind,
+			UpdatedAt = default
 		};
 
 		// Act

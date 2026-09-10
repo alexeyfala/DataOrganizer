@@ -85,8 +85,8 @@ internal static class AppConverters
 			_ => default
 		});
 
-	public static FuncValueConverter<EntityKind, MaterialIconKind> EntityTypeToIconKind { get; } =
-		new(type => type switch
+	public static FuncValueConverter<EntityKind, MaterialIconKind> EntityKindToIconKind { get; } =
+		new(kind => kind switch
 		{
 			EntityKind.Folder => MaterialIconKind.Folder,
 			EntityKind.File => MaterialIconKind.FileOutline,

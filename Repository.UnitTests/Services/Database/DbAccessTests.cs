@@ -46,8 +46,8 @@ internal class DbAccessTests
 
 		AddEntityParameters parameters = new()
 		{
-			EntityType = type,
 			Index = TestData.CreateRandomIntFrom10To100(),
+			Kind = type,
 			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
 		};
@@ -71,7 +71,7 @@ internal class DbAccessTests
 			.Should()
 			.NotBeEmpty();
 
-		entity.EntityType
+		entity.Kind
 			.Should()
 			.Be(type);
 
@@ -561,8 +561,8 @@ internal class DbAccessTests
 
 		(await sut.AddEntityAsync(new()
 		{
-			EntityType = EntityKind.Folder,
 			Index = 0,
+			Kind = EntityKind.Folder,
 			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
 		}))
@@ -1037,10 +1037,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetFilePropertiesAsync" />: returns the file's properties string.
+	/// <see cref="DbAccess.GetFileEditorStateAsync" />: returns the stored editor state of the file.
 	/// </summary>
 	[Test]
-	public async Task GetFilePropertiesAsync_Returns_File_Properties()
+	public async Task GetFileEditorStateAsync_Returns_The_Editor_State()
 	{
 		// Arrange
 		FileEntity file = TestData.CreateFile();
@@ -1050,8 +1050,8 @@ internal class DbAccessTests
 			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
-				.GetPropertiesAsync(Arg.Any<Guid>())
-				.Returns(file.Properties);
+				.GetEditorStateAsync(Arg.Any<Guid>())
+				.Returns(file.EditorState);
 
 			builder.RegisterInstance(repository);
 		});
@@ -1059,12 +1059,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		string? result = await sut.GetFilePropertiesAsync(file.Id);
+		string? result = await sut.GetFileEditorStateAsync(file.Id);
 
 		// Assert
 		result
 			.Should()
-			.Be(file.Properties);
+			.Be(file.EditorState);
 	}
 
 	/// <summary>

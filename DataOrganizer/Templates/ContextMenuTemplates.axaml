@@ -381,7 +381,7 @@
 				Icon="{OnPlatform Default=MicrosoftWindows,
 				                  macOS=Apple,
 				                  Linux=Linux}"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityKind.Dataset}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static entityEnums:EntityKind.Dataset}}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).CloseOpenedFileCommand}"
@@ -410,7 +410,7 @@
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.CopyContent}"
 				Icon="ContentCopy"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<Separator />
 
@@ -449,21 +449,21 @@
 				</Button.Flyout>
 			</controls:FlyoutButton>
 
-			<Separator IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
+			<Separator IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).SetFavoriteCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Favorite}"
 				Icon="StarOutline"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<controls:FlyoutButton
 				Command="{Binding $parent[Window].((windows:EditorViewModel)DataContext).ShowHotkeysEditorCommand}"
 				CommandParameter="{Binding}"
 				Header="{x:Static prop:Strings.Hotkeys}"
 				Icon="KeyboardVariant"
-				IsVisible="{Binding EntityType, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
+				IsVisible="{Binding Kind, Mode=OneTime, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static entityEnums:EntityKind.File}}" />
 
 			<Separator />
 

@@ -632,7 +632,7 @@ internal class DataExchangeServiceTests
 			.CreateFolders(5)
 			.Concat<ExplorerItemBase>(TestData.CreateFiles(5))];
 
-		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = default);
+		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = default);
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -676,7 +676,7 @@ internal class DataExchangeServiceTests
 
 		entities
 			.Should()
-			.NotContain(x => x.CreatedDate == default || x.UpdatedDate == default);
+			.NotContain(x => x.CreatedAt == default || x.UpdatedAt == default);
 
 		entityLoader
 			.Received()

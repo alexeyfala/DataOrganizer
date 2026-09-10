@@ -180,12 +180,12 @@ public class FileChangeTracker : IFileChangeTracker
 							bytes = encrypted;
 						}
 
-						DateTime updatedDate = DateTime.Now;
+						DateTime updatedAt = DateTime.Now;
 
 						if (await _dbAccess.UpdateFilePropertiesAsync(parameters.File.Id,
 							[
 								x => x.SetProperty(x => x.Contents, bytes),
-								x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+								x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 							], checkToken).ConfigureAwait(false))
 						{
 							_logger.LogDebug(
@@ -195,7 +195,7 @@ public class FileChangeTracker : IFileChangeTracker
 
 							parameters
 								.File
-								.UpdatedDate = updatedDate;
+								.UpdatedAt = updatedAt;
 						}
 					}
 					finally

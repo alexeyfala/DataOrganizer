@@ -22,7 +22,7 @@ internal class EmbeddedFileEditorViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored properties (font size, word wrap).
+	/// <see cref="EmbeddedFileEditorViewModel.EditorLoaded" />: loads the file contents into the editor and applies the stored editor state (font size, word wrap).
 	/// </summary>
 	[AvaloniaTest]
 	public async Task EditorLoaded_Loads_Text_To_Editor()
@@ -46,7 +46,7 @@ internal class EmbeddedFileEditorViewModelTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(fileContents);
 
-			FileProperties properties = new()
+			FileEditorState state = new()
 			{
 				CaretPosition = default,
 				FontSize = fontSize,
@@ -57,14 +57,14 @@ internal class EmbeddedFileEditorViewModelTests
 			};
 
 			dbAccess
-				.GetFilePropertiesAsync(Arg.Any<Guid>())
-				.Returns(new SystemTextJsonSerializer().Serialize(properties));
+				.GetFileEditorStateAsync(Arg.Any<Guid>())
+				.Returns(new SystemTextJsonSerializer().Serialize(state));
 
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.Deserialize<FileProperties>(Arg.Any<string>())
-				.Returns(properties);
+				.Deserialize<FileEditorState>(Arg.Any<string>())
+				.Returns(state);
 
 			builder.RegisterInstance(serializer);
 

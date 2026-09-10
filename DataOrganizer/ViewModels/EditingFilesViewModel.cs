@@ -70,7 +70,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 			true,
 			nameof(FileDto.Id),
 			nameof(FileDto.Name),
-			nameof(FileDto.EntityType))}");
+			nameof(FileDto.Kind))}");
 
 		dto.IsEditing = false;
 
@@ -193,7 +193,7 @@ public sealed partial class EditingFilesViewModel : ObservableObject
 				true,
 				nameof(FileDto.Id),
 				nameof(FileDto.Name),
-				nameof(FileDto.EntityType))}");
+				nameof(FileDto.Kind))}");
 
 			return;
 		}

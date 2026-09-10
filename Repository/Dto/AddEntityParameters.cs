@@ -7,14 +7,14 @@ namespace Repository.Dto;
 public readonly struct AddEntityParameters
 {
 	#region Properties
-	/// <inheritdoc cref="ExplorerItemBase.EntityType" />
-	public required EntityKind EntityType { get; init; }
-
 	/// <inheritdoc cref="FileEntity.Contents" />
 	public byte[]? FileContents { get; init; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Index" />
 	public required int Index { get; init; }
+
+	/// <inheritdoc cref="ExplorerItemBase.Kind" />
+	public required EntityKind Kind { get; init; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Name" />
 	public required string Name { get; init; }

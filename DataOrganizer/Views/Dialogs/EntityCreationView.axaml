@@ -26,8 +26,8 @@
 
 			<StackPanel.Styles>
 				<Style Selector="materialIcons|MaterialIcon">
-					<Setter Property="Width" Value="{StaticResource EntityTypeIconSize}" />
-					<Setter Property="Height" Value="{StaticResource EntityTypeIconSize}" />
+					<Setter Property="Width" Value="{StaticResource EntityKindIconSize}" />
+					<Setter Property="Height" Value="{StaticResource EntityKindIconSize}" />
 					<Setter Property="Margin" Value="4.0,0.0" />
 				</Style>
 

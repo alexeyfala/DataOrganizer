@@ -24,7 +24,7 @@ namespace DataOrganizer.ViewModels.Windows;
 public sealed partial class ConsoleViewModel : ObservableDisposableBase
 {
 	#region Properties
-	/// <inheritdoc cref="FileProperties.FontSize" />
+	/// <inheritdoc cref="FileEditorState.FontSize" />
 	[ObservableProperty]
 	public partial double FontSize { get; set; } = 14.0;
 
@@ -39,7 +39,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	/// </summary>
 	public bool IsSaved { get; set; }
 
-	/// <inheritdoc cref="FileProperties.IsWordWrap" />
+	/// <inheritdoc cref="FileEditorState.IsWordWrap" />
 	[ObservableProperty]
 	public partial bool IsWordWrap { get; set; }
 

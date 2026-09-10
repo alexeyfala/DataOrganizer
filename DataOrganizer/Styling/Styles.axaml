@@ -102,9 +102,9 @@
 
 	<Style Selector="materialIcons|MaterialIcon.FolderIconStyle">
 		<Setter Property="Foreground" Value="{StaticResource FolderBrush}" />
-		<Setter Property="Height" Value="{StaticResource EntityTypeIconSize}" />
+		<Setter Property="Height" Value="{StaticResource EntityKindIconSize}" />
 		<Setter Property="Kind" Value="{StaticResource FolderIconKind}" />
-		<Setter Property="Width" Value="{StaticResource EntityTypeIconSize}" />
+		<Setter Property="Width" Value="{StaticResource EntityKindIconSize}" />
 	</Style>
 
 	<Style Selector="TextBlock.DtoNameTextBlockStyle">

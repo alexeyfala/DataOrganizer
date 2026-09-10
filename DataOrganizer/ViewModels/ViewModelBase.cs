@@ -93,7 +93,7 @@ public abstract partial class ViewModelBase :
 			true,
 			nameof(FileDto.Id),
 			nameof(FileDto.Name),
-			nameof(FileDto.EntityType))}");
+			nameof(FileDto.Kind))}");
 
 		_dispatcher.Post(() =>
 		{

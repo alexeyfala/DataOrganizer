@@ -14,10 +14,10 @@ internal class FileRepositoryTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="FileRepository.GetAllAsync" />: includes both contents and properties when both flags are set.
+	/// <see cref="FileRepository.GetAllAsync" />: includes both contents and editor state when both flags are set.
 	/// </summary>
 	[Test]
-	public async Task GetAllAsync_Contents_And_Properties_Includes_Both()
+	public async Task GetAllAsync_Contents_And_EditorState_Includes_Both()
 	{
 		// Arrange
 		byte[] contents = [1, 2, 3];
@@ -35,7 +35,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState);
 
 		// Assert
 		FileEntity file = result
@@ -47,13 +47,13 @@ internal class FileRepositoryTests
 			.Should()
 			.Equal(contents);
 
-		file.Properties
+		file.EditorState
 			.Should()
 			.Be("props");
 	}
 
 	/// <summary>
-	/// <see cref="FileRepository.GetAllAsync" />: includes contents but omits properties when only the contents flag is set.
+	/// <see cref="FileRepository.GetAllAsync" />: includes contents but omits the editor state when only the contents flag is set.
 	/// </summary>
 	[Test]
 	public async Task GetAllAsync_Contents_Includes_Contents_Only()
@@ -86,16 +86,16 @@ internal class FileRepositoryTests
 			.Should()
 			.Equal(contents);
 
-		file.Properties
+		file.EditorState
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileRepository.GetAllAsync" />: omits both contents and properties when no flags are set.
+	/// <see cref="FileRepository.GetAllAsync" />: omits both contents and editor state when no flags are set.
 	/// </summary>
 	[Test]
-	public async Task GetAllAsync_None_Excludes_Contents_And_Properties()
+	public async Task GetAllAsync_None_Excludes_Contents_And_EditorState()
 	{
 		// Arrange
 		using TestDatabase database = new();
@@ -127,16 +127,16 @@ internal class FileRepositoryTests
 			.Should()
 			.BeEmpty();
 
-		file.Properties
+		file.EditorState
 			.Should()
 			.BeNull();
 	}
 
 	/// <summary>
-	/// <see cref="FileRepository.GetAllAsync" />: includes properties but omits contents when only the properties flag is set.
+	/// <see cref="FileRepository.GetAllAsync" />: includes the editor state but omits contents when only the editor-state flag is set.
 	/// </summary>
 	[Test]
-	public async Task GetAllAsync_Properties_Includes_Properties_Only()
+	public async Task GetAllAsync_EditorState_Includes_EditorState_Only()
 	{
 		// Arrange
 		using TestDatabase database = new();
@@ -152,7 +152,7 @@ internal class FileRepositoryTests
 		FileRepository sut = new(database.Context);
 
 		// Act
-		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.Properties);
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.EditorState);
 
 		// Assert
 		FileEntity file = result
@@ -164,7 +164,7 @@ internal class FileRepositoryTests
 			.Should()
 			.BeEmpty();
 
-		file.Properties
+		file.EditorState
 			.Should()
 			.Be("props");
 	}
@@ -172,16 +172,16 @@ internal class FileRepositoryTests
 
 	#region Helpers
 	/// <summary>
-	/// Creates a file model with the given contents and properties.
+	/// Creates a file model with the given contents and editor state.
 	/// </summary>
-	private static FileEntity CreateFile(byte[] contents, string? properties) => new()
+	private static FileEntity CreateFile(byte[] contents, string? editorState) => new()
 	{
 		Id = Guid.NewGuid(),
 		Index = 0,
 		Name = "file",
-		EntityType = EntityKind.File,
+		Kind = EntityKind.File,
 		Contents = contents,
-		Properties = properties
+		EditorState = editorState
 	};
 	#endregion
 }

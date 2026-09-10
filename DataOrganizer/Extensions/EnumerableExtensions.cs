@@ -609,14 +609,14 @@ internal static class EnumerableExtensions
 	{
 		foreach (ExplorerItemDtoBase item in hierarchy)
 		{
-			if (item.EntityType == EntityKind.File || item.EntityType == EntityKind.Dataset)
+			if (item.Kind == EntityKind.File || item.Kind == EntityKind.Dataset)
 			{
 				files++;
 
 				continue;
 			}
 
-			if (item.EntityType == EntityKind.Folder)
+			if (item.Kind == EntityKind.Folder)
 			{
 				folders++;
 

@@ -413,7 +413,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 		DateTime now = DateTime.Now;
 
-		entities.ForEach(x => x.CreatedDate = x.UpdatedDate = now);
+		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = now);
 
 		FolderEntity[] folders = [.. entities.OfType<FolderEntity>()];
 
@@ -633,7 +633,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			.ConfigureAwait(false);
 
 		FileEntity[] dbFiles = await _dbAccess
-			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.Properties, token)
+			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
 			.ConfigureAwait(false);
 
 		return [.. dbFolders.Concat<ExplorerItemBase>(dbFiles)];

@@ -139,8 +139,8 @@ internal class FolderRepositoryTests
 	{
 		Id = id,
 		Index = 0,
+		Kind = EntityKind.Folder,
 		Name = "folder",
-		EntityType = EntityKind.Folder,
 		ParentId = parentId
 	};
 	#endregion

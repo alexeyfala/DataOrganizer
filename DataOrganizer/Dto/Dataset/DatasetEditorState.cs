@@ -1,6 +1,6 @@
 namespace DataOrganizer.Dto.Dataset;
 
-internal readonly struct DatasetProperties
+internal readonly struct DatasetEditorState
 {
 	#region Properties
 	/// <summary>

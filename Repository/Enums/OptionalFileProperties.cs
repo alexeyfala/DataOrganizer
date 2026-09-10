@@ -12,5 +12,5 @@ public enum OptionalFileProperties
 {
 	None = 0,
 	Contents = 1 << 0,
-	Properties = 1 << 1
+	EditorState = 1 << 1
 }

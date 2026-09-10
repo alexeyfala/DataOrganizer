@@ -281,7 +281,7 @@ public sealed class DialogService : IDialogService
 				return null;
 			}
 
-			EntityKind entityType = viewModel switch
+			EntityKind kind = viewModel switch
 			{
 				{ IsFolderSelected: true } => EntityKind.Folder,
 				{ IsFileSelected: true } => EntityKind.File,
@@ -289,7 +289,7 @@ public sealed class DialogService : IDialogService
 				_ => throw new NotImplementedException()
 			};
 
-			return new(viewModel.Name, entityType);
+			return new(viewModel.Name, kind);
 		}
 		finally
 		{

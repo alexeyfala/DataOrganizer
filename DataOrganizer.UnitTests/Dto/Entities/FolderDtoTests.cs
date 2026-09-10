@@ -355,9 +355,9 @@ internal class FolderDtoTests
 		Id = Guid.NewGuid(),
 		Index = 0,
 		Name = name,
-		CreatedDate = DateTime.UtcNow,
-		UpdatedDate = DateTime.UtcNow,
-		EntityType = EntityKind.File
+		CreatedAt = DateTime.UtcNow,
+		UpdatedAt = DateTime.UtcNow,
+		Kind = EntityKind.File
 	};
 
 	/// <summary>
@@ -370,9 +370,9 @@ internal class FolderDtoTests
 			Id = Guid.NewGuid(),
 			Index = 0,
 			Name = name,
-			CreatedDate = DateTime.UtcNow,
-			UpdatedDate = DateTime.UtcNow,
-			EntityType = EntityKind.Folder,
+			CreatedAt = DateTime.UtcNow,
+			UpdatedAt = DateTime.UtcNow,
+			Kind = EntityKind.Folder,
 			EncryptedDek = encryptedDek
 		};
 	#endregion

@@ -117,12 +117,12 @@ public static class TestData
 	/// </summary>
 	public static FileEntity CreateFile(in Guid id = default) => new()
 	{
-		CreatedDate = DateTime.Now,
-		EntityType = EntityKind.File,
+		CreatedAt = DateTime.Now,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
+		Kind = EntityKind.File,
 		Name = RandomString.Create(10),
-		UpdatedDate = DateTime.Now
+		UpdatedAt = DateTime.Now
 	};
 
 	/// <summary>
@@ -134,15 +134,15 @@ public static class TestData
 		in bool isExecuting = false,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
 		{
-			CreatedDate = DateTime.Now,
+			CreatedAt = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
-			EntityType = EntityKind.File,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
 			IsEditing = isEditing,
 			IsExecuting = isExecuting,
+			Kind = EntityKind.File,
 			Name = RandomString.Create(10),
-			UpdatedDate = DateTime.Now
+			UpdatedAt = DateTime.Now
 		};
 
 	/// <summary>
@@ -179,12 +179,12 @@ public static class TestData
 	/// </summary>
 	public static FolderEntity CreateFolder(in Guid id = default) => new()
 	{
-		CreatedDate = DateTime.Now,
-		EntityType = EntityKind.Folder,
+		CreatedAt = DateTime.Now,
 		Id = id == default ? Guid.NewGuid() : id,
 		Index = CreateRandomIntFrom10To100(),
+		Kind = EntityKind.Folder,
 		Name = RandomString.Create(10),
-		UpdatedDate = DateTime.Now
+		UpdatedAt = DateTime.Now
 	};
 
 	/// <summary>
@@ -194,13 +194,13 @@ public static class TestData
 		in Guid id = default,
 		EncryptionStatus encryptionStatus = EncryptionStatus.None) => new()
 		{
-			CreatedDate = DateTime.Now,
+			CreatedAt = DateTime.Now,
 			EncryptionStatus = encryptionStatus,
-			EntityType = EntityKind.Folder,
 			Id = id == default ? Guid.NewGuid() : id,
 			Index = CreateRandomIntFrom10To100(),
+			Kind = EntityKind.Folder,
 			Name = RandomString.Create(10),
-			UpdatedDate = DateTime.Now
+			UpdatedAt = DateTime.Now
 		};
 
 	/// <summary>

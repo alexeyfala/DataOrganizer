@@ -36,9 +36,9 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public Guid FileId { get; set; }
 
 	/// <summary>
-	/// Initial properties.
+	/// Editor state to start from.
 	/// </summary>
-	public string? InitialProperties { get; set; }
+	public string? InitialEditorState { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the initialization process revealed that the file contents were corrupted.
@@ -67,14 +67,14 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public Guid? KeeperId { get; set; }
 
 	/// <summary>
-	/// Callback to set object's properties.
+	/// Callback that reports the editor state.
 	/// </summary>
-	public Action<string>? SetPropertiesCallback { get; set; }
+	public Action<string>? SetEditorStateCallback { get; set; }
 
 	/// <summary>
-	/// Callback to set object's updated date.
+	/// Callback that reports when the object was changed.
 	/// </summary>
-	public Action<DateTime>? SetUpdatedDateCallback { get; set; }
+	public Action<DateTime>? SetUpdatedAtCallback { get; set; }
 	#endregion
 
 	#region Auto-Generated Commands
@@ -110,10 +110,10 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected readonly INotificationService _notification;
 
 	/// <summary>
-	/// Last properties persisted to the database.
-	/// Intended to skip persistence when properties match what is already stored.
+	/// The editor state last persisted to the database.
+	/// Intended to skip persistence when the state matches what is already stored.
 	/// </summary>
-	protected string? _lastSavedProperties;
+	protected string? _lastSavedEditorState;
 
 	/// <inheritdoc cref="Application" />
 	private readonly Application _app;
@@ -203,12 +203,12 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	protected virtual Task<bool> FlushAsync(CancellationToken token = default) => Task.FromResult(true);
 
 	/// <summary>
-	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedProperties" />.
+	/// <c>True</c> when <paramref name="current"/> is equal to <see cref="_lastSavedEditorState" />.
 	/// </summary>
-	protected bool IsLastPropertiesEqualTo(string current)
+	protected bool IsLastEditorStateEqualTo(string current)
 	{
 		return string.Equals(
-			_lastSavedProperties,
+			_lastSavedEditorState,
 			current,
 			StringComparison.Ordinal);
 	}
@@ -228,18 +228,18 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	}
 
 	/// <summary>
-	/// Saves <see cref="FileEntity.Properties" /> in the database.
+	/// Saves <see cref="FileEntity.EditorState" /> in the database.
 	/// </summary>
-	protected Task SavePropertiesAsync(
+	protected Task SaveEditorStateAsync(
 		[StringSyntax(StringSyntaxAttribute.Json)] string json,
 		CancellationToken token = default)
 	{
 		_logger.LogDebug(
-			$@"Saving properties of ""{FileId}"" in the database:{json}");
+			$@"Saving the editor state of ""{FileId}"" in the database:{json}");
 
 		return _dbAccess.UpdateFilePropertiesAsync(FileId,
 		[
-			x => x.SetProperty(x => x.Properties, json)
+			x => x.SetProperty(x => x.EditorState, json)
 		], token);
 	}
 

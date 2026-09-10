@@ -56,7 +56,7 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 
 		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
 			true,
-			nameof(ExplorerItemDtoBase.EntityType),
+			nameof(ExplorerItemDtoBase.Kind),
 			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
@@ -75,11 +75,11 @@ public sealed class EntityPropertyWriter : IEntityPropertyWriter
 
 		_logger.LogDebug($@"Update ""{propertyName}"" property in database is requested:{dto.GetPropertyValues(
 			true,
-			nameof(ExplorerItemDtoBase.EntityType),
+			nameof(ExplorerItemDtoBase.Kind),
 			nameof(ExplorerItemDtoBase.Name),
 			propertyName)}");
 
-		return dto.EntityType switch
+		return dto.Kind switch
 		{
 			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
 			[

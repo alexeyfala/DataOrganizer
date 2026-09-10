@@ -84,10 +84,10 @@
 
 			<materialIcons:MaterialIcon
 				Grid.Column="0"
-				Width="{StaticResource EntityTypeIconSize}"
-				Height="{StaticResource EntityTypeIconSize}"
+				Width="{StaticResource EntityKindIconSize}"
+				Height="{StaticResource EntityKindIconSize}"
 				Foreground="{StaticResource FileBrush}"
-				Kind="{Binding EntityType, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityTypeToIconKind}}" />
+				Kind="{Binding Kind, Mode=OneWay, Converter={x:Static converters:AppConverters.EntityKindToIconKind}}" />
 
 			<TextBlock
 				Grid.Column="1"

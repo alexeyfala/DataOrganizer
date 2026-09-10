@@ -375,7 +375,7 @@ internal class FileChangeTrackerTests
 	}
 
 	/// <summary>
-	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the file is updated and its UpdatedDate refreshed when contents change.
+	/// <see cref="FileChangeTracker.TrackChangesAsync" />: the file is updated and its UpdatedAt refreshed when contents change.
 	/// </summary>
 	[Test]
 	public async Task TrackChangesAsync_Updates_File_When_Contents_Changed()
@@ -447,7 +447,7 @@ internal class FileChangeTrackerTests
 			Arg.Any<Action<UpdateSettersBuilder<FileEntity>>[]>(),
 			Arg.Any<CancellationToken>());
 
-		parameters.File.UpdatedDate
+		parameters.File.UpdatedAt
 			.Should()
 			.BeOnOrAfter(before);
 	}

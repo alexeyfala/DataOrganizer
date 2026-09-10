@@ -437,7 +437,7 @@ public sealed class FolderProtection : IFolderProtection
 
 				notes.Add(new NoteUpdate(
 					item.Id,
-					item.EntityType,
+					item.Kind,
 					processed));
 			}
 		}

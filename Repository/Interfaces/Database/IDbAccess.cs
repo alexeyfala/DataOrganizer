@@ -115,9 +115,9 @@ public interface IDbAccess : IDisposable
 	Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns <see cref="FileEntity.Properties" />.
+	/// Returns <see cref="FileEntity.EditorState" />.
 	/// </summary>
-	Task<string?> GetFilePropertiesAsync(Guid id, CancellationToken token = default);
+	Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
 	/// Returns a sequense of <see cref="ValidatedContents" /> by file identifiers.

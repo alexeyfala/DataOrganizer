@@ -27,69 +27,69 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	{
 		bool includeContents = optionalProperties.HasFlag(OptionalFileProperties.Contents);
 
-		bool includeProperties = optionalProperties.HasFlag(OptionalFileProperties.Properties);
+		bool includeEditorState = optionalProperties.HasFlag(OptionalFileProperties.EditorState);
 
-		return (includeContents, includeProperties) switch
+		return (includeContents, includeEditorState) switch
 		{
 			(false, false) => FindAll().Select(x => new FileEntity
 			{
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
 			(true, false) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
 			(false, true) => FindAll().Select(x => new FileEntity
 			{
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				Properties = x.Properties, // ← Include.
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token),
 			(true, true) => FindAll().Select(x => new FileEntity
 			{
 				Contents = x.Contents, // ← Include.
-				CreatedDate = x.CreatedDate,
-				EntityType = x.EntityType,
+				CreatedAt = x.CreatedAt,
+				EditorState = x.EditorState, // ← Include.
 				Hotkeys = x.Hotkeys,
 				Id = x.Id,
 				Index = x.Index,
 				IsFavorite = x.IsFavorite,
 				IsSelected = x.IsSelected,
+				Kind = x.Kind,
 				Name = x.Name,
 				Note = x.Note,
 				ParentId = x.ParentId,
-				Properties = x.Properties, // ← Include.
-				UpdatedDate = x.UpdatedDate
+				UpdatedAt = x.UpdatedAt
 			}).ToArrayAsync(token)
 		};
 	}
@@ -111,10 +111,10 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
-	public Task<string?> GetPropertiesAsync(Guid id, CancellationToken token = default)
+	public Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default)
 	{
 		return FindBy(x => x.Id == id)
-			.Select(x => x.Properties)
+			.Select(x => x.EditorState)
 			.FirstOrDefaultAsync(token);
 	}
 

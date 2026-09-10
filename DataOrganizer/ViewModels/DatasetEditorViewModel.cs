@@ -109,7 +109,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 				await WaitItemsRepeaterRealizedAsync(container).ConfigureAwait(true);
 
-				await InitializePropertiesAsync(scrollViewer, container).ConfigureAwait(true);
+				await InitializeEditorStateAsync(scrollViewer, container).ConfigureAwait(true);
 
 				SetupScrollSubscription(scrollViewer);
 			}
@@ -656,24 +656,24 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			return;
 		}
 
-		DatasetProperties properties = new()
+		DatasetEditorState state = new()
 		{
 			TopRecordIndex = anchor.Index,
 			WithinRecordOffset = anchor.WithinRecordOffset
 		};
 
-		string json = _jsonSerializer.Serialize(properties, JsonDefaults.Options);
+		string json = _jsonSerializer.Serialize(state, JsonDefaults.Options);
 
-		SetPropertiesCallback?.Invoke(json);
+		SetEditorStateCallback?.Invoke(json);
 
-		if (IsReadOnly || IsLastPropertiesEqualTo(json))
+		if (IsReadOnly || IsLastEditorStateEqualTo(json))
 		{
 			return;
 		}
 
-		_lastSavedProperties = json;
+		_lastSavedEditorState = json;
 
-		_exceptionHandler.Watch(SavePropertiesAsync(json));
+		_exceptionHandler.Watch(SaveEditorStateAsync(json));
 	}
 	#endregion
 
@@ -1192,15 +1192,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Initializes <see cref="DatasetEditorViewModel" /> properties from database.
+	/// Restores the editor state from the database.
 	/// </summary>
-	private async Task InitializePropertiesAsync(
+	private async Task InitializeEditorStateAsync(
 		ScrollViewer scrollViewer,
 		ItemsRepeater container,
 		CancellationToken token = default)
 	{
-		string? value = InitialProperties ?? await _dbAccess
-			.GetFilePropertiesAsync(FileId, token)
+		string? value = InitialEditorState ?? await _dbAccess
+			.GetFileEditorStateAsync(FileId, token)
 			.ConfigureAwait(false);
 
 		if (value is null)
@@ -1210,9 +1210,9 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		try
 		{
-			DatasetProperties properties = _jsonSerializer.Deserialize<DatasetProperties>(value);
+			DatasetEditorState state = _jsonSerializer.Deserialize<DatasetEditorState>(value);
 
-			if (properties.TopRecordIndex < 0 || properties.TopRecordIndex >= Records.Count)
+			if (state.TopRecordIndex < 0 || state.TopRecordIndex >= Records.Count)
 			{
 				return;
 			}
@@ -1220,15 +1220,15 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			await SmoothScrollAsync(
 				scrollViewer,
 				container,
-				properties.TopRecordIndex,
+				state.TopRecordIndex,
 				Records.Count,
-				properties.WithinRecordOffset).ConfigureAwait(false);
+				state.WithinRecordOffset).ConfigureAwait(false);
 
 			// Just in case.
 #pragma warning disable CS8321 // Local function is declared but never used
 			void RestoreScroll()
 			{
-				Control? child = container.TryGetElement(properties.TopRecordIndex) ?? container.GetOrCreateElement(properties.TopRecordIndex);
+				Control? child = container.TryGetElement(state.TopRecordIndex) ?? container.GetOrCreateElement(state.TopRecordIndex);
 
 				if (child is null)
 				{
@@ -1241,7 +1241,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				{
 					return;
 				}
-				double targetViewportY = -properties.WithinRecordOffset;
+				double targetViewportY = -state.WithinRecordOffset;
 
 				double delta = pointInViewport.Y - targetViewportY;
 

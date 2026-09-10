@@ -11,7 +11,7 @@ namespace Entities.Models;
 /// </summary>
 [DebuggerDisplay(
 	$"{nameof(Id)} = {{{nameof(Id)}}}, " +
-	$"{nameof(EntityType)} = {{{nameof(EntityType)}}}, " +
+	$"{nameof(Kind)} = {{{nameof(Kind)}}}, " +
 	$"{nameof(Name)} = {{{nameof(Name)}}}")]
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
@@ -25,14 +25,11 @@ public abstract class ExplorerItemBase : EntityBase
 {
 	#region Properties
 	/// <summary>
-	/// Date of creation.
+	/// When the object was created.
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public DateTime CreatedDate { get; set; }
-
-	/// <inheritdoc cref="EntityKind" />
-	public EntityKind EntityType { get; init; }
+	public DateTime CreatedAt { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the object is selected in the list.
@@ -40,6 +37,9 @@ public abstract class ExplorerItemBase : EntityBase
 	[JsonIgnore]
 	[XmlIgnore]
 	public bool IsSelected { get; init; }
+
+	/// <inheritdoc cref="EntityKind" />
+	public EntityKind Kind { get; init; }
 
 	/// <summary>
 	/// Name.
@@ -64,11 +64,11 @@ public abstract class ExplorerItemBase : EntityBase
 	public Guid? ParentId { get; set; }
 
 	/// <summary>
-	/// Date of change.
+	/// When the object was last changed.
 	/// </summary>
 	[JsonIgnore]
 	[XmlIgnore]
-	public DateTime UpdatedDate { get; set; }
+	public DateTime UpdatedAt { get; set; }
 	#endregion
 
 	#region Data

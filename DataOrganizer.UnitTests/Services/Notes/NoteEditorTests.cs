@@ -207,14 +207,14 @@ internal class NoteEditorTests
 	/// </summary>
 
 	[Test]
-	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind entityType)
+	public async Task EditAsync_Saves_Note_Of_A_File([Values(EntityKind.File, EntityKind.Dataset)] EntityKind kind)
 	{
 		// Arrange
-		FileDto file = CreateFile(entityType);
+		FileDto file = CreateFile(kind);
 
 		byte[] encoded = TestData.CreateRandomBytes(10);
 
-		DateTime updatedDate = DateTime.Now.AddDays(1);
+		DateTime updatedAt = DateTime.Now.AddDays(1);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -244,7 +244,7 @@ internal class NoteEditorTests
 		bool result = await sut.EditAsync(
 			file,
 			RandomString.Create(20),
-			updatedDate);
+			updatedAt);
 
 		// Assert
 		result
@@ -255,9 +255,9 @@ internal class NoteEditorTests
 			.Should()
 			.BeSameAs(encoded);
 
-		file.UpdatedDate
+		file.UpdatedAt
 			.Should()
-			.Be(updatedDate);
+			.Be(updatedAt);
 
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
 			file.Id,
@@ -377,14 +377,14 @@ internal class NoteEditorTests
 	/// <summary>
 	/// Creates a file or a dataset.
 	/// </summary>
-	private static FileDto CreateFile(EntityKind entityType) => new()
+	private static FileDto CreateFile(EntityKind kind) => new()
 	{
-		CreatedDate = DateTime.Now,
-		EntityType = entityType,
+		CreatedAt = DateTime.Now,
 		Id = Guid.NewGuid(),
 		Index = 0,
+		Kind = kind,
 		Name = RandomString.Create(10),
-		UpdatedDate = DateTime.Now
+		UpdatedAt = DateTime.Now
 	};
 	#endregion
 }

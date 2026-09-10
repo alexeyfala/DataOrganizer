@@ -53,12 +53,12 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	/// <inheritdoc />
 	public async Task<ExplorerItemDtoBase?> AddAsync(
 		string name,
-		EntityKind entityType,
+		EntityKind kind,
 		FolderDto? parent,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		_logger.LogInformation($"Adding a {entityType switch
+		_logger.LogInformation($"Adding a {kind switch
 		{
 			EntityKind.Folder => "folder",
 			EntityKind.File => "file",
@@ -68,8 +68,8 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		AddEntityParameters parameters = new()
 		{
-			EntityType = entityType,
 			Index = parent is not null ? parent.Children.Count : hierarchy.Count,
+			Kind = kind,
 			Name = name,
 			ParentId = parent?.Id
 		};
@@ -91,7 +91,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			true,
 			nameof(ExplorerItemBase.Id),
 			nameof(ExplorerItemBase.Name),
-			nameof(ExplorerItemBase.EntityType),
+			nameof(ExplorerItemBase.Kind),
 			nameof(ExplorerItemBase.ParentId))}");
 
 		try
@@ -134,7 +134,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		bool result = dto.EntityType switch
+		bool result = dto.Kind switch
 		{
 			EntityKind.Folder => await _dbAccess.DeleteFolderAsync(dto.Id, token).ConfigureAwait(false),
 			_ => await _dbAccess.DeleteFileAsync(dto.Id, token).ConfigureAwait(false)
@@ -166,7 +166,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 	public async Task<bool> RenameAsync(
 		ExplorerItemDtoBase dto,
 		string newName,
-		DateTime updatedDate,
+		DateTime updatedAt,
 		CancellationToken token = default)
 	{
 		if (newName.Equals(dto.Name, StringComparison.Ordinal))
@@ -180,17 +180,17 @@ public sealed class HierarchyEditor : IHierarchyEditor
 			return false;
 		}
 
-		Task<bool> task = dto.EntityType switch
+		Task<bool> task = dto.Kind switch
 		{
 			EntityKind.Folder => _dbAccess.UpdateFolderPropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
 			EntityKind.File or EntityKind.Dataset => _dbAccess.UpdateFilePropertiesAsync(dto.Id,
 			[
 				x => x.SetProperty(x => x.Name, newName),
-				x => x.SetProperty(x => x.UpdatedDate, updatedDate)
+				x => x.SetProperty(x => x.UpdatedAt, updatedAt)
 			], token),
 			_ => throw new NotImplementedException()
 		};
@@ -214,7 +214,7 @@ public sealed class HierarchyEditor : IHierarchyEditor
 
 		dto.Name = newName;
 
-		dto.UpdatedDate = updatedDate;
+		dto.UpdatedAt = updatedAt;
 
 		return true;
 	}
