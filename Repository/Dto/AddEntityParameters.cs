@@ -4,6 +4,9 @@ using System;
 
 namespace Repository.Dto;
 
+/// <summary>
+/// The values a new file or folder is created with.
+/// </summary>
 public readonly struct AddEntityParameters
 {
 	#region Properties

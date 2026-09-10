@@ -11,12 +11,12 @@ public sealed class ValidatedContents
 {
 	#region Properties
 	/// <summary>
-	/// Contents.
+	/// The bytes of the file; empty when they could not be read.
 	/// </summary>
 	public byte[] Contents { get; init; } = [];
 
 	/// <summary>
-	/// Identifier.
+	/// Identifier of the file the contents belong to.
 	/// </summary>
 	public Guid Id { get; init; }
 

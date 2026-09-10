@@ -35,14 +35,14 @@ public interface IFileRepository
 	Task<byte[]?> GetContentsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns file IDs by parent IDs.
-	/// </summary>
-	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
-
-	/// <summary>
 	/// Returns the stored editor state of a file.
 	/// </summary>
 	Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default);
+
+	/// <summary>
+	/// Returns file IDs by parent IDs.
+	/// </summary>
+	Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default);
 
 	/// <summary>
 	/// Removes entity from the database by Id.

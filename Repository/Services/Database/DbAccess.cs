@@ -29,23 +29,23 @@ public sealed class DbAccess : IDbAccess
 {
 	#region Properties
 	/// <inheritdoc />
-	public bool IsWritable => Status is DbConnectionStatus.Connected;
+	public DbConnectionStatus ConnectionStatus { get; private set; } = DbConnectionStatus.Connected;
 
 	/// <inheritdoc />
-	public DbConnectionStatus Status { get; private set; } = DbConnectionStatus.Connected;
+	public bool IsWritable => ConnectionStatus is DbConnectionStatus.Connected;
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IExplorerItemRepository" />
-	private readonly IExplorerItemRepository _baseRepository;
-
 	/// <inheritdoc cref="IDbContextService" />
 	private readonly IDbContextService _dbContextService;
 
 	/// <inheritdoc cref="IDbMaintenance" />
 	private readonly IDbMaintenance _dbMaintenance;
 
-	/// <inheritdoc cref="IFolderRepository" />
+	/// <inheritdoc cref="IExplorerItemRepository" />
+	private readonly IExplorerItemRepository _explorerItemRepository;
+
+	/// <inheritdoc cref="IFileRepository" />
 	private readonly IFileRepository _fileRepository;
 
 	/// <inheritdoc cref="IFileSystem" />
@@ -73,18 +73,18 @@ public sealed class DbAccess : IDbAccess
 	public DbAccess(
 		IDbContextService dbContextService,
 		IDbMaintenance dbMaintenance,
-		IExplorerItemRepository baseRepository,
+		IExplorerItemRepository explorerItemRepository,
 		IFileRepository fileRepository,
 		IFileSystem fileSystem,
 		IFolderRepository folderRepository,
 		IHotkeysRepository hotkeysRepository,
 		ILogger logger)
 	{
-		_baseRepository = baseRepository;
-
 		_dbContextService = dbContextService;
 
 		_dbMaintenance = dbMaintenance;
+
+		_explorerItemRepository = explorerItemRepository;
 
 		_fileRepository = fileRepository;
 
@@ -303,9 +303,9 @@ public sealed class DbAccess : IDbAccess
 
 			BackupSqliteParameters parameters = new()
 			{
-				ClearDestPool = true,
+				ClearDestinationPool = true,
 				ClearSourcePool = false,
-				DestFilePath = backupFilePath,
+				DestinationFilePath = backupFilePath,
 				SourceFilePath = dbFilePath
 			};
 
@@ -441,7 +441,7 @@ public sealed class DbAccess : IDbAccess
 				status = await TryUpdateSchemaAsync(failure, token).ConfigureAwait(false);
 			}
 
-			Status = status;
+			ConnectionStatus = status;
 
 			if (status is not DbConnectionStatus.Connected)
 			{
@@ -458,9 +458,9 @@ public sealed class DbAccess : IDbAccess
 		{
 			_logger.LogException(ex, assertDebug: false);
 
-			Status = DbConnectionStatus.FileUnreadable;
+			ConnectionStatus = DbConnectionStatus.FileUnreadable;
 
-			return Status;
+			return ConnectionStatus;
 		}
 		finally
 		{
@@ -486,7 +486,7 @@ public sealed class DbAccess : IDbAccess
 				.WaitAsync(token)
 				.ConfigureAwait(false);
 
-			return await _baseRepository
+			return await _explorerItemRepository
 				.CountOfAsync(condition, token)
 				.ConfigureAwait(false);
 		}
@@ -662,6 +662,38 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async Task<bool> ExistsAsync(Guid id, CancellationToken token = default)
+	{
+		try
+		{
+			await _semaphore
+				.WaitAsync(token)
+				.ConfigureAwait(false);
+
+			return await _explorerItemRepository
+				.ExistsAsync(x => x.Id == id, token)
+				.ConfigureAwait(false);
+		}
+		catch (Exception ex)
+		{
+			_logger.LogException(ex);
+
+			return false;
+		}
+		finally
+		{
+			try
+			{
+				_semaphore.Release();
+			}
+			catch (ObjectDisposedException)
+			{
+				// Service was disposed concurrently — safe to ignore.
+			}
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<FileEntity[]> GetAllFilesAsync(
 		OptionalFileProperties optionalProperties,
 		CancellationToken token = default)
@@ -773,6 +805,17 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
+	public async IAsyncEnumerable<ValidatedContents> GetFileContentsRangeAsync(
+		IEnumerable<Guid> ids,
+		[EnumeratorCancellation] CancellationToken token = default)
+	{
+		await foreach (Guid id in ids.ToAsyncEnumerable())
+		{
+			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
+		}
+	}
+
+	/// <inheritdoc />
 	public async Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default)
 	{
 		try
@@ -805,50 +848,7 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public async IAsyncEnumerable<ValidatedContents> GetFilesContentsAsync(
-		IEnumerable<Guid> identifiers,
-		[EnumeratorCancellation] CancellationToken token = default)
-	{
-		await foreach (Guid id in identifiers.ToAsyncEnumerable())
-		{
-			yield return await GetFileContentsAsync(id, token).ConfigureAwait(false);
-		}
-	}
-
-	/// <inheritdoc />
-	public async Task<bool> ExistsAsync(Guid id, CancellationToken token = default)
-	{
-		try
-		{
-			await _semaphore
-				.WaitAsync(token)
-				.ConfigureAwait(false);
-
-			return await _baseRepository
-				.ExistsAsync(x => x.Id == id, token)
-				.ConfigureAwait(false);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogException(ex);
-
-			return false;
-		}
-		finally
-		{
-			try
-			{
-				_semaphore.Release();
-			}
-			catch (ObjectDisposedException)
-			{
-				// Service was disposed concurrently — safe to ignore.
-			}
-		}
-	}
-
-	/// <inheritdoc />
-	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false)
+	public bool IsValidSqliteDatabase(string dataSource, bool deepCheck = false)
 	{
 		try
 		{
@@ -864,7 +864,7 @@ public sealed class DbAccess : IDbAccess
 
 			using SqliteConnection connection = new(connectionString);
 
-			SqlitePragmas.Open(connection);
+			SqlitePragmas.OpenConnection(connection);
 
 			using SqliteCommand cmd = connection.CreateCommand();
 
@@ -913,9 +913,9 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public LoadedEntities LoadFromDb(string dataSource)
+	public LoadedEntities LoadEntities(string dataSource)
 	{
-		using SqliteDbContext context = GetSQliteDbContext(dataSource);
+		using SqliteDbContext context = CreateSqliteDbContext(dataSource);
 
 		FolderEntity[] dbFolders = [.. context
 			.Set<FolderEntity>()
@@ -957,9 +957,9 @@ public sealed class DbAccess : IDbAccess
 
 			BackupSqliteParameters parameters = new()
 			{
-				ClearDestPool = false,
+				ClearDestinationPool = false,
 				ClearSourcePool = true,
-				DestFilePath = GetDbFilePath(),
+				DestinationFilePath = GetDbFilePath(),
 				SourceFilePath = backupFilePath
 			};
 
@@ -1217,29 +1217,29 @@ public sealed class DbAccess : IDbAccess
 			DataSource = parameters.SourceFilePath
 		};
 
-		SqliteConnectionStringBuilder destBuilder = new()
+		SqliteConnectionStringBuilder destinationBuilder = new()
 		{
-			DataSource = parameters.DestFilePath
+			DataSource = parameters.DestinationFilePath
 		};
 
 		using SqliteConnection source = new(sourceBuilder.ToString());
 
-		using SqliteConnection dest = new(destBuilder.ToString());
+		using SqliteConnection destination = new(destinationBuilder.ToString());
 
-		SqlitePragmas.Open(source);
+		SqlitePragmas.OpenConnection(source);
 
-		SqlitePragmas.Open(dest);
+		SqlitePragmas.OpenConnection(destination);
 
-		source.BackupDatabase(dest);
+		source.BackupDatabase(destination);
 
 		if (parameters.ClearSourcePool)
 		{
 			SqliteConnection.ClearPool(source);
 		}
 
-		if (parameters.ClearDestPool)
+		if (parameters.ClearDestinationPool)
 		{
-			SqliteConnection.ClearPool(dest);
+			SqliteConnection.ClearPool(destination);
 		}
 	}
 
@@ -1256,7 +1256,7 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Creates and returns <see cref="SqliteDbContext" />.
 	/// </summary>
-	private static SqliteDbContext GetSQliteDbContext(string dataSource)
+	private static SqliteDbContext CreateSqliteDbContext(string dataSource)
 	{
 		SqliteConnectionStringBuilder builder = new()
 		{
@@ -1351,7 +1351,7 @@ public sealed class DbAccess : IDbAccess
 	/// </summary>
 	private async Task<DbConnectionStatus> GetSchemaStatusAsync(CancellationToken token)
 	{
-		if (!IsValidSQLiteDatabase(_dbContextService.GetDbFilePath())
+		if (!IsValidSqliteDatabase(_dbContextService.GetDbFilePath())
 			|| !await _dbContextService
 				.CanConnectAsync(token)
 				.ConfigureAwait(false))
@@ -1389,7 +1389,7 @@ public sealed class DbAccess : IDbAccess
 			return false;
 		}
 
-		_logger.LogError($"{caller} is refused: the database is {Status}.", assertDebug: false);
+		_logger.LogError($"{caller} is refused: the database is {ConnectionStatus}.", assertDebug: false);
 
 		return true;
 	}

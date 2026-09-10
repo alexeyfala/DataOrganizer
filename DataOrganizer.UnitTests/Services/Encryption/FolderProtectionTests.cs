@@ -238,7 +238,7 @@ internal class FolderProtectionTests
 				.Returns(decryptedNote);
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -324,7 +324,7 @@ internal class FolderProtectionTests
 		// Assert
 		dbAccess
 			.DidNotReceive()
-			.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>());
+			.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>());
 	}
 
 
@@ -364,7 +364,7 @@ internal class FolderProtectionTests
 				.Returns([.. TestData.CreateContents(files.Length, isValid: true)]);
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -429,7 +429,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -491,7 +491,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -545,7 +545,7 @@ internal class FolderProtectionTests
 				.Returns([.. TestData.CreateContents(files.Length, isValid: false)]);
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			builder.RegisterInstance(encryption);
@@ -606,7 +606,7 @@ internal class FolderProtectionTests
 			RegisterUnlocker(builder, SecretFactory.CreateRandomKey(32));
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(loaded.ToAsyncEnumerable());
 
 			builder.RegisterInstance(dbAccess);
@@ -675,7 +675,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -751,7 +751,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -855,7 +855,7 @@ internal class FolderProtectionTests
 				.Throws(new CryptographicException());
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			builder.RegisterInstance(encryption);
@@ -907,7 +907,7 @@ internal class FolderProtectionTests
 				.ReturnsForAnyArgs(SecretFactory.CreateRandomSecret());
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			IEncryptionService encryption = Substitute.For<IEncryptionService>();
@@ -991,7 +991,7 @@ internal class FolderProtectionTests
 				.Returns(encryptedNote);
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -1078,7 +1078,7 @@ internal class FolderProtectionTests
 				.Returns([]);
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(TestData.CreateContents(files.Length, isValid: true).ToAsyncEnumerable());
 
 			dbAccess
@@ -1148,7 +1148,7 @@ internal class FolderProtectionTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.GetFilesContentsAsync(Arg.Any<IEnumerable<Guid>>())
+				.GetFileContentsRangeAsync(Arg.Any<IEnumerable<Guid>>())
 				.Returns(loaded.ToAsyncEnumerable());
 
 			dbAccess

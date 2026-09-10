@@ -18,14 +18,14 @@ public interface IDbAccess : IDisposable
 {
 	#region Properties
 	/// <summary>
+	/// The outcome of the last <see cref="ConnectAsync" />.
+	/// </summary>
+	DbConnectionStatus ConnectionStatus { get; }
+
+	/// <summary>
 	/// <c>True</c> while the database accepts changes.
 	/// </summary>
 	bool IsWritable { get; }
-
-	/// <summary>
-	/// The outcome of the last <see cref="ConnectAsync" />.
-	/// </summary>
-	DbConnectionStatus Status { get; }
 	#endregion
 
 	#region Methods
@@ -98,6 +98,11 @@ public interface IDbAccess : IDisposable
 	/// </summary>
 	Task<bool> DeleteHotkeysAsync(Guid fileId, CancellationToken token = default);
 
+	/// <summary>
+	/// <c>True</c> when an object with the specified ID exists in the database.
+	/// </summary>
+	Task<bool> ExistsAsync(Guid id, CancellationToken token = default);
+
 	/// <inheritdoc cref="IFileRepository.GetAllAsync" />
 	Task<FileEntity[]> GetAllFilesAsync(
 		OptionalFileProperties optionalProperties,
@@ -115,31 +120,26 @@ public interface IDbAccess : IDisposable
 	Task<ValidatedContents> GetFileContentsAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
+	/// Returns a sequence of <see cref="ValidatedContents" /> by file identifiers.
+	/// </summary>
+	IAsyncEnumerable<ValidatedContents> GetFileContentsRangeAsync(
+		IEnumerable<Guid> ids,
+		CancellationToken token = default);
+
+	/// <summary>
 	/// Returns <see cref="FileEntity.EditorState" />.
 	/// </summary>
 	Task<string?> GetFileEditorStateAsync(Guid id, CancellationToken token = default);
 
 	/// <summary>
-	/// Returns a sequense of <see cref="ValidatedContents" /> by file identifiers.
-	/// </summary>
-	IAsyncEnumerable<ValidatedContents> GetFilesContentsAsync(
-		IEnumerable<Guid> identifiers,
-		CancellationToken token = default);
-
-	/// <summary>
-	/// <c>True</c> when an object with the specified ID exists in the database.
-	/// </summary>
-	Task<bool> ExistsAsync(Guid id, CancellationToken token = default);
-
-	/// <summary>
 	/// <c>True</c> when a SQLite database is valid.
 	/// </summary>
-	public bool IsValidSQLiteDatabase(string dataSource, bool deepCheck = false);
+	public bool IsValidSqliteDatabase(string dataSource, bool deepCheck = false);
 
 	/// <summary>
 	/// Loads all entities from the specified database.
 	/// </summary>
-	LoadedEntities LoadFromDb(string dataSource);
+	LoadedEntities LoadEntities(string dataSource);
 
 	/// <summary>
 	/// Restores database from backup.

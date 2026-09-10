@@ -103,19 +103,19 @@ public sealed class FileRepository : RepositoryBase<FileEntity>, IFileRepository
 	}
 
 	/// <inheritdoc />
-	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
-	{
-		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
-			.Select(x => x.Id)
-			.ToArrayAsync(token);
-	}
-
-	/// <inheritdoc />
 	public Task<string?> GetEditorStateAsync(Guid id, CancellationToken token = default)
 	{
 		return FindBy(x => x.Id == id)
 			.Select(x => x.EditorState)
 			.FirstOrDefaultAsync(token);
+	}
+
+	/// <inheritdoc />
+	public Task<Guid[]> GetFileIdsAsync(Guid[] parentIds, CancellationToken token = default)
+	{
+		return FindBy(x => x.ParentId.HasValue && parentIds.Contains(x.ParentId.Value))
+			.Select(x => x.Id)
+			.ToArrayAsync(token);
 	}
 
 	/// <inheritdoc />

@@ -306,7 +306,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case KnownFileExtensions.Sqlite:
-					if (!_dbAccess.IsValidSQLiteDatabase(filePath) || !await ImportFromSQLiteAsync(
+					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSQLiteAsync(
 						filePath,
 						variant,
 						objects,
@@ -369,7 +369,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
-		LoadedEntities result = _dbAccess.LoadFromDb(filePath);
+		LoadedEntities result = _dbAccess.LoadEntities(filePath);
 
 		RegenerateId(result.Folders, result.Files);
 
@@ -600,9 +600,9 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		BackupSqliteParameters parameters = new()
 		{
-			ClearDestPool = true,
+			ClearDestinationPool = true,
 			ClearSourcePool = false,
-			DestFilePath = filePath,
+			DestinationFilePath = filePath,
 			SourceFilePath = _dbAccess.GetDbFilePath()
 		};
 

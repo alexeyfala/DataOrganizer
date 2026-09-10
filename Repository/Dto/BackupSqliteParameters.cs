@@ -1,15 +1,15 @@
 namespace Repository.Dto;
 
 /// <summary>
-/// Parameters for SQlite database backup.
+/// Parameters for a SQLite database backup.
 /// </summary>
 public readonly struct BackupSqliteParameters
 {
 	#region Properties
 	/// <summary>
-	/// <c>True</c> when the connection pool for the database at <see cref="DestFilePath" /> should be cleared.
+	/// <c>True</c> when the connection pool for the database at <see cref="DestinationFilePath" /> should be cleared.
 	/// </summary>
-	public required bool ClearDestPool { get; init; }
+	public required bool ClearDestinationPool { get; init; }
 
 	/// <summary>
 	/// <c>True</c> when the connection pool for the database at <see cref="SourceFilePath" /> should be cleared.
@@ -19,7 +19,7 @@ public readonly struct BackupSqliteParameters
 	/// <summary>
 	/// Absolute path to the destination file.
 	/// </summary>
-	public required string DestFilePath { get; init; }
+	public required string DestinationFilePath { get; init; }
 
 	/// <summary>
 	/// Absolute path to the source file.

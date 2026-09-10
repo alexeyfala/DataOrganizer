@@ -19,9 +19,9 @@ public readonly record struct KeyStroke
 
 	#region Methods
 	/// <summary>
-	/// Converts a key code to its string representation.
+	/// The name of the key without the <c>Vc</c> prefix the library writes.
 	/// </summary>
-	public string ConvertToKey()
+	public string GetKeyName()
 	{
 		string value = Code.ToString();
 

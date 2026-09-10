@@ -375,7 +375,7 @@ internal static class EnumerableExtensions
 
 		for (int i = 0; i < hotKeys.Length; i++)
 		{
-			builder.Append(hotKeys[i].ConvertToKey());
+			builder.Append(hotKeys[i].GetKeyName());
 
 			if (i == hotKeys.Length - 1)
 			{

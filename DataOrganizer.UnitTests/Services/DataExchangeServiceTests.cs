@@ -48,7 +48,7 @@ internal class DataExchangeServiceTests
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
-				.LoadFromDb(Arg.Any<string>())
+				.LoadEntities(Arg.Any<string>())
 				.Returns(new LoadedEntities
 				{
 					Files = [.. TestData.CreateFiles(5)],
@@ -410,7 +410,7 @@ internal class DataExchangeServiceTests
 				.Returns(true);
 
 			dbAccess
-				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.IsValidSqliteDatabase(Arg.Any<string>())
 				.Returns(true);
 
 			dbAccess
@@ -536,7 +536,7 @@ internal class DataExchangeServiceTests
 				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
-				.IsValidSQLiteDatabase(Arg.Any<string>())
+				.IsValidSqliteDatabase(Arg.Any<string>())
 				.Returns(true);
 
 			dbAccess

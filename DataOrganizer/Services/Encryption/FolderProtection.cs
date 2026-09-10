@@ -184,7 +184,7 @@ public sealed class FolderProtection : IFolderProtection
 			using ProgressScope _ = _messenger.ShowProgress();
 
 			ValidatedContents[] contents = await _dbAccess
-				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 
@@ -282,7 +282,7 @@ public sealed class FolderProtection : IFolderProtection
 			using ProgressScope _ = _messenger.ShowProgress();
 
 			ValidatedContents[] contents = await _dbAccess
-				.GetFilesContentsAsync(files.Select(x => x.Id), token)
+				.GetFileContentsRangeAsync(files.Select(x => x.Id), token)
 				.ToArrayAsync(token)
 				.ConfigureAwait(false);
 

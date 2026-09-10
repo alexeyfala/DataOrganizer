@@ -139,7 +139,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <summary>
-	/// Searches for all <see cref="T" /> entities in the database.
+	/// Searches for all <typeparamref name="T" /> entities in the database.
 	/// </summary>
 	protected IQueryable<T> FindAll(bool trackChanges = false)
 	{
@@ -149,7 +149,7 @@ public abstract class RepositoryBase<T> where T : class
 	}
 
 	/// <summary>
-	/// Searches for an entity <see cref="T" /> in the database according to a specific condition.
+	/// Searches for a <typeparamref name="T" /> entity in the database according to a specific condition.
 	/// </summary>
 	protected IQueryable<T> FindBy(Expression<Func<T, bool>> condition, bool trackChanges = false)
 	{

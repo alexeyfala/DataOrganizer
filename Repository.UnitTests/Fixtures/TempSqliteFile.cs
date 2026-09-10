@@ -96,7 +96,7 @@ internal sealed class TempSqliteFile : IDisposable
 	{
 		SqliteConnection connection = new(ConnectionString);
 
-		SqlitePragmas.Open(connection);
+		SqlitePragmas.OpenConnection(connection);
 
 		return connection;
 	}

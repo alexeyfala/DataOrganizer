@@ -66,7 +66,7 @@ public sealed class DbMaintenance : IDbMaintenance
 
 		try
 		{
-			if (await ReadAsync(
+			if (await ReadNumberAsync(
 				connection,
 				"PRAGMA user_version;",
 				token).ConfigureAwait(false) >= SecureDeleteVersion)
@@ -74,7 +74,7 @@ public sealed class DbMaintenance : IDbMaintenance
 				return;
 			}
 
-			long freePages = await ReadAsync(
+			long freePages = await ReadNumberAsync(
 				connection,
 				"PRAGMA freelist_count;",
 				token).ConfigureAwait(false);
@@ -149,7 +149,7 @@ public sealed class DbMaintenance : IDbMaintenance
 	/// <summary>
 	/// Reads the single number a pragma reports.
 	/// </summary>
-	private static async Task<long> ReadAsync(DbConnection connection, string sql, CancellationToken token)
+	private static async Task<long> ReadNumberAsync(DbConnection connection, string sql, CancellationToken token)
 	{
 		await using DbCommand command = connection.CreateCommand();
 

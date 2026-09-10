@@ -45,7 +45,7 @@ public static class SqlitePragmas
 	/// <summary>
 	/// Opens the connection and applies the pragmas to it.
 	/// </summary>
-	public static void Open(SqliteConnection connection)
+	public static void OpenConnection(SqliteConnection connection)
 	{
 		connection.Open();
 

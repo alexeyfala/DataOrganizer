@@ -1068,10 +1068,10 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetFilesContentsAsync" />: yields valid contents for each requested identifier.
+	/// <see cref="DbAccess.GetFileContentsRangeAsync" />: yields valid contents for each requested identifier.
 	/// </summary>
 	[Test]
-	public async Task GetFilesContentsAsync_Yields_Pair_For_Each_Identifier()
+	public async Task GetFileContentsRangeAsync_Yields_Pair_For_Each_Identifier()
 	{
 		// Arrange
 		FileEntity[] files = [.. TestData.CreateFiles(3)];
@@ -1095,7 +1095,7 @@ internal class DbAccessTests
 		// Act
 		List<ValidatedContents> results = [];
 
-		await foreach (ValidatedContents contents in sut.GetFilesContentsAsync(files.Select(x => x.Id)))
+		await foreach (ValidatedContents contents in sut.GetFileContentsRangeAsync(files.Select(x => x.Id)))
 		{
 			results.Add(contents);
 		}

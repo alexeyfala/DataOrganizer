@@ -77,10 +77,10 @@ internal class SqlitePragmasTests
 	}
 
 	/// <summary>
-	/// <see cref="SqlitePragmas.Open" />: the contents of a deleted row do not stay in the database file.
+	/// <see cref="SqlitePragmas.OpenConnection" />: the contents of a deleted row do not stay in the database file.
 	/// </summary>
 	[Test]
-	public void Open_Leaves_No_Trace_Of_A_Deleted_Row()
+	public void OpenConnection_Leaves_No_Trace_Of_A_Deleted_Row()
 	{
 		// Arrange
 		using TempSqliteFile file = new();
@@ -117,16 +117,16 @@ internal class SqlitePragmasTests
 	}
 
 	/// <summary>
-	/// <see cref="SqlitePragmas.Open" />: opens the connection with the pragmas already in place.
+	/// <see cref="SqlitePragmas.OpenConnection" />: opens the connection with the pragmas already in place.
 	/// </summary>
 	[Test]
-	public void Open_Opens_The_Connection_And_Sets_The_Pragmas()
+	public void OpenConnection_Opens_The_Connection_And_Sets_The_Pragmas()
 	{
 		// Arrange
 		using SqliteConnection connection = new(InMemoryDataSource);
 
 		// Act
-		SqlitePragmas.Open(connection);
+		SqlitePragmas.OpenConnection(connection);
 
 		// Assert
 		connection
