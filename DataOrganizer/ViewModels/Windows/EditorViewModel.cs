@@ -85,7 +85,7 @@ public partial class EditorViewModel :
 	public partial bool IsLeftDrawerOpened { get; set; }
 
 	/// <summary>
-	/// Read-only mode.
+	/// <c>True</c> when the contents cannot be edited.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsReadOnly { get; set; }
@@ -113,7 +113,7 @@ public partial class EditorViewModel :
 	public partial ExplorerItemDtoBase? SelectedObject { get; set; }
 
 	/// <summary>
-	/// Window width.
+	/// The current width of the window.
 	/// </summary>
 	[ObservableProperty]
 	public partial double ViewWidth { get; set; }
@@ -1219,7 +1219,7 @@ public partial class EditorViewModel :
 	}
 
 	/// <summary>
-	/// Performs initialization.
+	/// Restores the window placement and the copy history from the stored settings.
 	/// </summary>
 	public void Initialize(
 		Window window,

@@ -44,7 +44,7 @@
 			Classes="primary"
 			Command="{Binding NoButtonPressedCommand}"
 			Content="{x:Static prop:Strings.No}"
-			IsCancel="{Binding NoIsCancel, Mode=OneWay}"
+			IsCancel="{Binding NoButtonHandlesEscape, Mode=OneWay}"
 			IsVisible="{Binding IsNoButtonVisible, Mode=OneWay}" />
 
 		<Button
@@ -53,7 +53,7 @@
 			Classes="primary"
 			Command="{Binding CancelButtonPressedCommand}"
 			Content="{x:Static prop:Strings.Cancel}"
-			IsCancel="{Binding CancelIsCancel, Mode=OneWay}"
+			IsCancel="{Binding CancelButtonHandlesEscape, Mode=OneWay}"
 			IsVisible="{Binding IsCancelButtonVisible, Mode=OneWay}" />
 	</Grid>
 </UserControl>

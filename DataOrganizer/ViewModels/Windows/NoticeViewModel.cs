@@ -30,13 +30,13 @@ internal sealed partial class NoticeViewModel : ObservableObject
 	public partial bool IsTopmost { get; set; }
 
 	/// <summary>
-	/// Message.
+	/// The body text of the notice.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Message { get; set; }
 
 	/// <summary>
-	/// Title.
+	/// The heading of the notice.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Title { get; set; }

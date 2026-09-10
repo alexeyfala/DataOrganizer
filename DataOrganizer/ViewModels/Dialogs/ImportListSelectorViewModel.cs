@@ -22,13 +22,13 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	public partial bool AddToList { get; set; }
 
 	/// <summary>
-	/// Header.
+	/// Text shown above the import options.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Header { get; set; }
 
 	/// <summary>
-	/// Replace the list.
+	/// <c>True</c> when the imported entries replace the current list.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool Replace { get; set; } = true;
@@ -36,7 +36,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Apply.
+	/// Closes the dialog with the selected import mode.
 	/// </summary>
 	[RelayCommand]
 	private Task Apply()
@@ -55,7 +55,7 @@ internal sealed partial class ImportListSelectorViewModel : AsyncResultViewModel
 	}
 
 	/// <summary>
-	/// Cancel.
+	/// Closes the dialog without importing.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(ImportMode.None);

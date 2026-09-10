@@ -35,7 +35,7 @@ internal class YesNoCancelBoxViewModelTests
 					.Should()
 					.BeTrue();
 
-				sut.NoIsCancel
+				sut.NoButtonHandlesEscape
 					.Should()
 					.BeTrue();
 				break;
@@ -45,7 +45,7 @@ internal class YesNoCancelBoxViewModelTests
 					.Should()
 					.BeTrue();
 
-				sut.CancelIsCancel
+				sut.CancelButtonHandlesEscape
 					.Should()
 					.BeTrue();
 				break;
@@ -59,7 +59,7 @@ internal class YesNoCancelBoxViewModelTests
 					.Should()
 					.BeTrue();
 
-				sut.CancelIsCancel
+				sut.CancelButtonHandlesEscape
 					.Should()
 					.BeTrue();
 				break;

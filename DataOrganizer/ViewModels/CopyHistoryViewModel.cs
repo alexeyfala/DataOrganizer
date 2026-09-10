@@ -149,7 +149,7 @@ public sealed partial class CopyHistoryViewModel : FileListViewModelBase
 	public IEnumerable<Guid> GetItemIds() => _filter.SelectFromSource(x => x.Id);
 
 	/// <summary>
-	/// Performs initialization.
+	/// Fills the history with the given files and selects one of them.
 	/// </summary>
 	public void Initialize(IEnumerable<FileDto> items, Guid selectedId)
 	{

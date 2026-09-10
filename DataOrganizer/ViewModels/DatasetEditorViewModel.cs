@@ -44,7 +44,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 {
 	#region Properties
 	/// <summary>
-	/// Records.
+	/// The records of the dataset being edited.
 	/// </summary>
 	public ObservableCollection<DatasetRecordBase> Records { get; } = [];
 	#endregion

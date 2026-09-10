@@ -282,7 +282,7 @@ public sealed partial class SelectedFavoritesViewModel : FileListViewModelBase, 
 
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Fills the categories and the favorites from the stored settings.
 	/// </summary>
 	public void Initialize(
 		double navigationColumnWidth,

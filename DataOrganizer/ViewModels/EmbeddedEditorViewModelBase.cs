@@ -31,7 +31,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 {
 	#region Properties
 	/// <summary>
-	/// File identifier.
+	/// The identifier of the file being edited.
 	/// </summary>
 	public Guid FileId { get; set; }
 
@@ -56,7 +56,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	public bool IsInitialized { get; protected set; }
 
 	/// <summary>
-	/// Read-only mode.
+	/// <c>True</c> when the contents cannot be edited.
 	/// </summary>
 	[ObservableProperty]
 	public partial bool IsReadOnly { get; set; }
@@ -158,7 +158,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Takes the read-only mode over from the editor window.
 	/// </summary>
 	public void Initialize()
 	{

@@ -72,7 +72,7 @@ public abstract partial class ViewModelBase :
 	public bool IsShutdown { get; protected set; } = true;
 
 	/// <summary>
-	/// Opened in editor files.
+	/// The files currently open in the editor.
 	/// </summary>
 	public List<FileDto> OpenedInEditorFiles { get; } = [];
 	#endregion
@@ -306,7 +306,7 @@ public abstract partial class ViewModelBase :
 	}
 
 	/// <summary>
-	/// Closes editing file.
+	/// Marks the file as no longer being edited.
 	/// </summary>
 	protected virtual void CloseEditingFile(FileDto file) => file.IsEditing = false;
 

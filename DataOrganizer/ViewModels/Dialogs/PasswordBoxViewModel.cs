@@ -30,7 +30,7 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 	public partial string? Description { get; set; }
 
 	/// <summary>
-	/// Dialog header.
+	/// Text shown above the password field.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Header { get; set; }
@@ -79,13 +79,13 @@ public sealed partial class PasswordBoxViewModel : BooleanAsyncResultViewModel
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Apply.
+	/// Closes the dialog and accepts the password.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanApply))]
 	private Task Apply() => SetResultAsync(true);
 
 	/// <summary>
-	/// Cancel.
+	/// Closes the dialog without a password.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);

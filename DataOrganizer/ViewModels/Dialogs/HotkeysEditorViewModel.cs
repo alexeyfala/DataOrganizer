@@ -56,7 +56,7 @@ public sealed partial class HotkeysEditorViewModel :
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Clears <see cref=Buffer"" />.
+	/// Clears <see cref="Buffer" />.
 	/// </summary>
 	[RelayCommand]
 	internal void Clear() => Buffer.Clear();

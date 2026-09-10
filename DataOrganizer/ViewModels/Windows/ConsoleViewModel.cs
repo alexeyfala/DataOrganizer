@@ -127,7 +127,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 
 	#region Data
 	/// <summary>
-	/// First line position.
+	/// The caret position at the first line.
 	/// </summary>
 	private static readonly TextViewPosition _firstLinePosition = new();
 
@@ -144,7 +144,7 @@ public sealed partial class ConsoleViewModel : ObservableDisposableBase
 	private readonly Lock _mutex = new();
 
 	/// <summary>
-	/// Record buffer.
+	/// Log records waiting to be written into the editor.
 	/// </summary>
 	private readonly List<string> _recordsBuffer = [];
 

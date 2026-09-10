@@ -286,7 +286,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	}
 
 	/// <summary>
-	/// Performs initialization.
+	/// Restores the window placement, the favorites and the copy history from the stored settings.
 	/// </summary>
 	public void Initialize(
 		Window window,
@@ -495,7 +495,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	}
 
 	/// <summary>
-	/// Saves in <see cref="FavoritesSettings" /> values.
+	/// Stores the current state of the favorites view in <see cref="FavoritesSettings" />.
 	/// </summary>
 	private void SaveFavorites()
 	{
@@ -540,7 +540,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 	}
 
 	/// <summary>
-	/// Updates commands.
+	/// Re-evaluates the commands that switch the popup content.
 	/// </summary>
 	private void UpdateCommands()
 	{

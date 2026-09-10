@@ -45,7 +45,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Color sample.
+	/// A brush filled with the colour parsed from the text.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public Brush? ColorSampleBrush
@@ -133,7 +133,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Note.
+	/// The note attached to the record.
 	/// </summary>
 	public string? Note
 	{
@@ -149,7 +149,7 @@ internal sealed partial class DatasetFieldView : UserControl, IHighlightable
 	}
 
 	/// <summary>
-	/// Text.
+	/// The value shown in the field.
 	/// </summary>
 	public string? Text
 	{

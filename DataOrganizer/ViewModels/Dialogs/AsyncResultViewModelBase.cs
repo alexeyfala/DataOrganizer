@@ -69,7 +69,7 @@ public abstract class AsyncResultViewModelBase<TResult> : ObservableObject
 	}
 
 	/// <summary>
-	/// Returns a result.
+	/// Awaits the answer, falling back to <paramref name="defaultResult" /> when the dialog closes without one.
 	/// </summary>
 	protected Task<TResult> GetResultAsync(TResult defaultResult, in CancellationToken token = default)
 	{

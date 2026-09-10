@@ -50,7 +50,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial bool IsValueMasked { get; set; }
 
 	/// <summary>
-	/// Key.
+	/// The key being entered.
 	/// </summary>
 	[ObservableProperty]
 	[NotifyCanExecuteChangedFor(nameof(ConfirmCommand))]
@@ -64,7 +64,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 	public partial string? KeyHint { get; set; }
 
 	/// <summary>
-	/// Value.
+	/// The value being entered.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Value { get; set; }
@@ -78,13 +78,13 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Cancel.
+	/// Closes the dialog and discards the input.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
 
 	/// <summary>
-	/// Handles default button pressed.
+	/// Closes the dialog and keeps the input.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanConfirm))]
 	private Task Confirm() => SetResultAsync(true);
@@ -100,7 +100,7 @@ public sealed partial class KeyValueInputViewModel : BooleanAsyncResultViewModel
 
 	#region Methods
 	/// <summary>
-	/// Performs initialization.
+	/// Fills the dialog from the given parameters.
 	/// </summary>
 	public void Initialize(KeyValueInputParameters parameters)
 	{

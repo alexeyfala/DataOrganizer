@@ -55,13 +55,13 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Cancel.
+	/// Closes the dialog without creating anything.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
 
 	/// <summary>
-	/// Save.
+	/// Closes the dialog and confirms the creation.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanSave))]
 	private Task Save() => SetResultAsync(true);

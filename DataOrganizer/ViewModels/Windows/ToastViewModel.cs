@@ -9,13 +9,13 @@ internal sealed partial class ToastViewModel : ObservableObject
 {
 	#region Properties
 	/// <summary>
-	/// Message.
+	/// The body text of the toast.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Message { get; set; }
 
 	/// <summary>
-	/// Title.
+	/// The heading of the toast.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Title { get; set; }

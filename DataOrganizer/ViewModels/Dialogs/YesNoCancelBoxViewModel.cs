@@ -1,5 +1,4 @@
 using Avalonia;
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DataOrganizer.Enums.Dialogs;
@@ -18,10 +17,10 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 {
 	#region Properties
 	/// <summary>
-	/// <c>True</c> when the "Cancel" button is <see cref="Button.IsCancel" />.
+	/// <c>True</c> when the Escape key activates the "Cancel" button.
 	/// </summary>
 	[ObservableProperty]
-	public partial bool CancelIsCancel { get; set; }
+	public partial bool CancelButtonHandlesEscape { get; set; }
 
 	/// <summary>
 	/// <c>True</c> when the "Cancel" button is visible.
@@ -36,13 +35,13 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 	public partial bool IsNoButtonVisible { get; set; }
 
 	/// <summary>
-	/// <c>True</c> when the "No" button is <see cref="Button.IsCancel" />.
+	/// <c>True</c> when the Escape key activates the "No" button.
 	/// </summary>
 	[ObservableProperty]
-	public partial bool NoIsCancel { get; set; }
+	public partial bool NoButtonHandlesEscape { get; set; }
 
 	/// <summary>
-	/// Text.
+	/// The question put to the user.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Text { get; set; }
@@ -79,13 +78,13 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 			case YesNoCancelButtons.YesNo:
 				IsNoButtonVisible = true;
 
-				NoIsCancel = true;
+				NoButtonHandlesEscape = true;
 				break;
 
 			case YesNoCancelButtons.YesCancel:
 				IsCancelButtonVisible = true;
 
-				CancelIsCancel = true;
+				CancelButtonHandlesEscape = true;
 				break;
 
 			case YesNoCancelButtons.YesNoCancel:
@@ -93,7 +92,7 @@ public sealed partial class YesNoCancelBoxViewModel : AsyncResultViewModelBase<Y
 
 				IsCancelButtonVisible = true;
 
-				CancelIsCancel = true;
+				CancelButtonHandlesEscape = true;
 				break;
 
 			default:

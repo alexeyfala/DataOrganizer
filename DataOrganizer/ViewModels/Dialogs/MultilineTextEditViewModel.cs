@@ -14,7 +14,7 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 {
 	#region Properties
 	/// <summary>
-	/// Header.
+	/// Text shown above the input field.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Header { get; set; }
@@ -26,7 +26,7 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 	public partial bool IsSensitive { get; set; }
 
 	/// <summary>
-	/// Text.
+	/// The text being edited.
 	/// </summary>
 	[ObservableProperty]
 	public partial string? Text { get; set; }
@@ -42,13 +42,13 @@ public sealed partial class MultilineTextEditViewModel : BooleanAsyncResultViewM
 
 	#region Auto-Generated Commands
 	/// <summary>
-	/// Cancel.
+	/// Closes the dialog and discards the edit.
 	/// </summary>
 	[RelayCommand]
 	private Task Cancel() => SetResultAsync(false);
 
 	/// <summary>
-	/// Save.
+	/// Closes the dialog and keeps the edit.
 	/// </summary>
 	[RelayCommand]
 	private Task Save() => SetResultAsync(true);
