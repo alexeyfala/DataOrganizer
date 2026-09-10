@@ -50,7 +50,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestData.CreateFilesDto(5));
+			.AddRange(TestData.CreateFileDtos(5));
 
 		sut
 			.InputStack
@@ -259,7 +259,7 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestData.CreateFilesDto(5));
+			.AddRange(TestData.CreateFileDtos(5));
 
 		sut
 			.InputStack

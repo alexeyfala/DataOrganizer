@@ -17,7 +17,7 @@ public sealed class SkipUnderDebuggerAttribute : NUnitAttribute, IApplyToTest
 {
 	#region Properties
 	/// <summary>
-	/// Reason shown in Test Explorer when the test is skipped.
+	/// The reason reported when the test is skipped.
 	/// </summary>
 	public string Reason { get; init; } = "Skipped under debugger to avoid first-chance exception break.";
 	#endregion

@@ -23,7 +23,7 @@ internal class AppSettingsStoreTests
 	public void Overwrite_Overwrites_Settings()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateRandomSettings();
+		AppSettings settings = TestData.CreateSettings();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -124,7 +124,7 @@ internal class AppSettingsStoreTests
 	public void Settings_Obtained_From_File()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateRandomSettings();
+		AppSettings settings = TestData.CreateSettings();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

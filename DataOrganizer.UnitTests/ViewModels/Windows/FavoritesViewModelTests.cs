@@ -43,7 +43,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(TestData.CreateFileDtos(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -163,7 +163,7 @@ internal class FavoritesViewModelTests
 			SelectedPairs = [.. TestData.CreateFavoriteSelections(5)]
 		};
 
-		FileDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
+		FileDto[] historyFiles = [.. TestData.CreateFileDtos(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -361,7 +361,7 @@ internal class FavoritesViewModelTests
 	public void ShowOnHoverEnabled_Initialization()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateRandomSettings();
+		AppSettings settings = TestData.CreateSettings();
 
 		settings.ShowFavoritesOnHover = true;
 

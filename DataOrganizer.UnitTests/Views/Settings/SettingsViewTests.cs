@@ -78,7 +78,7 @@ internal class SettingsViewTests
 
 		settingsStore
 			.Settings
-			.Returns(TestData.CreateRandomSettings());
+			.Returns(TestData.CreateSettings());
 
 		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
 

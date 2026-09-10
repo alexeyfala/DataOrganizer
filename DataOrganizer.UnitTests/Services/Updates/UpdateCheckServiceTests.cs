@@ -408,7 +408,7 @@ internal class UpdateCheckServiceTests
 	{
 		FakeTimeProvider time = new();
 
-		AppSettings settings = TestData.CreateRandomSettings() with
+		AppSettings settings = TestData.CreateSettings() with
 		{
 			CheckForUpdates = checkForUpdates,
 			LastNotifiedVersion = lastNotifiedVersion,

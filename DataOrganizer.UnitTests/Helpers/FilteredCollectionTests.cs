@@ -22,7 +22,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(5)];
+		FileDto[] items = [.. TestData.CreateFileDtos(5)];
 
 		// Act
 		sut.AddRange(items);
@@ -46,7 +46,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFileDtos(3));
 
 		// Act
 		sut.Clear();
@@ -70,7 +70,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -93,7 +93,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFileDtos(3));
 
 		// Act
 		Action act = () =>
@@ -118,7 +118,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -142,7 +142,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFileDtos(3));
 
 		// Act
 		FileDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
@@ -162,7 +162,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -190,7 +190,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFilesDto(3));
+		sut.AddRange(TestData.CreateFileDtos(3));
 
 		FileDto inserted = TestData.CreateFileDto();
 
@@ -234,7 +234,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -260,7 +260,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -282,7 +282,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFilesDto(3)];
+		FileDto[] items = [.. TestData.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 

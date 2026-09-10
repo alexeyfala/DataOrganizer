@@ -318,7 +318,7 @@ internal class DialogServiceTests
 
 		settingsStore
 			.Settings
-			.Returns(TestData.CreateRandomSettings());
+			.Returns(TestData.CreateSettings());
 
 		SettingsViewModel viewModel = new(
 			settingsStore,

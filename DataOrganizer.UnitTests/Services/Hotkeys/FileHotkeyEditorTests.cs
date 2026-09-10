@@ -32,7 +32,7 @@ internal class FileHotkeyEditorTests
 
 		dto
 			.Hotkeys
-			.AddRange(TestData.CreateHotkeysDto(5));
+			.AddRange(TestData.CreateHotkeyDtos(5));
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -106,7 +106,7 @@ internal class FileHotkeyEditorTests
 
 			mapper
 				.Map<HotkeyEntity[], HotkeyDto[]>(Arg.Any<HotkeyEntity[]>())
-				.Returns([.. TestData.CreateHotkeysDto(newHotkeys.Length)]);
+				.Returns([.. TestData.CreateHotkeyDtos(newHotkeys.Length)]);
 
 			builder.RegisterInstance(mapper);
 

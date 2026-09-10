@@ -54,11 +54,11 @@ internal class EntityLoaderTests
 
 			mapper
 				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
-				.Returns([.. TestData.CreateFilesDto(fileCount)]);
+				.Returns([.. TestData.CreateFileDtos(fileCount)]);
 
 			mapper
 				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
-				.Returns([.. TestData.CreateFoldersDto(folderCount)]);
+				.Returns([.. TestData.CreateFolderDtos(folderCount)]);
 
 			builder.RegisterInstance(mapper);
 

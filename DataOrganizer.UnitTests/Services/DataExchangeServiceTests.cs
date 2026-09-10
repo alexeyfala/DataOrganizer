@@ -691,8 +691,8 @@ internal class DataExchangeServiceTests
 	{
 		// Arrange
 		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData
-			.CreateFoldersDto(5)
-			.Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
+			.CreateFolderDtos(5)
+			.Concat<ExplorerItemDtoBase>(TestData.CreateFileDtos(5))];
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -743,7 +743,7 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSqliteAsync_Fails_When_The_Database_Cannot_Be_Read()
 	{
 		// Arrange
-		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
 
 		List<ExplorerItemDtoBase> objects = [];
 

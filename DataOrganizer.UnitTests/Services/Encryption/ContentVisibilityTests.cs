@@ -107,7 +107,7 @@ internal class ContentVisibilityTests
 
 		folder
 			.Children
-			.AddRange(TestData.CreateFilesDto(5));
+			.AddRange(TestData.CreateFileDtos(5));
 
 		folder.EncryptedDek = TestData.CreateRandomBytes(10);
 
@@ -157,7 +157,7 @@ internal class ContentVisibilityTests
 
 		nested
 			.Children
-			.AddRange(TestData.CreateFilesDto(3, encryptionStatus: EncryptionStatus.Decrypted));
+			.AddRange(TestData.CreateFileDtos(3, encryptionStatus: EncryptionStatus.Decrypted));
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -303,7 +303,7 @@ internal class ContentVisibilityTests
 
 		folder
 			.Children
-			.AddRange(TestData.CreateFilesDto(5, encryptionStatus: EncryptionStatus.Encrypted));
+			.AddRange(TestData.CreateFileDtos(5, encryptionStatus: EncryptionStatus.Encrypted));
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 

@@ -75,7 +75,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
 
 		// Act
 		bool result = hierarchy.ContainsBy(x => x.Id == Guid.NewGuid());
@@ -121,7 +121,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsId_Returns_False_When_No_Object_With_Given_Id()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
 
 		// Act
 		bool result = hierarchy.ContainsId(Guid.NewGuid());
@@ -197,7 +197,7 @@ internal class EnumerableExtensionsTests
 		// Arrange
 		FolderDto root = TestData.CreateFolderDto();
 
-		FileDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFileDtos(5)];
 
 		foreach (FileDto file in files)
 		{
@@ -253,7 +253,7 @@ internal class EnumerableExtensionsTests
 	public void FindBy_Returns_Null_When_No_Item_Satisfies_Condition()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
 
 		// Act
 		ExplorerItemDtoBase? result = hierarchy.FindBy(x => x.Id == Guid.NewGuid());
@@ -721,7 +721,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Counts_The_Rest()
 	{
 		// Arrange
-		FileDto[] files = [.. TestData.CreateFilesDto(5)];
+		FileDto[] files = [.. TestData.CreateFileDtos(5)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -747,7 +747,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Names_Every_File()
 	{
 		// Arrange
-		FileDto[] files = [.. TestData.CreateFilesDto(3)];
+		FileDto[] files = [.. TestData.CreateFileDtos(3)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -903,7 +903,7 @@ internal class EnumerableExtensionsTests
 	public void ToKeyStrokes_Maps_HotkeyDto_To_KeyStroke()
 	{
 		// Arrange
-		HotkeyDto[] hotkeys = [.. TestData.CreateHotkeysDto(3)];
+		HotkeyDto[] hotkeys = [.. TestData.CreateHotkeyDtos(3)];
 
 		// Act
 		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];

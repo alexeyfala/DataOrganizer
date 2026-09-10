@@ -139,7 +139,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
 
 		hierarchy.Add(toBeDeleted);
 
@@ -193,7 +193,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
 
 		hierarchy.Add(entity);
 

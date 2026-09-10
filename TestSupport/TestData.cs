@@ -20,29 +20,11 @@ using System.Linq;
 namespace TestSupport;
 
 /// <summary>
-/// Contains help methods for test purposes.
+/// Factory methods that build objects filled with random values.
 /// </summary>
 public static class TestData
 {
 	#region Methods
-	/// <summary>
-	/// Creates the required number of random <see cref="ValidatedContents" /> objects.
-	/// </summary>
-	public static IEnumerable<ValidatedContents> CreateContents(
-		int count,
-		bool isValid,
-		bool generateId = true)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return new()
-			{
-				Id = generateId ? Guid.NewGuid() : default,
-				IsValid = isValid
-			};
-		}
-	}
-
 	/// <summary>
 	/// Creates a <see cref="DatabaseBackup" /> over a random path.
 	/// </summary>
@@ -86,7 +68,7 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Creates a <see cref="FileEntity" /> object of <see cref="EntityKind.File" /> content, with random properties.
+	/// Creates a <see cref="FileEntity" /> with random properties.
 	/// </summary>
 	public static FileEntity CreateFile(in Guid id = default) => new()
 	{
@@ -119,20 +101,9 @@ public static class TestData
 		};
 
 	/// <summary>
-	/// Creates the required number of random <see cref="FileEntity" /> objects.
-	/// </summary>
-	public static IEnumerable<FileEntity> CreateFiles(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return CreateFile();
-		}
-	}
-
-	/// <summary>
 	/// Creates the required number of random <see cref="FileDto" /> objects.
 	/// </summary>
-	public static IEnumerable<FileDto> CreateFilesDto(
+	public static IEnumerable<FileDto> CreateFileDtos(
 		int count,
 		bool isEditing = false,
 		bool isExecuting = false,
@@ -144,6 +115,17 @@ public static class TestData
 				isEditing: isEditing,
 				isExecuting: isExecuting,
 				encryptionStatus: encryptionStatus);
+		}
+	}
+
+	/// <summary>
+	/// Creates the required number of random <see cref="FileEntity" /> objects.
+	/// </summary>
+	public static IEnumerable<FileEntity> CreateFiles(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return CreateFile();
 		}
 	}
 
@@ -177,6 +159,17 @@ public static class TestData
 		};
 
 	/// <summary>
+	/// Creates the required number of random <see cref="FolderDto" /> objects.
+	/// </summary>
+	public static IEnumerable<FolderDto> CreateFolderDtos(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return CreateFolderDto();
+		}
+	}
+
+	/// <summary>
 	/// Creates the required number of random <see cref="FolderEntity" /> objects.
 	/// </summary>
 	public static IEnumerable<FolderEntity> CreateFolders(int count)
@@ -184,17 +177,6 @@ public static class TestData
 		for (int i = 0; i < count; i++)
 		{
 			yield return CreateFolder();
-		}
-	}
-
-	/// <summary>
-	/// Creates the required number of random <see cref="FolderDto" /> objects.
-	/// </summary>
-	public static IEnumerable<FolderDto> CreateFoldersDto(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return CreateFolderDto();
 		}
 	}
 
@@ -210,6 +192,24 @@ public static class TestData
 	}
 
 	/// <summary>
+	/// Creates the required number of random <see cref="HotkeyDto" /> objects.
+	/// </summary>
+	public static IEnumerable<HotkeyDto> CreateHotkeyDtos(int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return new()
+			{
+				Code = CreateRandomEnumValue<KeyCode>(),
+				Id = Guid.NewGuid(),
+				Index = default,
+				Mask = CreateRandomEnumValue<EventMask>(),
+				OwnerId = Guid.NewGuid()
+			};
+		}
+	}
+
+	/// <summary>
 	/// Creates the required number of random <see cref="HotkeyEntity" /> objects.
 	/// </summary>
 	public static IEnumerable<HotkeyEntity> CreateHotkeys(int count)
@@ -220,24 +220,6 @@ public static class TestData
 			{
 				Code = CreateRandomEnumValue<KeyCode>(),
 				Id = Guid.NewGuid(),
-				Mask = CreateRandomEnumValue<EventMask>(),
-				OwnerId = Guid.NewGuid()
-			};
-		}
-	}
-
-	/// <summary>
-	/// Creates the required number of random <see cref="HotkeyDto" /> objects.
-	/// </summary>
-	public static IEnumerable<HotkeyDto> CreateHotkeysDto(int count)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			yield return new()
-			{
-				Code = CreateRandomEnumValue<KeyCode>(),
-				Id = Guid.NewGuid(),
-				Index = default,
 				Mask = CreateRandomEnumValue<EventMask>(),
 				OwnerId = Guid.NewGuid()
 			};
@@ -297,7 +279,29 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Generates a random file name.
+	/// Returns a random enum value other than <paramref name="excluded" />.
+	/// </summary>
+	public static T CreateRandomEnumValueExcept<T>(T excluded) where T : Enum
+	{
+		T[] filtered = [.. Enum
+			.GetValues(typeof(T))
+			.Cast<T>()
+			.Where(value => !EqualityComparer<T>.Default.Equals(value, excluded))];
+
+		if (filtered.IsEmpty())
+		{
+			throw new InvalidOperationException("No enum values available to select after exclusion.");
+		}
+
+		int index = Random
+			.Shared
+			.Next(0, filtered.Length);
+
+		return filtered[index];
+	}
+
+	/// <summary>
+	/// Generates a random file name with the given extension.
 	/// </summary>
 	public static string CreateRandomFileName(int length, string extension)
 	{
@@ -305,7 +309,7 @@ public static class TestData
 	}
 
 	/// <summary>
-	/// Generates a random file name.
+	/// Generates a random file name with a random extension.
 	/// </summary>
 	public static string CreateRandomFileName(int length)
 	{
@@ -328,9 +332,20 @@ public static class TestData
 	public static int CreateRandomIntFrom10To100() => CreateRandomInt(10, 101);
 
 	/// <summary>
-	/// Generates a random <see cref="AppSettings" /> object.
+	/// Creates a sequence of the required length from a factory.
 	/// </summary>
-	public static AppSettings CreateRandomSettings(in bool trackHotkeys = false) => new()
+	public static IEnumerable<T> CreateSequence<T>(Func<T> factory, int count)
+	{
+		for (int i = 0; i < count; i++)
+		{
+			yield return factory();
+		}
+	}
+
+	/// <summary>
+	/// Creates an <see cref="AppSettings" /> object with fixed values.
+	/// </summary>
+	public static AppSettings CreateSettings(in bool trackHotkeys = false) => new()
 	{
 		Language = "ja-JP",
 		PrimaryColor = PrimaryColor.Red,
@@ -340,36 +355,21 @@ public static class TestData
 	};
 
 	/// <summary>
-	/// Generates a sequence of the required length by calling <see cref="Func{T}" /> from the argument.
+	/// Creates the required number of random <see cref="ValidatedContents" /> objects.
 	/// </summary>
-	public static IEnumerable<T> CreateSequence<T>(Func<T> action, int length)
+	public static IEnumerable<ValidatedContents> CreateValidatedContents(
+		int count,
+		bool isValid,
+		bool generateId = true)
 	{
-		for (int i = 0; i < length; i++)
+		for (int i = 0; i < count; i++)
 		{
-			yield return action();
+			yield return new()
+			{
+				Id = generateId ? Guid.NewGuid() : default,
+				IsValid = isValid
+			};
 		}
-	}
-
-	/// <summary>
-	/// Returns a random value from enum except defined in <paramref name="toExclude"/>.
-	/// </summary>
-	public static T GetRandomEnumValueExcept<T>(T toExclude) where T : Enum
-	{
-		T[] filtered = [.. Enum
-			.GetValues(typeof(T))
-			.Cast<T>()
-			.Where(value => !EqualityComparer<T>.Default.Equals(value, toExclude))];
-
-		if (filtered.IsEmpty())
-		{
-			throw new InvalidOperationException("No enum values available to select after exclusion.");
-		}
-
-		int index = Random
-			.Shared
-			.Next(0, filtered.Length);
-
-		return filtered[index];
 	}
 	#endregion
 

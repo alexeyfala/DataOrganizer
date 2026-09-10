@@ -236,7 +236,7 @@ internal class AutoLockServiceTests
 	/// </summary>
 	private static AppSettings CreateSettings(int autoLockMinutes)
 	{
-		AppSettings settings = TestData.CreateRandomSettings();
+		AppSettings settings = TestData.CreateSettings();
 
 		settings.AutoLockMinutes = autoLockMinutes;
 

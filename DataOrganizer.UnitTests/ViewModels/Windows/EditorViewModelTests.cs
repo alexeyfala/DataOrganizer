@@ -112,7 +112,7 @@ internal class EditorViewModelTests
 
 		EditorViewModel sut = mock.Create<EditorViewModel>();
 
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFoldersDto(5).Concat<ExplorerItemDtoBase>(TestData.CreateFilesDto(5))];
+		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(TestData.CreateFileDtos(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -130,11 +130,11 @@ internal class EditorViewModelTests
 	public async Task ChangePassword_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 
@@ -227,9 +227,9 @@ internal class EditorViewModelTests
 	public void CloseFiles_Closes_Editing_And_Executing_Files()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(2)];
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(2)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(2)];
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(2)];
 
 		editingFiles.ForEach(x => x.IsEditing = true);
 
@@ -282,11 +282,11 @@ internal class EditorViewModelTests
 	public async Task DecryptFolder_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 
@@ -776,11 +776,11 @@ internal class EditorViewModelTests
 	public async Task EncryptFolder_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 
@@ -943,12 +943,12 @@ internal class EditorViewModelTests
 
 		selectedFolder.IsSelected = true;
 
-		FolderDto[] folders = [.. TestData.CreateFoldersDto(5)];
+		FolderDto[] folders = [.. TestData.CreateFolderDtos(5)];
 
 		folders = [.. folders, .. selectedFolder.ToEnumerable()];
 
 		folders
-			.ForEach(x => x.Children.AddRange(TestData.CreateFoldersDto(5)))
+			.ForEach(x => x.Children.AddRange(TestData.CreateFolderDtos(5)))
 			.GetFolders()
 			.ForEach(x => x.IsExpanded = !isExpandAll);
 
@@ -1001,7 +1001,7 @@ internal class EditorViewModelTests
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
 
-		AppSettings saved = TestData.CreateRandomSettings();
+		AppSettings saved = TestData.CreateSettings();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1020,7 +1020,7 @@ internal class EditorViewModelTests
 
 		sut.AddHierarchy([TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted)]);
 
-		AppSettings changed = TestData.CreateRandomSettings();
+		AppSettings changed = TestData.CreateSettings();
 
 		changed.AutoLockMinutes = 5;
 
@@ -1046,7 +1046,7 @@ internal class EditorViewModelTests
 
 		IKeyboardInputHook hook = Substitute.For<IKeyboardInputHook>();
 
-		AppSettings settings = TestData.CreateRandomSettings(trackHotkeys: true);
+		AppSettings settings = TestData.CreateSettings(trackHotkeys: true);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1107,7 +1107,7 @@ internal class EditorViewModelTests
 		// Arrange
 		IAutoLockService autoLock = Substitute.For<IAutoLockService>();
 
-		AppSettings settings = TestData.CreateRandomSettings();
+		AppSettings settings = TestData.CreateSettings();
 
 		settings.AutoLockMinutes = 5;
 
@@ -1148,12 +1148,12 @@ internal class EditorViewModelTests
 	public async Task HideAllFileContents_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true,
 			encryptionStatus: EncryptionStatus.Decrypted)];
@@ -1345,11 +1345,11 @@ internal class EditorViewModelTests
 	public async Task HideFolderContents_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 
@@ -1451,11 +1451,11 @@ internal class EditorViewModelTests
 	public async Task Import_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 
@@ -1578,7 +1578,7 @@ internal class EditorViewModelTests
 			Y = positiveValue
 		};
 
-		FileDto[] historyFiles = [.. TestData.CreateFilesDto(5)];
+		FileDto[] historyFiles = [.. TestData.CreateFileDtos(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -2052,11 +2052,11 @@ internal class EditorViewModelTests
 	public async Task ShowFolderContents_Does_Work()
 	{
 		// Arrange
-		FileDto[] editingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] editingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isEditing: true)];
 
-		FileDto[] executingFiles = [.. TestData.CreateFilesDto(
+		FileDto[] executingFiles = [.. TestData.CreateFileDtos(
 			count: 5,
 			isExecuting: true)];
 

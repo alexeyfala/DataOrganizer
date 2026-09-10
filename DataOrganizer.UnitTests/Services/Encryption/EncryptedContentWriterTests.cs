@@ -69,11 +69,11 @@ internal class EncryptedContentWriterTests
 	public async Task UpdateDatabaseAsync_Does_Work([Values] EncryptionStatus newStatus)
 	{
 		// Arrange
-		EncryptionStatus randomStatus = TestData.GetRandomEnumValueExcept(newStatus);
+		EncryptionStatus randomStatus = TestData.CreateRandomEnumValueExcept(newStatus);
 
 		FolderDto folder = TestData.CreateFolderDto(encryptionStatus: randomStatus);
 
-		FileDto[] files = [.. TestData.CreateFilesDto(5, encryptionStatus: randomStatus)];
+		FileDto[] files = [.. TestData.CreateFileDtos(5, encryptionStatus: randomStatus)];
 
 		UpdateDatabaseParameters parameters = new()
 		{
