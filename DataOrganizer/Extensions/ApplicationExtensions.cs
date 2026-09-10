@@ -161,7 +161,7 @@ internal static class ApplicationExtensions
 	/// <summary>
 	/// Determines whether a window of a certain type that meets a condition is running in the application.
 	/// </summary>
-	public static bool IsAnyWindow<T>(this Application target, Predicate<T> condition) where T : Window
+	public static bool HasWindow<T>(this Application target, Predicate<T> condition) where T : Window
 	{
 		return HasWindows(target, out IReadOnlyList<Window> windows) && windows
 			.OfType<T>()
@@ -171,7 +171,7 @@ internal static class ApplicationExtensions
 	/// <summary>
 	/// Determines whether a window of a certain type is running in the application.
 	/// </summary>
-	public static bool IsAnyWindow<T>(this Application target) where T : Window
+	public static bool HasWindow<T>(this Application target) where T : Window
 	{
 		return HasWindows(target, out IReadOnlyList<Window> windows) && windows
 			.OfType<T>()

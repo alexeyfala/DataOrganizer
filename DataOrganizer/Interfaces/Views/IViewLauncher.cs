@@ -29,12 +29,12 @@ public interface IViewLauncher
 	/// <summary>
 	/// Configures <see cref="ClipboardLogWindow" />.
 	/// </summary>
-	ClipboardLogWindow ConfigureClipboardLogWindow(Window owner);
+	ClipboardLogWindow CreateClipboardLogWindow(Window owner);
 
 	/// <summary>
 	/// Configures <see cref="EditorWindow" />.
 	/// </summary>
-	EditorWindow ConfigureEditorWindow(
+	EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
 		IEnumerable<FileDto> executingFiles,
@@ -43,7 +43,7 @@ public interface IViewLauncher
 	/// <summary>
 	/// Configures <see cref="FavoritesWindow" />.
 	/// </summary>
-	FavoritesWindow ConfigureFavoritesWindow(
+	FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
 		IEnumerable<FileDto> executingFiles);
@@ -51,7 +51,7 @@ public interface IViewLauncher
 	/// <summary>
 	/// Configures the main application window.
 	/// </summary>
-	Window ConfigureMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
+	Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy);
 
 	/// <summary>
 	/// Saves <see cref="ClipboardLogWindow" /> settings to the file.

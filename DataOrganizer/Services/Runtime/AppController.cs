@@ -141,7 +141,7 @@ public sealed class AppController : IAppController
 				.EraseAsync(token)
 				.ConfigureAwait(true);
 
-			if (_options.IsConsoleNeeded)
+			if (_options.ShowConsole)
 			{
 				await _consoleWindowHost
 					.Value
@@ -192,7 +192,7 @@ public sealed class AppController : IAppController
 			// Nothing is read from a database that is not there: the toast above has already said so.
 			ExplorerItemDtoBase[]? hierarchy = isConnected
 				? await _entityLoader
-					.LoadFromEmbeddedDbAsync(token)
+					.LoadHierarchyAsync(token)
 					.ConfigureAwait(true)
 				: [];
 
@@ -233,7 +233,7 @@ public sealed class AppController : IAppController
 				_exceptionHandler.Watch(_clipboardLog.StartAsync(token));
 			}
 
-			Window? mainWindow = _viewLauncher.ConfigureMainWindow(hierarchy ?? []);
+			Window? mainWindow = _viewLauncher.CreateMainWindow(hierarchy ?? []);
 
 			mainWindow?.Show();
 

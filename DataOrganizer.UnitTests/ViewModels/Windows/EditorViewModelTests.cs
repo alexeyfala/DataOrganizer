@@ -1093,7 +1093,7 @@ internal class EditorViewModelTests
 		{
 			themeService
 				.Received()
-				.ApplyMaterialTheme();
+				.ApplyFromSettings();
 
 		}
 	}
@@ -1998,7 +1998,7 @@ internal class EditorViewModelTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
-			viewLauncher.ConfigureFavoritesWindow(
+			viewLauncher.CreateFavoritesWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 				Arg.Any<IEnumerable<FileDto>>(),
 				Arg.Any<IEnumerable<FileDto>>())
@@ -2017,7 +2017,7 @@ internal class EditorViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received().ConfigureFavoritesWindow(
+		viewLauncher.Received().CreateFavoritesWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());

@@ -329,7 +329,7 @@ internal class FavoritesViewModelTests
 		{
 			using AutoMock windowMock = AutoMock.GetLoose();
 
-			viewLauncher.ConfigureEditorWindow(
+			viewLauncher.CreateEditorWindow(
 				Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 				Arg.Any<IEnumerable<FileDto>>(),
 				Arg.Any<IEnumerable<FileDto>>())
@@ -348,7 +348,7 @@ internal class FavoritesViewModelTests
 			.Should()
 			.BeFalse();
 
-		viewLauncher.Received().ConfigureEditorWindow(
+		viewLauncher.Received().CreateEditorWindow(
 			Arg.Any<IEnumerable<ExplorerItemDtoBase>>(),
 			Arg.Any<IEnumerable<FileDto>>(),
 			Arg.Any<IEnumerable<FileDto>>());

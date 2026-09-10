@@ -45,7 +45,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 	{
 		try
 		{
-			string? appTarget = PlatformInfo.CurrentOs switch
+			string? appTarget = PlatformInfo.CurrentOS switch
 			{
 				OperatingSystemKind.Windows => Environment.ProcessPath,
 				OperatingSystemKind.Linux => ResolveLinuxAppFile(),
@@ -131,7 +131,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 			string directory = Path.GetDirectoryName(filePath)!;
 
-			switch (PlatformInfo.CurrentOs)
+			switch (PlatformInfo.CurrentOS)
 			{
 				case OperatingSystemKind.Windows:
 					if (_winExplorerManager.TryForegroundFolder(directory, filePath))

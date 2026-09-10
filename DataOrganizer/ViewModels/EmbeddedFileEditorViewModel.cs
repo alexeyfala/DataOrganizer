@@ -89,7 +89,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 
 		try
 		{
-			if (!result.IsValid || TryToDecrypt(result.Contents) is not { } output)
+			if (!result.IsValid || TryDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 
@@ -523,22 +523,6 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 	}
 
 	/// <summary>
-	/// Persists the editor state once the editor is ready.
-	/// </summary>
-	private void TrySavePersistentEditorState()
-	{
-		lock (_mutex)
-		{
-			if (IsContentCorrupted || !IsInitialized)
-			{
-				return;
-			}
-
-			_exceptionHandler.Watch(TrySaveEditorStateAsync());
-		}
-	}
-
-	/// <summary>
 	/// Tries to save the editor state.
 	/// </summary>
 	private Task TrySaveEditorStateAsync(CancellationToken token = default)
@@ -555,6 +539,22 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		_lastSavedEditorState = json;
 
 		return SaveEditorStateAsync(json, token);
+	}
+
+	/// <summary>
+	/// Persists the editor state once the editor is ready.
+	/// </summary>
+	private void TrySavePersistentEditorState()
+	{
+		lock (_mutex)
+		{
+			if (IsContentCorrupted || !IsInitialized)
+			{
+				return;
+			}
+
+			_exceptionHandler.Watch(TrySaveEditorStateAsync());
+		}
 	}
 	#endregion
 }

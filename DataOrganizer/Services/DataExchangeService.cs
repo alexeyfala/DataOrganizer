@@ -196,7 +196,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case KnownFileExtensions.Sqlite:
-					await ExportToSQLiteAsync(filePath, token).ConfigureAwait(false);
+					await ExportToSqliteAsync(filePath, token).ConfigureAwait(false);
 					break;
 
 				default:
@@ -223,7 +223,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		if (hierarchy.Count != 0)
 		{
 			variant = await _dialogService
-				.SelectImportVariantAsync(token)
+				.SelectImportModeAsync(token)
 				.ConfigureAwait(true);
 
 			if (variant == ImportMode.None)
@@ -306,7 +306,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					break;
 
 				case KnownFileExtensions.Sqlite:
-					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSQLiteAsync(
+					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSqliteAsync(
 						filePath,
 						variant,
 						objects,
@@ -363,7 +363,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Appends data from SQLite database.
 	/// </summary>
-	internal async Task<bool> AppendFromSQLiteAsync(
+	internal async Task<bool> AppendFromSqliteAsync(
 		string filePath,
 		List<ExplorerItemDtoBase> objects,
 		Collection<ExplorerItemDtoBase> hierarchy,
@@ -455,7 +455,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Replaces with data from SQLite database.
 	/// </summary>
-	internal async Task<bool> ReplaceFromSQLiteAsync(
+	internal async Task<bool> ReplaceFromSqliteAsync(
 		string filePath,
 		List<ExplorerItemDtoBase> objects,
 		Collection<ExplorerItemDtoBase> hierarchy,
@@ -469,7 +469,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		}
 
 		if (await _entityLoader
-			.LoadFromEmbeddedDbAsync(token)
+			.LoadHierarchyAsync(token)
 			.ConfigureAwait(false) is not { } result)
 		{
 			// The imported database is in place but unreadable, so the caller restores the copy it took.
@@ -596,7 +596,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Exports data to SQLite database.
 	/// </summary>
-	private Task ExportToSQLiteAsync(string filePath, CancellationToken token)
+	private Task ExportToSqliteAsync(string filePath, CancellationToken token)
 	{
 		CopyDatabaseParameters parameters = new()
 		{
@@ -675,7 +675,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// <summary>
 	/// Imports data from SQLite database.
 	/// </summary>
-	private Task<bool> ImportFromSQLiteAsync(
+	private Task<bool> ImportFromSqliteAsync(
 		string filePath,
 		ImportMode variant,
 		List<ExplorerItemDtoBase> objects,
@@ -684,12 +684,12 @@ public sealed class DataExchangeService : IDataExchangeService
 	{
 		return variant switch
 		{
-			ImportMode.Replace => ReplaceFromSQLiteAsync(
+			ImportMode.Replace => ReplaceFromSqliteAsync(
 				filePath,
 				objects,
 				hierarchy,
 				token),
-			ImportMode.Append => AppendFromSQLiteAsync(
+			ImportMode.Append => AppendFromSqliteAsync(
 				filePath,
 				objects,
 				hierarchy,

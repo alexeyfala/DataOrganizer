@@ -157,7 +157,7 @@
 			Command="{Binding IsHiddenChangedCommand}"
 			Content="{materialIcons:MaterialIconTextExt Kind=EyeOffOutline}"
 			IsChecked="{Binding IsHidden, Mode=TwoWay}"
-			IsVisible="{Binding IsHideEnabled, Mode=OneWay}"
+			IsVisible="{Binding CanHide, Mode=OneWay}"
 			Theme="{StaticResource MaterialFlatToggleButton}"
 			ToolTip.Tip="{x:Static prop:Strings.Hide}" />
 	</Grid>

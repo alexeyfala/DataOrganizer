@@ -114,7 +114,7 @@ public sealed class App : Application
 		// The theme reads Application.Styles, therefore it is applied only after the XAML tree is loaded.
 		serviceProvider
 			.GetRequiredService<IAppThemeService>()
-			.ApplyMaterialTheme();
+			.ApplyFromSettings();
 
 		ClipboardSensitivityMarkerWriter.Configure(serviceProvider.GetRequiredService<IClipboardAutoClear>());
 
@@ -466,7 +466,7 @@ public sealed class App : Application
 					rollOnEachProcessRun: false);
 			});
 
-		if (options.IsConsoleNeeded)
+		if (options.ShowConsole)
 		{
 			ConsoleViewModel viewModel = provider
 				.GetRequiredService<IConsoleWindowHost>()

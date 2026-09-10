@@ -63,7 +63,7 @@ internal class CopyContentViewModelBaseTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
 				.Returns(Encoding.UTF8.GetBytes(content));
 
 			builder.RegisterInstance(clipboard);

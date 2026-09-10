@@ -167,7 +167,7 @@ public partial class EditorViewModel :
 	{
 		if (IsReadOnly
 			|| IsActionInProgress
-			|| _app.IsAnyWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
+			|| _app.HasWindow<EditorWindow>(x => !x.IsLoaded || !x.IsVisible))
 		{
 			return;
 		}
@@ -353,7 +353,7 @@ public partial class EditorViewModel :
 				$"{Strings.OpenTheExecutableFile}?";
 
 			if (!await _dialogService
-				.RequestYesCancelDialogAsync(text)
+				.RequestYesCancelAsync(text)
 				.ConfigureAwait(true))
 			{
 				return;
@@ -641,7 +641,7 @@ public partial class EditorViewModel :
 
 		_copyHistory?.Dispose();
 
-		_viewLauncher.ConfigureFavoritesWindow(
+		_viewLauncher.CreateFavoritesWindow(
 			Hierarchy,
 			_editingFiles?.Items ?? [],
 			ExecutingFiles).Show();
@@ -729,7 +729,7 @@ public partial class EditorViewModel :
 		if (RightSideSheetContent == RightSideSheetContentKind.CopyHistory)
 		{
 			if (CopyHistorySettings.Items.Count == 0 || !await _dialogService
-				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
+				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
 				return;
@@ -740,7 +740,7 @@ public partial class EditorViewModel :
 		else if (RightSideSheetContent == RightSideSheetContentKind.ExecutingFiles)
 		{
 			if (ExecutingFiles.Count == 0 || !await _dialogService
-				.RequestYesCancelDialogAsync($"{Strings.Clear}?")
+				.RequestYesCancelAsync($"{Strings.Clear}?")
 				.ConfigureAwait(false))
 			{
 				return;
@@ -813,7 +813,7 @@ public partial class EditorViewModel :
 				return;
 			}
 
-			_exceptionHandler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush));
+			_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush));
 		}
 		catch (Exception ex)
 		{
@@ -839,7 +839,7 @@ public partial class EditorViewModel :
 		bool isopened = dto is FileDto file && file.IsOpened();
 
 		if (!await _dialogService
-			.RequestYesNoDialogAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
+			.RequestYesNoAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
 			return;
@@ -1215,7 +1215,7 @@ public partial class EditorViewModel :
 		string text,
 		CancellationToken token = default)
 	{
-		return _dialogService.RequestYesNoDialogAsync(text, token);
+		return _dialogService.RequestYesNoAsync(text, token);
 	}
 
 	/// <summary>
@@ -1369,7 +1369,7 @@ public partial class EditorViewModel :
 			.Delay(delay, token)
 			.ConfigureAwait(true);
 
-		await BrushExtensions.ApplyLimeGreenColorAnimation(
+		await BrushExtensions.ApplyHighlightAnimationAsync(
 			() => item.Background as Brush,
 			token).ConfigureAwait(false);
 	}
@@ -1475,7 +1475,7 @@ public partial class EditorViewModel :
 		}
 		else
 		{
-			_themeService.ApplyMaterialTheme();
+			_themeService.ApplyFromSettings();
 		}
 
 		if (!isSave)

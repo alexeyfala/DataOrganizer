@@ -50,7 +50,7 @@ public sealed class EntityLoader : IEntityLoader
 
 	#region Methods
 	/// <inheritdoc />
-	public async Task<ExplorerItemDtoBase[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default)
+	public async Task<ExplorerItemDtoBase[]?> LoadHierarchyAsync(CancellationToken token = default)
 	{
 		try
 		{

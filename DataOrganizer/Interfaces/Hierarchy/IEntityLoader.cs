@@ -16,7 +16,7 @@ public interface IEntityLoader
 	/// Loads all entities from the database, maps them to the <see cref="ExplorerItemDtoBase" /> hierarchy, and returns the result.
 	/// <c>Null</c> stands for a database that could not be read, which an empty hierarchy does not tell apart.
 	/// </summary>
-	Task<ExplorerItemDtoBase[]?> LoadFromEmbeddedDbAsync(CancellationToken token = default);
+	Task<ExplorerItemDtoBase[]?> LoadHierarchyAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Maps entities from the database to DTO objects.

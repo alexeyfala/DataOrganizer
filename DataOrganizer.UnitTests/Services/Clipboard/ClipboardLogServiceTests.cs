@@ -148,10 +148,10 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.ClearAsync" />: the active highlight is cleared from a surviving pin.
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: the active highlight is cleared from a surviving pin.
 	/// </summary>
 	[Test]
-	public async Task ClearAsync_Clears_Active_On_Surviving_Pinned()
+	public async Task ClearAllAsync_Clears_Active_On_Surviving_Pinned()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder
@@ -168,7 +168,7 @@ internal class ClipboardLogServiceTests
 		await sut.RestoreAsync(pinned);
 
 		// Act
-		await sut.ClearAsync();
+		await sut.ClearAllAsync();
 
 		// Assert
 		sut.Entries
@@ -184,10 +184,10 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.ClearAsync" />: pinned entries survive and Updated is raised.
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: pinned entries survive and Updated is raised.
 	/// </summary>
 	[Test]
-	public async Task ClearAsync_Preserves_Pinned_And_Raises_Updated()
+	public async Task ClearAllAsync_Preserves_Pinned_And_Raises_Updated()
 	{
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
@@ -212,7 +212,7 @@ internal class ClipboardLogServiceTests
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
-		await sut.ClearAsync();
+		await sut.ClearAllAsync();
 
 		// Assert
 		sut.Entries
@@ -228,10 +228,10 @@ internal class ClipboardLogServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogService.ClearAsync" />: clears entries and raises ClearedByUser.
+	/// <see cref="ClipboardLogService.ClearAllAsync" />: clears entries and raises ClearedByUser.
 	/// </summary>
 	[Test]
-	public async Task ClearAsync_Raises_ClearedByUser()
+	public async Task ClearAllAsync_Raises_ClearedByUser()
 	{
 		// Arrange
 		IMessenger messenger = new WeakReferenceMessenger();
@@ -252,7 +252,7 @@ internal class ClipboardLogServiceTests
 		List<ClipboardLogChangeKind> received = Capture(messenger);
 
 		// Act
-		await sut.ClearAsync();
+		await sut.ClearAllAsync();
 
 		// Assert
 		sut.Entries

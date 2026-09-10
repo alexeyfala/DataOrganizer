@@ -281,7 +281,7 @@ public sealed class KeyboardInputHook :
 				}
 
 				if (await _contentCipher
-					.TryToDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
+					.TryDecryptContentsAsync(file, result.Contents, $"{Strings.CopyContent}: {file.Name}", token)
 					.ConfigureAwait(false) is not { } contents)
 				{
 					return;

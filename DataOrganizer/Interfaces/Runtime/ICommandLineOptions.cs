@@ -16,12 +16,6 @@ public interface ICommandLineOptions
 	bool FillObjects { get; }
 
 	/// <summary>
-	/// Show console window to view logs.
-	/// </summary>
-	[Description("Show console window to view logs.")]
-	bool IsConsoleNeeded { get; }
-
-	/// <summary>
 	/// Logging level entries <see cref="LogEventLevel.Debug" />, default <see cref="LogEventLevel.Information" />.
 	/// </summary>
 	[Description("Logging level entries Debug, default Information.")]
@@ -32,6 +26,12 @@ public interface ICommandLineOptions
 	/// </summary>
 	[Description("Show help information.")]
 	bool PrintHelp { get; }
+
+	/// <summary>
+	/// Show console window to view logs.
+	/// </summary>
+	[Description("Show console window to view logs.")]
+	bool ShowConsole { get; }
 	#endregion
 
 	#region Methods

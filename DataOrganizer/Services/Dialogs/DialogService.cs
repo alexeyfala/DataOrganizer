@@ -222,7 +222,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default)
+	public async Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default)
 	{
 		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
@@ -238,7 +238,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default)
+	public async Task<bool> RequestYesNoAsync(string text, CancellationToken token = default)
 	{
 		YesNoCancelBoxViewModel viewModel = _viewFactory.CreateViewModel<YesNoCancelBoxViewModel>();
 
@@ -254,7 +254,7 @@ public sealed class DialogService : IDialogService
 	}
 
 	/// <inheritdoc />
-	public Task<ImportMode> SelectImportVariantAsync(CancellationToken token = default)
+	public Task<ImportMode> SelectImportModeAsync(CancellationToken token = default)
 	{
 		ImportListSelectorViewModel viewModel = _viewFactory.CreateViewModel<ImportListSelectorViewModel>();
 

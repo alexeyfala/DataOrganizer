@@ -164,7 +164,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 
 	#region Methods
 	/// <inheritdoc />
-	public Task ClearAsync()
+	public Task ClearAllAsync()
 	{
 		return ClearCoreAsync(
 			clearSystem: true,

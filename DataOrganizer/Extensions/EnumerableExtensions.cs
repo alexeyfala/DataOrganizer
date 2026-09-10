@@ -503,18 +503,6 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Transforms a sequence of <see cref="HotkeyDto" /> to a sequence of <see cref="KeyStroke" />.
-	/// </summary>
-	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyDto> sequence)
-	{
-		return sequence.Select(x => new KeyStroke
-		{
-			Code = x.Code,
-			Mask = x.Mask
-		});
-	}
-
-	/// <summary>
 	/// Converts flat sequences <see cref="FolderDto" /> and <see cref="FileDto" /> into a single hierarchical one.
 	/// </summary>
 	public static IEnumerable<ExplorerItemDtoBase> ToHierarchical(
@@ -577,6 +565,18 @@ internal static class EnumerableExtensions
 				OwnerId = ownerId
 			};
 		}
+	}
+
+	/// <summary>
+	/// Transforms a sequence of <see cref="HotkeyDto" /> to a sequence of <see cref="KeyStroke" />.
+	/// </summary>
+	public static IEnumerable<KeyStroke> ToKeyStrokes(this IEnumerable<HotkeyDto> sequence)
+	{
+		return sequence.Select(x => new KeyStroke
+		{
+			Code = x.Code,
+			Mask = x.Mask
+		});
 	}
 
 	/// <summary>

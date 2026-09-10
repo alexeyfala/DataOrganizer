@@ -30,10 +30,10 @@ internal class ViewLauncherTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureClipboardLogWindow" />: saved size and position settings are applied to the window.
+	/// <see cref="ViewLauncher.CreateClipboardLogWindow" />: saved size and position settings are applied to the window.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureClipboardLogWindow_Applies_Saved_Settings()
+	public void CreateClipboardLogWindow_Applies_Saved_Settings()
 	{
 		// Arrange
 		int positiveValue = TestData.CreateRandomInt(100, 300);
@@ -83,7 +83,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		ClipboardLogWindow window = sut.ConfigureClipboardLogWindow(new Window());
+		ClipboardLogWindow window = sut.CreateClipboardLogWindow(new Window());
 
 		// Assert
 		window.Width
@@ -110,10 +110,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureEditorWindow" />: default size, centered location and navigation column width are used on first launch.
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: default size, centered location and navigation column width are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureEditorView_Creates_Window_With_Default_Settings_For_The_First_Launch()
+	public void CreateEditorWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -140,7 +140,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.ConfigureEditorWindow([], [], []);
+		EditorWindow window = sut.CreateEditorWindow([], [], []);
 
 		// Assert
 		window.Width
@@ -161,10 +161,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureEditorWindow" />: the editor view model is initialized from saved settings.
+	/// <see cref="ViewLauncher.CreateEditorWindow" />: the editor view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureEditorView_ViewModel_Should_Be_Initialized()
+	public void CreateEditorWindow_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
 		int positiveValue = TestData.CreateRandomInt(100, 300);
@@ -211,7 +211,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		EditorWindow window = sut.ConfigureEditorWindow([], [], []);
+		EditorWindow window = sut.CreateEditorWindow([], [], []);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -220,10 +220,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: default popup size, navigation column width and empty selected category are used on first launch.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureFavoritesWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
+	public void CreateFavoritesWindow_Creates_Window_With_Default_Settings_For_The_First_Launch()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -250,7 +250,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.ConfigureFavoritesWindow([], [], []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([], [], []);
 
 		// Assert
 		window.WindowStartupLocation
@@ -275,10 +275,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureFavoritesWindow" />: the favorites view model is initialized from saved settings.
+	/// <see cref="ViewLauncher.CreateFavoritesWindow" />: the favorites view model is initialized from saved settings.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureFavoritesWindow_ViewModel_Should_Be_Initialized()
+	public void CreateFavoritesWindow_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
 		int positiveValue = TestData.CreateRandomInt(100, 300);
@@ -323,7 +323,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		FavoritesWindow window = sut.ConfigureFavoritesWindow([], [], []);
+		FavoritesWindow window = sut.CreateFavoritesWindow([], [], []);
 
 		// Assert
 		window.ViewModel.IsInitialized
@@ -332,10 +332,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created as the main window.
+	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created as the main window.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureMainWindow_Configures_Editor()
+	public void CreateMainWindow_Configures_Editor()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -362,7 +362,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.ConfigureMainWindow([]);
+		Window window = sut.CreateMainWindow([]);
 
 		// Assert
 		window
@@ -371,10 +371,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureMainWindow" />: an editor window is created when no saved window setting exists.
+	/// <see cref="ViewLauncher.CreateMainWindow" />: an editor window is created when no saved window setting exists.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureMainWindow_Configures_Editor_If_No_Settings()
+	public void CreateMainWindow_Configures_Editor_If_No_Settings()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -401,7 +401,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.ConfigureMainWindow([]);
+		Window window = sut.CreateMainWindow([]);
 
 		// Assert
 		window
@@ -410,10 +410,10 @@ internal class ViewLauncherTests
 	}
 
 	/// <summary>
-	/// <see cref="ViewLauncher.ConfigureMainWindow" />: a favorites window is created when the saved window setting is Favorites.
+	/// <see cref="ViewLauncher.CreateMainWindow" />: a favorites window is created when the saved window setting is Favorites.
 	/// </summary>
 	[AvaloniaTest]
-	public void ConfigureMainWindow_Configures_Favorites()
+	public void CreateMainWindow_Configures_Favorites()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -448,7 +448,7 @@ internal class ViewLauncherTests
 		ViewLauncher sut = mock.Create<ViewLauncher>();
 
 		// Act
-		Window window = sut.ConfigureMainWindow([]);
+		Window window = sut.CreateMainWindow([]);
 
 		// Assert
 		window

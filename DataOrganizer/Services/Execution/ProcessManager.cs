@@ -29,19 +29,19 @@ public sealed class ProcessManager : IProcessManager
 	}
 
 	/// <inheritdoc />
-	public bool ProcessExists(int processId)
-	{
-		return Process
-			.GetProcesses()
-			.Any(x => x.Id == processId);
-	}
-
-	/// <inheritdoc />
 	public void KillProcess(int processId)
 	{
 		Process
 			.GetProcessById(processId)
 			.Kill();
+	}
+
+	/// <inheritdoc />
+	public bool ProcessExists(int processId)
+	{
+		return Process
+			.GetProcesses()
+			.Any(x => x.Id == processId);
 	}
 
 	/// <inheritdoc />

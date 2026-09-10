@@ -28,7 +28,7 @@
 					<RadioButton
 						Classes="accent"
 						Content="{x:Static prop:Strings.System}"
-						IsChecked="{Binding IsInheritTheme, Mode=TwoWay}" />
+						IsChecked="{Binding IsThemeInherited, Mode=TwoWay}" />
 
 					<RadioButton
 						Classes="accent"

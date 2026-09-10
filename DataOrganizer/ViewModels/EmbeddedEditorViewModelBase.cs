@@ -246,7 +246,7 @@ public abstract partial class EmbeddedEditorViewModelBase :
 	/// <summary>
 	/// Decrypts the content when the editor holds a protected file; <c>null</c> reports a refusal.
 	/// </summary>
-	protected byte[]? TryToDecrypt(byte[] input)
+	protected byte[]? TryDecrypt(byte[] input)
 	{
 		if (KeeperId is not { } keeperId || input.IsEmpty())
 		{

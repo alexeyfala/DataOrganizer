@@ -69,7 +69,7 @@ public sealed partial class ClipboardLogViewModel :
 	/// Clears the history list. Disabled while it is empty.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanClear))]
-	private Task Clear() => _clipboardLog.ClearAsync();
+	private Task Clear() => _clipboardLog.ClearAllAsync();
 
 	/// <summary>
 	/// Opens the URL carried by <paramref name="entry" /> in the OS-default browser via shell-execute.

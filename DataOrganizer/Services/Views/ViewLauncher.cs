@@ -205,7 +205,7 @@ public class ViewLauncher : IViewLauncher
 
 	#region Methods
 	/// <inheritdoc />
-	public ClipboardLogWindow ConfigureClipboardLogWindow(Window owner)
+	public ClipboardLogWindow CreateClipboardLogWindow(Window owner)
 	{
 		_logger.LogInformation($@"Opening ""{nameof(ClipboardLogWindow)}""");
 
@@ -250,7 +250,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public EditorWindow ConfigureEditorWindow(
+	public EditorWindow CreateEditorWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
 		IEnumerable<FileDto> executingFiles,
@@ -321,7 +321,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public FavoritesWindow ConfigureFavoritesWindow(
+	public FavoritesWindow CreateFavoritesWindow(
 		IEnumerable<ExplorerItemDtoBase> hierarchy,
 		IEnumerable<FileDto> editingFiles,
 		IEnumerable<FileDto> executingFiles)
@@ -367,7 +367,7 @@ public class ViewLauncher : IViewLauncher
 	}
 
 	/// <inheritdoc />
-	public Window ConfigureMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
+	public Window CreateMainWindow(IEnumerable<ExplorerItemDtoBase> hierarchy)
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
 
@@ -375,13 +375,13 @@ public class ViewLauncher : IViewLauncher
 		{
 			return settings switch
 			{
-				WindowKind.Editor => ConfigureEditorWindow(hierarchy, [], []),
-				WindowKind.Favorites => ConfigureFavoritesWindow(hierarchy, [], []),
+				WindowKind.Editor => CreateEditorWindow(hierarchy, [], []),
+				WindowKind.Favorites => CreateFavoritesWindow(hierarchy, [], []),
 				_ => throw new NotImplementedException()
 			};
 		}
 
-		return ConfigureEditorWindow(hierarchy, [], []);
+		return CreateEditorWindow(hierarchy, [], []);
 	}
 
 	/// <inheritdoc />
@@ -530,7 +530,7 @@ public class ViewLauncher : IViewLauncher
 
 		await UnlockClipboardHistoryIfRequiredAsync().ConfigureAwait(true);
 
-		ConfigureClipboardLogWindow(owner).Show();
+		CreateClipboardLogWindow(owner).Show();
 	}
 
 	/// <inheritdoc />
@@ -683,7 +683,7 @@ public class ViewLauncher : IViewLauncher
 			{
 				console.Close();
 
-				while (_app.IsAnyWindow<ConsoleWindow>())
+				while (_app.HasWindow<ConsoleWindow>())
 				{
 					await Task
 						.Delay(300)

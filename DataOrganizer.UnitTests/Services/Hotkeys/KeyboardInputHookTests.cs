@@ -112,7 +112,7 @@ internal class KeyboardInputHookTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TextDefaults.Encoding.GetBytes(SampleText.LoremIpsum));
 
 			builder.RegisterInstance(contentCipher);
@@ -187,7 +187,7 @@ internal class KeyboardInputHookTests
 			IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
 			contentCipher
-				.TryToDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
+				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
 				.Returns(TestData.CreateRandomBytes(10));
 
 			builder.RegisterInstance(contentCipher);

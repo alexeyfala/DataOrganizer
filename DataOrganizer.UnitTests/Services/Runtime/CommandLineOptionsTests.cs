@@ -30,7 +30,7 @@ internal class CommandLineOptionsTests
 		CommandLineOptions sut = mock.Create<CommandLineOptions>(TypedParameter.From(args));
 
 		// Assert
-		sut.IsConsoleNeeded
+		sut.ShowConsole
 			.Should()
 			.BeTrue();
 

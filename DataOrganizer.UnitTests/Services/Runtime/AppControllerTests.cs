@@ -80,11 +80,11 @@ internal class AppControllerTests
 
 		await entityLoader
 			.DidNotReceive()
-			.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>());
+			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
 
 		viewLauncher
 			.DidNotReceive()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -123,7 +123,7 @@ internal class AppControllerTests
 		{
 			sandbox.EraseAsync(Arg.Any<CancellationToken>());
 
-			viewLauncher.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			viewLauncher.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 		});
 	}
 
@@ -166,7 +166,7 @@ internal class AppControllerTests
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns([file]);
 
 			builder.RegisterInstance(dbAccess);
@@ -255,11 +255,11 @@ internal class AppControllerTests
 
 		await entityLoader
 			.Received()
-			.LoadFromEmbeddedDbAsync();
+			.LoadHierarchyAsync();
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -313,11 +313,11 @@ internal class AppControllerTests
 		// The message is enough: reading a database that is not there would only add a second one.
 		await entityLoader
 			.DidNotReceive()
-			.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>());
+			.LoadHierarchyAsync(Arg.Any<CancellationToken>());
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -349,7 +349,7 @@ internal class AppControllerTests
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns((ExplorerItemDtoBase[]?)null);
 
 			builder.RegisterInstance(dbAccess);
@@ -375,7 +375,7 @@ internal class AppControllerTests
 
 		viewLauncher
 			.Received()
-			.ConfigureMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
+			.CreateMainWindow(Arg.Any<IEnumerable<ExplorerItemDtoBase>>());
 	}
 
 	/// <summary>
@@ -417,7 +417,7 @@ internal class AppControllerTests
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns([file]);
 
 			builder.RegisterInstance(dbAccess);

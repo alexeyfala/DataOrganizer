@@ -30,7 +30,7 @@ public interface IClipboardLogService : IAsyncDisposable
 	/// Clears <see cref="Entries" />, forgets the last observed payload and empties the
 	/// system clipboard, so cleared content is not re-captured until a new copy occurs.
 	/// </summary>
-	Task ClearAsync();
+	Task ClearAllAsync();
 
 	/// <summary>
 	/// Clears <see cref="Entries" /> and forgets the last observed payload, without

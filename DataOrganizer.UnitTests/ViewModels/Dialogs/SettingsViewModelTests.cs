@@ -118,7 +118,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(primaryColor);
 
-		themeService.Received().SetAppMaterialTheme(
+		themeService.Received().SetTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
@@ -147,7 +147,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(secondaryColor);
 
-		themeService.Received().SetAppMaterialTheme(
+		themeService.Received().SetTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());
@@ -187,7 +187,7 @@ internal class SettingsViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="SettingsViewModel.IsInheritTheme" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
+	/// <see cref="SettingsViewModel.IsThemeInherited" />, <see cref="SettingsViewModel.IsLightTheme" />, <see cref="SettingsViewModel.IsDarkTheme" />: selecting a theme flag sets the current settings theme and triggers a material theme update.
 	/// </summary>
 	[Test]
 	public void CurrentSettings_Applies_Theme([Values] BaseThemeMode theme)
@@ -199,7 +199,7 @@ internal class SettingsViewModelTests
 
 		SettingsViewModel sut = mock.Create<SettingsViewModel>(TypedParameter.From(themeService));
 
-		sut.IsInheritTheme = false;
+		sut.IsThemeInherited = false;
 
 		sut.IsLightTheme = false;
 
@@ -209,7 +209,7 @@ internal class SettingsViewModelTests
 		switch (theme)
 		{
 			case BaseThemeMode.Inherit:
-				sut.IsInheritTheme = true;
+				sut.IsThemeInherited = true;
 				break;
 
 			case BaseThemeMode.Light:
@@ -226,7 +226,7 @@ internal class SettingsViewModelTests
 			.Should()
 			.Be(theme);
 
-		themeService.Received().SetAppMaterialTheme(
+		themeService.Received().SetTheme(
 			Arg.Any<BaseThemeMode>(),
 			Arg.Any<PrimaryColor>(),
 			Arg.Any<SecondaryColor>());

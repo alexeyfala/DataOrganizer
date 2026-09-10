@@ -14,10 +14,10 @@ internal class EmbeddedEditorViewModelBaseTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: delegates to the cipher when a keeper is known.
+	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: delegates to the cipher when a keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
+	public void TryDecrypt_Delegates_To_Store_When_Keeper_Is_Known()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
@@ -38,7 +38,7 @@ internal class EmbeddedEditorViewModelBaseTests
 		};
 
 		// Act
-		byte[]? result = sut.InvokeTryToDecrypt(input);
+		byte[]? result = sut.InvokeTryDecrypt(input);
 
 		// Assert
 		result
@@ -51,10 +51,10 @@ internal class EmbeddedEditorViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: returns the input unchanged when it is empty.
+	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when it is empty.
 	/// </summary>
 	[Test]
-	public void TryToDecrypt_Returns_Input_When_Input_Is_Empty()
+	public void TryDecrypt_Returns_Input_When_Input_Is_Empty()
 	{
 		// Arrange
 		byte[] input = [];
@@ -67,7 +67,7 @@ internal class EmbeddedEditorViewModelBaseTests
 		};
 
 		// Act
-		byte[]? result = sut.InvokeTryToDecrypt(input);
+		byte[]? result = sut.InvokeTryDecrypt(input);
 
 		// Assert
 		result
@@ -80,10 +80,10 @@ internal class EmbeddedEditorViewModelBaseTests
 	}
 
 	/// <summary>
-	/// <see cref="EmbeddedEditorViewModelBase.TryToDecrypt" />: returns the input unchanged when no keeper is known.
+	/// <see cref="EmbeddedEditorViewModelBase.TryDecrypt" />: returns the input unchanged when no keeper is known.
 	/// </summary>
 	[Test]
-	public void TryToDecrypt_Returns_Input_When_No_Keeper()
+	public void TryDecrypt_Returns_Input_When_No_Keeper()
 	{
 		// Arrange
 		byte[] input = [1, 2, 3];
@@ -93,7 +93,7 @@ internal class EmbeddedEditorViewModelBaseTests
 		TestEditor sut = new(contentCipher);
 
 		// Act
-		byte[]? result = sut.InvokeTryToDecrypt(input);
+		byte[]? result = sut.InvokeTryDecrypt(input);
 
 		// Assert
 		result
@@ -220,7 +220,7 @@ internal sealed class TestEditor : EmbeddedEditorViewModelBase
 	{
 	}
 
-	public byte[]? InvokeTryToDecrypt(byte[] input) => TryToDecrypt(input);
+	public byte[]? InvokeTryDecrypt(byte[] input) => TryDecrypt(input);
 
 	public byte[]? InvokeTryToEncrypt(byte[] input) => TryToEncrypt(input);
 }

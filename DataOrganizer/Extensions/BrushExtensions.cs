@@ -15,7 +15,7 @@ internal static class BrushExtensions
 	/// <summary>
 	/// Applies a color animation to a property.
 	/// </summary>
-	public static Task ApplyColorAnimation(
+	public static Task ApplyColorAnimationAsync(
 		Expression<Func<Animatable?>> expression,
 		Color fromColor,
 		Color toColor,
@@ -69,11 +69,11 @@ internal static class BrushExtensions
 	/// <summary>
 	/// Applies a <see cref="Colors.LimeGreen" /> animation with 2.0 seconds duration to a property.
 	/// </summary>
-	public static Task ApplyLimeGreenColorAnimation(
+	public static Task ApplyHighlightAnimationAsync(
 		Expression<Func<Animatable?>> expression,
 		CancellationToken token = default)
 	{
-		return ApplyColorAnimation(
+		return ApplyColorAnimationAsync(
 			expression,
 			Colors.LimeGreen,
 			Colors.Transparent,

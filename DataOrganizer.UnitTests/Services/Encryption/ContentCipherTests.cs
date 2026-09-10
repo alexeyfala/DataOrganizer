@@ -175,44 +175,11 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentCipher.TryEncrypt" />: a locked keeper ends with a refusal instead of an exception.
-	/// </summary>
-	[Test]
-	[TestCaseSource(nameof(SessionCipherFailures))]
-	public void TryEncrypt_Refuses_On_A_Failure(Exception failure)
-	{
-		// Arrange
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
-
-			sessionKeyStore
-				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Throws(failure);
-
-			builder.RegisterInstance(sessionKeyStore);
-		});
-
-		ContentCipher sut = mock.Create<ContentCipher>();
-
-		// Act
-		byte[]? result = sut.TryEncrypt(
-			Guid.NewGuid(),
-			ContentIdentity.ForNote(Guid.NewGuid()),
-			TestData.CreateRandomBytes(10));
-
-		// Assert
-		result
-			.Should()
-			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: a file belonging to no password keeper
+	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: a file belonging to no password keeper
 	/// cannot be decrypted, so no password is asked for.
 	/// </summary>
 	[Test]
-	public async Task TryToDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
+	public async Task TryDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
 	{
 		// Arrange
 		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
@@ -224,7 +191,7 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(
+		byte[]? result = await sut.TryDecryptContentsAsync(
 			file,
 			TestData.CreateRandomBytes(10),
 			string.Empty);
@@ -240,10 +207,10 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: decrypts through the key store when the file is already decrypted.
+	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: decrypts through the key store when the file is already decrypted.
 	/// </summary>
 	[Test]
-	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
+	public async Task TryDecryptContentsAsync_Does_Work_When_File_Is_Decrypted()
 	{
 		// Arrange
 		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
@@ -282,7 +249,7 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
+		byte[]? result = await sut.TryDecryptContentsAsync(file, contents, string.Empty);
 
 		// Assert
 		result
@@ -296,10 +263,10 @@ internal class ContentCipherTests
 
 
 	/// <summary>
-	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: prompts for the password and decrypts when the file is encrypted.
+	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: prompts for the password and decrypts when the file is encrypted.
 	/// </summary>
 	[Test]
-	public async Task TryToDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
+	public async Task TryDecryptContentsAsync_Does_Work_When_File_Is_Encrypted()
 	{
 		// Arrange
 		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
@@ -340,7 +307,7 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(file, contents, string.Empty);
+		byte[]? result = await sut.TryDecryptContentsAsync(file, contents, string.Empty);
 
 		// Assert
 		result
@@ -353,11 +320,11 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: empty contents come back untouched
+	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: empty contents come back untouched
 	/// and no password is asked for.
 	/// </summary>
 	[Test]
-	public async Task TryToDecryptContentsAsync_Hands_Empty_Contents_Back()
+	public async Task TryDecryptContentsAsync_Hands_Empty_Contents_Back()
 	{
 		// Arrange
 		IDialogService dialogService = Substitute.For<IDialogService>();
@@ -367,7 +334,7 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(
+		byte[]? result = await sut.TryDecryptContentsAsync(
 			TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted),
 			[],
 			string.Empty);
@@ -383,10 +350,10 @@ internal class ContentCipherTests
 	}
 
 	/// <summary>
-	/// <see cref="ContentCipher.TryToDecryptContentsAsync" />: returns the input unchanged when the file is not encrypted.
+	/// <see cref="ContentCipher.TryDecryptContentsAsync" />: returns the input unchanged when the file is not encrypted.
 	/// </summary>
 	[Test]
-	public async Task TryToDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
+	public async Task TryDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
 	{
 		// Arrange
 		byte[] contents = TestData.CreateRandomBytes(10);
@@ -396,7 +363,7 @@ internal class ContentCipherTests
 		ContentCipher sut = mock.Create<ContentCipher>();
 
 		// Act
-		byte[]? result = await sut.TryToDecryptContentsAsync(
+		byte[]? result = await sut.TryDecryptContentsAsync(
 			TestData.CreateFileDto(encryptionStatus: EncryptionStatus.None),
 			contents,
 			string.Empty);
@@ -405,6 +372,39 @@ internal class ContentCipherTests
 		result
 			.Should()
 			.BeEquivalentTo(contents);
+	}
+
+	/// <summary>
+	/// <see cref="ContentCipher.TryEncrypt" />: a locked keeper ends with a refusal instead of an exception.
+	/// </summary>
+	[Test]
+	[TestCaseSource(nameof(SessionCipherFailures))]
+	public void TryEncrypt_Refuses_On_A_Failure(Exception failure)
+	{
+		// Arrange
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
+
+			sessionKeyStore
+				.Encrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
+				.Throws(failure);
+
+			builder.RegisterInstance(sessionKeyStore);
+		});
+
+		ContentCipher sut = mock.Create<ContentCipher>();
+
+		// Act
+		byte[]? result = sut.TryEncrypt(
+			Guid.NewGuid(),
+			ContentIdentity.ForNote(Guid.NewGuid()),
+			TestData.CreateRandomBytes(10));
+
+		// Assert
+		result
+			.Should()
+			.BeNull();
 	}
 	#endregion
 

@@ -35,10 +35,10 @@ internal class DataExchangeServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="DataExchangeService.AppendFromSQLiteAsync" />: appends entities from a SQLite source and maps them via the entity loader.
+	/// <see cref="DataExchangeService.AppendFromSqliteAsync" />: appends entities from a SQLite source and maps them via the entity loader.
 	/// </summary>
 	[Test]
-	public async Task AppendFromSQLiteAsync_Does_Work()
+	public async Task AppendFromSqliteAsync_Does_Work()
 	{
 		// Arrange
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
@@ -71,7 +71,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.AppendFromSQLiteAsync(
+		bool result = await sut.AppendFromSqliteAsync(
 			string.Empty,
 			[],
 			[]);
@@ -420,7 +420,7 @@ internal class DataExchangeServiceTests
 			IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns([file]);
 
 			builder.RegisterInstance(dbAccess);
@@ -684,10 +684,10 @@ internal class DataExchangeServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />: replaces data from an embedded SQLite source, clearing the hierarchy.
+	/// <see cref="DataExchangeService.ReplaceFromSqliteAsync" />: replaces data from an embedded SQLite source, clearing the hierarchy.
 	/// </summary>
 	[Test]
-	public async Task ReplaceFromSQLiteAsync_Does_Work()
+	public async Task ReplaceFromSqliteAsync_Does_Work()
 	{
 		// Arrange
 		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData
@@ -699,7 +699,7 @@ internal class DataExchangeServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns([]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -716,7 +716,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ReplaceFromSQLiteAsync(
+		bool result = await sut.ReplaceFromSqliteAsync(
 			string.Empty,
 			[],
 			hierarchy);
@@ -732,15 +732,15 @@ internal class DataExchangeServiceTests
 
 		await entityLoader
 			.Received()
-			.LoadFromEmbeddedDbAsync();
+			.LoadHierarchyAsync();
 	}
 
 	/// <summary>
-	/// <see cref="DataExchangeService.ReplaceFromSQLiteAsync" />: a database that is in place but cannot
+	/// <see cref="DataExchangeService.ReplaceFromSqliteAsync" />: a database that is in place but cannot
 	/// be read is reported as a failed import, so the copy taken before it is restored.
 	/// </summary>
 	[Test]
-	public async Task ReplaceFromSQLiteAsync_Fails_When_The_Database_Cannot_Be_Read()
+	public async Task ReplaceFromSqliteAsync_Fails_When_The_Database_Cannot_Be_Read()
 	{
 		// Arrange
 		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFoldersDto(5)];
@@ -752,7 +752,7 @@ internal class DataExchangeServiceTests
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
 			entityLoader
-				.LoadFromEmbeddedDbAsync(Arg.Any<CancellationToken>())
+				.LoadHierarchyAsync(Arg.Any<CancellationToken>())
 				.Returns((ExplorerItemDtoBase[]?)null);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
@@ -769,7 +769,7 @@ internal class DataExchangeServiceTests
 		DataExchangeService sut = mock.Create<DataExchangeService>();
 
 		// Act
-		bool result = await sut.ReplaceFromSQLiteAsync(
+		bool result = await sut.ReplaceFromSqliteAsync(
 			string.Empty,
 			objects,
 			hierarchy);

@@ -24,10 +24,10 @@ internal class EntityLoaderTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: loads folders and files and returns a hierarchy containing all of them.
+	/// <see cref="EntityLoader.LoadHierarchyAsync" />: loads folders and files and returns a hierarchy containing all of them.
 	/// </summary>
 	[Test]
-	public async Task LoadFromEmbeddedDbAsync_Does_Work()
+	public async Task LoadHierarchyAsync_Does_Work()
 	{
 		// Arrange
 		const int folderCount = 5;
@@ -68,7 +68,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
+		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
 
 		// Assert
 		hierarchy?.Length
@@ -77,11 +77,11 @@ internal class EntityLoaderTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: a cancelled load is the caller giving up,
+	/// <see cref="EntityLoader.LoadHierarchyAsync" />: a cancelled load is the caller giving up,
 	/// so it leaves as a cancellation.
 	/// </summary>
 	[Test]
-	public async Task LoadFromEmbeddedDbAsync_Passes_A_Cancellation_On()
+	public async Task LoadHierarchyAsync_Passes_A_Cancellation_On()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -100,7 +100,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		Func<Task> act = () => sut.LoadFromEmbeddedDbAsync();
+		Func<Task> act = () => sut.LoadHierarchyAsync();
 
 		// Assert
 		await act
@@ -109,11 +109,11 @@ internal class EntityLoaderTests
 	}
 
 	/// <summary>
-	/// <see cref="EntityLoader.LoadFromEmbeddedDbAsync" />: a database that cannot be read is reported
+	/// <see cref="EntityLoader.LoadHierarchyAsync" />: a database that cannot be read is reported
 	/// as such, not as a database without objects.
 	/// </summary>
 	[Test]
-	public async Task LoadFromEmbeddedDbAsync_Reports_A_Database_It_Cannot_Read()
+	public async Task LoadHierarchyAsync_Reports_A_Database_It_Cannot_Read()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
@@ -132,7 +132,7 @@ internal class EntityLoaderTests
 		EntityLoader sut = mock.Create<EntityLoader>();
 
 		// Act
-		ExplorerItemDtoBase[]? hierarchy = await sut.LoadFromEmbeddedDbAsync();
+		ExplorerItemDtoBase[]? hierarchy = await sut.LoadHierarchyAsync();
 
 		// Assert
 		hierarchy

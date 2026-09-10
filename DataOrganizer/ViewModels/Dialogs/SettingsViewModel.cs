@@ -75,12 +75,6 @@ public sealed partial class SettingsViewModel : ObservableObject
 	public bool IsDiscarded { get; private set; }
 
 	/// <summary>
-	/// Specifies that the <see cref="BaseThemeMode.Inherit" /> theme is used.
-	/// </summary>
-	[ObservableProperty]
-	public partial bool IsInheritTheme { get; set; }
-
-	/// <summary>
 	/// Specifies that the <see cref="BaseThemeMode.Light" /> theme is used.
 	/// </summary>
 	[ObservableProperty]
@@ -90,6 +84,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 	/// <c>True</c> when the user has saved the settings.
 	/// </summary>
 	public bool IsSaved { get; private set; }
+
+	/// <summary>
+	/// Specifies that the <see cref="BaseThemeMode.Inherit" /> theme is used.
+	/// </summary>
+	[ObservableProperty]
+	public partial bool IsThemeInherited { get; set; }
 
 	/// <inheritdoc cref="AppSettings.Language" />
 	[ObservableProperty]
@@ -163,16 +163,16 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetAppMaterialTheme(
+		_themeService.SetTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
 	}
 
 	/// <summary>
-	/// Called when <see cref="IsInheritTheme" /> changes.
+	/// Called when <see cref="IsThemeInherited" /> changes.
 	/// </summary>
-	partial void OnIsInheritThemeChanged(bool value)
+	partial void OnIsThemeInheritedChanged(bool value)
 	{
 		if (!value)
 		{
@@ -185,7 +185,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetAppMaterialTheme(
+		_themeService.SetTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -207,7 +207,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetAppMaterialTheme(
+		_themeService.SetTheme(
 			theme,
 			PrimaryColor,
 			SecondaryColor);
@@ -247,7 +247,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetAppMaterialTheme(
+		_themeService.SetTheme(
 			CurrentSettings.Theme,
 			value,
 			SecondaryColor);
@@ -262,7 +262,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		NotifyCommandsCanExecuteChanged();
 
-		_themeService.SetAppMaterialTheme(
+		_themeService.SetTheme(
 			CurrentSettings.Theme,
 			PrimaryColor,
 			value);
@@ -360,7 +360,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 		// A handler of a theme flag acts on the selected one only, so the order of the assignments does not matter.
 		IsLightTheme = defaults.Theme == BaseThemeMode.Light;
 
-		IsInheritTheme = defaults.Theme == BaseThemeMode.Inherit;
+		IsThemeInherited = defaults.Theme == BaseThemeMode.Inherit;
 
 		IsDarkTheme = defaults.Theme == BaseThemeMode.Dark;
 	}
@@ -439,7 +439,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
 		IsLightTheme = CurrentSettings.Theme == BaseThemeMode.Light;
 
-		IsInheritTheme = CurrentSettings.Theme == BaseThemeMode.Inherit;
+		IsThemeInherited = CurrentSettings.Theme == BaseThemeMode.Inherit;
 
 		IsDarkTheme = CurrentSettings.Theme == BaseThemeMode.Dark;
 	}

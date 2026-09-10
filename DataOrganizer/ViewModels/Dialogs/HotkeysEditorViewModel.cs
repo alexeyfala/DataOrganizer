@@ -162,7 +162,7 @@ public sealed partial class HotkeysEditorViewModel :
 		EventMask mask = rawMask.RemoveFlag(EventMask.NumLock);
 
 		if (mask.IsDefault()
-			|| IsMask(code)
+			|| IsModifierKey(code)
 			|| (Buffer.Any() && mask != Buffer.Last().Mask))
 		{
 			return;
@@ -210,7 +210,7 @@ public sealed partial class HotkeysEditorViewModel :
 	/// <summary>
 	/// <c>True</c> when <see cref="KeyCode" /> is mask.
 	/// </summary>
-	private static bool IsMask(KeyCode code) => code switch
+	private static bool IsModifierKey(KeyCode code) => code switch
 	{
 		KeyCode.VcCapsLock => true,
 		KeyCode.VcScrollLock => true,

@@ -101,7 +101,7 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 
 		if (_removeAt is { } removeAt)
 		{
-			if (IsMessageOver(removeAt))
+			if (IsMessageExpired(removeAt))
 			{
 				Remove();
 			}
@@ -127,7 +127,7 @@ internal sealed class MessageChannel<TContent> where TContent : notnull
 	/// <summary>
 	/// <c>True</c> when a message has been on the screen long enough and the pointer does not hold it.
 	/// </summary>
-	private bool IsMessageOver(DateTimeOffset removeAt)
+	private bool IsMessageExpired(DateTimeOffset removeAt)
 	{
 		return _timeProvider.GetUtcNow() >= removeAt && !_presenter.IsPointerOverMessage;
 	}

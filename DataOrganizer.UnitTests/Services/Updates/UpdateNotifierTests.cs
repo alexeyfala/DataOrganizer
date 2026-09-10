@@ -26,7 +26,7 @@ internal class UpdateNotifierTests
 		// Arrange
 		UpdateCheckResult result = new()
 		{
-			UpdateAvailable = true,
+			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = ReleaseUrl
 		};
@@ -81,7 +81,7 @@ internal class UpdateNotifierTests
 		// Arrange
 		UpdateCheckResult result = new()
 		{
-			UpdateAvailable = true,
+			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = null
 		};
@@ -112,7 +112,7 @@ internal class UpdateNotifierTests
 		// Arrange
 		UpdateCheckResult result = new()
 		{
-			UpdateAvailable = true,
+			IsUpdateAvailable = true,
 			LatestVersion = "0.2.0",
 			ReleaseUrl = ReleaseUrl
 		};

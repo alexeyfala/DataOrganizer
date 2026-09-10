@@ -13,20 +13,19 @@ public interface IProcessManager
 	/// </summary>
 	Process[] GetChildProcesses(int parentProcessId);
 
+	/// <inheritdoc cref="Process.Kill()" />
+	void KillProcess(int processId);
+
 	/// <summary>
 	/// <c>True</c> when the process with <see cref="Process.Id" /> specified by <paramref name="processId"/> exists.
 	/// </summary>
 	bool ProcessExists(int processId);
-
-	/// <inheritdoc cref="Process.Kill()" />
-	void KillProcess(int processId);
 
 	/// <summary>
 	/// Launches a file process depending on the operating system.<br />
 	/// When running a file without an extension or when there is no application
 	/// in system associated with file <paramref name="processId"/> will have default value.
 	/// </summary>
-	/// <returns><see cref="Process.Id" /></returns>
 	bool StartProcess(string filePath, out int processId);
 
 	/// <summary>

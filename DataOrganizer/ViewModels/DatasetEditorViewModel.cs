@@ -87,7 +87,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 				return;
 			}
 
-			if (TryToDecrypt(result.Contents) is not { } output)
+			if (TryDecrypt(result.Contents) is not { } output)
 			{
 				IsContentCorrupted = true;
 
@@ -173,7 +173,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddGroup(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -196,7 +196,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddKeyValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -224,7 +224,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Adds a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task AddValue(RecordsGroup? group)
 	{
 		KeyValueInputParameters parameters = new()
@@ -284,7 +284,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="RecordsGroup" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -298,7 +298,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="KeyValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteKeyValueRecord(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -312,7 +312,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Deletes a <see cref="ValueRecord" /> from <see cref="Records" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task DeleteValueRecord(ValueRecord? record)
 	{
 		if (record is null)
@@ -326,7 +326,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="KeyValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditKeyValue(KeyValueRecord? record)
 	{
 		if (record is null)
@@ -361,7 +361,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits <see cref="DatasetRecordBase.Note" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditNote(DatasetRecordBase? record)
 	{
 		if (record is null)
@@ -394,7 +394,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Edits a <see cref="ValueRecord" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task EditValue(ValueRecord? record)
 	{
 		if (record is null)
@@ -436,7 +436,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Handles the <see cref="Expander.Expanded" />, <see cref="Expander.Collapsed" /> events by user.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private Task GroupExpandedCollapsedByUser(RoutedEventArgs? e)
 	{
 		if (e?.Source is not Expander expander || !expander.IsPointerOver)
@@ -459,7 +459,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Renames a <see cref="RecordsGroup" />.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsNotReadOnlyNotCorrupted))]
+	[RelayCommand(CanExecute = nameof(CanEdit))]
 	private async Task RenameGroup(RecordsGroup? group)
 	{
 		if (group is null)
@@ -539,7 +539,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private async Task SortAscending(RecordsGroup? group)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(Strings.SortAscending + "?")
+			.RequestYesNoAsync(Strings.SortAscending + "?")
 			.ConfigureAwait(false))
 		{
 			return;
@@ -551,7 +551,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	/// <summary>
 	/// Sorts <see cref="Records" /> ascending or descending order.
 	/// </summary>
-	[RelayCommand(CanExecute = nameof(IsAnyRecords))]
+	[RelayCommand(CanExecute = nameof(HasRecords))]
 	private async Task SortAscendingDescending(ListSortDirection direction)
 	{
 		string text = string.Concat(direction switch
@@ -562,7 +562,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		}, "?");
 
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(text)
+			.RequestYesNoAsync(text)
 			.ConfigureAwait(false))
 		{
 			return;
@@ -578,7 +578,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	private async Task SortDescending(RecordsGroup? group)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync(Strings.SortDescending + "?")
+			.RequestYesNoAsync(Strings.SortDescending + "?")
 			.ConfigureAwait(false))
 		{
 			return;
@@ -1166,6 +1166,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
+	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
+	/// </summary>
+	private bool CanEdit() => !IsReadOnly && !IsContentCorrupted;
+
+	/// <summary>
 	/// Validates <see cref="ScrollToEndCommand" />.
 	/// </summary>
 	private bool CanScrollToEnd() => !ScrollToTopCommand.IsRunning;
@@ -1182,7 +1187,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 		CancellationToken token = default)
 	{
 		if (!await _dialogService
-			.RequestYesNoDialogAsync($@"{Strings.Delete} ""{questionText}""?", token)
+			.RequestYesNoAsync($@"{Strings.Delete} ""{questionText}""?", token)
 			.ConfigureAwait(false))
 		{
 			return;
@@ -1190,6 +1195,11 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 
 		await DeleteRecordAsync(record, token).ConfigureAwait(false);
 	}
+
+	/// <summary>
+	/// <c>True</c> when <see cref="Records" /> has elements.
+	/// </summary>
+	private bool HasRecords() => Records.Any();
 
 	/// <summary>
 	/// Restores the editor state from the database.
@@ -1258,16 +1268,6 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 			_logger.LogException(ex, false);
 		}
 	}
-
-	/// <summary>
-	/// <c>True</c> when <see cref="Records" /> has elements.
-	/// </summary>
-	private bool IsAnyRecords() => Records.Any();
-
-	/// <summary>
-	/// <c>True</c> when <see cref="EmbeddedEditorViewModelBase.IsReadOnly" /> is <c>False</c> and <see cref="EmbeddedEditorViewModelBase.IsContentCorrupted" /> is <c>False</c>.
-	/// </summary>
-	private bool IsNotReadOnlyNotCorrupted() => !IsReadOnly && !IsContentCorrupted;
 
 	/// <inheritdoc cref="EmbeddedEditorViewModelBase.SaveContentsAsync" />
 	private async Task<bool> SaveContentsAsync(CancellationToken token = default)

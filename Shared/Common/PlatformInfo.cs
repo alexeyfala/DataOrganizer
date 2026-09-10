@@ -14,7 +14,7 @@ public static class PlatformInfo
 	/// <summary>
 	/// Current operating system.
 	/// </summary>
-	public static OperatingSystemKind CurrentOs { get; } = GetCurrentOs();
+	public static OperatingSystemKind CurrentOS { get; } = GetCurrentOS();
 
 	/// <summary>
 	/// The name of the program for opening files depending on the operating system.
@@ -42,9 +42,9 @@ public static class PlatformInfo
 
 	#region Helpers
 	/// <summary>
-	/// Returns a value for <see cref="CurrentOs" />.
+	/// Returns a value for <see cref="CurrentOS" />.
 	/// </summary>
-	private static OperatingSystemKind GetCurrentOs()
+	private static OperatingSystemKind GetCurrentOS()
 	{
 		if (OperatingSystem.IsWindows())
 		{
@@ -64,7 +64,7 @@ public static class PlatformInfo
 	/// <summary>
 	/// Returns the value for <see cref="FileOpener" />.
 	/// </summary>
-	private static string GetFileOpener() => CurrentOs switch
+	private static string GetFileOpener() => CurrentOS switch
 	{
 		OperatingSystemKind.Windows => "explorer",
 		OperatingSystemKind.Linux => "xdg-open",

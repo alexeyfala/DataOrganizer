@@ -41,13 +41,13 @@ public sealed class AppThemeService : IAppThemeService
 
 	#region Methods
 	/// <inheritdoc />
-	public void ApplyMaterialTheme()
+	public void ApplyFromSettings()
 	{
 		AppSettings settings = _store.Settings;
 
 		try
 		{
-			SetAppMaterialTheme(
+			SetTheme(
 				settings.Theme,
 				settings.PrimaryColor,
 				settings.SecondaryColor);
@@ -59,7 +59,7 @@ public sealed class AppThemeService : IAppThemeService
 	}
 
 	/// <inheritdoc />
-	public void SetAppMaterialTheme(
+	public void SetTheme(
 		BaseThemeMode mode,
 		PrimaryColor primaryColor,
 		SecondaryColor secondaryColor)

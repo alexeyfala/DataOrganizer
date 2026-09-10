@@ -126,7 +126,7 @@ public sealed class UpdateCheckService : IUpdateCheckService
 		return updateAvailable
 			? new UpdateCheckResult
 			{
-				UpdateAvailable = true,
+				IsUpdateAvailable = true,
 				LatestVersion = latest,
 				ReleaseUrl = release?.HtmlUrl
 			}

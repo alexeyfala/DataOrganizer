@@ -65,18 +65,18 @@ public interface IDialogService
 	/// Asks a question with options <see cref="YesNoCancelButtons.YesCancel" />,
 	/// returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
 	/// </summary>
-	Task<bool> RequestYesCancelDialogAsync(string text, CancellationToken token = default);
+	Task<bool> RequestYesCancelAsync(string text, CancellationToken token = default);
 
 	/// <summary>
 	/// Asks a question with options <see cref="YesNoCancelButtons.YesNo" />,
 	/// returns <c>True</c> if the answer was <see cref="YesNoCancelAnswer.Yes" />.
 	/// </summary>
-	Task<bool> RequestYesNoDialogAsync(string text, CancellationToken token = default);
+	Task<bool> RequestYesNoAsync(string text, CancellationToken token = default);
 
 	/// <summary>
 	/// Selects import variant.
 	/// </summary>
-	Task<ImportMode> SelectImportVariantAsync(CancellationToken token = default);
+	Task<ImportMode> SelectImportModeAsync(CancellationToken token = default);
 
 	/// <summary>
 	/// Displays the entity creation dialog.

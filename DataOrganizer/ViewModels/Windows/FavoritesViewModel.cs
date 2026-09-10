@@ -272,7 +272,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 			try
 			{
 				return await _dialogService
-					.RequestYesNoDialogAsync(text, token)
+					.RequestYesNoAsync(text, token)
 					.ConfigureAwait(true);
 			}
 			finally
@@ -380,7 +380,7 @@ public sealed partial class FavoritesViewModel : ViewModelBase, IDisposable, IUp
 
 		window.Close();
 
-		_viewLauncher.ConfigureEditorWindow(
+		_viewLauncher.CreateEditorWindow(
 			Hierarchy,
 			OpenedInEditorFiles,
 			ExecutingFiles,

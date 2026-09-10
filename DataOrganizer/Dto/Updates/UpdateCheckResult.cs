@@ -14,7 +14,7 @@ public sealed record UpdateCheckResult
 	/// <summary>
 	/// Indicates whether a newer version is available.
 	/// </summary>
-	public bool UpdateAvailable { get; init; }
+	public bool IsUpdateAvailable { get; init; }
 
 	/// <summary>
 	/// Version string of the newer release, when available.

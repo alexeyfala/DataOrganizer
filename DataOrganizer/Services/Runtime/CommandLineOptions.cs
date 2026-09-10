@@ -18,17 +18,17 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	public bool FillObjects { get; }
 
 	/// <inheritdoc />
-	public bool IsConsoleNeeded { get; }
-
-	/// <inheritdoc />
 	public LogEventLevel MinimumLogEventLevel { get; }
 
 	/// <inheritdoc />
 	public bool PrintHelp { get; }
+
+	/// <inheritdoc />
+	public bool ShowConsole { get; }
 	#endregion
 
 	#region Data
-	/// <inheritdoc cref="IsConsoleNeeded" />
+	/// <inheritdoc cref="ShowConsole" />
 	internal const string ConsoleArg = "--console";
 
 	/// <inheritdoc cref="MinimumLogEventLevel" />
@@ -46,7 +46,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	{
 		FillObjects = args.Contains(FillObjectsArg);
 
-		IsConsoleNeeded = args.Contains(ConsoleArg);
+		ShowConsole = args.Contains(ConsoleArg);
 
 		MinimumLogEventLevel = args.Contains(DebugArg)
 			? LogEventLevel.Debug
@@ -102,7 +102,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 	/// </summary>
 	private static Dictionary<string, string> GetCommandDescriptions() => new()
 	{
-		{ ConsoleArg, GetDescription(nameof(ICommandLineOptions.IsConsoleNeeded)) },
+		{ ConsoleArg, GetDescription(nameof(ICommandLineOptions.ShowConsole)) },
 		{ DebugArg, GetDescription(nameof(ICommandLineOptions.MinimumLogEventLevel)) },
 		{ FillObjectsArg, GetDescription(nameof(ICommandLineOptions.FillObjects)) },
 		{ HelpArg, GetDescription(nameof(ICommandLineOptions.PrintHelp)) }

@@ -39,7 +39,7 @@ public sealed class UpdateNotifier : IUpdateNotifier
 			.CheckAsync(token)
 			.ConfigureAwait(true);
 
-		if (!result.UpdateAvailable || result.ReleaseUrl is not { } url)
+		if (!result.IsUpdateAvailable || result.ReleaseUrl is not { } url)
 		{
 			return;
 		}

@@ -44,7 +44,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeTrue();
 
@@ -94,7 +94,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
@@ -132,7 +132,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.Be(expectedUpdate);
 	}
@@ -155,7 +155,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeTrue();
 
@@ -179,7 +179,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
@@ -203,7 +203,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 	}
@@ -223,7 +223,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
@@ -253,7 +253,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 	}
@@ -276,7 +276,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeTrue();
 
@@ -304,7 +304,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeTrue();
 
@@ -331,7 +331,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 	}
@@ -353,7 +353,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 
@@ -383,7 +383,7 @@ internal class UpdateCheckServiceTests
 			.CheckAsync();
 
 		// Assert
-		result.UpdateAvailable
+		result.IsUpdateAvailable
 			.Should()
 			.BeFalse();
 

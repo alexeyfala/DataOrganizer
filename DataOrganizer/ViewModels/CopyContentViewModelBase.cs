@@ -140,7 +140,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 			}
 
 			if (await _contentCipher
-				.TryToDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
+				.TryDecryptContentsAsync(file, result.Contents, Strings.CopyContent, token)
 				.ConfigureAwait(true) is not { } contents)
 			{
 				return;
@@ -180,7 +180,7 @@ public abstract class CopyContentViewModelBase : ObservableDisposableBase
 
 				if (FindLastContainer(container, parents)?.ContainerFromItem(file) is TemplatedControl item)
 				{
-					_exceptionHandler.Watch(BrushExtensions.ApplyLimeGreenColorAnimation(() => item.Background as Brush, token));
+					_exceptionHandler.Watch(BrushExtensions.ApplyHighlightAnimationAsync(() => item.Background as Brush, token));
 				}
 			}
 			finally

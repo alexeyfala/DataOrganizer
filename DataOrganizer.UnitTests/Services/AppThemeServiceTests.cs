@@ -16,10 +16,10 @@ internal class AppThemeServiceTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="AppThemeService.ApplyMaterialTheme" />: does not throw when running under NUnit.
+	/// <see cref="AppThemeService.ApplyFromSettings" />: does not throw when running under NUnit.
 	/// </summary>
 	[Test]
-	public void ApplyMaterialTheme_Does_Not_Throw_When_Running_Under_NUnit()
+	public void ApplyFromSettings_Does_Not_Throw_When_Running_Under_NUnit()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder => builder.RegisterInstance(CreateStore(IAppSettingsStore.CreateDefaultSettings())));
@@ -27,7 +27,7 @@ internal class AppThemeServiceTests
 		AppThemeService sut = mock.Create<AppThemeService>();
 
 		// Act
-		Action act = sut.ApplyMaterialTheme;
+		Action act = sut.ApplyFromSettings;
 
 		// Assert
 		act
@@ -36,10 +36,10 @@ internal class AppThemeServiceTests
 	}
 
 	/// <summary>
-	/// <see cref="AppThemeService.SetAppMaterialTheme" />: is a no-op and does not throw when running under NUnit.
+	/// <see cref="AppThemeService.SetTheme" />: is a no-op and does not throw when running under NUnit.
 	/// </summary>
 	[Test]
-	public void SetAppMaterialTheme_Is_NoOp_When_Running_Under_NUnit()
+	public void SetTheme_Is_NoOp_When_Running_Under_NUnit()
 	{
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose();
@@ -47,7 +47,7 @@ internal class AppThemeServiceTests
 		AppThemeService sut = mock.Create<AppThemeService>();
 
 		// Act
-		Action act = () => sut.SetAppMaterialTheme(
+		Action act = () => sut.SetTheme(
 			BaseThemeMode.Dark,
 			PrimaryColor.Indigo,
 			SecondaryColor.Cyan);
