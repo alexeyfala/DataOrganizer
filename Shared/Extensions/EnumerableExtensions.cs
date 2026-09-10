@@ -79,7 +79,7 @@ public static class EnumerableExtensions
 	/// <summary>
 	/// Performs the specified action on each element of a sequence, providing both the element and its index.
 	/// </summary>
-	public static void ForEachFor<T>(this IEnumerable<T> sequence, Action<T, int> action)
+	public static void ForEachWithIndex<T>(this IEnumerable<T> sequence, Action<T, int> action)
 	{
 		T[] array = [.. sequence.AsNotNull()];
 
@@ -87,6 +87,34 @@ public static class EnumerableExtensions
 		{
 			action(array[i], i);
 		}
+	}
+
+	/// <summary>
+	/// Converts a sequence to a delimited string.
+	/// </summary>
+	public static string JoinAsString<T>(
+		this IEnumerable<T> sequence,
+		string separator,
+		bool addSeparatorToEnd = false)
+	{
+		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
+
+		foreach (T item in sequence.AsNotNull())
+		{
+			if (builder.Length != 0)
+			{
+				builder.Append(separator);
+			}
+
+			builder.Append(item);
+		}
+
+		if (addSeparatorToEnd && builder.Length > 0)
+		{
+			builder.Append(separator);
+		}
+
+		return builder.ToString();
 	}
 
 	/// <summary>
@@ -139,34 +167,6 @@ public static class EnumerableExtensions
 				yield return item;
 			}
 		}
-	}
-
-	/// <summary>
-	/// Converts a sequence to a delimited string.
-	/// </summary>
-	public static string SplitAsString<T>(
-		this IEnumerable<T> sequence,
-		string separator,
-		bool addSeparatorToEnd = false)
-	{
-		using Utf16ValueStringBuilder builder = ZString.CreateStringBuilder();
-
-		foreach (T item in sequence.AsNotNull())
-		{
-			if (builder.Length != 0)
-			{
-				builder.Append(separator);
-			}
-
-			builder.Append(item);
-		}
-
-		if (addSeparatorToEnd && builder.Length > 0)
-		{
-			builder.Append(separator);
-		}
-
-		return builder.ToString();
 	}
 	#endregion
 }

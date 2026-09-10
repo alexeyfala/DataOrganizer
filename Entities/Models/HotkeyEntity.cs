@@ -37,7 +37,7 @@ public sealed class HotkeyEntity : EntityBase
 	/// Identifier of the owner.
 	/// </summary>
 	public required Guid OwnerId { get; set; }
-	#endregion Properties
+	#endregion
 
 	#region Data
 	/// <summary>

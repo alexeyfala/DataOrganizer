@@ -72,8 +72,8 @@ internal sealed class ConsoleWindowHost : IConsoleWindowHost
 
 		string settingsFilePath = _appEnvironment.GetSettingsFilePath(nameof(ConsoleWindowSettings));
 
-		if (_fileSystem.IsFileExists(settingsFilePath)
-			&& _jsonSerializer.FromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
+		if (_fileSystem.FileExists(settingsFilePath)
+			&& _jsonSerializer.DeserializeFromFile<ConsoleWindowSettings>(settingsFilePath) is { } settings
 			&& settings.IsNotDefault())
 		{
 			ViewModel.FontSize = settings.FontSize;

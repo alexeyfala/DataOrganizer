@@ -430,7 +430,7 @@ internal class DbAccessTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		fileSystem
-			.IsFileExists(Arg.Any<string>())
+			.FileExists(Arg.Any<string>())
 			.Returns(true);
 
 		fileSystem

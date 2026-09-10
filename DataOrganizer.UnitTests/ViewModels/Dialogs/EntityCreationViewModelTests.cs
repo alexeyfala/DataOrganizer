@@ -56,7 +56,7 @@ internal class EntityCreationViewModelTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())
+				.DeserializeFromFile<EntityCreationViewSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			builder.RegisterInstance(serializer);
@@ -126,7 +126,7 @@ internal class EntityCreationViewModelTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<EntityCreationViewSettings>(Arg.Any<string>())
+				.DeserializeFromFile<EntityCreationViewSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			builder.RegisterInstance(serializer);

@@ -31,10 +31,10 @@ public interface IJsonSerializer
 	ValueTask<T?> DeserializeAsync<T>(Stream utf8Json, CancellationToken token = default);
 
 	/// <summary>
-	/// Deserializes a Json string into <typeparamref name="T"/> from a file.<br />
+	/// Deserializes the Json content of a file into <typeparamref name="T"/>.<br />
 	/// Returns the default value for type <typeparamref name="T"/> if an exception occurs during deserialization.
 	/// </summary>
-	T? FromFile<T>(string filePath, ILogger? logger = null);
+	T? DeserializeFromFile<T>(string filePath, ILogger? logger = null);
 
 	/// <summary>
 	/// Serializes data into a Json string.
@@ -63,6 +63,6 @@ public interface IJsonSerializer
 	/// <remarks>
 	/// The method cannot be used for serialization.
 	/// </remarks>
-	string ToReadableJson<T>(T? target);
+	string ToReadableJson<T>(T? value);
 	#endregion
 }

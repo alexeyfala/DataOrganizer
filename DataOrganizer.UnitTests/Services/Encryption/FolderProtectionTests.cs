@@ -1058,7 +1058,7 @@ internal class FolderProtectionTests
 			}
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			IDialogService dialogService = Substitute.For<IDialogService>();

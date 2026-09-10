@@ -110,7 +110,7 @@ public sealed class DbMaintenance : IDbMaintenance
 	{
 		string directoryPath = DatabaseBackup.GetDirectoryPath(_dbContextService.GetDbFilePath());
 
-		if (!_fileSystem.IsDirectoryExists(directoryPath))
+		if (!_fileSystem.DirectoryExists(directoryPath))
 		{
 			return;
 		}

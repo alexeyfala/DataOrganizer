@@ -9,10 +9,10 @@ internal class EnumerableExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="EnumerableExtensions.ForEachFor{T}" />: invokes the action with each element and its index.
+	/// <see cref="EnumerableExtensions.ForEachWithIndex{T}" />: invokes the action with each element and its index.
 	/// </summary>
 	[Test]
-	public void ForEachFor_Invokes_Action_With_Element_And_Index()
+	public void ForEachWithIndex_Invokes_Action_With_Element_And_Index()
 	{
 		// Arrange
 		string[] source = ["a", "b", "c"];
@@ -20,7 +20,7 @@ internal class EnumerableExtensionsTests
 		List<(string Item, int Index)> visited = [];
 
 		// Act
-		source.ForEachFor((item, index) => visited.Add((item, index)));
+		source.ForEachWithIndex((item, index) => visited.Add((item, index)));
 
 		// Assert
 		visited
@@ -127,16 +127,16 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.SplitAsString{T}" />: appends a trailing separator when requested.
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: appends a trailing separator when requested.
 	/// </summary>
 	[Test]
-	public void SplitAsString_Appends_Trailing_Separator_When_Requested()
+	public void JoinAsString_Appends_Trailing_Separator_When_Requested()
 	{
 		// Arrange
 		int[] source = [1, 2];
 
 		// Act
-		string result = source.SplitAsString("-", addSeparatorToEnd: true);
+		string result = source.JoinAsString("-", addSeparatorToEnd: true);
 
 		// Assert
 		result
@@ -145,16 +145,16 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.SplitAsString{T}" />: joins the items with the separator between them.
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: joins the items with the separator between them.
 	/// </summary>
 	[Test]
-	public void SplitAsString_Joins_Items_With_Separator()
+	public void JoinAsString_Joins_Items_With_Separator()
 	{
 		// Arrange
 		int[] source = [1, 2, 3];
 
 		// Act
-		string result = source.SplitAsString(", ");
+		string result = source.JoinAsString(", ");
 
 		// Assert
 		result
@@ -163,16 +163,16 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.SplitAsString{T}" />: returns an empty string for a null sequence.
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: returns an empty string for a null sequence.
 	/// </summary>
 	[Test]
-	public void SplitAsString_Returns_Empty_For_Null_Sequence()
+	public void JoinAsString_Returns_Empty_For_Null_Sequence()
 	{
 		// Arrange
 		int[]? source = null;
 
 		// Act
-		string result = source!.SplitAsString(", ");
+		string result = source!.JoinAsString(", ");
 
 		// Assert
 		result

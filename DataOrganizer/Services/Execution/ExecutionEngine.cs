@@ -133,7 +133,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 			TryKillProcess(info.ProcessId);
 
-			if (!_fileSystem.IsFileExists(info.FilePath))
+			if (!_fileSystem.FileExists(info.FilePath))
 			{
 				return;
 			}
@@ -232,7 +232,7 @@ public sealed class ExecutionEngine : IExecutionEngine
 
 					TryKillProcess(info.ProcessId);
 
-					if (!_fileSystem.IsFileExists(info.FilePath))
+					if (!_fileSystem.FileExists(info.FilePath))
 					{
 						continue;
 					}

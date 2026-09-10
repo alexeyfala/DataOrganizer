@@ -255,7 +255,7 @@ public static partial class SerilogExtensions
 	private static string CreateSourceInfo(
 		string filePath,
 		string callerName,
-		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(PlatformInfo.GetEntryPath(filePath))}";
+		int lineNumber) => $"{callerName} {lineNumber} {Path.GetFileName(PlatformInfo.NormalizeSourcePath(filePath))}";
 
 	[GeneratedRegex(@"\\u(?<Value>[a-zA-Z0-9]{4})", RegexOptions.Compiled)]
 	private static partial Regex UnicodeCharRegex();

@@ -63,6 +63,40 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
+	public bool DirectoryExists([NotNullWhen(true)] string? directoryPath)
+	{
+		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
+		{
+			return false;
+		}
+
+		if (Path.GetDirectoryName(directoryPath) is not { } parent)
+		{
+			return true;
+		}
+
+		try
+		{
+			string name = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+			if (string.IsNullOrEmpty(name))
+			{
+				return true;
+			}
+
+			return Directory
+				.EnumerateDirectories(parent)
+				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
+		}
+		catch (Exception ex)
+		{
+			Trace.WriteLine(ex);
+
+			return false;
+		}
+	}
+
+	/// <inheritdoc />
 	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
 		return Directory.EnumerateFiles(directoryPath);
@@ -109,9 +143,9 @@ public sealed class FileSystem : IFileSystem
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount)
+		in int passCount = IFileSystem.DefaultPassCount)
 	{
-		EraseFile(filePath, bufferSize, passes);
+		EraseFile(filePath, bufferSize, passCount);
 
 		File.Delete(filePath);
 	}
@@ -120,7 +154,7 @@ public sealed class FileSystem : IFileSystem
 	public void EraseFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount)
+		in int passCount = IFileSystem.DefaultPassCount)
 	{
 		using RandomNumberGenerator generator = RandomNumberGenerator.Create();
 
@@ -128,7 +162,7 @@ public sealed class FileSystem : IFileSystem
 
 		long fileLength = new FileInfo(filePath).Length;
 
-		for (int i = 0; i < passes; i++)
+		for (int i = 0; i < passCount; i++)
 		{
 			using FileStream stream = File.Open(filePath, FileMode.Open, FileAccess.Write);
 
@@ -146,42 +180,7 @@ public sealed class FileSystem : IFileSystem
 	}
 
 	/// <inheritdoc />
-	[return: NotNullIfNotNull(nameof(directoryPath))]
-	public bool IsDirectoryExists([NotNullWhen(true)] string? directoryPath)
-	{
-		if (string.IsNullOrEmpty(directoryPath) || !Directory.Exists(directoryPath))
-		{
-			return false;
-		}
-
-		if (Path.GetDirectoryName(directoryPath) is not { } parent)
-		{
-			return true;
-		}
-
-		try
-		{
-			string name = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
-			if (string.IsNullOrEmpty(name))
-			{
-				return true;
-			}
-
-			return Directory
-				.EnumerateDirectories(parent)
-				.Any(x => string.Equals(Path.GetFileName(x), name, StringComparison.Ordinal));
-		}
-		catch (Exception ex)
-		{
-			Trace.WriteLine(ex);
-
-			return false;
-		}
-	}
-
-	/// <inheritdoc />
-	public bool IsFileExists([NotNullWhen(true)] string? filePath)
+	public bool FileExists([NotNullWhen(true)] string? filePath)
 	{
 		if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
 		{
@@ -271,9 +270,9 @@ public sealed class FileSystem : IFileSystem
 	public void SerializeToJsonFile<T>(
 		T value,
 		string filePath,
-		bool isHide)
+		bool hide)
 	{
-		if (IsFileExists(filePath))
+		if (FileExists(filePath))
 		{
 			SetFileHidden(filePath, false);
 		}
@@ -285,7 +284,7 @@ public sealed class FileSystem : IFileSystem
 
 		File.WriteAllText(filePath, _jsonSerializer.Serialize(value, JsonDefaults.Options));
 
-		if (!isHide)
+		if (!hide)
 		{
 			return;
 		}
@@ -329,7 +328,7 @@ public sealed class FileSystem : IFileSystem
 		ILogger? logger = null,
 		CancellationToken token = default)
 	{
-		while (IsFileExists(filePath) && IsFileLocked(filePath))
+		while (FileExists(filePath) && IsFileLocked(filePath))
 		{
 			if (token.IsCancellationRequested)
 			{

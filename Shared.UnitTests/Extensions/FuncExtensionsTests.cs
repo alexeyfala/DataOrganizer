@@ -20,7 +20,7 @@ internal class FuncExtensionsTests
 		Func<bool> condition = () => false;
 
 		// Act
-		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeat: 3);
+		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 3);
 
 		// Assert
 		result
@@ -40,7 +40,7 @@ internal class FuncExtensionsTests
 		Func<bool> condition = () => ++calls >= 3;
 
 		// Act
-		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeat: 10);
+		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 10);
 
 		// Assert
 		result
@@ -58,7 +58,7 @@ internal class FuncExtensionsTests
 		Func<bool> condition = () => true;
 
 		// Act
-		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeat: 5);
+		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 5);
 
 		// Assert
 		result

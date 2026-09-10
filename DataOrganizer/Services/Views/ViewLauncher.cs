@@ -215,7 +215,7 @@ public class ViewLauncher : IViewLauncher
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(ClipboardLogWindowSettings));
 
-		if (_jsonSerializer.FromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
+		if (_jsonSerializer.DeserializeFromFile<ClipboardLogWindowSettings>(filePath) is { } settings)
 		{
 			viewModel.ActiveFilter = settings.ActiveFilter;
 
@@ -299,7 +299,7 @@ public class ViewLauncher : IViewLauncher
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EditorWindowSettings));
 
-		if (_jsonSerializer.FromFile<EditorWindowSettings>(filePath) is { } windowSettings)
+		if (_jsonSerializer.DeserializeFromFile<EditorWindowSettings>(filePath) is { } windowSettings)
 		{
 			viewModel.Initialize(
 				window,
@@ -344,7 +344,7 @@ public class ViewLauncher : IViewLauncher
 
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(FavoritesWindowSettings));
 
-		if (_jsonSerializer.FromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
+		if (_jsonSerializer.DeserializeFromFile<FavoritesWindowSettings>(filePath) is { } windowSettings)
 		{
 			viewModel.Initialize(
 				window,
@@ -371,7 +371,7 @@ public class ViewLauncher : IViewLauncher
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(WindowKind));
 
-		if (_jsonSerializer.FromFile<WindowKind>(filePath) is { } settings)
+		if (_jsonSerializer.DeserializeFromFile<WindowKind>(filePath) is { } settings)
 		{
 			return settings switch
 			{
@@ -626,7 +626,7 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private FavoritesViewSettings GetFavoritesSettingsFromFile()
 	{
-		return _jsonSerializer.FromFile<FavoritesViewSettings>(
+		return _jsonSerializer.DeserializeFromFile<FavoritesViewSettings>(
 			_appEnvironment.GetSettingsFilePath(nameof(FavoritesViewSettings))) ?? new();
 	}
 
@@ -635,7 +635,7 @@ public class ViewLauncher : IViewLauncher
 	/// </summary>
 	private CopyHistoryViewSettings GetHistorySettingsFromFile()
 	{
-		return _jsonSerializer.FromFile<CopyHistoryViewSettings>(
+		return _jsonSerializer.DeserializeFromFile<CopyHistoryViewSettings>(
 				_appEnvironment.GetSettingsFilePath(nameof(CopyHistoryViewSettings))) ?? new();
 	}
 

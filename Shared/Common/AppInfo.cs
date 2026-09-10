@@ -54,7 +54,7 @@ public static class AppInfo
 
 	#region Helpers
 	/// <summary>
-	/// Allows you to determine whether the application is in debug mode.
+	/// <c>True</c> when the application is in debug mode.
 	/// </summary>
 	private static bool IsDebugMode()
 	{

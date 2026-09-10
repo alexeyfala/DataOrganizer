@@ -119,7 +119,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		{
 			// The target may be a file or, on macOS, an .app bundle (a directory) — accept both.
 			if (string.IsNullOrEmpty(filePath)
-				|| (!_fileSystem.IsFileExists(filePath) && !_fileSystem.IsDirectoryExists(filePath)))
+				|| (!_fileSystem.FileExists(filePath) && !_fileSystem.DirectoryExists(filePath)))
 			{
 				if (Path.GetDirectoryName(filePath) is { Length: > 0 } fallbackDirectory)
 				{
@@ -222,7 +222,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 		{
 			string appHost = Path.Combine(AppContext.BaseDirectory, appName);
 
-			if (_fileSystem.IsFileExists(appHost))
+			if (_fileSystem.FileExists(appHost))
 			{
 				return appHost;
 			}
@@ -230,7 +230,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 		string? entryLocation = entryAssembly?.Location;
 
-		if (!string.IsNullOrEmpty(entryLocation) && _fileSystem.IsFileExists(entryLocation))
+		if (!string.IsNullOrEmpty(entryLocation) && _fileSystem.FileExists(entryLocation))
 		{
 			return entryLocation;
 		}

@@ -15,5 +15,5 @@ public static class AppDomainExtensions
 			.GetAssemblies()
 			.Any(a => a.FullName?.StartsWith("nunit.framework", StringComparison.InvariantCultureIgnoreCase) == true);
 	}
-	#endregion Methods
+	#endregion
 }

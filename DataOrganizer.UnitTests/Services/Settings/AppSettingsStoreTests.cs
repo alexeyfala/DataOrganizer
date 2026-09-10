@@ -131,7 +131,7 @@ internal class AppSettingsStoreTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<AppSettings>(Arg.Any<string>())
+				.DeserializeFromFile<AppSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			builder.RegisterInstance(serializer);

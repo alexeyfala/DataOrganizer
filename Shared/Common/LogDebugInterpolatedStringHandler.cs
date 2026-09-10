@@ -39,7 +39,6 @@ public ref struct LogDebugInterpolatedStringHandler
 
 	#region Methods
 	/// <summary>
-	/// Don't remove this method!<br />
 	/// Appends an interpolated hole value.
 	/// </summary>
 	/// <remarks>
@@ -48,7 +47,6 @@ public ref struct LogDebugInterpolatedStringHandler
 	public void AppendFormatted<T>(T value) => _inner.AppendFormatted(value);
 
 	/// <summary>
-	/// Don't remove this method!<br />
 	/// Appends a literal fragment of the interpolated string.
 	/// </summary>
 	/// <remarks>

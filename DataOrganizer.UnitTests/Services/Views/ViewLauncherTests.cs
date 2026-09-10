@@ -64,7 +64,7 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
+				.DeserializeFromFile<ClipboardLogWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -192,7 +192,7 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<EditorWindowSettings>(Arg.Any<string>())
+				.DeserializeFromFile<EditorWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -304,7 +304,7 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<FavoritesWindowSettings>(Arg.Any<string>())
+				.DeserializeFromFile<FavoritesWindowSettings>(Arg.Any<string>())
 				.Returns(settings);
 
 			viewFactory
@@ -429,7 +429,7 @@ internal class ViewLauncherTests
 			IJsonSerializer serializer = Substitute.For<IJsonSerializer>();
 
 			serializer
-				.FromFile<WindowKind>(Arg.Any<string>())
+				.DeserializeFromFile<WindowKind>(Arg.Any<string>())
 				.Returns(WindowKind.Favorites);
 
 			viewFactory

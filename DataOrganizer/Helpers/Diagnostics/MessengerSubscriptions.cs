@@ -27,7 +27,7 @@ internal static class MessengerSubscriptions
 			return null;
 		}
 
-		return $@"Unregistering ""{recipient.GetType().Name}"" from {subscriptions.Length} message channel(s):{Environment.NewLine}{subscriptions.Select(x => x.Name).SplitAsString("," + Environment.NewLine)}";
+		return $@"Unregistering ""{recipient.GetType().Name}"" from {subscriptions.Length} message channel(s):{Environment.NewLine}{subscriptions.Select(x => x.Name).JoinAsString("," + Environment.NewLine)}";
 	}
 	#endregion
 

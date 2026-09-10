@@ -292,7 +292,7 @@ public sealed class DbAccess : IDbAccess
 
 			string dbFilePath = GetDbFilePath();
 
-			if (!_fileSystem.IsFileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
+			if (!_fileSystem.FileExists(dbFilePath) || Path.GetDirectoryName(dbFilePath) is not { })
 			{
 				return null;
 			}
@@ -311,7 +311,7 @@ public sealed class DbAccess : IDbAccess
 
 			BackupSqliteDatabase(parameters);
 
-			if (!_fileSystem.IsFileExists(backupFilePath))
+			if (!_fileSystem.FileExists(backupFilePath))
 			{
 				return null;
 			}
@@ -425,7 +425,7 @@ public sealed class DbAccess : IDbAccess
 
 			TryErasePendingBackups();
 
-			bool isExisting = _fileSystem.IsFileExists(_dbContextService.GetDbFilePath());
+			bool isExisting = _fileSystem.FileExists(_dbContextService.GetDbFilePath());
 
 			DbConnectionStatus status = isExisting
 				? await GetSchemaStatusAsync(token).ConfigureAwait(false)

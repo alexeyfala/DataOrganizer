@@ -41,6 +41,11 @@ internal sealed class InMemoryFileSystem : IFileSystem
 		}
 	}
 
+	public bool DirectoryExists(string? directoryPath)
+	{
+		return directoryPath is not null && Files.Keys.Any(key => Path.GetDirectoryName(key) == directoryPath);
+	}
+
 	public IEnumerable<string> EnumerateFiles(string directoryPath)
 	{
 		return [.. Files
@@ -51,17 +56,12 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	public void EraseAndDeleteFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount)
+		in int passCount = IFileSystem.DefaultPassCount)
 	{
 		Files.Remove(filePath);
 	}
 
-	public bool IsDirectoryExists(string? directoryPath)
-	{
-		return directoryPath is not null && Files.Keys.Any(key => Path.GetDirectoryName(key) == directoryPath);
-	}
-
-	public bool IsFileExists(string? filePath) => filePath is not null && Files.ContainsKey(filePath);
+	public bool FileExists(string? filePath) => filePath is not null && Files.ContainsKey(filePath);
 
 	public Task<byte[]> ReadAllBytesAsync(string filePath, CancellationToken token = default)
 	{
@@ -107,7 +107,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 	public void EraseFile(
 		string filePath,
 		in int bufferSize = IFileSystem.DefaultBufferSize,
-		in int passes = IFileSystem.DefaultPassCount) => throw new NotSupportedException();
+		in int passCount = IFileSystem.DefaultPassCount) => throw new NotSupportedException();
 
 	public bool IsFileLocked(string filePath) => throw new NotSupportedException();
 
@@ -117,7 +117,7 @@ internal sealed class InMemoryFileSystem : IFileSystem
 
 	public string ReadAllText(string filePath) => throw new NotSupportedException();
 
-	public void SerializeToJsonFile<T>(T value, string filePath, bool isHide) => throw new NotSupportedException();
+	public void SerializeToJsonFile<T>(T value, string filePath, bool hide) => throw new NotSupportedException();
 
 	public void SetFileHidden(string filePath, bool value) => throw new NotSupportedException();
 

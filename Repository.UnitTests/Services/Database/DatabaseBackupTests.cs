@@ -170,7 +170,7 @@ internal class DatabaseBackupTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		fileSystem
-			.IsFileExists(FilePath)
+			.FileExists(FilePath)
 			.Returns(true);
 
 		return fileSystem;

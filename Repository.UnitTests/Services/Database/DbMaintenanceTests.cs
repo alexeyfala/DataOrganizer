@@ -216,7 +216,7 @@ internal class DbMaintenanceTests
 		string directoryPath = DatabaseBackup.GetDirectoryPath(DatabaseFilePath);
 
 		fileSystem
-			.IsDirectoryExists(directoryPath)
+			.DirectoryExists(directoryPath)
 			.Returns(true);
 
 		fileSystem

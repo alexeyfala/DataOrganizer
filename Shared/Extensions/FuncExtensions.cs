@@ -12,17 +12,17 @@ public static class FuncExtensions
 	/// </summary>
 	/// <param name="condition">Condition.</param>
 	/// <param name="millisecondsDelay">Delay in milliseconds.</param>
-	/// <param name="maxRepeat">Maximum number of repetitions.</param>
+	/// <param name="maxRepeats">Maximum number of repetitions.</param>
 	/// <returns><c>True</c> if the condition is met, <c>False</c> if the maximum number of repetitions is reached and the condition is not met.</returns>
 	public static async ValueTask<bool> WaitAsync(
 		this Func<bool> condition,
 		int millisecondsDelay,
-		int maxRepeat,
+		int maxRepeats,
 		CancellationToken token = default)
 	{
 		for (int i = 0; !condition(); i++)
 		{
-			if (i == maxRepeat)
+			if (i == maxRepeats)
 			{
 				return false;
 			}
@@ -34,5 +34,5 @@ public static class FuncExtensions
 
 		return true;
 	}
-	#endregion Methods
+	#endregion
 }

@@ -70,7 +70,7 @@ public sealed class CommandLineOptions : ICommandLineOptions
 
 		descriptions
 			.OrderBy(x => x.Key)
-			.ForEachFor((element, i) =>
+			.ForEachWithIndex((element, i) =>
 			{
 				int requiredLength = maxCommandLength - element.Key.Length;
 

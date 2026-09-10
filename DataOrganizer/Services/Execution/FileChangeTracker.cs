@@ -109,7 +109,7 @@ public class FileChangeTracker : IFileChangeTracker
 		// <c>False</c> asks the caller to stop tracking.
 		async Task<bool> CheckOnceAsync(CancellationToken checkToken)
 		{
-			if (!_fileSystem.IsFileExists(parameters.FilePath))
+			if (!_fileSystem.FileExists(parameters.FilePath))
 			{
 				PublishFailure($@"{Strings.File} ""{parameters.FileName}"" {Strings.DoesNotExist}");
 

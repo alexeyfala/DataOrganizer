@@ -36,7 +36,7 @@ public static class GenericExtensions
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			.Where(x => propertyNames.Contains(x.Name)))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -64,7 +64,7 @@ public static class GenericExtensions
 			.GetType()
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -129,7 +129,7 @@ public static class GenericExtensions
 				builder.AppendLine();
 			}
 
-			properties.ForEachFor((property, i) =>
+			properties.ForEachWithIndex((property, i) =>
 			{
 				try
 				{
@@ -309,7 +309,7 @@ public static class GenericExtensions
 			.GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			.Where(x => condition(x.Name)))
 		{
-			if (!GetWritableProperty(
+			if (!TryGetWritableProperty(
 				targetType,
 				sourceProperty.Name,
 				out PropertyInfo? targetProperty))
@@ -324,9 +324,9 @@ public static class GenericExtensions
 	}
 
 	/// <summary>
-	/// Returns a writable property <see cref="PropertyInfo" /> with the specified name.
+	/// <c>True</c> when a writable property with the given name was found.
 	/// </summary>
-	private static bool GetWritableProperty(
+	private static bool TryGetWritableProperty(
 		Type targetType,
 		string propertyName,
 		[NotNullWhen(true)] out PropertyInfo? targetProperty)

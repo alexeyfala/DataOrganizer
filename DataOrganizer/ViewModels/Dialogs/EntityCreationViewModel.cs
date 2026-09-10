@@ -130,7 +130,7 @@ public sealed partial class EntityCreationViewModel : BooleanAsyncResultViewMode
 	{
 		string filePath = _appEnvironment.GetSettingsFilePath(nameof(EntityCreationViewSettings));
 
-		EntityCreationViewSettings settings = _jsonSerializer.FromFile<EntityCreationViewSettings>(filePath);
+		EntityCreationViewSettings settings = _jsonSerializer.DeserializeFromFile<EntityCreationViewSettings>(filePath);
 
 		IsFolderSelected = settings.IsFolderSelected;
 

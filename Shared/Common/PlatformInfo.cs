@@ -24,7 +24,7 @@ public static class PlatformInfo
 
 	#region Methods
 	/// <summary>
-	/// Performs a transformation on a file system object path obtained using <see cref="CallerFilePathAttribute" />.
+	/// Brings a path taken from <see cref="CallerFilePathAttribute" /> to the separators of the running platform.
 	/// </summary>
 	/// <remarks>
 	/// The value obtained using <see cref="CallerFilePathAttribute" /> passed at compile time
@@ -32,7 +32,7 @@ public static class PlatformInfo
 	/// Compiling code for <see cref="OperatingSystemKind.Linux" /> happens in <see cref="OperatingSystemKind.Windows" />,
 	/// so it is necessary to replace the '\' characters in the path to <see cref="Path.DirectorySeparatorChar" />.
 	/// </remarks>
-	public static string GetEntryPath(string filePath)
+	public static string NormalizeSourcePath(string filePath)
 	{
 		return !OperatingSystem.IsLinux()
 			? filePath

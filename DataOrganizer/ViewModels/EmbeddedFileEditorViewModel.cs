@@ -321,7 +321,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 		Func<bool> isDrained = () => Volatile.Read(ref _pendingSaves) == 0;
 
 		return await isDrained
-			.WaitAsync(millisecondsDelay: 100, maxRepeat: 50, token)
+			.WaitAsync(millisecondsDelay: 100, maxRepeats: 50, token)
 			.ConfigureAwait(true) && !Volatile.Read(ref _lastSaveFailed);
 	}
 	#endregion

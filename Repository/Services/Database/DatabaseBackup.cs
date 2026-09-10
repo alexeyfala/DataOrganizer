@@ -81,7 +81,7 @@ public sealed class DatabaseBackup : IDisposable
 
 		try
 		{
-			if (_fileSystem.IsFileExists(FilePath))
+			if (_fileSystem.FileExists(FilePath))
 			{
 				_fileSystem.EraseAndDeleteFile(FilePath);
 			}

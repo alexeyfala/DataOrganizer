@@ -139,7 +139,7 @@ internal class ExecutionSandboxTests
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 		fileSystem
-			.IsDirectoryExists(DirectoryPath)
+			.DirectoryExists(DirectoryPath)
 			.Returns(true);
 
 		return fileSystem;

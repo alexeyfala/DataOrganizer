@@ -30,7 +30,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	public bool IsUnlocked => _sessionKeyStore.IsUnlocked(_historyKeyId);
 
 	/// <inheritdoc />
-	public bool KeyFileExists => _fileSystem.IsFileExists(_keyFilePath);
+	public bool KeyFileExists => _fileSystem.FileExists(_keyFilePath);
 	#endregion
 
 	#region Data
@@ -155,7 +155,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// <inheritdoc />
 	public async Task<ClipboardLogUnlockResult> TryUnlockAsync(PinnedBuffer password, CancellationToken token = default)
 	{
-		bool hasKey = _fileSystem.IsFileExists(_keyFilePath);
+		bool hasKey = _fileSystem.FileExists(_keyFilePath);
 
 		try
 		{
@@ -189,7 +189,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	internal async Task<IReadOnlyList<ClipboardLogEntryBase>> LoadEntriesAsync(CancellationToken token)
 	{
-		if (!_fileSystem.IsFileExists(_historyFilePath))
+		if (!_fileSystem.FileExists(_historyFilePath))
 		{
 			return [];
 		}
@@ -324,7 +324,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.IsDirectoryExists(directory))
+			if (Path.GetDirectoryName(_historyFilePath) is { Length: > 0 } directory && _fileSystem.DirectoryExists(directory))
 			{
 				_fileSystem.DeleteDirectory(directory);
 			}
@@ -342,7 +342,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		try
 		{
-			if (_fileSystem.IsFileExists(filePath))
+			if (_fileSystem.FileExists(filePath))
 			{
 				_fileSystem.EraseAndDeleteFile(filePath);
 			}

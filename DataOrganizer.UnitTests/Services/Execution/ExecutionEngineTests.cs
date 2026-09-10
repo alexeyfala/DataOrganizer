@@ -46,7 +46,7 @@ internal class ExecutionEngineTests
 				.Returns(TestData.CreateRandomDirectoryName());
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			processUtils
@@ -151,7 +151,7 @@ internal class ExecutionEngineTests
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 		fileSystem
-			.IsFileExists(Arg.Any<string>())
+			.FileExists(Arg.Any<string>())
 			.Returns(true);
 
 		fileSystem
@@ -208,7 +208,7 @@ internal class ExecutionEngineTests
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
 		fileSystem
-			.IsFileExists(Arg.Any<string>())
+			.FileExists(Arg.Any<string>())
 			.Returns(true);
 
 		processUtils

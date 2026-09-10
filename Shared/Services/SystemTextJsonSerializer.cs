@@ -34,7 +34,7 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 	}
 
 	/// <inheritdoc />
-	public T? FromFile<T>(string filePath, ILogger? logger = null)
+	public T? DeserializeFromFile<T>(string filePath, ILogger? logger = null)
 	{
 		try
 		{
@@ -75,7 +75,7 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 	}
 
 	/// <inheritdoc />
-	public string ToReadableJson<T>(T? target)
+	public string ToReadableJson<T>(T? value)
 	{
 		Type type = typeof(T);
 
@@ -88,7 +88,7 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 
 		builder.Append(' ');
 
-		if (target is not null)
+		if (value is not null)
 		{
 			if (type.FullName is { } typeName)
 			{
@@ -99,7 +99,7 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
 				builder.AppendLine("to Json");
 			}
 
-			builder.Append(Serialize(target, JsonDefaults.Options));
+			builder.Append(Serialize(value, JsonDefaults.Options));
 		}
 		else if (type.FullName is { } typeName)
 		{

@@ -46,7 +46,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			fileSystem
@@ -110,7 +110,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			fileSystem
@@ -189,7 +189,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(false);
 
 			fileSystem
@@ -248,7 +248,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			fileSystem
@@ -320,7 +320,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			fileSystem
@@ -396,7 +396,7 @@ internal class FileChangeTrackerTests
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
 			fileSystem
-				.IsFileExists(Arg.Any<string>())
+				.FileExists(Arg.Any<string>())
 				.Returns(true);
 
 			fileSystem
