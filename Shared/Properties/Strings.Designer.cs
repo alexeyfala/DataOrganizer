@@ -250,6 +250,15 @@ namespace Shared.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Used to keep a history of the system clipboard and to access it via the special window.
+        /// </summary>
+        public static string ClipboardDescription {
+            get {
+                return ResourceManager.GetString("ClipboardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clipboard history.
         /// </summary>
         public static string ClipboardHistory {
@@ -489,24 +498,6 @@ namespace Shared.Properties {
         public static string Delete {
             get {
                 return ResourceManager.GetString("Delete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Used to keep a history of the system clipboard and to access it via the special window.
-        /// </summary>
-        public static string DescriptionOfUseClipboard {
-            get {
-                return ResourceManager.GetString("DescriptionOfUseClipboard", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Used to copy the contents of a file in text form to the system clipboard using the hotkeys assigned to it..
-        /// </summary>
-        public static string DescriptionOfUseHotkeys {
-            get {
-                return ResourceManager.GetString("DescriptionOfUseHotkeys", resourceCulture);
             }
         }
         
@@ -948,6 +939,15 @@ namespace Shared.Properties {
         public static string HotkeysAlreadyAssignedFor {
             get {
                 return ResourceManager.GetString("HotkeysAlreadyAssignedFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Used to copy the contents of a file in text form to the system clipboard using the hotkeys assigned to it..
+        /// </summary>
+        public static string HotkeysDescription {
+            get {
+                return ResourceManager.GetString("HotkeysDescription", resourceCulture);
             }
         }
         

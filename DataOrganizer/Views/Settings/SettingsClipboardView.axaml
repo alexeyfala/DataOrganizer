@@ -23,7 +23,7 @@
 
 				<TextBlock
 					Classes="SupportingTextBlockStyle"
-					Text="{x:Static prop:Strings.DescriptionOfUseClipboard}" />
+					Text="{x:Static prop:Strings.ClipboardDescription}" />
 			</StackPanel>
 
 			<CheckBox

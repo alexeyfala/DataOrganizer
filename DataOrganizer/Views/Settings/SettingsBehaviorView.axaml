@@ -24,7 +24,7 @@
 
 				<TextBlock
 					Classes="SupportingTextBlockStyle"
-					Text="{x:Static prop:Strings.DescriptionOfUseHotkeys}" />
+					Text="{x:Static prop:Strings.HotkeysDescription}" />
 			</StackPanel>
 		</HeaderedContentControl>
 

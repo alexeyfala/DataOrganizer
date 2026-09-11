@@ -396,7 +396,7 @@
   <data name="EnableHotkeyTracking" xml:space="preserve">
     <value>Включить отслеживание горячих клавиш</value>
   </data>
-  <data name="DescriptionOfUseHotkeys" xml:space="preserve">
+  <data name="HotkeysDescription" xml:space="preserve">
     <value>Используется для копирования содержимого файла в текстовом виде в системный буфер обмена с помощью назначенных ему горячих клавиш.</value>
   </data>
   <data name="TheContentsCopiedToClipboard" xml:space="preserve">
@@ -603,7 +603,7 @@
   <data name="EnableClipboardHistoryTracking" xml:space="preserve">
     <value>Включить отслеживание истории буфера обмена</value>
   </data>
-  <data name="DescriptionOfUseClipboard" xml:space="preserve">
+  <data name="ClipboardDescription" xml:space="preserve">
     <value>Используется для ведения истории буфера обмена системы и доступа к ней через специальное окно</value>
   </data>
   <data name="PersistHistoryBetweenSessions" xml:space="preserve">
