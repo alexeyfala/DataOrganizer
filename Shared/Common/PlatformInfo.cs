@@ -57,7 +57,7 @@ public static class PlatformInfo
 		}
 
 		return OperatingSystem.IsMacOS()
-			? OperatingSystemKind.MacOs
+			? OperatingSystemKind.MacOS
 			: OperatingSystemKind.Unknown;
 	}
 
@@ -68,7 +68,7 @@ public static class PlatformInfo
 	{
 		OperatingSystemKind.Windows => "explorer",
 		OperatingSystemKind.Linux => "xdg-open",
-		OperatingSystemKind.MacOs => "open",
+		OperatingSystemKind.MacOS => "open",
 		_ => throw new NotImplementedException()
 	};
 	#endregion

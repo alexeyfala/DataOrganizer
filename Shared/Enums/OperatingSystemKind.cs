@@ -8,5 +8,5 @@ public enum OperatingSystemKind
 	Unknown,
 	Windows,
 	Linux,
-	MacOs
+	MacOS
 }

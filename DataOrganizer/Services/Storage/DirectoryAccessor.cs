@@ -49,7 +49,7 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 			{
 				OperatingSystemKind.Windows => Environment.ProcessPath,
 				OperatingSystemKind.Linux => ResolveLinuxAppFile(),
-				OperatingSystemKind.MacOs => ResolveMacOsBundle(),
+				OperatingSystemKind.MacOS => ResolveMacOSBundle(),
 				_ => throw new NotImplementedException()
 			};
 
@@ -158,8 +158,8 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 					OpenDirectory(directory, logger);
 					break;
 
-				case OperatingSystemKind.MacOs:
-					Process.Start(PlatformInfo.FileOpener, GetMacOsReveal(filePath));
+				case OperatingSystemKind.MacOS:
+					Process.Start(PlatformInfo.FileOpener, GetMacOSReveal(filePath));
 					break;
 
 				default:
@@ -175,15 +175,15 @@ public sealed class DirectoryAccessor : IDirectoryAccessor
 
 	#region Helpers
 	/// <summary>
-	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemKind.MacOs" />.
+	/// Combines the path with the folder expansion argument for <see cref="OperatingSystemKind.MacOS" />.
 	/// </summary>
-	private static string GetMacOsReveal(string argument) => $@"-R ""{argument}""";
+	private static string GetMacOSReveal(string argument) => $@"-R ""{argument}""";
 
 	/// <summary>
-	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOs" /> by walking up
+	/// Resolves the enclosing <c>.app</c> bundle on <see cref="OperatingSystemKind.MacOS" /> by walking up
 	/// from <see cref="AppContext.BaseDirectory" />; <c>null</c> when the app runs outside a bundle.
 	/// </summary>
-	private static string? ResolveMacOsBundle()
+	private static string? ResolveMacOSBundle()
 	{
 		const string bundleExtension = ".app";
 
