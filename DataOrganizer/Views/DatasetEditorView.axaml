@@ -65,7 +65,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToTopCommand}"
-				CommandParameter="{Binding #ScrollViewer}"
+				CommandParameter="{Binding #RecordsScroller}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseUp,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToTop}" />
@@ -73,7 +73,7 @@
 			<Button
 				Classes="primary"
 				Command="{Binding ScrollToEndCommand}"
-				CommandParameter="{Binding #ScrollViewer}"
+				CommandParameter="{Binding #RecordsScroller}"
 				Content="{materialIcons:MaterialIconTextExt Kind=ArrowCollapseDown,
 				                                            IconSize={StaticResource ToolBarIconSize}}"
 				ToolTip.Tip="{x:Static prop:Strings.ScrollToEnd}" />
@@ -160,7 +160,7 @@
 		</StackPanel>
 
 		<ScrollViewer
-			x:Name="ScrollViewer"
+			x:Name="RecordsScroller"
 			Grid.Row="1"
 			Padding="0.0,0.0,10.0,0.0"
 			Classes="no-auto-hide"
@@ -173,14 +173,14 @@
 			</Interaction.Behaviors>
 
 			<ItemsRepeater
-				x:Name="RecordsItemsControl"
+				x:Name="RecordsHost"
 				ItemsSource="{Binding Records, Mode=OneTime}">
 
 				<Interaction.Behaviors>
 					<EventTriggerBehavior EventName="Loaded">
 						<InvokeCommandAction
 							Command="{Binding ContainerLoadedCommand}"
-							CommandParameter="{Binding #RecordsItemsControl}" />
+							CommandParameter="{Binding #RecordsHost}" />
 					</EventTriggerBehavior>
 				</Interaction.Behaviors>
 

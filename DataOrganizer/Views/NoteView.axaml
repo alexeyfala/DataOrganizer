@@ -41,7 +41,7 @@
 
 		<!-- Readable -->
 		<materialIcons:MaterialIcon
-			x:Name="Icon"
+			x:Name="ReadableIcon"
 			Grid.Row="0"
 			Classes="NoteIconStyle"
 			IsVisible="{Binding !IsLocked, Mode=OneWay}">
@@ -58,7 +58,7 @@
 			IsLightDismissEnabled="True"
 			IsOpen="{Binding IsNoteOpen, Mode=TwoWay}"
 			Placement="Bottom"
-			PlacementTarget="{Binding #Icon}"
+			PlacementTarget="{Binding #ReadableIcon}"
 			VerticalOffset="8.0">
 
 			<Interaction.Behaviors>
@@ -113,7 +113,7 @@
 						HorizontalScrollBarVisibility="Disabled"
 						VerticalScrollBarVisibility="Auto">
 						<SelectableTextBlock
-							x:Name="NoteTextBlock"
+							x:Name="NoteText"
 							FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
 							FontSize="14.0"
 							Foreground="{StaticResource MaterialPaperBrush}"
@@ -129,7 +129,7 @@
 								<MenuFlyout>
 									<MenuItem
 										Command="{Binding CopySelectedNoteCommand}"
-										CommandParameter="{Binding #NoteTextBlock}"
+										CommandParameter="{Binding #NoteText}"
 										Header="{x:Static prop:Strings.Copy}"
 										InputGesture="{OnPlatform Default='Ctrl+C',
 										                          macOS='⌘+C'}" />

@@ -40,7 +40,7 @@ internal class NoteViewTests
 	/// </summary>
 	private static SensitiveCopyBehavior GetCopyBehavior(NoteView view)
 	{
-		SelectableTextBlock textBlock = view.FindControl<SelectableTextBlock>("NoteTextBlock")!;
+		SelectableTextBlock textBlock = view.FindControl<SelectableTextBlock>("NoteText")!;
 
 		return Interaction
 			.GetBehaviors(textBlock)
