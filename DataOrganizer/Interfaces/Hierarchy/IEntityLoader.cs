@@ -21,6 +21,6 @@ public interface IEntityLoader
 	/// <summary>
 	/// Maps entities from the database to DTO objects.
 	/// </summary>
-	ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> dbFolders, IEnumerable<FileEntity> dbFiles);
+	ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> folders, IEnumerable<FileEntity> files);
 	#endregion
 }

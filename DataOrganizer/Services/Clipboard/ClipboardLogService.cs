@@ -431,16 +431,16 @@ public sealed class ClipboardLogService : IClipboardLogService
 	{
 		_logger.LogInformation($"{nameof(ClipboardLogService)}.{nameof(Stop)} requested.");
 
-		CancellationTokenSource? local = Interlocked.Exchange(ref _stopCts, null);
+		CancellationTokenSource? cancellation = Interlocked.Exchange(ref _stopCts, null);
 
-		if (local is null)
+		if (cancellation is null)
 		{
 			return;
 		}
 
 		try
 		{
-			local.Cancel();
+			cancellation.Cancel();
 		}
 		catch (ObjectDisposedException)
 		{
@@ -448,7 +448,7 @@ public sealed class ClipboardLogService : IClipboardLogService
 		}
 		finally
 		{
-			local.Dispose();
+			cancellation.Dispose();
 		}
 	}
 

@@ -265,7 +265,7 @@ public sealed class DataExchangeService : IDataExchangeService
 
 			string filePath = filePaths[0];
 
-			List<ExplorerItemDtoBase> objects = [];
+			List<ExplorerItemDtoBase> imported = [];
 
 			switch (Path.GetExtension(filePath))
 			{
@@ -273,7 +273,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					if (!await ImportFromJsonAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -291,7 +291,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					if (!await ImportFromXmlAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -309,7 +309,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					if (!_dbAccess.IsValidSqliteDatabase(filePath) || !await ImportFromSqliteAsync(
 						filePath,
 						variant,
-						objects,
+						imported,
 						hierarchy,
 						token).ConfigureAwait(false))
 					{
@@ -327,7 +327,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					throw new NotImplementedException();
 			}
 
-			FileDto[] unreadable = [.. objects.GetFilesWithUnreadableHotkeys()];
+			FileDto[] unreadable = [.. imported.GetFilesWithUnreadableHotkeys()];
 
 			if (unreadable.IsNotEmpty())
 			{
@@ -344,7 +344,7 @@ public sealed class DataExchangeService : IDataExchangeService
 					unreadable.GetUnreadableHotkeysPresentation(Strings.UnreadableHotkeysRemoved));
 			}
 
-			return new(objects, variant);
+			return new(imported, variant);
 		}
 		catch (Exception ex)
 		{
@@ -365,7 +365,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	internal async Task<bool> AppendFromSqliteAsync(
 		string filePath,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
@@ -389,7 +389,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		objects.AddRange(_entityLoader.Map(result.Folders, result.Files));
+		imported.AddRange(_entityLoader.Map(result.Folders, result.Files));
 
 		return true;
 	}
@@ -400,7 +400,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	internal async Task<bool> ImportEntitiesAsync(
 		ExplorerItemBase[] entities,
 		ImportMode variant,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
@@ -440,7 +440,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		objects.AddRange(_entityLoader.Map(
+		imported.AddRange(_entityLoader.Map(
 			folders,
 			files));
 
@@ -457,7 +457,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	internal async Task<bool> ReplaceFromSqliteAsync(
 		string filePath,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token = default)
 	{
@@ -476,7 +476,7 @@ public sealed class DataExchangeService : IDataExchangeService
 			return false;
 		}
 
-		objects.AddRange(result);
+		imported.AddRange(result);
 
 		hierarchy.Clear();
 
@@ -628,15 +628,15 @@ public sealed class DataExchangeService : IDataExchangeService
 	/// </summary>
 	private async Task<ExplorerItemBase[]> GetEntitiesFromDbAsync(CancellationToken token)
 	{
-		FolderEntity[] dbFolders = await _dbAccess
+		FolderEntity[] folders = await _dbAccess
 			.GetAllFoldersAsync(token)
 			.ConfigureAwait(false);
 
-		FileEntity[] dbFiles = await _dbAccess
+		FileEntity[] files = await _dbAccess
 			.GetAllFilesAsync(OptionalFileProperties.Contents | OptionalFileProperties.EditorState, token)
 			.ConfigureAwait(false);
 
-		return [.. dbFolders.Concat<ExplorerItemBase>(dbFiles)];
+		return [.. folders.Concat<ExplorerItemBase>(files)];
 	}
 
 	/// <summary>
@@ -645,7 +645,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task<bool> ImportFromJsonAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
@@ -667,7 +667,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		return await ImportEntitiesAsync(
 			entities,
 			variant,
-			objects,
+			imported,
 			hierarchy,
 			token).ConfigureAwait(false);
 	}
@@ -678,7 +678,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	private Task<bool> ImportFromSqliteAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
@@ -686,12 +686,12 @@ public sealed class DataExchangeService : IDataExchangeService
 		{
 			ImportMode.Replace => ReplaceFromSqliteAsync(
 				filePath,
-				objects,
+				imported,
 				hierarchy,
 				token),
 			ImportMode.Append => AppendFromSqliteAsync(
 				filePath,
-				objects,
+				imported,
 				hierarchy,
 				token),
 			_ => throw new NotImplementedException()
@@ -704,7 +704,7 @@ public sealed class DataExchangeService : IDataExchangeService
 	private async Task<bool> ImportFromXmlAsync(
 		string filePath,
 		ImportMode variant,
-		List<ExplorerItemDtoBase> objects,
+		List<ExplorerItemDtoBase> imported,
 		Collection<ExplorerItemDtoBase> hierarchy,
 		CancellationToken token)
 	{
@@ -731,7 +731,7 @@ public sealed class DataExchangeService : IDataExchangeService
 		return await ImportEntitiesAsync(
 			entities,
 			variant,
-			objects,
+			imported,
 			hierarchy,
 			token).ConfigureAwait(false);
 	}

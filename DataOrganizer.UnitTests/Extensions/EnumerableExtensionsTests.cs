@@ -792,7 +792,7 @@ internal class EnumerableExtensionsTests
 		// Assert
 		RecordsGroup[] groups = [.. result.OfType<RecordsGroup>()];
 
-		KeyValueRecord[] kvs = [.. result.OfType<KeyValueRecord>()];
+		KeyValueRecord[] keyValueRecords = [.. result.OfType<KeyValueRecord>()];
 
 		ValueRecord[] values = [.. result.Where(x => x.GetType() == typeof(ValueRecord)).Cast<ValueRecord>()];
 
@@ -803,7 +803,7 @@ internal class EnumerableExtensionsTests
 				.Should()
 				.Equal("A", "B");
 
-			kvs
+			keyValueRecords
 				.Select(x => x.Key)
 				.Should()
 				.Equal("X", "Y");
@@ -820,7 +820,7 @@ internal class EnumerableExtensionsTests
 				.Should()
 				.Equal("B", "A");
 
-			kvs
+			keyValueRecords
 				.Select(x => x.Key)
 				.Should()
 				.Equal("Y", "X");

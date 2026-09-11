@@ -34,7 +34,7 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Does_Not_Update_When_Contents_Did_Not_Change()
 	{
 		// Arrange
-		using CancellationTokenSource cts = new();
+		using CancellationTokenSource cancellation = new();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -73,10 +73,10 @@ internal class FileChangeTrackerTests
 			FilePath = RandomValues.CreateFileName(10)
 		};
 
-		cts.CancelAfter(TimeSpan.FromMilliseconds(50));
+		cancellation.CancelAfter(TimeSpan.FromMilliseconds(50));
 
 		// Act
-		await sut.TrackChangesAsync(parameters, cts.Token);
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
 		await dbAccess.DidNotReceive().UpdateFilePropertiesAsync(
@@ -92,7 +92,7 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Encrypts_Contents_When_A_Keeper_Is_Known()
 	{
 		// Arrange
-		using CancellationTokenSource cts = new();
+		using CancellationTokenSource cancellation = new();
 
 		IContentCipher contentCipher = Substitute.For<IContentCipher>();
 
@@ -135,7 +135,7 @@ internal class FileChangeTrackerTests
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
-					cts.Cancel();
+					cancellation.Cancel();
 
 					return true;
 				});
@@ -159,7 +159,7 @@ internal class FileChangeTrackerTests
 		};
 
 		// Act
-		await sut.TrackChangesAsync(parameters, cts.Token);
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
 		contentCipher
@@ -238,9 +238,9 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Persists_The_Last_Change_On_Stop()
 	{
 		// Arrange
-		using CancellationTokenSource cts = new();
+		using CancellationTokenSource cancellation = new();
 
-		await cts.CancelAsync();
+		await cancellation.CancelAsync();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -283,7 +283,7 @@ internal class FileChangeTrackerTests
 		};
 
 		// Act
-		await sut.TrackChangesAsync(parameters, cts.Token);
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(
@@ -381,7 +381,7 @@ internal class FileChangeTrackerTests
 	public async Task TrackChangesAsync_Updates_File_When_Contents_Changed()
 	{
 		// Arrange
-		using CancellationTokenSource cts = new();
+		using CancellationTokenSource cancellation = new();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -416,7 +416,7 @@ internal class FileChangeTrackerTests
 					Arg.Any<CancellationToken>())
 				.Returns(_ =>
 				{
-					cts.Cancel();
+					cancellation.Cancel();
 
 					return true;
 				});
@@ -439,7 +439,7 @@ internal class FileChangeTrackerTests
 		DateTime before = DateTime.Now;
 
 		// Act
-		await sut.TrackChangesAsync(parameters, cts.Token);
+		await sut.TrackChangesAsync(parameters, cancellation.Token);
 
 		// Assert
 		await dbAccess.Received(1).UpdateFilePropertiesAsync(

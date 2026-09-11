@@ -836,10 +836,10 @@ public partial class EditorViewModel :
 
 		_logger.LogInformation("Deleting an object using a dialog");
 
-		bool isopened = dto is FileDto file && file.IsOpened();
+		bool isOpened = dto is FileDto file && file.IsOpened();
 
 		if (!await _dialogService
-			.RequestYesNoAsync($@"{(isopened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
+			.RequestYesNoAsync($@"{(isOpened ? Strings.CloseTheFileAndDelete : Strings.Delete)} ""{toBeDeleted.Name}""?")
 			.ConfigureAwait(true))
 		{
 			return;

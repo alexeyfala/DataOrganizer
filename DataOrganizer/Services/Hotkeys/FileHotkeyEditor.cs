@@ -64,16 +64,16 @@ public sealed class FileHotkeyEditor : IFileHotkeyEditor
 			.By(x => x.Code)
 			.AndBy(x => x.Mask);
 
-		HotkeyDto[] temp = [.. newHotkeys.ToHotkeyDtos()];
+		HotkeyDto[] newHotkeyDtos = [.. newHotkeys.ToHotkeyDtos()];
 
 		if (dto
 			.Hotkeys
-			.SequenceEqual(temp, comparer))
+			.SequenceEqual(newHotkeyDtos, comparer))
 		{
 			return OverwriteHotkeysOutcome.SameHotkeys;
 		}
 
-		if (temp.IsNotEmpty() && hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(temp, comparer)) is { } existed)
+		if (newHotkeyDtos.IsNotEmpty() && hierarchy.FindFileBy(x => x.Hotkeys.SequenceEqual(newHotkeyDtos, comparer)) is { } existed)
 		{
 			string sequence = newHotkeys.GetHotkeysPresentation();
 

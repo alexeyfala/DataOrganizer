@@ -548,20 +548,20 @@ internal static class EnumerableExtensions
 	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyDto" />.
 	/// </summary>
 	public static IEnumerable<HotkeyDto> ToHotkeyDtos(
-		this KeyStroke[] sequence,
+		this KeyStroke[] hotkeys,
 		Guid id = default,
 		Guid ownerId = default)
 	{
-		for (int i = 0; i < sequence.Length; i++)
+		for (int i = 0; i < hotkeys.Length; i++)
 		{
-			KeyStroke x = sequence[i];
+			KeyStroke hotkey = hotkeys[i];
 
 			yield return new()
 			{
-				Code = x.Code,
+				Code = hotkey.Code,
 				Id = id,
 				Index = i,
-				Mask = x.Mask,
+				Mask = hotkey.Mask,
 				OwnerId = ownerId
 			};
 		}

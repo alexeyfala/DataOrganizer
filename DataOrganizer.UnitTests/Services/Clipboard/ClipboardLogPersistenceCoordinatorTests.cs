@@ -40,13 +40,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([TextEntry("a", [1])]);
+		clipboardLog.Entries.Returns([TextEntry("a", [1])]);
 
 		Context context = CreateContext(
 			Settings(persist: true),
-			log,
+			clipboardLog,
 			store,
 			new WeakReferenceMessenger());
 
@@ -80,13 +80,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([TextEntry("a", [1])]);
+		clipboardLog.Entries.Returns([TextEntry("a", [1])]);
 
 		Context context = CreateContext(
 			Settings(persist: true),
-			log,
+			clipboardLog,
 			store,
 			messenger);
 
@@ -143,13 +143,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([TextEntry("a", [1])]);
+		clipboardLog.Entries.Returns([TextEntry("a", [1])]);
 
 		Context context = CreateContext(
 			Settings(persist: true),
-			log,
+			clipboardLog,
 			store,
 			messenger);
 
@@ -203,11 +203,11 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([TextEntry("a", [1])]);
+		clipboardLog.Entries.Returns([TextEntry("a", [1])]);
 
-		using AutoMock mock = CreateMock(Settings(persist: true), log, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), clipboardLog, store);
 
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
@@ -351,11 +351,11 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.TryUnlockAsync(Arg.Any<PinnedBuffer>(), Arg.Any<CancellationToken>())
 			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.Unlocked, loaded));
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([]);
+		clipboardLog.Entries.Returns([]);
 
-		using AutoMock mock = CreateMock(Settings(persist: true), log, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), clipboardLog, store);
 
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
@@ -367,7 +367,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.Should()
 			.Be(ClipboardLogStatus.Unlocked);
 
-		log
+		clipboardLog
 			.Received()
 			.Merge(loaded);
 
@@ -389,9 +389,9 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.TryUnlockAsync(Arg.Any<PinnedBuffer>(), Arg.Any<CancellationToken>())
 			.Returns(new ClipboardLogUnlockResult(ClipboardLogStatus.WrongPassword, []));
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		using AutoMock mock = CreateMock(Settings(persist: true), log, store);
+		using AutoMock mock = CreateMock(Settings(persist: true), clipboardLog, store);
 
 		ClipboardLogPersistenceCoordinator sut = mock.Create<ClipboardLogPersistenceCoordinator>();
 
@@ -403,7 +403,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 			.Should()
 			.Be(ClipboardLogStatus.WrongPassword);
 
-		log
+		clipboardLog
 			.DidNotReceive()
 			.Merge(Arg.Any<IReadOnlyList<ClipboardLogEntryBase>>());
 
@@ -453,13 +453,13 @@ internal class ClipboardLogPersistenceCoordinatorTests
 
 		store.IsUnlocked.Returns(true);
 
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-		log.Entries.Returns([TextEntry("a", [1])]);
+		clipboardLog.Entries.Returns([TextEntry("a", [1])]);
 
 		Context context = CreateContext(
 			Settings(persist: true),
-			log,
+			clipboardLog,
 			store,
 			messenger);
 
@@ -489,7 +489,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// </summary>
 	private static Context CreateContext(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService log,
+		IClipboardLogService clipboardLog,
 		IClipboardLogStore store,
 		IMessenger messenger)
 	{
@@ -501,7 +501,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			Sut = new ClipboardLogPersistenceCoordinator(
 				settingsStore,
-				log,
+				clipboardLog,
 				store,
 				new InlineDispatcherAccessor(),
 				Substitute.For<ILogger>(),
@@ -525,7 +525,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	/// </summary>
 	private static AutoMock CreateMock(
 		IAppSettingsStore settingsStore,
-		IClipboardLogService log,
+		IClipboardLogService clipboardLog,
 		IClipboardLogStore store,
 		IMessenger? messenger = null)
 	{
@@ -533,7 +533,7 @@ internal class ClipboardLogPersistenceCoordinatorTests
 		{
 			builder.RegisterInstance(settingsStore);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 
 			builder.RegisterInstance(store);
 

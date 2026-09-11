@@ -54,20 +54,20 @@ public sealed class EntityLoader : IEntityLoader
 	{
 		try
 		{
-			FolderEntity[] dbFolders = await _dbAccess
+			FolderEntity[] folders = await _dbAccess
 				.GetAllFoldersAsync(token)
 				.ConfigureAwait(false);
 
-			FileEntity[] dbFiles = await _dbAccess
+			FileEntity[] files = await _dbAccess
 				.GetAllFilesAsync(OptionalFileProperties.None, token)
 				.ConfigureAwait(false);
 
 			_logger.LogInformation(
 				$"Number of objects loaded from the database:{Environment.NewLine}" +
-				$"Folders = {dbFolders.Length},{Environment.NewLine}" +
-				$"Files = {dbFiles.Length}");
+				$"Folders = {folders.Length},{Environment.NewLine}" +
+				$"Files = {files.Length}");
 
-			return Map(dbFolders, dbFiles);
+			return Map(folders, files);
 		}
 		catch (OperationCanceledException)
 		{
@@ -83,11 +83,11 @@ public sealed class EntityLoader : IEntityLoader
 	}
 
 	/// <inheritdoc />
-	public ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> dbFolders, IEnumerable<FileEntity> dbFiles)
+	public ExplorerItemDtoBase[] Map(IEnumerable<FolderEntity> folders, IEnumerable<FileEntity> files)
 	{
-		FileDto[] dtoFiles = _mapper.Map<IEnumerable<FileEntity>, FileDto[]>(dbFiles);
+		FileDto[] fileDtos = _mapper.Map<IEnumerable<FileEntity>, FileDto[]>(files);
 
-		dtoFiles.ForEach(file =>
+		fileDtos.ForEach(file =>
 		{
 			if (file
 				.Hotkeys
@@ -110,8 +110,8 @@ public sealed class EntityLoader : IEntityLoader
 		});
 
 		ExplorerItemDtoBase[] hierarchy = _mapper
-			.Map<IEnumerable<FolderEntity>, FolderDto[]>(dbFolders)
-			.ToHierarchical(dtoFiles)
+			.Map<IEnumerable<FolderEntity>, FolderDto[]>(folders)
+			.ToHierarchical(fileDtos)
 			.ToArray()
 			.SortByIndexRecursively();
 

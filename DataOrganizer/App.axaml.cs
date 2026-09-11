@@ -323,13 +323,13 @@ public sealed class App : Application
 
 			Directory.CreateDirectory(directoryPath);
 
-			string dataSource = Path.Combine(
+			string databaseFilePath = Path.Combine(
 				directoryPath,
 				AppInfo.AppName + KnownFileExtensions.Sqlite);
 
 			SqliteConnectionStringBuilder connectionBuilder = new()
 			{
-				DataSource = dataSource,
+				DataSource = databaseFilePath,
 				Mode = SqliteOpenMode.ReadWriteCreate,
 				RecursiveTriggers = false,
 				DefaultTimeout = 30,

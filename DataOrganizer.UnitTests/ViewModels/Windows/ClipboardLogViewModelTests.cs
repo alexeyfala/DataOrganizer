@@ -27,13 +27,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -62,13 +62,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([TextEntry("apple", [1]), UrlEntry("https://apple.com", [2]), ImageEntry([3])]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -245,13 +245,13 @@ internal class ClipboardLogViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([PinnedTextEntry("p", [1])]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -272,13 +272,13 @@ internal class ClipboardLogViewModelTests
 		// Arrange
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([PinnedTextEntry("p", [1]), TextEntry("u", [2])]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -306,13 +306,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -338,13 +338,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -378,15 +378,15 @@ internal class ClipboardLogViewModelTests
 	public void TogglePin_Delegates_To_Service()
 	{
 		// Arrange
-		IClipboardLogService log = Substitute.For<IClipboardLogService>();
+		IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			log
+			clipboardLog
 				.Entries
 				.Returns([]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();
@@ -397,7 +397,7 @@ internal class ClipboardLogViewModelTests
 		sut.TogglePinCommand.Execute(entry);
 
 		// Assert
-		log
+		clipboardLog
 			.Received(1)
 			.TogglePin(entry);
 	}
@@ -413,13 +413,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns([TextEntry("apple", [1]), TextEntry("banana", [2]), ImageEntry([3])]);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		// Act
@@ -449,13 +449,13 @@ internal class ClipboardLogViewModelTests
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IClipboardLogService log = Substitute.For<IClipboardLogService>();
+			IClipboardLogService clipboardLog = Substitute.For<IClipboardLogService>();
 
-			log
+			clipboardLog
 				.Entries
 				.Returns(entries);
 
-			builder.RegisterInstance(log);
+			builder.RegisterInstance(clipboardLog);
 		});
 
 		ClipboardLogViewModel sut = mock.Create<ClipboardLogViewModel>();

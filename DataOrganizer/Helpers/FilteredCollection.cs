@@ -140,9 +140,9 @@ internal sealed class FilteredCollection<TModel> : IDisposable where TModel : IN
 			return;
 		}
 
-		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
+		int destinationSourceIndex = TranslateVisibleToSource(destinationVisibleIndex);
 
-		RebuildSourceWith(ordered => ordered.Insert(Math.Min(sourceDestination, ordered.Count), item));
+		RebuildSourceWith(ordered => ordered.Insert(Math.Min(destinationSourceIndex, ordered.Count), item));
 	}
 
 	/// <summary>
@@ -171,27 +171,27 @@ internal sealed class FilteredCollection<TModel> : IDisposable where TModel : IN
 	/// </summary>
 	public void Reorder(TModel item, int destinationVisibleIndex)
 	{
-		int sourceOriginal = _source
+		int currentSourceIndex = _source
 			.Items
 			.IndexOf(item);
 
-		if (sourceOriginal < 0)
+		if (currentSourceIndex < 0)
 		{
 			return;
 		}
 
-		int sourceDestination = TranslateVisibleToSource(destinationVisibleIndex);
+		int destinationSourceIndex = TranslateVisibleToSource(destinationVisibleIndex);
 
-		if (sourceOriginal == sourceDestination)
+		if (currentSourceIndex == destinationSourceIndex)
 		{
 			return;
 		}
 
 		RebuildSourceWith(ordered =>
 		{
-			ordered.RemoveAt(sourceOriginal);
+			ordered.RemoveAt(currentSourceIndex);
 
-			ordered.Insert(Math.Min(sourceDestination, ordered.Count), item);
+			ordered.Insert(Math.Min(destinationSourceIndex, ordered.Count), item);
 		});
 	}
 

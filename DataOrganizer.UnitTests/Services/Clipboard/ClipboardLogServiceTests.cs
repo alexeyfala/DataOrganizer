@@ -558,12 +558,12 @@ internal class ClipboardLogServiceTests
 	public void HashFiles_Is_Deterministic()
 	{
 		// Arrange
-		ClipboardFileSystemEntry[] list = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
+		ClipboardFileSystemEntry[] entries = [new("C:\\a", IsFolder: false), new("C:\\b", IsFolder: true)];
 
 		// Act, Assert
-		ClipboardLogService.HashFiles(list)
+		ClipboardLogService.HashFiles(entries)
 			.Should()
-			.Equal(ClipboardLogService.HashFiles(list));
+			.Equal(ClipboardLogService.HashFiles(entries));
 	}
 
 	/// <summary>

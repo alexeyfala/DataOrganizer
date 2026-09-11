@@ -253,7 +253,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	{
 		using PinnedBuffer dek = _encryption.CreateRandomDek();
 
-		byte[] wrapped = _encryption.Encrypt(
+		byte[] wrappedDek = _encryption.Encrypt(
 			dek,
 			password,
 			ContentIdentity.ForClipboardDek(_historyKeyId));
@@ -261,7 +261,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		EnsureDirectory();
 
 		await _fileSystem
-			.WriteAllBytesAtomicAsync(_keyFilePath, wrapped, token)
+			.WriteAllBytesAtomicAsync(_keyFilePath, wrappedDek, token)
 			.ConfigureAwait(false);
 
 		return _sessionKeyStore.Unlock(_historyKeyId, dek)
@@ -287,7 +287,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// file is replaced in one step, so a failure leaves a key the same password still opens.
 	/// </summary>
 	private async Task RewrapKeyAsync(
-		byte[] wrapped,
+		byte[] wrappedDek,
 		PinnedBuffer dek,
 		PinnedBuffer password,
 		CancellationToken token)
@@ -295,7 +295,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		try
 		{
 			if (_encryption.RewrapIfOutdated(
-				wrapped,
+				wrappedDek,
 				dek,
 				password,
 				ContentIdentity.ForClipboardDek(_historyKeyId)) is not { } rewrapped)
@@ -358,12 +358,12 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 	/// </summary>
 	private async Task<ClipboardLogUnlockResult> UnlockExistingAsync(PinnedBuffer password, CancellationToken token)
 	{
-		byte[] wrapped = await _fileSystem
+		byte[] wrappedDek = await _fileSystem
 			.ReadAllBytesAsync(_keyFilePath, token)
 			.ConfigureAwait(false);
 
 		using PinnedBuffer dek = _encryption.Decrypt(
-			wrapped,
+			wrappedDek,
 			password,
 			ContentIdentity.ForClipboardDek(_historyKeyId));
 
@@ -373,7 +373,7 @@ public sealed class ClipboardLogStore : IClipboardLogStore
 		}
 
 		await RewrapKeyAsync(
-			wrapped,
+			wrappedDek,
 			dek,
 			password,
 			token).ConfigureAwait(false);

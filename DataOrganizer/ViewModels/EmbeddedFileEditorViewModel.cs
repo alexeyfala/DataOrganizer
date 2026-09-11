@@ -458,7 +458,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			byte[] latest = contents;
 
 			// Counted, not decremented yet: the batch stays pending until it has been persisted.
-			int taken = 1;
+			int takenCount = 1;
 
 			try
 			{
@@ -468,7 +468,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 				// - quick paste (Ctrl+V of large text can cause several TextChanged in a row)
 				while (reader.TryRead(out byte[]? newer))
 				{
-					taken++;
+					takenCount++;
 
 					latest.ZeroMemory();
 
@@ -517,7 +517,7 @@ public sealed partial class EmbeddedFileEditorViewModel : EmbeddedEditorViewMode
 			}
 			finally
 			{
-				Interlocked.Add(ref _pendingSaves, -taken);
+				Interlocked.Add(ref _pendingSaves, -takenCount);
 			}
 		}
 	}

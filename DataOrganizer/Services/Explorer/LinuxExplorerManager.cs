@@ -357,7 +357,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 		IntPtr property,
 		IntPtr reqType)
 	{
-		IntPtr prop = IntPtr.Zero;
+		IntPtr dataPointer = IntPtr.Zero;
 
 		try
 		{
@@ -373,10 +373,10 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 				out _,
 				out IntPtr nitems,
 				out _,
-				out prop);
+				out dataPointer);
 
 			if (status != 0
-				|| prop == IntPtr.Zero
+				|| dataPointer == IntPtr.Zero
 				|| (long)nitems == 0)
 			{
 				return null;
@@ -387,7 +387,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 			byte[] bytes = new byte[byteCount];
 
 			Marshal.Copy(
-				prop,
+				dataPointer,
 				bytes,
 				0,
 				byteCount);
@@ -398,9 +398,9 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 		}
 		finally
 		{
-			if (prop != IntPtr.Zero)
+			if (dataPointer != IntPtr.Zero)
 			{
-				_ = XFree(prop);
+				_ = XFree(dataPointer);
 			}
 		}
 	}
@@ -414,7 +414,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 		IntPtr window,
 		IntPtr atomActiveWindow)
 	{
-		XClientMessageEvent ev = new()
+		XClientMessageEvent clientMessage = new()
 		{
 			type = ClientMessage,
 			serial = IntPtr.Zero,
@@ -435,7 +435,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 			root,
 			false,
 			new IntPtr(EventMask),
-			ref ev);
+			ref clientMessage);
 
 		_ = XRaiseWindow(display, window);
 
@@ -506,7 +506,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 	{
 		windows = [];
 
-		IntPtr prop = IntPtr.Zero;
+		IntPtr dataPointer = IntPtr.Zero;
 
 		try
 		{
@@ -522,9 +522,9 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 				out int actualFormat,
 				out IntPtr nitems,
 				out _,
-				out prop);
+				out dataPointer);
 
-			if (status != 0 || prop == IntPtr.Zero || actualFormat != 32)
+			if (status != 0 || dataPointer == IntPtr.Zero || actualFormat != 32)
 			{
 				return false;
 			}
@@ -537,16 +537,16 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 			// (8 bytes per entry on 64-bit Linux, 4 bytes on 32-bit).
 			for (int i = 0; i < count; i++)
 			{
-				windows[i] = Marshal.ReadIntPtr(prop, i * IntPtr.Size);
+				windows[i] = Marshal.ReadIntPtr(dataPointer, i * IntPtr.Size);
 			}
 
 			return true;
 		}
 		finally
 		{
-			if (prop != IntPtr.Zero)
+			if (dataPointer != IntPtr.Zero)
 			{
-				_ = XFree(prop);
+				_ = XFree(dataPointer);
 			}
 		}
 	}
@@ -562,7 +562,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 	{
 		pid = 0;
 
-		IntPtr prop = IntPtr.Zero;
+		IntPtr dataPointer = IntPtr.Zero;
 
 		try
 		{
@@ -578,14 +578,14 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 				out int actualFormat,
 				out IntPtr nitems,
 				out _,
-				out prop);
+				out dataPointer);
 
-			if (status != 0 || prop == IntPtr.Zero || actualFormat != 32 || (long)nitems < 1)
+			if (status != 0 || dataPointer == IntPtr.Zero || actualFormat != 32 || (long)nitems < 1)
 			{
 				return false;
 			}
 
-			IntPtr value = Marshal.ReadIntPtr(prop, 0);
+			IntPtr value = Marshal.ReadIntPtr(dataPointer, 0);
 
 			pid = (int)value.ToInt64();
 
@@ -593,9 +593,9 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 		}
 		finally
 		{
-			if (prop != IntPtr.Zero)
+			if (dataPointer != IntPtr.Zero)
 			{
-				_ = XFree(prop);
+				_ = XFree(dataPointer);
 			}
 		}
 	}
