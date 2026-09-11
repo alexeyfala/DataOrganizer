@@ -23,7 +23,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
+using TestSupport.Models;
 
 namespace Repository.UnitTests.Services.Database;
 
@@ -46,7 +48,7 @@ internal class DbAccessTests
 
 		AddEntityParameters parameters = new()
 		{
-			Index = TestData.CreateRandomIntFrom10To100(),
+			Index = RandomValues.CreateIntFrom10To100(),
 			Kind = type,
 			Name = RandomString.Create(10),
 			ParentId = Guid.NewGuid()
@@ -120,7 +122,7 @@ internal class DbAccessTests
 	public async Task AddFilesAsync_Adds_Files_To_Database()
 	{
 		// Arrange
-		FileEntity[] files = [.. TestData.CreateFiles(5)];
+		FileEntity[] files = [.. EntityFactory.CreateFiles(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -156,7 +158,7 @@ internal class DbAccessTests
 	public async Task AddFoldersAsync_Adds_Folders_To_Database()
 	{
 		// Arrange
-		FolderEntity[] folders = [.. TestData.CreateFolders(5)];
+		FolderEntity[] folders = [.. EntityFactory.CreateFolders(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -194,7 +196,7 @@ internal class DbAccessTests
 		// Arrange
 		Guid fileId = Guid.NewGuid();
 
-		KeyStroke[] keyStrokes = [.. TestData.CreateKeyStrokes(5)];
+		KeyStroke[] keyStrokes = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
 		IDbContextService dbConnection = Substitute.For<IDbContextService>();
 
@@ -775,7 +777,7 @@ internal class DbAccessTests
 
 		Guid[] subtreeIds = [rootId, Guid.NewGuid(), Guid.NewGuid()];
 
-		Guid[] fileIds = [.. TestData.CreateGuids(4)];
+		Guid[] fileIds = [.. RandomValues.CreateGuids(4)];
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
@@ -974,7 +976,7 @@ internal class DbAccessTests
 	public async Task GetAllFilesAsync_Returns_Files()
 	{
 		// Arrange
-		FileEntity[] expectedResult = [.. TestData.CreateFiles(100)];
+		FileEntity[] expectedResult = [.. EntityFactory.CreateFiles(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1005,7 +1007,7 @@ internal class DbAccessTests
 	public async Task GetAllFoldersAsync_Returns_Folders()
 	{
 		// Arrange
-		FolderEntity[] expectedResult = [.. TestData.CreateFolders(100)];
+		FolderEntity[] expectedResult = [.. EntityFactory.CreateFolders(100)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1036,7 +1038,7 @@ internal class DbAccessTests
 	public async Task GetFileContentsAsync_Returns_File_Contents()
 	{
 		// Arrange
-		FileEntity file = TestData.CreateFile();
+		FileEntity file = EntityFactory.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1075,7 +1077,7 @@ internal class DbAccessTests
 	public async Task GetFileContentsRangeAsync_Yields_Pair_For_Each_Identifier()
 	{
 		// Arrange
-		FileEntity[] files = [.. TestData.CreateFiles(3)];
+		FileEntity[] files = [.. EntityFactory.CreateFiles(3)];
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1118,7 +1120,7 @@ internal class DbAccessTests
 	public async Task GetFileEditorStateAsync_Returns_The_Editor_State()
 	{
 		// Arrange
-		FileEntity file = TestData.CreateFile();
+		FileEntity file = EntityFactory.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -1346,7 +1348,7 @@ internal class DbAccessTests
 		Dictionary<Guid, Action<UpdateSettersBuilder<FileEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, RandomValues.CreateIntFrom10To100())]
 		};
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
@@ -1497,7 +1499,7 @@ internal class DbAccessTests
 		Dictionary<Guid, Action<UpdateSettersBuilder<FolderEntity>>[]> updates = new()
 		{
 			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Name, RandomString.Create(10))],
-			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, TestData.CreateRandomIntFrom10To100())]
+			[Guid.NewGuid()] = [x => x.SetProperty(x => x.Index, RandomValues.CreateIntFrom10To100())]
 		};
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();

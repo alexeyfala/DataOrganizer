@@ -12,7 +12,7 @@ using DataOrganizer.Views.Settings;
 using NSubstitute;
 using System.Collections.Generic;
 using System.Linq;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Views.Settings;
 
@@ -78,7 +78,7 @@ internal class SettingsViewTests
 
 		settingsStore
 			.Settings
-			.Returns(TestData.CreateSettings());
+			.Returns(SettingsFactory.CreateSettings());
 
 		SettingsSessionState sessionState = new() { LastCategoryIndex = 2 };
 

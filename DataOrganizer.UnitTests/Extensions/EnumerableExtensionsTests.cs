@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Extensions;
 
@@ -27,9 +27,9 @@ internal class EnumerableExtensionsTests
 	public void AllBy_Returns_False_If_Any_Item_Does_Not_Satisfy_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto child = TestData.CreateFileDto(isEditing: true);
+		FileDto child = ItemDtoFactory.CreateFileDto(isEditing: true);
 
 		root.Children.Add(child);
 
@@ -51,9 +51,9 @@ internal class EnumerableExtensionsTests
 	public void AllBy_Returns_True_When_All_Items_Match_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
 		root.Children.Add(nested);
 
@@ -75,7 +75,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsBy_Generic_Predicate_Returns_False_When_No_Item_Matches()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
 
 		// Act
 		bool result = hierarchy.ContainsBy(x => x.Id == Guid.NewGuid());
@@ -93,11 +93,11 @@ internal class EnumerableExtensionsTests
 	public void ContainsFileBy_File_Predicate_Returns_True_When_Matching_File_Exists_Deep()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		FileDto target = TestData.CreateFileDto();
+		FileDto target = ItemDtoFactory.CreateFileDto();
 
 		nested.Children.Add(target);
 
@@ -121,7 +121,7 @@ internal class EnumerableExtensionsTests
 	public void ContainsId_Returns_False_When_No_Object_With_Given_Id()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
 
 		// Act
 		bool result = hierarchy.ContainsId(Guid.NewGuid());
@@ -139,9 +139,9 @@ internal class EnumerableExtensionsTests
 	public void ContainsId_Returns_True_When_Hierarchy_Contains_Object_With_Given_Id()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto target = TestData.CreateFileDto();
+		FileDto target = ItemDtoFactory.CreateFileDto();
 
 		root.Children.Add(target);
 
@@ -163,11 +163,11 @@ internal class EnumerableExtensionsTests
 	public void FilterBy_Returns_Flat_Sequence_Of_Items_Satisfying_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto file1 = TestData.CreateFileDto();
+		FileDto file1 = ItemDtoFactory.CreateFileDto();
 
-		FileDto file2 = TestData.CreateFileDto();
+		FileDto file2 = ItemDtoFactory.CreateFileDto();
 
 		root.Children.Add(file1);
 
@@ -195,9 +195,9 @@ internal class EnumerableExtensionsTests
 	public void FilterFilesById_Returns_Files_With_Matching_Identifiers()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto[] files = [.. TestData.CreateFileDtos(5)];
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
 		foreach (FileDto file in files)
 		{
@@ -225,11 +225,11 @@ internal class EnumerableExtensionsTests
 	public void FindBy_Returns_Matching_Item_From_Nested_Folder()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		FileDto target = TestData.CreateFileDto();
+		FileDto target = ItemDtoFactory.CreateFileDto();
 
 		nested.Children.Add(target);
 
@@ -253,7 +253,7 @@ internal class EnumerableExtensionsTests
 	public void FindBy_Returns_Null_When_No_Item_Satisfies_Condition()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(3)];
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(3)];
 
 		// Act
 		ExplorerItemDtoBase? result = hierarchy.FindBy(x => x.Id == Guid.NewGuid());
@@ -271,9 +271,9 @@ internal class EnumerableExtensionsTests
 	public void FindById_Delegates_To_FindBy()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto target = TestData.CreateFileDto();
+		FileDto target = ItemDtoFactory.CreateFileDto();
 
 		root.Children.Add(target);
 
@@ -295,13 +295,13 @@ internal class EnumerableExtensionsTests
 	public void FindFileBy_Returns_First_File_Matching_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto file = TestData.CreateFileDto(isEditing: true);
+		FileDto file = ItemDtoFactory.CreateFileDto(isEditing: true);
 
 		root.Children.Add(file);
 
-		root.Children.Add(TestData.CreateFolderDto());
+		root.Children.Add(ItemDtoFactory.CreateFolderDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -321,9 +321,9 @@ internal class EnumerableExtensionsTests
 	public void FindFolderBy_Returns_First_Folder_Matching_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto target = TestData.CreateFolderDto();
+		FolderDto target = ItemDtoFactory.CreateFolderDto();
 
 		root.Children.Add(target);
 
@@ -405,15 +405,15 @@ internal class EnumerableExtensionsTests
 	public void GetCount_For_Hierarchy_Counts_Files_And_Folders()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		root.Children.Add(TestData.CreateFileDto());
+		root.Children.Add(ItemDtoFactory.CreateFileDto());
 
-		root.Children.Add(TestData.CreateFileDto());
+		root.Children.Add(ItemDtoFactory.CreateFileDto());
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		nested.Children.Add(TestData.CreateFileDto());
+		nested.Children.Add(ItemDtoFactory.CreateFileDto());
 
 		root.Children.Add(nested);
 
@@ -439,13 +439,13 @@ internal class EnumerableExtensionsTests
 	public void GetFiles_Returns_Files_From_All_Levels_Of_Hierarchy()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto rootFile = TestData.CreateFileDto();
+		FileDto rootFile = ItemDtoFactory.CreateFileDto();
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
-		FileDto nestedFile = TestData.CreateFileDto();
+		FileDto nestedFile = ItemDtoFactory.CreateFileDto();
 
 		nested.Children.Add(nestedFile);
 
@@ -475,11 +475,11 @@ internal class EnumerableExtensionsTests
 	public void GetFilesBy_Returns_Files_Matching_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FileDto editing = TestData.CreateFileDto(isEditing: true);
+		FileDto editing = ItemDtoFactory.CreateFileDto(isEditing: true);
 
-		FileDto idle = TestData.CreateFileDto();
+		FileDto idle = ItemDtoFactory.CreateFileDto();
 
 		root.Children.Add(editing);
 
@@ -506,7 +506,7 @@ internal class EnumerableExtensionsTests
 	public void GetFilesWithUnreadableHotkeys_Returns_File_With_Unreadable_Key()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
 		FileDto damaged = CreateFileWithHotkey(KeyCode.VcUndefined, EventMask.LeftCtrl);
 
@@ -558,7 +558,7 @@ internal class EnumerableExtensionsTests
 	public void GetFilesWithUnreadableHotkeys_Skips_File_Without_Hotkeys()
 	{
 		// Arrange
-		ExplorerItemDtoBase[] hierarchy = [TestData.CreateFileDto()];
+		ExplorerItemDtoBase[] hierarchy = [ItemDtoFactory.CreateFileDto()];
 
 		// Act
 		FileDto[] result = [.. hierarchy.GetFilesWithUnreadableHotkeys()];
@@ -598,13 +598,13 @@ internal class EnumerableExtensionsTests
 	public void GetFolders_Returns_All_Folders_Including_Nested()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto nested = TestData.CreateFolderDto();
+		FolderDto nested = ItemDtoFactory.CreateFolderDto();
 
 		root.Children.Add(nested);
 
-		root.Children.Add(TestData.CreateFileDto());
+		root.Children.Add(ItemDtoFactory.CreateFileDto());
 
 		ExplorerItemDtoBase[] hierarchy = [root];
 
@@ -628,9 +628,9 @@ internal class EnumerableExtensionsTests
 	public void GetFoldersBy_Returns_Folders_Matching_Condition()
 	{
 		// Arrange
-		FolderDto root = TestData.CreateFolderDto();
+		FolderDto root = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto target = TestData.CreateFolderDto();
+		FolderDto target = ItemDtoFactory.CreateFolderDto();
 
 		root.Children.Add(target);
 
@@ -721,7 +721,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Counts_The_Rest()
 	{
 		// Arrange
-		FileDto[] files = [.. TestData.CreateFileDtos(5)];
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(5)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -747,7 +747,7 @@ internal class EnumerableExtensionsTests
 	public void GetUnreadableHotkeysPresentation_Names_Every_File()
 	{
 		// Arrange
-		FileDto[] files = [.. TestData.CreateFileDtos(3)];
+		FileDto[] files = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		// Act
 		string result = files.GetUnreadableHotkeysPresentation(Strings.FailedToReadHotkeys);
@@ -839,15 +839,15 @@ internal class EnumerableExtensionsTests
 	public void SortByIndexRecursively_Sorts_Top_Level_And_Nested_Children_By_Index()
 	{
 		// Arrange
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		folder.Index = 1;
 
-		FileDto child1 = TestData.CreateFileDto();
+		FileDto child1 = ItemDtoFactory.CreateFileDto();
 
 		child1.Index = 30;
 
-		FileDto child2 = TestData.CreateFileDto();
+		FileDto child2 = ItemDtoFactory.CreateFileDto();
 
 		child2.Index = 10;
 
@@ -855,7 +855,7 @@ internal class EnumerableExtensionsTests
 
 		folder.Children.Add(child2);
 
-		FileDto rootFile = TestData.CreateFileDto();
+		FileDto rootFile = ItemDtoFactory.CreateFileDto();
 
 		rootFile.Index = 0;
 
@@ -881,7 +881,7 @@ internal class EnumerableExtensionsTests
 	public void SortChildrenByIndexRecursively_Returns_Without_Action_For_Empty_Folder()
 	{
 		// Arrange
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
 		// Act
 		Action act = () => folder.SortChildrenByIndexRecursively();
@@ -903,15 +903,15 @@ internal class EnumerableExtensionsTests
 	public void ToHierarchical_Builds_Parent_Child_Links_And_Yields_Roots()
 	{
 		// Arrange
-		FolderDto rootFolder = TestData.CreateFolderDto();
+		FolderDto rootFolder = ItemDtoFactory.CreateFolderDto();
 
-		FolderDto childFolder = TestData.CreateFolderDto();
+		FolderDto childFolder = ItemDtoFactory.CreateFolderDto();
 
 		childFolder.ParentId = rootFolder.Id;
 
-		FileDto rootFile = TestData.CreateFileDto();
+		FileDto rootFile = ItemDtoFactory.CreateFileDto();
 
-		FileDto childFile = TestData.CreateFileDto();
+		FileDto childFile = ItemDtoFactory.CreateFileDto();
 
 		childFile.ParentId = childFolder.Id;
 
@@ -997,7 +997,7 @@ internal class EnumerableExtensionsTests
 	public void ToKeyStrokes_Maps_HotkeyDto_To_KeyStroke()
 	{
 		// Arrange
-		HotkeyDto[] hotkeys = [.. TestData.CreateHotkeyDtos(3)];
+		HotkeyDto[] hotkeys = [.. HotkeyFactory.CreateHotkeyDtos(3)];
 
 		// Act
 		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];
@@ -1026,7 +1026,7 @@ internal class EnumerableExtensionsTests
 	/// </summary>
 	private static FileDto CreateFileWithHotkey(KeyCode code, EventMask mask)
 	{
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		file
 			.Hotkeys

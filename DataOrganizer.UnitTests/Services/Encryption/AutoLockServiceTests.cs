@@ -10,7 +10,7 @@ using Microsoft.Extensions.Time.Testing;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -236,7 +236,7 @@ internal class AutoLockServiceTests
 	/// </summary>
 	private static AppSettings CreateSettings(int autoLockMinutes)
 	{
-		AppSettings settings = TestData.CreateSettings();
+		AppSettings settings = SettingsFactory.CreateSettings();
 
 		settings.AutoLockMinutes = autoLockMinutes;
 

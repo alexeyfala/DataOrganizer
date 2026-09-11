@@ -26,7 +26,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Database;
+using TestSupport.Dto;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services;
 
@@ -51,8 +54,8 @@ internal class DataExchangeServiceTests
 				.LoadEntities(Arg.Any<string>())
 				.Returns(new LoadedEntities
 				{
-					Files = [.. TestData.CreateFiles(5)],
-					Folders = [.. TestData.CreateFolders(5)]
+					Files = [.. EntityFactory.CreateFiles(5)],
+					Folders = [.. EntityFactory.CreateFolders(5)]
 				});
 
 			dbAccess
@@ -107,7 +110,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Json));
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Json));
 
 			builder.RegisterInstance(picker);
 
@@ -148,7 +151,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite));
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite));
 
 			builder.RegisterInstance(picker);
 
@@ -187,7 +190,7 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SaveFileAsync<EditorWindow>(Arg.Any<FilePickerSaveOptions>())
-				.Returns(TestData.CreateRandomFileName(10, KnownFileExtensions.Xml));
+				.Returns(RandomValues.CreateFileName(10, KnownFileExtensions.Xml));
 
 			builder.RegisterInstance(picker);
 
@@ -226,11 +229,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Json)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -283,11 +286,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			builder.RegisterInstance(picker);
 
@@ -324,11 +327,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -378,7 +381,7 @@ internal class DataExchangeServiceTests
 	public async Task ImportDataAsync_Imports_A_File_With_Unreadable_Hotkeys()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -399,11 +402,11 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.DeleteHotkeysAsync(file.Id, Arg.Any<CancellationToken>())
@@ -468,13 +471,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Json)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Json)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.ClearDatabaseAsync()
@@ -527,13 +530,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Sqlite)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Sqlite)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.IsValidSqliteDatabase(Arg.Any<string>())
@@ -572,13 +575,13 @@ internal class DataExchangeServiceTests
 
 			picker
 				.SelectFilesAsync<EditorWindow>(Arg.Any<FilePickerOpenOptions>())
-				.Returns([TestData.CreateRandomFileName(10, KnownFileExtensions.Xml)]);
+				.Returns([RandomValues.CreateFileName(10, KnownFileExtensions.Xml)]);
 
 			IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
 			dbAccess
 				.CreateBackupAsync()
-				.Returns(TestData.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
+				.Returns(DatabaseFactory.CreateDatabaseBackup(Substitute.For<IFileSystem>()));
 
 			dbAccess
 				.ClearDatabaseAsync()
@@ -628,9 +631,9 @@ internal class DataExchangeServiceTests
 	public async Task ImportEntitiesAsync_Stamps_Dates_And_Maps_Entities(ImportMode variant)
 	{
 		// Arrange
-		ExplorerItemBase[] entities = [.. TestData
+		ExplorerItemBase[] entities = [.. EntityFactory
 			.CreateFolders(5)
-			.Concat<ExplorerItemBase>(TestData.CreateFiles(5))];
+			.Concat<ExplorerItemBase>(EntityFactory.CreateFiles(5))];
 
 		entities.ForEach(x => x.CreatedAt = x.UpdatedAt = default);
 
@@ -690,9 +693,9 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSqliteAsync_Clears_The_Hierarchy_And_Reloads_It()
 	{
 		// Arrange
-		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData
+		Collection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory
 			.CreateFolderDtos(5)
-			.Concat<ExplorerItemDtoBase>(TestData.CreateFileDtos(5))];
+			.Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
 
 		IEntityLoader entityLoader = Substitute.For<IEntityLoader>();
 
@@ -743,7 +746,7 @@ internal class DataExchangeServiceTests
 	public async Task ReplaceFromSqliteAsync_Fails_When_The_Database_Cannot_Be_Read()
 	{
 		// Arrange
-		Collection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
+		Collection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
 
 		List<ExplorerItemDtoBase> objects = [];
 

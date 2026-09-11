@@ -16,7 +16,8 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -204,7 +205,7 @@ internal class KeeperUnlockerTests
 
 			builder.RegisterInstance(CreateEncryption(
 				SecretFactory.CreateRandomKey(),
-				TestData.CreateRandomBytes(20)));
+				RandomValues.CreateBytes(20)));
 		});
 
 		KeeperUnlocker sut = mock.Create<KeeperUnlocker>();
@@ -275,7 +276,7 @@ internal class KeeperUnlockerTests
 
 		// Act
 		PinnedBuffer? result = await sut.RequestDekAsync(
-			TestData.CreateFolderDto(),
+			ItemDtoFactory.CreateFolderDto(),
 			"header");
 
 		// Assert
@@ -345,7 +346,7 @@ internal class KeeperUnlockerTests
 		// Arrange
 		using PinnedBuffer dek = SecretFactory.CreateRandomKey();
 
-		byte[] rewrapped = TestData.CreateRandomBytes(20);
+		byte[] rewrapped = RandomValues.CreateBytes(20);
 
 		FolderDto keeper = CreateKeeper();
 
@@ -425,10 +426,10 @@ internal class KeeperUnlockerTests
 	/// </summary>
 	private static FolderDto CreateKeeper()
 	{
-		FolderDto keeper = TestData.CreateFolderDto(
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto(
 			encryptionStatus: EncryptionStatus.Encrypted);
 
-		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
 
 		return keeper;
 	}

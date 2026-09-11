@@ -25,7 +25,8 @@ using SharpHook.Testing;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
 
@@ -50,11 +51,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestData.CreateFileDtos(5));
+			.AddRange(ItemDtoFactory.CreateFileDtos(5));
 
 		sut
 			.InputStack
-			.AddRange(TestData.CreateKeyStrokes(5));
+			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -79,7 +80,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Flags_Sensitive_When_Encrypted()
 	{
 		// Arrange
-		FileDto dto = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto dto = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -105,7 +106,7 @@ internal class KeyboardInputHookTests
 				.GetFileContentsAsync(Arg.Any<Guid>())
 				.Returns(new ValidatedContents
 				{
-					Contents = TestData.CreateRandomBytes(10),
+					Contents = RandomValues.CreateBytes(10),
 					IsValid = true
 				});
 
@@ -152,7 +153,7 @@ internal class KeyboardInputHookTests
 	public async Task HandleKeyReleasedAsync_Sets_Text_To_Clipboard()
 	{
 		// Arrange
-		FileDto dto = TestData.CreateFileDto();
+		FileDto dto = ItemDtoFactory.CreateFileDto();
 
 		const KeyCode code = KeyCode.VcA;
 
@@ -188,7 +189,7 @@ internal class KeyboardInputHookTests
 
 			contentCipher
 				.TryDecryptContentsAsync(Arg.Any<FileDto>(), Arg.Any<byte[]>(), Arg.Any<string>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(contentCipher);
 
@@ -259,11 +260,11 @@ internal class KeyboardInputHookTests
 
 		sut
 			.Files
-			.AddRange(TestData.CreateFileDtos(5));
+			.AddRange(ItemDtoFactory.CreateFileDtos(5));
 
 		sut
 			.InputStack
-			.AddRange(TestData.CreateKeyStrokes(5));
+			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
 
 		await runner.StartAsync();
 

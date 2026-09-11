@@ -21,7 +21,8 @@ using Shared.Interfaces;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Views;
 
@@ -36,7 +37,7 @@ internal class ViewLauncherTests
 	public void CreateClipboardLogWindow_Applies_Saved_Settings()
 	{
 		// Arrange
-		int positiveValue = TestData.CreateRandomInt(100, 300);
+		int positiveValue = RandomValues.CreateInt(100, 300);
 
 		ClipboardLogWindowSettings settings = new()
 		{
@@ -167,7 +168,7 @@ internal class ViewLauncherTests
 	public void CreateEditorWindow_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
-		int positiveValue = TestData.CreateRandomInt(100, 300);
+		int positiveValue = RandomValues.CreateInt(100, 300);
 
 		EditorWindowSettings settings = new()
 		{
@@ -281,7 +282,7 @@ internal class ViewLauncherTests
 	public void CreateFavoritesWindow_ViewModel_Should_Be_Initialized()
 	{
 		// Arrange
-		int positiveValue = TestData.CreateRandomInt(100, 300);
+		int positiveValue = RandomValues.CreateInt(100, 300);
 
 		FavoritesWindowSettings settings = new()
 		{
@@ -625,13 +626,13 @@ internal class ViewLauncherTests
 			.ViewModel
 			.FavoritesSettings
 			.Categories
-			.AddRange(TestData.CreateFavoriteCategories(5));
+			.AddRange(FavoriteFactory.CreateFavoriteCategories(5));
 
 		window
 			.ViewModel
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestData.CreateFavoriteSelections(5));
+			.AddRange(FavoriteFactory.CreateFavoriteSelections(5));
 
 		// Act
 		await sut.SaveFavoritesSettingsAsync(window);

@@ -18,7 +18,7 @@ using SharpHook.Testing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels.Dialogs;
 
@@ -39,7 +39,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestData.CreateKeyStrokes(5));
+			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Clear();
@@ -69,7 +69,7 @@ internal class HotkeysEditorViewModelTests
 
 		sut
 			.Buffer
-			.AddRange(TestData.CreateKeyStrokes(5));
+			.AddRange(HotkeyFactory.CreateKeyStrokes(5));
 
 		// Act
 		sut.Dispose();
@@ -301,7 +301,7 @@ internal class HotkeysEditorViewModelTests
 	public void MakePreview_Creates_Preview_For_Hotkeys([Values] bool isAnyInBuffer)
 	{
 		// Arrange
-		KeyStroke[] keyStrokes = [.. TestData.CreateKeyStrokes(5)];
+		KeyStroke[] keyStrokes = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
 		using AutoMock mock = AutoMock.GetLoose();
 

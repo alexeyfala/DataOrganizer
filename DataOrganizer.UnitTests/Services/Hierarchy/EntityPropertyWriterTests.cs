@@ -9,7 +9,7 @@ using NSubstitute;
 using Repository.Interfaces.Database;
 using System;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
@@ -55,7 +55,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsFavoriteAsync(TestData.CreateFileDto());
+		await sut.UpdateIsFavoriteAsync(ItemDtoFactory.CreateFileDto());
 
 		// Assert
 		await dbAccess
@@ -112,7 +112,7 @@ internal class EntityPropertyWriterTests
 		EntityPropertyWriter sut = mock.Create<EntityPropertyWriter>();
 
 		// Act
-		await sut.UpdateIsSelectedAsync(TestData.CreateFolderDto());
+		await sut.UpdateIsSelectedAsync(ItemDtoFactory.CreateFolderDto());
 
 		// Assert
 		await dbAccess

@@ -5,7 +5,8 @@ using DataOrganizer.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -26,19 +27,19 @@ internal class SelectedFavoritesViewModelTests
 
 		const int count = 5;
 
-		sut.SeedCategories(TestData.CreateFavoriteCategories(count));
+		sut.SeedCategories(FavoriteFactory.CreateFavoriteCategories(count));
 
-		sut.SeedFavorites(TestData.CreateFileDtos(count));
+		sut.SeedFavorites(ItemDtoFactory.CreateFileDtos(count));
 
 		sut
 			.OrderedCategoryIds
-			.AddRange(TestData.CreateGuids(count));
+			.AddRange(RandomValues.CreateGuids(count));
 
 		sut
 			.SelectedPairs
-			.AddRange(TestData.CreateFavoriteSelections(count));
+			.AddRange(FavoriteFactory.CreateFavoriteSelections(count));
 
-		sut.SelectedCategory = TestData.CreateFavoriteCategory();
+		sut.SelectedCategory = FavoriteFactory.CreateFavoriteCategory();
 
 		// Act
 		sut.Dispose();
@@ -84,15 +85,15 @@ internal class SelectedFavoritesViewModelTests
 
 		const int count = 5;
 
-		List<FavoriteCategory> categories = [.. TestData.CreateFavoriteCategories(count)];
+		List<FavoriteCategory> categories = [.. FavoriteFactory.CreateFavoriteCategories(count)];
 
 		// Act
 		sut.Initialize(
-			navigationColumnWidth: TestData.CreateRandomDouble(100.0, 300.0),
+			navigationColumnWidth: RandomValues.CreateDouble(100.0, 300.0),
 			selectedCategoryId: categories[0].Id,
 			categories: categories,
 			orderedCategoryIds: [.. categories.OrderBy(x => x.Name).Select(x => x.Id)],
-			selectedPairs: [.. TestData.CreateFavoriteSelections(count)]);
+			selectedPairs: [.. FavoriteFactory.CreateFavoriteSelections(count)]);
 
 		// Assert
 		sut.NavigationColumnWidth.Value

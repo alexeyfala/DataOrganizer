@@ -15,7 +15,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
+using TestSupport.Models;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
@@ -104,11 +106,11 @@ internal class EntityLoaderTests
 
 			dbAccess
 				.GetAllFoldersAsync()
-				.Returns([.. TestData.CreateFolders(folderCount)]);
+				.Returns([.. EntityFactory.CreateFolders(folderCount)]);
 
 			dbAccess
 				.GetAllFilesAsync(OptionalFileProperties.None)
-				.Returns([.. TestData.CreateFiles(fileCount)]);
+				.Returns([.. EntityFactory.CreateFiles(fileCount)]);
 
 			IMapper mapper = Substitute.For<IMapper>();
 
@@ -118,11 +120,11 @@ internal class EntityLoaderTests
 
 			mapper
 				.Map<IEnumerable<FileEntity>, FileDto[]>(Arg.Any<IEnumerable<FileEntity>>())
-				.Returns([.. TestData.CreateFileDtos(fileCount)]);
+				.Returns([.. ItemDtoFactory.CreateFileDtos(fileCount)]);
 
 			mapper
 				.Map<IEnumerable<FolderEntity>, FolderDto[]>(Arg.Any<IEnumerable<FolderEntity>>())
-				.Returns([.. TestData.CreateFolderDtos(folderCount)]);
+				.Returns([.. ItemDtoFactory.CreateFolderDtos(folderCount)]);
 
 			builder.RegisterInstance(mapper);
 
@@ -147,17 +149,17 @@ internal class EntityLoaderTests
 	public void Map_Marks_The_Subtree_Of_A_Password_Keeper_As_Encrypted()
 	{
 		// Arrange
-		FolderDto keeper = TestData.CreateFolderDto();
+		FolderDto keeper = ItemDtoFactory.CreateFolderDto();
 
-		keeper.EncryptedDek = TestData.CreateRandomBytes(10);
+		keeper.EncryptedDek = RandomValues.CreateBytes(10);
 
-		FolderDto plainFolder = TestData.CreateFolderDto();
+		FolderDto plainFolder = ItemDtoFactory.CreateFolderDto();
 
-		FileDto keptFile = TestData.CreateFileDto();
+		FileDto keptFile = ItemDtoFactory.CreateFileDto();
 
 		keptFile.ParentId = keeper.Id;
 
-		FileDto plainFile = TestData.CreateFileDto();
+		FileDto plainFile = ItemDtoFactory.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

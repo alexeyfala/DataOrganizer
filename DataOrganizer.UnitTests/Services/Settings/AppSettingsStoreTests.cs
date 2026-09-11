@@ -8,7 +8,7 @@ using DataOrganizer.Services.Settings;
 using NSubstitute;
 using Shared.Interfaces;
 using System.IO;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Settings;
 
@@ -23,7 +23,7 @@ internal class AppSettingsStoreTests
 	public void Overwrite_Overwrites_Settings()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateSettings();
+		AppSettings settings = SettingsFactory.CreateSettings();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -124,7 +124,7 @@ internal class AppSettingsStoreTests
 	public void Settings_Obtained_From_File()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateSettings();
+		AppSettings settings = SettingsFactory.CreateSettings();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

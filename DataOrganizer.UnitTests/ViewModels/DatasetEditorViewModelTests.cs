@@ -24,7 +24,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -49,7 +49,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -172,7 +172,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -233,7 +233,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -309,7 +309,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -370,7 +370,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -415,7 +415,7 @@ internal class DatasetEditorViewModelTests
 
 			ValidatedContents contents = new()
 			{
-				Contents = TestData.CreateRandomBytes(10),
+				Contents = RandomValues.CreateBytes(10),
 				IsValid = true
 			};
 
@@ -563,7 +563,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -683,7 +683,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -907,7 +907,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -983,7 +983,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1028,7 +1028,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1124,7 +1124,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1160,7 +1160,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1222,7 +1222,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1270,7 +1270,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 
@@ -1344,7 +1344,7 @@ internal class DatasetEditorViewModelTests
 
 			serializer
 				.SerializeToUtf8Bytes(Arg.Any<ObservableCollection<DatasetRecordBase>>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(serializer);
 

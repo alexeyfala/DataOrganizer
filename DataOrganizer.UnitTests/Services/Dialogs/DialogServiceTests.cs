@@ -20,7 +20,7 @@ using NSubstitute;
 using Shared.Properties;
 using System;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Dialogs;
 
@@ -318,7 +318,7 @@ internal class DialogServiceTests
 
 		settingsStore
 			.Settings
-			.Returns(TestData.CreateSettings());
+			.Returns(SettingsFactory.CreateSettings());
 
 		SettingsViewModel viewModel = new(
 			settingsStore,

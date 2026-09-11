@@ -14,7 +14,7 @@ using Shared.Common;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hierarchy;
 
@@ -112,8 +112,8 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerItemDtoBase toBeDeleted = type switch
 		{
-			EntityKind.Folder => TestData.CreateFolderDto(),
-			EntityKind.File => TestData.CreateFileDto(),
+			EntityKind.Folder => ItemDtoFactory.CreateFolderDto(),
+			EntityKind.File => ItemDtoFactory.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -139,7 +139,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
 
 		hierarchy.Add(toBeDeleted);
 
@@ -166,8 +166,8 @@ internal class HierarchyEditorTests
 		// Arrange
 		ExplorerItemDtoBase entity = type switch
 		{
-			EntityKind.Folder => TestData.CreateFolderDto(),
-			EntityKind.File => TestData.CreateFileDto(),
+			EntityKind.Folder => ItemDtoFactory.CreateFolderDto(),
+			EntityKind.File => ItemDtoFactory.CreateFileDto(),
 			_ => throw new NotImplementedException()
 		};
 
@@ -193,7 +193,7 @@ internal class HierarchyEditorTests
 
 		HierarchyEditor sut = mock.Create<HierarchyEditor>();
 
-		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. TestData.CreateFolderDtos(5)];
+		ObservableCollection<ExplorerItemDtoBase> hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5)];
 
 		hierarchy.Add(entity);
 

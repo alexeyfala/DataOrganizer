@@ -17,7 +17,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Updates;
 
@@ -408,7 +408,7 @@ internal class UpdateCheckServiceTests
 	{
 		FakeTimeProvider time = new();
 
-		AppSettings settings = TestData.CreateSettings() with
+		AppSettings settings = SettingsFactory.CreateSettings() with
 		{
 			CheckForUpdates = checkForUpdates,
 			LastNotifiedVersion = lastNotifiedVersion,

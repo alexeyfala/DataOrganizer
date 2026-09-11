@@ -1,7 +1,7 @@
 using DataOrganizer.Helpers.Security;
 using Shared.Common;
 using System;
-using TestSupport;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -14,7 +14,7 @@ internal static class SecretFactory
 	/// <summary>
 	/// A pinned buffer holding random key material of the given size.
 	/// </summary>
-	public static PinnedBuffer CreateRandomKey(int size = 32) => new(TestData.CreateRandomBytes(size));
+	public static PinnedBuffer CreateRandomKey(int size = 32) => new(RandomValues.CreateBytes(size));
 
 	/// <summary>
 	/// A secret holding a random string of the given length.

@@ -13,7 +13,8 @@ using System;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Encryption;
 
@@ -29,7 +30,7 @@ internal class ContentCipherTests
 	public void Decrypt_Hands_Empty_Contents_Back()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
 		ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
@@ -57,11 +58,11 @@ internal class ContentCipherTests
 	public void Decrypt_Returns_Contents_Different_From_The_Input()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
 		folder
 			.Children
@@ -69,7 +70,7 @@ internal class ContentCipherTests
 
 		file.Parent = folder;
 
-		byte[] contents = TestData.CreateRandomBytes(10);
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -77,13 +78,13 @@ internal class ContentCipherTests
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
 				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(encryption);
 
@@ -114,9 +115,9 @@ internal class ContentCipherTests
 		// Arrange
 		Guid keeperId = Guid.NewGuid();
 
-		byte[] input = TestData.CreateRandomBytes(10);
+		byte[] input = RandomValues.CreateBytes(10);
 
-		byte[] decrypted = TestData.CreateRandomBytes(10);
+		byte[] decrypted = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -166,7 +167,7 @@ internal class ContentCipherTests
 		byte[]? result = sut.TryDecrypt(
 			Guid.NewGuid(),
 			ContentIdentity.ForNote(Guid.NewGuid()),
-			TestData.CreateRandomBytes(10));
+			RandomValues.CreateBytes(10));
 
 		// Assert
 		result
@@ -181,11 +182,11 @@ internal class ContentCipherTests
 	public async Task TryDecryptContentsAsync_Asks_For_The_Password_When_File_Is_Encrypted()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
 		folder
 			.Children
@@ -193,7 +194,7 @@ internal class ContentCipherTests
 
 		file.Parent = folder;
 
-		byte[] contents = TestData.CreateRandomBytes(10);
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -209,7 +210,7 @@ internal class ContentCipherTests
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(encryption);
 
@@ -238,11 +239,11 @@ internal class ContentCipherTests
 	public async Task TryDecryptContentsAsync_Decrypts_Through_The_Key_Store_When_File_Is_Decrypted()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Decrypted);
 
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		folder.EncryptedDek = TestData.CreateRandomBytes(10);
+		folder.EncryptedDek = RandomValues.CreateBytes(10);
 
 		folder
 			.Children
@@ -250,7 +251,7 @@ internal class ContentCipherTests
 
 		file.Parent = folder;
 
-		byte[] contents = TestData.CreateRandomBytes(10);
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -258,13 +259,13 @@ internal class ContentCipherTests
 
 			encryption
 				.DecryptWithDek(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			ISessionKeyStore sessionKeyStore = Substitute.For<ISessionKeyStore>();
 
 			sessionKeyStore
 				.Decrypt(Arg.Any<Guid>(), Arg.Any<ContentIdentity>(), Arg.Any<byte[]>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(encryption);
 
@@ -294,7 +295,7 @@ internal class ContentCipherTests
 	public async Task TryDecryptContentsAsync_Does_Not_Ask_For_A_Password_Without_A_Keeper()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted);
 
 		IDialogService dialogService = Substitute.For<IDialogService>();
 
@@ -305,7 +306,7 @@ internal class ContentCipherTests
 		// Act
 		byte[]? result = await sut.TryDecryptContentsAsync(
 			file,
-			TestData.CreateRandomBytes(10),
+			RandomValues.CreateBytes(10),
 			string.Empty);
 
 		// Assert
@@ -334,7 +335,7 @@ internal class ContentCipherTests
 
 		// Act
 		byte[]? result = await sut.TryDecryptContentsAsync(
-			TestData.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted),
+			ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.Encrypted),
 			[],
 			string.Empty);
 
@@ -355,7 +356,7 @@ internal class ContentCipherTests
 	public async Task TryDecryptContentsAsync_Returns_Same_Contents_If_File_Is_Not_Encrypted()
 	{
 		// Arrange
-		byte[] contents = TestData.CreateRandomBytes(10);
+		byte[] contents = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -363,7 +364,7 @@ internal class ContentCipherTests
 
 		// Act
 		byte[]? result = await sut.TryDecryptContentsAsync(
-			TestData.CreateFileDto(encryptionStatus: EncryptionStatus.None),
+			ItemDtoFactory.CreateFileDto(encryptionStatus: EncryptionStatus.None),
 			contents,
 			string.Empty);
 
@@ -398,7 +399,7 @@ internal class ContentCipherTests
 		byte[]? result = sut.TryEncrypt(
 			Guid.NewGuid(),
 			ContentIdentity.ForNote(Guid.NewGuid()),
-			TestData.CreateRandomBytes(10));
+			RandomValues.CreateBytes(10));
 
 		// Assert
 		result

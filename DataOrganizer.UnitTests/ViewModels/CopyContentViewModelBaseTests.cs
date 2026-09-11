@@ -21,7 +21,8 @@ using Shared.Common;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -38,7 +39,7 @@ internal class CopyContentViewModelBaseTests
 		// Arrange
 		string content = RandomString.Create(20);
 
-		FileDto file = TestData.CreateFileDto(encryptionStatus: isEncrypted
+		FileDto file = ItemDtoFactory.CreateFileDto(encryptionStatus: isEncrypted
 			? EncryptionStatus.Encrypted
 			: EncryptionStatus.None);
 
@@ -56,7 +57,7 @@ internal class CopyContentViewModelBaseTests
 				.GetFileContentsAsync(file.Id, Arg.Any<CancellationToken>())
 				.Returns(new ValidatedContents
 				{
-					Contents = TestData.CreateRandomBytes(8),
+					Contents = RandomValues.CreateBytes(8),
 					IsValid = true
 				});
 

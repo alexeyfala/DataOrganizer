@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Helpers;
 
@@ -22,7 +22,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(5)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(5)];
 
 		// Act
 		sut.AddRange(items);
@@ -46,7 +46,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFileDtos(3));
+		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
 		// Act
 		sut.Clear();
@@ -70,7 +70,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -79,7 +79,7 @@ internal class FilteredCollectionTests
 			.Should()
 			.BeTrue();
 
-		sut.Contains(TestData.CreateFileDto())
+		sut.Contains(ItemDtoFactory.CreateFileDto())
 			.Should()
 			.BeFalse();
 	}
@@ -93,7 +93,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFileDtos(3));
+		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
 		// Act
 		Action act = () =>
@@ -118,7 +118,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -142,7 +142,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFileDtos(3));
+		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
 		// Act
 		FileDto? result = sut.FirstOrDefaultFromSource(x => x.Id == Guid.NewGuid());
@@ -162,7 +162,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -190,9 +190,9 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		sut.AddRange(TestData.CreateFileDtos(3));
+		sut.AddRange(ItemDtoFactory.CreateFileDtos(3));
 
-		FileDto inserted = TestData.CreateFileDto();
+		FileDto inserted = ItemDtoFactory.CreateFileDto();
 
 		// Act
 		sut.InsertAndRebuild(inserted, 0);
@@ -234,7 +234,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -260,7 +260,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 
@@ -282,7 +282,7 @@ internal class FilteredCollectionTests
 		// Arrange
 		using FilteredCollection<FileDto> sut = CreateSut();
 
-		FileDto[] items = [.. TestData.CreateFileDtos(3)];
+		FileDto[] items = [.. ItemDtoFactory.CreateFileDtos(3)];
 
 		sut.AddRange(items);
 

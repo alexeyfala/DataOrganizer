@@ -13,7 +13,7 @@ using Repository.Interfaces.Database;
 using Shared.Extensions;
 using System;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Hotkeys;
 
@@ -28,11 +28,11 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Deletes_Hotkeys_In_Database_And_Returns_EmptySequence()
 	{
 		// Arrange
-		FileDto dto = TestData.CreateFileDto();
+		FileDto dto = ItemDtoFactory.CreateFileDto();
 
 		dto
 			.Hotkeys
-			.AddRange(TestData.CreateHotkeyDtos(5));
+			.AddRange(HotkeyFactory.CreateHotkeyDtos(5));
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -64,9 +64,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_AlreadyInUse()
 	{
 		// Arrange
-		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
-		FileDto owner = TestData.CreateFileDto();
+		FileDto owner = ItemDtoFactory.CreateFileDto();
 
 		owner
 			.Hotkeys
@@ -79,7 +79,7 @@ internal class FileHotkeyEditorTests
 		ExplorerItemDtoBase[] hierarchy = [owner];
 
 		// Act
-		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(TestData.CreateFileDto(), newHotkeys, hierarchy);
+		OverwriteHotkeysOutcome result = await sut.OverwriteAsync(ItemDtoFactory.CreateFileDto(), newHotkeys, hierarchy);
 
 		// Assert
 		result
@@ -94,9 +94,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_Rewritten()
 	{
 		// Arrange
-		FileDto dto = TestData.CreateFileDto();
+		FileDto dto = ItemDtoFactory.CreateFileDto();
 
-		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -106,7 +106,7 @@ internal class FileHotkeyEditorTests
 
 			mapper
 				.Map<HotkeyEntity[], HotkeyDto[]>(Arg.Any<HotkeyEntity[]>())
-				.Returns([.. TestData.CreateHotkeyDtos(newHotkeys.Length)]);
+				.Returns([.. HotkeyFactory.CreateHotkeyDtos(newHotkeys.Length)]);
 
 			builder.RegisterInstance(mapper);
 
@@ -143,9 +143,9 @@ internal class FileHotkeyEditorTests
 	public async Task OverwriteAsync_Returns_SameHotkeys()
 	{
 		// Arrange
-		KeyStroke[] newHotkeys = [.. TestData.CreateKeyStrokes(5)];
+		KeyStroke[] newHotkeys = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
-		FileDto dto = TestData.CreateFileDto();
+		FileDto dto = ItemDtoFactory.CreateFileDto();
 
 		dto
 			.Hotkeys

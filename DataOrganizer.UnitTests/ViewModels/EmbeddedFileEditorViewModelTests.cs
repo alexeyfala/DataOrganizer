@@ -13,7 +13,7 @@ using Shared.Interfaces;
 using Shared.Services;
 using System;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
 
 namespace DataOrganizer.UnitTests.ViewModels;
 
@@ -28,9 +28,9 @@ internal class EmbeddedFileEditorViewModelTests
 	public async Task EditorLoaded_Loads_Text_To_Editor()
 	{
 		// Arrange
-		byte[] contents = TestData.CreateRandomBytes(10);
+		byte[] contents = RandomValues.CreateBytes(10);
 
-		double fontSize = TestData.CreateRandomDouble(6.0, 64.0);
+		double fontSize = RandomValues.CreateDouble(6.0, 64.0);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{

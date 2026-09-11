@@ -24,7 +24,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.ViewModels.Windows;
 
@@ -43,7 +44,7 @@ internal class FavoritesViewModelTests
 
 		FavoritesViewModel sut = mock.Create<FavoritesViewModel>();
 
-		ExplorerItemDtoBase[] hierarchy = [.. TestData.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(TestData.CreateFileDtos(5))];
+		ExplorerItemDtoBase[] hierarchy = [.. ItemDtoFactory.CreateFolderDtos(5).Concat<ExplorerItemDtoBase>(ItemDtoFactory.CreateFileDtos(5))];
 
 		// Act
 		sut.AddHierarchy(hierarchy);
@@ -100,22 +101,22 @@ internal class FavoritesViewModelTests
 		sut
 			.FavoritesSettings
 			.Categories
-			.AddRange(TestData.CreateFavoriteCategories(count));
+			.AddRange(FavoriteFactory.CreateFavoriteCategories(count));
 
 		sut
 			.FavoritesSettings
 			.OrderedCategoryIds
-			.AddRange(TestData.CreateGuids(count));
+			.AddRange(RandomValues.CreateGuids(count));
 
 		sut
 			.FavoritesSettings
 			.SelectedPairs
-			.AddRange(TestData.CreateFavoriteSelections(count));
+			.AddRange(FavoriteFactory.CreateFavoriteSelections(count));
 
 		sut
 			.CopyHistorySettings
 			.ItemIds
-			.AddRange(TestData.CreateGuids(count));
+			.AddRange(RandomValues.CreateGuids(count));
 
 		// Act
 		sut.Dispose();
@@ -145,7 +146,7 @@ internal class FavoritesViewModelTests
 	public void Initialize_Initializes_Properties()
 	{
 		// Arrange
-		int positiveValue = TestData.CreateRandomInt(100, 300);
+		int positiveValue = RandomValues.CreateInt(100, 300);
 
 		FavoritesWindowSettings windowSettings = new()
 		{
@@ -158,12 +159,12 @@ internal class FavoritesViewModelTests
 		FavoritesViewSettings favoritesSettings = new()
 		{
 			NavigationColumnWidth = positiveValue - 20,
-			OrderedCategoryIds = [.. TestData.CreateGuids(5)],
+			OrderedCategoryIds = [.. RandomValues.CreateGuids(5)],
 			SelectedCategoryId = Guid.NewGuid(),
-			SelectedPairs = [.. TestData.CreateFavoriteSelections(5)]
+			SelectedPairs = [.. FavoriteFactory.CreateFavoriteSelections(5)]
 		};
 
-		FileDto[] historyFiles = [.. TestData.CreateFileDtos(5)];
+		FileDto[] historyFiles = [.. ItemDtoFactory.CreateFileDtos(5)];
 
 		CopyHistoryViewSettings copyHistorySettings = new()
 		{
@@ -235,7 +236,7 @@ internal class FavoritesViewModelTests
 	public void InsertIntoCopyHistory_Inserts_New_Value_To_Top()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
@@ -244,7 +245,7 @@ internal class FavoritesViewModelTests
 		sut
 			.CopyHistorySettings
 			.ItemIds
-			.AddRange(TestData.CreateGuids(5));
+			.AddRange(RandomValues.CreateGuids(5));
 
 		// Act
 		sut.InsertIntoCopyHistory(file, false);
@@ -262,7 +263,7 @@ internal class FavoritesViewModelTests
 	public void IsShowOnHoverEnabled_Is_Initialized_From_The_Settings()
 	{
 		// Arrange
-		AppSettings settings = TestData.CreateSettings();
+		AppSettings settings = SettingsFactory.CreateSettings();
 
 		settings.ShowFavoritesOnHover = true;
 
@@ -293,7 +294,7 @@ internal class FavoritesViewModelTests
 	public async Task Receive_SessionAutoLocked_Hides_Contents()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto(
+		FileDto file = ItemDtoFactory.CreateFileDto(
 			isEditing: true,
 			encryptionStatus: EncryptionStatus.Decrypted);
 

@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Runtime;
 
@@ -136,7 +136,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		file
 			.Hotkeys
@@ -387,7 +387,7 @@ internal class AppControllerTests
 		// Arrange
 		INotificationService notificationService = Substitute.For<INotificationService>();
 
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		file
 			.Hotkeys

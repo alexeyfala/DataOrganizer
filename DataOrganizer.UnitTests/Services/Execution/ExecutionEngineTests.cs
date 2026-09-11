@@ -14,7 +14,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Execution;
 
@@ -29,7 +30,7 @@ internal class ExecutionEngineTests
 	public async Task CloseAsync_Deletes_File_And_Containing_It_Directory()
 	{
 		// Arrange
-		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		IFileSystem fileSystem = Substitute.For<IFileSystem>();
 
@@ -43,7 +44,7 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestData.CreateRandomDirectoryName());
+				.Returns(RandomValues.CreateDirectoryName());
 
 			fileSystem
 				.FileExists(Arg.Any<string>())
@@ -53,7 +54,7 @@ internal class ExecutionEngineTests
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestData.CreateRandomIntFrom10To100();
+					x[1] = RandomValues.CreateIntFrom10To100();
 
 					return true;
 				});
@@ -166,7 +167,7 @@ internal class ExecutionEngineTests
 			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
 
@@ -215,7 +216,7 @@ internal class ExecutionEngineTests
 			.ProcessExists(Arg.Any<int>())
 			.Returns(true);
 
-		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
 
@@ -262,7 +263,7 @@ internal class ExecutionEngineTests
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -270,13 +271,13 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestData.CreateRandomDirectoryName());
+				.Returns(RandomValues.CreateDirectoryName());
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestData.CreateRandomIntFrom10To100();
+					x[1] = RandomValues.CreateIntFrom10To100();
 
 					return true;
 				});
@@ -368,14 +369,14 @@ internal class ExecutionEngineTests
 
 		ExecutionEngine sut = mock.Create<ExecutionEngine>();
 
-		byte[] contents = TestData.CreateRandomBytes(16);
+		byte[] contents = RandomValues.CreateBytes(16);
 
 		byte[] expectedHash = CryptographicOperations.HashData(TrackChangesParameters.HashAlgorithm, contents);
 
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = contents,
-			File = TestData.CreateFileDto(id: Guid.NewGuid()),
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
 			IsReadOnly = isReadOnly
 		};
 
@@ -430,7 +431,7 @@ internal class ExecutionEngineTests
 		ExecuteFileParameters parameters = new()
 		{
 			Contents = [],
-			File = TestData.CreateFileDto(id: Guid.NewGuid()),
+			File = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid()),
 			IsReadOnly = true
 		};
 
@@ -460,7 +461,7 @@ internal class ExecutionEngineTests
 
 		IFileAssociationService fileAssociation = Substitute.For<IFileAssociationService>();
 
-		FileDto dto = TestData.CreateFileDto(id: Guid.NewGuid());
+		FileDto dto = ItemDtoFactory.CreateFileDto(id: Guid.NewGuid());
 
 		using AutoMock mock = CreateConfiguredMock(fileSystem, processManager, fileAssociation);
 
@@ -511,13 +512,13 @@ internal class ExecutionEngineTests
 
 			sandbox
 				.GetFileDirectoryPath(Arg.Any<Guid>())
-				.Returns(TestData.CreateRandomDirectoryName());
+				.Returns(RandomValues.CreateDirectoryName());
 
 			processManager
 				.StartProcess(Arg.Any<string>(), out Arg.Any<int>())
 				.Returns(x =>
 				{
-					x[1] = TestData.CreateRandomIntFrom10To100();
+					x[1] = RandomValues.CreateIntFrom10To100();
 
 					return true;
 				});

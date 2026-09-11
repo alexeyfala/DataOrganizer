@@ -13,7 +13,8 @@ using Shared.Common;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using TestSupport;
+using TestSupport.Common;
+using TestSupport.Dto;
 
 namespace DataOrganizer.UnitTests.Services.Notes;
 
@@ -28,9 +29,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Deletes_Note_When_Text_Is_Blank([Values(null, "", "   ")] string? note)
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		file.Note = TestData.CreateRandomBytes(10);
+		file.Note = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -79,9 +80,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Database_Update_Fails()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		byte[] encoded = TestData.CreateRandomBytes(10);
+		byte[] encoded = RandomValues.CreateBytes(10);
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
@@ -119,7 +120,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Fails()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -162,7 +163,7 @@ internal class NoteEditorTests
 	public async Task EditAsync_Reports_Failure_When_Encoding_Throws()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -207,7 +208,7 @@ internal class NoteEditorTests
 		// Arrange
 		FileDto file = CreateFile(kind);
 
-		byte[] encoded = TestData.CreateRandomBytes(10);
+		byte[] encoded = RandomValues.CreateBytes(10);
 
 		DateTime updatedAt = DateTime.Now.AddDays(1);
 
@@ -267,9 +268,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Saves_Note_Of_A_Folder()
 	{
 		// Arrange
-		FolderDto folder = TestData.CreateFolderDto();
+		FolderDto folder = ItemDtoFactory.CreateFolderDto();
 
-		byte[] encoded = TestData.CreateRandomBytes(10);
+		byte[] encoded = RandomValues.CreateBytes(10);
 
 		IDbAccess dbAccess = Substitute.For<IDbAccess>();
 
@@ -323,9 +324,9 @@ internal class NoteEditorTests
 	public async Task EditAsync_Zeroes_The_Replaced_Note()
 	{
 		// Arrange
-		FileDto file = TestData.CreateFileDto();
+		FileDto file = ItemDtoFactory.CreateFileDto();
 
-		byte[] replaced = TestData.CreateRandomBytes(10);
+		byte[] replaced = RandomValues.CreateBytes(10);
 
 		file.Note = replaced;
 
@@ -344,7 +345,7 @@ internal class NoteEditorTests
 
 			noteCipher
 				.Encode(file, Arg.Any<string>())
-				.Returns(TestData.CreateRandomBytes(10));
+				.Returns(RandomValues.CreateBytes(10));
 
 			builder.RegisterInstance(dbAccess);
 
