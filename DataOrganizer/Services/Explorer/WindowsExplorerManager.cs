@@ -123,7 +123,7 @@ public sealed partial class WindowsExplorerManager : IWindowsExplorerManager
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Brings the window to the front.
 	/// <see cref="SetForegroundWindow" /> only works if the calling thread is - foreground.

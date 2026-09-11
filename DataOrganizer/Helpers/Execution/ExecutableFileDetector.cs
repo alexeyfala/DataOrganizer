@@ -81,7 +81,7 @@ internal static class ExecutableFileDetector
 		".osax",        // Scripting Additions
 	#endregion
 
-	#region Cross-platform interpreted scripts
+	#region Cross-Platform Interpreted Scripts
 		".py",          // Python
 		".pyw",         // Python (no-console on Windows)
 		".pl",          // Perl
@@ -89,7 +89,7 @@ internal static class ExecutableFileDetector
 		".lua",         // Lua
 		".php",         // PHP CLI scripts
 		".tcl",         // Tcl scripts
-	#endregion		
+	#endregion
 	}.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 	#endregion
 

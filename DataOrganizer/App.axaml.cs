@@ -182,7 +182,7 @@ public sealed class App : Application
 		services.AddTransient<IXmlSerializer, SystemXmlSerializer>();
 		#endregion
 
-		#region View locator
+		#region View Locator
 		services.AddSingleton<EditingFileTemplate>();
 		services.AddSingleton<IViewCache>(x => x.GetRequiredService<EditingFileTemplate>());
 		#endregion

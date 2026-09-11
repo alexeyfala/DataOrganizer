@@ -42,7 +42,7 @@ internal sealed partial class NoticeViewModel : ObservableObject
 	public partial string? Title { get; set; }
 	#endregion
 
-	#region Commands
+	#region Auto-Generated Commands
 	/// <summary>
 	/// Opens the directory holding <see cref="FilePath" /> and selects the file in it.
 	/// </summary>

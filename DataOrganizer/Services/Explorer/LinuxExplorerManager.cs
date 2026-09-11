@@ -285,7 +285,7 @@ public sealed partial class LinuxExplorerManager : ILinuxExplorerManager
 	}
 	#endregion
 
-	#region Service
+	#region Helpers
 	/// <summary>
 	/// Reads window title — prefers UTF-8 <c>_NET_WM_NAME</c>, falls back to <c>WM_NAME</c>.
 	/// </summary>
