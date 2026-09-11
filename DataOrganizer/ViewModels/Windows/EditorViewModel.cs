@@ -752,7 +752,7 @@ public partial class EditorViewModel :
 		}
 	}
 
-	/// <inheritdoc cref="CloseFile" />
+	/// <inheritdoc cref="ViewModelBase.CloseFile" />
 	[RelayCommand]
 	private void CloseOpenedFile(FileDto? dto)
 	{

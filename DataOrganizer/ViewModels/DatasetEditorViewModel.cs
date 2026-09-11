@@ -1040,7 +1040,7 @@ public sealed partial class DatasetEditorViewModel : EmbeddedEditorViewModelBase
 	}
 
 	/// <summary>
-	/// Shared step-loop for the <see cref="SmoothScrollAsync" /> overloads.
+	/// Shared step-loop for the <c>SmoothScrollAsync</c> overloads.
 	/// <paramref name="getRemainingDelta" /> returns signed pixels still to move
 	/// (positive scrolls down).
 	/// </summary>

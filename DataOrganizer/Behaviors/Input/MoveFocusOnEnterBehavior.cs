@@ -46,7 +46,7 @@ internal sealed class MoveFocusOnEnterBehavior : Behavior<InputElement>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="InputElement.KeyDownEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.KeyDownEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_KeyDown(object? sender, KeyEventArgs e)
 	{

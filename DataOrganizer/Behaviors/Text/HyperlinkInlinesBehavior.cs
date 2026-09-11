@@ -104,7 +104,7 @@ internal sealed partial class HyperlinkInlinesBehavior : Behavior<TextBlock>
 	}
 
 	/// <summary>
-	/// Rebuilds inlines of <see cref="AssociatedObject" /> from <paramref name="text" />.
+	/// Rebuilds inlines of <see cref="Behavior{T}.AssociatedObject" /> from <paramref name="text" />.
 	/// </summary>
 	private void Rebuild(string? text)
 	{

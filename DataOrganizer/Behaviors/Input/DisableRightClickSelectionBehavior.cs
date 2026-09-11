@@ -12,7 +12,7 @@ internal sealed class DisableRightClickSelectionBehavior : Behavior<Interactive>
 {
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_PointerPressed(
 		object? sender,

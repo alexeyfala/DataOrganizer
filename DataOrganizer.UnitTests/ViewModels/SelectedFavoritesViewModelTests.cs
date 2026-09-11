@@ -14,7 +14,7 @@ internal class SelectedFavoritesViewModelTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="SelectedFavoritesViewModel.Dispose" />: it clears all collections and selection properties.
+	/// <see cref="ObservableDisposableBase.Dispose" />: it clears all collections and selection properties.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()

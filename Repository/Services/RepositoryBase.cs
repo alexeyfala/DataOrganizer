@@ -34,7 +34,7 @@ public abstract class RepositoryBase<T> where T : class
 			.AddAsync(entity, token);
 	}
 
-	/// <inheritdoc cref="DbSet{T}.AddRangeAsync" />
+	/// <inheritdoc cref="DbSet{T}.AddRangeAsync(IEnumerable{T},CancellationToken)" />
 	public Task AddRangeAsync(IEnumerable<T> entities, CancellationToken token)
 	{
 		return _context
@@ -42,7 +42,7 @@ public abstract class RepositoryBase<T> where T : class
 			.AddRangeAsync(entities, token);
 	}
 
-	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}" />
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.AnyAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
 	public Task<bool> ExistsAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context
@@ -59,7 +59,7 @@ public abstract class RepositoryBase<T> where T : class
 			.Remove(entity);
 	}
 
-	/// <inheritdoc cref="DbSet{T}.RemoveRange" />
+	/// <inheritdoc cref="DbSet{T}.RemoveRange(IEnumerable{T})" />
 	public void RemoveRange(IEnumerable<T> entities)
 	{
 		_context
@@ -67,7 +67,7 @@ public abstract class RepositoryBase<T> where T : class
 			.RemoveRange(entities);
 	}
 
-	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}" />
+	/// <inheritdoc cref="EntityFrameworkQueryableExtensions.CountAsync{TSource}(IQueryable{TSource},Expression{Func{TSource,bool}},CancellationToken)" />
 	protected Task<int> CountAsync(Expression<Func<T, bool>> condition, CancellationToken token)
 	{
 		return _context

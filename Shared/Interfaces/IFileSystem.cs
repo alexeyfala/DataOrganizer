@@ -73,7 +73,7 @@ public interface IFileSystem
 
 	/// <summary>
 	/// <inheritdoc cref="EraseFile" /><br />
-	/// <inheritdoc cref="DeleteFile(string)" />
+	/// <inheritdoc cref="File.Delete(string)" />
 	/// </summary>
 	void EraseAndDeleteFile(
 		string filePath,

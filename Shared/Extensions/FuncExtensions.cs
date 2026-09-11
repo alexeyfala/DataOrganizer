@@ -13,6 +13,7 @@ public static class FuncExtensions
 	/// <param name="condition">Condition.</param>
 	/// <param name="millisecondsDelay">Delay in milliseconds.</param>
 	/// <param name="maxRepeats">Maximum number of repetitions.</param>
+	/// <param name="token">Cancellation token.</param>
 	/// <returns><c>True</c> if the condition is met, <c>False</c> if the maximum number of repetitions is reached and the condition is not met.</returns>
 	public static async ValueTask<bool> WaitAsync(
 		this Func<bool> condition,

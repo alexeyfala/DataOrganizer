@@ -39,7 +39,7 @@ internal sealed class MiddleClickTabCommandBehavior : Behavior<TabControl>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="InputElement.PointerPressedEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.PointerPressedEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_PointerPressed(
 		object? sender,
@@ -52,7 +52,7 @@ internal sealed class MiddleClickTabCommandBehavior : Behavior<TabControl>
 	}
 
 	/// <summary>
-	/// <see cref="InputElement.PointerReleasedEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.PointerReleasedEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_PointerReleased(
 		object? sender,
@@ -127,7 +127,7 @@ internal sealed class MiddleClickTabCommandBehavior : Behavior<TabControl>
 
 	#region Helpers
 	/// <summary>
-	/// Finds the tab of <see cref="AssociatedObject" /> the event source belongs to.
+	/// Finds the tab of <see cref="Behavior{T}.AssociatedObject" /> the event source belongs to.
 	/// </summary>
 	private TabItem? GetTabItem(object? source)
 	{

@@ -29,6 +29,24 @@ internal class FuncExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="FuncExtensions.WaitAsync" />: returns true immediately when the condition is already met.
+	/// </summary>
+	[Test]
+	public async Task WaitAsync_Returns_True_When_Condition_Already_Met()
+	{
+		// Arrange
+		Func<bool> condition = () => true;
+
+		// Act
+		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 5);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
+	}
+
+	/// <summary>
 	/// <see cref="FuncExtensions.WaitAsync" />: returns true once the condition becomes satisfied.
 	/// </summary>
 	[Test]
@@ -41,24 +59,6 @@ internal class FuncExtensionsTests
 
 		// Act
 		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 10);
-
-		// Assert
-		result
-			.Should()
-			.BeTrue();
-	}
-
-	/// <summary>
-	/// <see cref="FuncExtensions.WaitAsync" />: returns true immediately when the condition is already met.
-	/// </summary>
-	[Test]
-	public async Task WaitAsync_Returns_True_When_Condition_Already_Met()
-	{
-		// Arrange
-		Func<bool> condition = () => true;
-
-		// Act
-		bool result = await condition.WaitAsync(millisecondsDelay: 1, maxRepeats: 5);
 
 		// Assert
 		result

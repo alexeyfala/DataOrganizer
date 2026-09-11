@@ -61,7 +61,7 @@ public sealed partial class HotkeysEditorViewModel :
 	internal void Clear() => Buffer.Clear();
 
 	/// <summary>
-	/// <see cref="InputElement.KeyUp" /> event handler of <see cref="UserControl" />.
+	/// <see cref="InputElement.KeyUp" /> event handler of the dialog view.
 	/// </summary>
 	[RelayCommand]
 	internal void KeyUp(KeyEventArgs? e)

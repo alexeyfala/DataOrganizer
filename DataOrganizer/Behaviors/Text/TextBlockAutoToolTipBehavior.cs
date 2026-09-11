@@ -29,7 +29,7 @@ internal sealed class TextBlockAutoToolTipBehavior : Behavior<TextBlock>
 	private void AssociatedObject_SizeChanged(object? sender, SizeChangedEventArgs e) => SetOrRemoveToolTip();
 
 	/// <summary>
-	/// <see cref="TextBlock.TextProperty" /> changed handler of <see cref="AssociatedObject" />.
+	/// <see cref="TextBlock.TextProperty" /> changed handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_TextProperty_Changed(string? value) => SetOrRemoveToolTip();
 

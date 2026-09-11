@@ -13,7 +13,7 @@ public readonly struct AddEntityParameters
 	/// <inheritdoc cref="FileEntity.Contents" />
 	public byte[]? FileContents { get; init; }
 
-	/// <inheritdoc cref="ExplorerItemBase.Index" />
+	/// <inheritdoc cref="EntityBase.Index" />
 	public required int Index { get; init; }
 
 	/// <inheritdoc cref="ExplorerItemBase.Kind" />

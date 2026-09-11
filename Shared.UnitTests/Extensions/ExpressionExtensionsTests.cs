@@ -10,7 +10,7 @@ internal class ExpressionExtensionsTests
 {
 	#region Methods
 	/// <summary>
-	/// <see cref="ExpressionExtensions.SetValue{TProp, TValue}" />: sets a nested property resolved through the member chain.
+	/// <see cref="Shared.Extensions.ExpressionExtensions.SetValue{TProp,TValue}" />: sets a nested property resolved through the member chain.
 	/// </summary>
 	[Test]
 	public void SetValue_Sets_Nested_Property()
@@ -30,7 +30,7 @@ internal class ExpressionExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="ExpressionExtensions.SetValue{TProp, TValue}" />: sets a property reached through a boxing unary conversion.
+	/// <see cref="Shared.Extensions.ExpressionExtensions.SetValue{TProp,TValue}" />: sets a property reached through a boxing unary conversion.
 	/// </summary>
 	[Test]
 	public void SetValue_Sets_Property_Through_Unary_Conversion()
@@ -50,7 +50,7 @@ internal class ExpressionExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="ExpressionExtensions.SetValue{TProp, TValue}" />: sets a reference-type property on the referenced instance.
+	/// <see cref="Shared.Extensions.ExpressionExtensions.SetValue{TProp,TValue}" />: sets a reference-type property on the referenced instance.
 	/// </summary>
 	[Test]
 	public void SetValue_Sets_Reference_Type_Property()
@@ -70,7 +70,7 @@ internal class ExpressionExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="ExpressionExtensions.SetValue{TProp, TValue}" />: sets a value-type property on the referenced instance.
+	/// <see cref="Shared.Extensions.ExpressionExtensions.SetValue{TProp,TValue}" />: sets a value-type property on the referenced instance.
 	/// </summary>
 	[Test]
 	public void SetValue_Sets_Value_Type_Property()

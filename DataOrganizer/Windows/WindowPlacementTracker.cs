@@ -63,7 +63,7 @@ internal sealed class WindowPlacementTracker
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Window.PositionChanged" /> event handler.
+	/// <see cref="WindowBase.PositionChanged" /> event handler.
 	/// </summary>
 	private void Window_PositionChanged(object? sender, PixelPointEventArgs e)
 	{
@@ -76,7 +76,7 @@ internal sealed class WindowPlacementTracker
 	}
 
 	/// <summary>
-	/// <see cref="TopLevel.Resized" /> event handler.
+	/// <see cref="WindowBase.Resized" /> event handler.
 	/// </summary>
 	private void Window_Resized(object? sender, WindowResizedEventArgs e)
 	{
@@ -95,6 +95,7 @@ internal sealed class WindowPlacementTracker
 	/// <summary>
 	/// Starts tracking the placement of the window.
 	/// </summary>
+	/// <param name="window">Window to track.</param>
 	/// <param name="sizeTracked"><c>False</c> for a window of a fixed size.</param>
 	public static WindowPlacementTracker Attach(
 		Window window,

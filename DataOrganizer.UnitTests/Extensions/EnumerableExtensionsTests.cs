@@ -897,35 +897,6 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
-	/// <see cref="EnumerableExtensions.ToKeyStrokes" />: maps each hotkey to a key stroke preserving code and mask.
-	/// </summary>
-	[Test]
-	public void ToKeyStrokes_Maps_HotkeyDto_To_KeyStroke()
-	{
-		// Arrange
-		HotkeyDto[] hotkeys = [.. TestData.CreateHotkeyDtos(3)];
-
-		// Act
-		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];
-
-		// Assert
-		result
-			.Should()
-			.HaveCount(3);
-
-		for (int i = 0; i < hotkeys.Length; i++)
-		{
-			result[i].Code
-				.Should()
-				.Be(hotkeys[i].Code);
-
-			result[i].Mask
-				.Should()
-				.Be(hotkeys[i].Mask);
-		}
-	}
-
-	/// <summary>
 	/// <see cref="EnumerableExtensions.ToHierarchical" />: builds parent-child links and yields the root items.
 	/// </summary>
 	[Test]
@@ -1017,6 +988,35 @@ internal class EnumerableExtensionsTests
 		result[1].Mask
 			.Should()
 			.Be(EventMask.LeftShift);
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.ToKeyStrokes" />: maps each hotkey to a key stroke preserving code and mask.
+	/// </summary>
+	[Test]
+	public void ToKeyStrokes_Maps_HotkeyDto_To_KeyStroke()
+	{
+		// Arrange
+		HotkeyDto[] hotkeys = [.. TestData.CreateHotkeyDtos(3)];
+
+		// Act
+		KeyStroke[] result = [.. hotkeys.ToKeyStrokes()];
+
+		// Assert
+		result
+			.Should()
+			.HaveCount(3);
+
+		for (int i = 0; i < hotkeys.Length; i++)
+		{
+			result[i].Code
+				.Should()
+				.Be(hotkeys[i].Code);
+
+			result[i].Mask
+				.Should()
+				.Be(hotkeys[i].Mask);
+		}
 	}
 	#endregion
 

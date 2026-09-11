@@ -483,48 +483,6 @@ internal class ClipboardLogStoreTests
 	}
 
 	/// <summary>
-	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
-	/// </summary>
-	[Test]
-	public async Task TryUnlock_When_Log_Is_Rejected_Returns_Empty()
-	{
-		// Arrange
-		InMemoryFileSystem files = new();
-
-		using (AutoMock first = CreateMock(files))
-		{
-			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
-
-			await writer.TryUnlockAsync(Password("pw"));
-
-			await writer.SaveAsync([TextEntry("data")]);
-		}
-
-		IEncryptionService encryption = Substitute.For<IEncryptionService>();
-
-		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
-		encryption
-			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
-			.Returns(new PinnedBuffer(32));
-
-		using AutoMock second = CreateMock(files, encryption);
-
-		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
-
-		// Act
-		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
-
-		// Assert
-		result.Status
-			.Should()
-			.Be(ClipboardLogStatus.Unlocked);
-
-		result.Entries
-			.Should()
-			.BeEmpty();
-	}
-
-	/// <summary>
 	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: rejected credentials yield WrongPassword.
 	/// </summary>
 	[Test]
@@ -601,6 +559,48 @@ internal class ClipboardLogStoreTests
 		files.Files
 			.Should()
 			.NotContainKey(KeyPath);
+	}
+
+	/// <summary>
+	/// <see cref="ClipboardLogStore.TryUnlockAsync" />: a journal that fails authentication leaves the store unlocked and empty.
+	/// </summary>
+	[Test]
+	public async Task TryUnlock_When_Log_Is_Rejected_Returns_Empty()
+	{
+		// Arrange
+		InMemoryFileSystem files = new();
+
+		using (AutoMock first = CreateMock(files))
+		{
+			ClipboardLogStore writer = first.Create<ClipboardLogStore>();
+
+			await writer.TryUnlockAsync(Password("pw"));
+
+			await writer.SaveAsync([TextEntry("data")]);
+		}
+
+		IEncryptionService encryption = Substitute.For<IEncryptionService>();
+
+		// The key file yields a key of the right size but the wrong value, so the journal is unreadable.
+		encryption
+			.Decrypt(Arg.Any<byte[]>(), Arg.Any<PinnedBuffer>(), Arg.Any<ContentIdentity>())
+			.Returns(new PinnedBuffer(32));
+
+		using AutoMock second = CreateMock(files, encryption);
+
+		ClipboardLogStore reader = second.Create<ClipboardLogStore>();
+
+		// Act
+		ClipboardLogUnlockResult result = await reader.TryUnlockAsync(Password("pw"));
+
+		// Assert
+		result.Status
+			.Should()
+			.Be(ClipboardLogStatus.Unlocked);
+
+		result.Entries
+			.Should()
+			.BeEmpty();
 	}
 
 	/// <summary>

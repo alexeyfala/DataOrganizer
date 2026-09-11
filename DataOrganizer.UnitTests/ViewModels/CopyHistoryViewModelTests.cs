@@ -78,7 +78,7 @@ internal class CopyHistoryViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="CopyHistoryViewModel.Dispose" />: clears items and selection.
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears items and selection.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()

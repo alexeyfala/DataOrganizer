@@ -42,7 +42,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Control.ContextRequestedEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.ContextRequestedEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_ContextRequested(
 		object? sender,
@@ -70,7 +70,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// <see cref="StyledElement.DataContextChanged" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="StyledElement.DataContextChanged" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// Clears the cached flyout when the container is recycled by virtualization
 	/// to a different item — otherwise the flyout's bindings keep targeting the
 	/// previous data item.
@@ -95,9 +95,9 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 
 	#region Methods
 	/// <summary>
-	/// Builds the flyout (if not yet built) and shows it at <see cref="AssociatedObject" />.
+	/// Builds the flyout (if not yet built) and shows it at <see cref="Behavior{T}.AssociatedObject" />.
 	/// Useful for programmatic triggers, e.g. opening the menu by a double-tap
-	/// command rather than by a real <see cref="Control.ContextRequestedEvent" />.
+	/// command rather than by a real <see cref="InputElement.ContextRequestedEvent" />.
 	/// </summary>
 	public void Show(bool showAtPointer = false)
 	{
@@ -155,7 +155,7 @@ internal sealed class LazyContextFlyoutBehavior : Behavior<Control>
 
 	#region Helpers
 	/// <summary>
-	/// Builds the flyout from and assigns it as <see cref="Control.ContextFlyout" /> on <see cref="AssociatedObject" />.
+	/// Builds the flyout from and assigns it as <see cref="Control.ContextFlyout" /> on <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	/// <returns><c>True</c> when the flyout is ready (either freshly built or already cached).</returns>
 	private bool EnsureFlyout()

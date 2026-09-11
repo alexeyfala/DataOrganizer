@@ -31,7 +31,7 @@ internal sealed class CloseWindowOnDeactivatedBehavior : Behavior<Window>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Window.Deactivated" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="WindowBase.Deactivated" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_Deactivated(object? sender, EventArgs e)
 	{

@@ -47,7 +47,7 @@ internal sealed class SensitiveCopyBehavior : Behavior<Control>
 	#region Event Handlers
 	/// <summary>
 	/// <see cref="TextBox.CopyingToClipboardEvent" /> and
-	/// <see cref="SelectableTextBlock.CopyingToClipboardEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="SelectableTextBlock.CopyingToClipboardEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_CopyingToClipboard(object? sender, RoutedEventArgs e)
 	{
@@ -55,7 +55,7 @@ internal sealed class SensitiveCopyBehavior : Behavior<Control>
 	}
 
 	/// <summary>
-	/// <see cref="TextBox.CuttingToClipboardEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="TextBox.CuttingToClipboardEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_CuttingToClipboard(object? sender, RoutedEventArgs e)
 	{

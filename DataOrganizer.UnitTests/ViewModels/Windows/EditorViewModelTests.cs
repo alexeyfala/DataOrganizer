@@ -181,7 +181,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
+	/// <see cref="ViewModelBase.CloseExecutingFile" />: the file is removed from executing files, unmarked, and closed in the engine.
 	/// </summary>
 	[Test]
 	public void CloseExecutingFile_Closes_File()
@@ -221,7 +221,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.CloseFiles" />: both editing and executing files are unmarked.
+	/// <see cref="ViewModelBase.CloseFiles" />: both editing and executing files are unmarked.
 	/// </summary>
 	[Test]
 	public void CloseFiles_Closes_Editing_And_Executing_Files()
@@ -1904,7 +1904,7 @@ internal class EditorViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="EditorViewModel.RestartAutoLock" />: the countdown starts over from the delay in the settings.
+	/// <see cref="EditorViewModel.RestartAutoLockCommand" />: the countdown starts over from the delay in the settings.
 	/// </summary>
 	[Test]
 	public void RestartAutoLock_Starts_The_Countdown_Over()

@@ -470,7 +470,7 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Sorts the sequence <see cref="ExplorerItemDtoBase" /> by <see cref="ExplorerItemDtoBase.Index" /> recursively.
+	/// Sorts the sequence <see cref="ExplorerItemDtoBase" /> by <see cref="EntityDtoBase.Index" /> recursively.
 	/// </summary>
 	public static ExplorerItemDtoBase[] SortByIndexRecursively(this ExplorerItemDtoBase[] hierarchy)
 	{
@@ -482,7 +482,7 @@ internal static class EnumerableExtensions
 	}
 
 	/// <summary>
-	/// Redistributes <see cref="FolderDto.Children" /> objects by index <see cref="ExplorerItemDtoBase.Index" /><br />
+	/// Redistributes <see cref="FolderDto.Children" /> objects by index <see cref="EntityDtoBase.Index" /><br />
 	/// into <see cref="FolderDto" /> recursively.
 	/// </summary>
 	public static void SortChildrenByIndexRecursively(this FolderDto target)

@@ -29,6 +29,60 @@ internal class EnumerableExtensionsTests
 	}
 
 	/// <summary>
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: appends a trailing separator when requested.
+	/// </summary>
+	[Test]
+	public void JoinAsString_Appends_Trailing_Separator_When_Requested()
+	{
+		// Arrange
+		int[] source = [1, 2];
+
+		// Act
+		string result = source.JoinAsString("-", addSeparatorToEnd: true);
+
+		// Assert
+		result
+			.Should()
+			.Be("1-2-");
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: joins the items with the separator between them.
+	/// </summary>
+	[Test]
+	public void JoinAsString_Joins_Items_With_Separator()
+	{
+		// Arrange
+		int[] source = [1, 2, 3];
+
+		// Act
+		string result = source.JoinAsString(", ");
+
+		// Assert
+		result
+			.Should()
+			.Be("1, 2, 3");
+	}
+
+	/// <summary>
+	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: returns an empty string for a null sequence.
+	/// </summary>
+	[Test]
+	public void JoinAsString_Returns_Empty_For_Null_Sequence()
+	{
+		// Arrange
+		int[]? source = null;
+
+		// Act
+		string result = source!.JoinAsString(", ");
+
+		// Assert
+		result
+			.Should()
+			.BeEmpty();
+	}
+
+	/// <summary>
 	/// <see cref="EnumerableExtensions.OfSpecificType{TSource, TResult}" />: returns only exact-type instances, excluding subclasses.
 	/// </summary>
 	[Test]
@@ -124,60 +178,6 @@ internal class EnumerableExtensionsTests
 		result
 			.Should()
 			.Equal(c, a, b);
-	}
-
-	/// <summary>
-	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: appends a trailing separator when requested.
-	/// </summary>
-	[Test]
-	public void JoinAsString_Appends_Trailing_Separator_When_Requested()
-	{
-		// Arrange
-		int[] source = [1, 2];
-
-		// Act
-		string result = source.JoinAsString("-", addSeparatorToEnd: true);
-
-		// Assert
-		result
-			.Should()
-			.Be("1-2-");
-	}
-
-	/// <summary>
-	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: joins the items with the separator between them.
-	/// </summary>
-	[Test]
-	public void JoinAsString_Joins_Items_With_Separator()
-	{
-		// Arrange
-		int[] source = [1, 2, 3];
-
-		// Act
-		string result = source.JoinAsString(", ");
-
-		// Assert
-		result
-			.Should()
-			.Be("1, 2, 3");
-	}
-
-	/// <summary>
-	/// <see cref="EnumerableExtensions.JoinAsString{T}" />: returns an empty string for a null sequence.
-	/// </summary>
-	[Test]
-	public void JoinAsString_Returns_Empty_For_Null_Sequence()
-	{
-		// Arrange
-		int[]? source = null;
-
-		// Act
-		string result = source!.JoinAsString(", ");
-
-		// Assert
-		result
-			.Should()
-			.BeEmpty();
 	}
 	#endregion
 

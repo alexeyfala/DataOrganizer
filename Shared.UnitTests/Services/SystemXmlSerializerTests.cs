@@ -33,7 +33,7 @@ internal class SystemXmlSerializerTests
 
 	#region Methods
 	/// <summary>
-	/// <see cref="SystemXmlSerializer.Deserialize{T}" />: reads a document that has already been parsed.
+	/// <see cref="SystemXmlSerializer.Deserialize{T}(XDocument)" />: reads a document that has already been parsed.
 	/// </summary>
 	[Test]
 	public void Deserialize_Reads_A_Document()
@@ -61,7 +61,7 @@ internal class SystemXmlSerializerTests
 	}
 
 	/// <summary>
-	/// <see cref="SystemXmlSerializer.Deserialize{T}" />: throws when the XML contains a DTD declaration.
+	/// <see cref="SystemXmlSerializer.Deserialize{T}(string)" />: throws when the XML contains a DTD declaration.
 	/// </summary>
 	[Test]
 	[SkipUnderDebugger(Reason = "Asserts a thrown exception; would trigger break-on-throw under debugger.")]

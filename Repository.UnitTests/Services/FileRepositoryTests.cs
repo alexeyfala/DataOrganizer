@@ -92,6 +92,43 @@ internal class FileRepositoryTests
 	}
 
 	/// <summary>
+	/// <see cref="FileRepository.GetAllAsync" />: includes the editor state but omits contents when only the editor-state flag is set.
+	/// </summary>
+	[Test]
+	public async Task GetAllAsync_EditorState_Includes_EditorState_Only()
+	{
+		// Arrange
+		using TestDatabase database = new();
+
+		database
+			.Context
+			.Add(CreateFile([1, 2, 3], "props"));
+
+		await database
+			.Context
+			.SaveChangesAsync();
+
+		FileRepository sut = new(database.Context);
+
+		// Act
+		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.EditorState);
+
+		// Assert
+		FileEntity file = result
+			.Should()
+			.ContainSingle()
+			.Which;
+
+		file.Contents
+			.Should()
+			.BeEmpty();
+
+		file.EditorState
+			.Should()
+			.Be("props");
+	}
+
+	/// <summary>
 	/// <see cref="FileRepository.GetAllAsync" />: omits both contents and editor state when no flags are set.
 	/// </summary>
 	[Test]
@@ -130,43 +167,6 @@ internal class FileRepositoryTests
 		file.EditorState
 			.Should()
 			.BeNull();
-	}
-
-	/// <summary>
-	/// <see cref="FileRepository.GetAllAsync" />: includes the editor state but omits contents when only the editor-state flag is set.
-	/// </summary>
-	[Test]
-	public async Task GetAllAsync_EditorState_Includes_EditorState_Only()
-	{
-		// Arrange
-		using TestDatabase database = new();
-
-		database
-			.Context
-			.Add(CreateFile([1, 2, 3], "props"));
-
-		await database
-			.Context
-			.SaveChangesAsync();
-
-		FileRepository sut = new(database.Context);
-
-		// Act
-		FileEntity[] result = await sut.GetAllAsync(OptionalFileProperties.EditorState);
-
-		// Assert
-		FileEntity file = result
-			.Should()
-			.ContainSingle()
-			.Which;
-
-		file.Contents
-			.Should()
-			.BeEmpty();
-
-		file.EditorState
-			.Should()
-			.Be("props");
 	}
 	#endregion
 

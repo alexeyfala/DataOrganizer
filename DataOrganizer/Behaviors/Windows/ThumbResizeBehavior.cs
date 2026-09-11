@@ -79,7 +79,7 @@ internal sealed class ThumbResizeBehavior : Behavior<Thumb>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Thumb.DragDeltaEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="Thumb.DragDeltaEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_DragDelta(object? sender, VectorEventArgs e)
 	{

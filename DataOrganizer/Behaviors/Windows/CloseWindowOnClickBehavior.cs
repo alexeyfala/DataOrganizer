@@ -47,7 +47,7 @@ internal sealed class CloseWindowOnClickBehavior : Behavior<Button>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Button.ClickEvent" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="Button.ClickEvent" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_Click(object? sender, RoutedEventArgs e)
 	{

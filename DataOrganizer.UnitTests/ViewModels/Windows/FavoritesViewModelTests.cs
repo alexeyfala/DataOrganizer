@@ -83,7 +83,7 @@ internal class FavoritesViewModelTests
 	}
 
 	/// <summary>
-	/// <see cref="FavoritesViewModel.Dispose" />: clears favorites and copy-history settings collections.
+	/// <see cref="ObservableDisposableBase.Dispose" />: clears favorites and copy-history settings collections.
 	/// </summary>
 	[Test]
 	public void Dispose_Clears_Properties()

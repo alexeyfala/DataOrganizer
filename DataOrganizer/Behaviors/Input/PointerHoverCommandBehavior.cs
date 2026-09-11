@@ -8,7 +8,7 @@ using System.Windows.Input;
 namespace DataOrganizer.Behaviors.Input;
 
 /// <summary>
-/// Executes a command once the pointer has rested over <see cref="AssociatedObject" />
+/// Executes a command once the pointer has rested over <see cref="Behavior{T}.AssociatedObject" />
 /// for <see cref="Delay" /> milliseconds, ignoring pointer movements that only pass over it.
 /// </summary>
 internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
@@ -24,7 +24,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	}
 
 	/// <summary>
-	/// Parameter of <see cref="Command" />, <see cref="AssociatedObject" /> when not set.
+	/// Parameter of <see cref="Command" />, <see cref="Behavior{T}.AssociatedObject" /> when not set.
 	/// </summary>
 	public object? CommandParameter
 	{
@@ -33,7 +33,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 	}
 
 	/// <summary>
-	/// Time in milliseconds the pointer has to rest over <see cref="AssociatedObject" />
+	/// Time in milliseconds the pointer has to rest over <see cref="Behavior{T}.AssociatedObject" />
 	/// before the command runs.
 	/// </summary>
 	public int Delay
@@ -61,7 +61,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="InputElement.PointerEntered" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="InputElement.PointerEntered" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_PointerEntered(object? sender, PointerEventArgs e) => _ = ExecuteAfterDelayAsync();
 	#endregion
@@ -96,7 +96,7 @@ internal sealed class PointerHoverCommandBehavior : Behavior<InputElement>
 
 	#region Helpers
 	/// <summary>
-	/// Executes <see cref="Command" /> when the pointer is still over <see cref="AssociatedObject" />
+	/// Executes <see cref="Command" /> when the pointer is still over <see cref="Behavior{T}.AssociatedObject" />
 	/// after <see cref="Delay" />.
 	/// </summary>
 	private async Task ExecuteAfterDelayAsync()

@@ -228,60 +228,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.CreateBackupAsync" />: the copy appears in the folder of the copies and is gone once released.
-	/// </summary>
-	[Test]
-	public async Task CreateBackupAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
-	{
-		// Arrange
-		using TempSqliteFile file = new();
-
-		await using (SqliteConnection connection = file.Open())
-		{
-			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
-		}
-
-		IDbContextService dbContextService = Substitute.For<IDbContextService>();
-
-		dbContextService
-			.GetDbFilePath()
-			.Returns(file.FilePath);
-
-		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializer>());
-
-		using AutoMock mock = AutoMock.GetLoose();
-
-		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbContextService),
-			TypedParameter.From(fileSystem));
-
-		// Act
-		DatabaseBackup? backup = await sut.CreateBackupAsync();
-
-		// Assert
-		backup
-			.Should()
-			.NotBeNull();
-
-		Path
-			.GetDirectoryName(backup.FilePath)
-			.Should()
-			.Be(DatabaseBackup.GetDirectoryPath(file.FilePath));
-
-		File
-			.Exists(backup.FilePath)
-			.Should()
-			.BeTrue();
-
-		backup.Dispose();
-
-		File
-			.Exists(backup.FilePath)
-			.Should()
-			.BeFalse();
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.ClearDatabaseAsync" />: deletes the database and recreates it via migrations or creation depending on migration support.
 	/// </summary>
 	[Test]
@@ -663,6 +609,60 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
+	/// <see cref="DbAccess.CreateBackupAsync" />: the copy appears in the folder of the copies and is gone once released.
+	/// </summary>
+	[Test]
+	public async Task CreateBackupAsync_Creates_A_Copy_That_Lives_Until_It_Is_Released()
+	{
+		// Arrange
+		using TempSqliteFile file = new();
+
+		await using (SqliteConnection connection = file.Open())
+		{
+			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
+		}
+
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
+
+		dbContextService
+			.GetDbFilePath()
+			.Returns(file.FilePath);
+
+		IFileSystem fileSystem = new FileSystem(Substitute.For<IJsonSerializer>());
+
+		using AutoMock mock = AutoMock.GetLoose();
+
+		DbAccess sut = mock.Create<DbAccess>(
+			TypedParameter.From(dbContextService),
+			TypedParameter.From(fileSystem));
+
+		// Act
+		DatabaseBackup? backup = await sut.CreateBackupAsync();
+
+		// Assert
+		backup
+			.Should()
+			.NotBeNull();
+
+		Path
+			.GetDirectoryName(backup.FilePath)
+			.Should()
+			.Be(DatabaseBackup.GetDirectoryPath(file.FilePath));
+
+		File
+			.Exists(backup.FilePath)
+			.Should()
+			.BeTrue();
+
+		backup.Dispose();
+
+		File
+			.Exists(backup.FilePath)
+			.Should()
+			.BeFalse();
+	}
+
+	/// <summary>
 	/// <see cref="DbAccess.DeleteFileAsync" />: removes the file's hotkeys and the file itself, returning true.
 	/// </summary>
 	[Test]
@@ -877,6 +877,7 @@ internal class DbAccessTests
 			.Should()
 			.BeFalse();
 	}
+
 	/// <summary>
 	/// <see cref="DbAccess.DeleteHotkeysAsync" />: removes all hotkeys owned by the given id and returns true.
 	/// </summary>
@@ -933,6 +934,37 @@ internal class DbAccessTests
 		act
 			.Should()
 			.NotThrow();
+	}
+
+	/// <summary>
+	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id.
+	/// </summary>
+	[Test]
+	public async Task ExistsAsync_Returns_True_When_Entity_Exists()
+	{
+		// Arrange
+		Guid id = Guid.NewGuid();
+
+		using AutoMock mock = AutoMock.GetLoose(builder =>
+		{
+			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
+
+			repository
+				.ExistsAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
+				.Returns(true);
+
+			builder.RegisterInstance(repository);
+		});
+
+		DbAccess sut = mock.Create<DbAccess>();
+
+		// Act
+		bool result = await sut.ExistsAsync(id);
+
+		// Assert
+		result
+			.Should()
+			.BeTrue();
 	}
 
 	/// <summary>
@@ -1037,37 +1069,6 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.GetFileEditorStateAsync" />: returns the stored editor state of the file.
-	/// </summary>
-	[Test]
-	public async Task GetFileEditorStateAsync_Returns_The_Editor_State()
-	{
-		// Arrange
-		FileEntity file = TestData.CreateFile();
-
-		using AutoMock mock = AutoMock.GetLoose(builder =>
-		{
-			IFileRepository repository = Substitute.For<IFileRepository>();
-
-			repository
-				.GetEditorStateAsync(Arg.Any<Guid>())
-				.Returns(file.EditorState);
-
-			builder.RegisterInstance(repository);
-		});
-
-		DbAccess sut = mock.Create<DbAccess>();
-
-		// Act
-		string? result = await sut.GetFileEditorStateAsync(file.Id);
-
-		// Assert
-		result
-			.Should()
-			.Be(file.EditorState);
-	}
-
-	/// <summary>
 	/// <see cref="DbAccess.GetFileContentsRangeAsync" />: yields valid contents for each requested identifier.
 	/// </summary>
 	[Test]
@@ -1111,21 +1112,21 @@ internal class DbAccessTests
 	}
 
 	/// <summary>
-	/// <see cref="DbAccess.ExistsAsync" />: returns true when an entity matches the id.
+	/// <see cref="DbAccess.GetFileEditorStateAsync" />: returns the stored editor state of the file.
 	/// </summary>
 	[Test]
-	public async Task ExistsAsync_Returns_True_When_Entity_Exists()
+	public async Task GetFileEditorStateAsync_Returns_The_Editor_State()
 	{
 		// Arrange
-		Guid id = Guid.NewGuid();
+		FileEntity file = TestData.CreateFile();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			IExplorerItemRepository repository = Substitute.For<IExplorerItemRepository>();
+			IFileRepository repository = Substitute.For<IFileRepository>();
 
 			repository
-				.ExistsAsync(Arg.Any<Expression<Func<ExplorerItemBase, bool>>>())
-				.Returns(true);
+				.GetEditorStateAsync(Arg.Any<Guid>())
+				.Returns(file.EditorState);
 
 			builder.RegisterInstance(repository);
 		});
@@ -1133,12 +1134,12 @@ internal class DbAccessTests
 		DbAccess sut = mock.Create<DbAccess>();
 
 		// Act
-		bool result = await sut.ExistsAsync(id);
+		string? result = await sut.GetFileEditorStateAsync(file.Id);
 
 		// Assert
 		result
 			.Should()
-			.BeTrue();
+			.Be(file.EditorState);
 	}
 
 	/// <summary>

@@ -31,7 +31,7 @@ internal sealed class SnackbarHostBehavior : Behavior<SnackbarHost>
 
 	#region Event Handlers
 	/// <summary>
-	/// <see cref="Control.Loaded" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="Control.Loaded" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_Loaded(object? sender, RoutedEventArgs e)
 	{
@@ -44,7 +44,7 @@ internal sealed class SnackbarHostBehavior : Behavior<SnackbarHost>
 	}
 
 	/// <summary>
-	/// <see cref="Control.Unloaded" /> handler of <see cref="AssociatedObject" />.
+	/// <see cref="Control.Unloaded" /> handler of <see cref="Behavior{T}.AssociatedObject" />.
 	/// </summary>
 	private void AssociatedObject_Unloaded(object? sender, RoutedEventArgs e)
 	{
