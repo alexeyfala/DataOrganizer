@@ -20,6 +20,6 @@ public sealed class EventMaskNameConverter : ValueConverter<EventMask, string>
 	/// <summary>
 	/// Reads a stored name, accepting only the exact text that a written name has.
 	/// </summary>
-	private static EventMask Read(string value) => EnumNameReader.Read(value, EventMask.None);
+	private static EventMask Read(string name) => EnumNameReader.Read(name, EventMask.None);
 	#endregion
 }

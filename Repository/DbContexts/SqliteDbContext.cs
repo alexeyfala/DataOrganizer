@@ -45,7 +45,7 @@ public class SqliteDbContext : DbContext
 	/// <inheritdoc />
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
-		ValueConverter<DateTime, DateTime> timeTicksRemoveConverter = new(
+		ValueConverter<DateTime, DateTime> secondPrecisionConverter = new(
 			x => new DateTime(x.Ticks - (x.Ticks % TimeSpan.TicksPerSecond), x.Kind),
 			x => x);
 
@@ -65,12 +65,12 @@ public class SqliteDbContext : DbContext
 		modelBuilder
 			.Entity<ExplorerItemBase>()
 			.Property(x => x.CreatedAt)
-			.HasConversion(timeTicksRemoveConverter);
+			.HasConversion(secondPrecisionConverter);
 
 		modelBuilder
 			.Entity<ExplorerItemBase>()
 			.Property(x => x.UpdatedAt)
-			.HasConversion(timeTicksRemoveConverter);
+			.HasConversion(secondPrecisionConverter);
 		#endregion
 
 		#region Folder

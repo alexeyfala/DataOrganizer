@@ -134,12 +134,12 @@ public interface IDbAccess : IDisposable
 	/// <summary>
 	/// <c>True</c> when a SQLite database is valid.
 	/// </summary>
-	public bool IsValidSqliteDatabase(string dataSource, bool deepCheck = false);
+	public bool IsValidSqliteDatabase(string databaseFilePath, bool deepCheck = false);
 
 	/// <summary>
 	/// Loads all entities from the specified database.
 	/// </summary>
-	LoadedEntities LoadEntities(string dataSource);
+	LoadedEntities LoadEntities(string databaseFilePath);
 
 	/// <summary>
 	/// Restores database from backup.

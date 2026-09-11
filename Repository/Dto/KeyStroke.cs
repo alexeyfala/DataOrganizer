@@ -23,9 +23,9 @@ public readonly record struct KeyStroke
 	/// </summary>
 	public string GetKeyName()
 	{
-		string value = Code.ToString();
+		string name = Code.ToString();
 
-		return value.StartsWith("Vc") ? value[2..] : value;
+		return name.StartsWith("Vc") ? name[2..] : name;
 	}
 	#endregion
 }

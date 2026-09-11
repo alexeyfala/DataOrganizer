@@ -40,7 +40,7 @@ internal class DbAccessTests
 	public async Task AddEntityAsync_Returns_Entity([Values] EntityKind type)
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
@@ -57,7 +57,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From(folderRepository),
 			TypedParameter.From(fileRepository));
 
@@ -89,7 +89,7 @@ internal class DbAccessTests
 			.Should()
 			.Be(parameters.ParentId);
 
-		await dbConnection
+		await dbContextService
 			.Received()
 			.SaveChangesAsync();
 
@@ -124,14 +124,14 @@ internal class DbAccessTests
 		// Arrange
 		FileEntity[] files = [.. EntityFactory.CreateFiles(5)];
 
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		IFileRepository repository = Substitute.For<IFileRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From(repository));
 
 		// Act
@@ -146,7 +146,7 @@ internal class DbAccessTests
 			.Received()
 			.AddRangeAsync(Arg.Any<IEnumerable<FileEntity>>());
 
-		await dbConnection
+		await dbContextService
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -160,7 +160,7 @@ internal class DbAccessTests
 		// Arrange
 		FolderEntity[] folders = [.. EntityFactory.CreateFolders(5)];
 
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		IFolderRepository repository = Substitute.For<IFolderRepository>();
 
@@ -168,7 +168,7 @@ internal class DbAccessTests
 
 		DbAccess sut = mock.Create<DbAccess>(
 			TypedParameter.From(repository),
-			TypedParameter.From(dbConnection));
+			TypedParameter.From(dbContextService));
 
 		// Act
 		bool result = await sut.AddFoldersAsync(folders);
@@ -182,7 +182,7 @@ internal class DbAccessTests
 			.Received()
 			.AddRangeAsync(Arg.Any<IEnumerable<FolderEntity>>());
 
-		await dbConnection
+		await dbContextService
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -198,14 +198,14 @@ internal class DbAccessTests
 
 		KeyStroke[] keyStrokes = [.. HotkeyFactory.CreateKeyStrokes(5)];
 
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		IHotkeysRepository repository = Substitute.For<IHotkeysRepository>();
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From(repository));
 
 		// Act
@@ -224,7 +224,7 @@ internal class DbAccessTests
 			.Received(keyStrokes.Length)
 			.AddAsync(Arg.Any<HotkeyEntity>());
 
-		await dbConnection
+		await dbContextService
 			.Received()
 			.SaveChangesAsync();
 	}
@@ -236,15 +236,15 @@ internal class DbAccessTests
 	public async Task ClearDatabaseAsync_Recreates_Database([Values] bool useMigrations)
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbConnection
+			dbContextService
 				.HasMigrations()
 				.Returns(useMigrations);
 
-			builder.RegisterInstance(dbConnection);
+			builder.RegisterInstance(dbContextService);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -257,19 +257,19 @@ internal class DbAccessTests
 			.Should()
 			.BeTrue();
 
-		dbConnection
+		dbContextService
 			.Received()
 			.EnsureDeleted();
 
 		if (useMigrations)
 		{
-			dbConnection
+			dbContextService
 				.Received()
 				.Migrate();
 		}
 		else
 		{
-			dbConnection
+			dbContextService
 				.Received()
 				.EnsureCreated();
 		}
@@ -282,15 +282,15 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Connects_To_Database([Values] bool useMigrations)
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbConnection
+			dbContextService
 				.HasMigrations()
 				.Returns(useMigrations);
 
-			builder.RegisterInstance(dbConnection);
+			builder.RegisterInstance(dbContextService);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -305,13 +305,13 @@ internal class DbAccessTests
 
 		if (useMigrations)
 		{
-			await dbConnection
+			await dbContextService
 				.Received()
 				.MigrateAsync();
 		}
 		else
 		{
-			await dbConnection
+			await dbContextService
 				.Received()
 				.EnsureCreatedAsync();
 		}
@@ -333,20 +333,20 @@ internal class DbAccessTests
 
 		const string known = "20260907183944_InitialCreate";
 
-		IDbContextService dbConnection = CreateExistingDatabase(file);
+		IDbContextService dbContextService = CreateExistingDatabase(file);
 
-		dbConnection
+		dbContextService
 			.GetAppliedMigrationsAsync(Arg.Any<CancellationToken>())
 			.Returns([known, "20991231235959_FromTheFuture"]);
 
-		dbConnection
+		dbContextService
 			.GetKnownMigrations()
 			.Returns([known]);
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
 
 		// Act
@@ -357,7 +357,7 @@ internal class DbAccessTests
 			.Should()
 			.Be(DbConnectionStatus.SchemaTooNew);
 
-		await dbConnection
+		await dbContextService
 			.DidNotReceive()
 			.MigrateAsync(Arg.Any<CancellationToken>());
 	}
@@ -369,9 +369,9 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Reports_A_File_It_Cannot_Open()
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
-		dbConnection
+		dbContextService
 			.HasMigrations()
 			.Returns(true);
 
@@ -388,7 +388,7 @@ internal class DbAccessTests
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From(fileSystem));
 
 		// Act
@@ -399,7 +399,7 @@ internal class DbAccessTests
 			.Should()
 			.Be(DbConnectionStatus.FileUnreadable);
 
-		await dbConnection
+		await dbContextService
 			.DidNotReceive()
 			.MigrateAsync(Arg.Any<CancellationToken>());
 	}
@@ -418,16 +418,16 @@ internal class DbAccessTests
 			TempSqliteFile.Execute(connection, "CREATE TABLE Payloads (Id INTEGER PRIMARY KEY, Payload TEXT);");
 		}
 
-		IDbContextService dbConnection = CreateExistingDatabase(file);
+		IDbContextService dbContextService = CreateExistingDatabase(file);
 
-		dbConnection
+		dbContextService
 			.MigrateAsync(Arg.Any<CancellationToken>())
 			.ThrowsAsync(new InvalidOperationException(@"Table ""Payloads"" already exists"));
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From<IFileSystem>(new FileSystem(Substitute.For<IJsonSerializer>())));
 
 		// Act
@@ -446,15 +446,15 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Reports_An_Unusable_Database()
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		using AutoMock mock = AutoMock.GetLoose(builder =>
 		{
-			dbConnection
+			dbContextService
 				.EnsureCreatedAsync(Arg.Any<CancellationToken>())
 				.ThrowsAsync(new InvalidOperationException());
 
-			builder.RegisterInstance(dbConnection);
+			builder.RegisterInstance(dbContextService);
 		});
 
 		DbAccess sut = mock.Create<DbAccess>();
@@ -475,20 +475,20 @@ internal class DbAccessTests
 	public async Task ConnectAsync_Shuts_The_Writes_Down_After_A_Failure()
 	{
 		// Arrange
-		IDbContextService dbConnection = Substitute.For<IDbContextService>();
+		IDbContextService dbContextService = Substitute.For<IDbContextService>();
 
 		IFileRepository fileRepository = Substitute.For<IFileRepository>();
 
 		IFolderRepository folderRepository = Substitute.For<IFolderRepository>();
 
-		dbConnection
+		dbContextService
 			.EnsureCreatedAsync(Arg.Any<CancellationToken>())
 			.ThrowsAsync(new InvalidOperationException());
 
 		using AutoMock mock = AutoMock.GetLoose();
 
 		DbAccess sut = mock.Create<DbAccess>(
-			TypedParameter.From(dbConnection),
+			TypedParameter.From(dbContextService),
 			TypedParameter.From(fileRepository),
 			TypedParameter.From(folderRepository));
 
@@ -533,7 +533,7 @@ internal class DbAccessTests
 			.Should()
 			.BeFalse();
 
-		await dbConnection
+		await dbContextService
 			.DidNotReceive()
 			.SaveChangesAsync(Arg.Any<CancellationToken>());
 

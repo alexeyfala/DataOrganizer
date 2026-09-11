@@ -20,6 +20,6 @@ public sealed class KeyCodeNameConverter : ValueConverter<KeyCode, string>
 	/// <summary>
 	/// Reads a stored name, accepting only the exact text that a written name has.
 	/// </summary>
-	private static KeyCode Read(string value) => EnumNameReader.Read(value, KeyCode.VcUndefined);
+	private static KeyCode Read(string name) => EnumNameReader.Read(name, KeyCode.VcUndefined);
 	#endregion
 }

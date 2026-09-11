@@ -340,20 +340,20 @@ public sealed class DbAccess : IDbAccess
 
 			TryErasePendingBackups();
 
-			bool isExisting = _fileSystem.FileExists(_dbContextService.GetDbFilePath());
+			bool hasDatabaseFile = _fileSystem.FileExists(_dbContextService.GetDbFilePath());
 
-			DbConnectionStatus status = isExisting
+			DbConnectionStatus status = hasDatabaseFile
 				? await GetSchemaStatusAsync(token).ConfigureAwait(false)
 				: DbConnectionStatus.Connected;
 
 			if (status is DbConnectionStatus.Connected)
 			{
-				DbConnectionStatus failure = isExisting
+				DbConnectionStatus failureStatus = hasDatabaseFile
 					? DbConnectionStatus.SchemaTooOld
 					: DbConnectionStatus.FileUnreadable;
 
 				// A database that has just been read holds data, so a failure here is about its schema.
-				status = await TryUpdateSchemaAsync(failure, token).ConfigureAwait(false);
+				status = await TryUpdateSchemaAsync(failureStatus, token).ConfigureAwait(false);
 			}
 
 			ConnectionStatus = status;
@@ -848,31 +848,31 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public bool IsValidSqliteDatabase(string dataSource, bool deepCheck = false)
+	public bool IsValidSqliteDatabase(string databaseFilePath, bool deepCheck = false)
 	{
 		try
 		{
-			if (!HasValidHeader(dataSource))
+			if (!HasValidHeader(databaseFilePath))
 			{
 				return false;
 			}
 
 			string connectionString = new SqliteConnectionStringBuilder
 			{
-				DataSource = dataSource
+				DataSource = databaseFilePath
 			}.ToString();
 
 			using SqliteConnection connection = new(connectionString);
 
 			SqlitePragmas.OpenConnection(connection);
 
-			using SqliteCommand cmd = connection.CreateCommand();
+			using SqliteCommand command = connection.CreateCommand();
 
-			cmd.CommandText = deepCheck
+			command.CommandText = deepCheck
 				? "PRAGMA integrity_check;"
 				: "PRAGMA quick_check;";
 
-			string? result = cmd
+			string? result = command
 				.ExecuteScalar()?
 				.ToString();
 
@@ -913,15 +913,15 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <inheritdoc />
-	public LoadedEntities LoadEntities(string dataSource)
+	public LoadedEntities LoadEntities(string databaseFilePath)
 	{
-		using SqliteDbContext context = CreateSqliteDbContext(dataSource);
+		using SqliteDbContext context = CreateSqliteDbContext(databaseFilePath);
 
-		FolderEntity[] dbFolders = [.. context
+		FolderEntity[] folders = [.. context
 			.Set<FolderEntity>()
 			.AsNoTracking()];
 
-		FileEntity[] dbFiles = [.. context
+		FileEntity[] files = [.. context
 			.Set<FileEntity>()
 			.AsNoTracking()];
 
@@ -929,8 +929,8 @@ public sealed class DbAccess : IDbAccess
 
 		return new()
 		{
-			Files = dbFiles,
-			Folders = dbFolders
+			Files = files,
+			Folders = folders
 		};
 	}
 
@@ -1256,11 +1256,11 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Creates and returns <see cref="SqliteDbContext" />.
 	/// </summary>
-	private static SqliteDbContext CreateSqliteDbContext(string dataSource)
+	private static SqliteDbContext CreateSqliteDbContext(string databaseFilePath)
 	{
 		SqliteConnectionStringBuilder builder = new()
 		{
-			DataSource = dataSource
+			DataSource = databaseFilePath
 		};
 
 		DbContextOptions<SqliteDbContext> options = new DbContextOptionsBuilder<SqliteDbContext>()
@@ -1274,18 +1274,18 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// Transforms a sequence of <see cref="KeyStroke" /> to a sequence of <see cref="HotkeyEntity" />.
 	/// </summary>
-	private static IEnumerable<HotkeyEntity> ToHotkeyEntities(KeyStroke[] sequence, Guid ownerId)
+	private static IEnumerable<HotkeyEntity> ToHotkeyEntities(KeyStroke[] hotkeys, Guid ownerId)
 	{
-		for (int i = 0; i < sequence.Length; i++)
+		for (int i = 0; i < hotkeys.Length; i++)
 		{
-			KeyStroke x = sequence[i];
+			KeyStroke hotkey = hotkeys[i];
 
 			yield return new()
 			{
-				Code = x.Code,
+				Code = hotkey.Code,
 				Id = Guid.NewGuid(),
 				Index = i,
-				Mask = x.Mask,
+				Mask = hotkey.Mask,
 				OwnerId = ownerId
 			};
 		}
@@ -1364,11 +1364,11 @@ public sealed class DbAccess : IDbAccess
 			return DbConnectionStatus.Connected;
 		}
 
-		IEnumerable<string> applied = await _dbContextService
+		IEnumerable<string> appliedMigrations = await _dbContextService
 			.GetAppliedMigrationsAsync(token)
 			.ConfigureAwait(false);
 
-		bool isFromNewerVersion = applied
+		bool isFromNewerVersion = appliedMigrations
 			.Except(_dbContextService.GetKnownMigrations())
 			.Any();
 
@@ -1382,14 +1382,14 @@ public sealed class DbAccess : IDbAccess
 	/// <summary>
 	/// <c>True</c> when the database is closed for writing; the refusal is kept to the log.
 	/// </summary>
-	private bool IsWriteRefused([CallerMemberName] string caller = "")
+	private bool IsWriteRefused([CallerMemberName] string callerName = "")
 	{
 		if (IsWritable)
 		{
 			return false;
 		}
 
-		_logger.LogError($"{caller} is refused: the database is {ConnectionStatus}.", breakInDebugger: false);
+		_logger.LogError($"{callerName} is refused: the database is {ConnectionStatus}.", breakInDebugger: false);
 
 		return true;
 	}
@@ -1427,10 +1427,10 @@ public sealed class DbAccess : IDbAccess
 	}
 
 	/// <summary>
-	/// Brings the schema to the model, reporting <paramref name="failure" /> when that cannot be done.
+	/// Brings the schema to the model, reporting <paramref name="failureStatus" /> when that cannot be done.
 	/// </summary>
 	private async Task<DbConnectionStatus> TryUpdateSchemaAsync(
-		DbConnectionStatus failure,
+		DbConnectionStatus failureStatus,
 		CancellationToken token)
 	{
 		try
@@ -1450,7 +1450,7 @@ public sealed class DbAccess : IDbAccess
 		{
 			_logger.LogException(ex, breakInDebugger: false);
 
-			return failure;
+			return failureStatus;
 		}
 	}
 	#endregion
