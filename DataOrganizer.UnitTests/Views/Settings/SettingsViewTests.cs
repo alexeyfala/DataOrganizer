@@ -19,6 +19,13 @@ namespace DataOrganizer.UnitTests.Views.Settings;
 [TestFixture(Description = $@"Tests of ""{nameof(SettingsView)}"" type")]
 internal class SettingsViewTests
 {
+	#region Data
+	/// <summary>
+	/// Name of the category list in the markup.
+	/// </summary>
+	private const string CategoriesListName = "CategoriesList";
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="SettingsView" />: switching a settings category does not change the height of the view.
@@ -35,7 +42,7 @@ internal class SettingsViewTests
 
 		Dispatcher.UIThread.RunJobs();
 
-		ListBox categories = sut.GetControl<ListBox>("CategoriesListBox");
+		ListBox categories = sut.GetControl<ListBox>(CategoriesListName);
 
 		MaxSizeSwitchPanel panel = sut
 			.GetVisualDescendants()
@@ -97,7 +104,7 @@ internal class SettingsViewTests
 		Dispatcher.UIThread.RunJobs();
 
 		// Assert
-		ListBox categories = sut.GetControl<ListBox>("CategoriesListBox");
+		ListBox categories = sut.GetControl<ListBox>(CategoriesListName);
 
 		categories.SelectedIndex
 			.Should()

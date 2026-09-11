@@ -75,7 +75,7 @@
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
 				<ListBox
-					x:Name="CategoriesListBox"
+					x:Name="CategoriesList"
 					SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
 					SelectionMode="AlwaysSelected">
 					<ListBoxItem>
@@ -138,7 +138,7 @@
 				Grid.Column="1"
 				HorizontalScrollBarVisibility="Disabled"
 				VerticalScrollBarVisibility="Auto">
-				<controls:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesListBox.SelectedIndex, Mode=OneWay}">
+				<controls:MaxSizeSwitchPanel SelectedIndex="{Binding #CategoriesList.SelectedIndex, Mode=OneWay}">
 					<settings:SettingsGeneralView />
 
 					<settings:SettingsAppearanceView />
