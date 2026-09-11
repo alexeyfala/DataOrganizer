@@ -15,6 +15,26 @@ namespace Repository.UnitTests.Services.Database;
 [TestFixture(Description = $@"Tests of ""{nameof(DbMaintenance)}"" type")]
 internal class DbMaintenanceTests
 {
+	#region Data
+	/// <summary>
+	/// Query reporting the number of pages the database keeps for reuse.
+	/// </summary>
+	private const string FreePagesQuery = "PRAGMA freelist_count;";
+
+	/// <summary>
+	/// Query reporting the stamp of the maintenance.
+	/// </summary>
+	private const string VersionQuery = "PRAGMA user_version;";
+
+	/// <summary>
+	/// Path of the database used in the tests of the leftover copies.
+	/// </summary>
+	private static readonly string DatabaseFilePath = Path.Combine(
+		Path.GetTempPath(),
+		"Database",
+		"DataOrganizer.sqlite");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="DbMaintenance.EraseFreePagesOnceAsync" />: rewrites a database that still holds free pages and stamps it.
@@ -188,24 +208,6 @@ internal class DbMaintenanceTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Query reporting the number of pages the database keeps for reuse.
-	/// </summary>
-	private const string FreePagesQuery = "PRAGMA freelist_count;";
-
-	/// <summary>
-	/// Query reporting the stamp of the maintenance.
-	/// </summary>
-	private const string VersionQuery = "PRAGMA user_version;";
-
-	/// <summary>
-	/// Path of the database used in the tests of the leftover copies.
-	/// </summary>
-	private static readonly string DatabaseFilePath = Path.Combine(
-		Path.GetTempPath(),
-		"Database",
-		"DataOrganizer.sqlite");
-
 	/// <summary>
 	/// Creates a file system holding the given copies of the database.
 	/// </summary>

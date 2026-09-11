@@ -380,6 +380,9 @@ internal class DialogServiceTests
 		// Assert
 		ShowSettingsResult result = await showTask;
 
+		// Closed before the assertion, otherwise the host leaks into the following tests.
+		window.Close();
+
 		result.IsSaved
 			.Should()
 			.BeFalse();

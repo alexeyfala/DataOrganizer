@@ -15,6 +15,13 @@ namespace DataOrganizer.UnitTests.Services.Execution;
 [TestFixture(Description = $@"Tests of ""{nameof(ExecutionSandbox)}"" type")]
 internal class ExecutionSandboxTests
 {
+	#region Data
+	/// <summary>
+	/// Path of the sandbox used in the tests.
+	/// </summary>
+	private static readonly string DirectoryPath = Path.Combine(Path.GetTempPath(), "Sandbox");
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// <see cref="ExecutionSandbox.EraseAsync" />: overwrites and deletes the folder left by the previous session.
@@ -126,11 +133,6 @@ internal class ExecutionSandboxTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Path of the sandbox used in the tests.
-	/// </summary>
-	private static readonly string DirectoryPath = Path.Combine(Path.GetTempPath(), "Sandbox");
-
 	/// <summary>
 	/// Creates a file system in which the sandbox exists.
 	/// </summary>

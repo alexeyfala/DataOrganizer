@@ -28,6 +28,13 @@ namespace DataOrganizer.UnitTests.Services.Clipboard;
 [TestFixture(Description = $@"Tests of ""{nameof(ClipboardLogPersistenceCoordinator)}"" type")]
 internal class ClipboardLogPersistenceCoordinatorTests
 {
+	#region Data
+	/// <summary>
+	/// Short debounce used by timing-sensitive tests so a scheduled save fires quickly.
+	/// </summary>
+	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(30.0);
+	#endregion
+
 	#region Methods
 	/// <summary>
 	/// Test that an explicit clear cancels a pending debounced save and erases the journal.
@@ -478,11 +485,6 @@ internal class ClipboardLogPersistenceCoordinatorTests
 	#endregion
 
 	#region Helpers
-	/// <summary>
-	/// Short debounce used by timing-sensitive tests so a scheduled save fires quickly.
-	/// </summary>
-	private static readonly TimeSpan SaveDebounce = TimeSpan.FromMilliseconds(30.0);
-
 	/// <summary>
 	/// Builds a coordinator on a fake clock, capturing every save it schedules, so the debounce can be
 	/// driven and awaited instead of waited out.

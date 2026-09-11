@@ -181,7 +181,7 @@ internal class EnumerableExtensionsTests
 	}
 	#endregion
 
-	#region Helpers
+	#region Nested Types
 	/// <summary>
 	/// Base type for the exact-type filtering test.
 	/// </summary>
